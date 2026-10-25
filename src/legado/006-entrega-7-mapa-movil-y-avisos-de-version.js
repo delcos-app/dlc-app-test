@@ -2,7 +2,7 @@
    DLC OS 2.0 · Entrega 7: mapa, móvil y avisos de versión
    ============================================================ */
 
-let MAPA = null, CAPA = null, MODO_MAPA = false, CAPA_RUTA = null;
+let MODO_MAPA = false, CAPA_RUTA = null;
 
 /* ---------------- barra inferior en móvil ---------------- */
 

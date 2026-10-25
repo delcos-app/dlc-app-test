@@ -8,6 +8,7 @@ import { openMenu } from '../appointment-menu';
 import { isOpen } from '../appointment-state';
 import { editTask } from '../editors/task-editor';
 import { moveAppointment, moveTask, orderByDistance } from './reorder';
+import { newDateAfterAbsent } from '../absent';
 
 function swapWithNeighbour(item: AgendaAppointment, action: 'sube' | 'baja'): void {
   const all = legacyAgenda.dayAppointments() as AgendaAppointment[], open = all.filter(entry => isOpen(entry.estado));
@@ -26,7 +27,7 @@ function cardButton(button: HTMLElement): void {
   if (!item) return;
   if (action === 'mas') openMenu(button, item);
   else if (action === 'visita') { if (yourDayLegacy.canRecordOn(item.fecha)) appointmentLegacy.recordVisit(item.cuenta_id, item.fecha); }
-  else if (action === 'nueva') void appointmentLegacy.newDateAfterAbsent(item);
+  else if (action === 'nueva') void newDateAfterAbsent(item);
   else if (action === 'sube' || action === 'baja') swapWithNeighbour(item, action);
 }
 

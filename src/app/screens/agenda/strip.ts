@@ -12,6 +12,7 @@ import { range } from '../../services/values';
 import { closeMonth, toggleMonth } from './month-calendar';
 import { paintOpenWeek } from './open-week';
 import { stripLoads, weekLoads, withData } from './preload';
+import { openDayMenu } from './day-menu';
 
 const STRIP_DAYS = 14, WEEK_DAYS = 7, MAX_DOTS = 6, DAY_MS = 864e5;
 
@@ -85,7 +86,7 @@ export function bindWeekButton(): void {
 function bindDayOptions(strip: HTMLElement): void {
   strip.querySelectorAll<HTMLElement>('.cdmas').forEach(options => {
     const day = options.closest<HTMLElement>('[data-cf]');
-    const open = (event: Event): void => { event.stopPropagation(); event.preventDefault(); legacyAgendaParts.dayMenu(options, day?.dataset.cf ?? '', Boolean(day?.classList.contains('bloq'))); };
+    const open = (event: Event): void => { event.stopPropagation(); event.preventDefault(); openDayMenu(options, day?.dataset.cf ?? '', Boolean(day?.classList.contains('bloq'))); };
     options.addEventListener('click', open, true);
     options.addEventListener('keydown', event => { if (event.key === 'Enter') open(event); });
   });

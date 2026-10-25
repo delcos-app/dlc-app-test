@@ -5,6 +5,11 @@
  * (see i18n/index.ts), so each company sees its own words.
  */
 import { accounts } from './es/accounts';
+import { access } from './es/access';
+import { agendaMore } from './es/agenda-more';
+import { accountsMap } from './es/accounts-map';
+import { routes } from './es/routes';
+import { orders } from './es/orders';
 import { products } from './es/products';
 import { billing } from './es/billing';
 import { platform } from './es/platform';
@@ -41,6 +46,11 @@ export const es = {
   platform,
   billing,
   products,
+  orders,
+  routes,
+  access,
+  agendaMore,
+  accountsMap,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',

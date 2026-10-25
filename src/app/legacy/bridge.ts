@@ -116,7 +116,6 @@ export const agendaActions = {
   openCentre: (id: string): void => { void fichaCentro(id); },
   newAppointment: (accountId: string, isoDate: string | null): void => { void nuevaCita(accountId, isoDate); },
   planRoute: (list: readonly DueAccount[], button: HTMLElement): void => { void planDesdeLista(list, 'toca', button); },
-  reschedule: (list: readonly PendingAppointment[], title: string, text: string): void => { void reprogramarCitas(list, title, text); },
 };
 
 /** The side panel (#tools) remembers what it shows so it can be painted again after a change. */
@@ -129,7 +128,6 @@ export const sidePanel = {
 export const legacyAgendaParts = {
   mode: (): string => AG_MODO,
   blockedDays: (fromIsoDate: string, days: number): Promise<Record<string, string>> => agBloqueos(fromIsoDate, days),
-  dayMenu: (button: HTMLElement, isoDate: string, blocked: boolean): void => { void menuDiaSemana(button, isoDate, blocked); },
 };
 
 /** What the Agenda data loader needs from legacy: whose agenda, the strip start and the day tasks. */
@@ -217,11 +215,7 @@ export const yourDayLegacy = {
   stopInfo: (): Readonly<Record<string, StopInfo>> => TD_INFO,
   explainWarning: (info: StopInfo): string => explicarAviso(info),
   windowsText: (windows: readonly [number, number][]): string => txtVentanas(windows),
-  workingDay: (): { inicio: number } | null => jornadaActiva(),
-  startWorkingDay: (): void => { void empezarJornada(); },
-  endWorkingDay: (): void => { void terminarJornada(); },
   canRecordOn: (isoDate: string): boolean => puedeRegistrarEnDia(isoDate),
-  originText: (item: object): string => textoOrigenCita(item),
   orderByDistance: (list: readonly object[]): { list: object[]; left: number } => { const ordered = ordenarPorCercania(list); return { list: ordered, left: ordenarPorCercania.fuera ?? 0 }; },
   prepareRouteStops: (isoDate: string): void => { try { prepararParadas(isoDate); } catch { /* the route buttons are optional */ } },
   markTraffic: (): void => { tdMarcaTrafico(); },
@@ -246,8 +240,6 @@ export const appointmentLegacy = {
   navigateTo: (point: [number, number] | null): void => { void navegarA(point); },
   recordVisit: (accountId: string, isoDate: string): void => { VISITA_FECHA = isoDate; void abrirVisita(accountId); },
   openAccountFromCentre: (accountId: string, centre: string | null | undefined): void => { FICHA_CENTRO = centre ?? null; void abrirFicha(accountId); },
-  newDateAfterAbsent: (item: object): Promise<void> => nuevaFechaTrasNoEstaba(item),
-  dayLabel: (isoDate: string): string => diaCita(isoDate),
   lastDayData: (): AgendaAppointment[] | null => (TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data ?? null : null),
   isJoinedDayView: (): boolean => agUnida(),
   /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
@@ -369,7 +361,6 @@ export const accountListLegacy = {
   // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
   filters: (): AccountFilters => F,
   mapMode: (): boolean => MODO_MAPA,
-  paintMap: (): void => { void pintarMapa(); },
   /** The database order key of a column (only the sortable ones). */
   sortKey: (column: string): string | undefined => ORD_DIR[column],
   fieldChips: (state: Record<string, unknown>): { k: string; t: string }[] => clasChips('medico', state),

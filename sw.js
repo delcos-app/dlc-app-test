@@ -2,8 +2,8 @@
    y solo se usa la copia guardada si no hay conexión. Nunca guarda datos.
    v2.350.0: guarda también las dos librerías de fuera que la app necesita (Supabase, para arrancar sin conexión, y Leaflet) y, si
    la red no contesta en 6 s, usa la copia guardada. */
-const CACHE = 'dlc-os-2.413.0';
-const FILES = ['./', './index.html', './app.js?v=2.413.0', './config.js', './manifest.webmanifest',
+const CACHE = 'dlc-os-2.414.0';
+const FILES = ['./', './index.html', './app.js?v=2.414.0', './config.js', './manifest.webmanifest',
                './logo-app.png', './icon-192.png', './icon-512.png', './apple-touch-180.png', './favicon.svg'];
 const CDN = ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'];
 

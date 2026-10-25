@@ -5,7 +5,7 @@
  * tdMarcarPendientes / tdPlegarTareas / tdCompacto and the listeners of legado 091 and 125 (v2.397.0).
  * The day estimate and its stop information (estimarDia, TD_INFO) and the traffic stay in legacy: they are the route domain.
  */
-import { agendaActions, agendaSources, agendaSuggestions, cachedRpc, commercialStates, legacyAgenda, legacyAgendaParts, term, yourDayLegacy } from '../../../legacy/bridge';
+import { agendaSources, agendaSuggestions, cachedRpc, commercialStates, legacyAgenda, legacyAgendaParts, term, yourDayLegacy } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { formatDuration, todayIso } from '../../../services/dates';
 import { formatShortDate } from '../../../services/date-format';
@@ -18,6 +18,9 @@ import { paintTrayButtons } from '../trays';
 import { appointmentCard, nextOf, type DayContext } from './card';
 import { headerHtml, noFitHtml, othersHtml, setCompactButton, workingDayHtml, type DaySummary } from './header';
 import { applyTaskFolding, paintTasks } from './tasks';
+import { openDayMenu } from '../day-menu';
+import { rescheduleAppointments } from '../reschedule';
+import { activeWorkingDay, endWorkingDay, startWorkingDay } from '../working-day';
 
 const COMPACT_KEY = 'delcos-tdcompacto', DEFAULT_LIMIT = 21 * 60, WARNINGS_FOR_BANNER = 3;
 
@@ -44,7 +47,7 @@ function buildContext(data: DayData, estimate: { est: Record<string, number>; fi
     isToday: day === today, isPast, isFutureOrToday: day >= today, mine: mine.length, active: mine.filter(item => !isCancelled(item.estado)).length,
     done: mine.filter(item => isDone(item.estado)).length, absent: mine.filter(item => isAbsent(item.estado)).length, open: open.length,
     end: estimate.fin, overReturn: open.length > 0 && estimate.fin > estimate.tope, withPlace, own: !viewed || agendaSources.isOwnAgenda(),
-    isOwner: agendaSources.isOwnAgenda(), workingDay: yourDayLegacy.workingDay(), compact: compact(), visit,
+    isOwner: agendaSources.isOwnAgenda(), workingDay: activeWorkingDay(), compact: compact(), visit,
   };
   const outside = Object.values(info).filter(stop => stop.llegada !== null && stop.llegada !== undefined && stop.llegada >= limit).length;
   return { context, summary, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
@@ -55,13 +58,13 @@ function on(id: string, action: (event: MouseEvent) => void): void {
 }
 
 function bindHeader(data: DayData, open: readonly DayAppointmentFull[]): void {
-  on('tdempezar', () => { yourDayLegacy.startWorkingDay(); });
-  on('tdterminar', () => { yourDayLegacy.endWorkingDay(); });
-  on('tdrepro', () => { agendaActions.reschedule(open as unknown as PendingAppointment[], t('agenda.yourDay.pendingOf', { date: formatShortDate(data.day) }), t('agenda.yourDay.notVisitedThatDay')); });
+  on('tdempezar', () => { void startWorkingDay(); });
+  on('tdterminar', () => { void endWorkingDay(); });
+  on('tdrepro', () => { void rescheduleAppointments(open, t('agenda.yourDay.pendingOf', { date: formatShortDate(data.day) }), t('agenda.yourDay.notVisitedThatDay')); });
   on('tddiamas', event => {
     event.stopPropagation();
     const stripDay = document.querySelector(`#agcinta [data-cf="${data.day}"]`), button = document.getElementById('tddiamas');
-    if (button) legacyAgendaParts.dayMenu(button, data.day, Boolean(stripDay?.classList.contains('bloq')));
+    if (button) openDayMenu(button, data.day, Boolean(stripDay?.classList.contains('bloq')));
   });
 }
 

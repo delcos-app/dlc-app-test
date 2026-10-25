@@ -6,6 +6,7 @@ import { escapeHtml, formatNumber } from '../../../services/format';
 import { isPresent, range } from '../../../services/values';
 import { hasMenu } from '../appointment-options';
 import { isAbsent, isDone, isOpen, pointOf, statePill } from '../appointment-state';
+import { originText } from '../appointment-origin';
 
 const DAY_MS = 864e5, NEXT_GRACE_MINUTES = 15;
 
@@ -119,7 +120,7 @@ function orderButtons(item: DayAppointmentFull, context: DayContext): string {
 function footHtml(item: DayAppointmentFull, context: DayContext): string {
   const open = isOpen(item.estado), canMove = open && !context.isPast, record = open && yourDayLegacy.canRecordOn(item.fecha);
   const again = isAbsent(item.estado) && !context.isPast;
-  return `<div class="tdu-pie"><span class="tdu-est">${statePill(item.estado)}<span class="sm">${yourDayLegacy.originText(item)}</span></span>
+  return `<div class="tdu-pie"><span class="tdu-est">${statePill(item.estado)}<span class="sm">${originText(item)}</span></span>
         <span class="tdu-ops">${canMove ? orderButtons(item, context) : ''}${hasMenu(item) ? `<button class="btn sec tdmas" type="button" data-td="mas|${item.id}" aria-label="${t('agenda.card.moreActions')}">⋯</button>` : ''}</span>
         ${again ? `<button class="btn sec tdu-reg" type="button" data-td="nueva|${item.id}">${t('agenda.card.newAppointment')}</button>` : ''}
         ${record ? `<button class="btn ${item === context.next ? '' : 'sec'} tdu-reg" type="button" data-td="visita|${item.id}">${t('agenda.card.record', { visit: context.visit })}</button>` : ''}</div>`;

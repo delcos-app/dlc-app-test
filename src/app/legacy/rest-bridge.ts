@@ -1,0 +1,19 @@
+/**
+ * Bridge of Acceso, the last Agenda pieces and the accounts map to the legacy code (kept apart from bridge.ts, which is at its
+ * size limit). The working day key, the traffic and the routes stay in the route domain (Rutas, not migrated yet).
+ */
+export const restLegacy = {
+  appName: (): string => nombreApp(),
+  setSettingsSection: (section: string): void => { CFG_SEC = section; },
+  loadPlan: (): Promise<unknown> => pagoCargarEstado(),
+  plan: (): { en_prueba?: boolean; periodo_fin?: string | null } => PLAN_ACTUAL as { en_prueba?: boolean; periodo_fin?: string | null },
+  setAppVisible: (visible: boolean): void => { APP_VISIBLE = visible; },
+  timetables: (list: readonly { id: string; dias?: Record<string, string | null> | null | undefined }[]): Promise<{ id: string; dias?: Record<string, string | null> | null }[]> => conHorarios(list),
+  reloadHome: (): void => { void cargarInicio(); },
+  workingDayKey: (): string => JKEY(),
+  traffic: (silent: boolean): void => { void tdTrafico(silent); },
+  reloadRoutes: (): void => { void cargarRutas(); },
+  askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => pedirTexto(message, value, options),
+  stateColour: (state: string): string => colEstado(state),
+  leaflet: (): Leaflet | null => (window as unknown as { L?: Leaflet }).L ?? null,
+};

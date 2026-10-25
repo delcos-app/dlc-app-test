@@ -7,6 +7,7 @@ import { accountListLegacy, legacyDb, term } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { paintChips, paintHeader, rowHtml } from './table';
+import { paintMap } from '../map';
 
 interface SearchResult { total: number; filas?: AccountListRow[] }
 
@@ -74,7 +75,7 @@ async function searchWithRetry(mine: number): Promise<{ data: SearchResult | nul
 /** Searches with the active filters (`reset`: back to the first page) and paints the result. */
 export async function searchAccounts(reset = false): Promise<void> {
   syncTypeFilter();
-  if (accountListLegacy.mapMode() && reset) setTimeout(() => { accountListLegacy.paintMap(); }, 10);
+  if (accountListLegacy.mapMode() && reset) setTimeout(() => { void paintMap(); }, 10);
   if (reset) accountListLegacy.filters().pagina = 0;
   const mine = ++lastSearch, list = document.getElementById('lista'), count = document.getElementById('cuenta');
   if (!list || !count) return;

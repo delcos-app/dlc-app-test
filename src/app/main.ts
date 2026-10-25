@@ -8,6 +8,10 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as access from './screens/access';
+import { listenToMapCards } from './screens/accounts/map';
+import * as routes from './screens/routes';
+import * as orders from './screens/orders';
 import * as products from './screens/products';
 import * as billing from './screens/billing';
 import * as platform from './screens/platform';
@@ -46,6 +50,9 @@ export interface DelcosCore {
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly access: typeof access;
+    readonly routes: typeof routes;
+    readonly orders: typeof orders;
     readonly products: typeof products;
     readonly billing: typeof billing;
     readonly platform: typeof platform;
@@ -86,6 +93,9 @@ window.delcos = {
     agenda,
     accounts,
     events,
+    access,
+    routes,
+    orders,
     products,
     billing,
     platform,
@@ -107,6 +117,7 @@ window.delcos = {
 };
 
 listenToSameCentre();
+listenToMapCards(id => { void accounts.openAccountCard(id); });
 listenToYourDay();
 listenToCards();
 listenToColumnResize(paintAccountsHeader);

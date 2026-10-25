@@ -1,43 +1,6 @@
 // servicios/mapas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-async function pintarMapa() {
-  if (!window.L) { $('mapleg').textContent = 'El mapa necesita conexión.'; return; }
-  $('mapleg').textContent = 'Cargando puntos…';
-
-  const { data, error } = await db.rpc('mapa_cuentas', {
-    q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
-    f_estado: F.est || null, f_especialidad: F.esp || null, f_urgentes: !!F.urg
-  });
-  if (error) { $('mapleg').textContent = 'No se ha podido cargar el mapa: ' + error.message; return; }
-
-  if (!MAPA) {
-    MAPA = L.map('mapa', { preferCanvas: true }).setView([41.6, 1.9], 9);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(MAPA);
-  }
-  if (CAPA) CAPA.remove();
-  CAPA = L.layerGroup().addTo(MAPA);
-
-  const puntos = data || [];
-  puntos.forEach(m => {
-    const col = m.urgente && !m.ultima_visita ? '#B42318' : (colEstado(m.estado) || '#6B7F95');
-    L.circleMarker([m.lat, m.lon], {
-      radius: m.urgente ? 7 : 5, color: '#fff', weight: 1.5, fillColor: col, fillOpacity: .92
-    }).addTo(CAPA).bindPopup(
-      `<b>${esc(m.nombre)}</b><br>${esc(m.especialidad || '')}<br>${esc(m.centro || '')} ${esc(m.municipio || '')}<br>
-       <span style="color:${col};font-weight:700">${esc(m.estado)}</span><br>
-       <a href="#" onclick="abrirFicha('${m.id}');return false">Abrir ficha</a>`);
-  });
-
-  if (puntos.length) MAPA.fitBounds(puntos.map(m => [m.lat, m.lon]), { padding: [30, 30] });
-  setTimeout(() => MAPA.invalidateSize(), 60);
-
-  $('mapleg').innerHTML =
-    `<span><i style="background:#B42318"></i>Urgente sin visitar</span>` +
-    ESTADOS_DEF.map(x => `<span><i style="background:${colEstado(x.valor) || '#6B7F95'}"></i>${esc(x.valor)}</span>`).join('') +
-    `<span style="margin-left:auto"><b>${num(puntos.length)}</b> con ubicación de ${num(F.total)} encontrados</span>`;
-}
 
 function enlaceNav(destino, paradas, n = 'google') {
   const d = Array.isArray(destino) ? destino.join(',') : destino;
@@ -160,3 +123,6 @@ async function geocodificar(q, o = {}) {
   if (muni && l.length) return Object.assign({}, l[0], { fuera: lugar(l[0]) || 'otro sitio' });
   return l[0] || null;
 }
+
+// El mapa de Cuentas está en src/app/screens/accounts/map (v2.414.0); el nombre se queda: lo llama «Ver mapa» (legado 006).
+function pintarMapa() { return window.delcos.screens.accounts.paintMap(); }

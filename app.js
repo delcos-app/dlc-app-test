@@ -1,16 +1,16 @@
 (() => {
   var __defProp = Object.defineProperty;
-  var __defNormalProp = (obj, key, value15) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value: value15 }) : obj[key] = value15;
-  var __export = (target, all) => {
-    for (var name in all)
-      __defProp(target, name, { get: all[name], enumerable: true });
+  var __defNormalProp = (obj, key, value18) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value: value18 }) : obj[key] = value18;
+  var __export = (target, all2) => {
+    for (var name in all2)
+      __defProp(target, name, { get: all2[name], enumerable: true });
   };
-  var __publicField = (obj, key, value15) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value15);
+  var __publicField = (obj, key, value18) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value18);
 
   // src/app/core/router.ts
   var MAX_REDIRECTS = 10;
   function createRouter(fallbackRoute) {
-    const routes = /* @__PURE__ */ new Map();
+    const routes2 = /* @__PURE__ */ new Map();
     const redirects = [];
     const hooks = [];
     let current = null;
@@ -21,13 +21,13 @@
         if (next === void 0) break;
         resolved = next;
       }
-      const route = routes.get(resolved);
+      const route = routes2.get(resolved);
       return route && (route.canEnter?.() ?? true) ? resolved : fallbackRoute;
     }
-    async function navigate2(target, ...params) {
-      const context = { from: current, params };
+    async function navigate2(target, ...params2) {
+      const context = { from: current, params: params2 };
       const routeId = resolve(target, context);
-      const route = routes.get(routeId);
+      const route = routes2.get(routeId);
       if (!route) throw new Error(`Unknown route: ${routeId}`);
       current = routeId;
       await route.enter(context);
@@ -38,7 +38,7 @@
     }
     return {
       register: (route) => {
-        routes.set(route.id, route);
+        routes2.set(route.id, route);
       },
       addRedirect: (redirect) => {
         redirects.push(redirect);
@@ -76,15 +76,15 @@
   }
 
   // src/app/services/values.ts
-  function orFallback(value15, fallback) {
-    return value15 === void 0 || value15 === null || value15 === "" ? fallback : value15;
+  function orFallback(value18, fallback) {
+    return value18 === void 0 || value18 === null || value18 === "" ? fallback : value18;
   }
-  function nonZeroOr(value15, fallback) {
-    return value15 === void 0 || value15 === null || value15 === 0 || Number.isNaN(value15) ? fallback : value15;
+  function nonZeroOr(value18, fallback) {
+    return value18 === void 0 || value18 === null || value18 === 0 || Number.isNaN(value18) ? fallback : value18;
   }
   var range = (length) => [...Array(length).keys()];
-  var sum = (values) => values.reduce((total2, value15) => total2 + value15, 0);
-  var isPresent = (value15) => value15 !== null && value15 !== void 0;
+  var sum = (values2) => values2.reduce((total2, value18) => total2 + value18, 0);
+  var isPresent = (value18) => value18 !== null && value18 !== void 0;
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -260,8 +260,8 @@
   var closePageDialog = {
     name: "v2.128 · a window that belongs to the page closes when leaving it",
     before: () => {
-      const dialog4 = document.getElementById("dlg");
-      if (dialog4?.open && (Boolean(dialog4.dataset.fija) || Boolean(dialog4.dataset.depagina))) dialog4.close();
+      const dialog5 = document.getElementById("dlg");
+      if (dialog5?.open && (Boolean(dialog5.dataset.fija) || Boolean(dialog5.dataset.depagina))) dialog5.close();
     }
   };
   var footerMenuMark = {
@@ -353,10 +353,10 @@
     }
   };
   function billingSection() {
-    const map = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(FAC_ULTIMA, "empresa") };
+    const map2 = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(FAC_ULTIMA, "empresa") };
     const section2 = CFG_SEC ?? "";
-    if (!(map[section2] ?? (section2 === "fact" ? map[CFG_SUB ?? ""] : void 0))) return void 0;
-    return orFallback(map[section2 === "fact" ? orFallback(CFG_SUB, "fact") : section2], "empresa");
+    if (!(map2[section2] ?? (section2 === "fact" ? map2[CFG_SUB ?? ""] : void 0))) return void 0;
+    return orFallback(map2[section2 === "fact" ? orFallback(CFG_SUB, "fact") : section2], "empresa");
   }
   var billingSettings = {
     name: "v2.57 · fiscal data, series and VeriFactu open in Facturación",
@@ -663,6 +663,607 @@
       reactivate: "Volver a dar de alta",
       archive: "Dar de baja",
       delete: "Eliminar la ficha"
+    }
+  };
+
+  // src/app/i18n/es/access.ts
+  var access = {
+    strength: {
+      veryWeak: "Muy débil",
+      weak: "Débil",
+      fair: "Aceptable",
+      strong: "Segura",
+      veryStrong: "Muy segura",
+      length: "Al menos 8 caracteres",
+      cases: "Mayúsculas y minúsculas",
+      number: "Algún número",
+      symbol: "Algún símbolo (opcional, la hace más segura)",
+      match: "✓ Coinciden",
+      noMatch: "✗ No coinciden"
+    },
+    activation: {
+      sendNewLink: "Enviarme un enlace nuevo",
+      writeEmail: "Escribe tu correo para enviarte un enlace nuevo.",
+      justSent: "Se acaba de enviar uno: espera un minuto antes de pedir otro.",
+      alreadyActive: "Esa cuenta ya está activada: puede entrar con su correo y contraseña (o usar «Enviar cambio de contraseña»).",
+      couldNotSend: "No se ha podido enviar: {error}",
+      sent: "Correo de activación enviado a {email}. El enlace nuevo sustituye al anterior."
+    },
+    reset: {
+      noEmail: "Ese usuario no tiene correo",
+      text: "Se enviará a {email} un correo para que cree una contraseña nueva.",
+      title: "¿Restablecer la contraseña?",
+      ok: "Enviar correo",
+      couldNotSend: "No se ha podido enviar: {error}",
+      sent: "Correo enviado a {email}"
+    },
+    welcome: {
+      title: "Te damos la bienvenida a delcos",
+      running: "{app} ya está en marcha",
+      trialUntil: " · prueba gratis hasta el {date}",
+      intro: "Tres pasos para empezar con buen pie (los puedes hacer cuando quieras):",
+      importTitle: "Trae tus datos",
+      importText: "Sube tu Excel de {professionals}, centros o clientes y los ordenamos por ti.",
+      teamTitle: "Invita a tu equipo",
+      teamText: "Da acceso a las personas que van a usar delcos, cada una con su rol.",
+      brandTitle: "Pon tu marca",
+      brandText: "Tu logotipo y tu nombre en la plataforma y en los documentos.",
+      trialNote: "Durante la prueba no se cobra nada. Si decides no seguir, date de baja en Organización → Plan y suscripción antes del {date}.",
+      start: "Empezar"
+    }
+  };
+
+  // src/app/i18n/es/agenda-more.ts
+  var agendaMore = {
+    reschedule: {
+      proposal: "Te propongo el próximo día que cada {professional} atiende. Cambia la fecha si quieres o desmarca los que no quieras mover.",
+      move: "Mover",
+      wasOn: " · era el {date}",
+      attends: "Atiende: {days}",
+      noDays: "Sin días de atención conocidos",
+      leave: "Dejarlas como están",
+      moveMarked: "Mover las marcadas",
+      moving: "Moviendo…",
+      oneMoved: "1 cita movida",
+      moved: "{count} citas movidas",
+      noneMoved: "No se ha movido ninguna"
+    },
+    workday: {
+      noOpen: "No tienes citas abiertas hoy. Añade citas o planifica una ruta.",
+      started: "Jornada iniciada",
+      summary: "Tiempo: {time} · Visitadas: {done} de {total}",
+      oneOpen: "\n\nTe queda 1 cita abierta. Al terminar te propongo a qué día moverla.",
+      open: "\n\nTe quedan {count} citas abiertas. Al terminar te propongo a qué día moverlas.",
+      endTitle: "¿Terminar la jornada?",
+      end: "Terminar jornada",
+      ended: "Jornada terminada · {count} visitadas",
+      leftTitle: "Lo que ha quedado pendiente hoy",
+      leftText: "{count} sin visitar"
+    },
+    dayMenu: {
+      newAppointment: "Nueva cita",
+      addOne: "Añadir {professional} a este día",
+      seeDay: "Ver el día",
+      seeDayText: "Abrirlo en «Tu día»",
+      unblock: "Desbloquear el día",
+      unblockText: "Vuelve a estar disponible para planificar",
+      block: "Bloquear el día",
+      blockText: "Vacaciones, formación, congreso… El planificador no lo usará",
+      reason: "Motivo (opcional)",
+      blockTitle: "Bloquear el {date}",
+      blockOk: "Bloquear",
+      couldNotChange: "No se ha podido cambiar",
+      blocked: "Día bloqueado",
+      unblocked: "Día desbloqueado"
+    },
+    absent: {
+      title: "¿Le buscamos otro día?",
+      text: "{name}\n\nEl próximo día que atiende es el {date}.",
+      notNow: "Ahora no",
+      other: "Elegir otra fecha",
+      proposed: "Cita el {date}",
+      whichDay: "¿Qué día?",
+      newTitle: "Nueva cita",
+      create: "Crear cita",
+      origin: "No estaba el {date}",
+      couldNotCreate: "No se ha podido crear la cita",
+      created: "Nueva cita el {date}"
+    },
+    origin: {
+      movedTo: "movida al {day}",
+      comesFrom: "viene del {day}"
+    }
+  };
+
+  // src/app/i18n/es/accounts-map.ts
+  var accountsMap = {
+    needsConnection: "El mapa necesita conexión.",
+    loading: "Cargando puntos…",
+    couldNotLoad: "No se ha podido cargar el mapa: {error}",
+    openCard: "Abrir ficha",
+    urgent: "Urgente sin visitar",
+    found: "{shown} con ubicación de {total} encontrados"
+  };
+
+  // src/app/i18n/es/routes.ts
+  var routes = {
+    list: {
+      title: "Rutas",
+      subtitle: "Tus rutas: créalas paso a paso, revísalas y pásalas a tu agenda",
+      newRoute: "+ Nueva ruta",
+      newRouteCard: "Nueva ruta",
+      newRouteHint: "Elige a quién vas a ver y en qué orden",
+      firstRouteHint: "Tu primera ruta: elige a quién vas a ver, el orden y cuándo. La app calcula las horas.",
+      oneStop: "parada",
+      stops: "paradas",
+      kilometres: " · {km} km",
+      fromTo: "De {start} a {end}",
+      nobodyYet: "Todavía sin nadie",
+      next: " · próxima: {date}",
+      owner: " · de {name}",
+      toAgenda: "Pasar a mi agenda",
+      edit: "Editar",
+      remove: "Eliminar",
+      removeRoute: "Eliminar {name}",
+      see: "Ver",
+      removeText: "Se elimina «{name}». Las citas que ya están en tu agenda no se borran.",
+      removeTitle: "¿Eliminar la ruta?",
+      couldNotRemove: "No se ha podido eliminar",
+      removed: "Ruta eliminada"
+    },
+    when: {
+      none: "Sin fecha fija",
+      oneDay: "Un día concreto",
+      weekly: "Cada {day}",
+      fortnightly: "Cada 15 días, los {day}",
+      monthly: "El {ordinal} {day} de cada mes",
+      /** «El primer lunes de cada mes»… (5 = the last one) */
+      ordinals: "primer,segundo,tercer,cuarto,último",
+      /** Options of «Qué semana del mes» */
+      weeksOfMonth: "La primera,La segunda,La tercera,La cuarta,La última"
+    },
+    name: {
+      newRoute: "Nueva ruta",
+      joiner: " y ",
+      andMore: " y más",
+      withDay: "{day} · {zone}"
+    },
+    sketch: {
+      noLocations: "Sin ubicaciones"
+    },
+    hours: {
+      noLocation: "Sin ubicación",
+      notThatDay: "Ese día no atiende",
+      outOfHours: "Fuera de su horario ({hours})"
+    },
+    wizard: {
+      back: "‹ Mis rutas",
+      nameLabel: "Nombre de la ruta",
+      autoNameHint: "Nombre propuesto con el día y los municipios: puedes cambiarlo",
+      nameHint: "Nombre de la ruta",
+      stepWho: "A quién vas a ver",
+      stepOrder: "Orden y horario",
+      stepWhen: "Vista previa y cuándo"
+    },
+    who: {
+      search: "Busca por nombre, centro o municipio",
+      filters: "Filtros",
+      mine: "Mi cartera",
+      urgent: "Urgentes",
+      attendDay: "Atienden el {day}",
+      neverVisited: "Nunca visitados",
+      searching: "Buscando…",
+      inRoute: "En la ruta",
+      toAdd: "Para añadir",
+      urgentLegend: "Urgente",
+      chosen: '<b id="rnn">{count}</b> elegidos',
+      nextStep: "Siguiente: orden y horario",
+      attends: " · atiende {hours}",
+      notAttending: " · no atiende el {day}",
+      urgentTag: "Urgente",
+      noneWithFilters: "No hay {professionals} con esos filtros."
+    },
+    order: {
+      leaveAt: "Sales a las",
+      backBy: "Vuelves como tarde",
+      noTime: "Sin hora",
+      from: "Desde {place} · horas calculadas para el {date}",
+      yourStart: "tu punto de salida",
+      backToAuto: "Volver al orden automático",
+      auto: "Orden automático",
+      manualText: "Has cambiado el orden a mano.",
+      autoText: "El mejor orden: el más corto que respeta las horas de atención.",
+      howTo: "Usa las flechas para cambiarlo y toca una hora para fijarla.",
+      minutes: "{minutes} min",
+      attends: "Atiende {hours}",
+      attendsShort: "atiende {hours}",
+      fixedTitle: "Hora fijada: toca para cambiarla o quitarla",
+      computedTitle: "Hora calculada: toca para fijarla",
+      up: "Subir",
+      down: "Bajar",
+      remove: "Quitar",
+      stops: "paradas",
+      approx: "aprox.",
+      finish: "terminas",
+      pastBack: " (pasa de tu hora de vuelta)",
+      mapNext: "Lo ves en el mapa en el paso siguiente.",
+      previous: "‹ Atrás",
+      nextStep: "Siguiente: vista previa",
+      timeTitle: "Hora de la visita",
+      cancel: "Cancelar",
+      letAppCompute: "Que la calcule la app",
+      fixTime: "Fijar una hora",
+      fixTimeTitle: "Fijar la hora",
+      timeLabel: "Hora"
+    },
+    preview: {
+      calculating: "Calculando la ruta…",
+      dayTitle: "{date} · así será tu día",
+      savedKeepsAgenda: "Los cambios se guardan en la ruta; las citas que ya están en tu agenda no cambian.",
+      savedInList: "Se guarda en Mis rutas.",
+      save: "Guardar ruta",
+      saveToAgenda: "Guardar y pasar a mi agenda",
+      saveChooseDay: "Guardar y elegir el día",
+      leave: "Sales de {place}",
+      driving: "{minutes} min de coche",
+      lastVisit: "Terminas la última {visit}",
+      straight: "Vista previa en línea recta",
+      streets: 'Por las calles, con tráfico · <b>{km} km</b> · <b>{duration}</b> al volante <span class="rmfuente">Ruta: © TomTom</span>',
+      fallback: "{reason}: vista previa en línea recta",
+      whenTitle: "¿Cuándo la haces?",
+      when: "Cuándo",
+      oneDay: "Un día",
+      weekly: "Cada semana",
+      fortnightly: "Cada 15 días",
+      monthly: "Una vez al mes",
+      noDate: "Sin fecha",
+      day: "Día",
+      weekday: "Día de la semana",
+      weekOfMonth: "Qué semana del mes",
+      startingOn: "Empezando el",
+      savedNoDate: "Se guarda sin fecha: la pasas a tu agenda cuando quieras.",
+      nextDates: " Próximas: {dates}.",
+      couldNotSave: "No se ha podido guardar la ruta",
+      couldNotSaveError: "No se ha podido guardar la ruta: {error}",
+      saved: "Ruta guardada"
+    },
+    agenda: {
+      noLocated: "Esta ruta no tiene {professionals} con ubicación",
+      whichDay: "¿Qué día la haces?",
+      day: "Día",
+      noNextDay: "No hay ningún día próximo para esta ruta",
+      oneAppointment: "cita",
+      appointments: "citas",
+      confirmText: "Se añaden {count} {appointments} cada día, en {days} días: {dates}. Los días bloqueados se saltan y no se repite a nadie que ya tenga cita ese día.",
+      confirmTitle: "Pasar la ruta a tu agenda",
+      add: "Añadir",
+      oneAdded: "cita añadida",
+      added: "citas añadidas",
+      oneBlocked: "día bloqueado",
+      blocked: "días bloqueados",
+      addedText: "{count} {added}",
+      skipped: " · {count} {blocked} sin tocar",
+      couldNotSave: "No se ha podido guardar alguna cita"
+    }
+  };
+
+  // src/app/i18n/es/orders.ts
+  var orders = {
+    page: {
+      salesTitle: "Ventas",
+      salesSubtitle: "Pedidos, unidades e importes",
+      newSale: "+ Nueva venta",
+      channel: "Canal",
+      all: "Todos",
+      saleTo: "Venta {customer}",
+      saleToCentre: "Venta a centro",
+      state: "Estado",
+      confirmed: "Confirmados",
+      drafts: "Borradores",
+      voided: "Anulados",
+      search: "Buscar",
+      searchPlaceholder: "{professional}, {customer} o nº de pedido",
+      tabSales: "Ventas",
+      tabPurchases: "Compras",
+      tabSuppliers: "Proveedores",
+      tabOpportunities: "Oportunidades",
+      newPurchase: "+ Nuevo pedido de compra",
+      newSupplier: "+ Nuevo proveedor"
+    },
+    list: {
+      operations: "Operativa",
+      everything: "Todo",
+      toCollect: "Pendiente de cobro",
+      toPack: "Paquete por preparar",
+      invoiceToSend: "Factura por enviar",
+      origin: "Origen",
+      web: "Por la web",
+      portal: "Portal del centro",
+      others: "Comercial, teléfono o correo",
+      report: "Reporte",
+      reported: "Reportados",
+      notReported: "Sin reportar",
+      loading: "Cargando pedidos…",
+      couldNotLoad: "No se ha podido cargar{error}.",
+      completed: "Pedidos completados",
+      inDraft: " · {count} en borrador",
+      units: "Unidades",
+      byWeb: "Por la web",
+      withoutVat: " · {amount} sin IVA",
+      base: "Base sin IVA",
+      vat: "IVA",
+      total: "Total con IVA",
+      packageReady: "Paquete preparado",
+      packageToPrepare: "Paquete por preparar",
+      paymentReceived: "Pago recibido",
+      paymentPending: "Pago pendiente",
+      invoiceSent: "Factura enviada",
+      invoiceToSendShort: "Factura por enviar",
+      webTag: "Web",
+      portalTag: "Portal",
+      withReceipt: "Con justificante de pago",
+      unattributed: "Sin atribuir",
+      none: "No hay pedidos con estos filtros.",
+      date: "Fecha",
+      customer: "Cliente",
+      salesperson: "Comercial",
+      products: "Productos",
+      unitsShort: "Uds.",
+      baseShort: "Base",
+      totalShort: "Total",
+      state: "Estado",
+      notes: "Notas"
+    },
+    totals: {
+      shipping: "Envío",
+      units: "Unidades",
+      linesSum: "Suma de líneas",
+      generalDiscount: "Descuento general",
+      productsWithoutVat: "Productos sin IVA",
+      serviceWithoutVat: "{name} sin IVA",
+      taxBase: "Base imponible",
+      vatRate: "IVA {rate}%",
+      includesService: "Incluye {name} de {amount} con IVA",
+      total: "Total con IVA"
+    },
+    steps: {
+      voided: "Anulado",
+      awaitingPayment: "Esperando pago",
+      draft: "Borrador",
+      completed: "Completado",
+      toCollect: "Por cobrar",
+      toPack: "Por preparar",
+      toInvoice: "Por facturar",
+      done: "Hecho: {steps}",
+      doneConfirmed: "Confirmado",
+      donePacked: "Preparado",
+      donePaid: "Cobrado",
+      doneInvoiced: "Facturado"
+    },
+    operations: {
+      title: "Operativa",
+      paid: "Cobrado",
+      packed: "Paquete preparado",
+      invoiceEmail: "Email con la factura enviado",
+      paymentEmail: "Email con los datos de pago enviado",
+      onDelivery: " (se cobra al entregar)",
+      freeDelivery: "Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.",
+      reported: "Reportado {professional}",
+      noEmail: "El cliente no tiene email en su ficha.",
+      preparePaymentEmail: "✉️ Preparar email con los datos de pago",
+      couldNotSave: "No se ha podido guardar",
+      paidToast: "Cobrado",
+      paidOnInvoice: " · cobro anotado en la factura",
+      done: "Hecho",
+      unmarked: "Desmarcado",
+      reportedToast: "Reportado",
+      notReportedToast: "Ya no se reporta"
+    },
+    paymentEmail: {
+      title: "Email de pago",
+      sentQuestion: "¿Has enviado el email con los datos de pago?",
+      markSent: "Sí, marcar como enviado",
+      noIban: "Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago",
+      notFound: "No se ha encontrado el pedido",
+      noEmail: "{customer} no tiene email en su ficha",
+      sent: "Datos de pago enviados · el pedido espera al pago en borrador"
+    },
+    sheet: {
+      opening: "Abriendo el pedido…",
+      notFound: "No se ha encontrado el pedido.",
+      title: "Pedido",
+      draftNotice: "Borrador: todavía no cuenta en métricas ni en comisiones.",
+      seeCustomer: "Ver ficha {customer}",
+      code: "· código {code}",
+      salesperson: "Comercial: {name}",
+      lines: "Líneas",
+      noProduct: "Sin producto",
+      units: "{count} uds.",
+      base: "Base {amount}",
+      discount: " (dto. {percent}%)",
+      vat: "IVA {rate}% {amount}",
+      noLines: "Sin líneas.",
+      note: "Nota",
+      deleteDraft: "Eliminar borrador",
+      edit: "Editar",
+      confirm: "Confirmar pedido",
+      editData: "Editar datos",
+      editOrder: "Editar pedido",
+      void: "Anular pedido",
+      deleteText: "El borrador desaparece por completo.",
+      deleteTitle: "¿Eliminar el borrador?",
+      deleteOk: "Eliminar",
+      onlyDrafts: "Solo se pueden eliminar borradores",
+      couldNotDelete: "No se ha podido eliminar",
+      deleted: "Borrador eliminado",
+      paymentNoted: "Se anota el pago como recibido. ",
+      confirmText: "Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.",
+      confirmTitle: "¿Confirmar el pedido?",
+      confirmOk: "Confirmar",
+      couldNotConfirm: "No se ha podido confirmar: {error}",
+      confirmedAndPaid: "Pedido confirmado y cobrado",
+      confirmed: "Pedido confirmado",
+      voidReason: "Motivo de la anulación (opcional)",
+      voidTitle: "¿Anular el pedido?",
+      voidOk: "Anular",
+      voidInvoiced: "Tiene factura: emite antes una rectificativa de toda la factura y marca «Anular también el pedido»",
+      couldNotVoid: "No se ha podido anular: {error}",
+      voided: "Pedido anulado"
+    },
+    payment: {
+      title: "Pago",
+      byWeb: "Pedido por la web",
+      reference: "Referencia del pago",
+      see: "Ver",
+      couldNotOpen: "No se ha podido abrir el justificante"
+    },
+    nonFiscal: {
+      title: "Editar datos del pedido {number}",
+      subtitle: "Solo lo que no es fiscal: las líneas, los importes, el cliente y la fecha no cambian.",
+      note: "Nota",
+      paymentMethod: "Forma de pago",
+      paymentReference: "Referencia del pago",
+      referencePlaceholder: "p. ej. número de la transferencia",
+      invoiceKeeps: "Este pedido ya tiene factura: la factura emitida conserva la forma de pago con la que se hizo.",
+      fillIn: "Rellena «{field}»",
+      couldNotSave: "No se ha podido guardar: {error}",
+      saved: "Datos del pedido guardados"
+    },
+    bankTransfer: {
+      title: "Pago por transferencia",
+      sentOn: "Datos de pago enviados el {date}. El pedido espera en borrador hasta que llegue el pago.",
+      notSent: "Datos de pago sin enviar. El pedido espera en borrador hasta que llegue el pago.",
+      send: "Enviar los datos de pago",
+      sendAgain: "Volver a enviar los datos de pago",
+      noEmail: "{customer} no tiene email en su ficha.",
+      paidConfirm: "Cobrado · confirmar"
+    },
+    distributor: {
+      title: "Distribuidor",
+      fallbackName: "Distribuidor",
+      servedBy: "Lo sirve <b>{name}</b>",
+      customerCode: " · código del cliente <b>{code}</b>",
+      theyInvoice: "lo factura el distribuidor",
+      weInvoice: "lo facturamos nosotros",
+      prepareMail: "Preparar correo al distribuidor",
+      noEmail: "El distribuidor no tiene correo: añádelo en sus datos.",
+      mailPreparedOn: "Correo preparado el {date}",
+      mailNotPrepared: "Correo sin preparar",
+      afterConfirm: "Al confirmarlo podrás preparar el correo al distribuidor.",
+      mailOrder: "Pedido {number} de {app}",
+      mailCustomer: "Cliente: {name}{code}",
+      mailCode: " · código {code}",
+      mailAddress: "Dirección: {address}",
+      invoicedByThem: "Lo factura el distribuidor.",
+      invoicedBy: "Lo factura {app}.",
+      mailNote: "Nota: {note}",
+      mailSubject: "Pedido {number} · {name}"
+    },
+    transfer: {
+      notSent: "Sin enviar",
+      state: "Estado del transfer",
+      download: "Descargar transfer",
+      note: "Nota: {note}",
+      issueQuestion: "Qué ha pasado (falta de stock, dirección, código del cliente…)",
+      issueTitle: "Incidencia en el transfer",
+      noPermission: "No tienes permiso para cambiarlo",
+      couldNotChange: "No se ha podido cambiar{error}",
+      sentOn: "Enviado el {date}",
+      changed: "Transfer: {state}",
+      pdfFailed: "No se ha podido preparar el PDF: {error}",
+      pdfTitle: "Transfer · Pedido {number}",
+      pdfDistributor: "Distribuidor",
+      pdfCustomer: "Cliente",
+      pdfCode: "Código en el distribuidor: {code}",
+      pdfTaxId: "NIF: {id}",
+      pdfProduct: "Producto",
+      pdfReference: "Referencia",
+      pdfBarcode: "Código de barras",
+      pdfUnits: "Uds.",
+      pdfTotal: "Total: {units} unidades"
+    },
+    equipment: {
+      title: "Equipos",
+      oneMissing: "Falta dar de alta 1 equipo de este pedido en el parque instalado.",
+      missing: "Faltan por dar de alta {count} equipos de este pedido en el parque instalado.",
+      registerAll: "Dar de alta los equipos",
+      writeSerials: "Escribe el número de serie de cada unidad.",
+      serialOf: "Nº de serie de la unidad {unit}",
+      serialLabel: "Número de serie de la unidad {unit} de {name}",
+      installedOn: "Instalado el",
+      place: "Ubicación",
+      placePlaceholder: "p. ej. Sala 2",
+      register: "Dar de alta",
+      noAccount: "El pedido no tiene ficha: da de alta los equipos desde la ficha del centro",
+      writeOne: "Escribe al menos un número de serie",
+      noPermission: "No puedes dar de alta equipos de esta ficha",
+      couldNotSave: "No se ha podido guardar: {error}",
+      oneRegistered: "Equipo dado de alta",
+      registered: "{count} equipos dados de alta"
+    },
+    distributors: {
+      loading: "Cargando los distribuidores…",
+      couldNotRead: "No se han podido leer los distribuidores: {error}",
+      hint: "Mayoristas o depósitos que sirven pedidos a vuestros clientes. Al hacer un pedido se elige si lo servís vosotros o uno de ellos; el suyo no descuenta stock de vuestro almacén.",
+      new: "+ Nuevo distribuidor",
+      noLongerUsed: "Que ya no se usan",
+      none: "Todavía no hay distribuidores.",
+      notUsed: "No se usa",
+      noContact: "Sin correo ni teléfono",
+      transfers: "Transfers",
+      edit: "Editar",
+      stopUsing: "Dejar de usar",
+      useAgain: "Volver a usar",
+      stopText: "No saldrá al hacer pedidos nuevos. Los pedidos que ya sirvió siguen diciendo que fue él.",
+      stopTitle: "¿Dejar de usar {name}?",
+      couldNotChange: "No se ha podido cambiar: {error}",
+      notUsedNow: "Ya no se usa",
+      usedAgain: "Se vuelve a usar",
+      newTitle: "Nuevo distribuidor",
+      editTitle: "Editar distribuidor",
+      subtitle: "Mayorista o depósito que sirve pedidos a vuestros clientes",
+      name: "Nombre",
+      namePlaceholder: "p. ej. Cofares",
+      email: "Correo para pedidos",
+      phone: "Teléfono",
+      note: "Nota",
+      notePlaceholder: "Horario de pedidos, persona de contacto…",
+      add: "Añadir",
+      writeName: "Escribe el nombre",
+      badEmail: "El correo no parece válido",
+      couldNotAdd: "No se ha podido añadir: {error}",
+      couldNotSave: "No se ha podido guardar: {error}",
+      added: "Distribuidor añadido",
+      saved: "Guardado"
+    },
+    transfers: {
+      title: "Transfers · {name}",
+      subtitle: "Pedidos que sirve este distribuidor (los 200 últimos)",
+      loading: "Cargando los transfers…",
+      couldNotRead: "No se han podido leer: {error}",
+      notSent: "Sin enviar",
+      sent: "Enviados",
+      accepted: "Aceptados",
+      served: "Servidos",
+      withIssue: "Con incidencia",
+      order: "Pedido",
+      units: "{count} uds",
+      none: "Todavía no hay pedidos de este distribuidor."
+    },
+    alerts: {
+      title: "Avisos de pedidos",
+      subtitle: "Qué avisos quieres ver arriba en Pedidos",
+      toCollect: "Pendientes de cobro",
+      toPack: "Paquetes por preparar",
+      invoicesToSend: "Facturas por enviar",
+      paymentToSend: "Datos de pago por enviar",
+      mandatoryForRole: "Obligatorio para tu rol",
+      byRole: "Obligatorios por rol",
+      byRoleHint: "Los marcados no se pueden ocultar ni quitar.",
+      role: "Rol",
+      mandatoryLabel: "{role}: obligatorio",
+      couldNotSaveMandatory: "No se han podido guardar los obligatorios",
+      saved: "Avisos guardados"
     }
   };
 
@@ -3459,6 +4060,11 @@
     platform,
     billing,
     products,
+    orders,
+    routes,
+    access,
+    agendaMore,
+    accountsMap,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -3609,15 +4215,15 @@
     }
     return typeof node === "string" ? node : void 0;
   }
-  function fill(text2, params) {
+  function fill(text2, params2) {
     return text2.replace(/\{(\w+)\}/g, (whole2, name) => {
-      const value15 = params[name] ?? vocabulary[name];
-      return value15 === void 0 ? whole2 : String(value15);
+      const value18 = params2[name] ?? vocabulary[name];
+      return value18 === void 0 ? whole2 : String(value18);
     });
   }
-  function t(key, params = {}) {
+  function t(key, params2 = {}) {
     const text2 = lookup(catalogs[currentLanguage], key) ?? lookup(es, key) ?? key;
-    return fill(text2, params);
+    return fill(text2, params2);
   }
 
   // src/app/screens/accounts/index.ts
@@ -3627,6 +4233,7 @@
     openAccountCard: () => openAccountCard,
     openColumnsPanel: () => openColumnsPanel,
     paintAccountsHeader: () => paintHeader,
+    paintMap: () => paintMap,
     refreshPortal: () => refreshPortal,
     saveColumns: () => saveColumns,
     searchAccounts: () => searchAccounts
@@ -3634,7 +4241,7 @@
 
   // src/app/legacy/bridge.ts
   var legacyDb = () => db;
-  var callRpc = (name, params = {}) => RPC_ORIG(name, params);
+  var callRpc = (name, params2 = {}) => RPC_ORIG(name, params2);
   var currentScreen = () => TAB;
   var goTo = (screen2) => {
     ir(screen2);
@@ -3643,8 +4250,8 @@
     PEDSEC = section2;
     ir("ventas");
   };
-  function term(word, options2 = {}) {
-    const { number = "s", article = "", capital = "l", adjective, articleCapital = "l" } = options2;
+  function term(word, options3 = {}) {
+    const { number = "s", article = "", capital = "l", adjective, articleCapital = "l" } = options3;
     return adjective === void 0 ? TT(word, number, article, articleCapital, capital) : TT(word, number, article, articleCapital, capital, adjective);
   }
   var permissions = {
@@ -3660,8 +4267,8 @@
   };
   var homeCache = {
     panel: () => KV_INI,
-    setPanel: (value15) => {
-      KV_INI = value15;
+    setPanel: (value18) => {
+      KV_INI = value18;
     },
     charts: () => KV_GRAF
   };
@@ -3671,7 +4278,7 @@
     isCancelled: (state) => citaAnulada(state)
   };
   var icon = (name) => svgIco(ICON_NOM[name] ?? ICON_NOM.info ?? "");
-  var alreadyCounted = (key, values) => plYaContado(key, values);
+  var alreadyCounted = (key, values2) => plYaContado(key, values2);
   var legacyHome = {
     removeOldBlocks: inicioQuitarAntiguo,
     header: inicioCabecera,
@@ -3691,7 +4298,7 @@
     all: () => ESTADOS_DEF,
     color: (state) => EST_COL[state]
   };
-  var cachedRpc = (name, params, key) => rpcCache(name, params, key);
+  var cachedRpc = (name, params2, key) => rpcCache(name, params2, key);
   var timingMark = (step) => {
     marca(step);
   };
@@ -3712,8 +4319,8 @@
     },
     isDayView: () => agN(),
     metrics: () => AG_MET,
-    setMetrics: (value15) => {
-      AG_MET = value15;
+    setMetrics: (value18) => {
+      AG_MET = value18;
     },
     /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
     dayAppointments: () => TD_CITAS,
@@ -3735,23 +4342,17 @@
     },
     planRoute: (list, button2) => {
       void planDesdeLista(list, "toca", button2);
-    },
-    reschedule: (list, title2, text2) => {
-      void reprogramarCitas(list, title2, text2);
     }
   };
   var sidePanel = {
     context: () => HERR_CTX,
-    setContext: (value15) => {
-      HERR_CTX = value15;
+    setContext: (value18) => {
+      HERR_CTX = value18;
     }
   };
   var legacyAgendaParts = {
     mode: () => AG_MODO,
-    blockedDays: (fromIsoDate2, days) => agBloqueos(fromIsoDate2, days),
-    dayMenu: (button2, isoDate, blocked) => {
-      void menuDiaSemana(button2, isoDate, blocked);
-    }
+    blockedDays: (fromIsoDate2, days) => agBloqueos(fromIsoDate2, days)
   };
   var agendaSources = {
     /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
@@ -3835,10 +4436,10 @@
     toast: (message, isError = false) => {
       toast(message, isError);
     },
-    confirm: (message, options2) => preguntar(message, options2),
+    confirm: (message, options3) => preguntar(message, options3),
     choose: (title2, message, buttons) => elegirOpcion(title2, message, buttons),
-    askDate: (message, value15, options2) => pedirFecha(message, value15, options2),
-    askTime: async (title2, value15, ok) => await appVentana({ titulo: title2, ok, campo: { valor: value15, tipo: "time" } })
+    askDate: (message, value18, options3) => pedirFecha(message, value18, options3),
+    askTime: async (title2, value18, ok) => await appVentana({ titulo: title2, ok, campo: { valor: value18, tipo: "time" } })
   };
   var initialsOf = (name) => iniciales(name);
   var reloadAgenda = () => {
@@ -3852,15 +4453,7 @@
     stopInfo: () => TD_INFO,
     explainWarning: (info) => explicarAviso(info),
     windowsText: (windows) => txtVentanas(windows),
-    workingDay: () => jornadaActiva(),
-    startWorkingDay: () => {
-      void empezarJornada();
-    },
-    endWorkingDay: () => {
-      void terminarJornada();
-    },
     canRecordOn: (isoDate) => puedeRegistrarEnDia(isoDate),
-    originText: (item) => textoOrigenCita(item),
     orderByDistance: (list) => {
       const ordered = ordenarPorCercania(list);
       return { list: ordered, left: ordenarPorCercania.fuera ?? 0 };
@@ -3901,8 +4494,6 @@
       FICHA_CENTRO = centre ?? null;
       void abrirFicha(accountId);
     },
-    newDateAfterAbsent: (item) => nuevaFechaTrasNoEstaba(item),
-    dayLabel: (isoDate) => diaCita(isoDate),
     lastDayData: () => TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data ?? null : null,
     isJoinedDayView: () => agUnida(),
     /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
@@ -3946,8 +4537,8 @@
     void pintarRutaBarra();
   } };
   var editorLegacy = {
-    pickAccount: (element2, value15, onPick, placeholder) => {
-      selectorMedico(element2, { valor: value15, alElegir: onPick, ...placeholder ? { placeholder } : {} });
+    pickAccount: (element2, value18, onPick, placeholder) => {
+      selectorMedico(element2, { valor: value18, alElegir: onPick, ...placeholder ? { placeholder } : {} });
     },
     recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
     recentText: (list) => txtReciente(list),
@@ -4032,7 +4623,7 @@
     },
     visitDetails: (visit2) => detTxt(visit2),
     fieldName: (field8) => campoTxt(field8),
-    valueText: (value15) => textoValor(value15),
+    valueText: (value18) => textoValor(value18),
     detailSummary: (detail) => resumenDetalle(detail),
     undo: (id, then) => {
       void deshacerUno(id, then);
@@ -4045,7 +4636,7 @@
       if (!PRODUCTOS.length) await cargarProductos();
       return PRODUCTOS;
     },
-    euros: (value15) => eurI(value15)
+    euros: (value18) => eurI(value18)
   };
   var accessLegacy = {
     connectionInfo: (userId) => {
@@ -4069,21 +4660,18 @@
     // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
     filters: () => F,
     mapMode: () => MODO_MAPA,
-    paintMap: () => {
-      void pintarMapa();
-    },
     /** The database order key of a column (only the sortable ones). */
     sortKey: (column) => ORD_DIR[column],
     fieldChips: (state) => clasChips("medico", state),
     contactsLabel: () => etiquetaContactos(),
     pageSize: () => tamPagina(),
-    paginate: (options2) => {
-      paginador(options2.element, options2.total, options2.page, options2.onPage, options2.onSize);
+    paginate: (options3) => {
+      paginador(options3.element, options3.total, options3.page, options3.onPage, options3.onSize);
     }
   };
   var accountColumnsLegacy = {
     customFields: () => CAMPOS.medico ?? [],
-    fieldText: (field8, value15) => campoTexto(field8, value15),
+    fieldText: (field8, value18) => campoTexto(field8, value18),
     firstName: (name) => nombrePila(name),
     /** Platform access by account (loaded once; null until it arrives). */
     accessOf: () => MED_ACCESO,
@@ -4108,8 +4696,8 @@
   var cycleLegacy = {
     loadSettings: () => cargarAjustes(),
     setting: (key) => AJUSTES[key],
-    setSetting: (key, value15) => {
-      AJUSTES[key] = value15;
+    setSetting: (key, value18) => {
+      AJUSTES[key] = value18;
     },
     openTab: (tab) => {
       PAG_TAB.ciclo = tab;
@@ -4235,12 +4823,12 @@
       LLAMADA_PEND = id;
     },
     /** The account picker; what is typed without choosing is kept in element.__texto. */
-    pickReference: (options2) => {
-      Reflect.set(options2.element, "__texto", options2.freeText);
-      selectorMedico(options2.element, { valor: options2.value, alElegir: options2.onPick, placeholder: options2.placeholder });
+    pickReference: (options3) => {
+      Reflect.set(options3.element, "__texto", options3.freeText);
+      selectorMedico(options3.element, { valor: options3.value, alElegir: options3.onPick, placeholder: options3.placeholder });
     },
-    mountPeriod: (element2, options2) => {
-      montarPeriodo(element2, options2);
+    mountPeriod: (element2, options3) => {
+      montarPeriodo(element2, options3);
     },
     periodOf: (element2) => Reflect.get(element2 ?? {}, "__rango")?.() ?? { desde: null, hasta: null },
     barChart: (items, format) => barrasH(items, format),
@@ -4313,20 +4901,20 @@
 
   // src/app/services/format.ts
   var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value15) {
-    return String(value15 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  function escapeHtml(value18) {
+    return String(value18 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
   }
-  function formatNumber(value15) {
-    return Number(value15 ?? 0).toLocaleString("es");
+  function formatNumber(value18) {
+    return Number(value18 ?? 0).toLocaleString("es");
   }
-  function formatEuros(value15) {
-    return `${Math.round(Number(value15) || 0).toLocaleString("es-ES")} €`;
+  function formatEuros(value18) {
+    return `${Math.round(Number(value18) || 0).toLocaleString("es-ES")} €`;
   }
   function looseText(text2) {
     return String(text2 ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   }
-  function formatCurrency(value15) {
-    return (Number(value15) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  function formatCurrency(value18) {
+    return (Number(value18) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
   }
 
   // src/app/legacy/visit-bridge.ts
@@ -4346,7 +4934,7 @@
     },
     readCopy: (key) => leerCache(key)?.d ?? null,
     resultValues: () => CAT.resultado_visita ?? [],
-    dataField: (value15, key) => campoDato(value15, key),
+    dataField: (value18, key) => campoDato(value18, key),
     signaturePad: (canvas) => padFirma(canvas),
     promotedProducts: () => productosPromocionados(),
     reloadProducts: async () => {
@@ -4375,8 +4963,8 @@
     /** Downloaded material files by id (Productos forgets one when it is removed). */
     materialFiles: () => PRES_DATOS,
     preferences: () => PERFIL.preferencias ?? {},
-    setPreferences: (value15) => {
-      PERFIL.preferencias = value15;
+    setPreferences: (value18) => {
+      PERFIL.preferencias = value18;
     }
   };
 
@@ -4438,7 +5026,7 @@
   }
   function contactRows(account, consultation) {
     const rows = account.nota ? [row("message-circle", `<b>${t("visit.block.notes")}</b> ${escapeHtml(account.nota)}`)] : [];
-    const phones = [account.telefono, consultation?.telefono].filter((phone) => Boolean(phone)).filter((phone, index, all) => all.indexOf(phone) === index);
+    const phones = [account.telefono, consultation?.telefono].filter((phone) => Boolean(phone)).filter((phone, index, all2) => all2.indexOf(phone) === index);
     if (phones.length || account.contacto) {
       rows.push(row("phone", `${phones.map((phone) => `<a href="tel:${escapeHtml(phone.replace(/\s+/g, ""))}"><b>${escapeHtml(phone)}</b></a>`).join(" · ")}
     ${account.contacto ? `<div class="sm">${escapeHtml(account.contacto)}</div>` : ""}`));
@@ -4466,8 +5054,8 @@
 
   // src/app/screens/visit/edit.ts
   var value = (id) => document.getElementById(id)?.value ?? "";
-  function resultButtons(values, marked, negative) {
-    return values.map((result) => `<button type="button" class="opt${negative ? " neg" : ""}" data-res="${escapeHtml(result.valor)}"${negative ? ' data-neg="1"' : ""}
+  function resultButtons(values2, marked, negative) {
+    return values2.map((result) => `<button type="button" class="opt${negative ? " neg" : ""}" data-res="${escapeHtml(result.valor)}"${negative ? ' data-neg="1"' : ""}
       aria-pressed="${String(marked.includes(result.valor))}"><span class="mk"></span>${escapeHtml(result.valor)}</button>`).join("");
   }
   function extraHtml(extra) {
@@ -4622,7 +5210,7 @@
     </div>`;
   }
   function stateHtml(account, salesReps) {
-    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value15) => `<option ${value15 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value15)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
+    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value18) => `<option ${value18 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value18)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
     return `<div class="blk"><h3>${t("accounts.card.stateTitle")}</h3>
       <div>${state}</div>
       ${salesReps.length ? `<div class="sm" style="margin-top:6px">${t("accounts.base.salesRep", { names: salesReps.map(escapeHtml).join(", ") })}</div>` : ""}
@@ -4700,9 +5288,9 @@
   var stillShown = (id) => accountCardLegacy.shownId() === id;
   var fieldsPlace = () => document.getElementById("fzcampos");
   function addBeforeFields(id, blockId, html) {
-    const place = fieldsPlace();
-    if (!place || document.getElementById(blockId) || !stillShown(id)) return null;
-    place.insertAdjacentHTML("beforebegin", html);
+    const place2 = fieldsPlace();
+    if (!place2 || document.getElementById(blockId) || !stillShown(id)) return null;
+    place2.insertAdjacentHTML("beforebegin", html);
     return document.getElementById(blockId);
   }
   function closeCardAnd(open2) {
@@ -4743,8 +5331,8 @@
     professionals: term("medico", { number: "p" }),
     speciality: term("especialidad")
   });
-  var classPill = (value15) => value15 ? `<span class="cicl c${value15}">${value15}</span>` : '<span class="cicl csin">—</span>';
-  var classButtons = (id, value15) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value15 ? "on" : ""}" aria-pressed="${String(letter === value15)}">${letter}</button>`).join("")}</span>`;
+  var classPill = (value18) => value18 ? `<span class="cicl c${value18}">${value18}</span>` : '<span class="cicl csin">—</span>';
+  var classButtons = (id, value18) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value18 ? "on" : ""}" aria-pressed="${String(letter === value18)}">${letter}</button>`).join("")}</span>`;
   var ownerParam = () => permissions.seesEverything() ? cycleState.owner || null : salesTeam.currentUserId();
   var goToTab = (tab) => {
     cycleLegacy.openTab(tab);
@@ -4755,11 +5343,11 @@
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     return `<select id="cicde" aria-label="${t("cycle.whose")}"><option value="">${t("cycle.allTeam")}</option>${salesTeam.members().map((member) => `<option value="${member.id}" ${cycleState.owner === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("")}</select>`;
   }
-  function bindOwner(paint9) {
+  function bindOwner(paint10) {
     const select3 = document.getElementById("cicde");
     if (select3) select3.onchange = () => {
       cycleState.owner = select3.value;
-      void paint9();
+      void paint10();
     };
   }
   var percentOf = (done, goal) => goal ? Math.round(done / goal * 100) : 0;
@@ -4904,8 +5492,8 @@
   function changeLines(entry) {
     const detail = entry.detalle;
     if (entry.accion !== EDIT || !detail || typeof detail !== "object") return `<span class="sm">${escapeHtml(cardSectionsLegacy.detailSummary(detail))}</span>`;
-    const value15 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
-    return Object.entries(detail).filter((pair2) => Array.isArray(pair2[1]) && pair2[1].length === 2).map(([field8, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field8))}: ${value15(before)} → ${value15(after)}</span>`).join("");
+    const value18 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
+    return Object.entries(detail).filter((pair2) => Array.isArray(pair2[1]) && pair2[1].length === 2).map(([field8, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field8))}: ${value18(before)} → ${value18(after)}</span>`).join("");
   }
   function historyRow(entry) {
     const when = new Date(entry.creado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -4986,8 +5574,8 @@
 
   // src/app/screens/accounts/card/sections-base.ts
   async function timetableNotice(id) {
-    const header = document.querySelector("#fbody .fh");
-    if (!stillShown(id) || !header) return;
+    const header2 = document.querySelector("#fbody .fh");
+    if (!stillShown(id) || !header2) return;
     if (!await cardBaseLegacy.missingTimetable(id) || !stillShown(id) || document.getElementById("fhorario")) return;
     document.querySelector("#fbody .fh")?.insertAdjacentHTML("afterend", `<div class="avisoh" id="fhorario">
     <span>${t("accounts.base.timetableMissing")}</span>
@@ -5046,10 +5634,10 @@
     });
     rows.forEach((row4) => {
       if (row4.querySelector("[data-vfotos]")) return;
-      const count2 = counts.get(row4.dataset.vrow ?? "") ?? 0, place = row4.querySelector("span");
-      if (!place || !count2 && !row4.querySelector("[data-editv]")) return;
+      const count2 = counts.get(row4.dataset.vrow ?? "") ?? 0, place2 = row4.querySelector("span");
+      if (!place2 || !count2 && !row4.querySelector("[data-editv]")) return;
       const label = count2 ? count2 === 1 ? t("accounts.card.photo") : t("accounts.card.photos", { count: count2 }) : t("accounts.card.addPhotos");
-      place.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row4.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
+      place2.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row4.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
     });
     document.querySelectorAll("#fbody [data-vfotos]").forEach((button2) => {
       button2.onclick = () => {
@@ -5066,9 +5654,9 @@
     const { data: products3 } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
     const names = new Map((products3 ?? []).map((product) => [product.id, product.nombre]));
     (data ?? []).forEach((visit2) => {
-      const row4 = document.querySelector(`#fbody [data-vrow="${visit2.id}"]`), place = row4?.querySelector("span");
+      const row4 = document.querySelector(`#fbody [data-vrow="${visit2.id}"]`), place2 = row4?.querySelector("span");
       const presented = (visit2.productos ?? []).map((product) => names.get(product)).filter((name) => Boolean(name));
-      if (place && presented.length && !row4?.querySelector(".vprodtx")) place.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
+      if (place2 && presented.length && !row4?.querySelector(".vprodtx")) place2.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
     });
   }
   function visitMaterial(id) {
@@ -5082,8 +5670,8 @@
       }
       const text2 = cardSectionsLegacy.visitDetails(visit2);
       if (!text2) return;
-      const place = button2.parentElement?.querySelector(":scope > span");
-      if (place && !place.querySelector(".vdet")) place.insertAdjacentHTML("beforeend", `<div class="sm vdet">📎 ${escapeHtml(text2)}</div>`);
+      const place2 = button2.parentElement?.querySelector(":scope > span");
+      if (place2 && !place2.querySelector(".vdet")) place2.insertAdjacentHTML("beforeend", `<div class="sm vdet">📎 ${escapeHtml(text2)}</div>`);
     });
     return Promise.resolve();
   }
@@ -5210,9 +5798,9 @@
     });
   }
   function depositText(state) {
-    const lines = (state.lineas ?? []).filter((line2) => line2.unidades > 0), total2 = sum(lines.map((line2) => line2.unidades));
+    const lines2 = (state.lineas ?? []).filter((line2) => line2.unidades > 0), total2 = sum(lines2.map((line2) => line2.unidades));
     if (!state.existe || !total2) return t("accounts.card.depositNone");
-    const productCount = new Set(lines.map((line2) => line2.producto_id)).size, expiring = lines.filter((line2) => relatedLegacy.expiresSoon(line2.caducidad)).length;
+    const productCount = new Set(lines2.map((line2) => line2.producto_id)).size, expiring = lines2.filter((line2) => relatedLegacy.expiresSoon(line2.caducidad)).length;
     const products3 = productCount === 1 ? t("accounts.card.oneProduct") : t("accounts.card.products", { count: productCount });
     const soon = expiring ? ` · <b style="color:var(--warn)">${expiring === 1 ? t("accounts.card.oneBatchExpires") : t("accounts.card.batchesExpire", { count: expiring })}${t("accounts.card.inLessThan60Days")}</b>` : "";
     return t("accounts.card.depositUnits", { units: formatNumber(total2), products: products3 }) + soon;
@@ -5334,7 +5922,7 @@
     ["no_existe", "portal.failures.gone"]
   ]);
   var failureText2 = (result) => t(FAILURES2.get(result?.motivo ?? "") ?? "portal.failures.generic");
-  var shortDateTime = (value15) => new Date(value15).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  var shortDateTime = (value18) => new Date(value18).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   function messageThread(list, fromProfessional) {
     if (!list.length) return `<div class="sm">${t("portal.messages.none")}</div>`;
     return `<div class="hilo">${list.map((message) => `<div class="msj ${message.del_portal === fromProfessional ? "mio" : "suyo"}"><div>${escapeHtml(message.texto)}</div>
@@ -5361,7 +5949,7 @@
   var SHOWN_REQUESTS = 10;
   var MESSAGES_LIMIT = 200;
   var canShow2 = (id, blockId) => !permissions.isProfessionalPortal() && portalLegacy.hasPortal() && stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById(blockId);
-  var shortDateTime2 = (value15) => new Date(value15).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  var shortDateTime2 = (value18) => new Date(value18).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   function requestRow(request2) {
     return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request2.cantidad)} × ${escapeHtml(request2.material)}</b>
         <span class="sm">${t("accounts.portal.requested", { date: shortDateTime2(request2.creado_en) })}${request2.nota ? ` · ${escapeHtml(request2.nota)}` : ""}</span></span>${portalLegacy.materialPill(request2.estado)}
@@ -5390,16 +5978,16 @@
         refreshPortal(id);
       };
     });
-    const send2 = document.getElementById("fpmsgok");
-    if (send2) send2.onclick = async () => {
+    const send3 = document.getElementById("fpmsgok");
+    if (send3) send3.onclick = async () => {
       const text2 = document.getElementById("fpmsgt")?.value.trim() ?? "";
       if (!text2) {
         notices.toast(t("accounts.portal.writeMessage"), true);
         return;
       }
-      send2.disabled = true;
+      send3.disabled = true;
       const { data: result } = await legacyDb().rpc("enviar_mensaje_cuenta", { p_cuenta: id, p_texto: text2 });
-      send2.disabled = false;
+      send3.disabled = false;
       if (!result?.ok) {
         notices.toast(failureText2(result), true);
         return;
@@ -5440,8 +6028,8 @@
     const block4 = document.getElementById("fprodc");
     if (!block4) return;
     const items = [...block4.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
-      const value15 = block4.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
-      return { producto_id: box.dataset.fpcp, precio: value15 === "" ? null : Math.max(0, Number(value15)) };
+      const value18 = block4.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
+      return { producto_id: box.dataset.fpcp, precio: value18 === "" ? null : Math.max(0, Number(value18)) };
     });
     button2.disabled = true;
     const { data: result } = await legacyDb().rpc("guardar_productos_cuenta", { p_cuenta: id, p_items: items });
@@ -5473,9 +6061,9 @@
     const after = document.getElementById("fportal") ?? body2.querySelector("section.fvis");
     if (after) after.insertAdjacentHTML("afterend", html);
     else body2.insertAdjacentHTML("beforeend", html);
-    const save21 = document.getElementById("fpcok");
-    if (save21) save21.onclick = () => {
-      void saveProducts(id, save21);
+    const save25 = document.getElementById("fpcok");
+    if (save25) save25.onclick = () => {
+      void saveProducts(id, save25);
     };
   }
 
@@ -5485,13 +6073,13 @@
     const [{ data: users }, { data: current }] = await Promise.all([legacyDb().rpc("usuarios_lista"), callRpc("responsable_de_cuenta", { p_medico: id })]);
     const select3 = document.getElementById("fcomsel");
     if (!stillShown(id) || !select3) return;
-    const options2 = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
-    select3.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options2}`;
-    const save21 = document.getElementById("fcomok");
-    if (save21) save21.onclick = async () => {
-      save21.disabled = true;
+    const options3 = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
+    select3.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options3}`;
+    const save25 = document.getElementById("fcomok");
+    if (save25) save25.onclick = async () => {
+      save25.disabled = true;
       const { data: result, error } = await legacyDb().rpc("asignar_responsable_cuenta", { p_medico: id, p_usuario: select3.value || null });
-      save21.disabled = false;
+      save25.disabled = false;
       if (error || result?.ok === false) {
         notices.toast(t("accounts.sales.couldNotAssign"), true);
         return;
@@ -5514,8 +6102,8 @@
         cardSectionsLegacy.openPatient(button2.dataset.fmpac ?? "");
       };
     });
-    const all = document.getElementById("fmpactodos");
-    if (all) all.onclick = () => {
+    const all2 = document.getElementById("fmpactodos");
+    if (all2) all2.onclick = () => {
       const urgent = t("accounts.base.urgent"), title2 = document.querySelector("#fbody .fh h2")?.textContent ?? "";
       const name = title2.startsWith(urgent) ? title2.slice(urgent.length).trimStart() : title2;
       document.getElementById("ficha")?.close();
@@ -5543,7 +6131,7 @@
     if (!data?.ok || !stillShown(id) || !sales || document.getElementById("fclientes")) return;
     const figures = [[t("accounts.sales.associated"), data.total], [t("accounts.sales.withOrders"), data.con_pedido], [t("accounts.sales.withoutOrders"), data.sin_pedido]];
     const block4 = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
-    <div class="uper">${figures.map(([label, value15]) => `<div><b>${formatNumber(value15)}</b><span>${label}</span></div>`).join("")}</div>
+    <div class="uper">${figures.map(([label, value18]) => `<div><b>${formatNumber(value18)}</b><span>${label}</span></div>`).join("")}</div>
     ${data.total ? "" : `<div class="sm">${t("accounts.sales.noneAssociated", { patients: term("paciente", { number: "p" }) })}</div>`}</div>`;
     const units2 = document.getElementById("fundades");
     if (units2) units2.insertAdjacentHTML("afterend", block4);
@@ -5631,14 +6219,14 @@
     return `<span class="comchips">${reps.length ? reps.map((rep) => `<span>${escapeHtml(accountColumnsLegacy.firstName(rep.nombre))}</span>`).join("") : `<span class="sin">${t("accounts.columns.unassigned")}</span>`}</span>`;
   }
   function accessCell(row4, onAccessLoaded) {
-    const access = accountColumnsLegacy.accessOf();
-    if (!access) {
+    const access2 = accountColumnsLegacy.accessOf();
+    if (!access2) {
       void accountColumnsLegacy.loadAccess().then(() => {
         if (currentScreen() === "directorio") onAccessLoaded();
       });
       return "";
     }
-    const own = access[row4.id];
+    const own = access2[row4.id];
     if (!own) return `<span class="sm">${t("accounts.columns.noAccess")}</span>`;
     return `<span class="pill ${own.activo ? "p-est" : "p-anu"}">${t(own.activo ? "accounts.columns.withAccess" : "accounts.columns.accessDisabled")}</span>`;
   }
@@ -5659,8 +6247,8 @@
     if (key.startsWith(CUSTOM_PREFIX)) return customCell(row4, key.slice(CUSTOM_PREFIX.length));
     const special = CELLS.get(key);
     if (special) return special(row4);
-    const value15 = row4[key];
-    return `<span class="sm">${escapeHtml(value15 ? String(value15) : "")}</span>`;
+    const value18 = row4[key];
+    return `<span class="sm">${escapeHtml(value18 ? String(value18) : "")}</span>`;
   }
 
   // src/app/screens/accounts/list/columns.ts
@@ -5705,9 +6293,9 @@
     }
   }
   function columnSettings() {
-    const all = columnDefinitions(), everything = permissions.seesEverything(), chosen2 = saved();
-    const settings = chosen2?.length ? [...chosen2] : all.map((column) => ({ k: column.k, on: DEFAULT_ON.includes(column.k) || column.k === SALES_REPS && everything, w: column.w }));
-    all.forEach((column) => {
+    const all2 = columnDefinitions(), everything = permissions.seesEverything(), chosen2 = saved();
+    const settings = chosen2?.length ? [...chosen2] : all2.map((column) => ({ k: column.k, on: DEFAULT_ON.includes(column.k) || column.k === SALES_REPS && everything, w: column.w }));
+    all2.forEach((column) => {
       if (!settings.some((setting) => setting.k === column.k)) settings.push({ k: column.k, on: column.k === SALES_REPS && everything, w: column.w });
     });
     const fields = accountColumnsLegacy.customFields();
@@ -5728,21 +6316,21 @@
   }
   function markSort(head, columns) {
     const [key = "", direction] = String(accountListLegacy.filters().orden || "").split(":");
-    [...head.querySelectorAll(".th")].forEach((header, index) => {
+    [...head.querySelectorAll(".th")].forEach((header2, index) => {
       const column = columns[index], sortKey = column ? accountListLegacy.sortKey(column.k) : void 0;
       if (!column || !sortKey) return;
-      header.dataset.ordk = column.k;
-      header.classList.add("htord");
-      header.title = t("accounts.list.sortBy");
+      header2.dataset.ordk = column.k;
+      header2.classList.add("htord");
+      header2.title = t("accounts.list.sortBy");
       const current = sortKey === key && !((key === "nombre" || key === "reciente") && !direction);
-      header.classList.toggle("ord-asc", current && direction !== "desc");
-      header.classList.toggle("ord-desc", current && direction === "desc");
+      header2.classList.toggle("ord-asc", current && direction !== "desc");
+      header2.classList.toggle("ord-desc", current && direction === "desc");
     });
   }
   function rowHtml(row4, onAccessLoaded) {
     const cells = visibleColumns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row4, column.k, onAccessLoaded)}</span>`).join("");
-    const place = [row4.centro_nombre, row4.municipio].filter(Boolean).join(" · ");
-    const card2 = `<span class="plcard"><b>${row4.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row4.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${cell(row4, "estado_comercial", onAccessLoaded)}</span></span>`;
+    const place2 = [row4.centro_nombre, row4.municipio].filter(Boolean).join(" · ");
+    const card2 = `<span class="plcard"><b>${row4.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row4.nombre ?? "")}</b><span class="plc2">${escapeHtml(place2)}</span><span class="plc3">${cell(row4, "estado_comercial", onAccessLoaded)}</span></span>`;
     return `<button class="trow" data-id="${row4.id}">${cells}${card2}</button>`;
   }
   function paintChips() {
@@ -5751,7 +6339,7 @@
     const filters = accountListLegacy.filters();
     const chips = [
       ...filters.q ? [["q", t("accounts.list.chipSearch", { text: filters.q })]] : [],
-      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value15]) => value15),
+      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value18]) => value18),
       ...filters.urg ? [["urg", t("accounts.list.chipUrgent")]] : [],
       ...filters.mios ? [["mios", t("accounts.list.chipMine")]] : [],
       ...filters.sin ? [["sin", t("accounts.list.chipNeverVisited")]] : []
@@ -5759,9 +6347,106 @@
     box.innerHTML = chips.map(([key, text2]) => `<button class="chip" data-x="${key}">${escapeHtml(text2)} ✕</button>`).join("") + accountListLegacy.fieldChips(filters.campos).map((chip) => `<button class="chip" data-xcp="${escapeHtml(chip.k)}">${escapeHtml(chip.t)} ✕</button>`).join("");
   }
 
+  // src/app/legacy/rest-bridge.ts
+  var restLegacy = {
+    appName: () => nombreApp(),
+    setSettingsSection: (section2) => {
+      CFG_SEC = section2;
+    },
+    loadPlan: () => pagoCargarEstado(),
+    plan: () => PLAN_ACTUAL,
+    setAppVisible: (visible) => {
+      APP_VISIBLE = visible;
+    },
+    timetables: (list) => conHorarios(list),
+    reloadHome: () => {
+      void cargarInicio();
+    },
+    workingDayKey: () => JKEY(),
+    traffic: (silent) => {
+      void tdTrafico(silent);
+    },
+    reloadRoutes: () => {
+      void cargarRutas();
+    },
+    askText: (message, value18, options3) => pedirTexto(message, value18, options3),
+    stateColour: (state) => colEstado(state),
+    leaflet: () => window.L ?? null
+  };
+
+  // src/app/screens/accounts/map/index.ts
+  var URGENT = "#B42318";
+  var NO_STATE = "#6B7F95";
+  var START = [41.6, 1.9];
+  var START_ZOOM = 9;
+  var MAX_ZOOM = 19;
+  var RESIZE_MS = 60;
+  var TILES = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  var map = null;
+  var layer = null;
+  var colourOf = (point) => point.urgente && !point.ultima_visita ? URGENT : restLegacy.stateColour(point.estado) || NO_STATE;
+  function popupHtml(point, colour) {
+    return `<b>${escapeHtml(point.nombre)}</b><br>${escapeHtml(point.especialidad ?? "")}<br>${escapeHtml(point.centro ?? "")} ${escapeHtml(point.municipio ?? "")}<br>
+       <span style="color:${colour};font-weight:700">${escapeHtml(point.estado)}</span><br>
+       <a href="#" data-mapficha="${escapeHtml(point.id)}">${t("accountsMap.openCard")}</a>`;
+  }
+  function legendHtml(found, total2) {
+    const states = commercialStates.all().map((state) => `<span><i style="background:${restLegacy.stateColour(state.valor) || NO_STATE}"></i>${escapeHtml(state.valor)}</span>`).join("");
+    return `<span><i style="background:${URGENT}"></i>${t("accountsMap.urgent")}</span>${states}<span style="margin-left:auto">${t("accountsMap.found", { shown: `<b>${formatNumber(found)}</b>`, total: formatNumber(total2) })}</span>`;
+  }
+  function readyMap(leaflet) {
+    if (!map) {
+      map = leaflet.map("mapa", { preferCanvas: true }).setView(START, START_ZOOM);
+      leaflet.tileLayer(TILES, { maxZoom: MAX_ZOOM, attribution: "© OpenStreetMap" }).addTo(map);
+    }
+    layer?.remove();
+    layer = leaflet.layerGroup().addTo(map);
+    return { map, layer };
+  }
+  async function paintMap() {
+    const legend = document.getElementById("mapleg"), leaflet = restLegacy.leaflet();
+    if (!legend) return;
+    if (!leaflet) {
+      legend.textContent = t("accountsMap.needsConnection");
+      return;
+    }
+    legend.textContent = t("accountsMap.loading");
+    const filters = accountListLegacy.filters();
+    const { data, error } = await legacyDb().rpc("mapa_cuentas", {
+      q: filters.q || null,
+      f_provincia: filters.prov || null,
+      f_municipio: filters.muni || null,
+      f_estado: filters.est || null,
+      f_especialidad: filters.esp || null,
+      f_urgentes: Boolean(filters.urg)
+    });
+    if (error) {
+      legend.textContent = t("accountsMap.couldNotLoad", { error: error.message ?? "" });
+      return;
+    }
+    const points = data ?? [], ready = readyMap(leaflet);
+    points.forEach((point) => {
+      const colour = colourOf(point);
+      leaflet.circleMarker([point.lat, point.lon], { radius: point.urgente ? 7 : 5, color: "#fff", weight: 1.5, fillColor: colour, fillOpacity: 0.92 }).addTo(ready.layer).bindPopup(popupHtml(point, colour));
+    });
+    if (points.length) ready.map.fitBounds(points.map((point) => [point.lat, point.lon]), { padding: [30, 30] });
+    setTimeout(() => {
+      ready.map.invalidateSize();
+    }, RESIZE_MS);
+    legend.innerHTML = legendHtml(points.length, filters.total);
+  }
+  function listenToMapCards(open2) {
+    document.addEventListener("click", (event) => {
+      const link = event.target?.closest("[data-mapficha]");
+      if (!link) return;
+      event.preventDefault();
+      open2(link.dataset.mapficha ?? "");
+    });
+  }
+
   // src/app/screens/accounts/list/search.ts
   var lastSearch = 0;
-  var orNull = (value15) => value15 ? value15 : null;
+  var orNull = (value18) => value18 ? value18 : null;
   var loadingHtml = (text2) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text2)}</span></div>`;
   function searchParams() {
     const filters = accountListLegacy.filters(), size = accountListLegacy.pageSize();
@@ -5832,11 +6517,11 @@
     });
   }
   async function searchWithRetry(mine) {
-    const params = searchParams();
-    let answer = await legacyDb().rpc("buscar_cuentas", params);
+    const params2 = searchParams();
+    let answer = await legacyDb().rpc("buscar_cuentas", params2);
     if (mine !== lastSearch) return null;
     if (answer.error || !answer.data) {
-      answer = await legacyDb().rpc("buscar_cuentas", params);
+      answer = await legacyDb().rpc("buscar_cuentas", params2);
       if (mine !== lastSearch) return null;
     }
     return answer;
@@ -5844,7 +6529,7 @@
   async function searchAccounts(reset = false) {
     syncTypeFilter();
     if (accountListLegacy.mapMode() && reset) setTimeout(() => {
-      accountListLegacy.paintMap();
+      void paintMap();
     }, 10);
     if (reset) accountListLegacy.filters().pagina = 0;
     const mine = ++lastSearch, list = document.getElementById("lista"), count2 = document.getElementById("cuenta");
@@ -5866,10 +6551,10 @@
   function panelHtml(settings) {
     const definitions = columnDefinitions();
     const rows = settings.map((setting, index) => {
-      const column = definitions.find((item) => item.k === setting.k), fixed = Boolean(column?.fixed);
+      const column = definitions.find((item) => item.k === setting.k), fixed2 = Boolean(column?.fixed);
       return `<label class="item" style="cursor:pointer;margin:0">
-          <input type="checkbox" data-con="${index}" ${setting.on ? "checked" : ""} ${fixed ? "disabled" : ""}>
-          <span class="tx"><b>${escapeHtml(column?.t ?? setting.k)}</b>${fixed ? `<span class="sm">${t("accounts.columns.alwaysVisible")}</span>` : ""}</span>
+          <input type="checkbox" data-con="${index}" ${setting.on ? "checked" : ""} ${fixed2 ? "disabled" : ""}>
+          <span class="tx"><b>${escapeHtml(column?.t ?? setting.k)}</b>${fixed2 ? `<span class="sm">${t("accounts.columns.alwaysVisible")}</span>` : ""}</span>
           <span class="kord" style="flex-direction:row">
             <button type="button" class="kmv" data-cmv="${index}|-1" aria-label="${t("accounts.columns.up")}" ${index === 0 ? "disabled" : ""}>${legacyIcons.arrow("arriba")}</button>
             <button type="button" class="kmv" data-cmv="${index}|1" aria-label="${t("accounts.columns.down")}" ${index === settings.length - 1 ? "disabled" : ""}>${legacyIcons.arrow("abajo")}</button></span></label>`;
@@ -5979,6 +6664,7 @@
   // src/app/screens/agenda/index.ts
   var agenda_exports = {};
   __export(agenda_exports, {
+    activeWorkingDay: () => activeWorkingDay,
     applyTaskFolding: () => applyTaskFolding,
     bindWeekButton: () => bindWeekButton,
     changeTime: () => changeTime,
@@ -5986,14 +6672,17 @@
     data: () => preload_exports,
     dueList: () => dueList,
     editTask: () => editTask,
+    endWorkingDay: () => endWorkingDay,
     groupByAttendance: () => groupByAttendance,
     hasMenu: () => hasMenu,
     loadAgenda: () => loadAgenda,
     markQueuedVisits: () => markQueuedVisits,
     metricsHtml: () => metricsHtml,
     newAppointment: () => newAppointment,
+    openDayMenu: () => openDayMenu,
     openMenu: () => openMenu,
     openTray: () => openTray,
+    originText: () => originText,
     paintOpenWeek: () => paintOpenWeek,
     paintSameCentre: () => paintSameCentre,
     paintStrip: () => paintStrip,
@@ -6008,11 +6697,13 @@
     reloadMetrics: () => reloadMetrics,
     renderMonth: () => renderMonth,
     repaintSmoothly: () => repaintSmoothly,
+    rescheduleAppointments: () => rescheduleAppointments,
     runAction: () => runAction,
     saveOrder: () => saveOrder,
     shareWeek: () => shareWeek,
     showAppointment: () => showAppointment,
     showDay: () => showDay,
+    startWorkingDay: () => startWorkingDay,
     toggleMonth: () => toggleMonth
   });
 
@@ -6053,9 +6744,9 @@
   function gridHtml(month, perDay) {
     const today = todayIso(), first = /* @__PURE__ */ new Date(`${month}-01T12:00:00`);
     const blanks = (first.getDay() + 6) % 7, days = Number(lastDayOf(month).slice(8));
-    const header = t("dates.weekdayLetters").split(",").map((letter) => `<span class="agmd">${letter}</span>`).join("");
+    const header2 = t("dates.weekdayLetters").split(",").map((letter) => `<span class="agmd">${letter}</span>`).join("");
     const cells = range(days).map((index) => `${month}-${String(index + 1).padStart(2, "0")}`);
-    return header + "<span></span>".repeat(blanks) + cells.map((day) => dayCell(day, perDay.get(day) ?? 0, today)).join("");
+    return header2 + "<span></span>".repeat(blanks) + cells.map((day) => dayCell(day, perDay.get(day) ?? 0, today)).join("");
   }
   function headerHtml2(month, current) {
     return `<button type="button" class="kmv agmnav" data-agm="-1" aria-label="${t("agenda.month.previous")}">‹</button>
@@ -6106,11 +6797,11 @@
       const grid = fresh.querySelector(".agmesgrid");
       if (grid) grid.innerHTML = gridHtml(target, perDay);
     }
-    const box2 = calendar(), header = box2?.querySelector(".fh");
-    if (!box2 || !header) return;
-    header.classList.add("agmesh");
-    header.innerHTML = headerHtml2(target, current);
-    bindHeader(header, target, current);
+    const box2 = calendar(), header2 = box2?.querySelector(".fh");
+    if (!box2 || !header2) return;
+    header2.classList.add("agmesh");
+    header2.innerHTML = headerHtml2(target, current);
+    bindHeader(header2, target, current);
     bindDays(box2);
   }
   function openMonthPicker(month, anchor) {
@@ -6121,7 +6812,7 @@
     const picker = document.createElement("div");
     picker.className = "agmpop";
     const names = shortMonthNames();
-    const paint9 = () => {
+    const paint10 = () => {
       picker.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="${t("agenda.month.previousYear")}">‹</button><b>${year}</b>
       <button type="button" class="kmv" data-an="1" aria-label="${t("agenda.month.nextYear")}">›</button></div>
       <div class="agmpopg">${names.map((name, index) => {
@@ -6131,7 +6822,7 @@
       picker.querySelectorAll("[data-an]").forEach((button2) => {
         onClick(button2, () => {
           year += Number(button2.dataset.an);
-          paint9();
+          paint10();
         });
       });
       picker.querySelectorAll("[data-mk]").forEach((button2) => {
@@ -6141,7 +6832,7 @@
         });
       });
     };
-    paint9();
+    paint10();
     document.body.appendChild(picker);
     const rect = anchor.getBoundingClientRect(), width = Math.min(PICKER_WIDTH, innerWidth - 20);
     picker.style.width = `${width}px`;
@@ -6180,8 +6871,8 @@
   }
 
   // src/app/screens/agenda/metrics.ts
-  var count = (value15) => formatNumber(value15 ?? 0);
-  var decimal = (value15) => value15 === void 0 || value15 === null ? "0" : String(value15).replace(".", ",");
+  var count = (value18) => formatNumber(value18 ?? 0);
+  var decimal = (value18) => value18 === void 0 || value18 === null ? "0" : String(value18).replace(".", ",");
   function todayFigures(metrics) {
     const day = legacyAgenda.selectedDate(), today = todayIso();
     if (day === today && legacyAgenda.loadedDay() === day) {
@@ -6269,7 +6960,7 @@
       { title: t("agenda.sameCentre.noTimetable"), people: noTimetable }
     ].filter((group) => group.people.length);
   }
-  var toNumber = (value15) => Number(value15);
+  var toNumber = (value18) => Number(value18);
   function isSameCentre(group, appointment) {
     if (isPresent(group.lat) && isPresent(appointment.lat)) {
       return distanceKm([toNumber(group.lat), toNumber(group.lon)], [toNumber(appointment.lat), toNumber(appointment.lon)]) <= NEAR_KM;
@@ -6355,9 +7046,9 @@
   var preloaded = /* @__PURE__ */ new Map();
   var painting = 0;
   var keyOf = (name, from, to, user) => [name, from, to, user ?? ""].join("|");
-  function peekRange(params) {
-    if (!preloaded.size || !params.p_desde || !params.p_hasta) return void 0;
-    return preloaded.get(keyOf("agenda_rango", params.p_desde, params.p_hasta, params.p_usuario));
+  function peekRange(params2) {
+    if (!preloaded.size || !params2.p_desde || !params2.p_hasta) return void 0;
+    return preloaded.get(keyOf("agenda_rango", params2.p_desde, params2.p_hasta, params2.p_usuario));
   }
   function peekBlocked(from, to) {
     return preloaded.get(keyOf("bloq", from, to, agendaSources.ownerId()));
@@ -6403,11 +7094,11 @@
   function applySuggestions(isoDate, suggestions) {
     if (suggestions?.date === isoDate) agendaSources.setSuggestions(isoDate, suggestions);
   }
-  async function withData(loads, paint9) {
+  async function withData(loads, paint10) {
     painting++;
     try {
       await Promise.all(loads.filter(Boolean).map((load3) => Promise.resolve(load3).catch(() => null)));
-      return await paint9();
+      return await paint10();
     } finally {
       setTimeout(() => {
         painting--;
@@ -6417,6 +7108,67 @@
         }
       }, 0);
     }
+  }
+
+  // src/app/screens/agenda/day-menu.ts
+  var EDGE = 10;
+  var GAP = 6;
+  function options(isoDate, blocked) {
+    const coming = isoDate >= todayIso();
+    const block4 = blocked ? ["desbloquear", "agendaMore.dayMenu.unblock", t("agendaMore.dayMenu.unblockText")] : ["bloquear", "agendaMore.dayMenu.block", t("agendaMore.dayMenu.blockText")];
+    return [
+      coming ? ["nueva", "agendaMore.dayMenu.newAppointment", t("agendaMore.dayMenu.addOne", { professional: term("medico", { article: "un" }) })] : null,
+      ["ver", "agendaMore.dayMenu.seeDay", t("agendaMore.dayMenu.seeDayText")],
+      coming ? block4 : null
+    ].filter(isPresent);
+  }
+  function place(menu, button2) {
+    const box = button2.getBoundingClientRect();
+    menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - EDGE, box.bottom + GAP)}px`;
+    menu.style.left = `${Math.max(EDGE, Math.min(window.innerWidth - menu.offsetWidth - EDGE, box.right - menu.offsetWidth))}px`;
+  }
+  async function setBlocked(isoDate, block4) {
+    let reason = null;
+    if (block4) {
+      reason = await restLegacy.askText(t("agendaMore.dayMenu.reason"), "", { titulo: t("agendaMore.dayMenu.blockTitle", { date: formatShortDate(isoDate) }), ok: t("agendaMore.dayMenu.blockOk") });
+      if (reason === null) return;
+    }
+    const { data: result, error } = await callRpc("bloquear_dia", { p_fecha: isoDate, p_motivo: reason, p_usuario: agendaSources.ownerId(), p_bloquear: block4 });
+    if (error || result?.ok === false) {
+      notices.toast(t("agendaMore.dayMenu.couldNotChange"), true);
+      return;
+    }
+    notices.toast(t(block4 ? "agendaMore.dayMenu.blocked" : "agendaMore.dayMenu.unblocked"));
+    reloadAgenda();
+  }
+  function choose(option4, isoDate) {
+    if (option4 === "nueva") {
+      agendaActions.newAppointment("", isoDate);
+      return;
+    }
+    if (option4 === "ver") {
+      agendaState.setSelectedDate(isoDate);
+      agendaState.setMode("dia");
+      reloadAgenda();
+      return;
+    }
+    void setBlocked(isoDate, option4 === "bloquear");
+  }
+  function openDayMenu(button2, isoDate, blocked) {
+    document.querySelectorAll(".tdmenu").forEach((menu2) => {
+      menu2.remove();
+    });
+    const menu = Object.assign(document.createElement("div"), { className: "tdmenu" });
+    Reflect.set(menu, "__t", Date.now());
+    menu.innerHTML = options(isoDate, blocked).map(([key, title2, text2]) => `<button data-dmo="${key}"><b>${escapeHtml(t(title2))}</b><span>${escapeHtml(text2)}</span></button>`).join("");
+    document.body.appendChild(menu);
+    place(menu, button2);
+    menu.querySelectorAll("[data-dmo]").forEach((option4) => {
+      option4.onclick = () => {
+        menu.remove();
+        choose(option4.dataset.dmo ?? "", isoDate);
+      };
+    });
   }
 
   // src/app/screens/agenda/open-week.ts
@@ -6446,17 +7198,17 @@
     return `<span class="semcita nueva" title="${t("agenda.openWeek.proposal", { name: escapeHtml(item.m.nombre) })}${start2 ? ` · ~${start2}` : ""}"><i>~${start2}</i>${escapeHtml(firstName(item.m.nombre))}</span>`;
   }
   function dayColumn(day, data) {
-    const all = (data.perDay[day] ?? []).filter((item) => !NOT_SHOWN.includes(item.estado));
-    const mine = all.filter((item) => item.usuario_id === data.owner), proposed = data.draft?.dias[day] ?? [];
-    const done = all.filter((item) => item.estado === "Visitada").length, date = fromIsoDate(day), reason = data.blocked[day];
+    const all2 = (data.perDay[day] ?? []).filter((item) => !NOT_SHOWN.includes(item.estado));
+    const mine = all2.filter((item) => item.usuario_id === data.owner), proposed = data.draft?.dias[day] ?? [];
+    const done = all2.filter((item) => item.estado === "Visitada").length, date = fromIsoDate(day), reason = data.blocked[day];
     const classes = ["mesdia semdia", day === data.today ? "hoy" : "", date.getDay() === 0 || date.getDay() === 6 ? "finde" : "", reason ? "bloq" : ""].filter(Boolean).join(" ");
     return `<div class="${classes}" data-semdia="${day}" role="button" tabindex="0">
-          <div class="semcab"><b>${date.getDate()}</b>${all.length ? `<span class="mespunto">${done}/${all.length}</span>` : ""}${loadEstimate(day, mine, proposed, data)}
+          <div class="semcab"><b>${date.getDate()}</b>${all2.length ? `<span class="mespunto">${done}/${all2.length}</span>` : ""}${loadEstimate(day, mine, proposed, data)}
             <button class="semmas" data-semmenu="${day}" aria-label="${t("agenda.openWeek.dayOptions", { date: formatShortDate(day) })}" title="${t("agenda.openWeek.dayOptionsTitle")}">⋯</button></div>
           ${reason ? `<span class="sembloq">🚫 ${escapeHtml(reason)}</span>` : ""}
-          <div class="semcitas">${all.slice(0, SHOWN_PER_DAY).map((item) => appointmentChip(item, data)).join("")}
+          <div class="semcitas">${all2.slice(0, SHOWN_PER_DAY).map((item) => appointmentChip(item, data)).join("")}
             ${proposed.map(proposedChip).join("")}
-            ${all.length > SHOWN_PER_DAY ? `<span class="sm">${t("agenda.openWeek.andMore", { count: all.length - SHOWN_PER_DAY })}</span>` : ""}</div>
+            ${all2.length > SHOWN_PER_DAY ? `<span class="sm">${t("agenda.openWeek.andMore", { count: all2.length - SHOWN_PER_DAY })}</span>` : ""}</div>
         </div>`;
   }
   function draftHtml(draft) {
@@ -6512,7 +7264,7 @@
     const menu = target?.closest("[data-semmenu]");
     if (menu) {
       const day = menu.dataset.semmenu ?? "";
-      legacyAgendaParts.dayMenu(menu, day, Boolean(data.blocked[day]));
+      openDayMenu(menu, day, Boolean(data.blocked[day]));
       return;
     }
     if (target?.closest(".semcita.nueva")) return;
@@ -6558,9 +7310,9 @@
       weekPlanner.discardDraft();
       reloadAgenda();
     };
-    const save21 = box.querySelector("#semguardar");
-    if (save21) save21.onclick = () => {
-      weekPlanner.saveDraft(save21);
+    const save25 = box.querySelector("#semguardar");
+    if (save25) save25.onclick = () => {
+      weekPlanner.saveDraft(save25);
     };
     box.querySelectorAll("[data-semdia]").forEach((column) => {
       bindDay(column, data);
@@ -6605,7 +7357,7 @@
     bind2(box, data);
   }
   function paintOpenWeek() {
-    const paint9 = async () => {
+    const paint10 = async () => {
       const strip = document.getElementById("agcinta");
       if (!legacyAgenda.isDayView() || !strip || !stripState.weekOpen() || document.getElementById("agsemexp")) {
         await render();
@@ -6619,7 +7371,7 @@
         if (box) box.style.display = "";
       }
     };
-    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint9) : paint9();
+    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint10) : paint10();
   }
 
   // src/app/screens/agenda/strip.ts
@@ -6645,10 +7397,10 @@
     const dots = items.slice(0, MAX_DOTS).map((item) => `<i class="${dotKind(item, isoDate, today)}"></i>`).join("") + (items.length > MAX_DOTS ? `<em>+${items.length - MAX_DOTS}</em>` : "");
     const count2 = t(items.length === 1 ? "agenda.strip.oneAppointment" : "agenda.strip.appointments", { count: items.length });
     const classes = ["cdia", isoDate === today ? "hoy" : "", isoDate === selected ? "sel" : "", [0, 6].includes(date.getDay()) ? "finde" : "", reason ? "bloq" : ""].filter(Boolean).join(" ");
-    const options2 = isoDate >= today ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t("agenda.strip.dayOptions")}" title="${t("agenda.strip.dayOptions")}">⋯</span>` : "";
+    const options3 = isoDate >= today ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t("agenda.strip.dayOptions")}" title="${t("agenda.strip.dayOptions")}">⋯</span>` : "";
     const letter = t("dates.weekdayLetters").split(",")[(date.getDay() + 6) % 7] ?? "";
     return `<button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ""} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count2}" title="${count2}">
-      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span>${options2}</button>`;
+      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span>${options3}</button>`;
   }
   function weekButtonHtml(open2) {
     const label = t(open2 ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
@@ -6693,15 +7445,15 @@
     };
   }
   function bindDayOptions(strip) {
-    strip.querySelectorAll(".cdmas").forEach((options2) => {
-      const day = options2.closest("[data-cf]");
+    strip.querySelectorAll(".cdmas").forEach((options3) => {
+      const day = options3.closest("[data-cf]");
       const open2 = (event) => {
         event.stopPropagation();
         event.preventDefault();
-        legacyAgendaParts.dayMenu(options2, day?.dataset.cf ?? "", Boolean(day?.classList.contains("bloq")));
+        openDayMenu(options3, day?.dataset.cf ?? "", Boolean(day?.classList.contains("bloq")));
       };
-      options2.addEventListener("click", open2, true);
-      options2.addEventListener("keydown", (event) => {
+      options3.addEventListener("click", open2, true);
+      options3.addEventListener("keydown", (event) => {
         if (event.key === "Enter") open2(event);
       });
     });
@@ -6811,7 +7563,7 @@
       button2.onclick = (event) => {
         event.stopPropagation();
         const day = button2.dataset.agslm ?? "";
-        legacyAgendaParts.dayMenu(button2, day, Boolean(blocked[day]));
+        openDayMenu(button2, day, Boolean(blocked[day]));
       };
     });
     box.querySelectorAll("[data-agsl]").forEach((day) => {
@@ -6856,6 +7608,85 @@
     return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint2) : paint2();
   }
 
+  // src/app/screens/agenda/reschedule.ts
+  async function proposals(list) {
+    const timetables = await restLegacy.timetables(list.map((item) => ({ id: item.cuenta_id ?? "", ..."dias" in item ? { dias: item.dias } : {} })));
+    const days = new Map(timetables.map((entry) => [entry.id, entry.dias ?? {}]));
+    const today = todayIso();
+    return list.map((item) => {
+      const attendance = days.get(item.cuenta_id ?? "") ?? {};
+      return {
+        item,
+        day: appointmentLegacy.nextAttendanceDay(attendance, item.fecha > today ? item.fecha : today),
+        attends: Object.keys(attendance).filter((key) => attendance[key]).join(" ")
+      };
+    });
+  }
+  function rowHtml2(row4, index, today) {
+    const place2 = escapeHtml([row4.item.centro_nombre, row4.item.municipio].filter(Boolean).join(" · "));
+    return `<div class="item" style="cursor:default">
+        <input type="checkbox" data-rpi="${index}" checked aria-label="${t("agendaMore.reschedule.move")}">
+        <span class="tx"><b>${escapeHtml(row4.item.nombre ?? "")}</b>
+          <span class="sm">${place2}${row4.item.fecha < today ? t("agendaMore.reschedule.wasOn", { date: formatShortDate(row4.item.fecha) }) : ""}</span>
+          <span class="sm">${row4.attends ? t("agendaMore.reschedule.attends", { days: escapeHtml(row4.attends) }) : t("agendaMore.reschedule.noDays")}</span></span>
+        <input type="date" data-rpf="${index}" value="${row4.day}" min="${today}"></div>`;
+  }
+  function windowHtml(rows, title2, text2) {
+    const today = todayIso();
+    return `
+      <div class="fh"><div><h2>${escapeHtml(title2)}</h2><div class="sm">${escapeHtml(text2)}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+      <p class="sm">${t("agendaMore.reschedule.proposal", { professional: term("medico") })}</p>
+      <div class="lista reprog" data-nosucio>${rows.map((row4, index) => rowHtml2(row4, index, today)).join("")}</div>
+      <div class="acts" style="justify-content:flex-end">
+        <button class="btn sec" id="rpno">${t("agendaMore.reschedule.leave")}</button>
+        <button class="btn" id="rpok">${t("agendaMore.reschedule.moveMarked")}</button></div>`;
+  }
+  async function moveTicked(body2, rows) {
+    let moved = 0;
+    for (const [index, row4] of rows.entries()) {
+      if (!body2.querySelector(`[data-rpi="${index}"]`)?.checked) continue;
+      const day = body2.querySelector(`[data-rpf="${index}"]`)?.value;
+      if (!day) continue;
+      const { data: result } = await legacyDb().rpc("aplazar_cita", { p_id: row4.item.id, p_fecha: day, p_hora: null, p_origen: "Reprogramada" });
+      if (result?.ok) moved++;
+    }
+    return moved;
+  }
+  var movedText = (count2) => {
+    if (!count2) return t("agendaMore.reschedule.noneMoved");
+    return count2 === 1 ? t("agendaMore.reschedule.oneMoved") : t("agendaMore.reschedule.moved", { count: count2 });
+  };
+  async function rescheduleAppointments(list, title2, text2) {
+    if (!list.length) return false;
+    const rows = await proposals(list);
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return false;
+    return new Promise((resolve) => {
+      body2.innerHTML = windowHtml(rows, title2, text2);
+      const close4 = (moved) => {
+        box.close();
+        resolve(moved);
+      };
+      const leave2 = document.getElementById("rpno");
+      if (leave2) leave2.onclick = () => {
+        close4(false);
+      };
+      const ok = document.getElementById("rpok");
+      if (ok) ok.onclick = async () => {
+        ok.disabled = true;
+        ok.textContent = t("agendaMore.reschedule.moving");
+        const moved = await moveTicked(body2, rows);
+        notices.toast(movedText(moved));
+        close4(moved > 0);
+        reloadAgenda();
+        restLegacy.reloadHome();
+        routeBar.paint();
+      };
+      box.showModal();
+    });
+  }
+
   // src/app/screens/agenda/trays.ts
   var CONTEXT_PREFIX = "agband-";
   var ROUTES_MOUNT_MS = 60;
@@ -6874,8 +7705,8 @@
     return `<div class="agband${inActions ? " agbandin" : ""}" id="agband">` + (due ? `<button type="button" data-agbd="toca">${icon("target")} ${t("agenda.trays.due", { visit: term("visita") })} <b>${due}</b></button>` : "") + (pending ? `<button type="button" class="urg" data-agbd="pend">${icon("circle-alert")} ${pendingLabel} <b>${pending}</b></button>` : "") + "</div>";
   }
   function paintTrayButtons() {
-    const header = document.querySelector("#agcuerpo .tdhead");
-    if (!header) return;
+    const header2 = document.querySelector("#agcuerpo .tdhead");
+    if (!header2) return;
     document.getElementById("agband")?.remove();
     const due = dueList().length, pending = agendaSuggestions.pending().length;
     const actions = document.querySelector("#agcuerpo .tdhead .acts");
@@ -6883,7 +7714,7 @@
     if (!due && !pending) return;
     const html = trayButtonsHtml(due, pending, Boolean(actions));
     if (actions) actions.insertAdjacentHTML("beforeend", html);
-    else header.insertAdjacentHTML("afterend", html);
+    else header2.insertAdjacentHTML("afterend", html);
     document.getElementById("agband")?.querySelectorAll("[data-agbd]").forEach((button2) => {
       button2.onclick = () => {
         openTray(button2.dataset.agbd === "toca" ? "toca" : "pend");
@@ -6938,7 +7769,7 @@
     };
     const reschedule = document.getElementById("agbrepro");
     if (reschedule) reschedule.onclick = () => {
-      agendaActions.reschedule(pending, t("agenda.trays.pending"), t("agenda.trays.notVisited", { count: pending.length }));
+      void rescheduleAppointments(pending, t("agenda.trays.pending"), t("agenda.trays.notVisited", { count: pending.length }));
     };
   }
   function openTray(tray) {
@@ -6959,9 +7790,9 @@
   // src/app/screens/agenda/team.ts
   function selectorHtml() {
     const me = salesTeam.currentUserId(), viewed = agendaState.viewed();
-    const options2 = salesTeam.members().filter((member) => member.id !== me).map((member) => `<option value="${member.id}" ${viewed?.id === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("");
+    const options3 = salesTeam.members().filter((member) => member.id !== me).map((member) => `<option value="${member.id}" ${viewed?.id === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("");
     return `<select id="agvista" aria-label="${t("agenda.team.agendaOf")}" title="${t("agenda.team.seeOthers")}">
-        <option value="">${t("agenda.team.myAgenda")}</option>${options2}</select>`;
+        <option value="">${t("agenda.team.myAgenda")}</option>${options3}</select>`;
   }
   function ensureTeamControls() {
     if (currentScreen() !== "agenda" || !permissions.seesEverything()) return;
@@ -7218,6 +8049,31 @@
   }
   var hasMenu = (item) => menuOptions(item).length > 0;
 
+  // src/app/screens/agenda/appointment-origin.ts
+  var POSTPONED = "Aplazada";
+  var RESCHEDULED = "Reprogramada";
+  function appointmentDay(isoDate) {
+    const date = /* @__PURE__ */ new Date(`${isoDate}T12:00:00`);
+    return `${date.toLocaleDateString(t("dates.locale"), { weekday: "long" })} ${date.getDate()}/${date.getMonth() + 1}`;
+  }
+  function movedTo(item) {
+    if (item.estado !== POSTPONED || !item.aplazada_a_fecha) return null;
+    const state = item.aplazada_a_estado, closed = state && !isOpen(state) && state !== POSTPONED ? ` (${state.toLowerCase()})` : "";
+    return t("agendaMore.origin.movedTo", { day: appointmentDay(item.aplazada_a_fecha) }) + closed;
+  }
+  function comesFrom(item) {
+    if (item.aplazada_de_fecha) {
+      const first = item.origen_inicial && ![POSTPONED, RESCHEDULED].includes(item.origen_inicial) ? [item.origen_inicial] : [];
+      return [t("agendaMore.origin.comesFrom", { day: appointmentDay(item.aplazada_de_fecha) }), ...first];
+    }
+    const ownMove = item.estado === POSTPONED && Boolean(item.aplazada_a_fecha) && item.origen === POSTPONED;
+    return item.origen && !ownMove ? [item.origen] : [];
+  }
+  function originText(item) {
+    const parts = [movedTo(item), ...comesFrom(item)].filter((part) => Boolean(part));
+    return parts.length ? ` · ${escapeHtml(parts.join(" · "))}` : "";
+  }
+
   // src/app/screens/agenda/your-day/card.ts
   var DAY_MS4 = 864e5;
   var NEXT_GRACE_MINUTES = 15;
@@ -7269,7 +8125,7 @@
   }
   function detailLines(item, context) {
     const info = context.info[item.id] ?? {}, warning = warningOf(item, context), action = item.anterior?.proxima_accion;
-    const lines = [
+    const lines2 = [
       action ? ["toca", "toca", t("agenda.card.due", { action: escapeHtml(action) })] : null,
       previousLine(item, context.visit),
       windowsLine(item, info, warning),
@@ -7277,7 +8133,7 @@
       isOpen(item.estado) && !pointOf(item) ? ["aviso", "tdav", t("agenda.card.noLocation")] : null,
       item.nota ? ["nota", "", escapeHtml(item.nota)] : null
     ];
-    return lines.filter((line2) => line2 !== null);
+    return lines2.filter((line2) => line2 !== null);
   }
   function ladderHtml(item, ladder) {
     const level = ladder.findIndex((step) => step.valor === item.estado_comercial);
@@ -7305,7 +8161,7 @@
   function footHtml(item, context) {
     const open2 = isOpen(item.estado), canMove = open2 && !context.isPast, record2 = open2 && yourDayLegacy.canRecordOn(item.fecha);
     const again = isAbsent(item.estado) && !context.isPast;
-    return `<div class="tdu-pie"><span class="tdu-est">${statePill3(item.estado)}<span class="sm">${yourDayLegacy.originText(item)}</span></span>
+    return `<div class="tdu-pie"><span class="tdu-est">${statePill3(item.estado)}<span class="sm">${originText(item)}</span></span>
         <span class="tdu-ops">${canMove ? orderButtons(item, context) : ""}${hasMenu(item) ? `<button class="btn sec tdmas" type="button" data-td="mas|${item.id}" aria-label="${t("agenda.card.moreActions")}">⋯</button>` : ""}</span>
         ${again ? `<button class="btn sec tdu-reg" type="button" data-td="nueva|${item.id}">${t("agenda.card.newAppointment")}</button>` : ""}
         ${record2 ? `<button class="btn ${item === context.next ? "" : "sec"} tdu-reg" type="button" data-td="visita|${item.id}">${t("agenda.card.record", { visit: context.visit })}</button>` : ""}</div>`;
@@ -7316,9 +8172,9 @@
     return isAbsent(state) ? "ausente" : "cerrada";
   }
   function appointmentCard(item, index, context) {
-    const open2 = isOpen(item.estado), mini2 = !open2 && !isDone(item.estado) && !isAbsent(item.estado), lines = detailLines(item, context);
+    const open2 = isOpen(item.estado), mini2 = !open2 && !isDone(item.estado) && !isAbsent(item.estado), lines2 = detailLines(item, context);
     const classes = `tdu ${item === context.next ? "sig" : ""} ${open2 ? "" : "hecha"} ${mini2 ? "tdmini" : ""} tdst-${statusClass(item.estado)}`;
-    const details2 = lines.length ? `<ul class="tdu-dat">${lines.map(([iconName, className, html, title2]) => `<li class="${className}"${title2 ? ` title="${escapeHtml(title2)}"` : ""}>${legacyIcons.line(iconName)}<span>${html}</span></li>`).join("")}</ul>` : "";
+    const details2 = lines2.length ? `<ul class="tdu-dat">${lines2.map(([iconName, className, html, title2]) => `<li class="${className}"${title2 ? ` title="${escapeHtml(title2)}"` : ""}>${legacyIcons.line(iconName)}<span>${html}</span></li>`).join("")}</ul>` : "";
     return `<article class="${classes}" data-tdu="${item.id}" data-tdf="${item.cuenta_id}" tabindex="0" aria-label="${escapeHtml(item.nombre)}">
       ${headHtml(item, index, context)}
       ${ladderHtml(item, context.ladder)}
@@ -7432,37 +8288,90 @@
   function paintTasks(body2, list) {
     document.getElementById("tdtareas")?.remove();
     if (!list?.length) return;
-    const place = document.getElementById("tdnocabe") ?? body2.querySelector(".tdesc, .vacio");
+    const place2 = document.getElementById("tdnocabe") ?? body2.querySelector(".tdesc, .vacio");
     const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t("agenda.tasks.title", { count: list.length })}</div>${list.map((task) => taskRow(task, list)).join("")}</div>`;
-    if (place) place.insertAdjacentHTML("beforebegin", html);
+    if (place2) place2.insertAdjacentHTML("beforebegin", html);
     else body2.insertAdjacentHTML("beforeend", html);
     const block4 = document.getElementById("tdtareas");
     if (block4) bind5(block4);
   }
   function applyTaskFolding() {
-    const block4 = document.getElementById("tdtareas"), header = block4?.querySelector(".tdtcab");
-    if (!block4 || !header) return;
+    const block4 = document.getElementById("tdtareas"), header2 = block4?.querySelector(".tdtcab");
+    if (!block4 || !header2) return;
     block4.classList.toggle("plegadas", folded());
-    header.setAttribute("role", "button");
-    header.tabIndex = 0;
-    header.setAttribute("aria-expanded", String(!folded()));
-    header.title = t(folded() ? "agenda.tasks.show" : "agenda.tasks.hide");
-    if (header.foldBound) return;
-    header.foldBound = true;
-    const toggle = () => {
+    header2.setAttribute("role", "button");
+    header2.tabIndex = 0;
+    header2.setAttribute("aria-expanded", String(!folded()));
+    header2.title = t(folded() ? "agenda.tasks.show" : "agenda.tasks.hide");
+    if (header2.foldBound) return;
+    header2.foldBound = true;
+    const toggle2 = () => {
       try {
         localStorage.setItem(FOLDED_KEY, folded() ? "0" : "1");
       } catch {
       }
       applyTaskFolding();
     };
-    header.onclick = toggle;
-    header.onkeydown = (event) => {
+    header2.onclick = toggle2;
+    header2.onkeydown = (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        toggle();
+        toggle2();
       }
     };
+  }
+
+  // src/app/screens/agenda/working-day.ts
+  var VISITED = "Visitada";
+  var NOT_COUNTED2 = ["Descartada", "Aplazada"];
+  function activeWorkingDay() {
+    let stored = null;
+    try {
+      stored = JSON.parse(localStorage.getItem(restLegacy.workingDayKey()) ?? "null");
+    } catch {
+    }
+    if (stored && stored.fecha !== todayIso()) {
+      localStorage.removeItem(restLegacy.workingDayKey());
+      return null;
+    }
+    return stored;
+  }
+  async function startWorkingDay() {
+    const list = await appointments.ofDay(todayIso());
+    if (!list.some((item) => isOpen(item.estado))) {
+      notices.toast(t("agendaMore.workday.noOpen"), true);
+      return;
+    }
+    localStorage.setItem(restLegacy.workingDayKey(), JSON.stringify({ fecha: todayIso(), inicio: Date.now() }));
+    routeBar.paint();
+    notices.toast(t("agendaMore.workday.started"));
+    agendaState.setMode("dia");
+    agendaState.setSelectedDate(todayIso());
+    if (currentScreen() === "agenda") reloadAgenda();
+    else goTo("agenda");
+    try {
+      if (legacyAgenda.selectedDate() === todayIso()) restLegacy.traffic(true);
+    } catch {
+    }
+  }
+  function endQuestion(day, list, open2) {
+    const done = list.filter((item) => item.estado === VISITED).length, total2 = list.filter((item) => !NOT_COUNTED2.includes(item.estado)).length;
+    const left = open2 === 1 ? t("agendaMore.workday.oneOpen") : t("agendaMore.workday.open", { count: open2 });
+    return t("agendaMore.workday.summary", { time: formatDuration(Date.now() - day.inicio), done, total: total2 }) + (open2 ? left : "");
+  }
+  async function endWorkingDay() {
+    const day = activeWorkingDay();
+    if (!day) return;
+    appLegacy.forgetCache();
+    const list = await appointments.ofDay(todayIso());
+    const open2 = list.filter((item) => isOpen(item.estado)), done = list.filter((item) => item.estado === VISITED).length;
+    if (!await notices.confirm(endQuestion(day, list, open2.length), { titulo: t("agendaMore.workday.endTitle"), ok: t("agendaMore.workday.end") })) return;
+    localStorage.removeItem(restLegacy.workingDayKey());
+    routeBar.paint();
+    notices.toast(t("agendaMore.workday.ended", { count: done }));
+    if (open2.length) await rescheduleAppointments(open2, t("agendaMore.workday.leftTitle"), t("agendaMore.workday.leftText", { count: open2.length }));
+    if (currentScreen() === "agenda") reloadAgenda();
+    if (currentScreen() === "rutas") restLegacy.reloadRoutes();
   }
 
   // src/app/screens/agenda/your-day/index.ts
@@ -7513,7 +8422,7 @@
       withPlace,
       own: !viewed || agendaSources.isOwnAgenda(),
       isOwner: agendaSources.isOwnAgenda(),
-      workingDay: yourDayLegacy.workingDay(),
+      workingDay: activeWorkingDay(),
       compact: compact(),
       visit: visit2
     };
@@ -7526,18 +8435,18 @@
   }
   function bindHeader2(data, open2) {
     on("tdempezar", () => {
-      yourDayLegacy.startWorkingDay();
+      void startWorkingDay();
     });
     on("tdterminar", () => {
-      yourDayLegacy.endWorkingDay();
+      void endWorkingDay();
     });
     on("tdrepro", () => {
-      agendaActions.reschedule(open2, t("agenda.yourDay.pendingOf", { date: formatShortDate(data.day) }), t("agenda.yourDay.notVisitedThatDay"));
+      void rescheduleAppointments(open2, t("agenda.yourDay.pendingOf", { date: formatShortDate(data.day) }), t("agenda.yourDay.notVisitedThatDay"));
     });
     on("tddiamas", (event) => {
       event.stopPropagation();
       const stripDay = document.querySelector(`#agcinta [data-cf="${data.day}"]`), button2 = document.getElementById("tddiamas");
-      if (button2) legacyAgendaParts.dayMenu(button2, data.day, Boolean(stripDay?.classList.contains("bloq")));
+      if (button2) openDayMenu(button2, data.day, Boolean(stripDay?.classList.contains("bloq")));
     });
   }
   async function paintDay() {
@@ -7545,8 +8454,8 @@
     const result = await cachedRpc("agenda_rango", { p_desde: day, p_hasta: day, p_usuario: legacyAgenda.userFilter() }, `agenda-${day}`);
     const body2 = document.getElementById("agcuerpo");
     if (legacyAgenda.selectedDate() !== day || legacyAgendaParts.mode() !== "dia" || !body2) return;
-    const all = result.data ?? [], owner = agendaSources.ownerId();
-    const data = { day, today, mine: all.filter((item) => item.usuario_id === owner), others: all.filter((item) => item.usuario_id !== owner) };
+    const all2 = result.data ?? [], owner = agendaSources.ownerId();
+    const data = { day, today, mine: all2.filter((item) => item.usuario_id === owner), others: all2.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
     const { context, summary: summary4, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
     const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary4.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
@@ -7572,9 +8481,9 @@
       if (!item) return;
       const pending = queued.some((entry) => entry.payload?.p?.cuenta_id === item.cuenta_id);
       if (card2.classList.contains("tdpend") !== pending) card2.classList.toggle("tdpend", pending);
-      const mark = card2.querySelector(".tdpendm");
-      if (pending && !mark) card2.querySelector(".tdu-pie")?.insertAdjacentHTML("afterbegin", `<span class="tdpendm">${t("agenda.yourDay.queued")}</span>`);
-      if (!pending && mark) mark.remove();
+      const mark2 = card2.querySelector(".tdpendm");
+      if (pending && !mark2) card2.querySelector(".tdu-pie")?.insertAdjacentHTML("afterbegin", `<span class="tdpendm">${t("agenda.yourDay.queued")}</span>`);
+      if (!pending && mark2) mark2.remove();
       card2.querySelectorAll('[data-td^="visita|"]').forEach((button2) => {
         if (button2.classList.contains("hide") !== pending) button2.classList.toggle("hide", pending);
       });
@@ -7605,13 +8514,13 @@
     document.addEventListener("click", (event) => {
       const button2 = event.target instanceof Element ? event.target.closest("#tdcompactar") : null;
       if (!button2) return;
-      const value15 = !compact();
+      const value18 = !compact();
       try {
-        localStorage.setItem(COMPACT_KEY, value15 ? "1" : "0");
+        localStorage.setItem(COMPACT_KEY, value18 ? "1" : "0");
       } catch {
       }
       applyCompact();
-      setCompactButton(button2, value15);
+      setCompactButton(button2, value18);
     });
     document.addEventListener("click", (event) => {
       const button2 = event.target instanceof Element ? event.target.closest("[data-tdavi]") : null;
@@ -7642,15 +8551,15 @@
       element2.classList.remove(HIGHLIGHT_CLASS);
     }, HIGHLIGHT_MS);
   }
-  function slideIntoPlace(before, options2) {
+  function slideIntoPlace(before, options3) {
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.querySelectorAll(options2.selector).forEach((element2) => {
-      const id = element2.dataset[options2.key] ?? "";
-      if (options2.touched && id === String(options2.touched)) highlight(element2);
+    document.querySelectorAll(options3.selector).forEach((element2) => {
+      const id = element2.dataset[options3.key] ?? "";
+      if (options3.touched && id === String(options3.touched)) highlight(element2);
       const top = before.get(id);
       if (still || top === void 0) return;
       const shift = top - element2.getBoundingClientRect().top;
-      if (Math.abs(shift) > 1) element2.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: options2.durationMs, easing: EASING });
+      if (Math.abs(shift) > 1) element2.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: options3.durationMs, easing: EASING });
     });
   }
 
@@ -7699,11 +8608,11 @@
     return { summary: t("home.indicators.noneUrgent"), visual: `<div class="kvcalma"><span>${lineIcon('<path d="M20 6 9 17l-5-5"/>')}</span>${t("home.indicators.allUpToDate")}</div>` };
   }
   function weekSummary(week, today) {
-    const { upcoming: upcoming2, days, values, perDay } = week;
+    const { upcoming: upcoming2, days, values: values2, perDay } = week;
     if (upcoming2) {
-      const busiest = values.indexOf(Math.max(...values));
+      const busiest = values2.indexOf(Math.max(...values2));
       const day = days[busiest];
-      return values[busiest] && day ? t("home.indicators.busiestDay", { weekday: weekdayName(day), count: values[busiest] ?? 0 }) : t("home.indicators.freeWeek");
+      return values2[busiest] && day ? t("home.indicators.busiestDay", { weekday: weekdayName(day), count: values2[busiest] ?? 0 }) : t("home.indicators.freeWeek");
     }
     const fourWeeks = sum(range(28).map((i) => perDay.get(addDays(mondayOf(today), -28 + i)) ?? 0)) / 20;
     return t("home.indicators.fourWeekAverage", { average: String(fourWeeks.toFixed(1)).replace(".", ",") });
@@ -7712,14 +8621,14 @@
     const upcoming2 = id === "citas_7d";
     const days = range(7).map((i) => upcoming2 ? addDays(today, i) : addDays(mondayOf(today), i));
     const perDay = countsByDate(charts.por_dia), nextDays = countsByDate(charts.proximos);
-    const values = days.map((day) => (upcoming2 ? nextDays.get(day) : perDay.get(day)) ?? 0);
-    const max = Math.max(1, ...values), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
-    const bars2 = values.map((value15, i) => {
-      const day = days[i] ?? today, height = Math.max(3, value15 / max * 40), x = i * (barWidth + gap), future = !upcoming2 && day > today, isToday = day === today;
+    const values2 = days.map((day) => (upcoming2 ? nextDays.get(day) : perDay.get(day)) ?? 0);
+    const max = Math.max(1, ...values2), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
+    const bars2 = values2.map((value18, i) => {
+      const day = days[i] ?? today, height = Math.max(3, value18 / max * 40), x = i * (barWidth + gap), future = !upcoming2 && day > today, isToday = day === today;
       const fill2 = future ? "#E3EBF3" : isToday ? "var(--sky)" : "var(--navy)";
-      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value15 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
+      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value18 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
     }).join("");
-    return { summary: weekSummary({ upcoming: upcoming2, days, values, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars2}</svg>` };
+    return { summary: weekSummary({ upcoming: upcoming2, days, values: values2, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars2}</svg>` };
   }
   function monthChart(charts, today) {
     const perDay = countsByDate(charts.por_dia), dayOfMonth = Number(today.slice(8, 10)), monthStart = `${today.slice(0, 8)}01`;
@@ -7735,8 +8644,8 @@
     const current = accumulate(monthStart), last = accumulate(toIsoDate(previous));
     if (dayOfMonth < 2) return EMPTY_CHART;
     const max = Math.max(1, ...last, ...current), width = 196, height = 46;
-    const x = (i) => i / (dayOfMonth - 1) * width, y = (value15) => height - value15 / max * height;
-    const line2 = (values) => values.map((value15, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value15).toFixed(1)}`).join("");
+    const x = (i) => i / (dayOfMonth - 1) * width, y = (value18) => height - value18 / max * height;
+    const line2 = (values2) => values2.map((value18, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value18).toFixed(1)}`).join("");
     const end = current[current.length - 1] ?? 0, difference2 = end - (last[last.length - 1] ?? 0);
     return {
       summary: t(difference2 >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference: difference2 }),
@@ -8216,18 +9125,18 @@
     const greeting = section2.querySelector(":scope > .saludo");
     if (!greeting) return null;
     greeting.insertAdjacentHTML("afterend", `<div id="inimos" class="inimos"></div><div class="inikpisb"><button type="button" class="btn sec" id="inikpisver">${t("home.showIndicators")}</button></div>`);
-    const toggle = document.getElementById("inikpisver");
-    if (toggle) {
-      toggle.onclick = () => {
+    const toggle2 = document.getElementById("inikpisver");
+    if (toggle2) {
+      toggle2.onclick = () => {
         const shown5 = !section2.classList.contains("conkpis");
         section2.classList.toggle("conkpis", shown5);
-        toggle.textContent = t(shown5 ? "home.hideIndicators" : "home.showIndicators");
+        toggle2.textContent = t(shown5 ? "home.hideIndicators" : "home.showIndicators");
       };
     }
     return document.getElementById("inimos");
   }
-  function skeletonTile(className, lines) {
-    const rows = [...Array(lines).keys()].map((i) => `<i class="plsk" style="width:${SKELETON_WIDTHS[i % SKELETON_WIDTHS.length] ?? 60}%"></i>`).join("");
+  function skeletonTile(className, lines2) {
+    const rows = [...Array(lines2).keys()].map((i) => `<i class="plsk" style="width:${SKELETON_WIDTHS[i % SKELETON_WIDTHS.length] ?? 60}%"></i>`).join("");
     return `<div class="mt ${className} mtsk"><i class="plsk" style="width:38%"></i>${rows}</div>`;
   }
   function renderSkeleton() {
@@ -8247,8 +9156,8 @@
     const step = (now) => {
       const progress = Math.min(1, (now - start2) / COUNT_DURATION_MS2), eased = 1 - Math.pow(1 - progress, 3);
       figures.forEach((el) => {
-        const euros6 = el.dataset.meur;
-        el.textContent = euros6 === void 0 ? formatNumber(Math.round(Number(el.dataset.mcnt) * eased)) : formatEuros(Number(euros6) * eased);
+        const euros7 = el.dataset.meur;
+        el.textContent = euros7 === void 0 ? formatNumber(Math.round(Number(el.dataset.mcnt) * eased)) : formatEuros(Number(euros7) * eased);
       });
       if (progress < 1) requestAnimationFrame(step);
     };
@@ -8437,6 +9346,37 @@
     await repaintSmoothly();
   }
 
+  // src/app/screens/agenda/absent.ts
+  async function chooseDay(item, proposed) {
+    const option4 = await notices.choose(t("agendaMore.absent.title"), t("agendaMore.absent.text", { name: item.nombre, date: formatLongDate(proposed) }), [
+      { k: "no", t: t("agendaMore.absent.notNow"), cls: "sec" },
+      { k: "otra", t: t("agendaMore.absent.other"), cls: "sec" },
+      { k: "prop", t: t("agendaMore.absent.proposed", { date: formatShortDate(proposed) }) }
+    ]);
+    if (!option4 || option4 === "no") return null;
+    if (option4 !== "otra") return proposed;
+    return notices.askDate(t("agendaMore.absent.whichDay"), proposed, { titulo: t("agendaMore.absent.newTitle"), ok: t("agendaMore.absent.create") });
+  }
+  async function newDateAfterAbsent(appointment) {
+    const item = appointment;
+    const day = await chooseDay(item, appointmentLegacy.nextAttendanceDay(item.dias, item.fecha));
+    if (!day) return;
+    const { data: result, error } = await legacyDb().rpc("guardar_cita", { p: {
+      cuenta_id: item.cuenta_id,
+      fecha: day,
+      centro_nombre: item.centro_nombre,
+      estado: "Planificada",
+      origen: t("agendaMore.absent.origin", { date: formatShortDate(item.fecha) }),
+      op_id: `ne-${item.id}-${day}`
+    } });
+    if (error || result?.ok === false) {
+      notices.toast(t("agendaMore.absent.couldNotCreate"), true);
+      return;
+    }
+    notices.toast(t("agendaMore.absent.created", { date: formatShortDate(day) }));
+    refreshQuietly();
+  }
+
   // src/app/screens/agenda/appointment-actions.ts
   var refresh = (item) => {
     refreshQuietly(item.id);
@@ -8497,7 +9437,7 @@
     }
     notices.toast(t("agenda.actions.noted", { result }));
     refresh(item);
-    await appointmentLegacy.newDateAfterAbsent(item);
+    await newDateAfterAbsent(item);
   }
   async function planAgain(item) {
     const { data: result, error } = await legacyDb().rpc("reabrir_cita", { p_id: item.id });
@@ -8522,7 +9462,7 @@
     borrar: remove2,
     aplazar: postpone,
     noestaba: absent,
-    nueva: (item) => appointmentLegacy.newDateAfterAbsent(item),
+    nueva: (item) => newDateAfterAbsent(item),
     rehacer: planAgain
   };
   async function runAction(action, item) {
@@ -8575,8 +9515,8 @@
     document.querySelectorAll(".tdmenu").forEach((menu2) => {
       menu2.remove();
     });
-    const options2 = menuOptions(item);
-    if (!options2.length) {
+    const options3 = menuOptions(item);
+    if (!options3.length) {
       notices.toast(t("agenda.menu.alreadyClosed"));
       return;
     }
@@ -8584,7 +9524,7 @@
     menu.className = "tdmenu";
     menu.__t = Date.now();
     const danger = (action) => action === "descartar" || action === "borrar";
-    menu.innerHTML = options2.map((entry) => `<button data-tdop="${entry.action}" class="${danger(entry.action) ? "peligro" : ""}"><b>${escapeHtml(entry.title)}</b>${entry.detail ? `<span>${escapeHtml(entry.detail)}</span>` : ""}</button>`).join("");
+    menu.innerHTML = options3.map((entry) => `<button data-tdop="${entry.action}" class="${danger(entry.action) ? "peligro" : ""}"><b>${escapeHtml(entry.title)}</b>${entry.detail ? `<span>${escapeHtml(entry.detail)}</span>` : ""}</button>`).join("");
     document.body.appendChild(menu);
     const rect = button2.getBoundingClientRect();
     menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - 10, rect.bottom + 6)}px`;
@@ -8610,9 +9550,9 @@
     if (!windows.length) return t("agenda.sheet.notAttending");
     return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
   }
-  var row2 = (label, value15) => `<div class="vcfila"><span>${label}</span><b>${value15}</b></div>`;
+  var row2 = (label, value18) => `<div class="vcfila"><span>${label}</span><b>${value18}</b></div>`;
   function dataHtml(item, info) {
-    const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText2(item, info), origin = yourDayLegacy.originText(item);
+    const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText2(item, info), origin = originText(item);
     return `<div class="vcdatos">
       ${row2(t("agenda.sheet.when"), `${escapeHtml(capitalise(formatLongDate(item.fecha)))} · ${escapeHtml(timeText2(item, info))}`)}
       ${row2(t("agenda.sheet.where"), escapeHtml(where || t("agenda.sheet.noCentre")))}
@@ -8626,7 +9566,7 @@
     <span id="vccomo"></span> ${t(hasMenu(item) ? "agenda.sheet.closedReopen" : "agenda.sheet.closedFinal")}</div>`;
   }
   function goToButton(day, label, id, item) {
-    return day && day !== item.fecha ? `<button type="button" class="btn sec" id="${id}" data-vcdia="${day}">${escapeHtml(t(label, { day: appointmentLegacy.dayLabel(day) }))}</button>` : "";
+    return day && day !== item.fecha ? `<button type="button" class="btn sec" id="${id}" data-vcdia="${day}">${escapeHtml(t(label, { day: appointmentDay(day) }))}</button>` : "";
   }
   function buttonsHtml(item) {
     const open2 = isOpen(item.estado), today = todayIso();
@@ -8659,26 +9599,26 @@
   };
   async function saveNotes(item, notes2, button2) {
     button2.disabled = true;
-    const value15 = notes2.value.trim();
-    const { error } = await legacyDb().from("agenda").update({ nota: value15 || null }).eq("id", item.id);
+    const value18 = notes2.value.trim();
+    const { error } = await legacyDb().from("agenda").update({ nota: value18 || null }).eq("id", item.id);
     if (error) {
       button2.disabled = false;
       notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    item.nota = value15;
+    item.nota = value18;
     close();
     notices.toast(t("agenda.sheet.notesSaved"));
     refreshQuietly(item.id, false);
   }
   function bind6(body2, item) {
-    const notes2 = body2.querySelector("#vcnota"), save21 = body2.querySelector("#vcok");
-    if (notes2 && save21) {
+    const notes2 = body2.querySelector("#vcnota"), save25 = body2.querySelector("#vcok");
+    if (notes2 && save25) {
       notes2.oninput = () => {
-        save21.disabled = notes2.value.trim() === (item.nota ?? "").trim();
+        save25.disabled = notes2.value.trim() === (item.nota ?? "").trim();
       };
-      save21.onclick = () => {
-        void saveNotes(item, notes2, save21);
+      save25.onclick = () => {
+        void saveNotes(item, notes2, save25);
       };
     }
     const on4 = (id, action) => {
@@ -8716,10 +9656,10 @@
   function fillVisitResult(item) {
     if (!isDone(item.estado) || !item.cuenta_id) return;
     legacyDb().from("actividades").select("resultados, hora").eq("cuenta_id", item.cuenta_id).eq("fecha", item.fecha).limit(1).then(({ data }) => {
-      const visit2 = data?.[0], place = document.getElementById("vccomo");
-      if (!visit2 || !place) return;
+      const visit2 = data?.[0], place2 = document.getElementById("vccomo");
+      if (!visit2 || !place2) return;
       const results = Array.isArray(visit2.resultados) ? visit2.resultados.filter(Boolean).join(", ") : visit2.resultados ?? "";
-      place.textContent = t("agenda.sheet.recorded", { visit: term("visita"), time: visit2.hora ? t("agenda.sheet.recordedAt", { time: String(visit2.hora).slice(0, 5) }) : "", results: results ? `: ${results}` : "" });
+      place2.textContent = t("agenda.sheet.recorded", { visit: term("visita"), time: visit2.hora ? t("agenda.sheet.recordedAt", { time: String(visit2.hora).slice(0, 5) }) : "", results: results ? `: ${results}` : "" });
     }, () => void 0);
   }
   function showAppointment(item) {
@@ -8751,7 +9691,7 @@
     const preferred = editorLegacy.centreFromCard() ?? (list.find((item) => item.principal) ?? list[0])?.centro_nombre;
     box.innerHTML = `<label for="ncc">${t("agenda.editor.centre")}</label><select id="ncc">${list.map((item) => `<option value="${escapeHtml(item.centro_nombre)}" ${item.centro_nombre === preferred ? "selected" : ""}>${escapeHtml([item.centro_nombre, item.municipio].filter(Boolean).join(" · "))}</option>`).join("")}</select>`;
   }
-  function windowHtml(day) {
+  function windowHtml2(day) {
     return `
     <div class="fh"><div><h2>${t("agenda.editor.newTitle")}</h2><div class="sm">${t("agenda.editor.newSubtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -8835,7 +9775,7 @@
     const main = draft.consultations.find((item) => item.principal) ?? draft.consultations[0];
     return [inputValue("ncc"), main?.centro_nombre, picked.centro_nombre, picked.centro].find((name) => Boolean(name)) ?? null;
   }
-  async function write(picked, draft, options2) {
+  async function write(picked, draft, options3) {
     const day = inputValue("ncf"), inAgenda = currentScreen() === "agenda";
     return appointmentLegacy.write("guardar_cita", { p: {
       cuenta_id: picked.id,
@@ -8843,13 +9783,13 @@
       hora: inputValue("nch") || null,
       centro_nombre: centreOf(draft, picked),
       estado: STATES4.planned,
-      origen: orFallback(options2.origen, inAgenda ? "Agenda" : "Ficha"),
+      origen: orFallback(options3.origen, inAgenda ? "Agenda" : "Ficha"),
       usuario_id: editorLegacy.viewedUserId(),
       nota: inputValue("ncn").trim(),
       op_id: `c-${picked.id}-${day}-${Date.now()}`
     } });
   }
-  async function save2(draft, options2, button2) {
+  async function save2(draft, options3, button2) {
     const picked = draft.picked;
     if (!picked) {
       notices.toast(t("agenda.editor.choose", { professional: term("medico", { article: "un" }) }), true);
@@ -8858,7 +9798,7 @@
     const day = inputValue("ncf"), time = inputValue("nch");
     if (!await sameDayDecision(picked.id, day) || !await recentDecision(picked.id, day)) return;
     button2.disabled = true;
-    const result = await write(picked, draft, options2);
+    const result = await write(picked, draft, options3);
     button2.disabled = false;
     if (result?.error) {
       notices.toast(t("agenda.editor.couldNot", { error: result.error.message ?? "" }), true);
@@ -8870,13 +9810,13 @@
     if (currentScreen() === "agenda") refreshQuietly();
     else void load();
   }
-  async function newAppointment(accountId, day, options2 = {}) {
+  async function newAppointment(accountId, day, options3 = {}) {
     const draft = { picked: null, consultations: [] };
     if (accountId) draft.picked = await loadAccount(accountId, draft);
     const shown5 = legacyAgenda.selectedDate(), today = todayIso();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown5 && shown5 >= today ? shown5 : today));
+    body2.innerHTML = windowHtml2(day ?? (currentScreen() === "agenda" && shown5 && shown5 >= today ? shown5 : today));
     paintCentres(draft);
     editorLegacy.pickAccount(document.getElementById("ncsel"), draft.picked, async (account) => {
       draft.picked = account;
@@ -8885,7 +9825,7 @@
     });
     const ok = document.getElementById("ncok");
     if (ok) ok.onclick = () => {
-      void save2(draft, options2, ok);
+      void save2(draft, options3, ok);
     };
     box.classList.add("pequena");
     box.showModal();
@@ -9136,11 +10076,11 @@
       <tfoot><tr><td>${t("events.report.total")}</td><td></td>${CONCEPTS.map((concept) => `<td>${total2(concept)}</td>`).join("")}<td><b>${total2("total")}</b></td></tr></tfoot></table></div>`;
   }
   function download(rows, year) {
-    const quote = (value15) => `"${String(value15 ?? "").replace(/"/g, '""')}"`, decimal2 = (value15) => String(Number(value15) || 0).replace(".", ",");
-    const header = [term("medico", { capital: "C" }), t("events.report.code"), term("especialidad", { capital: "C" }), t("events.report.events"), ...CONCEPTS.map(conceptLabel), t("events.report.total")].map(quote).join(";");
-    const lines = rows.map((row4) => [quote(row4.nombre), quote(row4.codigo), quote(row4.especialidad), row4.eventos, ...CONCEPTS.map((concept) => decimal2(row4[concept])), decimal2(row4.total)].join(";"));
+    const quote = (value18) => `"${String(value18 ?? "").replace(/"/g, '""')}"`, decimal2 = (value18) => String(Number(value18) || 0).replace(".", ",");
+    const header2 = [term("medico", { capital: "C" }), t("events.report.code"), term("especialidad", { capital: "C" }), t("events.report.events"), ...CONCEPTS.map(conceptLabel), t("events.report.total")].map(quote).join(";");
+    const lines2 = rows.map((row4) => [quote(row4.nombre), quote(row4.codigo), quote(row4.especialidad), row4.eventos, ...CONCEPTS.map((concept) => decimal2(row4[concept])), decimal2(row4.total)].join(";"));
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([BOM + [header, ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" }));
+    link.href = URL.createObjectURL(new Blob([BOM + [header2, ...lines2].join("\r\n")], { type: "text/csv;charset=utf-8" }));
     link.download = t("events.report.fileName", { year });
     document.body.appendChild(link);
     link.click();
@@ -9279,6 +10219,3317 @@
     });
   }
 
+  // src/app/screens/access/index.ts
+  var access_exports = {};
+  __export(access_exports, {
+    addPasswordMeter: () => addPasswordMeter,
+    passwordStrength: () => passwordStrength,
+    resendActivation: () => resendActivation,
+    resetPassword: () => resetPassword,
+    showLogin: () => showLogin,
+    showNotActivated: () => showNotActivated,
+    showWelcome: () => showWelcome
+  });
+
+  // src/app/screens/access/password.ts
+  var MIN_LENGTH = 8;
+  var GOOD_LENGTH = 12;
+  var LONG_LENGTH = 16;
+  var MAX_LEVEL = 4;
+  var LEVELS = ["access.strength.veryWeak", "access.strength.weak", "access.strength.fair", "access.strength.strong", "access.strength.veryStrong"];
+  var COLOURS = ["#C24141", "#D9480F", "#D97706", "#12805C", "#0F6E4C"];
+  var CHARACTER_KINDS = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/];
+  var OBVIOUS = /^(1234|abcd|qwer|contrase|password|dlc)/i;
+  function passwordStrength(password) {
+    if (!password) return { level: -1, text: "" };
+    let points = [MIN_LENGTH, GOOD_LENGTH, LONG_LENGTH].filter((length) => password.length >= length).length;
+    points += Math.max(0, CHARACTER_KINDS.filter((kind) => kind.test(password)).length - 1);
+    if (/^(.)\1+$/.test(password) || OBVIOUS.test(password) && password.length < GOOD_LENGTH) points = Math.min(points, 1);
+    const level = password.length < MIN_LENGTH ? 0 : Math.min(MAX_LEVEL, Math.max(1, points - 1));
+    return { level, text: t(LEVELS[level] ?? "access.strength.veryWeak") };
+  }
+  var requirementsMet = (password) => ({
+    len: password.length >= MIN_LENGTH,
+    may: /[a-z]/.test(password) && /[A-Z]/.test(password),
+    num: /\d/.test(password),
+    sim: /[^A-Za-z0-9]/.test(password)
+  });
+  var meterHtml = () => `<div class="clavemed"><div class="clavebar"><i></i><i></i><i></i><i></i></div><span class="clavetxt"></span>
+    <ul class="clavereq"><li data-r="len">${t("access.strength.length")}</li><li data-r="may">${t("access.strength.cases")}</li><li data-r="num">${t("access.strength.number")}</li><li data-r="sim">${t("access.strength.symbol")}</li></ul></div>`;
+  function paintMeter(meter, password) {
+    const strength = passwordStrength(password), colour = COLOURS[Math.max(0, strength.level)] ?? "";
+    meter.querySelectorAll(".clavebar i").forEach((bar2, index) => {
+      bar2.style.background = password && index < Math.max(1, strength.level) ? colour : "";
+    });
+    const text2 = meter.querySelector(".clavetxt");
+    if (text2) {
+      text2.textContent = password ? strength.text : "";
+      text2.style.color = colour;
+    }
+    const met = requirementsMet(password);
+    meter.querySelectorAll("[data-r]").forEach((item) => item.classList.toggle("ok", Boolean(met[item.dataset.r ?? ""])));
+  }
+  function paintRepeat(repeat, password) {
+    const line2 = repeat.nextElementSibling, same = Boolean(repeat.value) && repeat.value === password;
+    if (line2) {
+      line2.textContent = !repeat.value ? "" : t(same ? "access.strength.match" : "access.strength.noMatch");
+      line2.style.color = same ? "var(--ok)" : "var(--dang)";
+    }
+    return same;
+  }
+  function addPasswordMeter(input4, repeat, button2) {
+    if (!input4 || input4.dataset.medidor) return;
+    input4.dataset.medidor = "1";
+    input4.insertAdjacentHTML("afterend", meterHtml());
+    const meter = input4.nextElementSibling;
+    if (repeat) repeat.insertAdjacentHTML("afterend", '<div class="clavecoin sm"></div>');
+    const update = () => {
+      const password = input4.value;
+      if (meter) paintMeter(meter, password);
+      let valid = password.length >= MIN_LENGTH;
+      if (repeat) valid = paintRepeat(repeat, password) && valid;
+      if (button2) button2.disabled = !valid;
+    };
+    input4.addEventListener("input", update);
+    repeat?.addEventListener("input", update);
+    update();
+  }
+
+  // src/app/screens/access/account.ts
+  var EMAIL2 = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  var returnAddress = () => location.origin + location.pathname;
+  function resendFailure(error) {
+    if (/rate|seconds|429|security purposes/i.test(error.message + String(error.status ?? ""))) return t("access.activation.justSent");
+    if (/already|confirmed/i.test(error.message)) return t("access.activation.alreadyActive");
+    return t("access.activation.couldNotSend", { error: error.message });
+  }
+  async function resendActivation(email, reporter = {}) {
+    const address2 = String(email ?? "").trim();
+    const fail2 = reporter.err ?? ((text2) => {
+      notices.toast(text2, true);
+    });
+    if (!EMAIL2.test(address2)) {
+      fail2(t("access.activation.writeEmail"));
+      return false;
+    }
+    const { error } = await legacyDb().auth.resend({ type: "signup", email: address2, options: { emailRedirectTo: returnAddress() } });
+    if (error) {
+      fail2(resendFailure(error));
+      return false;
+    }
+    (reporter.ok ?? ((text2) => {
+      notices.toast(text2);
+    }))(t("access.activation.sent", { email: address2 }));
+    return true;
+  }
+  function showNotActivated(text2) {
+    const message = document.getElementById("lmsg");
+    if (!message) return;
+    message.innerHTML = `<span>${escapeHtml(text2)}</span> <button type="button" class="btn sec chico" id="lreenv">${t("access.activation.sendNewLink")}</button>`;
+    const button2 = document.getElementById("lreenv");
+    if (!button2) return;
+    button2.onclick = async () => {
+      button2.disabled = true;
+      const email = document.getElementById("lu")?.value;
+      await resendActivation(email, {
+        ok: (sent) => {
+          message.textContent = sent;
+        },
+        err: (failed) => {
+          const line2 = message.querySelector("span");
+          if (line2) line2.textContent = failed;
+          button2.disabled = false;
+        }
+      });
+    };
+  }
+  async function resetPassword(user) {
+    const email = user.email;
+    if (!email) {
+      notices.toast(t("access.reset.noEmail"), true);
+      return;
+    }
+    if (!await notices.confirm(t("access.reset.text", { email }), { titulo: t("access.reset.title"), ok: t("access.reset.ok") })) return;
+    const { error } = await legacyDb().auth.resetPasswordForEmail(email, { redirectTo: returnAddress() });
+    if (error) {
+      notices.toast(t("access.reset.couldNotSend", { error: error.message }), true);
+      return;
+    }
+    notices.toast(t("access.reset.sent", { email }));
+  }
+
+  // src/app/screens/access/welcome.ts
+  var STEPS = [
+    ["importar", "access.welcome.importTitle", "access.welcome.importText"],
+    ["equipo", "access.welcome.teamTitle", "access.welcome.teamText"],
+    ["marca", "access.welcome.brandTitle", "access.welcome.brandText"]
+  ];
+  function welcomeHtml(plan) {
+    const trialEnd = plan.periodo_fin ? formatShortDate(plan.periodo_fin) : "";
+    const steps3 = STEPS.map(([key, title2, text2], index) => `<button type="button" class="bienpaso" data-bien="${key}"><span class="bienn">${index + 1}</span>
+      <span><b>${escapeHtml(t(title2))}</b><span class="sm">${escapeHtml(t(text2, { professionals: term("medico", { number: "p" }) }))}</span></span></button>`).join("");
+    return `<div class="fh"><div><h2>${t("access.welcome.title")}</h2>
+      <div class="sm">${t("access.welcome.running", { app: escapeHtml(restLegacy.appName()) })}${plan.en_prueba && plan.periodo_fin ? t("access.welcome.trialUntil", { date: trialEnd }) : ""}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <p>${t("access.welcome.intro")}</p>
+    <div class="bienpasos">${steps3}</div>
+    ${plan.en_prueba ? `<p class="sm">${t("access.welcome.trialNote", { date: trialEnd })}</p>` : ""}
+    <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>${t("access.welcome.start")}</button></div>`;
+  }
+  function openStep(step) {
+    if (step === "importar") {
+      restLegacy.setSettingsSection("importar");
+      goTo("config");
+    } else if (step === "equipo") goTo("usuarios");
+    else goTo("organizacion");
+  }
+  async function showWelcome() {
+    try {
+      await restLegacy.loadPlan();
+    } catch {
+    }
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = welcomeHtml(restLegacy.plan());
+    body2.querySelectorAll("[data-bien]").forEach((button2) => {
+      button2.onclick = () => {
+        box.close();
+        openStep(button2.dataset.bien ?? "");
+      };
+    });
+    box.showModal();
+  }
+  function showLogin(message) {
+    document.body.classList.add("sin-sesion");
+    document.getElementById("bootsplash")?.classList.add("hide");
+    document.getElementById("app")?.classList.add("hide");
+    document.getElementById("login")?.classList.remove("hide");
+    const line2 = document.getElementById("lmsg");
+    if (message && line2) line2.textContent = message;
+    restLegacy.setAppVisible(false);
+  }
+
+  // src/app/screens/routes/index.ts
+  var routes_exports = {};
+  __export(routes_exports, {
+    appointmentsOn: () => appointmentsOn,
+    copyToAgenda: () => copyToAgenda,
+    datesOf: () => datesOf,
+    horizonOf: () => horizonOf,
+    openRoute: () => openRoute,
+    paintRoutes: () => paintRoutes,
+    refillRepeating: () => refillRepeating
+  });
+
+  // src/app/legacy/routes-bridge.ts
+  var routesLegacy = {
+    draft: () => RN,
+    setDraft: (draft) => {
+      RN = draft;
+    },
+    setCards: (cards) => {
+      RN_LISTA = cards;
+    },
+    setRoutes: (list) => {
+      RUTAS = list;
+    },
+    /** Repaints the whole page (list, day in progress and today's map). */
+    reload: () => {
+      void cargarRutas();
+    },
+    withSchedule: (hours, work) => conHor(hours, work),
+    schedule: (items, start2) => programarVisitas(items, start2),
+    settings: () => PLANCFG(),
+    start: () => salidaUsuario(),
+    minutesOf: (time) => minHora(time),
+    travelMinutes: (from, to) => minutosEntre(from, to),
+    nextWorkingDay: () => siguienteLaborable(),
+    mapLibrary: () => rmLib(),
+    streetRoute: (points, start2) => rmRuta(points, start2),
+    durationText: (minutes) => rmDur(minutes),
+    reasonText: (reason) => RM_MOTIVO[reason ?? ""] ?? RM_MOTIVO.servicio ?? "",
+    palette: () => RM_PAL,
+    map: () => RM_MAPA,
+    setMap: (map2) => {
+      RM_MAPA = map2;
+    },
+    pendingMap: () => RN_MAPA_P,
+    setPendingMap: (pending) => {
+      RN_MAPA_P = pending;
+    },
+    improveFields: (root) => {
+      mejorarCampos(root);
+    },
+    askField: (title2, type, value18, label) => pedirCampo(title2, type, value18, label),
+    blockedDays: (from, to) => bloqueadosSemana(from, to),
+    firstOpenState: () => CITA_ABIERTA[0] ?? ""
+  };
+
+  // src/app/screens/routes/model.ts
+  var WEEKDAYS2 = ["L", "M", "X", "J", "V"];
+  var LAST_WEEK = 5;
+  var MONTHLY_HORIZON = 92;
+  var WEEKLY_HORIZON = 56;
+  var NEXT_DATE_DAYS = 120;
+  var NAMED_TOWNS = 2;
+  var weekdayName2 = (letter) => t("dates.weekdaysLong").split(",")[WEEKDAYS2.indexOf(letter)] ?? "";
+  var weekdayShort = (letter) => capitalise(weekdayName2(letter).slice(0, 3));
+  var titleCase = (text2) => String(text2 ?? "").toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (...parts) => (parts[1] ?? "") + (parts[2] ?? "").toUpperCase());
+  function monthlyRule(repeat, date) {
+    if (Number(repeat.semana) === LAST_WEEK) {
+      const next = new Date(date);
+      next.setDate(date.getDate() + 7);
+      return next.getMonth() !== date.getMonth();
+    }
+    return Math.ceil(date.getDate() / 7) === Number(repeat.semana);
+  }
+  function weekRule(repeat, isoDate, date) {
+    if (repeat.tipo === "semanal") return !repeat.desde || isoDate >= repeat.desde;
+    if (repeat.tipo === "quincenal") {
+      const start2 = orFallback(repeat.desde, isoDate), weeks = Math.round((date.getTime() - fromIsoDate(start2).getTime()) / 864e5 / 7);
+      return isoDate >= start2 && weeks % 2 === 0;
+    }
+    return repeat.tipo === "mensual" && monthlyRule(repeat, date);
+  }
+  function repeatsOn(repeat, isoDate) {
+    if (!repeat) return false;
+    if (repeat.tipo === "fecha") return repeat.fecha === isoDate;
+    const date = fromIsoDate(isoDate);
+    if (date.getDay() !== WEEKDAYS2.indexOf(repeat.dia ?? "") + 1) return false;
+    return weekRule(repeat, isoDate, date);
+  }
+  function datesOf(repeat, from, to) {
+    if (!repeat) return [];
+    if (repeat.tipo === "fecha") return repeat.fecha && repeat.fecha >= from && repeat.fecha <= to ? [repeat.fecha] : [];
+    const out = [];
+    for (let day = from; day <= to; day = addDays(day, 1)) if (repeatsOn(repeat, day)) out.push(day);
+    return out;
+  }
+  var horizonOf = (repeat) => addDays(todayIso(), repeat?.tipo === "mensual" ? MONTHLY_HORIZON : WEEKLY_HORIZON);
+  var nextDateOf = (repeat) => datesOf(repeat, todayIso(), addDays(todayIso(), NEXT_DATE_DAYS))[0] ?? null;
+  function whenText2(repeat) {
+    if (!repeat) return t("routes.when.none");
+    const day = weekdayName2(repeat.dia ?? "");
+    switch (repeat.tipo) {
+      case "fecha":
+        return repeat.fecha ? capitalise(formatLongDate(repeat.fecha)) : t("routes.when.oneDay");
+      case "semanal":
+        return t("routes.when.weekly", { day });
+      case "quincenal":
+        return t("routes.when.fortnightly", { day });
+      case "mensual":
+        return t("routes.when.monthly", { ordinal: t("routes.when.ordinals").split(",")[Number(repeat.semana) - 1] ?? t("routes.when.ordinals").split(",")[0] ?? "", day });
+      default:
+        return "";
+    }
+  }
+  function referenceDate(repeat, name) {
+    const next = nextDateOf(repeat);
+    if (next) return next;
+    const names = WEEKDAYS2.map(weekdayName2), found = new RegExp(`^(${names.join("|")})(?=[\\s·]|$)`).exec(String(name ?? "").toLowerCase());
+    if (found) {
+      const letter = WEEKDAYS2[names.indexOf(found[1] ?? "")] ?? "L";
+      return datesOf({ tipo: "semanal", dia: letter }, addDays(todayIso(), 1), addDays(todayIso(), 8))[0] ?? routesLegacy.nextWorkingDay();
+    }
+    return routesLegacy.nextWorkingDay();
+  }
+  function autoName(members2, repeat) {
+    const towns = [...new Set(members2.map((member) => titleCase(member.municipio)).filter(Boolean))];
+    const day = repeat?.dia ? capitalise(weekdayName2(repeat.dia)) : repeat?.tipo === "fecha" && repeat.fecha ? formatShortDate(repeat.fecha) : "";
+    const zone = towns.length ? towns.slice(0, NAMED_TOWNS).join(t("routes.name.joiner")) + (towns.length > NAMED_TOWNS ? t("routes.name.andMore") : "") : t("routes.name.newRoute");
+    return day ? t("routes.name.withDay", { day, zone }) : zone;
+  }
+  var pointOf2 = (member) => member.lat !== null && member.lat !== void 0 && member.lon !== null && member.lon !== void 0 ? [Number(member.lat), Number(member.lon)] : null;
+  var hasLocation = (member) => member.lat !== null && member.lat !== void 0;
+  var ICON_PATHS = {
+    up: '<path d="m18 15-6-6-6 6"/>',
+    down: '<path d="m6 9 6 6 6-6"/>',
+    close: '<path d="M18 6 6 18M6 6l12 12"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+    pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    bin: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    wand: '<path d="m15 4 5 5"/><path d="M3 21 15 9"/><path d="M19 3v4M17 5h4M7 3v2M6 4h2"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>'
+  };
+  var routeIcon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name] ?? ""}</svg>`;
+  var stepFooter = (left, right) => `<div class="rnpie"><span>${left}</span><span class="rnpieb">${right}</span></div>`;
+
+  // src/app/screens/routes/schedule.ts
+  var DEFAULT_START = "09:00";
+  var DEFAULT_VISIT = 15;
+  var KM_PER_DEGREE = 111.32;
+  var ROAD_FACTOR = 1.3;
+  var windowsOf = (member, isoDate) => weekPlanner.attendanceWindows(member.dias, isoDate);
+  var withHours = (start2, back, work) => routesLegacy.withSchedule({ salida: orFallback(start2, DEFAULT_START), vuelta: back ? back : null }, work);
+  var startMinutes = (start2) => routesLegacy.minutesOf(orFallback(start2, DEFAULT_START)) ?? 0;
+  function bestOrder(members2, isoDate, start2, back) {
+    return withHours(start2, back, () => {
+      const items = members2.map((member) => ({ id: member.id, ref: member, xy: pointOf2(member), ventanas: windowsOf(member, isoDate), fija: null }));
+      const { seq, fuera } = routesLegacy.schedule(items, startMinutes(start2));
+      return [...seq.map((step) => step.it.ref), ...fuera.map((step) => step.it.ref)];
+    });
+  }
+  function warningOf2(point, windows, start2, length) {
+    if (!point) return t("routes.hours.noLocation");
+    if (windows && !windows.length) return t("routes.hours.notThatDay");
+    if (windows?.length && !windows.some(([from, to]) => start2 >= from && start2 + length <= to)) return t("routes.hours.outOfHours", { hours: yourDayLegacy.windowsText(windows) });
+    return "";
+  }
+  function startOf(arrival, fixed2, windows, length) {
+    if (fixed2 !== null) return Math.max(arrival, fixed2);
+    const window2 = windows?.find(([, to]) => arrival <= to - length);
+    return window2 && arrival < window2[0] ? window2[0] : arrival;
+  }
+  var kmBetween = (from, to) => Math.hypot((to[0] - from[0]) * KM_PER_DEGREE, (to[1] - from[1]) * KM_PER_DEGREE * Math.cos(to[0] * Math.PI / 180)) * ROAD_FACTOR;
+  function tripTo(walk, point, stopMinutes) {
+    const from = walk.pos;
+    if (!from || !point) return { trip: 0, same: false };
+    if (from[0] === point[0] && from[1] === point[1]) return { trip: 0, same: true };
+    walk.km += kmBetween(from, point);
+    return { trip: routesLegacy.travelMinutes(from, point) + stopMinutes, same: false };
+  }
+  function hourOf(member, index, walk, context) {
+    const settings = routesLegacy.settings(), length = nonZeroOr(settings.visita, DEFAULT_VISIT), point = hasLocation(member) ? [Number(member.lat), Number(member.lon)] : null;
+    const windows = windowsOf(member, context.isoDate), { trip, same } = tripTo(walk, point, nonZeroOr(settings.parada, 0));
+    const fixedTime = context.fixed?.[member.id], fixed2 = fixedTime ? routesLegacy.minutesOf(fixedTime) : null;
+    const start2 = startOf(walk.time + trip, fixed2, windows, length);
+    if (point) walk.pos = point;
+    walk.time = start2 + length;
+    return { m: member, i: index, ini: start2, fin: start2 + length, viaje: trip, ven: windows, aviso: warningOf2(point, windows, start2, length), fija: fixed2 !== null, mismo: same };
+  }
+  function hoursOf(members2, isoDate, hours) {
+    return withHours(hours.start, hours.back, () => {
+      const home = routesLegacy.start();
+      const walk = { pos: isPresent(home.lat) ? [Number(home.lat), Number(home.lon)] : null, time: startMinutes(hours.start), km: 0 };
+      const rows = members2.map((member, index) => hourOf(member, index, walk, { isoDate, fixed: hours.fixed }));
+      const limit = routesLegacy.minutesOf(routesLegacy.settings().tope) ?? Infinity;
+      return { filas: rows, fin: walk.time, km: walk.km, pasa: Boolean(hours.back) && walk.time > limit };
+    });
+  }
+
+  // src/app/screens/routes/sketch.ts
+  var WIDTH = 400;
+  var HEIGHT = 140;
+  var PADDING = 22;
+  var PADDING_TOP = 44;
+  var fixed = (value18) => value18.toFixed(1);
+  function placesOf(members2) {
+    const places = [];
+    members2.filter(hasLocation).forEach((member) => {
+      const lat = Number(member.lat), lon = Number(member.lon);
+      if (!places.some((place2) => place2.lat === lat && place2.lon === lon)) places.push({ lat, lon });
+    });
+    return places;
+  }
+  function routeSketch(members2) {
+    const places = placesOf(members2);
+    if (!places.length) return `<div class="rnsin">${t("routes.sketch.noLocations")}</div>`;
+    const lats = places.map((place2) => place2.lat), lons = places.map((place2) => place2.lon);
+    const south = Math.min(...lats), north = Math.max(...lats), west = Math.min(...lons), east = Math.max(...lons), squeeze = Math.cos(south * Math.PI / 180);
+    const scale2 = Math.min((WIDTH - 2 * PADDING) / Math.max(1e-6, (east - west) * squeeze), (HEIGHT - PADDING - PADDING_TOP) / Math.max(1e-6, north - south));
+    const left = (WIDTH - (east - west) * squeeze * scale2) / 2, top = (HEIGHT - PADDING_TOP - PADDING - (north - south) * scale2) / 2 + PADDING;
+    const points = places.map((place2) => [left + (place2.lon - west) * squeeze * scale2, HEIGHT - top - (place2.lat - south) * scale2]);
+    return `<svg viewBox="0 0 ${WIDTH} ${HEIGHT}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><polyline points="${points.map((point) => point.map(fixed).join(",")).join(" ")}" fill="none" stroke="#3F82C0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    ${points.map((point, index) => `<circle cx="${fixed(point[0])}" cy="${fixed(point[1])}" r="10.5" fill="#17457A" stroke="#fff" stroke-width="2.5"/><text x="${fixed(point[0])}" y="${fixed(point[1] + 4)}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="Manrope, sans-serif">${index + 1}</text>`).join("")}</svg>`;
+  }
+
+  // src/app/screens/routes/to-agenda.ts
+  var REFILL_DAYS = 28;
+  async function routeMembers(route) {
+    const { data } = await legacyDb().rpc("cuentas_de_ruta", { p_id: route.id });
+    const members2 = data ?? [], codes = route.codigos ?? [];
+    const position = (id) => {
+      const index = codes.indexOf(id);
+      return index < 0 ? 1e9 : index;
+    };
+    return route.dinamica ? members2 : members2.slice().sort((first, second) => position(first.id) - position(second.id));
+  }
+  async function copyDay(route, members2, isoDate, result) {
+    const existing = await appointments.ofDay(isoDate), ids = [];
+    let order = existing.length;
+    for (const member of members2) {
+      const already = existing.find((item) => item.cuenta_id === member.id && appointments.isOpen(item.estado));
+      if (already) {
+        ids.push(already.id);
+        continue;
+      }
+      order += 1;
+      const fixed2 = route.fijas?.[member.id];
+      const { data: saved2, error } = await legacyDb().rpc("guardar_cita", { p: {
+        cuenta_id: member.id,
+        fecha: isoDate,
+        hora: fixed2 ? fixed2 : null,
+        centro_nombre: member.centro_nombre ? member.centro_nombre : null,
+        estado: routesLegacy.firstOpenState(),
+        origen: "Ruta",
+        orden: order,
+        salida: route.salida ? route.salida : null,
+        vuelta: route.vuelta ? route.vuelta : null,
+        op_id: `r-${route.id}-${member.id}-${isoDate}`
+      } });
+      if (error || !saved2?.ok) {
+        notices.toast(t("routes.agenda.couldNotSave"), true);
+        return false;
+      }
+      ids.push(saved2.id);
+      result.n += 1;
+    }
+    const closed = existing.filter((item) => !appointments.isOpen(item.estado)).map((item) => item.id);
+    const others = existing.filter((item) => appointments.isOpen(item.estado) && !ids.includes(item.id)).map((item) => item.id);
+    await legacyDb().rpc("ordenar_citas", { p_ids: [...closed, ...others, ...ids] });
+    return true;
+  }
+  async function appointmentsOn(route, members2, dates) {
+    const result = { n: 0, saltados: [] };
+    const blocked = dates.length ? await routesLegacy.blockedDays(dates[0] ?? "", dates[dates.length - 1] ?? "") : {};
+    for (const isoDate of dates) {
+      if (blocked[isoDate]) {
+        result.saltados.push(isoDate);
+        continue;
+      }
+      if (!await copyDay(route, members2, isoDate, result)) return { ...result, error: true };
+    }
+    appLegacy.forgetCache();
+    return result;
+  }
+  var rememberUntil = (route, repeat, last) => legacyDb().rpc("guardar_ruta", { p: { id: route.id, repeticion: { ...repeat, hasta: last } } });
+  async function refillRoute(route) {
+    const repeat = route.repeticion, today = todayIso();
+    const from = repeat.hasta && repeat.hasta >= today ? addDays(repeat.hasta, 1) : repeat.desde && repeat.desde > today ? repeat.desde : today;
+    const dates = datesOf(repeat, from, addDays(today, REFILL_DAYS));
+    if (!dates.length) return;
+    const members2 = (await routeMembers(route)).filter(hasLocation);
+    if (!members2.length) return;
+    const result = await appointmentsOn(route, members2, dates);
+    if (!result.error) await rememberUntil(route, repeat, dates[dates.length - 1] ?? "");
+  }
+  async function refillRepeating() {
+    try {
+      const key = `delcos-rnrell-${salesTeam.currentUserId()}`;
+      if (localStorage.getItem(key) === todayIso()) return;
+      localStorage.setItem(key, todayIso());
+      const { data } = await callRpc("rutas_visibles", {});
+      const own = (data ?? []).filter((route) => Boolean(route.mia && route.repeticion && route.repeticion.tipo !== "fecha"));
+      for (const route of own) await refillRoute(route);
+    } catch {
+    }
+  }
+  async function datesToCopy(repeat) {
+    if (!repeat) {
+      const day = await routesLegacy.askField(t("routes.agenda.whichDay"), "date", routesLegacy.nextWorkingDay(), t("routes.agenda.day"));
+      return day ? [day] : null;
+    }
+    return datesOf(repeat, repeat.desde && repeat.desde > todayIso() ? repeat.desde : todayIso(), horizonOf(repeat));
+  }
+  function confirmCopy(count2, dates) {
+    const text2 = t("routes.agenda.confirmText", { count: count2, appointments: t(count2 === 1 ? "routes.agenda.oneAppointment" : "routes.agenda.appointments"), days: dates.length, dates: dates.map(formatShortDate).join(", ") });
+    return notices.confirm(text2, { titulo: t("routes.agenda.confirmTitle"), ok: t("routes.agenda.add") });
+  }
+  function addedText(result) {
+    const added = t("routes.agenda.addedText", { count: result.n, added: t(result.n === 1 ? "routes.agenda.oneAdded" : "routes.agenda.added") });
+    const skipped = result.saltados.length ? t("routes.agenda.skipped", { count: result.saltados.length, blocked: t(result.saltados.length === 1 ? "routes.agenda.oneBlocked" : "routes.agenda.blocked") }) : "";
+    return added + skipped;
+  }
+  async function copyAndOpen(route, members2, dates) {
+    const result = await appointmentsOn(route, members2, dates);
+    if (result.error) return;
+    const repeat = route.repeticion ?? null;
+    if (repeat && repeat.tipo !== "fecha") await rememberUntil(route, repeat, dates[dates.length - 1] ?? "");
+    notices.toast(addedText(result));
+    agendaState.setMode("dia");
+    agendaState.setSelectedDate(dates.find((day) => !result.saltados.includes(day)) ?? dates[0] ?? todayIso());
+    goTo("agenda");
+  }
+  async function copyToAgenda(card2, button2) {
+    const route = card2.r, members2 = card2.ms.filter(hasLocation);
+    if (!members2.length) {
+      notices.toast(t("routes.agenda.noLocated", { professionals: term("medico", { number: "p" }) }), true);
+      return;
+    }
+    const dates = await datesToCopy(route.repeticion ?? null);
+    if (!dates) return;
+    if (!dates.length) {
+      notices.toast(t("routes.agenda.noNextDay"), true);
+      return;
+    }
+    if (dates.length > 1 && !await confirmCopy(members2.length, dates)) return;
+    if (button2) button2.disabled = true;
+    try {
+      await copyAndOpen(route, members2, dates);
+    } finally {
+      if (button2) button2.disabled = false;
+    }
+  }
+
+  // src/app/screens/routes/state.ts
+  var wizardHooks = { repaint: () => void 0 };
+  function unfix(draft, id) {
+    draft.fijas = Object.fromEntries(Object.entries(draft.fijas).filter(([key]) => key !== id));
+  }
+  var currentDraft = () => routesLegacy.draft();
+  function routeName(draft) {
+    if (draft.auto) draft.nombre = autoName(draft.ms, draft.rep);
+    return orFallback(draft.nombre, t("routes.name.newRoute"));
+  }
+
+  // src/app/screens/routes/step-order.ts
+  function bestOrderOf(draft) {
+    draft.ms = bestOrder(draft.ms, referenceDate(draft.rep, draft.nombre), draft.salida, draft.vuelta);
+    draft.ordenManual = false;
+  }
+  var draftHours = (draft, isoDate) => hoursOf(draft.ms, isoDate, { start: draft.salida, back: draft.vuelta, fixed: draft.fijas });
+  var tripHtml = (row4, index) => index && !row4.mismo && row4.viaje ? `<div class="rntramo">${t("routes.order.minutes", { minutes: Math.round(row4.viaje) })}</div>` : "";
+  var noteOf = (row4) => row4.aviso || (row4.ven?.length ? t("routes.order.attends", { hours: yourDayLegacy.windowsText(row4.ven) }) : "");
+  function moveButtons(index, count2) {
+    return `<button type="button" data-rnmv="-1|${index}" aria-label="${t("routes.order.up")}" ${index ? "" : "disabled"}>${routeIcon("up")}</button><button type="button" data-rnmv="1|${index}" aria-label="${t("routes.order.down")}" ${index < count2 - 1 ? "" : "disabled"}>${routeIcon("down")}</button>`;
+  }
+  function rowHtml3(row4, index, count2) {
+    const note = noteOf(row4);
+    return `${tripHtml(row4, index)}<div class="rnpar ${row4.aviso ? "aviso" : ""}">
+          <span class="n">${index + 1}</span>
+          <div class="tx"><b>${escapeHtml(row4.m.nombre)}</b><span class="sm">${escapeHtml([row4.m.centro_nombre, titleCase(row4.m.municipio)].filter(Boolean).join(" · "))}</span>
+            <span class="sm ${row4.aviso ? "rnav" : ""}">${escapeHtml(note)}</span></div>
+          <div class="der"><button type="button" class="rnh ${row4.fija ? "fija" : ""}" data-rnh="${row4.m.id}" title="${t(row4.fija ? "routes.order.fixedTitle" : "routes.order.computedTitle")}">${row4.fija ? routeIcon("clock") : "~"}${formatMinutes(row4.ini)}</button>
+            <span class="ops">${moveButtons(index, count2)}
+              <button type="button" data-rnx="${index}" aria-label="${t("routes.order.remove")}">${routeIcon("close")}</button></span></div></div>`;
+  }
+  function summaryHtml(draft, hours) {
+    const stops = new Set(draft.ms.filter((member) => member.lat !== null && member.lat !== void 0).map((member) => `${String(member.lat)},${String(member.lon)}`)).size;
+    return `<div class="rnresum"><div><b>${draft.ms.length}</b>${term("medico", { number: "p" })}</div><div><b>${stops}</b>${t("routes.order.stops")}</div>
+      <div><b>${Math.round(hours.km)} km</b>${t("routes.order.approx")}</div><div><b class="${hours.pasa ? "rnmal" : ""}">${formatMinutes(hours.fin)}</b>${t("routes.order.finish")}${hours.pasa ? t("routes.order.pastBack") : ""}</div></div>`;
+  }
+  function stepHtml(draft, isoDate, hours) {
+    const home = routesLegacy.start();
+    return `<div class="rnb2"><div class="rnord">
+      <div class="rnordcab"><div class="rnhor2"><label>${t("routes.order.leaveAt")} <input type="time" id="rnsal" value="${escapeHtml(draft.salida)}"></label><label>${t("routes.order.backBy")} <input type="time" id="rnvue" value="${escapeHtml(draft.vuelta)}" placeholder="${t("routes.order.noTime")}"></label>
+        <span class="sm">${escapeHtml(t("routes.order.from", { place: orFallback(home.nombre, t("routes.order.yourStart")), date: formatLongDate(isoDate) }))}</span></div>
+        <button class="btn sec" type="button" id="rnauto">${routeIcon("wand")} ${t(draft.ordenManual ? "routes.order.backToAuto" : "routes.order.auto")}</button></div>
+      <p class="sm rnordtx">${t(draft.ordenManual ? "routes.order.manualText" : "routes.order.autoText")} ${t("routes.order.howTo")}</p>
+      <div class="rnlst">${hours.filas.map((row4, index) => rowHtml3(row4, index, hours.filas.length)).join("")}</div></div>
+    ${summaryHtml(draft, hours)}</div>
+    ${stepFooter(t("routes.order.mapNext"), `<button class="btn sec" type="button" id="rnant2">${t("routes.order.previous")}</button><button class="btn" type="button" id="rnsig2">${t("routes.order.nextStep")}</button>`)}`;
+  }
+  async function chooseTime(draft, row4) {
+    const id = row4.m.id, attends = row4.ven?.length ? t("routes.order.attendsShort", { hours: yourDayLegacy.windowsText(row4.ven) }) : "";
+    const option4 = await notices.choose(
+      t("routes.order.timeTitle"),
+      `${row4.m.nombre}${attends ? ` · ${attends}` : ""}`,
+      [{ k: "no", t: t("routes.order.cancel"), cls: "sec" }, ...draft.fijas[id] ? [{ k: "quitar", t: t("routes.order.letAppCompute"), cls: "sec" }] : [], { k: "fijar", t: t("routes.order.fixTime") }]
+    );
+    if (option4 === "quitar") {
+      unfix(draft, id);
+      paintOrder();
+      return;
+    }
+    if (option4 !== "fijar") return;
+    const time = await routesLegacy.askField(t("routes.order.fixTimeTitle"), "time", draft.fijas[id] ?? formatMinutes(row4.ini), t("routes.order.timeLabel"));
+    if (!time) return;
+    draft.fijas[id] = time;
+    paintOrder();
+  }
+  function bindTimes(draft) {
+    const reorder = () => {
+      if (!draft.ordenManual) bestOrderOf(draft);
+      paintOrder();
+    };
+    const start2 = document.getElementById("rnsal");
+    if (start2) start2.onchange = () => {
+      draft.salida = orFallback(start2.value, "09:00");
+      reorder();
+    };
+    const back = document.getElementById("rnvue");
+    if (back) back.onchange = () => {
+      draft.vuelta = back.value;
+      reorder();
+    };
+    const auto = document.getElementById("rnauto");
+    if (auto) auto.onclick = () => {
+      bestOrderOf(draft);
+      paintOrder();
+    };
+  }
+  function bindRows(box, draft, hours) {
+    box.querySelectorAll("[data-rnmv]").forEach((button2) => {
+      button2.onclick = () => {
+        const [step = 0, index = 0] = (button2.dataset.rnmv ?? "").split("|").map(Number), other = index + step;
+        const first = draft.ms[index], second = draft.ms[other];
+        if (first && second) {
+          draft.ms[index] = second;
+          draft.ms[other] = first;
+        }
+        draft.ordenManual = true;
+        paintOrder();
+      };
+    });
+    box.querySelectorAll("[data-rnx]").forEach((button2) => {
+      button2.onclick = () => {
+        const [removed] = draft.ms.splice(Number(button2.dataset.rnx), 1);
+        if (removed) unfix(draft, removed.id);
+        if (!draft.ms.length) {
+          draft.paso = 1;
+          wizardHooks.repaint();
+          return;
+        }
+        paintOrder();
+      };
+    });
+    box.querySelectorAll("[data-rnh]").forEach((button2) => {
+      button2.onclick = () => {
+        const row4 = hours.filas.find((item) => item.m.id === button2.dataset.rnh);
+        if (row4) void chooseTime(draft, row4);
+      };
+    });
+  }
+  function paintOrder() {
+    const box = document.getElementById("rnpaso"), draft = currentDraft();
+    if (!box || !draft) return;
+    const isoDate = referenceDate(draft.rep, draft.nombre), hours = draftHours(draft, isoDate);
+    box.innerHTML = stepHtml(draft, isoDate, hours);
+    bindTimes(draft);
+    bindRows(box, draft, hours);
+    const previous = document.getElementById("rnant2");
+    if (previous) previous.onclick = () => {
+      draft.paso = 1;
+      wizardHooks.repaint();
+    };
+    const next = document.getElementById("rnsig2");
+    if (next) next.onclick = () => {
+      draft.paso = 3;
+      wizardHooks.repaint();
+    };
+  }
+
+  // src/app/screens/routes/map.ts
+  var MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
+  var ROUTE_COLOUR = "#17457A";
+  var URGENT_COLOUR = "#E08A00";
+  var OTHER_COLOUR = "#9FB6CE";
+  function paintLayer(map2, layer2, palette) {
+    const id = layer2.id, set = (key, value18) => {
+      try {
+        map2.setPaintProperty(id, key, value18);
+      } catch {
+      }
+    };
+    const hide = () => {
+      try {
+        map2.setLayoutProperty(id, "visibility", "none");
+      } catch {
+      }
+    };
+    if (layer2.type === "fill-extrusion") {
+      hide();
+      return;
+    }
+    if (layer2.type === "background") {
+      set("background-color", palette.tierra);
+      return;
+    }
+    if (layer2.type === "symbol") {
+      if (/poi|aeroway|housenumber|transit|rail|ferry|shield/i.test(id)) {
+        hide();
+        return;
+      }
+      set("text-color", palette.texto);
+      set("text-halo-color", "#FFFFFF");
+      set("text-halo-width", 1.4);
+      return;
+    }
+    if (layer2.type === "fill") {
+      paintFill(id, set, palette);
+      return;
+    }
+    if (layer2.type === "line") paintLine(id, { set, hide }, palette);
+  }
+  function paintFill(id, set, palette) {
+    if (/water/i.test(id)) {
+      set("fill-color", palette.agua);
+      return;
+    }
+    if (/building/i.test(id)) {
+      set("fill-color", palette.edif);
+      return;
+    }
+    if (/park|wood|grass|forest|landcover|cemetery|pitch/i.test(id)) {
+      set("fill-color", palette.parque);
+      set("fill-opacity", 0.8);
+      return;
+    }
+    set("fill-color", palette.zona);
+    set("fill-opacity", 0.6);
+  }
+  function paintLine(id, paint10, palette) {
+    if (/water|river|stream|canal/i.test(id)) {
+      paint10.set("line-color", palette.agua);
+      return;
+    }
+    if (/rail|ferry|aeroway|boundary|admin/i.test(id)) {
+      paint10.hide();
+      return;
+    }
+    const main = /motorway|trunk|primary/i.test(id);
+    paint10.set("line-color", /casing/i.test(id) ? main ? palette.viaBorde : palette.borde : main ? palette.via : palette.calle);
+  }
+  function restyle(map2) {
+    const palette = routesLegacy.palette();
+    (map2.getStyle().layers ?? []).forEach((layer2) => {
+      if (!layer2.id.startsWith("rn-")) paintLayer(map2, layer2, palette);
+    });
+  }
+  async function newMap(element2) {
+    const library = await routesLegacy.mapLibrary(), previous = routesLegacy.map();
+    if (previous) {
+      routesLegacy.setMap(null);
+      setTimeout(() => {
+        try {
+          previous.remove();
+        } catch {
+        }
+      }, 0);
+    }
+    const map2 = new library.Map({ container: element2, style: MAP_STYLE, maxPitch: 0, dragRotate: false, attributionControl: { compact: true } });
+    routesLegacy.setMap(map2);
+    map2.touchZoomRotate.disableRotation();
+    map2.addControl(new library.NavigationControl({ showCompass: false }), "top-right");
+    map2.__mk = [];
+    map2.on("load", () => {
+      if (!map2.style) return;
+      restyle(map2);
+      map2.__listo = true;
+    });
+    return { library, map: map2 };
+  }
+  var featureCollection = (features) => ({ type: "FeatureCollection", features });
+  function addRouteLayers(map2, onPick) {
+    const palette = routesLegacy.palette(), lineLayout = { "line-cap": "round", "line-join": "round" };
+    map2.addLayer({ id: "rn-linea-b", type: "line", source: "rn-linea", paint: { "line-color": palette.rutaBorde, "line-width": 7 }, layout: lineLayout });
+    map2.addLayer({ id: "rn-linea", type: "line", source: "rn-linea", paint: { "line-color": palette.ruta, "line-width": 4.5 }, layout: lineLayout });
+    map2.addLayer({ id: "rn-otros", type: "circle", source: "rn-otros", paint: { "circle-radius": 7, "circle-color": ["case", ["==", ["get", "u"], 1], URGENT_COLOUR, OTHER_COLOUR], "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+    map2.on("click", "rn-otros", (event) => {
+      const id = event.features?.[0]?.properties.id, member = (routesLegacy.draft()?.res ?? []).find((item) => item.id === id);
+      if (member && onPick) onPick(member);
+    });
+    map2.on("mouseenter", "rn-otros", () => {
+      map2.getCanvas().style.cursor = "pointer";
+    });
+    map2.on("mouseleave", "rn-otros", () => {
+      map2.getCanvas().style.cursor = "";
+    });
+  }
+  function paintSources(map2, layers) {
+    if (!map2.style || !map2.getContainer().isConnected) return;
+    const source = (id, data) => {
+      const found = map2.getSource(id);
+      if (found) found.setData(data);
+      else map2.addSource(id, { type: "geojson", data });
+    };
+    source("rn-otros", featureCollection((layers.others ?? []).filter(hasLocation).map((member) => ({ type: "Feature", properties: { id: member.id, u: member.urgente ? 1 : 0 }, geometry: { type: "Point", coordinates: [Number(member.lon), Number(member.lat)] } }))));
+    source("rn-linea", { type: "Feature", geometry: { type: "LineString", coordinates: layers.line } });
+    if (!map2.getLayer("rn-linea-b")) addRouteLayers(map2, layers.onPick);
+  }
+  function paintMarkers(map2, library, layers) {
+    const groups = [];
+    layers.members.forEach((member, index) => {
+      if (!hasLocation(member)) return;
+      const last = groups[groups.length - 1], lat = Number(member.lat), lon = Number(member.lon);
+      if (last && last.lat === lat && last.lon === lon) last.numbers.push(index + 1);
+      else groups.push({ lat, lon, numbers: [index + 1], member });
+    });
+    groups.forEach((group) => {
+      const marker = document.createElement("button");
+      marker.type = "button";
+      marker.className = `rmmk${group.numbers.length > 1 ? " multi" : ""}`;
+      marker.style.setProperty("--c", ROUTE_COLOUR);
+      marker.innerHTML = `<span>${group.numbers.length > 2 ? `${group.numbers[0] ?? ""}–${group.numbers[group.numbers.length - 1] ?? ""}` : group.numbers.join("·")}</span>`;
+      marker.title = group.member.nombre;
+      const pick = layers.onPick;
+      if (pick) marker.onclick = (event) => {
+        event.stopPropagation();
+        pick(group.member);
+      };
+      map2.__mk.push(new library.Marker({ element: marker, anchor: "bottom" }).setLngLat([group.lon, group.lat]).addTo(map2));
+    });
+  }
+  function fitAll(map2, layers, home) {
+    const points = [...layers.members, ...layers.others ?? []].filter(hasLocation).map((member) => [Number(member.lon), Number(member.lat)]);
+    if (home.lat !== null && home.lat !== void 0 && layers.members.length) points.push([Number(home.lon), Number(home.lat)]);
+    if (!points.length) return;
+    const bounds = points.reduce((box, point) => [[Math.min(box[0][0], point[0]), Math.min(box[0][1], point[1])], [Math.max(box[1][0], point[0]), Math.max(box[1][1], point[1])]], [[180, 90], [-180, -90]]);
+    map2.fitBounds(bounds, { padding: 50, duration: map2.__ya ? 500 : 0, maxZoom: 14 });
+    map2.__ya = true;
+  }
+  function paintLayers(map2, library, layers) {
+    if (!map2 || !library || !map2.getContainer().isConnected) return;
+    if (map2.__listo) paintSources(map2, layers);
+    else map2.once("load", () => {
+      setTimeout(() => {
+        paintSources(map2, layers);
+      }, 0);
+    });
+    map2.__mk.forEach((marker) => {
+      marker.remove();
+    });
+    map2.__mk = [];
+    const home = routesLegacy.start();
+    if (home.lat !== null && home.lat !== void 0) {
+      const house = document.createElement("div");
+      house.className = "rmcasa";
+      house.innerHTML = icon("house");
+      map2.__mk.push(new library.Marker({ element: house }).setLngLat([Number(home.lon), Number(home.lat)]).addTo(map2));
+    }
+    paintMarkers(map2, library, layers);
+    if (layers.fit !== false) fitAll(map2, layers, home);
+  }
+
+  // src/app/screens/routes/step-when.ts
+  var MAX_STREET_POINTS = 30;
+  var SHOWN_DATES = 4;
+  var WEEKS_OF_MONTH = 5;
+  var KINDS = [["fecha", "routes.preview.oneDay"], ["semanal", "routes.preview.weekly"], ["quincenal", "routes.preview.fortnightly"], ["mensual", "routes.preview.monthly"], ["nada", "routes.preview.noDate"]];
+  function repeatDetailsHtml(repeat, kind) {
+    const day = repeat?.dia ?? "L", nextDay = routesLegacy.nextWorkingDay();
+    const date = kind === "fecha" ? `<label for="rnfe">${t("routes.preview.day")}</label><input type="date" id="rnfe" value="${escapeHtml(orFallback(repeat?.fecha, nextDay))}" min="${todayIso()}">` : "";
+    const days = ["semanal", "quincenal", "mensual"].includes(kind) ? `<div class="rndias2" role="group" aria-label="${t("routes.preview.weekday")}">${WEEKDAYS2.map((letter) => `<button type="button" data-rnd="${letter}" class="${letter === day ? "on" : ""}">${weekdayShort(letter)}</button>`).join("")}</div>` : "";
+    const weeks = t("routes.when.weeksOfMonth").split(","), week = Number(repeat?.semana ?? 1);
+    const month = kind === "mensual" ? `<label for="rnsem">${t("routes.preview.weekOfMonth")}</label><select id="rnsem">${weeks.slice(0, WEEKS_OF_MONTH).map((label, index) => `<option value="${index + 1}" ${week === index + 1 ? "selected" : ""}>${label}</option>`).join("")}</select>` : "";
+    const start2 = kind === "quincenal" ? `<label for="rnde">${t("routes.preview.startingOn")}</label><input type="date" id="rnde" value="${escapeHtml(orFallback(repeat?.desde, nextDay))}" min="${todayIso()}">` : "";
+    return date + days + month + start2;
+  }
+  function repeatTextHtml(repeat) {
+    if (!repeat) return t("routes.preview.savedNoDate");
+    const next = datesOf(repeat, todayIso(), horizonOf(repeat)).slice(0, SHOWN_DATES);
+    return `${escapeHtml(whenText2(repeat))}.${next.length ? t("routes.preview.nextDates", { dates: next.map(formatShortDate).join(", ") }) : ""}`;
+  }
+  function repeatHtml(repeat) {
+    const kind = repeat ? repeat.tipo : "nada";
+    const options3 = KINDS.map(([key, label]) => `<button type="button" data-rnrt="${key}" class="${kind === key ? "on" : ""}" aria-pressed="${String(kind === key)}">${t(label)}</button>`).join("");
+    return `<div class="rncuando"><h3>${t("routes.preview.whenTitle")}</h3>
+    <div class="segs rnrt" role="group" aria-label="${t("routes.preview.when")}">${options3}</div>
+    ${repeatDetailsHtml(repeat, kind)}
+    <p class="sm rnrtx">${repeatTextHtml(repeat)}</p></div>`;
+  }
+  var dayTitle = (isoDate) => t("routes.preview.dayTitle", { date: capitalise(formatLongDate(isoDate)) });
+  function timelineHtml(draft, hours) {
+    const home = routesLegacy.start(), line2 = (time, text2) => `<div class="rntli viaje"><span class="h">${time}</span><span class="l"></span><span class="t">${text2}</span></div>`;
+    const rows = hours.filas.map((row4, index) => `${index && !row4.mismo && row4.viaje ? line2("", t("routes.preview.driving", { minutes: Math.round(row4.viaje) })) : ""}
+        <div class="rntli"><span class="h">${formatMinutes(row4.ini)}</span><span class="l"><i></i></span><span class="t"><b>${index + 1}. ${escapeHtml(row4.m.nombre)}</b><span class="sm">${escapeHtml(orFallback(row4.m.centro_nombre, titleCase(row4.m.municipio)))}${row4.aviso ? ` · <span class="rnav">${escapeHtml(row4.aviso)}</span>` : ""}</span></span></div>`).join("");
+    return `${line2(formatMinutes(routesLegacy.minutesOf(orFallback(draft.salida, "09:00")) ?? 0), t("routes.preview.leave", { place: escapeHtml(orFallback(home.nombre, t("routes.order.yourStart"))) }))}
+      ${rows}
+      ${line2(formatMinutes(hours.fin), t("routes.preview.lastVisit", { visit: term("visita") }))}`;
+  }
+  var saveLabel = (draft) => t(draft.rep ? "routes.preview.saveToAgenda" : "routes.preview.saveChooseDay");
+  function stepHtml2(draft, isoDate) {
+    return `<div class="rnb3"><div class="rnmini"><div class="mc" id="rnmc"></div><div class="rnchip" id="rnchip">${t("routes.preview.calculating")}</div></div>
+      <div class="rnlado"><div class="rntl"><h3 id="rntlh">${escapeHtml(dayTitle(isoDate))}</h3><div id="rntl"></div></div>${repeatHtml(draft.rep)}</div></div>
+    ${stepFooter(
+      t(draft.id ? "routes.preview.savedKeepsAgenda" : "routes.preview.savedInList"),
+      `<button class="btn sec" type="button" id="rnant3">${t("routes.order.previous")}</button><button class="btn sec" type="button" id="rnguar">${t("routes.preview.save")}</button><button class="btn" type="button" id="rnguarag">${saveLabel(draft)}</button>`
+    )}`;
+  }
+  function paintTimeline(draft, hours) {
+    const box = document.getElementById("rntl");
+    if (box) box.innerHTML = timelineHtml(draft, hours);
+  }
+  function repeatOfKind(kind, current) {
+    const day = current?.dia ?? "L", nextDay = routesLegacy.nextWorkingDay();
+    if (kind === "nada") return null;
+    if (kind === "fecha") return { tipo: "fecha", fecha: orFallback(current?.fecha, nextDay) };
+    if (kind === "mensual") return { tipo: "mensual", dia: day, semana: current?.semana ?? 1 };
+    return { tipo: kind, dia: day, desde: orFallback(current?.desde, nextDay) };
+  }
+  function repaintRepeat(box, draft) {
+    const block4 = box.querySelector(".rncuando");
+    if (block4) block4.outerHTML = repeatHtml(draft.rep);
+    bindRepeat(box, draft);
+    const isoDate = referenceDate(draft.rep, draft.nombre), title2 = document.getElementById("rntlh");
+    if (title2) title2.textContent = dayTitle(isoDate);
+    paintTimeline(draft, draftHours(draft, isoDate));
+    const name = document.getElementById("rnnom");
+    if (draft.auto && name) name.value = routeName(draft);
+    const save25 = document.getElementById("rnguarag");
+    if (save25) save25.textContent = saveLabel(draft);
+  }
+  function bindRepeat(box, draft) {
+    const change = (repeat) => {
+      draft.rep = repeat;
+      repaintRepeat(box, draft);
+    };
+    box.querySelectorAll("[data-rnrt]").forEach((button2) => {
+      button2.onclick = () => {
+        change(repeatOfKind(button2.dataset.rnrt ?? "nada", draft.rep));
+      };
+    });
+    box.querySelectorAll("[data-rnd]").forEach((button2) => {
+      button2.onclick = () => {
+        change({ ...draft.rep ?? { tipo: "" }, dia: button2.dataset.rnd ?? "L" });
+      };
+    });
+    const input4 = (id) => document.getElementById(id);
+    const date = input4("rnfe");
+    if (date) date.onchange = () => {
+      change({ tipo: "fecha", fecha: date.value });
+    };
+    const start2 = input4("rnde");
+    if (start2) start2.onchange = () => {
+      change({ ...draft.rep ?? { tipo: "" }, desde: start2.value });
+    };
+    const week = input4("rnsem");
+    if (week) week.onchange = () => {
+      change({ ...draft.rep ?? { tipo: "" }, semana: Number(week.value) });
+    };
+    routesLegacy.improveFields(box);
+  }
+  function previewPoints(draft) {
+    const home = routesLegacy.start();
+    const all2 = [...home.lat !== null && home.lat !== void 0 ? [[Number(home.lat), Number(home.lon)]] : [], ...draft.ms.filter(hasLocation).map((member) => [Number(member.lat), Number(member.lon)])];
+    return all2.filter((point, index) => !index || point[0] !== all2[index - 1]?.[0] || point[1] !== all2[index - 1]?.[1]);
+  }
+  async function paintPreviewMap(draft, isoDate) {
+    const element2 = document.getElementById("rnmc");
+    if (!element2) return;
+    const { library, map: map2 } = await newMap(element2);
+    if (!document.getElementById("rnmc")) return;
+    const chip = () => document.getElementById("rnchip"), points = previewPoints(draft);
+    paintLayers(map2, library, { members: draft.ms, line: points.map(([lat, lon]) => [lon, lat]) });
+    const label = chip();
+    if (points.length < 2 || points.length > MAX_STREET_POINTS) {
+      if (label) label.textContent = t("routes.preview.straight");
+      return;
+    }
+    const result = await routesLegacy.streetRoute(points, `${isoDate}T${orFallback(draft.salida, "09:00")}:00`), shown5 = chip();
+    if (!shown5) return;
+    if (result.ok && result.tramos?.length === points.length - 1) {
+      paintLayers(map2, library, { members: draft.ms, line: result.tramos.flatMap((part) => (part.linea ?? []).map(([lat, lon]) => [lon, lat])), fit: false });
+      shown5.innerHTML = t("routes.preview.streets", { km: String(result.km).replace(".", ","), duration: routesLegacy.durationText(result.min ?? 0) });
+    } else shown5.textContent = t("routes.preview.fallback", { reason: routesLegacy.reasonText(result.motivo) });
+  }
+  var withoutEnd = (repeat) => ({ tipo: repeat.tipo, ...Object.fromEntries(Object.entries(repeat).filter(([key]) => key !== "hasta")) });
+  function payloadOf(draft) {
+    const nameInput = document.getElementById("rnnom"), name = orFallback(nameInput?.value.trim(), routeName(draft));
+    const payload9 = {
+      nombre: name,
+      codigos: draft.ms.map((member) => member.id),
+      reglas: null,
+      salida: draft.salida || null,
+      vuelta: draft.vuelta || null,
+      repeticion: draft.rep ? withoutEnd(draft.rep) : null,
+      fijas: Object.keys(draft.fijas).length ? draft.fijas : null,
+      centros: draft.centros
+    };
+    if (draft.id) payload9.id = draft.id;
+    return payload9;
+  }
+  async function save5(toAgenda) {
+    const draft = currentDraft();
+    if (!draft) return;
+    const payload9 = payloadOf(draft);
+    const buttons = ["rnguar", "rnguarag"].map((id) => document.getElementById(id));
+    buttons.forEach((button2) => {
+      if (button2) button2.disabled = true;
+    });
+    const { data, error } = await legacyDb().rpc("guardar_ruta", { p: payload9 });
+    buttons.forEach((button2) => {
+      if (button2) button2.disabled = false;
+    });
+    if (error || !data?.ok) {
+      notices.toast(error ? t("routes.preview.couldNotSaveError", { error: error.message ?? "" }) : t("routes.preview.couldNotSave"), true);
+      return;
+    }
+    appLegacy.forgetCache();
+    const members2 = draft.ms.slice();
+    routesLegacy.setDraft(null);
+    notices.toast(t("routes.preview.saved"));
+    if (toAgenda) {
+      await copyToAgenda({ r: { ...payload9, id: data.id, mia: true }, ms: members2 });
+      return;
+    }
+    routesLegacy.reload();
+  }
+  async function paintWhen() {
+    const box = document.getElementById("rnpaso"), draft = currentDraft();
+    if (!box || !draft) return;
+    const isoDate = referenceDate(draft.rep, draft.nombre);
+    box.innerHTML = stepHtml2(draft, isoDate);
+    paintTimeline(draft, draftHours(draft, isoDate));
+    bindRepeat(box, draft);
+    const previous = document.getElementById("rnant3");
+    if (previous) previous.onclick = () => {
+      draft.paso = 2;
+      wizardHooks.repaint();
+    };
+    const saveOnly = document.getElementById("rnguar");
+    if (saveOnly) saveOnly.onclick = () => {
+      void save5(false);
+    };
+    const saveAndCopy = document.getElementById("rnguarag");
+    if (saveAndCopy) saveAndCopy.onclick = () => {
+      void save5(true);
+    };
+    await paintPreviewMap(draft, isoDate);
+  }
+
+  // src/app/screens/routes/step-who.ts
+  var SEARCH_LIMIT = 200;
+  var SHOWN = 120;
+  var SEARCH_WAIT_MS = 300;
+  async function search(draft) {
+    const filters = draft.fil, day = draft.rep?.dia;
+    const { data } = await legacyDb().rpc("buscar_cuentas", {
+      q: draft.q || null,
+      f_provincia: null,
+      f_municipio: null,
+      f_estado: null,
+      f_especialidad: null,
+      f_area: null,
+      f_urgentes: Boolean(filters.urg),
+      f_mios: Boolean(filters.mios),
+      f_sin_visitar: Boolean(filters.nunca),
+      f_comercial: null,
+      f_reporting: null,
+      orden: null,
+      lim: SEARCH_LIMIT,
+      desplaz: 0
+    });
+    let found = data?.filas ?? [];
+    if (filters.mios && !found.length && !draft.q && !draft.sinCartera) {
+      draft.sinCartera = true;
+      filters.mios = false;
+      await search(draft);
+      return;
+    }
+    if (filters.dia && day) found = found.filter((member) => member.dias?.[day]);
+    draft.res = found;
+  }
+  function attendText(member, day) {
+    if (!day || !member.dias) return "";
+    const hours = member.dias[day];
+    return hours ? t("routes.who.attends", { hours: escapeHtml(String(hours)) }) : t("routes.who.notAttending", { day: weekdayName2(day) });
+  }
+  function optionHtml(member, chosen2, day) {
+    return `<button type="button" class="rnopt ${chosen2 ? "on" : ""}" data-rnm="${member.id}" aria-pressed="${String(chosen2)}">
+      <span class="ck">${chosen2 ? routeIcon("check") : ""}</span>
+      <span class="tx"><b>${escapeHtml(member.nombre)}</b><span class="sm">${escapeHtml([member.centro_nombre, titleCase(member.municipio)].filter(Boolean).join(" · "))}${attendText(member, day)}</span></span>
+      <span class="tag ${member.urgente ? "u" : ""}">${member.urgente ? t("routes.who.urgentTag") : escapeHtml(member.estado_comercial ?? "")}</span></button>`;
+  }
+  function paintList() {
+    const box = document.getElementById("rnres"), draft = currentDraft();
+    if (!box || !draft) return;
+    const chosen2 = new Set(draft.ms.map((member) => member.id)), day = draft.rep?.dia;
+    const list = [...draft.ms.filter((member) => !draft.res.some((found) => found.id === member.id)), ...draft.res];
+    box.innerHTML = list.length ? list.slice(0, SHOWN).map((member) => optionHtml(member, chosen2.has(member.id), day)).join("") : `<div class="vacio">${t("routes.who.noneWithFilters", { professionals: term("medico", { number: "p" }) })}</div>`;
+    box.querySelectorAll("[data-rnm]").forEach((button2) => {
+      button2.onclick = () => {
+        const member = list.find((item) => item.id === button2.dataset.rnm);
+        if (member) toggle(member);
+      };
+    });
+  }
+  async function mapReady(element2) {
+    const current = routesLegacy.map();
+    if (current && current.getContainer() === element2) return;
+    let pending = routesLegacy.pendingMap();
+    if (pending?.el !== element2) {
+      pending = Object.assign(newMap(element2).then(({ library, map: map2 }) => {
+        map2.__ml = library;
+      }), { el: element2 });
+      routesLegacy.setPendingMap(pending);
+    }
+    await pending;
+  }
+  async function paintMap2() {
+    const element2 = document.getElementById("rnmc");
+    if (!element2 || !currentDraft()) return;
+    await mapReady(element2);
+    const map2 = routesLegacy.map(), draft = currentDraft();
+    if (!draft || !map2?.__ml || map2.getContainer() !== document.getElementById("rnmc")) return;
+    const chosen2 = new Set(draft.ms.map((member) => member.id)), home = routesLegacy.start();
+    const line2 = [
+      ...home.lat !== null && home.lat !== void 0 && draft.ms.length ? [[Number(home.lon), Number(home.lat)]] : [],
+      ...draft.ms.filter(hasLocation).map((member) => [Number(member.lon), Number(member.lat)])
+    ];
+    paintLayers(map2, map2.__ml, { members: draft.ms, others: draft.res.filter((member) => !chosen2.has(member.id)), line: line2, fit: !map2.__ya, onPick: toggle });
+  }
+  function toggle(member) {
+    const draft = currentDraft();
+    if (!draft) return;
+    const index = draft.ms.findIndex((item) => item.id === member.id);
+    if (index >= 0) {
+      draft.ms.splice(index, 1);
+      unfix(draft, member.id);
+    } else draft.ms.push(member);
+    draft.ordenManual = false;
+    const count2 = document.getElementById("rnn");
+    if (count2) count2.textContent = String(draft.ms.length);
+    const next = document.getElementById("rnsig1");
+    if (next) next.disabled = !draft.ms.length;
+    const name = document.getElementById("rnnom");
+    if (draft.auto && name) name.value = routeName(draft);
+    document.querySelectorAll('[data-rnp="2"], [data-rnp="3"]').forEach((button2) => {
+      button2.disabled = !draft.ms.length;
+    });
+    paintList();
+    void paintMap2();
+  }
+  function stepHtml3(draft) {
+    const day = draft.rep?.dia, filter = (key, label, id = "") => `<button type="button" data-rnf="${key}" class="${draft.fil[key] ? "on" : ""}"${id ? ` id="${id}"` : ""}>${label}</button>`;
+    return `<div class="rnb1"><div class="rnsel">
+      <div class="rnbus">${routeIcon("search")}<input id="rnq" placeholder="${t("routes.who.search")}" value="${escapeHtml(draft.q)}" autocomplete="off"></div>
+      <div class="rnfil" role="group" aria-label="${t("routes.who.filters")}">
+        ${filter("mios", t("routes.who.mine"), "rnfmios")}${filter("urg", t("routes.who.urgent"))}
+        ${day ? filter("dia", t("routes.who.attendDay", { day: weekdayName2(day) })) : ""}${filter("nunca", t("routes.who.neverVisited"))}</div>
+      <div class="rnres" id="rnres"><div class="sm" style="padding:10px 4px">${t("routes.who.searching")}</div></div></div>
+    <div class="rnmini"><div class="mc" id="rnmc"></div><div class="rnley"><span><i style="background:#17457A"></i>${t("routes.who.inRoute")}</span><span><i style="background:#9FB6CE"></i>${t("routes.who.toAdd")}</span><span><i style="background:#E08A00"></i>${t("routes.who.urgentLegend")}</span></div></div></div>
+    ${stepFooter(t("routes.who.chosen", { count: draft.ms.length }), `<button class="btn" type="button" id="rnsig1" ${draft.ms.length ? "" : "disabled"}>${t("routes.who.nextStep")}</button>`)}`;
+  }
+  var refresh2 = async (draft) => {
+    await search(draft);
+    paintList();
+    void paintMap2();
+  };
+  function bind7(box, draft) {
+    let timer;
+    const query = document.getElementById("rnq");
+    if (query) query.oninput = () => {
+      draft.q = query.value;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        void refresh2(draft);
+      }, SEARCH_WAIT_MS);
+    };
+    box.querySelectorAll("[data-rnf]").forEach((button2) => {
+      button2.onclick = () => {
+        const key = button2.dataset.rnf ?? "";
+        draft.fil[key] = !draft.fil[key];
+        button2.classList.toggle("on");
+        void refresh2(draft);
+      };
+    });
+    const next = document.getElementById("rnsig1");
+    if (next) next.onclick = () => {
+      draft.paso = 2;
+      if (!draft.ordenManual) bestOrderOf(draft);
+      wizardHooks.repaint();
+    };
+  }
+  async function paintWho() {
+    const box = document.getElementById("rnpaso"), draft = currentDraft();
+    if (!box || !draft) return;
+    box.innerHTML = stepHtml3(draft);
+    bind7(box, draft);
+    await search(draft);
+    if (!document.getElementById("rnres")) return;
+    document.getElementById("rnfmios")?.classList.toggle("on", Boolean(draft.fil.mios));
+    paintList();
+    void paintMap2();
+  }
+
+  // src/app/screens/routes/wizard.ts
+  var STEPS2 = ["routes.wizard.stepWho", "routes.wizard.stepOrder", "routes.wizard.stepWhen"];
+  var searchState = () => ({ q: "", fil: { mios: true, urg: false, dia: false, nunca: false }, res: [], mapa: null });
+  function freshDraft(step) {
+    const nextDay = routesLegacy.nextWorkingDay(), day = WEEKDAYS2[Math.max(0, fromIsoDate(nextDay).getDay() - 1)] ?? "L";
+    return { id: null, nombre: "", auto: true, ms: [], rep: { tipo: "semanal", dia: day, desde: nextDay }, salida: "09:00", vuelta: "", fijas: {}, ordenManual: false, paso: step, centros: [], ...searchState() };
+  }
+  function draftOf(card2, step) {
+    const route = card2.r;
+    return {
+      id: route.id,
+      nombre: route.nombre,
+      auto: false,
+      ms: card2.ms.slice(),
+      rep: route.repeticion ?? null,
+      salida: route.salida ? String(route.salida).slice(0, 5) : "09:00",
+      vuelta: route.vuelta ? String(route.vuelta).slice(0, 5) : "",
+      fijas: { ...route.fijas ?? {} },
+      ordenManual: true,
+      paso: step,
+      centros: route.centros ?? [],
+      ...searchState()
+    };
+  }
+  var newDraft = (card2, step) => card2 ? draftOf(card2, step) : freshDraft(step);
+  function openRoute(card2, step = 1) {
+    routesLegacy.setDraft(newDraft(card2, step));
+    if (currentScreen() !== "rutas") goTo("rutas");
+    else paintWizard();
+  }
+  function closeRoute() {
+    routesLegacy.setDraft(null);
+    const map2 = routesLegacy.map();
+    if (map2) {
+      try {
+        map2.remove();
+      } catch {
+      }
+      routesLegacy.setMap(null);
+    }
+    routesLegacy.reload();
+  }
+  function stepsHtml(draft) {
+    return STEPS2.map((key, index) => {
+      const step = index + 1, state = step === draft.paso ? "on" : step < draft.paso ? "ok" : "";
+      return `<button type="button" role="tab" data-rnp="${step}" class="${state}" aria-selected="${String(step === draft.paso)}" ${step > 1 && !draft.ms.length ? "disabled" : ""}><i>${step < draft.paso ? "✓" : step}</i><span>${t(key)}</span></button>`;
+    }).join("");
+  }
+  function paintWizard() {
+    const view = document.getElementById("v-rutas"), draft = currentDraft();
+    if (!view || !draft) return;
+    view.innerHTML = `<div class="rnroot">
+    <div><button class="rnvol" type="button" id="rnvol">${t("routes.wizard.back")}</button>
+      <div class="rntit"><input id="rnnom" value="${escapeHtml(routeName(draft))}" aria-label="${t("routes.wizard.nameLabel")}" maxlength="80"><span class="rnlap">${routeIcon("pencil")}</span></div>
+      <div class="sm rnnomsm">${t(draft.auto ? "routes.wizard.autoNameHint" : "routes.wizard.nameHint")}</div></div>
+    <div class="rnpasos" role="tablist">${stepsHtml(draft)}</div>
+    <div id="rnpaso"></div></div>`;
+    const back = document.getElementById("rnvol");
+    if (back) back.onclick = closeRoute;
+    const name = document.getElementById("rnnom");
+    if (name) name.oninput = () => {
+      draft.nombre = name.value;
+      draft.auto = !name.value.trim();
+    };
+    view.querySelectorAll("[data-rnp]").forEach((button2) => {
+      button2.onclick = () => {
+        if (button2.disabled) return;
+        draft.paso = Number(button2.dataset.rnp);
+        paintWizard();
+      };
+    });
+    if (draft.paso === 1) void paintWho();
+    else if (draft.paso === 2) paintOrder();
+    else void paintWhen();
+  }
+  wizardHooks.repaint = paintWizard;
+
+  // src/app/screens/routes/list.ts
+  function routeFacts(card2) {
+    const route = card2.r, members2 = card2.ms, repeat = route.repeticion ?? null;
+    const hours = hoursOf(members2, referenceDate(repeat, route.nombre), { start: route.salida, back: route.vuelta, fixed: route.fijas }), next = nextDateOf(repeat);
+    const stops = new Set(members2.filter(hasLocation).map((member) => `${Number(member.lat).toFixed(5)},${Number(member.lon).toFixed(5)}`)).size;
+    const who2 = `${formatNumber(members2.length)} ${term("medico", { number: members2.length === 1 ? "s" : "p" })} · ${stops} ${t(stops === 1 ? "routes.list.oneStop" : "routes.list.stops")}${hours.km >= 1 ? t("routes.list.kilometres", { km: Math.round(hours.km) }) : ""}`;
+    const when = members2.length ? t("routes.list.fromTo", { start: route.salida ? String(route.salida).slice(0, 5) : "09:00", end: formatMinutes(hours.fin) }) : t("routes.list.nobodyYet");
+    return { stops: who2, hours: `${when}${next ? t("routes.list.next", { date: escapeHtml(formatShortDate(next)) }) : ""}${route.mia ? "" : t("routes.list.owner", { name: escapeHtml(route.duenyo ?? "") })}` };
+  }
+  function cardHtml2(card2, index) {
+    const route = card2.r, facts = routeFacts(card2), editable = Boolean(route.mia) || cardSectionsLegacy.can("administrar");
+    const actions = editable ? `<button class="btn sec chico" type="button" data-rned="${index}">${routeIcon("pencil")} ${t("routes.list.edit")}</button>
+          <button class="btn sec chico rnico" type="button" data-rnbor="${index}" aria-label="${t("routes.list.removeRoute", { name: escapeHtml(route.nombre) })}" title="${t("routes.list.remove")}">${routeIcon("bin")}</button>` : `<button class="btn sec chico" type="button" data-rnver="${index}">${t("routes.list.see")}</button>`;
+    return `<article class="rncard" data-rni="${index}"><div class="rncro">${routeSketch(card2.ms)}<span class="rndia">${escapeHtml(whenText2(route.repeticion ?? null))}</span></div>
+        <div class="rntx"><b>${escapeHtml(route.nombre)}</b>
+          <span class="sm">${facts.stops}</span>
+          <span class="sm">${facts.hours}</span></div>
+        <div class="rnacts"><button class="btn chico" type="button" data-rnag="${index}">${t("routes.list.toAgenda")}</button>
+          ${actions}</div></article>`;
+  }
+  function pageHtml(cards) {
+    return `
+    <div class="saludo"><div><h1>${t("routes.list.title")}</h1><div class="fecha">${t("routes.list.subtitle")}</div></div>
+      <div class="acts" style="margin:0"><button class="btn" id="rnueva">${t("routes.list.newRoute")}</button></div></div>
+    <div class="rngrid" id="rngrid">${cards.map(cardHtml2).join("")}
+      <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>${t("routes.list.newRouteCard")}</b><span class="sm">${t(cards.length ? "routes.list.newRouteHint" : "routes.list.firstRouteHint")}</span></span></button></div>
+    <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
+  }
+  async function removeRoute(route) {
+    if (!await notices.confirm(t("routes.list.removeText", { name: route.nombre }), { titulo: t("routes.list.removeTitle"), ok: t("routes.list.remove"), peligro: true })) return;
+    const { error } = await legacyDb().rpc("guardar_ruta", { p: { id: route.id, activa: false } });
+    if (error) {
+      notices.toast(t("routes.list.couldNotRemove"), true);
+      return;
+    }
+    notices.toast(t("routes.list.removed"));
+    appLegacy.forgetCache();
+    routesLegacy.reload();
+  }
+  function bind8(view, cards) {
+    const each = (attribute, action) => {
+      view.querySelectorAll(`[data-${attribute}]`).forEach((button2) => {
+        button2.onclick = () => {
+          const card2 = cards[Number(button2.getAttribute(`data-${attribute}`))];
+          if (card2) action(card2, button2);
+        };
+      });
+    };
+    ["rnueva", "rnnueva2"].forEach((id) => {
+      const button2 = document.getElementById(id);
+      if (button2) button2.onclick = () => {
+        openRoute(null);
+      };
+    });
+    each("rned", (card2) => {
+      openRoute(card2, 3);
+    });
+    each("rnver", (card2) => {
+      openRoute(card2, 3);
+    });
+    each("rnag", (card2, button2) => {
+      void copyToAgenda(card2, button2);
+    });
+    each("rnbor", (card2) => {
+      void removeRoute(card2.r);
+    });
+  }
+  async function paintRoutes() {
+    const view = document.getElementById("v-rutas");
+    if (routesLegacy.draft()) {
+      paintWizard();
+      return;
+    }
+    const { data } = await legacyDb().rpc("rutas_visibles");
+    const routes2 = data ?? [];
+    routesLegacy.setRoutes(routes2);
+    const cards = await Promise.all(routes2.map(async (route) => ({ r: route, ms: await routeMembers(route) })));
+    routesLegacy.setCards(cards);
+    if (!view) return;
+    view.innerHTML = pageHtml(cards);
+    bind8(view, cards);
+  }
+
+  // src/app/screens/orders/index.ts
+  var orders_exports = {};
+  __export(orders_exports, {
+    configureAlerts: () => configureAlerts,
+    isBankTransfer: () => isBankTransfer,
+    isFree: () => isFree,
+    lineBreakdown: () => lineBreakdown,
+    loadSales: () => loadSales,
+    orderStep: () => orderStep,
+    orderTotals: () => orderTotals,
+    paintDistributors: () => paintDistributors,
+    paintOrderList: () => paintOrderList,
+    paymentSubject: () => paymentSubject,
+    paymentText: () => paymentText,
+    sendPaymentDetails: () => sendPaymentDetails,
+    showOrder: () => showOrder,
+    statePill: () => statePill4,
+    stepPill: () => stepPill,
+    totalsHtml: () => totalsHtml
+  });
+
+  // src/app/legacy/orders-bridge.ts
+  var ordersLegacy = {
+    section: () => PEDSEC,
+    setSection: (section2) => {
+      PEDSEC = section2;
+    },
+    setLoadingSection: (section2) => {
+      PEDSEC_CARGA = section2;
+    },
+    sectionTitle: (section2) => TITULO_PEDSEC[section2] ?? TITULO_PEDSEC.ventas ?? ["", ""],
+    markSection: () => {
+      marcarPedsec();
+    },
+    /** The open part of Configuración (Distribuidores lives there). */
+    settingsSection: () => CFG_KEY,
+    page: () => PEDPAG,
+    setPage: (page) => {
+      PEDPAG = page;
+    },
+    fieldFilters: () => PEDF,
+    setRows: (rows) => {
+      PEDIDOS = rows;
+    },
+    /** Through the global name (legado 057 keeps the screen cached around it). */
+    reload: () => {
+      void cargarVentas();
+    },
+    restoreFilters: (root) => {
+      filtrosRestaurar(root);
+    },
+    paintOperations: () => {
+      void pintarOperativa();
+    },
+    paintUnattributed: () => {
+      void pintarSinAtribuir();
+    },
+    canAttribute: () => Boolean(puedeAtribuir()),
+    newSale: () => {
+      void nuevaVenta();
+    },
+    services: () => SERVICIOS,
+    paymentState: (order) => cobroDe(order),
+    channelLabel: (order, total2) => etiquetaCanal(order, total2),
+    paymentMethods: () => CAT.forma_pago ?? [],
+    fieldColumns: () => clasVisibles("pedido"),
+    fieldCells: (fields, values2) => clasCeldas(fields, values2)
+  };
+  var orderSheetLegacy = {
+    whileLoading: (work) => ventanaCargando(work),
+    whenSteady: (element2, maxMs) => estable(element2, maxMs),
+    invoices: (id) => pedidoFacturas(id),
+    cardPayment: (id) => tpvBloque(id),
+    customFields: (id, container) => bloqueCampos("pedidos", id, container),
+    edit: (detail) => {
+      void editorPedido(detail);
+    },
+    openCustomer: (id) => {
+      void fichaPaciente(id);
+    },
+    distributors: (force = false) => cargarDistribuidores(force),
+    fieldsForm: (values2) => camposHTML("pedido", values2),
+    readFields: (root) => camposLeer(root),
+    saveFields: (read, id) => camposGuardar(read, id),
+    loadPdf: () => cargarJsPDF(),
+    appName: () => nombreApp(),
+    askText: (message, value18, options3) => pedirTexto(message, value18, options3)
+  };
+  var orderMailLegacy = {
+    template: (kind, field8, values2) => plantillaCorreo(kind, field8, varsCorreo(values2)),
+    chooseTemplate: (kind) => elegirPlantillaCorreo(kind),
+    forgetChosenTemplate: (kind) => {
+      PLANT_ELEGIDA[kind] = null;
+    },
+    companyIban: () => String(AJUSTES.empresa?.iban ?? "").trim(),
+    /** A server function (the answer is read by the caller). */
+    invoke: (name, body2) => db.functions.invoke(name, { body: body2 }),
+    alertPreferences: () => PERFIL.preferencias?.avisos_pedidos ?? {},
+    saveAlertPreferences: (alerts) => guardarPrefsAvisos(alerts),
+    roleNames: () => rolesNombres()
+  };
+
+  // src/app/screens/orders/alerts-settings.ts
+  var ALERTS = [
+    ["pago", "orders.alerts.toCollect", "💳"],
+    ["paquete", "orders.alerts.toPack", "📦"],
+    ["email_factura", "orders.alerts.invoicesToSend", "🧾"],
+    ["email_pago", "orders.alerts.paymentToSend", "✉️"]
+  ];
+  var PORTAL_ROLE_CAPABILITY = "portal_prescriptor";
+  function ownHtml(mandatory, preferences) {
+    return `<div class="lista">${ALERTS.map(([key, label, icon2]) => `<label class="item" style="cursor:default"><input type="checkbox" data-avp="${key}" ${mandatory.includes(key) || preferences[key] !== false ? "checked" : ""} ${mandatory.includes(key) ? "disabled" : ""}>
+        <span class="tx"><b>${icon2} ${t(label)}</b>${mandatory.includes(key) ? `<span class="sm">${t("orders.alerts.mandatoryForRole")}</span>` : ""}</span></label>`).join("")}</div>`;
+  }
+  function rolesHtml(fixed2, roles) {
+    return `<h3 style="margin:14px 0 4px">${t("orders.alerts.byRole")}</h3><p class="sm">${t("orders.alerts.byRoleHint")}</p>
+      <div class="dgrid-wrap"><table class="tabla avrol"><thead><tr><th>${t("orders.alerts.role")}</th>${ALERTS.map(([, label]) => `<th>${t(label)}</th>`).join("")}</tr></thead>
+        <tbody>${roles.map((role) => `<tr><td>${escapeHtml(role)}</td>${ALERTS.map(([key]) => `<td style="text-align:center"><input type="checkbox" data-avr="${escapeHtml(role)}|${key}" ${(fixed2[role] ?? []).includes(key) ? "checked" : ""} aria-label="${t("orders.alerts.mandatoryLabel", { role: escapeHtml(role) })}"></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  }
+  async function save6(body2, admin) {
+    const own = {};
+    body2.querySelectorAll("[data-avp]").forEach((box) => {
+      if (!box.disabled) own[box.dataset.avp ?? ""] = box.checked;
+    });
+    if (!await orderMailLegacy.saveAlertPreferences(own)) return;
+    if (admin) {
+      const mandatory = {};
+      body2.querySelectorAll("[data-avr]:checked").forEach((box) => {
+        const [role = "", key = ""] = (box.dataset.avr ?? "").split("|");
+        (mandatory[role] ?? (mandatory[role] = [])).push(key);
+      });
+      const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "avisos_pedidos", p_valor: { obligatorios: mandatory } });
+      if (error || result?.ok === false) {
+        notices.toast(t("orders.alerts.couldNotSaveMandatory"), true);
+        return;
+      }
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t("orders.alerts.saved"));
+    ordersLegacy.paintOperations();
+  }
+  async function configureAlerts(mandatory) {
+    const preferences = orderMailLegacy.alertPreferences(), admin = cardSectionsLegacy.can("administrar");
+    const { data: settings } = admin ? await legacyDb().from("ajustes").select("valor").eq("clave", "avisos_pedidos").maybeSingle() : { data: null };
+    const fixed2 = settings?.valor?.obligatorios ?? {}, roles = admin ? orderMailLegacy.roleNames().filter((role) => !cardSectionsLegacy.roleCan(role, PORTAL_ROLE_CAPABILITY)) : [];
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = `<div class="fh"><div><h2>${t("orders.alerts.title")}</h2><div class="sm">${t("orders.alerts.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${ownHtml(mandatory, preferences)}
+    ${admin ? rolesHtml(fixed2, roles) : ""}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="avpok">${t("common.save")}</button></div>`;
+    box.showModal();
+    const ok = document.getElementById("avpok");
+    if (ok) ok.onclick = () => {
+      void save6(body2, admin);
+    };
+  }
+
+  // src/app/legacy/customers-bridge.ts
+  var customersLegacy = {
+    filters: () => PAC,
+    canSell: () => Boolean(puedeVentas()),
+    editCustomer: (customer, onSave) => {
+      editorContacto(customer, (saved2) => {
+        onSave(saved2);
+      });
+    },
+    orderPill: (state) => pillEstado(state),
+    newSale: (preset) => {
+      void nuevaVenta(preset);
+    },
+    shownCustomer: () => FICHA_PAC,
+    setShownCustomer: (id) => {
+      FICHA_PAC = id;
+    },
+    forgetShownAccount: () => {
+      FICHA_ID = null;
+    },
+    visibleFieldColumns: () => clasVisibles("cliente"),
+    fieldHeaders: (fields) => clasCabeceras(fields),
+    widenGrid: (grid, count2) => {
+      clasRejilla(grid, count2);
+    },
+    fieldFilters: (state) => camposFiltros("cliente", state, "pfcp"),
+    bindFieldFilters: (zone, state, onChange) => {
+      camposFiltrosActivar(zone, state, onChange);
+    },
+    showLoading: (element2, text2) => {
+      cargando(element2, text2);
+    },
+    clearModules: (except) => {
+      vaciarModulos(except);
+    },
+    customFields: (id, container) => bloqueCampos("contactos", id, container),
+    forgetPreloads: () => {
+      DB_PRE.clear();
+    },
+    /** Through the global name (the list bar and Pedidos call it too). */
+    repaintList: () => {
+      void listaPacientes();
+    }
+  };
+
+  // src/app/screens/orders/model.ts
+  var STATES5 = { draft: "Borrador", confirmed: "Confirmado", voided: "Anulado" };
+  var PAID = "Cobrado";
+  var FREE = "Sin cargo";
+  var PENDING_PAYMENT = "Pendiente de cobro";
+  var round2 = (value18) => Math.round((Number(value18) || 0) * 100) / 100;
+  var euros = (value18) => formatCurrency(round2(value18));
+  function lineBreakdown(line2) {
+    const gross = Number(line2.importe) || 0, base = gross * (1 - (Number(line2.descuento) || 0) / 100), vat = base * (Number(line2.iva) || 0) / 100;
+    return { bruto: gross, base, iva: vat, total: base + vat };
+  }
+  function shippingTotals(shipping) {
+    if (!shipping?.on) return null;
+    const withVat2 = round2(shipping.con), rate = Number(shipping.iva) || 0, base = (Number(shipping.con) || 0) / (1 + rate / 100);
+    return { con: withVat2, iva: rate, base, nombre: shipping.nombre ?? t("orders.totals.shipping"), ivaImp: withVat2 - base };
+  }
+  function orderTotals(lines2, discount, discountType, shipping) {
+    const items = lines2.map((line2) => ({ base: (Number(line2.importe) || 0) * (1 - (Number(line2.descuento) || 0) / 100), rate: Number(line2.iva) || 0, units: Number(line2.unidades) || 0 }));
+    const gross = sum(items.map((item) => item.base));
+    const factor = !Number(discount) || !gross ? 1 : discountType === "importe" ? Math.max(0, 1 - discount / gross) : Math.max(0, 1 - discount / 100);
+    const byRate = {};
+    items.forEach((item) => {
+      byRate[item.rate] = (byRate[item.rate] ?? 0) + item.base * factor * item.rate / 100;
+    });
+    const service = shippingTotals(shipping);
+    if (service) byRate[service.iva] = (byRate[service.iva] ?? 0) + service.ivaImp;
+    const base = gross * factor + (service ? service.base : 0), vat = sum(Object.values(byRate));
+    return { unidades: sum(items.map((item) => item.units)), bruto: gross, descuento: gross * (1 - factor), baseProd: gross * factor, porIva: byRate, envio: service, base, iva: vat, total: base + vat };
+  }
+  var totalRow = (label, value18) => `<div><span>${label}</span><b>${value18}</b></div>`;
+  function totalsHtml(totals) {
+    const rates = Object.keys(totals.porIva).sort((first, second) => Number(first) - Number(second));
+    const service = totals.envio;
+    return `${totalRow(t("orders.totals.units"), formatNumber(totals.unidades))}
+    ${totals.descuento > 4e-3 ? `${totalRow(t("orders.totals.linesSum"), euros(totals.bruto))}
+      ${totalRow(t("orders.totals.generalDiscount"), `−${euros(totals.descuento)}`)}` : ""}
+    ${service ? `${totalRow(t("orders.totals.productsWithoutVat"), euros(totals.baseProd))}
+      ${totalRow(t("orders.totals.serviceWithoutVat", { name: escapeHtml(service.nombre) }), euros(service.base))}` : ""}
+    ${totalRow(t("orders.totals.taxBase"), euros(totals.base))}
+    ${rates.filter((rate) => (totals.porIva[rate] ?? 0) > 4e-3 || rates.length === 1).map((rate) => totalRow(t("orders.totals.vatRate", { rate }), euros(totals.porIva[rate]))).join("")}
+    ${service ? `<div class="sm" style="justify-content:flex-end"><span>${t("orders.totals.includesService", { name: escapeHtml(service.nombre.toLowerCase()), amount: euros(service.con) })}</span></div>` : ""}
+    <div class="tot"><span>${t("orders.totals.total")}</span><b>${euros(totals.total)}</b></div>`;
+  }
+  function storedTotals(detail) {
+    const order = detail.pedido, rate = Number(order.envio_iva) || 0;
+    const service = ordersLegacy.services().find((item) => item.id === order.servicio_id);
+    return orderTotals(
+      detail.lineas ?? [],
+      Number(order.descuento) || 0,
+      order.descuento_tipo,
+      { on: Boolean(order.envio), con: round2(Number(order.envio_base) * (1 + rate / 100)), iva: rate, nombre: service?.nombre ?? t("orders.totals.shipping") }
+    );
+  }
+  var statePill4 = (state) => `<span class="pill ${state === STATES5.draft ? "p-bor" : state === STATES5.voided ? "p-anu" : "p-est"}">${escapeHtml(state)}</span>`;
+  function isFree(order, total2) {
+    if (!order) return false;
+    if (order.sin_cargo) return true;
+    if (total2 === null || total2 === void 0 || Math.abs(Number(total2)) >= 5e-3) return false;
+    return order.unidades === null || order.unidades === void 0 || Number(order.unidades) > 0;
+  }
+  var isBankTransfer = (paymentMethod) => /transfer/i.test(paymentMethod ?? "");
+  var paymentOf = (order) => ordersLegacy.paymentState(order);
+  function paymentPill(order) {
+    if (order.estado !== STATES5.confirmed) return "";
+    const payment = paymentOf(order);
+    return ` <span class="pill ${payment === PAID ? "p-trfok" : payment === FREE ? "p-sr" : "p-bor"}">${payment}</span>`;
+  }
+  function confirmedStep(order) {
+    const onDelivery = /reembolso/i.test(order.forma_pago ?? ""), toCollect = paymentOf(order) === PENDING_PAYMENT;
+    if (toCollect && !onDelivery) return ["orders.steps.toCollect", "p-bor"];
+    if (!order.paquete_en) return ["orders.steps.toPack", "p-est"];
+    if (toCollect) return ["orders.steps.toCollect", "p-bor"];
+    if (order.completado === false || !order.factura && !order.factura_id && paymentOf(order) !== FREE) return ["orders.steps.toInvoice", "p-est"];
+    return ["orders.steps.completed", "p-trfok"];
+  }
+  function orderStep(order) {
+    let step;
+    if (order.estado === STATES5.voided) step = ["orders.steps.voided", "p-anu"];
+    else if (order.estado === STATES5.draft) step = order.email_pago_en ? ["orders.steps.awaitingPayment", "p-bor"] : ["orders.steps.draft", "p-sr"];
+    else if (order.completado === true) step = ["orders.steps.completed", "p-trfok"];
+    else step = confirmedStep(order);
+    return [t(step[0]), step[1]];
+  }
+  function stepPill(order) {
+    const [text2, pillClass] = orderStep(order);
+    const done = order.estado === STATES5.confirmed ? [t("orders.steps.doneConfirmed"), order.paquete_en ? t("orders.steps.donePacked") : "", paymentOf(order) === PAID ? t("orders.steps.donePaid") : "", order.factura ? t("orders.steps.doneInvoiced") : ""].filter(Boolean).join(" · ") : "";
+    return `<span class="pill ${pillClass}"${done ? ` title="${t("orders.steps.done", { steps: done })}"` : ""}>${text2}</span>`;
+  }
+  var OPERATIONS = [
+    ["pago", "orders.operations.paid", "pago_estado"],
+    ["paquete", "orders.operations.packed", "paquete_en"],
+    ["email_factura", "orders.operations.invoiceEmail", "email_factura_en"],
+    ["email_pago", "orders.operations.paymentEmail", "email_pago_en"]
+  ];
+  function operationDone(order, key) {
+    if (key === "pago") return order.pago_estado === PAID;
+    const column = OPERATIONS.find((operation) => operation[0] === key)?.[2];
+    return Boolean(column && order[column]);
+  }
+  var TRANSFER_STATES = ["Enviado", "Aceptado", "Servido", "Incidencia"];
+  var TRANSFER_SERVED = "Servido";
+  var TRANSFER_ISSUE = "Incidencia";
+  var transferPill = (state) => state ? `<span class="pill ${state === TRANSFER_SERVED ? "p-trfok" : state === TRANSFER_ISSUE ? "p-urg" : "p-per"}">${escapeHtml(state)}</span>` : `<span class="pill">${t("orders.transfer.notSent")}</span>`;
+
+  // src/app/screens/orders/distributors.ts
+  var SETTINGS_KEY = "distribuidores";
+  var EMAIL3 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var all = [];
+  var value4 = (id) => document.getElementById(id)?.value.trim() ?? "";
+  var secondWindow = () => document.getElementById("dlg2");
+  var stillShown2 = () => Boolean(document.getElementById("cfgcuerpo")) && ordersLegacy.settingsSection() === SETTINGS_KEY;
+  function editorHtml3(distributor, isNew) {
+    return `<div class="fh"><div><h2>${t(isNew ? "orders.distributors.newTitle" : "orders.distributors.editTitle")}</h2><div class="sm">${t("orders.distributors.subtitle")}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    <label for="dsn">${t("orders.distributors.name")}</label><input id="dsn" placeholder="${t("orders.distributors.namePlaceholder")}" value="${escapeHtml(distributor.nombre ?? "")}">
+    <div class="g2"><div><label for="dse">${t("orders.distributors.email")}</label><input id="dse" type="email" value="${escapeHtml(distributor.email ?? "")}"></div>
+      <div><label for="dst">${t("orders.distributors.phone")}</label><input id="dst" inputmode="tel" value="${escapeHtml(distributor.telefono ?? "")}"></div></div>
+    <label for="dsnota">${t("orders.distributors.note")}</label><input id="dsnota" placeholder="${t("orders.distributors.notePlaceholder")}" value="${escapeHtml(distributor.nota ?? "")}">
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>${t("common.cancel")}</button><button type="button" class="btn" id="dsok">${t(isNew ? "orders.distributors.add" : "common.save")}</button></div>`;
+  }
+  function readForm() {
+    const name = value4("dsn");
+    if (!name) {
+      notices.toast(t("orders.distributors.writeName"), true);
+      return null;
+    }
+    const email = value4("dse") || null;
+    if (email && !EMAIL3.test(email)) {
+      notices.toast(t("orders.distributors.badEmail"), true);
+      return null;
+    }
+    return { nombre: name, email, telefono: value4("dst") || null, nota: value4("dsnota") || null };
+  }
+  async function save7(existing, button2) {
+    const row4 = readForm();
+    if (!row4) return;
+    button2.disabled = true;
+    const { error } = existing ? await legacyDb().from("distribuidores").update(row4).eq("id", existing.id) : await legacyDb().from("distribuidores").insert(row4);
+    if (error) {
+      button2.disabled = false;
+      notices.toast(t(existing ? "orders.distributors.couldNotSave" : "orders.distributors.couldNotAdd", { error: error.message ?? "" }), true);
+      return;
+    }
+    secondWindow()?.close();
+    notices.toast(t(existing ? "orders.distributors.saved" : "orders.distributors.added"));
+    await orderSheetLegacy.distributors(true).catch(() => []);
+    if (stillShown2()) void paintDistributors();
+  }
+  function editDistributor(existing) {
+    const body2 = document.getElementById("dlg2body");
+    if (!body2) return;
+    body2.innerHTML = editorHtml3(existing ?? {}, !existing);
+    secondWindow()?.showModal();
+    const ok = document.getElementById("dsok");
+    if (ok) ok.onclick = () => {
+      void save7(existing, ok);
+    };
+  }
+  function transfersHtml(data) {
+    const summary4 = data?.resumen ?? {}, rows = data?.pedidos ?? [];
+    const counts = [["orders.transfers.notSent", "sin_enviar"], ["orders.transfers.sent", "enviado"], ["orders.transfers.accepted", "aceptado"], ["orders.transfers.served", "servido"], ["orders.transfers.withIssue", "incidencia"]].map(([label, key]) => `<span class="${key === "incidencia" && summary4[key] ? "warn" : ""}"><b>${formatNumber(summary4[key] ?? 0)}</b> ${t(label)}</span>`).join("");
+    const list = rows.length ? `<div class="lista trflista">${rows.map((row4) => `<button type="button" class="item" data-trfped="${row4.id}">
+        <span class="tx"><b>${escapeHtml(orFallback(row4.numero, t("orders.transfers.order")))} · ${escapeHtml(orFallback(row4.cliente, "—"))}</b><span class="sm">${formatShortDate(String(row4.fecha).slice(0, 10))} · ${t("orders.transfers.units", { count: formatNumber(row4.unidades) })} · ${euros(row4.base)}${row4.transfer_nota ? ` · ${escapeHtml(row4.transfer_nota)}` : ""}</span></span>
+        ${transferPill(row4.transfer_estado)}</button>`).join("")}</div>` : `<p class="vacio">${t("orders.transfers.none")}</p>`;
+    return `<div class="trfres">${counts}</div>
+    ${list}`;
+  }
+  async function showTransfers(id) {
+    const distributor = all.find((item) => item.id === id), body2 = document.getElementById("dlg2body");
+    if (!body2) return;
+    body2.innerHTML = `<div class="fh"><div><h2>${t("orders.transfers.title", { name: escapeHtml(distributor?.nombre ?? "") })}</h2><div class="sm">${t("orders.transfers.subtitle")}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div><div id="trfcuerpo"></div>`;
+    customersLegacy.showLoading(document.getElementById("trfcuerpo"), t("orders.transfers.loading"));
+    secondWindow()?.showModal();
+    const { data, error } = await legacyDb().rpc("transfers_distribuidor", { p_dist: id });
+    const box = document.getElementById("trfcuerpo");
+    if (!box) return;
+    if (error) {
+      box.innerHTML = `<p class="vacio">${t("orders.transfers.couldNotRead", { error: escapeHtml(error.message) })}</p>`;
+      return;
+    }
+    box.innerHTML = transfersHtml(data);
+    box.querySelectorAll("[data-trfped]").forEach((button2) => {
+      button2.onclick = () => {
+        secondWindow()?.close();
+        appLegacy.openOrder(button2.dataset.trfped ?? "");
+      };
+    });
+  }
+  var rowHtml4 = (item) => `<div class="ajfila disfila${item.activo ? "" : " disoff"}" data-disid="${item.id}">
+      <div><b>${escapeHtml(item.nombre)}${item.activo ? "" : ` <span class="pill">${t("orders.distributors.notUsed")}</span>`}</b>
+        <span class="sm">${[item.email, item.telefono].filter((text2) => Boolean(text2)).map(escapeHtml).join(" · ") || t("orders.distributors.noContact")}${item.nota ? ` · ${escapeHtml(item.nota)}` : ""}</span></div>
+      <div class="ajctl"><button type="button" class="btn sec" data-distrf="${item.id}">${t("orders.distributors.transfers")}</button><button type="button" class="btn sec" data-dised="${item.id}">${t("orders.distributors.edit")}</button>
+        <button type="button" class="btn sec" data-disact="${item.id}">${t(item.activo ? "orders.distributors.stopUsing" : "orders.distributors.useAgain")}</button></div></div>`;
+  function pageHtml2() {
+    const used = all.filter((item) => item.activo), unused = all.filter((item) => !item.activo);
+    const list = all.length ? used.map(rowHtml4).join("") + (unused.length ? `<h3 class="dissub">${t("orders.distributors.noLongerUsed")}</h3>${unused.map(rowHtml4).join("")}` : "") : `<p class="vacio" id="disvacio">${t("orders.distributors.none")}</p>`;
+    return `<div class="card disw">
+      <div class="discab"><p class="sm">${t("orders.distributors.hint")}</p>
+        <button type="button" class="btn" id="disnuevo">${t("orders.distributors.new")}</button></div>
+      ${list}</div>`;
+  }
+  async function toggleUse(item, button2) {
+    if (item.activo && !await notices.confirm(t("orders.distributors.stopText"), { titulo: t("orders.distributors.stopTitle", { name: item.nombre }), ok: t("orders.distributors.stopUsing") })) return;
+    button2.disabled = true;
+    const { error } = await legacyDb().from("distribuidores").update({ activo: !item.activo }).eq("id", item.id);
+    if (error) {
+      button2.disabled = false;
+      notices.toast(t("orders.distributors.couldNotChange", { error: error.message ?? "" }), true);
+      return;
+    }
+    notices.toast(t(item.activo ? "orders.distributors.notUsedNow" : "orders.distributors.usedAgain"));
+    await orderSheetLegacy.distributors(true).catch(() => []);
+    void paintDistributors();
+  }
+  function bind9(box) {
+    const add2 = document.getElementById("disnuevo");
+    if (add2) add2.onclick = () => {
+      editDistributor(null);
+    };
+    const find = (id) => all.find((item) => item.id === id);
+    box.querySelectorAll("[data-dised]").forEach((button2) => {
+      button2.onclick = () => {
+        editDistributor(find(button2.dataset.dised) ?? null);
+      };
+    });
+    box.querySelectorAll("[data-disact]").forEach((button2) => {
+      button2.onclick = () => {
+        const item = find(button2.dataset.disact);
+        if (item) void toggleUse(item, button2);
+      };
+    });
+    box.querySelectorAll("[data-distrf]").forEach((button2) => {
+      button2.onclick = () => {
+        void showTransfers(button2.dataset.distrf ?? "");
+      };
+    });
+  }
+  async function paintDistributors() {
+    const loading2 = document.getElementById("cfgcuerpo");
+    if (!loading2) return;
+    customersLegacy.showLoading(loading2, t("orders.distributors.loading"));
+    const { data, error } = await legacyDb().from("distribuidores").select("id,nombre,email,telefono,nota,activo").order("nombre");
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || !stillShown2()) return;
+    if (error) {
+      box.innerHTML = `<div class="card"><p class="sm">${t("orders.distributors.couldNotRead", { error: escapeHtml(error.message) })}</p></div>`;
+      return;
+    }
+    all = data ?? [];
+    box.innerHTML = pageHtml2();
+    bind9(box);
+  }
+
+  // src/app/screens/orders/list.ts
+  var PAID2 = "Cobrado";
+  var EXTRA_FILTERS = [
+    { id: "popf", after: "pestado", html: () => `<div><label for="popf">${t("orders.list.operations")}</label><select id="popf">
+      <option value="">${t("orders.list.everything")}</option><option value="pago">${t("orders.list.toCollect")}</option><option value="paquete">${t("orders.list.toPack")}</option><option value="email">${t("orders.list.invoiceToSend")}</option></select></div>` },
+    // v2.115.0: the order's origin (web or the rest)
+    { id: "porigf", after: "popf", html: () => `<div><label for="porigf">${t("orders.list.origin")}</label><select id="porigf">
+      <option value="">${t("orders.page.all")}</option><option value="web">${t("orders.list.web")}</option><option value="portal">${t("orders.list.portal")}</option><option value="otros">${t("orders.list.others")}</option></select></div>` },
+    // v2.329.0: reported or not to the professional (internal: only who sees everything)
+    { id: "prepf", after: "porigf", onlyTeam: true, html: () => `<div><label for="prepf">${t("orders.list.report")}</label><select id="prepf">
+      <option value="">${t("orders.page.all")}</option><option value="si">${t("orders.list.reported")}</option><option value="no">${t("orders.list.notReported")}</option></select></div>` }
+  ];
+  function addExtraFilters() {
+    for (const filter of EXTRA_FILTERS) {
+      const previous = document.getElementById(filter.after);
+      if (document.getElementById(filter.id) || !previous || filter.onlyTeam && !permissions.seesEverything()) continue;
+      previous.closest("div")?.insertAdjacentHTML("afterend", filter.html());
+      const select3 = document.getElementById(filter.id);
+      if (select3) select3.onchange = () => {
+        ordersLegacy.setPage(0);
+        void paintOrderList();
+      };
+    }
+  }
+  var valueOf2 = (id) => document.getElementById(id)?.value ?? "";
+  function params() {
+    const range2 = opportunitiesLegacy.periodOf(document.getElementById("pper")), size = accountListLegacy.pageSize(), fields = ordersLegacy.fieldFilters();
+    return {
+      p_desde: range2.desde,
+      p_hasta: range2.hasta,
+      p_canal: valueOf2("pcanal") || null,
+      q: valueOf2("pq").trim() || null,
+      p_estado: valueOf2("pestado") || null,
+      p_operativa: valueOf2("popf") || null,
+      lim: size,
+      desplaz: ordersLegacy.page() * size,
+      ...valueOf2("porigf") ? { p_origen: valueOf2("porigf") } : {},
+      ...valueOf2("prepf") ? { p_reportado: valueOf2("prepf") } : {},
+      ...Object.keys(fields).length ? { f_campos: fields } : {}
+    };
+  }
+  function summaryHtml2(summary4) {
+    const amounts = permissions.canSeeAmounts(), drafts = summary4.borradores ? t("orders.list.inDraft", { count: summary4.borradores }) : "";
+    const web = summary4.web_pedidos !== null && summary4.web_pedidos !== void 0 ? `<div class="kpi" id="pkweb"><b>${formatNumber(summary4.web_pedidos)}</b><span>${t("orders.list.byWeb")}${amounts && summary4.web_base !== null && summary4.web_base !== void 0 ? t("orders.list.withoutVat", { amount: euros(summary4.web_base) }) : ""}</span></div>` : "";
+    return `
+    <div class="kpi"><b>${formatNumber(summary4.pedidos)}</b><span>${t("orders.list.completed")}${drafts}</span></div>
+    <div class="kpi"><b>${formatNumber(summary4.unidades)}</b><span>${t("orders.list.units")}</span></div>
+    ${web}
+    ${amounts ? `<div class="kpi"><b>${euros(summary4.base)}</b><span>${t("orders.list.base")}</span></div>
+    <div class="kpi"><b>${euros(summary4.iva)}</b><span>${t("orders.list.vat")}</span></div>
+    <div class="kpi ok"><b>${euros(summary4.total)}</b><span>${t("orders.list.total")}</span></div>` : ""}`;
+  }
+  var mark = (done) => done ? "ok" : "no";
+  function operationIcons(row4) {
+    if (row4.estado !== STATES5.confirmed) return "";
+    const packed = Boolean(row4.paquete_en), packedText = t(packed ? "orders.list.packageReady" : "orders.list.packageToPrepare");
+    if (row4.sin_cargo) return `<span class="opico" title="${packedText}"><i class="${mark(packed)}">📦</i></span>`;
+    const paid = row4.pago_estado === PAID2, sent = Boolean(row4.email_factura_en);
+    const title2 = `${t(paid ? "orders.list.paymentReceived" : "orders.list.paymentPending")} · ${packedText}${row4.factura ? ` · ${t(sent ? "orders.list.invoiceSent" : "orders.list.invoiceToSendShort")}` : ""}`;
+    return `<span class="opico" title="${title2}">
+      <i class="${mark(paid)}">💳</i><i class="${mark(packed)}">📦</i>${row4.factura ? `<i class="${mark(sent)}">🧾</i>` : ""}</span>`;
+  }
+  function originText2(row4) {
+    if (row4.origen === "web") return ` · <span class="pweb">${t("orders.list.webTag")}</span>`;
+    return row4.origen === "portal" ? ` · <span class="pweb">${t("orders.list.portalTag")}</span>` : "";
+  }
+  function rowHtml5(row4, fields) {
+    const amounts = permissions.canSeeAmounts(), reference2 = orFallback(row4.factura, row4.numero ?? "");
+    return `<button class="dr" data-ped="${row4.id}" style="${row4.estado === STATES5.voided ? "opacity:.55" : ""}">
+      <span>${formatShortDate(row4.fecha)}${reference2 ? `<span class="sm">${escapeHtml(reference2)}</span>` : ""}</span>
+      <span><b>${escapeHtml(orFallback(row4.contacto, orFallback(row4.centro, orFallback(row4.cuenta_texto, "—"))))}</b><span class="sm">${ordersLegacy.channelLabel(row4, row4.total)}${originText2(row4)}${row4.forma_pago ? ` · ${escapeHtml(row4.forma_pago)}` : ""}${row4.justificante ? ` · <span title="${t("orders.list.withReceipt")}">📎</span>` : ""}</span></span>
+      <span class="corta">${row4.medico ? escapeHtml(row4.medico) : `<span class="vac">${t("orders.list.unattributed")}</span>`}</span>
+      <span>${row4.comercial ? escapeHtml(row4.comercial) : '<span class="vac">—</span>'}</span>
+      <span class="sm corta">${escapeHtml(row4.productos ?? "")}</span><span class="num">${formatNumber(row4.unidades)}</span>
+      ${amounts ? `<span class="num">${euros(row4.base)}</span><span class="num"><b>${euros(row4.total)}</b></span>` : ""}
+      <span>${stepPill(row4)}</span><span>${operationIcons(row4)}</span><span class="sm corta pednota" title="${escapeHtml(row4.nota ?? "")}">${escapeHtml(row4.nota ?? "")}</span>${ordersLegacy.fieldCells(fields, row4.clasificadores)}</button>`;
+  }
+  function tableHtml2(rows, fields) {
+    if (!rows.length) return `<div class="vacio">${t("orders.list.none")}</div>`;
+    const amounts = permissions.canSeeAmounts();
+    return `<div class="dgrid-wrap"><div class="dgrid peds2 ${amounts ? "" : "sinimp"}">
+    <div class="dh"><span>${t("orders.list.date")}</span><span>${t("orders.list.customer")}</span><span>${term("medico", { capital: "C" })}</span><span>${t("orders.list.salesperson")}</span><span>${t("orders.list.products")}</span>
+      <span class="num">${t("orders.list.unitsShort")}</span>${amounts ? `<span class="num">${t("orders.list.baseShort")}</span><span class="num">${t("orders.list.totalShort")}</span>` : ""}<span>${t("orders.list.state")}</span><span>${t("orders.list.operations")}</span><span>${t("orders.list.notes")}</span>${customersLegacy.fieldHeaders(fields)}</div>
+    ${rows.map((row4) => rowHtml5(row4, fields)).join("")}
+  </div></div>`;
+  }
+  function paintPages(list, total2) {
+    if (!document.getElementById("pedpag")) list.insertAdjacentHTML("afterend", '<div id="pedpag"></div>');
+    accountListLegacy.paginate({
+      element: document.getElementById("pedpag"),
+      total: total2,
+      page: ordersLegacy.page(),
+      onPage: (page) => {
+        ordersLegacy.setPage(page);
+        void paintOrderList();
+        document.getElementById("pedlista")?.scrollIntoView({ block: "start" });
+      },
+      onSize: () => {
+        ordersLegacy.setPage(0);
+        void paintOrderList();
+      }
+    });
+  }
+  function paint3(list, data) {
+    const rows = data.filas ?? [], fields = ordersLegacy.fieldColumns();
+    ordersLegacy.setRows(rows);
+    const totals = document.getElementById("ptotales");
+    if (totals) totals.innerHTML = summaryHtml2(data.resumen ?? {});
+    list.innerHTML = tableHtml2(rows, fields);
+    customersLegacy.widenGrid(list.querySelector(".dgrid.peds2"), fields.length);
+    paintPages(list, data.total);
+    list.querySelectorAll("[data-ped]").forEach((button2) => {
+      button2.onclick = () => {
+        appLegacy.openOrder(button2.dataset.ped ?? "");
+      };
+    });
+  }
+  async function paintOrderList() {
+    if (!document.getElementById("pedlista") || !document.getElementById("pper") || !document.getElementById("pcanal")) return;
+    addExtraFilters();
+    ordersLegacy.restoreFilters(document.getElementById("v-ventas"));
+    const query = params(), loading2 = document.getElementById("pedlista");
+    if (loading2 && !loading2.querySelector(".dgrid")) customersLegacy.showLoading(loading2, t("orders.list.loading"));
+    const result = await cachedRpc("pedidos_pagina", query, `pedidos-${JSON.stringify(query)}`);
+    const list = document.getElementById("pedlista");
+    if (!list || !document.getElementById("pestado")) return;
+    if (!result.data) {
+      const error = result.error;
+      list.innerHTML = `<div class="vacio">${t("orders.list.couldNotLoad", { error: error ? `: ${escapeHtml(error.message)}` : "" })}</div>`;
+      return;
+    }
+    paint3(list, result.data);
+    if (result.cache) showCacheNotice(list, result.fecha);
+  }
+
+  // src/app/screens/purchases/index.ts
+  var purchases_exports = {};
+  __export(purchases_exports, {
+    editPurchase: () => editPurchase,
+    editSupplier: () => editSupplier,
+    paintPurchases: () => paintPurchases,
+    paintSuppliers: () => paintSuppliers
+  });
+
+  // src/app/screens/purchases/model.ts
+  var STATES6 = {
+    draft: "Borrador",
+    sent: "Enviado",
+    inTransit: "En tránsito",
+    partlyReceived: "Recibido parcial",
+    received: "Recibido",
+    cancelled: "Cancelado"
+  };
+  var OPEN_STATES = [STATES6.sent, STATES6.inTransit, STATES6.partlyReceived];
+  var EDITABLE_STATES = [STATES6.draft, STATES6.sent, STATES6.inTransit];
+  var CLOSED_STATES = [STATES6.received, STATES6.cancelled];
+  var DEFAULT_LEAD_DAYS = 90;
+  var errorText2 = (error, result) => error?.message ?? result?.error ?? "";
+  var euros2 = (value18) => formatCurrency(Math.round((Number(value18) || 0) * 100) / 100);
+  function purchasePill(state) {
+    const kind = state === STATES6.received ? "p-est" : state === STATES6.cancelled ? "p-anu" : state === STATES6.draft ? "p-bor" : "p-per";
+    return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
+  }
+
+  // src/app/screens/purchases/editor-view.ts
+  var disabled = (editor) => editor.editable ? "" : "disabled";
+  function headerHtml5(editor) {
+    const { id, purchase } = editor;
+    const title2 = id ? t("purchases.editor.title", { number: escapeHtml(purchase.numero) }) : t("purchases.editor.newTitle");
+    return `<div class="fh"><div><h2>${title2} ${id ? purchasePill(purchase.estado) : ""}</h2>
+        <div class="sm">${id ? t("purchases.editor.createdOn", { date: formatShortDate(purchase.fecha) }) : t("purchases.editor.numberedOnSave")}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>`;
+  }
+  function supplierHtml(editor) {
+    const { purchase } = editor, off = disabled(editor);
+    const suppliers = purchasesLegacy.suppliers().filter((supplier) => supplier.activo === true || supplier.id === purchase.proveedor_id).map((supplier) => `<option value="${supplier.id ?? ""}" data-plazo="${nonZeroOr(supplier.plazo_dias, DEFAULT_LEAD_DAYS)}" ${supplier.id === purchase.proveedor_id ? "selected" : ""}>${escapeHtml(supplier.nombre)}</option>`).join("");
+    return `<div class="g2">
+        <div><label for="cpprov">${t("purchases.editor.supplier")}</label><select id="cpprov" ${off}>
+          ${suppliers}</select></div>
+        <div class="g2" style="margin:0">
+          <div><label for="cpfecha">${t("purchases.editor.date")}</label><input id="cpfecha" type="date" value="${escapeHtml(orFallback(purchase.fecha, todayIso()))}" ${off}></div>
+          <div><label for="cpprev">${t("purchases.editor.expected")}</label><input id="cpprev" type="date" value="${escapeHtml(purchase.fecha_prevista ?? "")}" ${off}></div></div>
+      </div>`;
+  }
+  function lineHtml(editor, line2, index) {
+    const off = disabled(editor);
+    const products3 = purchasesLegacy.products().map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("");
+    const received = editor.id ? `<label>${t("purchases.editor.received")}</label><div class="cprec">${t("purchases.editor.receivedOf", { received: formatNumber(line2.recibidas ?? 0), units: formatNumber(line2.unidades) })}</div>` : "";
+    const remove7 = editor.editable && editor.lines.length > 1 ? `<button type="button" class="btn sec" data-clx="${index}" aria-label="${t("purchases.editor.remove")}">✕</button>` : "";
+    return `<div class="lin"><div class="lrow cprow">
+        <div><label>${t("purchases.editor.product")}</label><select data-cl="${index}|producto_id" ${off}>${products3}</select></div>
+        <div><label>${t("purchases.editor.units")}</label><input type="number" min="1" data-cl="${index}|unidades" value="${line2.unidades}" ${off}></div>
+        <div><label>${t("purchases.editor.unitCost")}</label><input type="number" step="0.0001" min="0" data-cl="${index}|coste_unitario" value="${line2.coste_unitario ?? ""}" ${off}></div>
+        <div>${received}</div>
+        <div>${remove7}</div></div></div>`;
+  }
+  function batchesHtml(editor) {
+    const batches = editor.detail?.lotes ?? [];
+    if (!batches.length) return "";
+    return `<div class="blk"><h3>${t("purchases.editor.batchesReceived")}</h3>${batches.map((batch) => `<div class="sm">${t("purchases.editor.batchLine", { product: escapeHtml(batch.producto), batch: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}${batch.caducidad ? t("purchases.editor.expires", { date: formatShortDate(batch.caducidad) }) : ""}</div>`).join("")}</div>`;
+  }
+  function stepButtons(editor) {
+    const state = editor.purchase.estado;
+    if (!purchasesLegacy.canBuy()) return [];
+    return [
+      state === STATES6.draft ? `<button class="btn sec" id="cpenviar">${t("purchases.editor.markSent")}</button>` : "",
+      state === STATES6.sent ? `<button class="btn sec" id="cptransito">${t("purchases.editor.inTransit")}</button>` : "",
+      editor.id && OPEN_STATES.includes(state) ? `<button class="btn" id="cprecibir">${t("purchases.editor.receive")}</button>` : ""
+    ];
+  }
+  function buttonsHtml2(editor) {
+    const { id, purchase, editable } = editor, state = purchase.estado;
+    const buttons = [
+      purchasesLegacy.canBuy() && id && !CLOSED_STATES.includes(state) ? `<button class="btn sec dang" id="cpcancel">${t("purchases.editor.cancelOrder")}</button>` : "",
+      editable ? `<button class="btn sec" id="cpguardar">${t(state === STATES6.draft ? "purchases.editor.saveDraft" : "purchases.editor.saveChanges")}</button>` : "",
+      ...stepButtons(editor)
+    ];
+    return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn sec" data-cerrar>${t("purchases.editor.close")}</button>
+        ${buttons.join("\n        ")}
+      </div>`;
+  }
+  function editorHtml4(editor) {
+    const { purchase } = editor, off = disabled(editor);
+    return `
+      ${headerHtml5(editor)}
+      ${supplierHtml(editor)}
+      <label>${t("purchases.editor.products")}</label>
+      <div id="cplin">${editor.lines.map((line2, index) => lineHtml(editor, line2, index)).join("")}</div>
+      ${editor.editable ? `<div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="cpmas">${t("purchases.editor.addProduct")}</button></div>` : ""}
+      <div class="g2">
+        <div><label for="cpport">${t("purchases.editor.shipping")}</label><input id="cpport" type="number" step="0.01" min="0" value="${purchase.portes ? String(purchase.portes) : 0}" ${off}></div>
+        <div><label for="cpnota">${t("purchases.editor.note")}</label><input id="cpnota" value="${escapeHtml(purchase.nota ?? "")}" ${off}></div></div>
+      <div class="totbox" id="cptot"></div>
+      ${batchesHtml(editor)}
+      ${buttonsHtml2(editor)}`;
+  }
+  function totalsHtml2(lines2, shipping) {
+    const amount3 = sum(lines2.map((line2) => (Number(line2.unidades) || 0) * (Number(line2.coste_unitario) || 0))) + shipping;
+    return `<div><span>${t("purchases.editor.totalUnits")}</span><b>${formatNumber(sum(lines2.map((line2) => Number(line2.unidades) || 0)))}</b></div>
+        <div class="tot"><span>${t("purchases.editor.totalAmount")}</span><b>${euros2(amount3)}</b></div>`;
+  }
+
+  // src/app/screens/purchases/receive.ts
+  var field = (row4, name) => row4.querySelector(`[data-r=${name}]`)?.value ?? "";
+  function lineHtml2(line2, storeId) {
+    const pending = line2.unidades - (line2.recibidas ?? 0);
+    return `<div class="lin" data-rl="${line2.id ?? ""}">
+      <b>${escapeHtml(line2.producto)}</b> <span class="sm">${t("purchases.receive.pending", { pending: formatNumber(pending), units: formatNumber(line2.unidades) })}</span>
+      <div class="rclotes">${purchasesLegacy.batchFields(line2, pending, storeId)}</div>
+      <button type="button" class="kcfg" data-rlmas="${line2.id ?? ""}">${t("purchases.receive.otherBatch")}</button></div>`;
+  }
+  function readRows(box) {
+    return [...box.querySelectorAll(".rcl")].map((row4) => ({
+      linea_id: row4.closest("[data-rl]")?.dataset.rl ?? "",
+      unidades: Number(field(row4, "u")) || 0,
+      numero_lote: field(row4, "lote").trim(),
+      caducidad: field(row4, "cad"),
+      fecha_fabricacion: field(row4, "fab"),
+      almacen_id: field(row4, "alm")
+    })).filter((row4) => row4.unidades > 0);
+  }
+  async function checked(rows) {
+    if (!rows.length) {
+      notices.toast(t("purchases.receive.writeUnits"), true);
+      return false;
+    }
+    if (rows.some((row4) => !row4.numero_lote)) {
+      notices.toast(t("purchases.receive.needsBatch"), true);
+      return false;
+    }
+    if (!rows.some((row4) => !row4.caducidad)) return true;
+    return notices.confirm(t("purchases.receive.noExpiryText"), { titulo: t("purchases.receive.noExpiryTitle"), ok: t("purchases.receive.noExpiryOk") });
+  }
+  async function record(id, box, button2) {
+    const rows = readRows(box);
+    if (!await checked(rows)) return;
+    button2.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("recibir_compra", { p_compra: id, p_lineas: rows });
+    if (error || !result || result.ok === false) {
+      button2.disabled = false;
+      notices.toast(t("purchases.receive.couldNot", { error: errorText2(error, result) }), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(result.pendientes ? t("purchases.receive.stillToCome", { units: formatNumber(result.pendientes) }) : t("purchases.receive.complete"));
+    purchasesLegacy.reloadSales();
+  }
+  function receivePurchase(id, detail) {
+    const pending = detail.lineas.filter((line2) => line2.unidades > (line2.recibidas ?? 0));
+    const stores2 = purchasesLegacy.stores(), storeId = (stores2.find((store) => store.tipo === "central") ?? stores2[0])?.id;
+    const body2 = document.getElementById("dbody");
+    if (!body2) return;
+    body2.innerHTML = `
+    <div class="fh"><div><h2>${t("purchases.receive.title", { number: escapeHtml(detail.compra.numero) })}</h2>
+      <div class="sm">${t("purchases.receive.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <div id="rclin">${pending.map((line2) => lineHtml2(line2, storeId)).join("")}</div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.receive.cancel")}</button><button class="btn" id="rcok">${t("purchases.receive.record")}</button></div>`;
+    const box = document.getElementById("rclin");
+    if (!box) return;
+    box.querySelectorAll("[data-rlmas]").forEach((button2) => {
+      button2.onclick = () => {
+        const line2 = pending.find((item) => item.id === button2.dataset.rlmas);
+        if (line2) button2.previousElementSibling?.insertAdjacentHTML("beforeend", purchasesLegacy.batchFields(line2, "", storeId));
+      };
+    });
+    const ok = document.getElementById("rcok");
+    if (ok) ok.onclick = () => {
+      void record(id, box, ok);
+    };
+  }
+
+  // src/app/screens/purchases/editor.ts
+  var input = (id) => document.getElementById(id);
+  var value5 = (id) => input(id)?.value ?? "";
+  var closeWindow = () => {
+    document.getElementById("dlg")?.close();
+  };
+  function newLine() {
+    const first = purchasesLegacy.products()[0];
+    return { ...first ? { producto_id: first.id } : {}, unidades: 1, coste_unitario: first?.coste };
+  }
+  function paintTotals(editor) {
+    const box = document.getElementById("cptot");
+    if (box) box.innerHTML = totalsHtml2(editor.lines, Number(value5("cpport")) || 0);
+  }
+  function onLineChange(editor, target) {
+    const [index = "", field8 = ""] = (target.dataset.cl ?? "").split("|"), line2 = editor.lines[Number(index)];
+    if (!field8 || !line2) return;
+    if (field8 === "producto_id") {
+      line2.producto_id = target.value;
+      const product = purchasesLegacy.products().find((item) => item.id === target.value);
+      if (product && product.coste !== null && product.coste !== void 0) {
+        line2.coste_unitario = product.coste;
+        paint4(editor);
+        return;
+      }
+    } else if (field8 === "unidades") line2.unidades = Number(target.value);
+    else line2.coste_unitario = Number(target.value);
+    paintTotals(editor);
+  }
+  function suggestExpected() {
+    const supplier = document.getElementById("cpprov"), expected = input("cpprev");
+    if (!supplier || !expected || expected.value) return;
+    expected.value = addDays(value5("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
+  }
+  function bindLines(editor) {
+    const lines2 = document.getElementById("cplin");
+    if (lines2) lines2.oninput = lines2.onchange = (event) => {
+      onLineChange(editor, event.target);
+    };
+    const shipping = input("cpport");
+    if (shipping) shipping.oninput = () => {
+      paintTotals(editor);
+    };
+    const add2 = document.getElementById("cpmas");
+    if (add2) add2.onclick = () => {
+      editor.lines.push(newLine());
+      paint4(editor);
+    };
+    lines2?.querySelectorAll("[data-clx]").forEach((button2) => {
+      button2.onclick = () => {
+        editor.lines.splice(Number(button2.dataset.clx), 1);
+        paint4(editor);
+      };
+    });
+    const supplier = document.getElementById("cpprov");
+    if (supplier) supplier.onchange = suggestExpected;
+    if (!value5("cpprev") && supplier?.value) suggestExpected();
+  }
+  function payload(editor, state) {
+    const lines2 = editor.lines.filter((line2) => line2.producto_id && Number(line2.unidades) > 0).map((line2) => ({ producto_id: line2.producto_id, unidades: Number(line2.unidades), coste_unitario: line2.coste_unitario }));
+    return {
+      id: editor.id ?? null,
+      proveedor_id: value5("cpprov"),
+      fecha: value5("cpfecha"),
+      fecha_prevista: value5("cpprev"),
+      estado: state ?? editor.purchase.estado,
+      portes: value5("cpport"),
+      nota: value5("cpnota").trim(),
+      lineas: lines2
+    };
+  }
+  async function save8(editor, state) {
+    if (!value5("cpprov")) {
+      notices.toast(t("purchases.editor.chooseSupplier"), true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("guardar_compra", { p: payload(editor, state) });
+    if (error || !result || result.ok === false) {
+      notices.toast(t("purchases.editor.couldNotSave", { error: errorText2(error, result) }), true);
+      return;
+    }
+    notices.toast(t("purchases.editor.saved", { number: result.numero ?? "" }));
+    closeWindow();
+    if (currentScreen() === "ventas") purchasesLegacy.reloadSales();
+  }
+  var changeState = (purchase, state) => legacyDb().rpc("guardar_compra", { p: {
+    id: purchase.id,
+    proveedor_id: purchase.proveedor_id,
+    fecha: purchase.fecha,
+    fecha_prevista: purchase.fecha_prevista,
+    estado: state,
+    portes: purchase.portes,
+    nota: purchase.nota
+  } });
+  async function markInTransit(purchase) {
+    const { error } = await changeState(purchase, STATES6.inTransit);
+    if (error) {
+      notices.toast(t("purchases.editor.couldNot"), true);
+      return;
+    }
+    notices.toast(t("purchases.editor.markedInTransit"));
+    closeWindow();
+    purchasesLegacy.reloadSales();
+  }
+  async function cancel(purchase) {
+    if (!await notices.confirm(t("purchases.editor.cancelText"), { titulo: t("purchases.editor.cancelTitle"), ok: t("purchases.editor.cancelOrder"), peligro: true })) return;
+    await changeState(purchase, STATES6.cancelled);
+    notices.toast(t("purchases.editor.cancelled"));
+    closeWindow();
+    purchasesLegacy.reloadSales();
+  }
+  function bindButtons(editor) {
+    const on4 = (id, action) => {
+      const button2 = document.getElementById(id);
+      if (button2) button2.onclick = action;
+    };
+    on4("cpguardar", () => {
+      void save8(editor);
+    });
+    on4("cpenviar", () => {
+      void save8(editor, STATES6.sent);
+    });
+    on4("cptransito", () => {
+      void markInTransit(editor.purchase);
+    });
+    on4("cpcancel", () => {
+      void cancel(editor.purchase);
+    });
+    on4("cprecibir", () => {
+      if (editor.id && editor.detail) receivePurchase(editor.id, editor.detail);
+    });
+  }
+  function paint4(editor) {
+    const body2 = document.getElementById("dbody");
+    if (!body2) return;
+    body2.innerHTML = editorHtml4(editor);
+    paintTotals(editor);
+    if (editor.editable) bindLines(editor);
+    bindButtons(editor);
+  }
+  async function editPurchase(id) {
+    await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadSuppliers(), purchasesLegacy.loadStores()]);
+    const detail = id ? (await callRpc("compra_detalle", { p_id: id })).data : null;
+    const purchase = detail ? detail.compra : { estado: STATES6.draft, fecha: todayIso(), portes: 0 };
+    const editor = {
+      id,
+      purchase,
+      detail,
+      editable: purchasesLegacy.canBuy() && EDITABLE_STATES.includes(purchase.estado),
+      lines: detail ? detail.lineas.map((line2) => ({ ...line2 })) : [newLine()]
+    };
+    paint4(editor);
+    document.getElementById("dlg")?.showModal();
+  }
+
+  // src/app/screens/purchases/list.ts
+  var LATE_STYLE = "color:var(--danger);font-weight:700";
+  var loadingHtml2 = (text2) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text2)}</span></div>`;
+  function indicatorsHtml(rows) {
+    const open2 = rows.filter((row4) => OPEN_STATES.includes(row4.estado)), late = rows.filter((row4) => row4.retrasada);
+    const yearStart = `${todayIso().slice(0, 4)}-01-01`;
+    const bought = sum(rows.filter((row4) => row4.estado !== STATES6.cancelled && row4.fecha >= yearStart).map((row4) => Number(row4.importe) || 0));
+    return `<div class="kpis vtot">
+      <div class="kpi"><b>${formatNumber(open2.length)}</b><span>${t("purchases.list.inProgress")}</span></div>
+      <div class="kpi"><b>${formatNumber(sum(open2.map((row4) => row4.unidades - row4.recibidas)))}</b><span>${t("purchases.list.unitsOnTheWay")}</span></div>
+      <div class="kpi ${late.length ? "warn" : ""}"><b>${formatNumber(late.length)}</b><span>${t("purchases.list.late")}</span></div>
+      <div class="kpi"><b>${euros2(bought)}</b><span>${t("purchases.list.boughtThisYear")}</span></div>
+    </div>`;
+  }
+  function rowHtml6(row4) {
+    const expected = row4.fecha_prevista ? formatShortDate(row4.fecha_prevista) + (row4.retrasada ? t("purchases.list.lateTag") : "") : "—";
+    const received = row4.recibidas && row4.recibidas < row4.unidades ? `${formatNumber(row4.recibidas)}/` : "";
+    return `<button class="dr" data-comp="${row4.id}">
+        <span><b>${escapeHtml(row4.numero)}</b></span><span>${escapeHtml(orFallback(row4.proveedor, "—"))}</span><span class="sm">${escapeHtml(row4.productos ?? "")}</span>
+        <span>${formatShortDate(row4.fecha)}</span>
+        <span style="${row4.retrasada ? LATE_STYLE : ""}">${expected}</span>
+        <span class="num">${received}${formatNumber(row4.unidades)}</span>
+        <span class="num">${euros2(row4.importe)}</span><span>${purchasePill(row4.estado)}</span></button>`;
+  }
+  function tableHtml3(rows) {
+    if (!rows.length) return `<div class="vacio">${t("purchases.list.none")}${purchasesLegacy.canBuy() ? t("purchases.list.createFirst") : ""}</div>`;
+    const head = [["", "number"], ["", "supplier"], ["", "products"], ["", "date"], ["", "expected"], ["num", "units"], ["num", "amount"], ["", "state"]];
+    return `<div class="dgrid-wrap"><div class="dgrid comps">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.list.${key}`)}</span>`).join("")}</div>
+      ${rows.map(rowHtml6).join("")}
+    </div></div>`;
+  }
+  async function paintPurchases() {
+    const loading2 = document.getElementById("vcuerpo");
+    if (loading2) loading2.innerHTML = loadingHtml2(t("purchases.list.loading"));
+    const { data, error } = await legacyDb().rpc("compras_lista");
+    if (purchasesLegacy.section() !== "compras") return;
+    const box = document.getElementById("vcuerpo");
+    if (!box) return;
+    if (error) {
+      box.innerHTML = `<div class="vacio">${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    const rows = data ?? [];
+    box.innerHTML = `<div class="panel">
+    ${indicatorsHtml(rows)}
+    ${tableHtml3(rows)}</div>`;
+    box.querySelectorAll("[data-comp]").forEach((button2) => {
+      button2.onclick = () => {
+        purchasesLegacy.openPurchase(button2.dataset.comp ?? null);
+      };
+    });
+  }
+
+  // src/app/screens/purchases/suppliers.ts
+  var joined = (values2) => values2.filter(Boolean).join(" · ");
+  function rowHtml7(supplier) {
+    return `<button class="dr" data-prov="${supplier.id ?? ""}" style="${supplier.activo ? "" : "opacity:.55"}">
+      <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined([supplier.municipio, supplier.pais]))}</span></span>
+      <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
+      <span class="num">${t("purchases.suppliers.days", { count: formatNumber(supplier.plazo_dias ?? 0) })}</span><span class="num">${formatNumber(supplier.compras)}</span>
+      <span>${supplier.ultima_compra ? formatShortDate(supplier.ultima_compra) : "—"}</span>
+      <span><span class="pill ${supplier.activo ? "p-est" : "p-anu"}">${t(supplier.activo ? "purchases.suppliers.active" : "purchases.suppliers.inactive")}</span></span></button>`;
+  }
+  function listHtml(suppliers) {
+    if (!suppliers.length) return `<div class="vacio">${t("purchases.suppliers.none")}</div>`;
+    const head = [["", "supplier"], ["", "taxId"], ["", "contact"], ["num", "leadTime"], ["num", "purchases"], ["", "lastPurchase"], ["", "state"]];
+    return `<div class="dgrid-wrap"><div class="dgrid provs">
+    <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.suppliers.${key}`)}</span>`).join("")}</div>
+    ${suppliers.map(rowHtml7).join("")}
+  </div></div>`;
+  }
+  async function paintSuppliers() {
+    const loading2 = document.getElementById("vcuerpo");
+    if (loading2) loading2.innerHTML = loadingHtml2(t("purchases.suppliers.loading"));
+    await purchasesLegacy.loadSuppliers();
+    const box = document.getElementById("vcuerpo");
+    if (!box) return;
+    const suppliers = purchasesLegacy.suppliers();
+    box.innerHTML = `<div class="panel">${listHtml(suppliers)}</div>`;
+    box.querySelectorAll("[data-prov]").forEach((button2) => {
+      button2.onclick = () => {
+        editSupplier(suppliers.find((supplier) => supplier.id === button2.dataset.prov) ?? null);
+      };
+    });
+  }
+  var FIELDS = [
+    ["nombre", "purchases.supplierEditor.name"],
+    ["nif", "purchases.supplierEditor.taxId"],
+    ["contacto", "purchases.supplierEditor.contact"],
+    ["email", "purchases.supplierEditor.email", 'type="email"'],
+    ["telefono", "purchases.supplierEditor.phone"],
+    ["direccion", "purchases.supplierEditor.address"],
+    ["cp", "purchases.supplierEditor.postcode"],
+    ["municipio", "purchases.supplierEditor.town"],
+    ["provincia", "purchases.supplierEditor.province"],
+    ["pais", "purchases.supplierEditor.country"],
+    ["plazo_dias", "purchases.supplierEditor.leadTime", 'type="number" min="0"'],
+    ["forma_pago", "purchases.supplierEditor.payment"],
+    ["condiciones", "purchases.supplierEditor.conditions"],
+    ["cuenta_contable", "purchases.supplierEditor.account", 'placeholder="400xxxxx"']
+  ];
+  var SAVED_FIELDS = [...FIELDS.map(([name]) => name), "nota"];
+  function fieldHtml(supplier, [name, label, extra = ""], readOnly) {
+    const current = supplier[name];
+    return `<div><label for="pv_${name}">${t(label)}</label><input id="pv_${name}" value="${escapeHtml(current ?? "")}" ${extra} ${readOnly}></div>`;
+  }
+  function editorHtml5(supplier, canBuy) {
+    const readOnly = canBuy ? "" : "disabled", pairs2 = [];
+    for (let i = 0; i < FIELDS.length; i += 2) pairs2.push(`<div class="g2">${FIELDS.slice(i, i + 2).map((item) => fieldHtml(supplier, item, readOnly)).join("")}</div>`);
+    return `
+    <div class="fh"><div><h2>${supplier.id ? escapeHtml(supplier.nombre) : t("purchases.supplierEditor.newTitle")}</h2><div class="sm">${t("purchases.supplierEditor.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${pairs2.join("\n    ")}
+    <label for="pv_nota">${t("purchases.supplierEditor.note")}</label><input id="pv_nota" value="${escapeHtml(supplier.nota ?? "")}" ${readOnly}>
+    ${supplier.id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="pv_activo" ${supplier.activo ? "checked" : ""} ${readOnly}> ${t("purchases.supplierEditor.active")}</label>` : ""}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.supplierEditor.close")}</button>${canBuy ? `<button class="btn" id="pvok">${t(supplier.id ? "purchases.supplierEditor.save" : "purchases.supplierEditor.create")}</button>` : ""}</div>`;
+  }
+  function readValues(supplier) {
+    const values2 = { id: supplier.id ?? null };
+    for (const name of SAVED_FIELDS) values2[name] = (document.getElementById(`pv_${name}`)?.value ?? "").trim();
+    const active = document.getElementById("pv_activo");
+    if (active) values2.activo = active.checked;
+    return values2;
+  }
+  async function save9(supplier) {
+    const values2 = readValues(supplier);
+    if (!values2.nombre) {
+      notices.toast(t("purchases.supplierEditor.writeName"), true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("guardar_proveedor", { p: values2 });
+    if (error || result?.ok === false) {
+      notices.toast(t("purchases.supplierEditor.couldNotSave"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t(supplier.id ? "purchases.supplierEditor.saved" : "purchases.supplierEditor.created"));
+    await purchasesLegacy.loadSuppliers();
+    if (currentScreen() === "ventas" && purchasesLegacy.section() === "proveedores") void paintSuppliers();
+  }
+  function editSupplier(existing) {
+    const supplier = existing ?? { activo: true, plazo_dias: DEFAULT_LEAD_DAYS, pais: t("purchases.supplierEditor.defaultCountry") };
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml5(supplier, purchasesLegacy.canBuy());
+    box.showModal();
+    const ok = document.getElementById("pvok");
+    if (ok) ok.onclick = () => {
+      void save9(supplier);
+    };
+  }
+
+  // src/app/screens/orders/page.ts
+  var SEARCH_WAIT_MS2 = 350;
+  var SALES = "ventas";
+  var PURCHASES = "compras";
+  var SUPPLIERS = "proveedores";
+  var CALLS = "llamadas";
+  var searchTimer;
+  function baseHtml() {
+    return `
+    <div class="saludo"><div><h1>${t("orders.page.salesTitle")}</h1><div class="fecha">${t("orders.page.salesSubtitle")}</div></div>
+      <div class="acts" style="margin:0">${customersLegacy.canSell() ? `<button class="btn" id="pednuevo">${t("orders.page.newSale")}</button>` : ""}</div></div>
+    <div id="vcuerpo">
+      <div class="panel">
+        <div class="filtros">
+          <div id="pper"></div>
+          <div><label for="pcanal">${t("orders.page.channel")}</label><select id="pcanal">
+            <option value="">${t("orders.page.all")}</option><option value="paciente">${t("orders.page.saleTo", { customer: term("paciente", { article: "al" }) })}</option>
+            <option value="centro">${t("orders.page.saleToCentre")}</option></select></div>
+          <div><label for="pestado">${t("orders.page.state")}</label><select id="pestado">
+            <option value="">${t("orders.page.all")}</option><option value="Confirmado">${t("orders.page.confirmed")}</option>
+            <option value="Borrador">${t("orders.page.drafts")}</option><option value="Anulado">${t("orders.page.voided")}</option></select></div>
+          <div><label for="pq">${t("orders.page.search")}</label><input id="pq" type="search" placeholder="${t("orders.page.searchPlaceholder", { professional: term("medico", { capital: "C" }), customer: term("paciente") })}"></div>
+        </div>
+        <div class="kpis vtot" id="ptotales"></div>
+        <div id="pedlista"></div>
+      </div>
+    </div>`;
+  }
+  async function paintBase3() {
+    const view = document.getElementById("v-ventas");
+    if (!view) return;
+    customersLegacy.clearModules("v-ventas");
+    view.innerHTML = baseHtml();
+    const add2 = document.getElementById("pednuevo");
+    if (add2) add2.onclick = () => {
+      ordersLegacy.newSale();
+    };
+    const repaint2 = () => {
+      void paintOrderList();
+    };
+    opportunitiesLegacy.mountPeriod(document.getElementById("pper"), { id: "ventas", valor: "mes", alCambiar: repaint2 });
+    ["pcanal", "pestado"].forEach((id) => {
+      const select3 = document.getElementById(id);
+      if (select3) select3.onchange = repaint2;
+    });
+    const search4 = document.getElementById("pq");
+    if (search4) search4.oninput = () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(repaint2, SEARCH_WAIT_MS2);
+    };
+    await purchasesLegacy.loadProducts();
+    repaint2();
+    ordersLegacy.paintUnattributed();
+  }
+  var shownSection = (loading2) => loading2 || ordersLegacy.section();
+  function tabsHtml(loading2) {
+    const shown5 = shownSection(loading2);
+    return `<div class="subnav" id="pedsub">${[[SALES, "orders.page.tabSales"], [PURCHASES, "orders.page.tabPurchases"], [SUPPLIERS, "orders.page.tabSuppliers"]].map(([section2 = "", key = ""]) => `<button data-pedsec="${section2}" aria-pressed="${String(shown5 === section2)}">${t(key)}</button>`).join("\n    ")}</div>`;
+  }
+  function paintSections(loading2) {
+    const view = document.getElementById("v-ventas");
+    if (!view) return;
+    view.querySelector(".saludo")?.insertAdjacentHTML("afterend", tabsHtml(loading2));
+    view.querySelectorAll("[data-pedsec]").forEach((button2) => {
+      button2.onclick = () => {
+        ordersLegacy.setSection(button2.dataset.pedsec ?? SALES);
+        ordersLegacy.reload();
+      };
+    });
+    const section2 = ordersLegacy.section();
+    if (section2 === SALES) return;
+    const actions = view.querySelector(".saludo .acts");
+    if (actions) actions.innerHTML = purchaseButton(section2);
+    const purchase = document.getElementById("compnueva");
+    if (purchase) purchase.onclick = () => {
+      purchasesLegacy.openPurchase(null);
+    };
+    const supplier = document.getElementById("provnuevo");
+    if (supplier) supplier.onclick = () => {
+      editSupplier(null);
+    };
+    void (section2 === PURCHASES ? paintPurchases() : paintSuppliers());
+  }
+  function purchaseButton(section2) {
+    if (!purchasesLegacy.canBuy()) return "";
+    return section2 === PURCHASES ? `<button class="btn" id="compnueva">${t("orders.page.newPurchase")}</button>` : `<button class="btn" id="provnuevo">${t("orders.page.newSupplier")}</button>`;
+  }
+  function addOpportunitiesTab(tabs, current) {
+    if (!tabs || !permissions.seesEverything() || !permissions.hasOpportunities() || tabs.querySelector(`[data-pedsec="${CALLS}"]`)) return;
+    tabs.insertAdjacentHTML("beforeend", `<button data-pedsec="${CALLS}" aria-pressed="${String(current === CALLS)}">${t("orders.page.tabOpportunities")}</button>`);
+    const button2 = tabs.querySelector(`[data-pedsec="${CALLS}"]`);
+    if (button2) button2.onclick = () => {
+      ordersLegacy.setSection(CALLS);
+      ordersLegacy.reload();
+    };
+  }
+  function paintCalls(section2) {
+    ordersLegacy.setSection(section2 === CALLS && !permissions.hasOpportunities() ? SALES : section2);
+    const current = ordersLegacy.section(), tabs = document.getElementById("pedsub");
+    addOpportunitiesTab(tabs, current);
+    tabs?.querySelectorAll("[data-pedsec]").forEach((button2) => {
+      button2.setAttribute("aria-pressed", String(button2.dataset.pedsec === current));
+    });
+    if (current === SALES && permissions.seesEverything()) ordersLegacy.paintOperations();
+    if (current !== CALLS) return;
+    const actions = document.querySelector("#v-ventas .saludo .acts");
+    if (actions) actions.innerHTML = `<button class="btn" id="llnueva">${t("orders.page.newSale")}</button>`;
+    const add2 = document.getElementById("llnueva");
+    if (add2) add2.onclick = () => {
+      ordersLegacy.newSale();
+    };
+    opportunitiesLegacy.repaintList();
+  }
+  function paintTitle() {
+    const view = document.getElementById("v-ventas"), [title2, subtitle2] = ordersLegacy.sectionTitle(ordersLegacy.section());
+    const heading = view?.querySelector(".saludo h1");
+    if (heading?.firstChild) heading.firstChild.textContent = title2;
+    const date = view?.querySelector(".saludo .fecha");
+    if (date) date.textContent = subtitle2;
+    ordersLegacy.markSection();
+  }
+  async function loadSales() {
+    if (ordersLegacy.section() === CALLS && !permissions.seesEverything()) ordersLegacy.setSection(SALES);
+    const section2 = ordersLegacy.section();
+    if (section2 === CALLS) ordersLegacy.setSection(PURCHASES);
+    ordersLegacy.setLoadingSection(section2);
+    try {
+      await paintBase3();
+      paintSections(section2);
+    } finally {
+      ordersLegacy.setLoadingSection(null);
+    }
+    paintCalls(section2);
+    paintTitle();
+    const body2 = document.getElementById("vcuerpo");
+    if (ordersLegacy.section() === SALES && body2 && ordersLegacy.canAttribute() && !document.getElementById("cardsinatr")) {
+      body2.insertAdjacentHTML("afterbegin", '<div class="card hide" id="cardsinatr"></div>');
+      ordersLegacy.paintUnattributed();
+    }
+  }
+
+  // src/app/screens/orders/payment-email.ts
+  var values = (order, total2, customer) => ({ documento: "pedido", numero: order.numero ?? null, importe: total2, nombre: customer ?? null });
+  var paymentSubject = (order, total2, customer) => orderMailLegacy.template("pago", "asunto", values(order, total2, customer));
+  var paymentText = (order, total2, customer) => orderMailLegacy.template("pago", "texto", values(order, total2, customer));
+  var mailtoLink = (to, subject, text2) => `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text2)}`;
+  async function askPaymentEmailSent(id) {
+    if (!await notices.confirm(t("orders.paymentEmail.sentQuestion"), { titulo: t("orders.paymentEmail.title"), ok: t("orders.paymentEmail.markSent") })) return false;
+    await legacyDb().rpc("marcar_operativa", { p_pedido: id, p_campo: "email_pago", p_hecho: true });
+    return true;
+  }
+  async function send(id) {
+    if (!orderMailLegacy.companyIban()) {
+      notices.toast(t("orders.paymentEmail.noIban"), true);
+      return false;
+    }
+    const { data } = await callRpc("pedido_detalle", { p_id: id });
+    const order = data?.pedido;
+    if (!order) {
+      notices.toast(t("orders.paymentEmail.notFound"), true);
+      return false;
+    }
+    const customer = data.contacto, total2 = Number(data.totales?.total) || 0;
+    if (!customer?.email) {
+      notices.toast(t("orders.paymentEmail.noEmail", { customer: term("paciente", { capital: "C" }) }), true);
+      return false;
+    }
+    const subject = paymentSubject(order, total2, customer.nombre), text2 = paymentText(order, total2, customer.nombre);
+    const { data: answer, error: failure3 } = await orderMailLegacy.invoke("enviar_email", { para: customer.email, asunto: subject, texto: text2, pedido_id: id, marca: "email_pago" });
+    if (!failure3 && answer?.ok) {
+      notices.toast(t("orders.paymentEmail.sent"));
+      return true;
+    }
+    location.href = mailtoLink(customer.email, subject, text2);
+    await askPaymentEmailSent(id);
+    return true;
+  }
+  async function sendPaymentDetails(id) {
+    if (!await orderMailLegacy.chooseTemplate("pago")) return false;
+    try {
+      return await send(id);
+    } finally {
+      orderMailLegacy.forgetChosenTemplate("pago");
+    }
+  }
+
+  // src/app/screens/orders/sheet/bank-transfer.ts
+  var PAID_FLAG_MS = 6e4;
+  function blockHtml2(detail) {
+    const order = detail.pedido, sent = order.email_pago_en;
+    const status = sent ? t("orders.bankTransfer.sentOn", { date: formatShortDate(String(sent).slice(0, 10)) }) : t("orders.bankTransfer.notSent");
+    const send3 = detail.contacto?.email ? `<button type="button" class="btn sec chico" id="pdtrfmail">${t(sent ? "orders.bankTransfer.sendAgain" : "orders.bankTransfer.send")}</button>` : `<span class="sm">${t("orders.bankTransfer.noEmail", { customer: escapeHtml(term("paciente", { capital: "C" })) })}</span>`;
+    return `<div class="blk" id="pdtrfb"><h3>${t("orders.bankTransfer.title")}</h3>
+      <p class="sm">${status}</p>
+      <div class="acts pdtrfacts">${send3}
+        <button type="button" class="btn chico" id="pdtrfok">${t("orders.bankTransfer.paidConfirm")}</button></div></div>`;
+  }
+  function paintBankTransfer(detail) {
+    const dialog5 = document.getElementById("dlg"), confirm = document.getElementById("pdvalidar");
+    if (!dialog5?.open || document.getElementById("pdtrfb") || !confirm || !customersLegacy.canSell()) return;
+    const order = detail.pedido;
+    if (order.estado !== STATES5.draft || !isBankTransfer(order.forma_pago)) return;
+    confirm.closest(".acts")?.insertAdjacentHTML("beforebegin", blockHtml2(detail));
+    const send3 = document.getElementById("pdtrfmail");
+    if (send3) send3.onclick = async () => {
+      send3.disabled = true;
+      if (await sendPaymentDetails(order.id)) appLegacy.openOrder(order.id);
+      else send3.disabled = false;
+    };
+    const paid = document.getElementById("pdtrfok");
+    if (paid) paid.onclick = () => {
+      confirm.dataset.pago = "1";
+      confirm.click();
+      setTimeout(() => {
+        if (confirm.isConnected) delete confirm.dataset.pago;
+      }, PAID_FLAG_MS);
+    };
+  }
+
+  // src/app/screens/orders/sheet/non-fiscal.ts
+  var value6 = (id) => document.getElementById(id)?.value.trim() ?? "";
+  function formHtml(detail) {
+    const order = detail.pedido;
+    const methods = ordersLegacy.paymentMethods().map((method) => `<option ${order.forma_pago === method.valor ? "selected" : ""}>${escapeHtml(method.valor)}</option>`).join("");
+    return `<div class="fh"><div><h2>${t("orders.nonFiscal.title", { number: escapeHtml(order.numero ?? "") })}</h2>
+      <div class="sm">${t("orders.nonFiscal.subtitle")}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    <label for="nfnota">${t("orders.nonFiscal.note")}</label><textarea id="nfnota" rows="4">${escapeHtml(order.nota ?? "")}</textarea>
+    <div class="g2"><div><label for="nffp">${t("orders.nonFiscal.paymentMethod")}</label><select id="nffp"><option value="">—</option>${methods}</select></div>
+      <div><label for="nfref">${t("orders.nonFiscal.paymentReference")}</label><input id="nfref" value="${escapeHtml(order.pago_referencia ?? "")}" placeholder="${t("orders.nonFiscal.referencePlaceholder")}"></div></div>
+    ${order.factura_id ? `<p class="sm">${t("orders.nonFiscal.invoiceKeeps")}</p>` : ""}
+    <div id="nfcampos">${orderSheetLegacy.fieldsForm(order.clasificadores ?? {})}</div>
+    <div class="acts nfacts"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="nfok">${t("common.save")}</button></div>`;
+  }
+  async function save10(id, button2) {
+    const read = orderSheetLegacy.readFields(document.getElementById("nfcampos"));
+    const missing2 = read?.falta[0];
+    if (missing2) {
+      notices.toast(t("orders.nonFiscal.fillIn", { field: missing2 }), true);
+      return;
+    }
+    button2.disabled = true;
+    const { error } = await legacyDb().from("pedidos").update({ nota: value6("nfnota") || null, forma_pago: value6("nffp") || null, pago_referencia: value6("nfref") || null }).eq("id", id);
+    if (error) {
+      button2.disabled = false;
+      notices.toast(t("orders.nonFiscal.couldNotSave", { error: error.message ?? "" }), true);
+      return;
+    }
+    if (!await orderSheetLegacy.saveFields(read, id)) {
+      button2.disabled = false;
+      return;
+    }
+    document.getElementById("dlg2")?.close();
+    notices.toast(t("orders.nonFiscal.saved"));
+    try {
+      appLegacy.forgetCache();
+    } catch {
+    }
+    appLegacy.openOrder(id);
+  }
+  function editNonFiscal(detail) {
+    const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
+    if (!body2 || !box) return;
+    body2.innerHTML = formHtml(detail);
+    box.showModal();
+    const ok = document.getElementById("nfok");
+    if (ok) ok.onclick = () => {
+      void save10(detail.pedido.id, ok);
+    };
+  }
+
+  // src/app/screens/orders/sheet/base.ts
+  var dialog3 = () => document.getElementById("dlg");
+  var reloadSales = () => {
+    if (currentScreen() === "ventas") ordersLegacy.reload();
+  };
+  var failureOf = (error, result) => orFallback(error?.message, result?.error ?? "");
+  function lineHtml3(line2) {
+    const amounts = lineBreakdown(line2);
+    return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)">
+        <span><b>${escapeHtml(orFallback(line2.producto, t("orders.sheet.noProduct")))}</b> · ${t("orders.sheet.units", { count: formatNumber(line2.unidades) })}
+          <div class="sm">${t("orders.sheet.base", { amount: euros(amounts.base) })}${Number(line2.descuento) ? t("orders.sheet.discount", { percent: formatNumber(line2.descuento) }) : ""} · ${t("orders.sheet.vat", { rate: formatNumber(line2.iva ?? 0), amount: euros(amounts.iva) })}</div></span>
+        <b style="white-space:nowrap">${euros(amounts.total)}</b></div>`;
+  }
+  function peopleHtml(detail) {
+    const contact = detail.contacto, professional = detail.medico, firstLine = (detail.lineas ?? [])[0];
+    return `${contact ? `<div class="blk"><h3>${term("paciente", { capital: "C" })}</h3><div><b>${escapeHtml(contact.nombre)}</b></div>
+      <div class="sm">${escapeHtml(orFallback(contact.telefono, contact.movil ?? ""))} ${escapeHtml(contact.email ?? "")}</div>
+      <div class="acts"><button class="btn sec" data-vpac="${contact.id}">${t("orders.sheet.seeCustomer", { customer: term("paciente", { article: "del" }) })}</button></div></div>` : ""}
+    ${professional ? `<div class="blk"><h3>${term("medico", { capital: "C" })}</h3><div><b>${escapeHtml(professional.nombre)}</b> <span class="sm">${t("orders.sheet.code", { code: escapeHtml(professional.codigo) })}</span></div>
+      ${firstLine?.comercial ? `<div class="sm">${t("orders.sheet.salesperson", { name: escapeHtml(firstLine.comercial) })}</div>` : ""}</div>` : ""}`;
+  }
+  function actionsHtml3(detail) {
+    const order = detail.pedido, draft = order.estado === STATES5.draft, open2 = !draft && order.estado !== STATES5.voided, can = customersLegacy.canSell();
+    const editButton = order.factura_id ? `<button class="btn sec" id="pdeditnf">${t("orders.sheet.editData")}</button>` : `<button class="btn sec" id="pdeditar">${t("orders.sheet.editOrder")}</button>`;
+    return `<div class="acts" style="justify-content:flex-end">
+      ${can && draft ? `<button class="btn sec dang" id="pdborrar">${t("orders.sheet.deleteDraft")}</button>
+        <button class="btn sec" id="pdeditar">${t("orders.sheet.edit")}</button>
+        <button class="btn" id="pdvalidar">${t("orders.sheet.confirm")}</button>` : ""}
+      ${can && open2 ? editButton : ""}
+      ${can && open2 ? `<button class="btn sec dang" id="pdanular">${t("orders.sheet.void")}</button>` : ""}
+      <button class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
+  }
+  function sheetHtml3(detail) {
+    const order = detail.pedido, totals = storedTotals(detail), lines2 = detail.lineas ?? [];
+    return `
+    <div class="fh pdcab"><div class="pdcabt"><h2>${t("orders.sheet.title")}${order.numero ? ` ${escapeHtml(order.numero)}` : ""}</h2>${statePill4(order.estado)}${paymentPill(order)}
+      <span class="sm pdmeta">${formatShortDate(order.fecha)} · ${ordersLegacy.channelLabel(order, totals.total)}${order.forma_pago ? ` · ${escapeHtml(order.forma_pago)}` : ""}</span></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${order.estado === STATES5.draft ? `<div class="cacheaviso" style="margin-top:10px">${t("orders.sheet.draftNotice")}</div>` : ""}
+    ${peopleHtml(detail)}
+    <div class="blk"><h3>${t("orders.sheet.lines")}</h3>
+      ${lines2.map(lineHtml3).join("") || `<div class="sm">${t("orders.sheet.noLines")}</div>`}
+      <div class="totbox">${totalsHtml(totals)}</div></div>
+    ${order.nota ? `<div class="blk"><h3>${t("orders.sheet.note")}</h3><div>${escapeHtml(order.nota)}</div></div>` : ""}
+    ${actionsHtml3(detail)}`;
+  }
+  function confirmPayload(detail) {
+    const order = detail.pedido, rate = Number(order.envio_iva) || 0;
+    return {
+      id: order.id,
+      estado: STATES5.confirmed,
+      fecha: order.fecha,
+      canal: order.canal,
+      contacto_id: order.contacto_id,
+      centro_id: order.centro_id,
+      cuenta_id: detail.medico ? detail.medico.id : null,
+      cuenta_texto: order.cuenta_texto,
+      nota: order.nota,
+      forma_pago: order.forma_pago,
+      pago_referencia: order.pago_referencia ?? "",
+      descuento: order.descuento ?? 0,
+      descuento_tipo: order.descuento_tipo,
+      envio: Boolean(order.envio),
+      envio_con_iva: order.envio ? round2(Number(order.envio_base) * (1 + rate / 100)) : 0,
+      envio_iva: order.envio_iva,
+      servicio_id: order.servicio_id,
+      lineas: (detail.lineas ?? []).map((line2) => ({ producto_id: line2.producto_id, unidades: line2.unidades, importe: line2.importe, descuento: line2.descuento, iva: line2.iva }))
+    };
+  }
+  async function confirmOrder(detail, button2) {
+    const paid = Boolean(button2.dataset.pago);
+    if (!await notices.confirm((paid ? t("orders.sheet.paymentNoted") : "") + t("orders.sheet.confirmText"), { titulo: t("orders.sheet.confirmTitle"), ok: t("orders.sheet.confirmOk") })) return;
+    button2.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("guardar_pedido", { p: confirmPayload(detail) });
+    button2.disabled = false;
+    if (error || result?.ok === false) {
+      notices.toast(t("orders.sheet.couldNotConfirm", { error: failureOf(error, result) }), true);
+      return;
+    }
+    const id = detail.pedido.id;
+    if (paid) await legacyDb().rpc("marcar_operativa", { p_pedido: id, p_campo: "pago", p_hecho: true });
+    notices.toast(t(paid ? "orders.sheet.confirmedAndPaid" : "orders.sheet.confirmed"));
+    appLegacy.openOrder(id);
+    reloadSales();
+  }
+  async function deleteDraft(id) {
+    if (!await notices.confirm(t("orders.sheet.deleteText"), { titulo: t("orders.sheet.deleteTitle"), ok: t("orders.sheet.deleteOk"), peligro: true })) return;
+    const { data: result, error } = await legacyDb().rpc("borrar_pedido", { p_id: id });
+    if (error || result?.ok === false) {
+      notices.toast(t(result?.error === "validado" ? "orders.sheet.onlyDrafts" : "orders.sheet.couldNotDelete"), true);
+      return;
+    }
+    dialog3()?.close();
+    notices.toast(t("orders.sheet.deleted"));
+    reloadSales();
+  }
+  async function voidOrder(id) {
+    const reason = await orderSheetLegacy.askText(t("orders.sheet.voidReason"), "", { titulo: t("orders.sheet.voidTitle"), ok: t("orders.sheet.voidOk") });
+    if (reason === null) return;
+    const { data: result, error } = await legacyDb().rpc("anular_pedido", { p_id: id, p_motivo: reason || null });
+    if (error || result?.ok === false) {
+      notices.toast(result?.error === "facturado" ? t("orders.sheet.voidInvoiced") : t("orders.sheet.couldNotVoid", { error: failureOf(error, result) }), true);
+      return;
+    }
+    dialog3()?.close();
+    notices.toast(t("orders.sheet.voided"));
+    reloadSales();
+  }
+  function bind10(body2, detail) {
+    const id = detail.pedido.id, on4 = (elementId, action) => {
+      const button2 = document.getElementById(elementId);
+      if (button2) button2.onclick = () => {
+        action(button2);
+      };
+    };
+    const customer = body2.querySelector("[data-vpac]");
+    if (customer) customer.onclick = () => {
+      orderSheetLegacy.openCustomer(customer.dataset.vpac ?? "");
+    };
+    on4("pdeditar", () => {
+      orderSheetLegacy.edit(detail);
+    });
+    on4("pdeditnf", () => {
+      editNonFiscal(detail);
+    });
+    on4("pdborrar", () => {
+      void deleteDraft(id);
+    });
+    on4("pdvalidar", (button2) => {
+      void confirmOrder(detail, button2);
+    });
+    on4("pdanular", () => {
+      void voidOrder(id);
+    });
+  }
+  async function paintBase4(id) {
+    const body2 = document.getElementById("dbody");
+    customersLegacy.showLoading(body2, t("orders.sheet.opening"));
+    dialog3()?.showModal();
+    const { data, error } = await callRpc("pedido_detalle", { p_id: id });
+    if (!body2) return null;
+    if (error || !data?.pedido) {
+      body2.innerHTML = `<div class="vacio">${escapeHtml(error ? error.message : t("orders.sheet.notFound"))}</div>`;
+      return null;
+    }
+    body2.innerHTML = sheetHtml3(data);
+    bind10(body2, data);
+    return data;
+  }
+
+  // src/app/screens/orders/sheet/transfer-pdf.ts
+  var LEFT = 15;
+  var RIGHT_COLUMN = 110;
+  var RIGHT = 195;
+  var PAGE_END = 270;
+  var REFERENCE_X = 105;
+  var BARCODE_X = 140;
+  var TITLE_SIZE = 16;
+  var TEXT_SIZE = 10;
+  var LINE_GREY = 200;
+  var NAME_WIDTH = 86;
+  var ADDRESS_WIDTH = 85;
+  var NOTE_WIDTH = 180;
+  var TransferWriter = class {
+    constructor(doc) {
+      this.doc = doc;
+      __publicField(this, "y", 18);
+    }
+    write(text2, x, options3) {
+      this.doc.text(String(text2 ?? ""), x, this.y, options3);
+    }
+    bold() {
+      this.doc.setFont("helvetica", "bold");
+    }
+    normal() {
+      this.doc.setFont("helvetica", "normal");
+    }
+  };
+  function customerLines(detail) {
+    const order = detail.pedido, customer = detail.contacto;
+    return [
+      orFallback(customer?.nombre, order.cuenta_texto ?? ""),
+      order.distribuidor_codigo ? t("orders.transfer.pdfCode", { code: order.distribuidor_codigo }) : "",
+      [customer?.direccion, customer?.cp, customer?.municipio].filter(Boolean).join(", "),
+      customer?.nif ? t("orders.transfer.pdfTaxId", { id: customer.nif }) : ""
+    ].filter(Boolean);
+  }
+  function header(writer, detail, distributor) {
+    const order = detail.pedido, doc = writer.doc;
+    writer.bold();
+    doc.setFontSize(TITLE_SIZE);
+    writer.write(t("orders.transfer.pdfTitle", { number: order.numero ?? "" }), LEFT);
+    writer.y += 7;
+    writer.normal();
+    doc.setFontSize(TEXT_SIZE);
+    writer.write(`${orderSheetLegacy.appName()} · ${formatShortDate(String(order.fecha || todayIso()).slice(0, 10))}`, LEFT);
+    writer.y += 10;
+    writer.bold();
+    writer.write(t("orders.transfer.pdfDistributor"), LEFT);
+    writer.write(t("orders.transfer.pdfCustomer"), RIGHT_COLUMN);
+    writer.y += 5;
+    writer.normal();
+    const left = [distributor.nombre, distributor.email, distributor.telefono].filter((item) => Boolean(item)), right = customerLines(detail);
+    for (let row4 = 0; row4 < Math.max(left.length, right.length); row4++) {
+      if (left[row4]) writer.write(left[row4], LEFT);
+      const value18 = right[row4];
+      if (value18) doc.text(doc.splitTextToSize(value18, ADDRESS_WIDTH), RIGHT_COLUMN, writer.y);
+      writer.y += 5;
+    }
+  }
+  function lines(writer, detail, codes) {
+    const doc = writer.doc;
+    writer.y += 6;
+    writer.bold();
+    writer.write(t("orders.transfer.pdfProduct"), LEFT);
+    writer.write(t("orders.transfer.pdfReference"), REFERENCE_X);
+    writer.write(t("orders.transfer.pdfBarcode"), BARCODE_X);
+    writer.write(t("orders.transfer.pdfUnits"), RIGHT, { align: "right" });
+    doc.setDrawColor(LINE_GREY);
+    doc.line(LEFT, writer.y + 2, RIGHT, writer.y + 2);
+    writer.y += 8;
+    writer.normal();
+    for (const line2 of detail.lineas ?? []) {
+      if (writer.y > PAGE_END) {
+        doc.addPage();
+        writer.y = 20;
+      }
+      const product = codes.get(line2.producto_id ?? "");
+      doc.text(doc.splitTextToSize(String(line2.producto ?? ""), NAME_WIDTH), LEFT, writer.y);
+      writer.write(orFallback(product?.referencia, "—"), REFERENCE_X);
+      writer.write(orFallback(product?.codigo_barras, "—"), BARCODE_X);
+      writer.write(formatNumber(line2.unidades), RIGHT, { align: "right" });
+      writer.y += 7;
+    }
+  }
+  function footer(writer, detail) {
+    const order = detail.pedido, doc = writer.doc, units2 = sum((detail.lineas ?? []).map((line2) => Number(line2.unidades) || 0));
+    doc.line(LEFT, writer.y - 3, RIGHT, writer.y - 3);
+    writer.y += 4;
+    writer.bold();
+    writer.write(t("orders.transfer.pdfTotal", { units: formatNumber(units2) }), RIGHT, { align: "right" });
+    writer.y += 8;
+    writer.normal();
+    writer.write(order.factura_distribuidor ? t("orders.distributor.invoicedByThem") : t("orders.distributor.invoicedBy", { app: orderSheetLegacy.appName() }), LEFT);
+    writer.y += 6;
+    if (order.nota) doc.text(doc.splitTextToSize(t("orders.distributor.mailNote", { note: order.nota }), NOTE_WIDTH), LEFT, writer.y);
+  }
+  async function downloadTransfer(detail, distributor) {
+    const pdfConstructor = await orderSheetLegacy.loadPdf(), doc = new pdfConstructor({ unit: "mm", format: "a4" });
+    const ids = [...new Set((detail.lineas ?? []).map((line2) => line2.producto_id).filter((id) => Boolean(id)))];
+    const { data } = ids.length ? await legacyDb().from("productos").select("id,referencia,codigo_barras").in("id", ids) : { data: [] };
+    const writer = new TransferWriter(doc);
+    header(writer, detail, distributor);
+    lines(writer, detail, new Map((data ?? []).map((product) => [product.id, product])));
+    footer(writer, detail);
+    doc.save(`transfer_${orFallback(detail.pedido.numero, detail.pedido.id).replace(/[^\w-]+/g, "_")}.pdf`);
+  }
+
+  // src/app/screens/orders/sheet/distributor.ts
+  var SENT = "Enviado";
+  async function distributorOf(id) {
+    const found = (await orderSheetLegacy.distributors()).find((item) => item.id === id) ?? (await orderSheetLegacy.distributors(true)).find((item) => item.id === id);
+    return found ?? { id, nombre: t("orders.distributor.fallbackName") };
+  }
+  function emailOf(detail) {
+    const order = detail.pedido, customer = detail.contacto, name = orFallback(customer?.nombre, orFallback(order.cuenta_texto, "")), app = orderSheetLegacy.appName();
+    const address2 = customer?.direccion ? t("orders.distributor.mailAddress", { address: [customer.direccion, customer.cp, customer.municipio].filter(Boolean).join(", ") }) : "";
+    const text2 = [
+      t("orders.distributor.mailOrder", { number: order.numero ?? "", app }),
+      "",
+      t("orders.distributor.mailCustomer", { name, code: order.distribuidor_codigo ? t("orders.distributor.mailCode", { code: order.distribuidor_codigo }) : "" }),
+      address2,
+      "",
+      ...(detail.lineas ?? []).map((line2) => `- ${line2.unidades} × ${orFallback(line2.producto, line2.nombre ?? "")}`),
+      "",
+      order.factura_distribuidor ? t("orders.distributor.invoicedByThem") : t("orders.distributor.invoicedBy", { app }),
+      order.nota ? `
+${t("orders.distributor.mailNote", { note: order.nota })}` : ""
+    ].join("\n");
+    return { subject: t("orders.distributor.mailSubject", { number: order.numero ?? "", name }), text: text2 };
+  }
+  function blockHtml3(detail, distributor) {
+    const order = detail.pedido, mail = emailOf(detail);
+    const who2 = t("orders.distributor.servedBy", { name: escapeHtml(distributor.nombre) }) + (order.distribuidor_codigo ? t("orders.distributor.customerCode", { code: escapeHtml(order.distribuidor_codigo) }) : "") + ` · ${t(order.factura_distribuidor ? "orders.distributor.theyInvoice" : "orders.distributor.weInvoice")}`;
+    const sent = order.transfer_enviado_en ? t("orders.distributor.mailPreparedOn", { date: formatShortDate(String(order.transfer_enviado_en).slice(0, 10)) }) : t("orders.distributor.mailNotPrepared");
+    const actions = order.estado === STATES5.confirmed ? `<div class="acts" style="justify-content:flex-start;margin-top:6px">${distributor.email ? `<a class="btn sec" id="pdmaild" href="${mailtoLink(escapeHtml(distributor.email), mail.subject, mail.text)}">${t("orders.distributor.prepareMail")}</a>` : `<span class="sm">${t("orders.distributor.noEmail")}</span>`}
+        <span class="sm" id="pdmailest">${sent}</span></div>` : `<p class="sm">${t("orders.distributor.afterConfirm")}</p>`;
+    return `<div class="blk" id="pddist"><h3>${t("orders.distributor.title")}</h3>
+      <p>${who2}</p>
+      ${actions}</div>`;
+  }
+  var pressOnly = (buttons, chosen2) => {
+    buttons.forEach((button2) => {
+      button2.classList.toggle("on", button2 === chosen2);
+      button2.setAttribute("aria-pressed", String(button2 === chosen2));
+    });
+  };
+  async function noteFor(order, state) {
+    if (state !== TRANSFER_ISSUE) return null;
+    const note = await orderSheetLegacy.askText(t("orders.transfer.issueQuestion"), order.transfer_nota ?? "", { titulo: t("orders.transfer.issueTitle"), ok: t("common.save") });
+    return note ?? void 0;
+  }
+  async function saveTransfer(order, state, note) {
+    const { data: result, error } = await legacyDb().rpc("estado_transfer", { p_id: order.id, p_estado: state, p_nota: note });
+    if (!error && result?.ok) return true;
+    notices.toast(result?.error === "permiso" ? t("orders.transfer.noPermission") : t("orders.transfer.couldNotChange", { error: error ? `: ${error.message ?? ""}` : "" }), true);
+    return false;
+  }
+  async function changeTransfer(order, box, button2) {
+    const state = button2.dataset.trf ?? "", note = await noteFor(order, state);
+    if (note === void 0 || !await saveTransfer(order, state, note)) return;
+    order.transfer_estado = state;
+    if (note !== null) order.transfer_nota = note || null;
+    pressOnly(box.querySelectorAll("[data-trf]"), button2);
+    const noteText = document.getElementById("pdtrfnota");
+    if (noteText) noteText.textContent = order.transfer_nota ? t("orders.transfer.note", { note: order.transfer_nota }) : "";
+    const mailState = document.getElementById("pdmailest");
+    if (!order.transfer_enviado_en && mailState) {
+      order.transfer_enviado_en = (/* @__PURE__ */ new Date()).toISOString();
+      mailState.textContent = t("orders.transfer.sentOn", { date: formatShortDate(todayIso()) });
+    }
+    notices.toast(t("orders.transfer.changed", { state: state.toLowerCase() }));
+  }
+  function paintTransfer(detail, distributor) {
+    const box = document.getElementById("pddist"), order = detail.pedido;
+    if (!box || document.getElementById("pdtrf") || !document.getElementById("pdmailest")) return;
+    box.insertAdjacentHTML("beforeend", `<div class="pdtrf" id="pdtrf"><span class="sm">${t("orders.transfer.state")}</span>
+      <div class="segs" role="group" aria-label="${t("orders.transfer.state")}">${TRANSFER_STATES.map((state) => `<button type="button" data-trf="${state}" class="${order.transfer_estado === state ? "on" : ""}" aria-pressed="${String(order.transfer_estado === state)}">${state}</button>`).join("")}</div>
+      <button type="button" class="btn sec" id="pdtrfpdf">${t("orders.transfer.download")}</button>
+      <p class="sm" id="pdtrfnota">${order.transfer_nota ? t("orders.transfer.note", { note: escapeHtml(order.transfer_nota) }) : ""}</p></div>`);
+    box.querySelectorAll("[data-trf]").forEach((button2) => {
+      button2.onclick = () => {
+        void changeTransfer(order, box, button2);
+      };
+    });
+    const pdf = document.getElementById("pdtrfpdf");
+    if (pdf) pdf.onclick = () => {
+      downloadTransfer(detail, distributor).catch((error) => {
+        notices.toast(t("orders.transfer.pdfFailed", { error: error.message ?? String(error) }), true);
+      });
+    };
+    document.getElementById("pdmaild")?.addEventListener("click", () => {
+      if (order.transfer_estado) return;
+      order.transfer_estado = SENT;
+      const sent = box.querySelector(`[data-trf="${SENT}"]`);
+      if (sent) {
+        sent.classList.add("on");
+        sent.setAttribute("aria-pressed", "true");
+      }
+    });
+  }
+  async function paintDistributor(detail) {
+    const order = detail.pedido, isOpen3 = () => Boolean(document.getElementById("dlg")?.open) && !document.getElementById("pddist");
+    if (!isOpen3() || !order.distribuidor_id) return;
+    const distributor = await distributorOf(order.distribuidor_id);
+    if (!isOpen3()) return;
+    if (order.factura_distribuidor) document.getElementById("pvemitir")?.remove();
+    const place2 = document.getElementById("pdpago") ?? document.getElementById("dbody")?.querySelector(".acts:last-of-type");
+    if (!place2) return;
+    place2.insertAdjacentHTML("beforebegin", blockHtml3(detail, distributor));
+    paintTransfer(detail, distributor);
+    document.getElementById("pdmaild")?.addEventListener("click", () => {
+      void legacyDb().rpc("marcar_transfer_enviado", { p_id: order.id }).then(({ data }) => {
+        const mailState = document.getElementById("pdmailest");
+        if (data?.ok && mailState) mailState.textContent = t("orders.distributor.mailPreparedOn", { date: formatShortDate(todayIso()) });
+      });
+    });
+  }
+
+  // src/app/screens/orders/sheet/equipment.ts
+  var MAX_SERIALS = 30;
+  var isOpen2 = () => Boolean(document.getElementById("dlg")?.open) && !document.getElementById("pdequipos");
+  var value7 = (id) => document.getElementById(id)?.value ?? "";
+  function formHtml2(pending) {
+    return `<div class="depbox"><span class="sm">${t("orders.equipment.writeSerials")}</span>
+        ${pending.map((item, index) => `<div><b>${escapeHtml(item.nombre)}</b> <span class="sm">· ${escapeHtml(item.cuenta ?? "")}</span><div class="cirser">${range(Math.min(item.faltan, MAX_SERIALS)).map((unit) => `<input data-pqs="${index}" maxlength="120" placeholder="${t("orders.equipment.serialOf", { unit: unit + 1 })}" aria-label="${t("orders.equipment.serialLabel", { unit: unit + 1, name: escapeHtml(item.nombre) })}">`).join("")}</div></div>`).join("")}
+        <div class="g2"><div><label for="pdeqi">${t("orders.equipment.installedOn")}</label><input id="pdeqi" type="date" value="${todayIso()}"></div><div><label for="pdequ">${t("orders.equipment.place")}</label><input id="pdequ" placeholder="${t("orders.equipment.placePlaceholder")}"></div></div>
+        <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">${t("orders.equipment.register")}</button></div></div>`;
+  }
+  function rowsOf(pending, orderId) {
+    const box = document.getElementById("pdeqf"), rows = [];
+    pending.forEach((item, index) => box?.querySelectorAll(`[data-pqs="${index}"]`).forEach((input4) => {
+      if (!input4.value.trim() || !item.cuenta_id) return;
+      rows.push({ cuenta_id: item.cuenta_id, producto_id: item.producto_id, serie: input4.value.trim(), instalado: value7("pdeqi") || todayIso(), ubicacion: value7("pdequ").trim() || null, revision_meses: Number(item.revision_meses) || 0, pedido_id: orderId });
+    }));
+    return rows;
+  }
+  async function register(pending, orderId, button2) {
+    const rows = rowsOf(pending, orderId);
+    if (!rows.length) {
+      notices.toast(t(pending.some((item) => !item.cuenta_id) ? "orders.equipment.noAccount" : "orders.equipment.writeOne"), true);
+      return;
+    }
+    button2.disabled = true;
+    const { error } = await legacyDb().from("equipos").insert(rows);
+    button2.disabled = false;
+    if (error) {
+      const message = error.message ?? "";
+      notices.toast(/row-level|policy/i.test(message) ? t("orders.equipment.noPermission") : t("orders.equipment.couldNotSave", { error: message }), true);
+      return;
+    }
+    notices.toast(rows.length === 1 ? t("orders.equipment.oneRegistered") : t("orders.equipment.registered", { count: rows.length }));
+    appLegacy.openOrder(orderId);
+  }
+  async function pendingOf(orderId) {
+    const { data: order } = await legacyDb().from("pedidos").select("estado").eq("id", orderId).maybeSingle();
+    if (order?.estado !== STATES5.confirmed) return [];
+    const { data } = await legacyDb().rpc("equipos_pendientes_pedido", { p_pedido: orderId });
+    return (data ?? []).filter((item) => item.faltan > 0);
+  }
+  async function paintEquipment(orderId) {
+    if (!isOpen2() || !accountCardLegacy.planIncludes("parque")) return;
+    const pending = await pendingOf(orderId);
+    if (!pending.length || !isOpen2()) return;
+    const place2 = document.getElementById("pddist") ?? document.getElementById("pdpago") ?? document.getElementById("dbody")?.querySelector(".acts:last-of-type");
+    if (!place2) return;
+    const count2 = sum(pending.map((item) => item.faltan));
+    place2.insertAdjacentHTML("beforebegin", `<div class="blk" id="pdequipos"><h3>${t("orders.equipment.title")}</h3>
+      <div class="banda-aviso">${count2 === 1 ? t("orders.equipment.oneMissing") : t("orders.equipment.missing", { count: count2 })} <button type="button" class="btn sec" id="pdeqalta">${t("orders.equipment.registerAll")}</button></div>
+      <div id="pdeqf"></div></div>`);
+    const open2 = document.getElementById("pdeqalta");
+    if (open2) open2.onclick = () => {
+      const form = document.getElementById("pdeqf");
+      if (form) form.innerHTML = formHtml2(pending);
+      const ok = document.getElementById("pdeqok");
+      if (ok) ok.onclick = () => {
+        void register(pending, orderId, ok);
+      };
+    };
+  }
+
+  // src/app/screens/orders/sheet/operations.ts
+  var MAIL_QUESTION_DELAY_MS = 800;
+  var SALES_LEVEL = 2;
+  function operationHtml(order, key, label, allowed) {
+    const done = operationDone(order, key), method = order.forma_pago;
+    const how = key === "pago" && method ? ` <span class="sm">· ${escapeHtml(method)}${/reembolso/i.test(method) ? t("orders.operations.onDelivery") : ""}</span>` : "";
+    return `<label class="opchk ${done ? "on" : ""}"><input type="checkbox" data-op="${key}" ${done ? "checked" : ""} ${allowed ? "" : "disabled"}>
+      <span>${escapeHtml(label)}${how}</span></label>`;
+  }
+  function mailHtml(detail) {
+    const order = detail.pedido, customer = detail.contacto, total2 = Number(detail.totales?.total) || 0;
+    if (order.sin_cargo) return "";
+    if (!customer?.email) return `<span class="sm">${t("orders.operations.noEmail")}</span>`;
+    return `<a class="btn sec" id="pdmailpago" data-ped="${order.id}" href="${mailtoLink(escapeHtml(customer.email), paymentSubject(order, total2, customer.nombre), paymentText(order, total2, customer.nombre))}">${t("orders.operations.preparePaymentEmail")}</a>`;
+  }
+  function blockHtml4(detail, allowed) {
+    const order = detail.pedido;
+    return `<div class="blk" id="pdops" data-nosucio><h3>${t("orders.operations.title")}</h3>
+    ${order.sin_cargo ? `<p class="sm">${t("orders.operations.freeDelivery")}</p>` : ""}${OPERATIONS.filter(([key]) => !(order.sin_cargo && key === "pago")).map(([key, label]) => operationHtml(order, key, t(label), allowed)).join("")}
+    <label class="opchk ${order.reportar_profesional ? "on" : ""}"><input type="checkbox" data-reporte ${order.reportar_profesional ? "checked" : ""} ${allowed ? "" : "disabled"}>
+      <span>${t("orders.operations.reported", { professional: escapeHtml(term("medico", { article: "al" })) })}</span></label>
+    <div class="acts" style="margin:6px 0 0">
+      ${mailHtml(detail)}
+    </div></div>`;
+  }
+  async function markOperation(order, box) {
+    const { data: result, error } = await legacyDb().rpc("marcar_operativa", { p_pedido: order.id, p_campo: box.dataset.op, p_hecho: box.checked });
+    if (error || result?.ok === false) {
+      box.checked = !box.checked;
+      notices.toast(t("orders.operations.couldNotSave"), true);
+      return;
+    }
+    box.closest(".opchk")?.classList.toggle("on", box.checked);
+    const paid = box.dataset.op === "pago";
+    notices.toast(box.checked ? paid ? t("orders.operations.paidToast") + (order.factura_id ? t("orders.operations.paidOnInvoice") : "") : t("orders.operations.done") : t("orders.operations.unmarked"));
+    if (currentScreen() === "ventas" && ordersLegacy.section() === "ventas") ordersLegacy.paintOperations();
+  }
+  async function markReport(id, box) {
+    const { data: result, error } = await legacyDb().rpc("marcar_reporte", { p_id: id, p_valor: box.checked });
+    if (error || result?.ok === false) {
+      box.checked = !box.checked;
+      notices.toast(t("orders.operations.couldNotSave"), true);
+      return;
+    }
+    box.closest(".opchk")?.classList.toggle("on", box.checked);
+    notices.toast(t(box.checked ? "orders.operations.reportedToast" : "orders.operations.notReportedToast"));
+  }
+  function bind11(body2, order) {
+    body2.querySelectorAll("[data-op]").forEach((box) => {
+      box.onchange = () => {
+        void markOperation(order, box);
+      };
+    });
+    const report = body2.querySelector("[data-reporte]");
+    if (report) report.onchange = () => {
+      void markReport(order.id, report);
+    };
+    document.getElementById("pdmailpago")?.addEventListener("click", () => {
+      setTimeout(() => {
+        void askPaymentEmailSent(order.id).then((sent) => {
+          if (sent) appLegacy.openOrder(order.id);
+        });
+      }, MAIL_QUESTION_DELAY_MS);
+    });
+  }
+  async function paintOperations(detail) {
+    const dialog5 = document.getElementById("dlg");
+    if (!dialog5?.open || !(permissions.seesEverything() || cardSectionsLegacy.can("administrar"))) return;
+    const order = detail.pedido;
+    if (order.estado !== STATES5.confirmed || document.getElementById("pdops")) return;
+    await cycleLegacy.loadSettings();
+    const body2 = document.getElementById("dbody"), actions = body2?.querySelector(".acts:last-of-type");
+    if (!body2 || !actions) return;
+    actions.insertAdjacentHTML("beforebegin", blockHtml4(detail, permissions.seesEverything() && permissions.salesLevel() >= SALES_LEVEL));
+    bind11(body2, order);
+  }
+
+  // src/app/screens/orders/sheet/payment.ts
+  var KILOBYTE = 1024;
+  var REVOKE_AFTER_MS = 6e4;
+  async function openReceipt(id) {
+    const { data, error } = await legacyDb().from("pedidos_justificantes").select("nombre,tipo,datos").eq("id", id).single();
+    if (error || !data) {
+      notices.toast(t("orders.payment.couldNotOpen"), true);
+      return;
+    }
+    const binary = atob(data.datos), bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes], { type: data.tipo }));
+    const opened = window.open(url, "_blank");
+    if (!opened) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = data.nombre;
+      link.click();
+    }
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, REVOKE_AFTER_MS);
+  }
+  var receiptRow = (receipt) => `<div class="item"><span class="tx"><b>${escapeHtml(receipt.nombre)}</b><span class="sm">${formatShortDate(String(receipt.creado_en).slice(0, 10))} · ${formatNumber(Math.round(receipt.tamano / KILOBYTE))} KB</span></span>
+      <button type="button" class="btn sec chico" data-jver="${receipt.id}">${t("orders.payment.see")}</button></div>`;
+  function blockHtml5(detail, receipts) {
+    const order = detail.pedido;
+    return `<div class="blk" id="pdpago"><h3>${t("orders.payment.title")}</h3>
+    ${order.origen === "web" ? `<p class="sm"><span class="pill p-est">${t("orders.payment.byWeb")}</span></p>` : ""}
+    <div class="pdpagof"><span class="sm">${t("orders.payment.reference")}</span><b>${order.pago_referencia ? escapeHtml(order.pago_referencia) : "—"}</b></div>
+    ${receipts.length ? `<div class="lista" id="pdjus">${receipts.map(receiptRow).join("")}</div>` : ""}</div>`;
+  }
+  async function paintBlock(detail) {
+    const isOpen3 = () => Boolean(document.getElementById("dlg")?.open) && !document.getElementById("pdpago");
+    if (!isOpen3()) return;
+    const { data: receipts } = await legacyDb().from("pedidos_justificantes").select("id,nombre,tamano,creado_en").eq("pedido_id", detail.pedido.id).order("creado_en");
+    if (!isOpen3() || detail.pedido.sin_cargo) return;
+    const actions = document.getElementById("dbody")?.querySelector(".acts:last-of-type");
+    if (!actions) return;
+    (document.getElementById("pdops") ?? actions).insertAdjacentHTML("beforebegin", blockHtml5(detail, receipts ?? []));
+    document.getElementById("pdpago")?.querySelectorAll("[data-jver]").forEach((button2) => {
+      button2.onclick = () => {
+        void openReceipt(button2.dataset.jver ?? "");
+      };
+    });
+  }
+  async function paintPayment(detail) {
+    await paintBlock(detail);
+    await orderSheetLegacy.cardPayment(detail.pedido.id);
+  }
+
+  // src/app/screens/orders/sheet/index.ts
+  var CUSTOM_FIELDS_DELAY_MS = 150;
+  var STEADY_MAX_MS = 2500;
+  var optional = (part) => part.catch(() => void 0);
+  async function paintOrder2(id) {
+    const detail = await orderSheetLegacy.whileLoading(async () => {
+      const loaded = await paintBase4(id);
+      if (!loaded) return null;
+      await orderSheetLegacy.invoices(id);
+      await paintOperations(loaded);
+      await paintPayment(loaded);
+      return loaded;
+    });
+    setTimeout(() => {
+      void orderSheetLegacy.customFields(id, document.getElementById("dbody"));
+    }, CUSTOM_FIELDS_DELAY_MS);
+    if (!detail) return;
+    await optional(paintDistributor(detail));
+    await optional(paintEquipment(id));
+    try {
+      paintBankTransfer(detail);
+    } catch {
+    }
+  }
+  async function showOrder(id) {
+    const dialog5 = document.getElementById("dlg");
+    dialog5?.classList.add("pdprep");
+    try {
+      await paintOrder2(id);
+    } finally {
+      try {
+        await orderSheetLegacy.whenSteady(document.getElementById("dbody"), STEADY_MAX_MS);
+      } catch {
+      }
+      dialog5?.classList.remove("pdprep");
+    }
+  }
+
   // src/app/screens/products/index.ts
   var products_exports = {};
   __export(products_exports, {
@@ -9321,11 +13572,11 @@
     showLoading: (element2, text2) => {
       cargando(element2, text2);
     },
-    matchesFieldFilters: (values) => Boolean(clasCumple(values, PRODF)),
+    matchesFieldFilters: (values2) => Boolean(clasCumple(values2, PRODF)),
     hasFieldFilters: () => Object.keys(PRODF).length > 0,
     visibleFieldColumns: () => clasVisibles("producto"),
     fieldHeaders: (fields) => clasCabeceras(fields),
-    fieldCells: (fields, values) => clasCeldas(fields, values),
+    fieldCells: (fields, values2) => clasCeldas(fields, values2),
     widenGrid: (grid, count2) => {
       clasRejilla(grid, count2);
     }
@@ -9334,8 +13585,8 @@
   // src/app/screens/products/model.ts
   var ORDER_MARGIN_DAYS = 14;
   var EXPIRY_SOON_DAYS = 90;
-  var euros = (value15) => formatCurrency(Math.round((Number(value15) || 0) * 100) / 100);
-  var round2 = (value15) => Math.round(value15 * 100) / 100;
+  var euros3 = (value18) => formatCurrency(Math.round((Number(value18) || 0) * 100) / 100);
+  var round22 = (value18) => Math.round(value18 * 100) / 100;
   function stockState(line2) {
     if (line2.stock <= 0) return [t("products.stock.outOfStock"), "p-anu"];
     if (line2.stock_minimo !== null && line2.stock_minimo !== void 0 && line2.stock < line2.stock_minimo) return [t("products.stock.belowMinimum"), "p-bor"];
@@ -9356,13 +13607,13 @@
   var errorMessage = (error) => error?.message ?? "";
 
   // src/app/screens/products/catalog.ts
-  var money = (value15) => isPresent(value15) ? euros(value15) : "—";
+  var money = (value18) => isPresent(value18) ? euros3(value18) : "—";
   var activePill = (active) => `<span class="pill ${active ? "p-est" : "p-anu"}">${t(active ? "products.catalog.activeState" : "products.catalog.inactiveState")}</span>`;
   function countHtml(rows) {
     const active = rows.filter((row4) => row4.activo).length, inactive = rows.length - active;
     return `<b>${formatNumber(active)}</b> ${t(active === 1 ? "products.catalog.oneActive" : "products.catalog.active")}${inactive ? t("products.catalog.inactive", { count: formatNumber(inactive) }) : ""}`;
   }
-  function rowHtml2(row4, fields) {
+  function rowHtml8(row4, fields) {
     const photo = row4.foto_url ? `background-image:url('${escapeHtml(row4.foto_url)}')` : "";
     return `<button class="dr" data-prod="${row4.id}" style="${row4.activo ? "" : "opacity:.55"}">
         <span><span class="pfoto" style="${photo}">${row4.foto_url ? "" : "◧"}</span></span>
@@ -9371,12 +13622,12 @@
         <span class="num">${formatNumber(row4.iva ?? 0)}%</span><span class="num"><b>${money(row4.pvp)}</b></span>
         <span>${activePill(row4.activo)}</span>${productsLegacy.fieldCells(fields, row4.clasificadores)}</button>`;
   }
-  function tableHtml2(rows, fields) {
+  function tableHtml4(rows, fields) {
     const head = [["", ""], ["", "product"], ["", "reference"], ["num", "withoutVat"], ["num", "vat"], ["num", "withVat"], ["", "state"]];
     const empty2 = `<div class="vacio">${t(productsLegacy.hasFieldFilters() ? "products.catalog.noneFiltered" : "products.catalog.none")}</div>`;
     return `<div class="dgrid-wrap"><div class="dgrid prods">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${key ? t(`products.catalog.${key}`) : ""}</span>`).join("")}${productsLegacy.fieldHeaders(fields)}</div>
-      ${rows.map((row4) => rowHtml2(row4, fields)).join("") || empty2}
+      ${rows.map((row4) => rowHtml8(row4, fields)).join("") || empty2}
     </div></div>`;
   }
   async function paintProducts() {
@@ -9389,7 +13640,7 @@
     const fields = productsLegacy.visibleFieldColumns();
     body2.innerHTML = `<div class="panel">
     <div class="cuenta">${countHtml(rows)}</div>
-    ${tableHtml2(rows, fields)}</div>`;
+    ${tableHtml4(rows, fields)}</div>`;
     productsLegacy.widenGrid(body2.querySelector(".dgrid.prods"), fields.length);
     body2.querySelectorAll("[data-prod]").forEach((button2) => {
       button2.onclick = () => {
@@ -9409,16 +13660,16 @@
       <div class="depitems">${products3.map((item) => `<label><span>${escapeHtml(item.nombre)}</span><input type="number" min="0" step="1" data-dprod="${item.id}" placeholder="0" aria-label="${t("products.deposit.unitsOfProduct", { name: escapeHtml(item.nombre) })}"></label>`).join("")}</div>
       ${actsHtml(t("products.deposit.replenish"))}</div>`;
   }
-  function useHtml(lines) {
+  function useHtml(lines2) {
     return `<div class="depbox"><b>${t("products.deposit.useTitle")}</b>
-      <div class="depitems">${lines.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.left", { units: formatNumber(line2.unidades) })}</span></span>
+      <div class="depitems">${lines2.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.left", { units: formatNumber(line2.unidades) })}</span></span>
         <input type="number" min="0" max="${line2.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t("products.deposit.usedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
       <label for="depref">${t("products.deposit.reference")}</label><input id="depref" maxlength="120" placeholder="${t("products.deposit.referencePlaceholder")}">
       ${actsHtml(t("products.deposit.record"))}</div>`;
   }
-  function countHtml2(lines) {
+  function countHtml2(lines2) {
     return `<div class="depbox"><b>${t("products.deposit.countTitle")}</b><span class="sm">${t("products.deposit.countHint")}</span>
-      <div class="depitems">${lines.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.had", { units: formatNumber(line2.unidades) })}</span></span>
+      <div class="depitems">${lines2.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.had", { units: formatNumber(line2.unidades) })}</span></span>
         <input type="number" min="0" step="1" data-dcnt="${index}" value="${line2.unidades}" aria-label="${t("products.deposit.countedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
       ${actsHtml(t("products.deposit.saveCount"))}</div>`;
   }
@@ -9477,7 +13728,7 @@
       void replenishUsed(deposit2, used, again);
     };
   }
-  async function save5(form, deposit2, action, button2) {
+  async function save11(form, deposit2, action, button2) {
     const payload9 = request(form, deposit2, action);
     if (typeof payload9 === "string") {
       notices.toast(payload9, true);
@@ -9511,7 +13762,7 @@
     };
     const ok = document.getElementById("depok");
     if (ok) ok.onclick = () => {
-      void save5(form, deposit2, action, ok);
+      void save11(form, deposit2, action, ok);
     };
   }
 
@@ -9522,15 +13773,15 @@
     ["consumo_deposito", "products.deposit.moveUsed"],
     ["ajuste", "products.deposit.moveAdjust"]
   ]);
-  function summary2(lines) {
-    const total2 = sum(lines.map((line2) => line2.unidades));
+  function summary2(lines2) {
+    const total2 = sum(lines2.map((line2) => line2.unidades));
     if (!total2) return t("products.deposit.empty");
-    const count2 = new Set(lines.map((line2) => line2.producto_id)).size;
+    const count2 = new Set(lines2.map((line2) => line2.producto_id)).size;
     return t("products.deposit.unitsOf", { units: formatNumber(total2), products: count2 === 1 ? t("products.deposit.oneProduct") : t("products.deposit.products", { count: count2 }) });
   }
-  function tableHtml3(lines) {
-    if (!lines.length) return `<div class="vacio vlinea">${t("products.deposit.emptyDeposit")}</div>`;
-    const rows = lines.map((line2) => `<div class="depf"><span>${escapeHtml(line2.nombre)}</span>
+  function tableHtml5(lines2) {
+    if (!lines2.length) return `<div class="vacio vlinea">${t("products.deposit.emptyDeposit")}</div>`;
+    const rows = lines2.map((line2) => `<div class="depf"><span>${escapeHtml(line2.nombre)}</span>
       <span>${escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatch")))}</span><span class="${relatedLegacy.expiresSoon(line2.caducidad) ? "depcad" : ""}">${line2.caducidad ? formatShortDate(line2.caducidad) : "—"}</span><b>${formatNumber(line2.unidades)}</b></div>`).join("");
     return `<div class="deptab"><div class="deph"><span>${t("products.deposit.product")}</span><span>${t("products.deposit.batch")}</span><span>${t("products.deposit.expires")}</span><span>${t("products.deposit.units")}</span></div>${rows}</div>`;
   }
@@ -9545,15 +13796,15 @@
     const usedText = used.length ? `<p class="sm">${t("products.deposit.used90", { list: used.map((item) => `${escapeHtml(item.nombre)} ${formatNumber(item.unidades)}`).join(" · ") })}</p>` : "";
     return usedText + (movements.length ? `<details class="depmov"><summary>${t("products.deposit.lastMovements")}</summary>${movements.map(movementRow).join("")}</details>` : "");
   }
-  function sheetHtml3(detail, name, notice, lines) {
-    const none = lines.length ? "" : "disabled";
-    return `<div class="fh"><div><h2>${t("products.deposit.title", { name: escapeHtml(name) })}</h2><div class="sm">${summary2(lines)}${t("products.deposit.stillYours")}</div></div>
+  function sheetHtml4(detail, name, notice, lines2) {
+    const none = lines2.length ? "" : "disabled";
+    return `<div class="fh"><div><h2>${t("products.deposit.title", { name: escapeHtml(name) })}</h2><div class="sm">${summary2(lines2)}${t("products.deposit.stillYours")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     ${notice}
     <div class="depacts"><button type="button" class="btn" data-dep="reponer">${t("products.deposit.replenish")}</button><button type="button" class="btn sec" data-dep="consumo" ${none}>${t("products.deposit.recordUse")}</button>
       <button type="button" class="btn sec" data-dep="recuento" ${none}>${t("products.deposit.count")}</button></div>
     <div id="depform"></div>
-    ${tableHtml3(lines)}
+    ${tableHtml5(lines2)}
     ${historyHtml(detail)}
     <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
   }
@@ -9564,12 +13815,12 @@
       return;
     }
     if (!purchasesLegacy.products().length) await purchasesLegacy.loadProducts();
-    const lines = (detail.lineas ?? []).filter((line2) => line2.unidades > 0);
+    const lines2 = (detail.lineas ?? []).filter((line2) => line2.unidades > 0);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml3(detail, name, notice, lines);
+    body2.innerHTML = sheetHtml4(detail, name, notice, lines2);
     if (!box.open) box.showModal();
-    const deposit2 = { accountId, name, lines };
+    const deposit2 = { accountId, name, lines: lines2 };
     body2.querySelectorAll("[data-dep]").forEach((button2) => {
       button2.onclick = () => {
         openDepositForm(deposit2, button2.dataset.dep ?? "reponer");
@@ -9578,7 +13829,7 @@
   }
 
   // src/app/screens/products/stock.ts
-  function rowHtml3(line2) {
+  function rowHtml9(line2) {
     const [label, kind] = stockState(line2);
     const unbatched = line2.sin_lote ? ` · <span style="color:var(--warn)">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line2.sin_lote) })}</span>` : "";
     const byStore = (line2.por_almacen ?? []).map((store) => `${escapeHtml(store.almacen)}: ${formatNumber(store.unidades)}`).join(" · ") || "—";
@@ -9609,7 +13860,7 @@
     <div class="cuenta">${t("products.stock.intro")}</div>
     <div class="dgrid-wrap"><div class="dgrid stock">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`products.stock.${key}`)}</span>`).join("")}</div>
-      ${list.map(rowHtml3).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
+      ${list.map(rowHtml9).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
     </div></div></div>`;
     body2.querySelectorAll("[data-stk]").forEach((button2) => {
       button2.onclick = () => {
@@ -9625,57 +13876,57 @@
     ajuste: ["products.movement.adjustTitle", "products.movement.adjustHint"],
     traspaso: ["products.movement.transferTitle", "products.movement.transferHint"]
   };
-  var value4 = (id) => document.getElementById(id)?.value ?? "";
-  var options = (list, selected) => list.map((item) => `<option value="${item.id ?? ""}" ${selected && item.id === selected ? "selected" : ""}>${escapeHtml(item.nombre ?? "")}</option>`).join("");
+  var value8 = (id) => document.getElementById(id)?.value ?? "";
+  var options2 = (list, selected) => list.map((item) => `<option value="${item.id ?? ""}" ${selected && item.id === selected ? "selected" : ""}>${escapeHtml(item.nombre ?? "")}</option>`).join("");
   function entryHtml(line2) {
     const stores2 = purchasesLegacy.stores().filter((store) => store.activo);
     return `<div class="g2">
-      <div><label for="mvp">${t("products.movement.product")}</label><select id="mvp">${options(purchasesLegacy.products(), line2?.id)}</select></div>
-      <div><label for="mva">${t("products.movement.store")}</label><select id="mva">${options(stores2)}</select></div></div>
+      <div><label for="mvp">${t("products.movement.product")}</label><select id="mvp">${options2(purchasesLegacy.products(), line2?.id)}</select></div>
+      <div><label for="mva">${t("products.movement.store")}</label><select id="mva">${options2(stores2)}</select></div></div>
       <div class="g2"><div><label for="mvl">${t("products.movement.batch")}</label><input id="mvl" placeholder="${t("products.movement.batchPlaceholder")}"></div>
-        <div><label for="mvpr">${t("products.movement.supplier")}</label><select id="mvpr"><option value="">—</option>${options(purchasesLegacy.suppliers())}</select></div></div>
+        <div><label for="mvpr">${t("products.movement.supplier")}</label><select id="mvpr"><option value="">—</option>${options2(purchasesLegacy.suppliers())}</select></div></div>
       <div class="g2"><div><label for="mvc">${t("products.movement.expiry")}</label><input id="mvc" type="date"></div><div><label for="mvf">${t("products.movement.made")}</label><input id="mvf" type="date"></div></div>`;
   }
-  function formHtml(line2, kind, place) {
+  function formHtml3(line2, kind, place2) {
     const [title2, hint] = TEXTS[kind], adjust = kind === "ajuste";
-    const destinations = purchasesLegacy.stores().filter((store) => store.activo && store.id !== place?.storeId);
+    const destinations = purchasesLegacy.stores().filter((store) => store.activo && store.id !== place2?.storeId);
     return `
     <div class="fh"><div><h2>${t(title2)}</h2><div class="sm">${t(hint)}</div></div>
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
     ${kind === "inicial" ? entryHtml(line2) : ""}
-    ${kind === "traspaso" ? `<label for="mvd">${t("products.movement.destination")}</label><select id="mvd">${options(destinations)}</select>` : ""}
+    ${kind === "traspaso" ? `<label for="mvd">${t("products.movement.destination")}</label><select id="mvd">${options2(destinations)}</select>` : ""}
     <div class="g2"><div><label for="mvu">${t(adjust ? "products.movement.unitsSigned" : "products.movement.units")}</label><input id="mvu" type="number" ${adjust ? "" : 'min="1"'}></div>
       <div><label for="mvn">${t("products.movement.note")}</label><input id="mvn" placeholder="${t(adjust ? "products.movement.adjustPlaceholder" : "products.movement.optional")}"></div></div>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="mvok">${t("products.movement.register")}</button></div>`;
   }
-  function payload(line2, kind, place, units2) {
-    const note = value4("mvn").trim();
+  function payload2(line2, kind, place2, units2) {
+    const note = value8("mvn").trim();
     if (kind === "inicial") {
       return {
         tipo: kind,
-        producto_id: value4("mvp"),
-        almacen_id: value4("mva"),
-        numero_lote: value4("mvl").trim(),
-        caducidad: value4("mvc"),
-        fecha_fabricacion: value4("mvf"),
-        proveedor_id: value4("mvpr"),
+        producto_id: value8("mvp"),
+        almacen_id: value8("mva"),
+        numero_lote: value8("mvl").trim(),
+        caducidad: value8("mvc"),
+        fecha_fabricacion: value8("mvf"),
+        proveedor_id: value8("mvpr"),
         unidades: units2,
         nota: note
       };
     }
-    return { tipo: kind, producto_id: line2?.id, lote_id: place?.batchId, almacen_id: place?.storeId, destino_id: document.getElementById("mvd") ? value4("mvd") : null, unidades: units2, nota: note };
+    return { tipo: kind, producto_id: line2?.id, lote_id: place2?.batchId, almacen_id: place2?.storeId, destino_id: document.getElementById("mvd") ? value8("mvd") : null, unidades: units2, nota: note };
   }
   function missing(kind, units2) {
     if (!units2) return t("products.movement.writeUnits");
-    return kind === "inicial" && !value4("mvl").trim() ? t("products.movement.writeBatch") : "";
+    return kind === "inicial" && !value8("mvl").trim() ? t("products.movement.writeBatch") : "";
   }
-  async function register(line2, kind, place) {
-    const units2 = Number(value4("mvu")), problem = missing(kind, units2);
+  async function register2(line2, kind, place2) {
+    const units2 = Number(value8("mvu")), problem = missing(kind, units2);
     if (problem) {
       notices.toast(problem, true);
       return;
     }
-    const { data: result, error } = await legacyDb().rpc("movimiento_manual", { p: payload(line2, kind, place, units2) });
+    const { data: result, error } = await legacyDb().rpc("movimiento_manual", { p: payload2(line2, kind, place2, units2) });
     if (error || result?.ok === false) {
       notices.toast(t("products.movement.failed", { error: orFallback(errorMessage(error), result?.error ?? "") }), true);
       return;
@@ -9684,24 +13935,24 @@
     notices.toast(t("products.movement.registered"));
     if (currentScreen() === "productos") void paintStock();
   }
-  async function stockMovement(line2, kind, place) {
+  async function stockMovement(line2, kind, place2) {
     await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadStores(), purchasesLegacy.loadSuppliers()]);
     const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
     if (!body2 || !box) return;
-    body2.innerHTML = formHtml(line2, kind, place);
+    body2.innerHTML = formHtml3(line2, kind, place2);
     box.showModal();
     const ok = document.getElementById("mvok");
     if (ok) ok.onclick = () => {
-      void register(line2, kind, place);
+      void register2(line2, kind, place2);
     };
   }
 
   // src/app/screens/products/services.ts
   var DEFAULT_VAT = 21;
   var PRICE_DECIMALS = 4;
-  var money2 = (value15) => isPresent(value15) ? euros(value15) : "—";
-  var field = (id) => document.getElementById(id);
-  function rowHtml4(service) {
+  var money2 = (value18) => isPresent(value18) ? euros3(value18) : "—";
+  var field2 = (id) => document.getElementById(id);
+  function rowHtml10(service) {
     const byDefault = service.por_defecto ? `<span class="pill p-est">${t("products.services.byDefault")}</span>` : '<span class="vac">—</span>';
     return `<button class="dr" data-serv="${service.id ?? ""}" style="${service.activo ? "" : "opacity:.55"}">
         <span><b>${escapeHtml(service.nombre ?? "")}</b></span><span class="num">${money2(service.precio)}</span>
@@ -9721,7 +13972,7 @@
     <div class="cuenta"><b>${formatNumber(list.filter((item) => item.activo).length)}</b>${t("products.services.activeCount")}</div>
     <div class="dgrid-wrap"><div class="dgrid servs">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(key)}</span>`).join("")}</div>
-      ${list.map(rowHtml4).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
+      ${list.map(rowHtml10).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
     </div></div></div>`;
     body2.querySelectorAll("[data-serv]").forEach((button2) => {
       button2.onclick = () => {
@@ -9731,10 +13982,10 @@
   }
   function prices(service) {
     if (!isPresent(service.precio)) return ["", ""];
-    return [String(Number(Number(service.precio).toFixed(PRICE_DECIMALS))), String(round2(service.precio * (1 + (service.iva ?? 0) / 100)))];
+    return [String(Number(Number(service.precio).toFixed(PRICE_DECIMALS))), String(round22(service.precio * (1 + (service.iva ?? 0) / 100)))];
   }
   var checkbox = (id, on4, locked) => `<input type="checkbox" id="${id}" ${on4 ? "checked" : ""} ${locked}>`;
-  function editorHtml3(service, admin) {
+  function editorHtml6(service, admin) {
     const locked = admin ? "" : "disabled", vat = service.iva ?? DEFAULT_VAT, [price, withVat2] = prices(service);
     return `
     <div class="fh"><div><h2>${service.id ? escapeHtml(service.nombre ?? "") : t("products.services.newTitle")}</h2>
@@ -9751,38 +14002,38 @@
       ${admin ? `<button class="btn" id="svok">${t(service.id ? "common.save" : "products.services.create")}</button>` : ""}</div>`;
   }
   function bindPrices() {
-    const without = field("svs"), vat = field("svi"), withVat2 = field("svc");
+    const without = field2("svs"), vat = field2("svi"), withVat2 = field2("svc");
     if (!without || !vat || !withVat2) return;
     const rate = () => (Number(vat.value) || 0) / 100;
     without.oninput = () => {
-      withVat2.value = without.value === "" ? "" : String(round2(Number(without.value) * (1 + rate())));
+      withVat2.value = without.value === "" ? "" : String(round22(Number(without.value) * (1 + rate())));
     };
     withVat2.oninput = () => {
       without.value = withVat2.value === "" ? "" : String(Number((Number(withVat2.value) / (1 + rate())).toFixed(PRICE_DECIMALS)));
     };
     vat.oninput = () => {
-      if (without.value !== "") withVat2.value = String(round2(Number(without.value) * (1 + rate())));
+      if (without.value !== "") withVat2.value = String(round22(Number(without.value) * (1 + rate())));
     };
   }
-  function payload2(service, name) {
-    const active = field("svact");
+  function payload3(service, name) {
+    const active = field2("svact");
     return {
       id: service.id ?? null,
       tipo: "servicio",
       nombre: name,
-      precio: field("svs")?.value,
-      iva: field("svi")?.value,
-      por_defecto: Boolean(field("svdef")?.checked),
+      precio: field2("svs")?.value,
+      iva: field2("svi")?.value,
+      por_defecto: Boolean(field2("svdef")?.checked),
       ...active ? { activo: active.checked } : {}
     };
   }
-  async function save6(service) {
-    const name = field("svn")?.value.trim() ?? "";
+  async function save12(service) {
+    const name = field2("svn")?.value.trim() ?? "";
     if (!name) {
       notices.toast(t("products.services.writeName"), true);
       return;
     }
-    const { data: result, error } = await legacyDb().rpc("guardar_producto", { p: payload2(service, name) });
+    const { data: result, error } = await legacyDb().rpc("guardar_producto", { p: payload3(service, name) });
     if (error || result?.ok === false) {
       notices.toast(t("products.services.couldNotSave"), true);
       return;
@@ -9796,13 +14047,13 @@
     const admin = cardSectionsLegacy.can("administrar"), service = existing ?? { iva: DEFAULT_VAT, activo: true };
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml3(service, admin);
+    body2.innerHTML = editorHtml6(service, admin);
     box.showModal();
     if (!admin) return;
     bindPrices();
     const ok = document.getElementById("svok");
     if (ok) ok.onclick = () => {
-      void save6(service);
+      void save12(service);
     };
   }
 
@@ -9823,7 +14074,7 @@
     return true;
   }
   var chosenMember = () => members().find((member) => member.id === document.getElementById("almu")?.value);
-  function windowHtml2() {
+  function windowHtml3() {
     const list = stores().map((store) => `<div class="item" style="cursor:default"><span class="ic">${storeIcon(store)}</span>
         <span class="tx"><b>${escapeHtml(store.nombre)}</b><span class="sm">${storeKind(store)}${t("products.stores.unitsTail", { units: formatNumber(store.unidades) })}${store.activo ? "" : t("products.stores.inactive")}</span></span></div>`).join("");
     return `
@@ -9838,7 +14089,7 @@
   function paintWindow() {
     const body2 = document.getElementById("dbody");
     if (!body2) return;
-    body2.innerHTML = windowHtml2();
+    body2.innerHTML = windowHtml3();
     const ok = document.getElementById("almok");
     if (ok) ok.onclick = async () => {
       const member = chosenMember();
@@ -9888,7 +14139,7 @@
 
   // src/app/screens/products/page.ts
   var TABS = [["productos", "products.page.products"], ["servicios", "products.page.services"], ["stock", "products.page.stock"]];
-  function actionsHtml3(section2) {
+  function actionsHtml4(section2) {
     if (section2 === "stock") {
       if (!purchasesLegacy.canBuy()) return "";
       return `<button class="btn sec" id="stalm">${t("products.page.stores")}</button><button class="btn sec" id="stmue">${t("products.page.samples")}</button><button class="btn" id="stini">${t("products.page.stockEntry")}</button>`;
@@ -9900,7 +14151,7 @@
     const button2 = document.getElementById(id);
     if (button2) button2.onclick = action;
   };
-  function bind7(screen2, section2) {
+  function bind12(screen2, section2) {
     screen2.querySelectorAll("[data-ps]").forEach((button2) => {
       button2.onclick = () => {
         productsLegacy.setSection(button2.dataset.ps ?? "productos");
@@ -9928,10 +14179,10 @@
     const section2 = productsLegacy.section();
     screen2.innerHTML = `
     <div class="saludo"><div><h1>${t("products.page.title")}</h1><div class="fecha">${t("products.page.subtitle")}</div></div>
-      <div class="acts" style="margin:0">${actionsHtml3(section2)}</div></div>
+      <div class="acts" style="margin:0">${actionsHtml4(section2)}</div></div>
     <div class="subnav">${TABS.map(([key, label]) => `<button data-ps="${key}" aria-pressed="${String(section2 === key)}">${t(label)}</button>`).join("\n      ")}</div>
     <div id="vcuerpo"></div>`;
-    bind7(screen2, section2);
+    bind12(screen2, section2);
     if (section2 === "stock") void paintStock();
     else if (section2 === "servicios") void paintServices();
     else void paintProducts();
@@ -10002,7 +14253,7 @@
         <span class="acts" style="margin:0"><button class="btn sec" data-traz="${batch.id}">${t("products.sheet.traceability")}</button>
           ${tools}</span></div>`;
   }
-  function sheetHtml4(line2, canBuy) {
+  function sheetHtml5(line2, canBuy) {
     const [label, kind] = stockState(line2), batches = line2.lotes ?? [];
     return `
     <div class="fh"><div><h2>${escapeHtml(line2.nombre)} <span class="pill ${kind}">${label}</span></h2>
@@ -10026,7 +14277,7 @@
     notices.toast(t("products.sheet.saved"));
     void paintStock();
   }
-  function bind8(body2, line2) {
+  function bind13(body2, line2) {
     body2.querySelectorAll("[data-traz]").forEach((button2) => {
       button2.onclick = () => {
         void traceability(button2.dataset.traz ?? "");
@@ -10044,8 +14295,8 @@
     if (entry) entry.onclick = () => {
       void stockMovement(line2, "inicial");
     };
-    const save21 = document.getElementById("stgu");
-    if (save21) save21.onclick = () => {
+    const save25 = document.getElementById("stgu");
+    if (save25) save25.onclick = () => {
       void saveSettings(line2);
     };
   }
@@ -10053,9 +14304,9 @@
     await purchasesLegacy.loadSuppliers();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml4(line2, purchasesLegacy.canBuy());
+    body2.innerHTML = sheetHtml5(line2, purchasesLegacy.canBuy());
     if (!box.open) box.showModal();
-    bind8(body2, line2);
+    bind13(body2, line2);
   }
 
   // src/app/screens/billing/index.ts
@@ -10112,61 +14363,61 @@
     },
     loadSettings: () => cargarAjustes(),
     setting: (key) => AJUSTES[key],
-    setSetting: (key, value15) => {
-      AJUSTES[key] = value15;
+    setSetting: (key, value18) => {
+      AJUSTES[key] = value18;
     },
     paymentMethods: () => CAT.forma_pago ?? []
   };
 
   // src/app/screens/billing/model.ts
   var PAYMENT = { paid: "Cobrada", overdue: "Vencida", pending: "Pendiente" };
-  var euros2 = (value15) => formatCurrency(Math.round((Number(value15) || 0) * 100) / 100);
-  function paymentPill(state) {
+  var euros4 = (value18) => formatCurrency(Math.round((Number(value18) || 0) * 100) / 100);
+  function paymentPill2(state) {
     const kind = state === PAYMENT.paid ? "p-est" : state === PAYMENT.overdue ? "p-anu" : "p-bor";
     return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
   }
   var errorMessage2 = (error) => error?.message ?? "";
 
   // src/app/screens/billing/list.ts
-  var SEARCH_WAIT_MS = 300;
-  var emptyToNull = (value15) => value15 ? value15 : null;
-  var field2 = (id) => document.getElementById(id);
+  var SEARCH_WAIT_MS3 = 300;
+  var emptyToNull = (value18) => value18 ? value18 : null;
+  var field3 = (id) => document.getElementById(id);
   var total = (rows, key) => sum(rows.map((row4) => Number(row4[key]) || 0));
   function shellHtml() {
-    const options2 = ["", PAYMENT.pending, PAYMENT.overdue, PAYMENT.paid].map((value15) => value15 ? `<option>${value15}</option>` : `<option value="">${t("billing.list.all")}</option>`).join("");
+    const options3 = ["", PAYMENT.pending, PAYMENT.overdue, PAYMENT.paid].map((value18) => value18 ? `<option>${value18}</option>` : `<option value="">${t("billing.list.all")}</option>`).join("");
     return `<div class="panel">
     <div class="filtros">
       <div id="fper"></div>
       <div><label for="fq">${t("billing.list.search")}</label><input id="fq" type="search" placeholder="${t("billing.list.searchPlaceholder")}"></div>
-      <div><label for="fcob">${t("billing.list.payment")}</label><select id="fcob">${options2}</select></div>
+      <div><label for="fcob">${t("billing.list.payment")}</label><select id="fcob">${options3}</select></div>
     </div>
     <div class="kpis vtot" id="ftot"></div>
     <div id="flista"></div></div>`;
   }
-  function totalsHtml(rows) {
+  function totalsHtml3(rows) {
     const pending = rows.filter((row4) => row4.estado_cobro !== PAYMENT.paid), overdue = rows.filter((row4) => row4.estado_cobro === PAYMENT.overdue);
     return `
-      <div class="kpi"><b>${euros2(total(rows, "total"))}</b><span>${t("billing.list.invoiced", { count: formatNumber(rows.length) })}</span></div>
-      <div class="kpi"><b>${euros2(total(rows, "base"))}</b><span>${t("billing.list.taxBase")}</span></div>
-      <div class="kpi"><b>${euros2(total(rows, "cuota_iva"))}</b><span>${t("billing.list.vat")}</span></div>
-      <div class="kpi"><b>${euros2(total(pending, "total") - total(pending, "cobrado"))}</b><span>${t("billing.list.toCollect", { count: formatNumber(pending.length) })}</span></div>
-      <div class="kpi ${overdue.length ? "warn" : ""}"><b>${euros2(total(overdue, "total") - total(overdue, "cobrado"))}</b><span>${t("billing.list.overdueTotal", { count: formatNumber(overdue.length) })}</span></div>`;
+      <div class="kpi"><b>${euros4(total(rows, "total"))}</b><span>${t("billing.list.invoiced", { count: formatNumber(rows.length) })}</span></div>
+      <div class="kpi"><b>${euros4(total(rows, "base"))}</b><span>${t("billing.list.taxBase")}</span></div>
+      <div class="kpi"><b>${euros4(total(rows, "cuota_iva"))}</b><span>${t("billing.list.vat")}</span></div>
+      <div class="kpi"><b>${euros4(total(pending, "total") - total(pending, "cobrado"))}</b><span>${t("billing.list.toCollect", { count: formatNumber(pending.length) })}</span></div>
+      <div class="kpi ${overdue.length ? "warn" : ""}"><b>${euros4(total(overdue, "total") - total(overdue, "cobrado"))}</b><span>${t("billing.list.overdueTotal", { count: formatNumber(overdue.length) })}</span></div>`;
   }
-  function rowHtml5(row4) {
+  function rowHtml11(row4) {
     const note = row4.rectifica ? `<span class="sm">${t("billing.list.rectifies", { number: escapeHtml(row4.rectifica) })}</span>` : row4.rectificada_por ? `<span class="sm">${t("billing.list.rectifiedBy", { number: escapeHtml(row4.rectificada_por) })}</span>` : "";
     return `<button class="dr" data-fac="${row4.id}">
         <span><b>${escapeHtml(row4.numero)}</b>${note}</span>
         <span>${formatShortDate(row4.fecha)}</span><span class="corta">${escapeHtml(orFallback(row4.cliente, "—"))}</span><span class="sm">${escapeHtml(orFallback(row4.nif, "—"))}</span>
-        <span class="num">${euros2(row4.base)}</span><span class="num">${euros2(row4.cuota_iva)}</span><span class="num"><b>${euros2(row4.total)}</b></span>
+        <span class="num">${euros4(row4.base)}</span><span class="num">${euros4(row4.cuota_iva)}</span><span class="num"><b>${euros4(row4.total)}</b></span>
         <span class="${row4.estado_cobro === PAYMENT.overdue ? "cad-pasada" : ""}">${row4.vencimiento ? formatShortDate(row4.vencimiento) : "—"}</span>
-        <span>${paymentPill(row4.estado_cobro)}</span></button>`;
+        <span>${paymentPill2(row4.estado_cobro)}</span></button>`;
   }
-  function tableHtml4(rows) {
+  function tableHtml6(rows) {
     if (!rows.length) return `<div class="vacio">${t("billing.list.none")}</div>`;
     const head = [["", "number"], ["", "date"], ["", "client"], ["", "nif"], ["num", "base"], ["num", "vatShort"], ["num", "total"], ["", "due"], ["", "payment"]];
     return `<div class="dgrid-wrap"><div class="dgrid facts">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.list.${key}`)}</span>`).join("")}</div>
-      ${rows.map(rowHtml5).join("")}</div></div>`;
+      ${rows.map(rowHtml11).join("")}</div></div>`;
   }
   function pageRows(rows) {
     const size = accountListLegacy.pageSize();
@@ -10180,8 +14431,8 @@
     const { data, error } = await legacyDb().rpc("facturas_lista", {
       p_desde: range2.desde,
       p_hasta: range2.hasta,
-      q: emptyToNull(field2("fq")?.value.trim()),
-      p_cobro: emptyToNull(field2("fcob")?.value)
+      q: emptyToNull(field3("fq")?.value.trim()),
+      p_cobro: emptyToNull(field3("fcob")?.value)
     });
     const list = document.getElementById("flista"), totals = document.getElementById("ftot");
     if (!list) return;
@@ -10190,8 +14441,8 @@
       return;
     }
     const rows = data ?? [];
-    if (totals) totals.innerHTML = totalsHtml(rows);
-    list.innerHTML = tableHtml4(pageRows(rows));
+    if (totals) totals.innerHTML = totalsHtml3(rows);
+    list.innerHTML = tableHtml6(pageRows(rows));
     list.querySelectorAll("[data-fac]").forEach((button2) => {
       button2.onclick = () => {
         billingLegacy.openInvoice(button2.dataset.fac ?? "");
@@ -10216,7 +14467,7 @@
     billingLegacy.setPage(0);
     void paintRows();
   };
-  var searchTimer;
+  var searchTimer2;
   function paintInvoices() {
     const body2 = document.getElementById("fcuerpo");
     if (!body2) return;
@@ -10224,10 +14475,10 @@
     opportunitiesLegacy.mountPeriod(document.getElementById("fper"), { id: "facturas", valor: "mes", alCambiar: () => {
       void paintRows();
     } });
-    const search3 = field2("fq"), payment = field2("fcob");
-    if (search3) search3.oninput = () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(restart, SEARCH_WAIT_MS);
+    const search4 = field3("fq"), payment = field3("fcob");
+    if (search4) search4.oninput = () => {
+      clearTimeout(searchTimer2);
+      searchTimer2 = setTimeout(restart, SEARCH_WAIT_MS3);
     };
     if (payment) payment.onchange = restart;
     void paintRows();
@@ -10245,22 +14496,22 @@
   var FALLBACK_YEAR = 2026;
   var YEAR_DIGITS = 100;
   var typeName = (type) => t(TYPES.find(([key]) => key === type)?.[1] ?? "billing.series.simplified");
-  var input = (id) => document.getElementById(id);
-  var valueOf2 = (id) => input(id)?.value ?? "";
-  function rowHtml6(series) {
+  var input2 = (id) => document.getElementById(id);
+  var valueOf3 = (id) => input2(id)?.value ?? "";
+  function rowHtml12(series) {
     const notes2 = `${series.por_defecto ? t("billing.series.byDefault") : ""}${series.activa ? "" : t("billing.series.inactive")}`;
     return `<button class="dr" data-ser="${series.id ?? ""}"><span><b>${escapeHtml(series.codigo)}</b><span class="sm">${escapeHtml(series.nombre)}${notes2}</span></span>
         <span>${escapeHtml(typeName(series.tipo))}</span><span class="mono">${escapeHtml(series.formato)}</span>
         <span><b>${escapeHtml(series.proximo ?? "")}</b></span><span>${escapeHtml(orFallback(series.ultima, "—"))}</span><span class="num">${formatNumber(series.emitidas)}</span><span>${t(series.reinicio_anual ? "billing.series.yes" : "billing.series.no")}</span></button>`;
   }
-  function listHtml(list, admin) {
+  function listHtml2(list, admin) {
     const head = [["", "series"], ["", "type"], ["", "format"], ["", "next"], ["", "last"], ["num", "issued"], ["", "yearlyReset"]];
     return `<div class="panel">
     <div class="cuenta">${t("billing.series.intro")}
       ${admin ? `<button class="btn sec" id="sernueva" style="margin-left:8px">${t("billing.series.add")}</button>` : ""}</div>
     <div class="dgrid-wrap"><div class="dgrid sers">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.series.${key}`)}</span>`).join("")}</div>
-      ${list.map(rowHtml6).join("")}
+      ${list.map(rowHtml12).join("")}
     </div></div>
     <p class="sm" style="padding:10px 16px">${t("billing.series.formatHelp")}</p></div>`;
   }
@@ -10270,7 +14521,7 @@
     const body2 = document.getElementById("fcuerpo");
     if (!body2) return;
     const list = data ?? [], admin = cardSectionsLegacy.can("administrar");
-    body2.innerHTML = listHtml(list, admin);
+    body2.innerHTML = listHtml2(list, admin);
     body2.querySelectorAll("[data-ser]").forEach((button2) => {
       button2.onclick = () => {
         editSeries(list.find((series) => series.id === button2.dataset.ser) ?? null);
@@ -10281,16 +14532,16 @@
       editSeries(null);
     };
   }
-  function editorHtml4(series, admin) {
-    const locked = admin ? "" : "disabled", fixed = series.id ? "disabled" : locked;
+  function editorHtml7(series, admin) {
+    const locked = admin ? "" : "disabled", fixed2 = series.id ? "disabled" : locked;
     const types2 = TYPES.map(([key, , label]) => `<option value="${key}" ${series.tipo === key ? "selected" : ""}>${t(label)}</option>`).join("");
     const check2 = (id, on4, label) => `<label class="opt" style="margin-top:${id === "ser" ? 10 : 8}px"><input type="checkbox" id="${id}" ${on4 ? "checked" : ""} ${locked}> ${t(label)}</label>`;
     return `
     <div class="fh"><div><h2>${series.id ? t("billing.series.titleOf", { code: escapeHtml(series.codigo) }) : t("billing.series.newTitle")}</h2><div class="sm">${t("billing.series.nextNumber")}<b id="serprev"></b></div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <div class="g2"><div><label for="sec">${t("billing.series.code")}</label><input id="sec" value="${escapeHtml(series.codigo)}" ${fixed} placeholder="${t("billing.series.codePlaceholder")}"></div>
+    <div class="g2"><div><label for="sec">${t("billing.series.code")}</label><input id="sec" value="${escapeHtml(series.codigo)}" ${fixed2} placeholder="${t("billing.series.codePlaceholder")}"></div>
       <div><label for="sen">${t("billing.series.name")}</label><input id="sen" value="${escapeHtml(series.nombre)}" ${locked}></div></div>
-    <div class="g2"><div><label for="set">${t("billing.series.type")}</label><select id="set" ${fixed}>${types2}</select></div>
+    <div class="g2"><div><label for="set">${t("billing.series.type")}</label><select id="set" ${fixed2}>${types2}</select></div>
       <div><label for="sef">${t("billing.series.format")}</label><input id="sef" value="${escapeHtml(series.formato)}" ${locked}></div></div>
     <div class="g2"><div><label for="ses">${t("billing.series.nextField")}</label><input id="ses" type="number" min="1" value="${series.siguiente}" ${locked}></div>
       <div><label for="sea">${t("billing.series.year")}</label><input id="sea" type="number" value="${series.anio}" ${locked}></div></div>
@@ -10300,21 +14551,21 @@
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.close")}</button>${admin ? `<button class="btn" id="seok">${t("common.save")}</button>` : ""}</div>`;
   }
   function preview() {
-    const code = valueOf2("sec").trim().toUpperCase() || "X", year = Number(valueOf2("sea")) || FALLBACK_YEAR, next = Number(valueOf2("ses")) || 1;
-    const text2 = valueOf2("sef").replace("{S}", code).replace("{AAAA}", String(year)).replace("{AA}", String(year % YEAR_DIGITS).padStart(2, "0")).replace(/\{(N+)\}/, (...[, digits]) => String(next).padStart(digits?.length ?? 0, "0"));
-    const place = document.getElementById("serprev");
-    if (place) place.textContent = text2;
+    const code = valueOf3("sec").trim().toUpperCase() || "X", year = Number(valueOf3("sea")) || FALLBACK_YEAR, next = Number(valueOf3("ses")) || 1;
+    const text2 = valueOf3("sef").replace("{S}", code).replace("{AAAA}", String(year)).replace("{AA}", String(year % YEAR_DIGITS).padStart(2, "0")).replace(/\{(N+)\}/, (...[, digits]) => String(next).padStart(digits?.length ?? 0, "0"));
+    const place2 = document.getElementById("serprev");
+    if (place2) place2.textContent = text2;
   }
-  async function save7(series) {
-    const checked3 = (id) => Boolean(input(id)?.checked), active = input("seac");
+  async function save13(series) {
+    const checked3 = (id) => Boolean(input2(id)?.checked), active = input2("seac");
     const { data: result, error } = await legacyDb().rpc("guardar_serie", { p: {
       id: series.id ?? null,
-      codigo: valueOf2("sec").trim(),
-      nombre: valueOf2("sen").trim(),
-      tipo: valueOf2("set"),
-      formato: valueOf2("sef").trim(),
-      siguiente: Number(valueOf2("ses")),
-      anio: Number(valueOf2("sea")),
+      codigo: valueOf3("sec").trim(),
+      nombre: valueOf3("sen").trim(),
+      tipo: valueOf3("set"),
+      formato: valueOf3("sef").trim(),
+      siguiente: Number(valueOf3("ses")),
+      anio: Number(valueOf3("sea")),
       reinicio_anual: checked3("ser"),
       por_defecto: checked3("sed"),
       ...active ? { activa: active.checked } : {}
@@ -10332,16 +14583,16 @@
     const series = existing ?? { codigo: "", nombre: "", tipo: "ordinaria", formato: "{S}{AA}{NNNN}", siguiente: 1, anio: Number(todayIso().slice(0, 4)), reinicio_anual: true };
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml4(series, admin);
+    body2.innerHTML = editorHtml7(series, admin);
     box.showModal();
     for (const id of ["sec", "sef", "ses", "sea"]) {
-      const field8 = input(id);
+      const field8 = input2(id);
       if (field8) field8.oninput = preview;
     }
     preview();
     const ok = document.getElementById("seok");
     if (ok) ok.onclick = () => {
-      void save7(series);
+      void save13(series);
     };
   }
 
@@ -10358,7 +14609,7 @@
       <div><h2>VeriFactu ${pill}</h2>
         <p>${t("billing.verifactu.intro")}</p></div></div>`;
   }
-  function stepsHtml(settings, chain) {
+  function stepsHtml2(settings, chain) {
     const intact = !chain.rotas;
     const chainText = intact ? t("billing.verifactu.chainOk") : t("billing.verifactu.chainBroken", { from: escapeHtml(chain.primera_rota ?? "") });
     return `<div class="vfpasos">
@@ -10387,7 +14638,7 @@
         <label for="vfe">${t("billing.verifactu.environment")}</label><select id="vfe"><option value="pruebas" ${settings.entorno === "pruebas" ? "selected" : ""}>${t("billing.verifactu.testing")}</option><option value="produccion" ${settings.entorno === "produccion" ? "selected" : ""}>${t("billing.verifactu.production")}</option></select>
         <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">${t("common.save")}</button></div></div>`;
   }
-  async function save8(current) {
+  async function save14(current) {
     const next = {
       activo: Boolean(document.getElementById("vfa")?.checked),
       modalidad: document.querySelector("[name=vfm]:checked")?.value ?? DEFAULTS.modalidad,
@@ -10418,14 +14669,14 @@
     if (!body2) return;
     body2.innerHTML = `
     ${heroHtml(settings)}
-    ${stepsHtml(settings, chain ?? {})}
+    ${stepsHtml2(settings, chain ?? {})}
     <div class="vfgrid">
       ${whatHtml((events3 ?? [])[0])}
       ${settingsHtml2(settings)}
     </div>`;
     const ok = document.getElementById("vfok");
     if (ok) ok.onclick = () => {
-      void save8(settings);
+      void save14(settings);
     };
   }
 
@@ -10481,11 +14732,11 @@
   }
 
   // src/app/screens/billing/payment.ts
-  var value5 = (id) => document.getElementById(id)?.value ?? "";
-  function formHtml2(invoice2, pending) {
+  var value9 = (id) => document.getElementById(id)?.value ?? "";
+  function formHtml4(invoice2, pending) {
     const methods = billingLegacy.paymentMethods().map((item) => `<option ${item.valor === invoice2.forma_pago ? "selected" : ""}>${escapeHtml(item.valor)}</option>`).join("");
     return `
-    <div class="fh"><div><h2>${t("billing.payment.title", { number: escapeHtml(invoice2.numero) })}</h2><div class="sm">${t("billing.payment.pending", { amount: euros2(pending) })}</div></div>
+    <div class="fh"><div><h2>${t("billing.payment.title", { number: escapeHtml(invoice2.numero) })}</h2><div class="sm">${t("billing.payment.pending", { amount: euros4(pending) })}</div></div>
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
     <div class="g2"><div><label for="cbi">${t("billing.payment.amount")}</label><input id="cbi" type="number" step="0.01" value="${pending}"></div>
       <div><label for="cbf">${t("billing.payment.date")}</label><input id="cbf" type="date" value="${todayIso()}"></div></div>
@@ -10493,8 +14744,8 @@
       <div><label for="cbn">${t("billing.payment.note")}</label><input id="cbn" placeholder="${t("billing.payment.optional")}"></div></div>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="cbok">${t("billing.payment.register")}</button></div>`;
   }
-  async function save9(invoice2, box) {
-    const amount3 = Number(value5("cbi"));
+  async function save15(invoice2, box) {
+    const amount3 = Number(value9("cbi"));
     if (!amount3) {
       notices.toast(t("billing.payment.writeAmount"), true);
       return;
@@ -10502,9 +14753,9 @@
     const { data: result, error } = await legacyDb().rpc("registrar_cobro", {
       p_factura: invoice2.id,
       p_importe: amount3,
-      p_fecha: value5("cbf"),
-      p_forma: value5("cbp"),
-      p_nota: value5("cbn").trim() || null
+      p_fecha: value9("cbf"),
+      p_forma: value9("cbp"),
+      p_nota: value9("cbn").trim() || null
     });
     if (error || result?.ok === false) {
       notices.toast(t("billing.payment.couldNotRegister"), true);
@@ -10518,19 +14769,19 @@
   function registerPayment(invoice2, pending) {
     const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
     if (!body2 || !box) return;
-    body2.innerHTML = formHtml2(invoice2, pending);
+    body2.innerHTML = formHtml4(invoice2, pending);
     box.showModal();
     const ok = document.getElementById("cbok");
     if (ok) ok.onclick = () => {
-      void save9(invoice2, box);
+      void save15(invoice2, box);
     };
   }
 
   // src/app/screens/billing/rectify.ts
   var failure = (error, result) => orFallback(errorMessage2(error), result?.error ?? "");
   var partial = (body2) => body2.querySelector("[name=rft]:checked")?.value === "parcial";
-  function formHtml3(invoice2) {
-    const lines = invoice2.lineas.map((line2, index) => `<div class="g2" style="align-items:center"><div>${escapeHtml(line2.descripcion)} <span class="sm">${t("billing.rectify.units", { units: formatNumber(line2.unidades) })}</span></div>
+  function formHtml5(invoice2) {
+    const lines2 = invoice2.lineas.map((line2, index) => `<div class="g2" style="align-items:center"><div>${escapeHtml(line2.descripcion)} <span class="sm">${t("billing.rectify.units", { units: formatNumber(line2.unidades) })}</span></div>
       <div><input type="number" min="0" max="${line2.unidades}" data-rfi="${index}" value="0" aria-label="${t("billing.rectify.unitsLabel")}"></div></div>`).join("");
     return `
     <div class="fh"><div><h2>${t("billing.rectify.title", { number: escapeHtml(invoice2.numero) })}</h2><div class="sm">${t("billing.rectify.subtitle")}</div></div>
@@ -10539,7 +14790,7 @@
     <label>${t("billing.rectify.what")}</label>
     <div class="opciones" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><label class="opt"><input type="radio" name="rft" value="total" checked> ${t("billing.rectify.whole")}</label>
       <label class="opt"><input type="radio" name="rft" value="parcial"> ${t("billing.rectify.someUnits")}</label></div>
-    <div id="rflin" class="hide">${lines}</div>
+    <div id="rflin" class="hide">${lines2}</div>
     ${invoice2.pedido_id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="rfan"> ${t("billing.rectify.cancelOrder")}</label>` : ""}
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn dang" id="rfok">${t("billing.rectify.issue")}</button></div>`;
   }
@@ -10553,13 +14804,13 @@
       notices.toast(t("billing.rectify.writeReason"), true);
       return;
     }
-    const lines = partial(body2) ? chosenLines(body2) : null;
-    if (lines?.length === 0) {
+    const lines2 = partial(body2) ? chosenLines(body2) : null;
+    if (lines2?.length === 0) {
       notices.toast(t("billing.rectify.writeUnits"), true);
       return;
     }
     button2.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("rectificar_factura", { p_factura: invoice2.id, p_motivo: reason, p_lineas: lines });
+    const { data: result, error } = await legacyDb().rpc("rectificar_factura", { p_factura: invoice2.id, p_motivo: reason, p_lineas: lines2 });
     if (error || !result || result.ok === false) {
       button2.disabled = false;
       notices.toast(t("billing.rectify.failed", { error: failure(error, result) }), true);
@@ -10578,7 +14829,7 @@
   function rectifyInvoice(invoice2) {
     const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
     if (!body2 || !box) return;
-    body2.innerHTML = formHtml3(invoice2);
+    body2.innerHTML = formHtml5(invoice2);
     box.showModal();
     body2.querySelectorAll("[name=rft]").forEach((radio) => {
       radio.onchange = () => {
@@ -10603,16 +14854,16 @@
     return invoice2.vencimiento && invoice2.vencimiento < todayIso() ? PAYMENT.overdue : PAYMENT.pending;
   }
   var address = (party, withProvince) => escapeHtml([party.direccion, party.cp, party.municipio, withProvince ? party.provincia : null].filter(Boolean).join(", "));
-  function headerHtml5(invoice2) {
+  function headerHtml6(invoice2) {
     const when = `${formatLongDate(invoice2.fecha)}${invoice2.vencimiento ? t("billing.sheet.dueOn", { date: formatShortDate(invoice2.vencimiento) }) : ""}${invoice2.forma_pago ? ` · ${escapeHtml(invoice2.forma_pago)}` : ""}`;
-    return `<div class="fh"><div><h2>${t(invoice2.rectifica_id ? "billing.sheet.rectifying" : "billing.sheet.invoice")} ${escapeHtml(invoice2.numero)} ${paymentPill(paymentState(invoice2))}</h2>
+    return `<div class="fh"><div><h2>${t(invoice2.rectifica_id ? "billing.sheet.rectifying" : "billing.sheet.invoice")} ${escapeHtml(invoice2.numero)} ${paymentPill2(paymentState(invoice2))}</h2>
       <div class="sm">${when}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>`;
   }
   function noticesHtml(detail, invoice2) {
     const original = detail.rectifica ? `<div class="avisoh"><span>${t("billing.sheet.rectifiesNotice", { number: escapeHtml(detail.rectifica.numero), reason: escapeHtml(invoice2.motivo_rectificacion ?? "") })}</span><button class="btn sec" data-vfac="${detail.rectifica.id}">${t("billing.sheet.seeOriginal")}</button></div>` : "";
     const later2 = detail.rectificativas ?? [];
-    const list = later2.map((item) => `<b>${escapeHtml(item.numero)}</b> (${euros2(item.total)} · ${escapeHtml(item.motivo ?? "")})`).join(", ");
+    const list = later2.map((item) => `<b>${escapeHtml(item.numero)}</b> (${euros4(item.total)} · ${escapeHtml(item.motivo ?? "")})`).join(", ");
     return original + (later2.length ? `<div class="avisoh"><span>${t("billing.sheet.rectifiedBy", { list })}</span></div>` : "");
   }
   function partiesHtml(invoice2) {
@@ -10625,30 +14876,30 @@
   }
   function linesHtml(invoice2) {
     const head = [["", "concept"], ["num", "units"], ["num", "price"], ["num", "discount"], ["num", "vat"], ["num", "base"]];
-    const lines = invoice2.lineas.map((line2) => `<div class="dr" style="cursor:default"><span>${escapeHtml(line2.descripcion)}</span><span class="num">${formatNumber(line2.unidades)}</span>
-        <span class="num">${euros2(line2.precio)}</span><span class="num">${line2.descuento ? `${formatNumber(line2.descuento)}%` : "—"}</span><span class="num">${formatNumber(line2.iva)}%</span><span class="num"><b>${euros2(line2.base)}</b></span></div>`).join("");
-    const breakdown = invoice2.desglose_iva.map((item) => `<div><span>${t("billing.sheet.baseAt", { rate: formatNumber(item.iva) })}</span><b>${euros2(item.base)}</b></div><div><span>${t("billing.sheet.vatAt", { rate: formatNumber(item.iva) })}</span><b>${euros2(item.cuota)}</b></div>`).join("");
+    const lines2 = invoice2.lineas.map((line2) => `<div class="dr" style="cursor:default"><span>${escapeHtml(line2.descripcion)}</span><span class="num">${formatNumber(line2.unidades)}</span>
+        <span class="num">${euros4(line2.precio)}</span><span class="num">${line2.descuento ? `${formatNumber(line2.descuento)}%` : "—"}</span><span class="num">${formatNumber(line2.iva)}%</span><span class="num"><b>${euros4(line2.base)}</b></span></div>`).join("");
+    const breakdown = invoice2.desglose_iva.map((item) => `<div><span>${t("billing.sheet.baseAt", { rate: formatNumber(item.iva) })}</span><b>${euros4(item.base)}</b></div><div><span>${t("billing.sheet.vatAt", { rate: formatNumber(item.iva) })}</span><b>${euros4(item.cuota)}</b></div>`).join("");
     return `<div class="dgrid-wrap"><div class="dgrid flin">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.sheet.${key}`)}</span>`).join("")}</div>
-      ${lines}</div></div>
+      ${lines2}</div></div>
     <div class="totbox">${breakdown}
-      <div class="tot"><span>${t("billing.sheet.total")}</span><b>${euros2(invoice2.total)}</b></div></div>`;
+      <div class="tot"><span>${t("billing.sheet.total")}</span><b>${euros4(invoice2.total)}</b></div></div>`;
   }
   function paymentsHtml(payments, pending) {
     const admin = cardSectionsLegacy.can("administrar");
     const rows = payments.map((item) => `<div class="sm" style="display:flex;justify-content:space-between;gap:8px;padding:4px 0">
-        <span>${formatShortDate(item.fecha)} · ${escapeHtml(item.forma_pago ?? "")}${item.nota ? ` · ${escapeHtml(item.nota)}` : ""}</span><b>${euros2(item.importe)}</b>
+        <span>${formatShortDate(item.fecha)} · ${escapeHtml(item.forma_pago ?? "")}${item.nota ? ` · ${escapeHtml(item.nota)}` : ""}</span><b>${euros4(item.importe)}</b>
         ${admin ? `<button class="kcfg" data-bcob="${item.id}">${t("billing.sheet.removePayment")}</button>` : ""}</div>`).join("");
     return `<div class="blk"><h3>${t("billing.sheet.payments")}</h3>
       ${rows || `<div class="sm">${t("billing.sheet.noPayments")}</div>`}
-      ${pending ? `<div class="sm" style="margin-top:4px">${t("billing.sheet.pendingAmount", { amount: euros2(pending) })}</div>` : ""}</div>`;
+      ${pending ? `<div class="sm" style="margin-top:4px">${t("billing.sheet.pendingAmount", { amount: euros4(pending) })}</div>` : ""}</div>`;
   }
   function recordHtml(invoice2) {
     if (!invoice2.huella) return "";
     return `<div class="blk"><h3>${t("billing.sheet.record")}</h3><div class="sm mono">${t("billing.sheet.fingerprint", { value: escapeHtml(invoice2.huella.slice(0, FINGERPRINT_SHOWN)) })}</div>
       <div class="sm">${t("billing.sheet.verifactuState", { state: escapeHtml(orFallback(invoice2.verifactu?.estado, t("billing.sheet.notApplicable"))) })}</div></div>`;
   }
-  function actionsHtml4(invoice2, pending) {
+  function actionsHtml5(invoice2, pending) {
     const can = billingLegacy.canInvoice();
     return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
       <button class="btn sec" data-cerrar>${t("common.close")}</button>
@@ -10661,7 +14912,7 @@
     const button2 = document.getElementById(id);
     if (button2) button2.onclick = action;
   };
-  function bind9(body2, detail, invoice2, pending) {
+  function bind14(body2, detail, invoice2, pending) {
     const rectifies = detail.rectifica?.numero;
     body2.querySelectorAll("[data-vfac]").forEach((button2) => {
       button2.onclick = () => {
@@ -10697,7 +14948,7 @@
       });
     });
   }
-  async function paint3(id) {
+  async function paint5(id) {
     const { data: detail } = await callRpc("factura_detalle", { p_id: id });
     const invoice2 = detail?.factura;
     if (!detail || !invoice2) {
@@ -10708,18 +14959,18 @@
     if (!body2 || !box) return;
     const pending = Number((invoice2.total - invoice2.cobrado).toFixed(2));
     body2.innerHTML = `
-    ${headerHtml5(invoice2)}
+    ${headerHtml6(invoice2)}
     ${noticesHtml(detail, invoice2)}
     ${partiesHtml(invoice2)}
     ${linesHtml(invoice2)}
     ${paymentsHtml(detail.cobros ?? [], pending)}
     ${recordHtml(invoice2)}
-    ${actionsHtml4(invoice2, pending)}`;
+    ${actionsHtml5(invoice2, pending)}`;
     if (!box.open) box.showModal();
-    bind9(body2, detail, invoice2, pending);
+    bind14(body2, detail, invoice2, pending);
   }
   function showInvoice(id) {
-    return billingLegacy.withLoading(() => paint3(id));
+    return billingLegacy.withLoading(() => paint5(id));
   }
 
   // src/app/screens/platform/index.ts
@@ -10747,7 +14998,7 @@
       const { data } = await RPC_ORIG("plan_uso", {});
       if (data?.plan) PLAN_ACTUAL = data.plan;
     },
-    askText: (message, value15, options2) => pedirTexto(message, value15, options2),
+    askText: (message, value18, options3) => pedirTexto(message, value18, options3),
     prepareOrganizationChange: (name) => {
       prepararCambioOrg(name);
     },
@@ -10760,9 +15011,9 @@
     kpis: (figures) => pdKpis(figures),
     billingState: (organization) => pdCobroEstado(organization),
     monthlyAmount: (plan) => pdMensual(plan),
-    euros: (value15) => eur(value15),
-    shortDate: (value15) => pdFecha(value15),
-    timeAgo: (value15) => pdHace(value15),
+    euros: (value18) => eur(value18),
+    shortDate: (value18) => pdFecha(value18),
+    timeAgo: (value18) => pdHace(value18),
     paintRoles: () => pintarRoles(),
     paintCatalogs: () => pintarCatalogos()
   };
@@ -10799,7 +15050,7 @@
     return blockedPill(organization, data) + (data.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : "");
   }
   var errorMessage3 = (error) => error?.message ?? "";
-  var shortDateTime3 = (value15) => new Date(value15).toLocaleString(t("dates.locale"), { dateStyle: "short", timeStyle: "short" });
+  var shortDateTime3 = (value18) => new Date(value18).toLocaleString(t("dates.locale"), { dateStyle: "short", timeStyle: "short" });
   function downloadJson(data, fileName, keepUrlMs = 0) {
     const link = document.createElement("a");
     link.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: "application/json" }));
@@ -10829,7 +15080,7 @@
     const planned = change ? t("platform.billing.planned", { plan: platformLegacy.planName(change.plan ?? plan.plan) }) + (change.usuarios ? t("platform.billing.plannedUsers", { users: change.usuarios }) : "") + (change.desde ? t("platform.billing.plannedOn", { date: platformLegacy.shortDate(change.desde) }) : "") : "";
     return [plan.baja_al_final ? t("platform.billing.leaving") : "", planned, plan.compromiso_hasta ? t("platform.billing.commitment", { date: platformLegacy.shortDate(plan.compromiso_hasta) }) : ""].filter(Boolean);
   }
-  function rowHtml7({ organization, plan, state }) {
+  function rowHtml13({ organization, plan, state }) {
     const monthly = platformLegacy.monthlyAmount(plan), users = plan.plan === "medida" ? "" : (plan.usuarios ? t("platform.billing.hired", { count: plan.usuarios }) : "") + t(plan.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly");
     return `<tr><td><b>${escapeHtml(organization.nombre)}</b><div class="sm">${t("platform.billing.activeUsers", { count: organization.usuarios })}${plan.origen === "web" ? t("platform.billing.fromWeb") : ""}</div></td>
           <td>${escapeHtml(platformLegacy.planName(plan.plan))}<div class="sm">${users}</div></td>
@@ -10844,9 +15095,9 @@
     const shown5 = rows.filter((row4) => shownIn(filter, row4));
     const head = ["company", "plan", "state", "perMonth", "pending"].map((key) => `<th>${t(`platform.billing.${key}`)}</th>`).join("");
     box.innerHTML = shown5.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr>${head}<th></th></tr></thead><tbody>
-      ${shown5.map(rowHtml7).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.billing.empty")}</div>`;
+      ${shown5.map(rowHtml13).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.billing.empty")}</div>`;
   }
-  function pageHtml(rows, error) {
+  function pageHtml3(rows, error) {
     const count2 = (state) => rows.filter((row4) => row4.state[0] === state).length;
     const income = sum(rows.filter((row4) => row4.state[0] === UP_TO_DATE).map((row4) => platformLegacy.monthlyAmount(row4.plan)));
     const figures = [
@@ -10872,7 +15123,7 @@
     const box = panelBox();
     if (!box) return;
     const rows = (error ? [] : data ?? []).map((organization) => ({ organization, plan: planOf(organization), state: platformLegacy.billingState(organization) }));
-    box.innerHTML = pageHtml(rows, error);
+    box.innerHTML = pageHtml3(rows, error);
     box.querySelectorAll("[data-pdf]").forEach((button2) => {
       button2.onclick = () => {
         box.querySelectorAll("[data-pdf]").forEach((other) => {
@@ -10885,15 +15136,15 @@
   }
 
   // src/app/screens/platform/errors.ts
-  var STATES5 = ["Nuevo", "Revisado", "Resuelto"];
+  var STATES7 = ["Nuevo", "Revisado", "Resuelto"];
   var SOLVED = "Resuelto";
   var DAY_OPTIONS = [7, 15, 30, 90];
-  var KINDS = /* @__PURE__ */ new Map([["error", "platform.errors.program"], ["api", "platform.errors.database"], ["reporte", "platform.errors.report"]]);
+  var KINDS2 = /* @__PURE__ */ new Map([["error", "platform.errors.program"], ["api", "platform.errors.database"], ["reporte", "platform.errors.report"]]);
   var kindName = (kind) => {
-    const key = KINDS.get(kind);
+    const key = KINDS2.get(kind);
     return key ? t(key) : kind;
   };
-  var stateOptions = (current) => STATES5.map((state) => `<option ${current === state ? "selected" : ""}>${state}</option>`).join("");
+  var stateOptions = (current) => STATES7.map((state) => `<option ${current === state ? "selected" : ""}>${state}</option>`).join("");
   var select = (id) => document.getElementById(id);
   function groupRow(group, index) {
     const solved = group.resuelto_en_version ? t(group.resuelto_auto ? "platform.errors.solvedAuto" : "platform.errors.solvedIn", { version: escapeHtml(group.resuelto_en_version) }) : "";
@@ -10933,7 +15184,7 @@
     const { data, error } = await callRpc("errores_resumen", { p_dias: platformState.platformErrors.dias });
     const box = panelBox();
     if (!box) return;
-    const all = error ? [] : data ?? [], list = all.filter(shown);
+    const all2 = error ? [] : data ?? [], list = all2.filter(shown);
     box.innerHTML = platformHtml(list, error);
     const refilter = () => {
       platformState.platformErrors = { estado: select("egest")?.value ?? "abiertos", dias: Number(select("egdias")?.value) };
@@ -10948,9 +15199,9 @@
         if (group) void markGroup(group, field8.value);
       };
     });
-    const save21 = document.getElementById("egdesc");
-    if (save21) save21.onclick = () => {
-      downloadJson({ generado: (/* @__PURE__ */ new Date()).toISOString(), version: platformLegacy.appVersion(), errores: all }, `errores_${todayIso()}.json`);
+    const save25 = document.getElementById("egdesc");
+    if (save25) save25.onclick = () => {
+      downloadJson({ generado: (/* @__PURE__ */ new Date()).toISOString(), version: platformLegacy.appVersion(), errores: all2 }, `errores_${todayIso()}.json`);
     };
   }
   function companyRow(item) {
@@ -10960,8 +15211,8 @@
   }
   function companyHtml(list) {
     const filters = platformState.companyErrors;
-    const kinds = [...KINDS.keys()].map((kind) => `<option value="${kind}" ${filters.tipo === kind ? "selected" : ""}>${kindName(kind)}</option>`).join("");
-    const states = ["", ...STATES5].map((state) => `<option value="${state}" ${filters.estado === state ? "selected" : ""}>${state || t("platform.errors.allStates")}</option>`).join("");
+    const kinds = [...KINDS2.keys()].map((kind) => `<option value="${kind}" ${filters.tipo === kind ? "selected" : ""}>${kindName(kind)}</option>`).join("");
+    const states = ["", ...STATES7].map((state) => `<option value="${state}" ${filters.estado === state ? "selected" : ""}>${state || t("platform.errors.allStates")}</option>`).join("");
     return `<div class="card cfgpanel"><h2>${t("platform.errors.companyTitle")}</h2>
     <p class="sm">${t("platform.errors.companyText")}</p>
     <div class="usrbar"><select id="erft"><option value="">${t("platform.errors.allKinds")}</option>${kinds}</select>
@@ -10989,8 +15240,8 @@
         notices.toast(t("platform.errors.stateChanged"));
       };
     });
-    const save21 = document.getElementById("erdesc");
-    if (save21) save21.onclick = () => {
+    const save25 = document.getElementById("erdesc");
+    if (save25) save25.onclick = () => {
       downloadJson(list, `errores_${todayIso()}.json`);
     };
   }
@@ -11109,9 +15360,9 @@
   }
 
   // src/app/screens/platform/org-extras.ts
-  var checked = (id) => document.getElementById(id)?.checked ?? false;
-  async function save10(organization, repaint2) {
-    const extras = [checked("oxopor") ? "oportunidades" : "", checked("oxport") ? "portal" : ""].filter(Boolean);
+  var checked2 = (id) => document.getElementById(id)?.checked ?? false;
+  async function save16(organization, repaint2) {
+    const extras = [checked2("oxopor") ? "oportunidades" : "", checked2("oxport") ? "portal" : ""].filter(Boolean);
     const { data: result, error } = await legacyDb().rpc("guardar_extras_organizacion", { p_org: organization.id, p_extras: extras });
     if (error || !result?.ok) {
       notices.toast(t("platform.extras.couldNotSave") + (error ? `: ${errorMessage3(error)}` : ""), true);
@@ -11136,7 +15387,7 @@
     box.showModal();
     const ok = document.getElementById("oxok");
     if (ok) ok.onclick = () => {
-      void save10(organization, repaint2);
+      void save16(organization, repaint2);
     };
   }
 
@@ -11145,9 +15396,9 @@
   var TRIAL_DAYS = 30;
   var MIN_PASSWORD = 6;
   var DEFAULT_PLAN = "empresa";
-  var value6 = (id) => document.getElementById(id)?.value ?? "";
+  var value10 = (id) => document.getElementById(id)?.value ?? "";
   var CREATE_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["nombre", "platform.newOrg.noName"], ["email", "platform.newOrg.badEmail"], ["email_existe", "platform.newOrg.emailTaken"]]);
-  function formHtml4() {
+  function formHtml6() {
     const plans = platformLegacy.plans().map((plan) => `<option value="${plan.id}" ${plan.id === DEFAULT_PLAN ? "selected" : ""}>${escapeHtml(plan.nombre)}</option>`).join("");
     return `<div class="fh"><div><h2>${t("platform.newOrg.title")}</h2><div class="sm">${t("platform.newOrg.subtitle")}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -11175,10 +15426,10 @@
   function newCompany(name, email) {
     return {
       nombre: name,
-      nif: value6("onif").trim(),
-      plan: value6("oplan"),
-      usuarios: Number(value6("ousu")) || MIN_USERS,
-      pago: value6("opago"),
+      nif: value10("onif").trim(),
+      plan: value10("oplan"),
+      usuarios: Number(value10("ousu")) || MIN_USERS,
+      pago: value10("opago"),
       prueba_dias: document.getElementById("oprueba")?.checked ? TRIAL_DAYS : 0,
       email_admin: email
     };
@@ -11188,7 +15439,7 @@
     return `<span style="color:var(--dang)">${t("platform.newOrg.failed", { reason: escapeHtml(reason) })}</span>`;
   }
   async function create(button2, repaint2) {
-    const name = value6("onom").trim(), email = value6("oamail").trim(), password = value6("oapass"), adminName = value6("oanom").trim();
+    const name = value10("onom").trim(), email = value10("oamail").trim(), password = value10("oapass"), adminName = value10("oanom").trim();
     if (!name || !email || !adminName || password.length < MIN_PASSWORD) {
       notices.toast(t("platform.newOrg.complete"), true);
       return;
@@ -11208,7 +15459,7 @@
   function openNewOrganization(repaint2) {
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = formHtml4();
+    body2.innerHTML = formHtml6();
     const ok = document.getElementById("ocrear");
     if (ok) ok.onclick = () => {
       void create(ok, repaint2);
@@ -11220,9 +15471,9 @@
   var MEDIDA2 = "medida";
   var TRIAL2 = "prueba";
   var TRIAL_DAYS2 = 30;
-  var field3 = (id) => document.getElementById(id);
-  var value7 = (id) => field3(id)?.value ?? "";
-  function formHtml5(organization) {
+  var field4 = (id) => document.getElementById(id);
+  var value11 = (id) => field4(id)?.value ?? "";
+  function formHtml7(organization) {
     const data = planOf(organization), current = data.plan ?? organization.plan, end = data.prueba_hasta ?? addDays(todayIso(), TRIAL_DAYS2);
     const plans = platformLegacy.plans().map((plan) => `<option value="${plan.id}" ${plan.id === current ? "selected" : ""}>${escapeHtml(plan.nombre)}</option>`).join("");
     return `<div class="fh"><div><h2>${t("platform.plan.title", { name: escapeHtml(organization.nombre) })}</h2><div class="sm">${t("platform.plan.subtitle")}</div></div>
@@ -11238,8 +15489,8 @@
   }
   var isCommitted = (data, from, to) => from === MEDIDA2 && to !== MEDIDA2 && Boolean(data.compromiso_hasta) && (data.compromiso_hasta ?? "") > todayIso();
   function paintLosses(organization) {
-    const data = planOf(organization), from = data.plan ?? organization.plan ?? "", to = value7("opplan");
-    field3("opcompw")?.classList.toggle("hide", to !== MEDIDA2);
+    const data = planOf(organization), from = data.plan ?? organization.plan ?? "", to = value11("opplan");
+    field4("opcompw")?.classList.toggle("hide", to !== MEDIDA2);
     const box = document.getElementById("opperd");
     if (!box) return;
     if (isCommitted(data, from, to)) {
@@ -11250,15 +15501,15 @@
     box.innerHTML = platformLegacy.planRank(to) < platformLegacy.planRank(from) && losses.length ? `<div class="banda-aviso">${t("platform.plan.willLose", { plan: escapeHtml(platformLegacy.planName(to)) })}<ul>${losses.map((loss) => `<li>${escapeHtml(loss)}</li>`).join("")}</ul></div>` : "";
   }
   var PLAN_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["minimo", "platform.plan.minimum"], ["prueba_hasta", "platform.plan.noTrialEnd"], ["plan", "platform.plan.invalid"], ["compromiso", "platform.plan.committedUntil"]]);
-  function payload3() {
-    const trial = value7("opest") === TRIAL2, plan = value7("opplan");
-    const result = { plan, usuarios: value7("opusu") === "" ? null : Number(value7("opusu")), pago: value7("oppago"), estado: value7("opest"), prueba_hasta: trial ? value7("opfin") : null };
-    if (plan === MEDIDA2) result.compromiso_hasta = value7("opcomp") || null;
+  function payload4() {
+    const trial = value11("opest") === TRIAL2, plan = value11("opplan");
+    const result = { plan, usuarios: value11("opusu") === "" ? null : Number(value11("opusu")), pago: value11("oppago"), estado: value11("opest"), prueba_hasta: trial ? value11("opfin") : null };
+    if (plan === MEDIDA2) result.compromiso_hasta = value11("opcomp") || null;
     return result;
   }
-  async function save11(organization, button2, repaint2) {
+  async function save17(organization, button2, repaint2) {
     button2.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("guardar_plan_organizacion", { p_org: organization.id, p: payload3() });
+    const { data: result, error } = await legacyDb().rpc("guardar_plan_organizacion", { p_org: organization.id, p: payload4() });
     button2.disabled = false;
     if (error || !result?.ok) {
       const key = PLAN_ERRORS.get(result?.error ?? "");
@@ -11272,18 +15523,18 @@
   function editPlan(organization, repaint2) {
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = formHtml5(organization);
-    const state = field3("opest");
+    body2.innerHTML = formHtml7(organization);
+    const state = field4("opest");
     if (state) state.onchange = () => {
-      field3("opfinw")?.classList.toggle("hide", value7("opest") !== TRIAL2);
+      field4("opfinw")?.classList.toggle("hide", value11("opest") !== TRIAL2);
     };
-    field3("opplan")?.addEventListener("change", () => {
+    field4("opplan")?.addEventListener("change", () => {
       paintLosses(organization);
     });
     paintLosses(organization);
     const ok = document.getElementById("opok");
     if (ok) ok.onclick = () => {
-      void save11(organization, ok, repaint2);
+      void save17(organization, ok, repaint2);
     };
     box.showModal();
   }
@@ -11293,9 +15544,9 @@
     const extras = planOf(organization).extras ?? [];
     return escapeHtml(orFallback(organization.nif, t("platform.orgs.noNif"))) + ` · ${escapeHtml(planText(organization))}${extras.length ? ` + ${extras.map(extraName).join(", ")}` : ""}` + t("platform.orgs.counts", { users: formatNumber(organization.usuarios), accounts: formatNumber(organization.cuentas) }) + (organization.pendiente ? t("platform.orgs.pending", { email: escapeHtml(organization.pendiente) }) : "");
   }
-  function buttonsHtml2(organization) {
+  function buttonsHtml3(organization) {
     const inside = organization.id === platformState.viewed?.id, data = planOf(organization);
-    const toggle = organization.principal ? "" : `<button class="btn sec" type="button" data-orgact="${organization.id}">${t(organization.activa === false ? "platform.orgs.reactivate" : "platform.orgs.deactivate")}</button>`;
+    const toggle2 = organization.principal ? "" : `<button class="btn sec" type="button" data-orgact="${organization.id}">${t(organization.activa === false ? "platform.orgs.reactivate" : "platform.orgs.deactivate")}</button>`;
     const remove7 = !organization.principal && (data.estado === "prueba" || !organization.activa) ? `<button class="btn sec" type="button" data-orgdel="${organization.id}">${t("platform.orgs.delete")}</button>` : "";
     return `<span class="acts" style="margin:0"><span class="sm">${organization.creado_en ? formatShortDate(String(organization.creado_en).slice(0, 10)) : ""}</span>
         <button class="btn sec chico" type="button" data-orgdom="${organization.id}">${t("platform.orgs.domains")}</button>
@@ -11303,14 +15554,14 @@
         <button class="btn chico ${inside ? "sec" : ""}" type="button" data-orgver="${organization.id}">${t(inside ? "platform.orgs.inside" : "platform.orgs.enter")}</button>
         <button class="btn sec chico" type="button" data-orgplan="${organization.id}">${t("platform.orgs.plan")}</button>
         <button class="btn sec chico" type="button" data-orgexp="${organization.id}">${t("platform.orgs.download")}</button>
-        ${toggle}${remove7}</span>`;
+        ${toggle2}${remove7}</span>`;
   }
-  function rowHtml8(organization) {
+  function rowHtml14(organization) {
     const domains = organization.dominios ?? [];
     return `<div class="item" style="cursor:default">
       <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
         <span class="sm">${domains.length ? t("platform.orgs.domainList", { domains: domains.map(escapeHtml).join(", ") }) : t("platform.orgs.noDomain")}</span></span>
-      ${buttonsHtml2(organization)}</div>`;
+      ${buttonsHtml3(organization)}</div>`;
   }
   var DOMAIN_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["dominio", "platform.orgs.badDomain"], ["en_uso", "platform.orgs.domainInUse"], ["no_existe", "platform.orgs.gone"]]);
   function domainsFailure(result, error) {
@@ -11352,7 +15603,7 @@
       void toggleActive(organization, button2, paintOrganizations);
     }]
   ];
-  function bind10(box, list) {
+  function bind15(box, list) {
     for (const [key, action] of ACTIONS2) box.querySelectorAll(`[data-${key}]`).forEach((button2) => {
       button2.onclick = () => {
         const organization = list.find((item) => item.id === button2.dataset[key]);
@@ -11375,14 +15626,14 @@
     box.innerHTML = `<div class="card"><div class="fh"><div><h2>${t("platform.orgs.title")}</h2>
       <div class="sm">${t("platform.orgs.subtitle")}</div></div>
       <button class="btn" id="orgnueva">${t("platform.orgs.new")}</button></div>
-    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map(rowHtml8).join("")}</div>`}</div>`;
-    bind10(box, list);
+    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map(rowHtml14).join("")}</div>`}</div>`;
+    bind15(box, list);
   }
 
   // src/app/screens/platform/requests.ts
-  var STATES6 = ["Nueva", "En curso", "Cerrada"];
+  var STATES8 = ["Nueva", "En curso", "Cerrada"];
   var CONTACT = /* @__PURE__ */ new Map([["correo", "platform.requests.byEmail"], ["llamada", "platform.requests.byPhone"], ["video", "platform.requests.byVideo"]]);
-  var statePill4 = (state) => state === "Nueva" ? "p-warn" : state === "En curso" ? "p-est" : "p-anu";
+  var statePill5 = (state) => state === "Nueva" ? "p-warn" : state === "En curso" ? "p-est" : "p-anu";
   function figuresText(data) {
     return (data.usuarios ? t("platform.requests.users", { count: formatNumber(data.usuarios) }) : "") + (data.portal ? t("platform.requests.portal", { count: formatNumber(data.portal) }) : "") + (data.cuando ? ` · ${escapeHtml(data.cuando)}` : "");
   }
@@ -11391,22 +15642,22 @@
     return escapeHtml(orFallback(data.nombre, request2.persona ?? "")) + (data.correo ? ` · <a href="mailto:${escapeHtml(data.correo)}">${escapeHtml(data.correo)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + `
           · ${how ? t(how) : ""}${data.horario ? ` (${escapeHtml(data.horario)})` : ""}`;
   }
-  function rowHtml9(request2, index) {
+  function rowHtml15(request2, index) {
     const data = request2.datos ?? {}, needs = data.necesita_txt ?? [];
     return `<div class="presufila${request2.estado === "Cerrada" ? " cerrada" : ""}">
         <div class="presucab"><b>${escapeHtml(request2.organizacion)}</b> <span class="pill p-est">${escapeHtml(platformLegacy.planName(request2.plan))}</span>
-          <span class="pill ${statePill4(request2.estado)}">${escapeHtml(request2.estado)}</span>
+          <span class="pill ${statePill5(request2.estado)}">${escapeHtml(request2.estado)}</span>
           <span class="sm">${t(request2.tipo === "contrato" ? "platform.requests.contract" : "platform.requests.quote")} · ${shortDateTime3(request2.creado_en)}</span></div>
         ${needs.length ? `<div class="chips">${needs.map((need) => `<span class="chip">${escapeHtml(need)}</span>`).join("")}</div>` : ""}
         ${data.programa ? `<div class="sm">${t("platform.requests.program", { program: `<b>${escapeHtml(data.programa)}</b>` })}</div>` : ""}
         ${data.mensaje ? `<p class="presumsg">${escapeHtml(data.mensaje)}</p>` : ""}
         <div class="sm">${figuresText(data)}</div>
         <div class="sm">${contactText(request2, data)}</div>
-        <div class="presuges"><select data-psest="${index}" aria-label="${t("platform.requests.state")}">${STATES6.map((state) => `<option ${request2.estado === state ? "selected" : ""}>${state}</option>`).join("")}</select>
+        <div class="presuges"><select data-psest="${index}" aria-label="${t("platform.requests.state")}">${STATES8.map((state) => `<option ${request2.estado === state ? "selected" : ""}>${state}</option>`).join("")}</select>
           <input data-psnota="${index}" placeholder="${t("platform.requests.notePlaceholder")}" value="${escapeHtml(request2.nota ?? "")}">
           <button type="button" class="btn sec" data-psok="${index}">${t("common.save")}</button></div></div>`;
   }
-  async function save12(box, request2, index) {
+  async function save18(box, request2, index) {
     const field8 = (attribute) => box.querySelector(`[data-${attribute}="${index}"]`)?.value ?? "";
     const { data: result } = await callRpc("marcar_solicitud_plan", { p_id: request2.id, p_estado: field8("psest"), p_nota: field8("psnota") });
     const ok = Boolean(result?.ok);
@@ -11424,11 +15675,11 @@
     box.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.requests.title")}</h2>
     <p class="sm">${t("platform.requests.subtitle")}</p>
     ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
-    <div class="presulista">${list.map(rowHtml9).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
+    <div class="presulista">${list.map(rowHtml15).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
     box.querySelectorAll("[data-psok]").forEach((button2) => {
       button2.onclick = () => {
         const index = button2.dataset.psok ?? "", request2 = list[Number(index)];
-        if (request2) void save12(box, request2, index);
+        if (request2) void save18(box, request2, index);
       };
     });
   }
@@ -11445,7 +15696,7 @@
   function contactHtml(data) {
     return escapeHtml(data.nombre ?? "") + (data.email ? ` · <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + (data.nif ? ` · ${escapeHtml(data.nif)}` : "");
   }
-  function rowHtml10(signup) {
+  function rowHtml16(signup) {
     const data = signup.datos ?? {}, [label, pill, text2] = stateOf(signup);
     const plan = t("platform.signups.plan", { plan: platformLegacy.planName(data.plan), users: nonZeroOr(data.usuarios, DEFAULT_USERS), payment: t(data.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly") });
     return `<div class="pdalta"><div class="pdaltacab"><b>${escapeHtml(orFallback(orFallback(signup.organizacion, data.empresa ?? ""), t("platform.signups.noName")))}</b> <span class="pill ${pill}">${label}</span>
@@ -11453,7 +15704,7 @@
       <div class="sm">${contactHtml(data)}</div>
       <div class="sm">${escapeHtml(text2)} · ${t("platform.signups.started", { date: platformLegacy.shortDate(signup.creado_en) })}</div></div>`;
   }
-  function pageHtml2(list, error) {
+  function pageHtml4(list, error) {
     const done = list.filter((signup) => signup.estado === COMPLETED), half = list.filter((signup) => signup.estado !== COMPLETED);
     const week = list.filter((signup) => Date.now() - new Date(signup.creado_en).getTime() < WEEK_MS);
     const figures = [
@@ -11465,8 +15716,8 @@
     return `<div class="card cfgpanel">
     ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
     ${platformLegacy.kpis(figures)}
-    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml10).join("")}` : ""}
-    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done.map(rowHtml10).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
+    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml16).join("")}` : ""}
+    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done.map(rowHtml16).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
   }
   async function paintSignups() {
     const start2 = panelBox();
@@ -11475,7 +15726,7 @@
     const { data, error } = await callRpc("altas_lista", {});
     if (!stillOnTab("altas")) return;
     const box = panelBox();
-    if (box) box.innerHTML = pageHtml2(error ? [] : data ?? [], error);
+    if (box) box.innerHTML = pageHtml4(error ? [] : data ?? [], error);
   }
 
   // src/app/screens/platform/status.ts
@@ -11509,7 +15760,7 @@
       [formatNumber(state.errores ?? 0), t("platform.status.openErrors"), state.errores ? "aviso" : ""]
     ]);
   }
-  function pageHtml3(state, error) {
+  function pageHtml5(state, error) {
     const test = platformLegacy.isTestEnvironment();
     return `<div class="card cfgpanel">
     ${error ? `<div class="banda-peligro">${t("platform.status.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
@@ -11536,21 +15787,21 @@
   function addRoutes(box, use) {
     const card2 = box.querySelector(".card.cfgpanel");
     if (!card2) return;
-    const footer = [...card2.querySelectorAll(":scope > p.sm")].pop();
-    if (footer) footer.insertAdjacentHTML("beforebegin", routesHtml(use));
+    const footer2 = [...card2.querySelectorAll(":scope > p.sm")].pop();
+    if (footer2) footer2.insertAdjacentHTML("beforebegin", routesHtml(use));
     else card2.insertAdjacentHTML("beforeend", routesHtml(use));
   }
   async function paintStatus() {
     const start2 = panelBox();
     if (!start2) return;
     start2.innerHTML = platformLegacy.skeleton();
-    const routes = Promise.resolve(callRpc("rutas_uso_resumen", {})).catch(() => ({ data: null }));
+    const routes2 = Promise.resolve(callRpc("rutas_uso_resumen", {})).catch(() => ({ data: null }));
     const { data, error } = await callRpc("estado_plataforma", {});
     if (!stillOnTab("estado")) return;
     const box = panelBox();
     if (!box) return;
-    box.innerHTML = pageHtml3(error ? {} : data ?? {}, error);
-    const { data: use } = await routes;
+    box.innerHTML = pageHtml5(error ? {} : data ?? {}, error);
+    const { data: use } = await routes2;
     if (stillOnTab("estado") && use?.ok) addRoutes(box, use);
   }
 
@@ -11611,8 +15862,8 @@
     /** A company word with its singular, plural and gender. */
     wordOf: (key) => terminoDe(key),
     userName: () => PERFIL?.nombre ?? "",
-    mountPeriod: (element2, options2) => {
-      montarPeriodo(element2, options2);
+    mountPeriod: (element2, options3) => {
+      montarPeriodo(element2, options3);
     },
     periodOf: (element2) => Reflect.get(element2 ?? {}, "__rango")?.() ?? { desde: null, hasta: null },
     /** On entering the portal the period is always «Esta semana»: the remembered one is forgotten. */
@@ -11642,15 +15893,15 @@
 
   // src/app/screens/portal/centre-docs.ts
   var MEGABYTE = 1048576;
-  var KILOBYTE = 1024;
+  var KILOBYTE2 = 1024;
   var URL_LIFE_MS2 = 3e4;
   function orderExtras(order) {
     const batches = order.lotes ?? [], invoices = order.facturas ?? [];
     const batchText = batches.map((batch) => `${escapeHtml(batch.producto)} ${escapeHtml(batch.lote)}${batch.caducidad ? t("portal.docs.expires", { date: formatShortDate(String(batch.caducidad).slice(0, 10)) }) : ""}`).join(" · ");
     return (batches.length ? `<span class="sm pclotes">${t(batches.length > 1 ? "portal.docs.batches" : "portal.docs.batch")}: ${batchText}</span>` : "") + (invoices.length ? `<span class="pcfacs">${invoices.map((invoice2) => `<button type="button" class="lnk" data-pcfac="${invoice2.id}">${t(invoice2.rectificativa ? "portal.docs.correction" : "portal.docs.invoice")} ${escapeHtml(invoice2.numero ?? "")}</button>`).join("")}</span>` : "");
   }
-  function owesHtml(orders) {
-    const count2 = orders.filter((order) => order.proforma).length;
+  function owesHtml(orders2) {
+    const count2 = orders2.filter((order) => order.proforma).length;
     if (!count2) return "";
     return `<div class="pmaviso pcdebe"><div><b>${count2 === 1 ? t("portal.docs.oneToPay") : t("portal.docs.toPay", { count: formatNumber(count2) })}</b><span class="sm">${t("portal.docs.toPayText")}</span></div></div>`;
   }
@@ -11715,16 +15966,16 @@
   }
   var sizeText = (bytes) => {
     if (!bytes) return "";
-    return bytes > MEGABYTE ? `${(bytes / MEGABYTE).toLocaleString(t("dates.locale"), { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(bytes / KILOBYTE))} KB`;
+    return bytes > MEGABYTE ? `${(bytes / MEGABYTE).toLocaleString(t("dates.locale"), { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(bytes / KILOBYTE2))} KB`;
   };
   var downloadRow = (item) => `<div class="item"><span class="tx"><b>${escapeHtml(item.nombre)}</b>
       <span class="sm">${escapeHtml(item.producto)} · ${t(item.tipo === "application/pdf" ? "portal.docs.pdf" : "portal.docs.image")}${item.tamano ? ` · ${sizeText(item.tamano)}` : ""}</span></span>
       <button type="button" class="btn sec chico" data-pcmat="${item.id}">${t("portal.docs.download")}</button></div>`;
   async function paintDownloads() {
-    const place = document.getElementById("pmmat");
-    if (!place || document.getElementById("pcdesc")) return;
+    const place2 = document.getElementById("pmmat");
+    if (!place2 || document.getElementById("pcdesc")) return;
     const title2 = t("portal.docs.downloadsTitle");
-    place.insertAdjacentHTML("afterbegin", `<div class="card ancard" id="pcdesc"><h2>${title2} ${helpButton(title2, t("portal.docs.downloadsHelp"))}</h2><div id="pcdescl">${portalPageLegacy.skeletonCard(t("common.loading"))}</div></div>`);
+    place2.insertAdjacentHTML("afterbegin", `<div class="card ancard" id="pcdesc"><h2>${title2} ${helpButton(title2, t("portal.docs.downloadsHelp"))}</h2><div id="pcdescl">${portalPageLegacy.skeletonCard(t("common.loading"))}</div></div>`);
     const { data } = await callRpc("portal_materiales", {});
     const box = document.getElementById("pcdescl");
     if (!box) return;
@@ -11745,29 +15996,29 @@
   // src/app/screens/portal/centre-order.ts
   var MAX_UNITS = 1e3;
   var MAX_PACKS = 50;
-  var euros3 = (value15) => portalLegacy.euros(value15);
-  var round22 = (value15) => Math.round((Number(value15) || 0) * 100) / 100;
-  var withVat = (product) => round22((Number(product.precio) || 0) * (1 + (Number(product.iva) || 0) / 100));
-  var percent = (value15) => `${(Math.round(value15 * 1e3) / 10).toLocaleString(t("dates.locale"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  var euros5 = (value18) => portalLegacy.euros(value18);
+  var round23 = (value18) => Math.round((Number(value18) || 0) * 100) / 100;
+  var withVat = (product) => round23((Number(product.precio) || 0) * (1 + (Number(product.iva) || 0) / 100));
+  var percent = (value18) => `${(Math.round(value18 * 1e3) / 10).toLocaleString(t("dates.locale"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
   function packRow(product, pack, index) {
     const unitPrice = withVat(product), bought = Number(pack.compra) || 0, free = Number(pack.regalo) || 0, retail = Number(product.pvp_recomendado) || 0;
-    const amount3 = round22(bought * unitPrice), cost = bought + free ? amount3 / (bought + free) : 0, name = `${formatNumber(bought)}${free ? `+${formatNumber(free)}` : ""}`;
+    const amount3 = round23(bought * unitPrice), cost = bought + free ? amount3 / (bought + free) : 0, name = `${formatNumber(bought)}${free ? `+${formatNumber(free)}` : ""}`;
     return `<div class="pclin pcpack"><span class="pcpk"><b>${t("portal.order.pack", { pack: `${formatNumber(bought)}${free ? ` + ${formatNumber(free)}` : ""}` })}</b><span class="sm">${t("portal.order.packUnits", { units: formatNumber(bought + free) })}${free ? t("portal.order.packFree", { free: formatNumber(free) }) : ""}</span></span>
-          <span class="pcdato"><b>${euros3(amount3)}</b><span class="sm">${t("portal.order.withVat")}</span></span>
-          <span class="pcdato"><b>${euros3(cost)}</b><span class="sm">${t("portal.order.perUnit")}</span></span>
+          <span class="pcdato"><b>${euros5(amount3)}</b><span class="sm">${t("portal.order.withVat")}</span></span>
+          <span class="pcdato"><b>${euros5(cost)}</b><span class="sm">${t("portal.order.perUnit")}</span></span>
           ${retail ? `<span class="pcdato"><b>${percent((retail - cost) / retail)}</b><span class="sm">${t("portal.order.margin")}</span></span>` : "<span></span>"}
           <input type="number" step="1" value="0" data-pcpk="${product.producto_id}" data-pci="${index}" data-pcc="${bought}" data-pcg="${free}" data-pcimp="${amount3}" aria-label="${t("portal.order.howManyPacks", { pack: name })}">
           <span class="pcerr" hidden></span></div>`;
   }
   function productHtml(product) {
     const unitPrice = withVat(product), packs = Array.isArray(product.packs) ? product.packs : [], retail = Number(product.pvp_recomendado) || 0;
-    if (!packs.length) return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros3(unitPrice) })}${product.propio ? t("portal.order.yourPrice") : ""}</span></div>
+    if (!packs.length) return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros5(unitPrice) })}${product.propio ? t("portal.order.yourPrice") : ""}</span></div>
       <div class="pclin"><span class="sm">${t("portal.order.units")}</span><input type="number" step="1" value="0" data-ctp="${product.producto_id}" data-ctpr="${unitPrice}" aria-label="${t("portal.order.unitsOf", { name: escapeHtml(product.nombre) })}"><span class="pcerr" hidden></span></div></div>`;
-    return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros3(unitPrice) })}${retail ? t("portal.order.retail", { price: euros3(retail) }) : ""}</span></div>
+    return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros5(unitPrice) })}${retail ? t("portal.order.retail", { price: euros5(retail) }) : ""}</span></div>
       <div class="pcpacks">${packs.map((pack, index) => packRow(product, pack, index)).join("")}</div></div>`;
   }
-  function formHtml6(products3) {
-    const addresses = [...new Set(portalState.places.map((place) => [place.direccion, place.municipio].filter(Boolean).join(", ")).filter(Boolean))];
+  function formHtml8(products3) {
+    const addresses = [...new Set(portalState.places.map((place2) => [place2.direccion, place2.municipio].filter(Boolean).join(", ")).filter(Boolean))];
     return `<div id="ctprods">${products3.map(productHtml).join("")}</div>
       <div class="pcent"><b>${t("portal.order.delivery")}</b>
         <label class="opt"><input type="radio" name="pcent" value="una" checked> ${t("portal.order.deliverCentre")}</label>
@@ -11775,7 +16026,7 @@
         <div id="pcentl" class="pcentl" hidden><datalist id="pcdirs">${addresses.map((address2) => `<option value="${escapeHtml(address2)}">`).join("")}</datalist>
           <div id="pcentf"></div><button type="button" class="btn sec chico" id="pcentmas">${t("portal.order.otherAddress")}</button><span class="sm" id="pcentres"></span></div></div>
       ${portalState.prepayment ? `<p class="sm pcant">${t("portal.order.prepayment")}</p>` : ""}<label for="ctnota">${t("portal.order.note")}</label><input id="ctnota" placeholder="${t("portal.order.notePlaceholder")}">
-      <div class="pctot"><span id="pctxt">${t("portal.order.total", { total: `<b id="cttot">${euros3(0)}</b>` })}</span><button type="button" class="btn" id="ctok">${t("portal.order.send")}</button></div>`;
+      <div class="pctot"><span id="pctxt">${t("portal.order.total", { total: `<b id="cttot">${euros5(0)}</b>` })}</span><button type="button" class="btn" id="ctok">${t("portal.order.send")}</button></div>`;
   }
   var deliveryRow = () => `<div class="pcef"><input list="pcdirs" placeholder="${t("portal.order.addressPlaceholder")}" value="" data-pced><input type="number" step="1" placeholder="${t("portal.order.units")}" value="" data-pceu><button type="button" class="pmhx" data-pcex aria-label="${t("portal.order.removeAddress")}">✕</button></div>`;
   function checkQuantity(input4) {
@@ -11796,7 +16047,7 @@
     });
     return units2;
   }
-  function paintTotals(totals, review2) {
+  function paintTotals2(totals, review2) {
     const list = document.getElementById("pcentl");
     if (list) list.hidden = !review2.shared;
     const result = document.getElementById("pcentres");
@@ -11806,7 +16057,7 @@
     }
     const units2 = totals.units ? ` · ${t("portal.order.totalUnits", { units: formatNumber(totals.units) })}${totals.free ? t("portal.order.packFree", { free: formatNumber(totals.free) }) : ""}` : "";
     const text2 = document.getElementById("pctxt");
-    if (text2) text2.innerHTML = t("portal.order.total", { total: `<b id="cttot">${euros3(totals.amount)}</b>` }) + units2;
+    if (text2) text2.innerHTML = t("portal.order.total", { total: `<b id="cttot">${euros5(totals.amount)}</b>` }) + units2;
   }
   function review(box) {
     const totals = { amount: 0, units: 0, free: 0 };
@@ -11828,18 +16079,18 @@
     });
     const shared = box.querySelector("[name=pcent]:checked")?.value === "varias";
     const result = { wrong, units: totals.units, shared, sharedUnits: shared ? sharedUnits(box) : 0 };
-    paintTotals(totals, result);
+    paintTotals2(totals, result);
     return result;
   }
   function orderLines(box) {
-    const lines = [], count2 = (input4) => Math.floor(Number(input4.value) || 0);
+    const lines2 = [], count2 = (input4) => Math.floor(Number(input4.value) || 0);
     box.querySelectorAll("[data-pcpk]").forEach((input4) => {
-      if (count2(input4) > 0) lines.push({ producto_id: input4.dataset.pcpk, pack: { compra: Number(input4.dataset.pcc), regalo: Number(input4.dataset.pcg) }, packs: count2(input4) });
+      if (count2(input4) > 0) lines2.push({ producto_id: input4.dataset.pcpk, pack: { compra: Number(input4.dataset.pcc), regalo: Number(input4.dataset.pcg) }, packs: count2(input4) });
     });
     box.querySelectorAll("[data-ctp]").forEach((input4) => {
-      if (count2(input4) > 0) lines.push({ producto_id: input4.dataset.ctp, unidades: count2(input4) });
+      if (count2(input4) > 0) lines2.push({ producto_id: input4.dataset.ctp, unidades: count2(input4) });
     });
-    return lines;
+    return lines2;
   }
   var deliveries = (box) => [...box.querySelectorAll(".pcef")].map((row4) => ({ direccion: row4.querySelector("[data-pced]")?.value.trim() ?? "", unidades: Math.floor(Number(row4.querySelector("[data-pceu]")?.value) || 0) })).filter((item) => item.direccion && item.unidades > 0);
   function orderFailure(answer) {
@@ -11849,14 +16100,14 @@
     if (reason === "unidades") return t("portal.order.checkProduct", { product: answer?.producto ?? t("portal.order.aProduct") });
     return reason === "entregas" ? t("portal.order.deliveriesMustAdd", { total: formatNumber(answer?.total) }) : failureText2(answer);
   }
-  async function send(box, button2, onSent) {
+  async function send2(box, button2, onSent) {
     const checked3 = review(box);
     if (checked3.wrong) {
       notices.toast(t("portal.order.checkRed"), true);
       return;
     }
-    const lines = orderLines(box);
-    if (!lines.length) {
+    const lines2 = orderLines(box);
+    if (!lines2.length) {
       notices.toast(t("portal.order.chooseSomething"), true);
       return;
     }
@@ -11867,7 +16118,7 @@
     }
     button2.disabled = true;
     const note = document.getElementById("ctnota")?.value.trim() ?? "";
-    const { data: answer } = await legacyDb().rpc("pedido_portal", { p_lineas: lines, p_nota: note || null, p_entregas: shared });
+    const { data: answer } = await legacyDb().rpc("pedido_portal", { p_lineas: lines2, p_nota: note || null, p_entregas: shared });
     button2.disabled = false;
     if (!answer?.ok) {
       notices.toast(orderFailure(answer), true);
@@ -11876,12 +16127,12 @@
     notices.toast(t("portal.order.sent"));
     await onSent();
   }
-  function paintOrder(products3, onSent) {
+  function paintOrder3(products3, onSent) {
     const box = document.getElementById("pcped");
     if (!box) return;
     const title2 = t("portal.order.title");
     box.innerHTML = `<div class="card ancard pmcons pcped"><h2>${title2} ${helpButton(title2, t("portal.order.help", { packs: formatNumber(MAX_PACKS) }))}</h2>
-    ${products3.length ? formHtml6(products3) : `<p class="sm">${t("portal.order.noProducts")}</p>`}</div>`;
+    ${products3.length ? formHtml8(products3) : `<p class="sm">${t("portal.order.noProducts")}</p>`}</div>`;
     if (!products3.length) return;
     const check2 = () => {
       review(box);
@@ -11902,7 +16153,7 @@
     });
     const ok = document.getElementById("ctok");
     if (ok) ok.onclick = () => {
-      void send(box, ok, onSent);
+      void send2(box, ok, onSent);
     };
     review(box);
   }
@@ -11920,14 +16171,14 @@
     if (text2.length <= 2) return [text2, "00"];
     return [text2.slice(0, text2.length - 2), text2.slice(-2)];
   }
-  function timeOf5(value15) {
-    const text2 = String(value15 ?? "").replace(/[^\d:]/g, "");
+  function timeOf5(value18) {
+    const text2 = String(value18 ?? "").replace(/[^\d:]/g, "");
     const [hoursText, minutesText] = splitTime(text2), hours = Number(hoursText), minutes = Number(minutesText || 0);
     if (!text2 || isNaN(hours) || hours > MAX_HOUR || minutes > MAX_MINUTE) return "";
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   }
-  function rangesOf(value15) {
-    const text2 = String(value15 ?? ""), found = [];
+  function rangesOf(value18) {
+    const text2 = String(value18 ?? ""), found = [];
     const pattern = /(\d{1,2})(?::(\d{2}))?\s*[-–a]\s*(\d{1,2})(?::(\d{2}))?/g;
     for (let match = pattern.exec(text2); match; match = pattern.exec(text2)) found.push([timeOf5(`${match[1]}:${match[2] ?? "00"}`), timeOf5(`${match[3]}:${match[4] ?? "00"}`)]);
     if (!found.length && /mañana/i.test(text2)) found.push([...MORNING]);
@@ -11937,8 +16188,8 @@
   function daysOf(saved2) {
     const days = {}, source = saved2 ?? {};
     WEEKDAYS.forEach((day) => {
-      const value15 = source[day];
-      const list = Array.isArray(value15) ? value15.map((item) => Array.isArray(item) ? item : rangesOf(item)[0]).filter((range2) => Boolean(range2)) : rangesOf(value15);
+      const value18 = source[day];
+      const list = Array.isArray(value18) ? value18.map((item) => Array.isArray(item) ? item : rangesOf(item)[0]).filter((range2) => Boolean(range2)) : rangesOf(value18);
       if (list.length) days[day] = list;
     });
     return days;
@@ -11954,26 +16205,26 @@
     const places = sent.consultas ?? portalState.places.map((known) => ({ ...placeOf(known), dias: known.dias }));
     portalState.form = {
       ...contactOf(sent, answer.cuenta ?? {}),
-      consultas: places.map((place) => ({ ...place, dias: daysOf(place.dias) })),
+      consultas: places.map((place2) => ({ ...place2, dias: daysOf(place2.dias) })),
       visitas: { como: "", momento: "", ...sent.visitas },
       notas: sent.notas ?? ""
     };
   }
-  var field4 = (id) => document.getElementById(id)?.value ?? "";
-  function readForm() {
+  var field5 = (id) => document.getElementById(id)?.value ?? "";
+  function readForm2() {
     const form = portalState.form;
     if (!form || !document.getElementById("pmtel")) return;
-    form.telefono = field4("pmtel").trim();
-    form.email = field4("pmmail").trim();
-    form.visitas = { como: field4("pmcomo"), momento: field4("pmmom").trim() };
-    form.notas = field4("pmnot").trim();
+    form.telefono = field5("pmtel").trim();
+    form.email = field5("pmmail").trim();
+    form.visitas = { como: field5("pmcomo"), momento: field5("pmmom").trim() };
+    form.notas = field5("pmnot").trim();
     document.querySelectorAll("#pmficha [data-pmcf]").forEach((input4) => {
-      const [index = "", key = ""] = (input4.dataset.pmcf ?? "").split("|"), place = form.consultas[Number(index)];
-      if (!place) return;
-      if (key === "nombre") place.nombre = input4.value.trim();
+      const [index = "", key = ""] = (input4.dataset.pmcf ?? "").split("|"), place2 = form.consultas[Number(index)];
+      if (!place2) return;
+      if (key === "nombre") place2.nombre = input4.value.trim();
       if (key === "direccion") {
-        place.direccion = input4.value.trim();
-        place.municipio = "";
+        place2.direccion = input4.value.trim();
+        place2.municipio = "";
       }
     });
     document.querySelectorAll("#pmficha [data-pmhi]").forEach((input4) => {
@@ -11986,7 +16237,7 @@
   var isValidRange = (range2) => VALID_TIME.test(range2[0] ?? "") && VALID_TIME.test(range2[1] ?? "") && (range2[1] ?? "") > (range2[0] ?? "");
 
   // src/app/screens/portal/form.ts
-  var SEARCH_WAIT_MS2 = 250;
+  var SEARCH_WAIT_MS4 = 250;
   var MIN_SEARCH = 2;
   var HOW_OPTIONS = ["portal.form.howBooked", "portal.form.howEndOfDay", "portal.form.howAnyGap", "portal.form.howPhone", "portal.form.howWriteFirst"];
   var DAY_NAMES2 = /* @__PURE__ */ new Map([["L", "portal.form.monday"], ["M", "portal.form.tuesday"], ["X", "portal.form.wednesday"], ["J", "portal.form.thursday"], ["V", "portal.form.friday"], ["S", "portal.form.saturday"]]);
@@ -12005,26 +16256,26 @@
       <button type="button" class="chip" data-pmhp="${index}|mt">${t("portal.form.fillBoth")}</button><button type="button" class="chip" data-pmhp="${index}|c">${t("portal.form.copyFirst")}</button></div>
     ${WEEKDAYS.map((day) => timetableDay(index, day, days[day] ?? [])).join("")}</div>`;
   }
-  var placeText = (place, separator) => [place.direccion, place.municipio].filter(Boolean).join(separator);
-  function placeHtml(place, index) {
-    const isNew = !place.centro_id && !place.ubicacion_id || !String(place.nombre ?? "").trim();
-    const head = isNew ? `<div class="g2 pmcnuevo"><div><label>${t("portal.form.placeName")}</label><input data-pmcf="${index}|nombre" value="${escapeHtml(place.nombre ?? "")}"></div>
-        <div><label>${t("portal.form.placeAddress")}</label><input data-pmcf="${index}|direccion" value="${escapeHtml(placeText(place, ", "))}" placeholder="${t("portal.form.placeAddressPlaceholder")}"></div></div>` : `<div><b>${escapeHtml(orFallback(place.nombre, words2().place))}</b><span class="sm">${escapeHtml(placeText(place, " · "))}</span></div>`;
+  var placeText = (place2, separator) => [place2.direccion, place2.municipio].filter(Boolean).join(separator);
+  function placeHtml(place2, index) {
+    const isNew = !place2.centro_id && !place2.ubicacion_id || !String(place2.nombre ?? "").trim();
+    const head = isNew ? `<div class="g2 pmcnuevo"><div><label>${t("portal.form.placeName")}</label><input data-pmcf="${index}|nombre" value="${escapeHtml(place2.nombre ?? "")}"></div>
+        <div><label>${t("portal.form.placeAddress")}</label><input data-pmcf="${index}|direccion" value="${escapeHtml(placeText(place2, ", "))}" placeholder="${t("portal.form.placeAddressPlaceholder")}"></div></div>` : `<div><b>${escapeHtml(orFallback(place2.nombre, words2().place))}</b><span class="sm">${escapeHtml(placeText(place2, " · "))}</span></div>`;
     return `<div class="pmc" data-pmc="${index}">
     <div class="pmccab">${head}
       <button type="button" class="btn sec chico pmcx" data-pmcx="${index}">${t("portal.form.remove")}</button></div>
-    ${timetableHtml(place.dias, index)}</div>`;
+    ${timetableHtml(place2.dias, index)}</div>`;
   }
   var placesHtml = (places) => places.map(placeHtml).join("") || `<p class="sm">${t("portal.form.noPlaces")}</p>`;
   function paintChecklist() {
     const box = document.getElementById("pmcheck");
     if (!box || !portalState.form) return;
     try {
-      readForm();
+      readForm2();
     } catch {
     }
     const form = portalState.form, phone = Boolean(form.telefono.trim()), how = Boolean(form.visitas.como.trim());
-    const timetable = form.consultas.some((place) => Object.values(place.dias).some((ranges) => ranges.some(isValidRange)));
+    const timetable = form.consultas.some((place2) => Object.values(place2.dias).some((ranges) => ranges.some(isValidRange)));
     const done = phone && how && timetable;
     box.classList.toggle("ok", done);
     box.innerHTML = `<b>${t(done ? "portal.form.checkDone" : "portal.form.checkTitle")}</b>
@@ -12071,7 +16322,7 @@
       <div id="pmclist" class="pmclist">${placesHtml(places)}</div>
       <div class="pmcadd"><input id="pmcq" type="search" placeholder="${t("portal.form.searchPlaceholder")}" aria-label="${t("portal.form.searchLabel")}"><div id="pmcres" class="pmcres"></div></div></div>`;
   }
-  var searchTimer2;
+  var searchTimer3;
   function paintForm() {
     const box = document.getElementById("pmficha"), form = portalState.form;
     if (!box || !form) return;
@@ -12083,36 +16334,36 @@
     ${contactCard()}
     ${placesCard(form.consultas)}
     <div class="pmpie"><span class="sm" id="pmest">${escapeHtml(stateText())}</span><button type="button" class="btn" id="pmenviar">${t("portal.form.send")}</button></div>`;
-    const search3 = document.getElementById("pmcq");
-    if (search3) search3.oninput = () => {
-      clearTimeout(searchTimer2);
-      searchTimer2 = setTimeout(() => {
+    const search4 = document.getElementById("pmcq");
+    if (search4) search4.oninput = () => {
+      clearTimeout(searchTimer3);
+      searchTimer3 = setTimeout(() => {
         void searchCentre();
-      }, SEARCH_WAIT_MS2);
+      }, SEARCH_WAIT_MS4);
     };
-    const send2 = document.getElementById("pmenviar");
-    if (send2) send2.onclick = () => {
-      void sendForm(send2);
+    const send3 = document.getElementById("pmenviar");
+    if (send3) send3.onclick = () => {
+      void sendForm(send3);
     };
     box.addEventListener("input", paintChecklist);
     box.addEventListener("change", paintChecklist);
     paintChecklist();
   }
   function formProblem(places) {
-    const wrong = places.find((place) => Object.values(place.dias).some((ranges) => ranges.some((range2) => !isValidRange(range2))));
+    const wrong = places.find((place2) => Object.values(place2.dias).some((ranges) => ranges.some((range2) => !isValidRange(range2))));
     if (wrong) return t("portal.form.checkHours", { name: wrong.nombre ?? "" });
-    return places.some((place) => !String(place.nombre ?? "").trim()) ? t("portal.form.nameEachPlace") : null;
+    return places.some((place2) => !String(place2.nombre ?? "").trim()) ? t("portal.form.nameEachPlace") : null;
   }
-  var proposalOf = (places) => places.map((place) => ({
-    centro_id: place.centro_id ?? null,
-    ubicacion_id: place.ubicacion_id ?? null,
-    nombre: place.nombre,
-    direccion: place.direccion ?? "",
-    municipio: place.municipio ?? "",
-    dias: Object.fromEntries(Object.entries(place.dias).map(([day, ranges]) => [day, ranges.map((range2) => `${range2[0]}-${range2[1]}`).join(", ")]))
+  var proposalOf = (places) => places.map((place2) => ({
+    centro_id: place2.centro_id ?? null,
+    ubicacion_id: place2.ubicacion_id ?? null,
+    nombre: place2.nombre,
+    direccion: place2.direccion ?? "",
+    municipio: place2.municipio ?? "",
+    dias: Object.fromEntries(Object.entries(place2.dias).map(([day, ranges]) => [day, ranges.map((range2) => `${range2[0]}-${range2[1]}`).join(", ")]))
   }));
   async function sendForm(button2) {
-    readForm();
+    readForm2();
     const form = portalState.form;
     if (!form) return;
     const problem = formProblem(form.consultas);
@@ -12135,31 +16386,31 @@
     const banner = document.querySelector("#mdcuerpo > .pmaviso");
     if (banner && !portalState.missing.length) banner.remove();
   }
-  function toggleDay(place, day) {
-    if (place.dias[day]?.length) {
-      Reflect.deleteProperty(place.dias, day);
+  function toggleDay(place2, day) {
+    if (place2.dias[day]?.length) {
+      Reflect.deleteProperty(place2.dias, day);
       return;
     }
-    const first = WEEKDAYS.find((other) => place.dias[other]?.length);
-    place.dias[day] = first ? (place.dias[first] ?? []).map((range2) => [...range2]) : [["09:00", "14:00"]];
+    const first = WEEKDAYS.find((other) => place2.dias[other]?.length);
+    place2.dias[day] = first ? (place2.dias[first] ?? []).map((range2) => [...range2]) : [["09:00", "14:00"]];
   }
   var PRESETS = /* @__PURE__ */ new Map([["m", [["09:00", "14:00"]]], ["t", [["16:00", "20:00"]]], ["mt", [["09:00", "14:00"], ["16:00", "20:00"]]]]);
-  function fillDays(place, preset) {
-    let days = WEEKDAYS.filter((day) => place.dias[day]?.length);
+  function fillDays(place2, preset) {
+    let days = WEEKDAYS.filter((day) => place2.dias[day]?.length);
     if (!days.length) days = ["L", "M", "X", "J", "V"];
-    const ranges = PRESETS.get(preset) ?? place.dias[days[0] ?? ""] ?? [["09:00", "14:00"]];
+    const ranges = PRESETS.get(preset) ?? place2.dias[days[0] ?? ""] ?? [["09:00", "14:00"]];
     days.forEach((day) => {
-      place.dias[day] = ranges.map((range2) => [...range2]);
+      place2.dias[day] = ranges.map((range2) => [...range2]);
     });
   }
-  function removeRange(place, day, row4) {
-    const ranges = place.dias[day];
+  function removeRange(place2, day, row4) {
+    const ranges = place2.dias[day];
     if (!ranges) return;
     ranges.splice(row4, 1);
-    if (!ranges.length) Reflect.deleteProperty(place.dias, day);
+    if (!ranges.length) Reflect.deleteProperty(place2.dias, day);
   }
-  function addRange(place, day) {
-    const ranges = place.dias[day];
+  function addRange(place2, day) {
+    const ranges = place2.dias[day];
     if (!ranges) return;
     const last = ranges[ranges.length - 1];
     ranges.push(last && last[1] < "15:00" ? ["16:00", "20:00"] : ["", ""]);
@@ -12172,17 +16423,17 @@
     if (results) results.innerHTML = "";
   }
   var TIMETABLE_ACTIONS = [
-    ["pmhd", (place, day) => {
-      toggleDay(place, day);
+    ["pmhd", (place2, day) => {
+      toggleDay(place2, day);
     }],
-    ["pmhp", (place, preset) => {
-      fillDays(place, preset);
+    ["pmhp", (place2, preset) => {
+      fillDays(place2, preset);
     }],
-    ["pmhx", (place, day, row4) => {
-      removeRange(place, day, row4);
+    ["pmhx", (place2, day, row4) => {
+      removeRange(place2, day, row4);
     }],
-    ["pmha", (place, day) => {
-      addRange(place, day);
+    ["pmha", (place2, day) => {
+      addRange(place2, day);
     }]
   ];
   function applyClick(button2, places) {
@@ -12197,22 +16448,22 @@
     }
     const found = TIMETABLE_ACTIONS.find(([key]) => data[key]);
     if (!found) return;
-    const [index = "", day = "", row4 = ""] = (data[found[0]] ?? "").split("|"), place = places[Number(index)];
-    if (place) found[1](place, day, Number(row4));
+    const [index = "", day = "", row4 = ""] = (data[found[0]] ?? "").split("|"), place2 = places[Number(index)];
+    if (place2) found[1](place2, day, Number(row4));
   }
   function listenToForm() {
     document.addEventListener("click", (event) => {
       const button2 = event.target?.closest("#pmficha [data-pmhd], #pmficha [data-pmhp], #pmficha [data-pmhx], #pmficha [data-pmha], #pmficha [data-pmcx], #pmficha [data-pmcr]");
       if (!button2 || !portalState.form) return;
-      readForm();
+      readForm2();
       applyClick(button2, portalState.form.consultas);
       repaintPlaces();
     });
     document.addEventListener("focusout", (event) => {
       const input4 = event.target?.closest("#pmficha [data-pmhi]");
       if (!input4) return;
-      const value15 = timeOf5(input4.value);
-      if (value15) input4.value = value15;
+      const value18 = timeOf5(input4.value);
+      if (value18) input4.value = value18;
     });
   }
 
@@ -12243,25 +16494,25 @@
       <textarea id="mdmsgt" rows="2" placeholder="${t("portal.material.questionPlaceholder")}" aria-label="${t("portal.material.questionLabel")}"></textarea>
       <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">${t("portal.material.send")}</button></div></div>`;
   }
-  var value8 = (id) => document.getElementById(id)?.value ?? "";
+  var value12 = (id) => document.getElementById(id)?.value ?? "";
   var chosenMax = () => Number(document.getElementById("mdmatm")?.selectedOptions[0]?.dataset.max);
   function showMaximum() {
     const hint = document.getElementById("mdmatmax");
     if (!hint || !document.getElementById("mdmatm")) return;
-    const max = chosenMax(), count2 = Number(value8("mdmatn")) || 0;
+    const max = chosenMax(), count2 = Number(value12("mdmatn")) || 0;
     hint.classList.toggle("mdmatpasa", count2 > max);
     hint.textContent = t(count2 > max ? "portal.material.atMost" : "portal.material.max", { max: formatNumber(max) });
   }
   async function ask(button2) {
     button2.disabled = true;
-    const max = chosenMax(), count2 = Number(value8("mdmatn")) || 0;
+    const max = chosenMax(), count2 = Number(value12("mdmatn")) || 0;
     if (count2 < 1 || count2 > max) {
       button2.disabled = false;
       showMaximum();
       notices.toast(count2 < 1 ? t("portal.material.howMany") : t("portal.material.tooMany", { max: formatNumber(max) }), true);
       return;
     }
-    const { data: result } = await legacyDb().rpc("pedir_material", { p_material: value8("mdmatm"), p_cantidad: count2, p_nota: value8("mdmatt").trim() || null });
+    const { data: result } = await legacyDb().rpc("pedir_material", { p_material: value12("mdmatm"), p_cantidad: count2, p_nota: value12("mdmatt").trim() || null });
     button2.disabled = false;
     if (!result?.ok) {
       notices.toast(result?.motivo === "cantidad" ? t("portal.material.atMostShort", { max: formatNumber(result.max) }) : failureText2(result), true);
@@ -12270,7 +16521,7 @@
     notices.toast(t("portal.material.asked"));
     void paintMaterial();
   }
-  async function cancel(id) {
+  async function cancel2(id) {
     const { data: result } = await legacyDb().rpc("cerrar_material", { p_id: id, p_estado: CANCELLED });
     if (!result?.ok) {
       notices.toast(failureText2(result), true);
@@ -12280,7 +16531,7 @@
     void paintMaterial();
   }
   async function sendMessage(button2) {
-    const text2 = value8("mdmsgt").trim();
+    const text2 = value12("mdmsgt").trim();
     if (!text2) {
       notices.toast(t("portal.failures.empty"), true);
       return;
@@ -12295,7 +16546,7 @@
     notices.toast(t("portal.material.messageSent"));
     void paintMaterial();
   }
-  function bind11(box) {
+  function bind16(box) {
     const select3 = document.getElementById("mdmatm");
     if (select3) select3.onchange = showMaximum;
     document.getElementById("mdmatn")?.addEventListener("input", showMaximum);
@@ -12305,12 +16556,12 @@
     };
     box.querySelectorAll("[data-mdanu]").forEach((button2) => {
       button2.onclick = () => {
-        void cancel(button2.dataset.mdanu ?? "");
+        void cancel2(button2.dataset.mdanu ?? "");
       };
     });
-    const send2 = document.getElementById("mdmsgok");
-    if (send2) send2.onclick = () => {
-      void sendMessage(send2);
+    const send3 = document.getElementById("mdmsgok");
+    if (send3) send3.onclick = () => {
+      void sendMessage(send3);
     };
   }
   async function paintMaterial() {
@@ -12326,7 +16577,7 @@
     if (!box) return;
     const list = messages ?? [];
     box.innerHTML = cardsHtml(Array.isArray(allowed) ? allowed : [], requests2 ?? [], list);
-    bind11(box);
+    bind16(box);
     if (list.some((message) => !message.del_portal && !message.leido_en)) void callRpc("leer_mensajes_cuenta", { p_cuenta: null });
   }
 
@@ -12357,16 +16608,16 @@
   var SHOWN_ORDERS = 8;
   var CANCELLED2 = "Anulado";
   var PREPARED = "Preparado";
-  var euros4 = (value15) => portalLegacy.euros(value15);
+  var euros6 = (value18) => portalLegacy.euros(value18);
   function orderRow(order) {
-    const lines = (order.lineas ?? []).map((line2) => `${line2.producto} × ${formatNumber(line2.unidades)}${line2.regalo ? t("portal.centre.free") : ""}`).join(", ");
+    const lines2 = (order.lineas ?? []).map((line2) => `${line2.producto} × ${formatNumber(line2.unidades)}${line2.regalo ? t("portal.centre.free") : ""}`).join(", ");
     return `<div class="item"><span class="tx">
             <b>${order.numero ? `${escapeHtml(order.numero)} · ` : ""}${formatShortDate(String(order.fecha).slice(0, 10))}</b>
-            <span class="sm">${escapeHtml(lines)}${order.total !== null && order.total !== void 0 ? ` · ${euros4(order.total)}` : ""}</span>${orderExtras(order)}</span>
+            <span class="sm">${escapeHtml(lines2)}${order.total !== null && order.total !== void 0 ? ` · ${euros6(order.total)}` : ""}</span>${orderExtras(order)}</span>
             <span class="pcpst"><span class="pill ${portalPageLegacy.centreStateClass(order.estado)}">${escapeHtml(order.estado)}</span>${order.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${order.id}">${t("portal.centre.proforma")}</button>` : ""}</span></div>`;
   }
-  function indicators(orders, bought, products3) {
-    const running = orders.filter((order) => order.estado !== CANCELLED2 && order.estado !== PREPARED).length, last = orders[0] ? String(orders[0].fecha).slice(0, 10) : null;
+  function indicators(orders2, bought, products3) {
+    const running = orders2.filter((order) => order.estado !== CANCELLED2 && order.estado !== PREPARED).length, last = orders2[0] ? String(orders2[0].fecha).slice(0, 10) : null;
     const units2 = sum((bought ?? []).map((item) => Number(item.unidades) || 0));
     return `<div class="pmk">
       <div class="kpi"><b>${formatNumber(running)}</b><span>${t("portal.centre.running")}</span></div>
@@ -12374,16 +16625,16 @@
       <div class="kpi"><b>${formatNumber(units2)}</b><span>${t("portal.centre.units12")}</span></div>
       <div class="kpi"><b>${formatNumber(products3)}</b><span>${t("portal.centre.products")}</span></div></div>`;
   }
-  function summaryHtml(answer, products3) {
-    const orders = answer.pedidos ?? [], bought = answer.por_producto ?? [], ordersTitle = t("portal.centre.ordersTitle"), boughtTitle = t("portal.centre.boughtTitle");
+  function summaryHtml3(answer, products3) {
+    const orders2 = answer.pedidos ?? [], bought = answer.por_producto ?? [], ordersTitle = t("portal.centre.ordersTitle"), boughtTitle = t("portal.centre.boughtTitle");
     const missing2 = portalState.missing.length ? `<div class="pmaviso"><div><b>${t("portal.centre.completeCard")}</b><span class="sm">${t("portal.centre.completeCardText", { missing: escapeHtml(missingText()) })}</span></div>
       <button type="button" class="btn" data-pmir="ficha">${t("portal.centre.completeCardButton")}</button></div>` : "";
-    const chart2 = bought.length ? portalPageLegacy.barChart(bought.map((item) => ({ n: item.producto, v: item.unidades })), (value15) => t("portal.centre.unitsShort", { units: formatNumber(value15) })) : portalPageLegacy.emptyChart(t("portal.centre.boughtEmpty"));
-    return `${owesHtml(orders)}${missing2}
-    ${indicators(orders, bought, products3)}
+    const chart2 = bought.length ? portalPageLegacy.barChart(bought.map((item) => ({ n: item.producto, v: item.unidades })), (value18) => t("portal.centre.unitsShort", { units: formatNumber(value18) })) : portalPageLegacy.emptyChart(t("portal.centre.boughtEmpty"));
+    return `${owesHtml(orders2)}${missing2}
+    ${indicators(orders2, bought, products3)}
     <div class="pmfila">
       <div class="card ancard pcpeds"><h2>${ordersTitle} ${helpButton(ordersTitle, t("portal.centre.ordersHelp"))}</h2>
-        ${orders.length ? `<div class="lista">${orders.slice(0, SHOWN_ORDERS).map(orderRow).join("")}</div>` : `<p class="sm">${t("portal.centre.noOrders")}</p>`}</div>
+        ${orders2.length ? `<div class="lista">${orders2.slice(0, SHOWN_ORDERS).map(orderRow).join("")}</div>` : `<p class="sm">${t("portal.centre.noOrders")}</p>`}</div>
       <div class="card ancard"><h2>${boughtTitle} ${helpButton(boughtTitle, t("portal.centre.boughtHelp"))}</h2>
         ${chart2}</div></div>`;
   }
@@ -12396,7 +16647,7 @@
     const name = document.getElementById("ctnom");
     if (name && answer.nombre) name.textContent = answer.nombre;
     portalState.prepayment = Boolean(answer.pago_anticipado);
-    summary4.innerHTML = summaryHtml(answer, products3);
+    summary4.innerHTML = summaryHtml3(answer, products3);
   }
   async function paintCentre() {
     if (!document.getElementById("mdcuerpo")) return;
@@ -12411,7 +16662,7 @@
     const list = Array.isArray(products3) ? products3 : [];
     showOrders(summary4, answer ?? {}, list.length);
     bindTabs(summary4, "pmir");
-    paintOrder(list, afterOrder);
+    paintOrder3(list, afterOrder);
     paintForm();
     try {
       await paintDownloads();
@@ -12457,7 +16708,7 @@
   }
   function formatsCard(data) {
     const list = data.formatos ?? [], total2 = sum(list.map((item) => item.n ?? 0)), title2 = t("portal.summary.formatsTitle", { Orders: capitalise(words2().orders) });
-    const chart2 = total2 ? portalPageLegacy.barChart(list.map((item) => ({ n: formatText(item.formato), v: Math.round((item.n ?? 0) / total2 * 100) })), (value15) => `${value15} %`) : portalPageLegacy.emptyChart(t("portal.summary.formatsEmpty", words2()));
+    const chart2 = total2 ? portalPageLegacy.barChart(list.map((item) => ({ n: formatText(item.formato), v: Math.round((item.n ?? 0) / total2 * 100) })), (value18) => `${value18} %`) : portalPageLegacy.emptyChart(t("portal.summary.formatsEmpty", words2()));
     return `<div class="card ancard" id="pmformatos"><h2>${title2} ${helpButton(title2, t("portal.summary.formatsHelp", words2()))}</h2>
     ${chart2}</div>`;
   }
@@ -12468,7 +16719,7 @@
       [data.ultima_pauta ? formatShortDate(data.ultima_pauta) : "—", last, t("portal.summary.lastOrderHelp", words2())]
     ];
     return `<div class="card ancard" id="pmperiodo"><h2>${t("portal.summary.periodTitle")}</h2>
-    <div class="pmperl">${rows.map(([value15, label, help]) => `<div><span>${escapeHtml(label)} ${helpButton(label, help)}</span><b>${value15}</b></div>`).join("")}</div></div>`;
+    <div class="pmperl">${rows.map(([value18, label, help]) => `<div><span>${escapeHtml(label)} ${helpButton(label, help)}</span><b>${value18}</b></div>`).join("")}</div></div>`;
   }
   function activityBanner(data) {
     const select3 = document.querySelector("#mdper [data-per]"), key = PERIODS2.get(select3 ? select3.value : "semana");
@@ -12480,11 +16731,11 @@
     <button type="button" class="btn sec chico" data-pmir="mat">${t("portal.tabs.material")}</button></div>`;
   }
   function monthColumn(month, figures, max) {
-    const units2 = figures?.unidades ?? 0, orders = figures?.pautas ?? 0;
+    const units2 = figures?.unidades ?? 0, orders2 = figures?.pautas ?? 0;
     const name = (/* @__PURE__ */ new Date(`${month}-01T12:00`)).toLocaleDateString(t("dates.locale"), { month: "short" }).replace(".", "");
-    const title2 = t("portal.summary.monthTitle", { month: name, units: formatNumber(units2), orders: formatNumber(orders), ordersWord: words2().orders });
+    const title2 = t("portal.summary.monthTitle", { month: name, units: formatNumber(units2), orders: formatNumber(orders2), ordersWord: words2().orders });
     return `<div class="pmcol" title="${escapeHtml(title2)}"><div class="pmbar"><b>${units2 ? formatNumber(units2) : ""}</b><i style="height:${units2 ? Math.max(3, units2 / max * 100) : 0}%"></i></div>
-        <span class="pmm">${escapeHtml(name)}</span><span class="pmn">${orders ? `<em>${formatNumber(orders)}</em>` : ""}</span></div>`;
+        <span class="pmm">${escapeHtml(name)}</span><span class="pmn">${orders2 ? `<em>${formatNumber(orders2)}</em>` : ""}</span></div>`;
   }
   function evolution(data) {
     if (!data.unidades) return portalPageLegacy.emptyChart(t("portal.summary.evolutionEmpty", words2()));
@@ -12515,7 +16766,7 @@
     return `<div class="card ancard"><h2>${title2} ${helpButton(title2, t("portal.summary.byProductHelp", words2()))}</h2>
         ${products3.length ? `<div class="pmdon">${portalPageLegacy.donut(products3.map((item) => ({ n: item.nombre, v: item.unidades })))}</div>` : portalPageLegacy.emptyChart(t("portal.summary.byProductEmpty"))}</div>`;
   }
-  function summaryHtml2(data, figures) {
+  function summaryHtml4(data, figures) {
     const title2 = t("portal.summary.continuityTitle", words2());
     return `${activityBanner(data)}${missingBanner()}
     <div class="pmfila pm3">
@@ -12556,7 +16807,7 @@
     }
     setText("mdnom", data.medico.nombre);
     setText("mdesp", data.medico.especialidad ?? "");
-    summary4.innerHTML = summaryHtml2(data, figures ?? {});
+    summary4.innerHTML = summaryHtml4(data, figures ?? {});
     bindTabs(summary4, "pmir");
     paintForm();
   }
@@ -12589,8 +16840,8 @@
     const { data } = await legacyDb().from("ajustes").select("valor").eq("clave", "portal").maybeSingle();
     return data?.valor ?? {};
   }
-  async function saveSetting(value15) {
-    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "portal", p_valor: value15 });
+  async function saveSetting(value18) {
+    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "portal", p_valor: value18 });
     if (error || result?.ok === false) {
       notices.toast(t("portal.settings.couldNotSave"), true);
       return false;
@@ -12643,8 +16894,8 @@
       <div class="sm">${t("portal.settings.subtitle", { theProfessionals: term("medico", { number: "p", article: "el" }) })}</div></div></div>
     ${materialHtml(catalog2 ?? [], Array.isArray(allowed) ? allowed : [], Boolean(setting.material))}</div>
   ${prepaymentHtml(Boolean(setting.pago_anticipado))}`;
-    const save21 = document.getElementById("cfpok");
-    if (save21) save21.onclick = () => {
+    const save25 = document.getElementById("cfpok");
+    if (save25) save25.onclick = () => {
       void saveMaterial(box, setting);
     };
     const savePay = document.getElementById("cfpantok");
@@ -12681,7 +16932,7 @@
 
   // src/app/screens/analytics/filters.ts
   var select2 = (id) => document.getElementById(id);
-  var valueOf3 = (id) => select2(id)?.value ?? "";
+  var valueOf4 = (id) => select2(id)?.value ?? "";
   function selectedText(id) {
     const field8 = select2(id);
     return field8?.value ? field8.selectedOptions[0]?.textContent ?? "" : "";
@@ -12689,21 +16940,21 @@
   function filterParams() {
     return {
       p_medico: analyticsLegacy.professional()?.id ?? null,
-      p_comercial: valueOf3("acom") || null,
-      p_producto: valueOf3("aprod") || null,
-      p_reporting: valueOf3("arep") || null,
-      p_reportado: valueOf3("areprt") || null
+      p_comercial: valueOf4("acom") || null,
+      p_producto: valueOf4("aprod") || null,
+      p_reporting: valueOf4("arep") || null,
+      p_reportado: valueOf4("areprt") || null
     };
   }
 
   // src/app/screens/analytics/monthly-table.ts
   var LIMIT2 = 30;
-  var NAME_WIDTH = 220;
+  var NAME_WIDTH2 = 220;
   var MONTH_WIDTH = 110;
   var TOTAL_WIDTH = 120;
   var BASE_SHADE = 0.08;
   var SHADE_RANGE = 0.42;
-  var cell2 = (width, html, extra = "", style = "") => `<span class="tcell${extra}" style="width:${width}px;min-width:${width}px${width === NAME_WIDTH ? "" : ";text-align:right"}${style}">${html}</span>`;
+  var cell2 = (width, html, extra = "", style = "") => `<span class="tcell${extra}" style="width:${width}px;min-width:${width}px${width === NAME_WIDTH2 ? "" : ";text-align:right"}${style}">${html}</span>`;
   var valueIn = (row4, month) => Number(row4.meses?.[month]) || 0;
   function monthHeader(month) {
     const name = shortMonthNames()[Number(month.slice(5, 7)) - 1] ?? month.slice(5);
@@ -12711,25 +16962,25 @@
   }
   function infoHtml() {
     const dimension = (selectedText("adim") || t("analytics.table.concept")).toLowerCase().replace(/^por /, "");
-    const measure = t(valueOf3("amedida") === "importe" ? "analytics.table.amount" : "analytics.table.units");
+    const measure = t(valueOf4("amedida") === "importe" ? "analytics.table.amount" : "analytics.table.units");
     return `<div class="tabinfo"><b>${t("analytics.table.title", { measure: escapeHtml(measure), dimension: escapeHtml(dimension) })}</b>
     <span>${t("analytics.table.hint", { dimension: escapeHtml(dimension) })}</span></div>`;
   }
-  function tableHtml5(data, rows) {
-    const months2 = data.meses ?? [], format = (value15) => data.medida === "importe" ? formatCurrency(value15) : formatNumber(value15);
+  function tableHtml7(data, rows) {
+    const months2 = data.meses ?? [], format = (value18) => data.medida === "importe" ? formatCurrency(value18) : formatNumber(value18);
     const max = Math.max(1, ...rows.flatMap((row4) => months2.map((month) => valueIn(row4, month))));
-    const shade = (value15) => value15 ? `;background:rgba(46,134,201,${(BASE_SHADE + value15 / max * SHADE_RANGE).toFixed(2)})` : "";
+    const shade = (value18) => value18 ? `;background:rgba(46,134,201,${(BASE_SHADE + value18 / max * SHADE_RANGE).toFixed(2)})` : "";
     const monthCell = (row4, month) => cell2(MONTH_WIDTH, row4.meses?.[month] ? format(row4.meses[month]) : '<span class="sm">·</span>', "", shade(valueIn(row4, month)));
     return `<div class="tabla"><div style="min-width:${180 + months2.length * MONTH_WIDTH}px">
-    <div class="thead">${cell2(NAME_WIDTH, t("analytics.table.concept"), " th")}
+    <div class="thead">${cell2(NAME_WIDTH2, t("analytics.table.concept"), " th")}
       ${months2.map((month) => cell2(MONTH_WIDTH, escapeHtml(monthHeader(month)), " th")).join("")}
       ${cell2(TOTAL_WIDTH, t("analytics.explore.total"), " th")}</div>
     ${rows.map((row4) => `<div class="trow" style="cursor:default">
-      ${cell2(NAME_WIDTH, `<b>${escapeHtml(row4.nombre)}</b>`)}
+      ${cell2(NAME_WIDTH2, `<b>${escapeHtml(row4.nombre)}</b>`)}
       ${months2.map((month) => monthCell(row4, month)).join("")}
       ${cell2(TOTAL_WIDTH, `<b>${format(row4.total)}</b>`)}</div>`).join("")}
     <div class="trow" data-fijo style="cursor:default;background:var(--bg)">
-      ${cell2(NAME_WIDTH, `<b>${t("analytics.explore.total")}</b>`)}
+      ${cell2(NAME_WIDTH2, `<b>${t("analytics.explore.total")}</b>`)}
       ${months2.map((month) => cell2(MONTH_WIDTH, `<b>${format(sum(rows.map((row4) => valueIn(row4, month))))}</b>`)).join("")}
       ${cell2(TOTAL_WIDTH, `<b>${format(sum(rows.map((row4) => Number(row4.total) || 0)))}</b>`)}</div>
   </div></div>`;
@@ -12738,13 +16989,13 @@
     return rows.map((row4) => ({ concepto: row4.nombre, ...Object.fromEntries((data.meses ?? []).map((month) => [month, row4.meses?.[month] ?? 0])), total: row4.total }));
   }
   function tableParams() {
-    const dimension = valueOf3("adim");
+    const dimension = valueOf4("adim");
     return {
       p_dim: dimension === "mes" ? "producto" : dimension,
-      p_desde: valueOf3("adesde") || null,
-      p_hasta: valueOf3("ahasta") || null,
-      p_canal: valueOf3("acanal") || null,
-      p_medida: valueOf3("amedida") || "unidades",
+      p_desde: valueOf4("adesde") || null,
+      p_hasta: valueOf4("ahasta") || null,
+      p_canal: valueOf4("acanal") || null,
+      p_medida: valueOf4("amedida") || "unidades",
       lim: LIMIT2,
       ...filterParams()
     };
@@ -12763,7 +17014,7 @@
       box.innerHTML = `<div class="vacio">${t("analytics.table.noData")}</div>`;
       return;
     }
-    box.innerHTML = infoHtml() + tableHtml5(data, rows);
+    box.innerHTML = infoHtml() + tableHtml7(data, rows);
     analyticsLegacy.setTableExport(exportRows(data, rows));
   }
 
@@ -12773,7 +17024,7 @@
   var BAR_HEIGHT = 84;
   var element = (id) => document.getElementById(id);
   var measureOf = (row4, measure) => Number(row4[measure]) || 0;
-  function totalsHtml2(totals) {
+  function totalsHtml4(totals) {
     const who2 = [analyticsLegacy.professional()?.nombre ?? "", selectedText("acom"), selectedText("aprod"), selectedText("arep"), selectedText("areprt")].filter(Boolean).join(" · ");
     return `
     <div class="kpi"><b>${formatNumber(totals.unidades)}</b><span>${t("analytics.explore.units")}${who2 ? ` · ${escapeHtml(who2)}` : ""}</span></div>
@@ -12818,12 +17069,12 @@
   async function paintRanking() {
     analyticsLegacy.loading(element("atabla"), t("analytics.explore.calculating"));
     setHtml("atot", Array.from({ length: SKELETONS }, () => '<div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:70%;margin:0"></div></div>').join(""));
-    const range2 = analyticsLegacy.period("aper"), dimension = valueOf3("adim"), measure = valueOf3("amedida");
+    const range2 = analyticsLegacy.period("aper"), dimension = valueOf4("adim"), measure = valueOf4("amedida");
     const { data, error } = await legacyDb().rpc("analitica_v2", {
       p_dim: dimension,
       p_desde: range2.desde,
       p_hasta: range2.hasta,
-      p_canal: valueOf3("acanal") || null,
+      p_canal: valueOf4("acanal") || null,
       ...filterParams(),
       lim: LIMIT3
     });
@@ -12833,7 +17084,7 @@
       return;
     }
     const totals = data.totales ?? {}, rows = [...data.filas ?? []].sort((first, second) => measureOf(second, measure) - measureOf(first, measure));
-    setHtml("atot", totalsHtml2(totals));
+    setHtml("atot", totalsHtml4(totals));
     setHtml("aprods", productsHtml2(data.por_producto ?? [], totals, dimension));
     setHtml("aserie", seriesHtml(data.serie ?? [], measure));
     setHtml("atabla", rankingHtml(rows, totals, measure));
@@ -12872,11 +17123,11 @@
     return { k: point.k, v: sum(around.map((other) => other.v)) / around.length };
   });
   var average = (points) => sum(points.map((point) => point.v)) / (points.length || 1);
-  var decimals = (value15) => value15.toLocaleString("es-ES", { maximumFractionDigits: value15 < 10 ? 2 : 1 });
+  var decimals = (value18) => value18.toLocaleString("es-ES", { maximumFractionDigits: value18 < 10 ? 2 : 1 });
   function scale(frame) {
     return {
       x: (day) => PAD + (day + frame.days) / (2 * frame.days) * (frame.width - 2 * PAD),
-      y: (value15) => frame.height - 24 - value15 / frame.max * (frame.height - 52)
+      y: (value18) => frame.height - 24 - value18 / frame.max * (frame.height - 52)
     };
   }
   function chart(points, frame) {
@@ -12920,7 +17171,7 @@
 
   // src/app/screens/analytics/visit-orders/funnel.ts
   var bar = (width, extraClass) => `<svg class="tvbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="tvbg" width="100" height="10" rx="3"/><rect class="tvfg${extraClass}" width="${width}" height="10" rx="3"/></svg>`;
-  var mini = (value15, label, valueClass = "") => `<div class="tvmini"><b${valueClass ? ` class="${valueClass}"` : ""}>${value15}</b><span class="tvlbl">${label}</span></div>`;
+  var mini = (value18, label, valueClass = "") => `<div class="tvmini"><b${valueClass ? ` class="${valueClass}"` : ""}>${value18}</b><span class="tvlbl">${label}</span></div>`;
   function steps(summary4, days) {
     const visits2 = summary4.visitas ?? 0, visited = summary4.profesionales ?? 0, withOrder = summary4.con_venta ?? 0;
     return [
@@ -12991,8 +17242,8 @@
       width,
       height,
       barWidth: (width - 2 * SIDE) / months2.length,
-      yVisits: (value15) => height - BOTTOM - value15 / max * (height - TOP),
-      yPercent: (value15) => height - BOTTOM - value15 / 100 * (height - TOP)
+      yVisits: (value18) => height - BOTTOM - value18 / max * (height - TOP),
+      yPercent: (value18) => height - BOTTOM - value18 / 100 * (height - TOP)
     };
   }
   function bars(month, index, frame) {
@@ -13039,7 +17290,7 @@
     viewIndex = Math.max(0, VIEWS.findIndex((view) => view.key === localStorage.getItem(STORAGE_KEY)));
   } catch {
   }
-  function paint4() {
+  function paint6() {
     const body2 = document.getElementById("tvcuerpo"), view = VIEWS[viewIndex];
     if (!body2 || !shown2 || !view) return;
     body2.innerHTML = view.paint(shown2);
@@ -13048,7 +17299,7 @@
     const position = document.getElementById("tvpos");
     if (position) position.textContent = t("analytics.orders.position", { number: viewIndex + 1, total: VIEWS.length, name: t(view.label) });
   }
-  function cardHtml2(days) {
+  function cardHtml3(days) {
     const title2 = t("analytics.orders.title", words3());
     const help = t("analytics.orders.help", { ...words3(), days });
     return `<section class="card tvcard" id="tvvis"><div class="tvcab">
@@ -13063,8 +17314,8 @@
     document.getElementById("tvvis")?.remove();
     shown2 = data;
     if (!data?.resumen) return;
-    box.insertAdjacentHTML("afterbegin", cardHtml2(data.dias ?? DEFAULT_DAYS));
-    paint4();
+    box.insertAdjacentHTML("afterbegin", cardHtml3(data.dias ?? DEFAULT_DAYS));
+    paint6();
   }
   function listenToVisitOrdersViews() {
     document.addEventListener("click", (event) => {
@@ -13075,7 +17326,7 @@
         localStorage.setItem(STORAGE_KEY, VIEWS[viewIndex]?.key ?? "");
       } catch {
       }
-      paint4();
+      paint6();
     });
   }
 
@@ -13132,7 +17383,7 @@
     <div class="acts" style="justify-content:flex-end"><label class="btn sec" style="display:inline-flex">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfmas" accept="image/*" data-fp="1" hidden multiple></label>
       <button type="button" class="btn" data-cerrar2>${t("visit.photos.done")}</button></div>`;
   }
-  function refresh2(activityId, accountId) {
+  function refresh3(activityId, accountId) {
     void showVisitPhotos(activityId, accountId);
     if (accountCardLegacy.shownId() === accountId) agendaActions.openAccount(accountId);
   }
@@ -13144,7 +17395,7 @@
       return;
     }
     notices.toast(t("visit.photos.deleted"));
-    refresh2(activityId, accountId);
+    refresh3(activityId, accountId);
   }
   async function addPhotos(input4, shown5, activityId, accountId) {
     const files = [...input4.files ?? []], room = Math.max(0, visitLegacy.photosMax() - shown5), added = [];
@@ -13156,7 +17407,7 @@
     if (!added.length) return;
     if (await uploadVisitPhotos(activityId, added)) {
       notices.toast(t(added.length === 1 ? "visit.photos.added" : "visit.photos.addedMany"));
-      refresh2(activityId, accountId);
+      refresh3(activityId, accountId);
     }
   }
   async function showVisitPhotos(activityId, accountId) {
@@ -13225,7 +17476,7 @@
     visitLegacy.materialFiles().set(material.id, data.datos);
     return data.datos;
   }
-  async function paint5() {
+  async function paint7() {
     const current = showing;
     if (!current) return;
     const material = current.list[current.index], box = document.getElementById("prescuerpo");
@@ -13246,14 +17497,14 @@
     const index = showing.index + step;
     if (index < 0 || index >= showing.list.length) return;
     showing.index = index;
-    void paint5();
+    void paint7();
   }
-  function dialog3() {
+  function dialog4() {
     if (!document.getElementById("presenta")) document.body.insertAdjacentHTML("beforeend", `<dialog id="presenta" class="presdlg" aria-label="${t("visit.presentation.label")}"></dialog>`);
     return document.getElementById("presenta");
   }
   function open(title2, list, index) {
-    const box = dialog3();
+    const box = dialog4();
     if (!box) return;
     box.innerHTML = `<div class="prescab"><b>${escapeHtml(title2)}</b><span class="sm" id="presn"></span><button type="button" class="x" id="prescerrar" aria-label="${t("common.close")}">✕</button></div>
     <div class="prescuerpo" id="prescuerpo"></div>
@@ -13279,7 +17530,7 @@
       if (event.key === "ArrowLeft") move(-1);
     };
     box.showModal();
-    void paint5();
+    void paint7();
   }
   function presentProduct(productId) {
     const list = materialsOf(productId);
@@ -13338,26 +17589,26 @@
     const results = filled.find((group) => group.papel === RESULT_ROLE) ?? { clave: "", papel: RESULT_ROLE, nombre: t("visit.record.result"), valores: [...visitLegacy.resultValues()] };
     return { results, others: filled.filter((group) => group !== results) };
   }
-  function button(index, group, value15, isResult) {
-    const key = `${group.clave}::${value15.valor}`, negative = isResult && value15.extra === NEGATIVE;
-    index.set(key, { group: group.clave, value: value15 });
-    return `<span class="optw"${value15.oculto ? ' data-oculto="1"' : ""}><button type="button" class="opt ${negative ? "neg" : ""}" data-vk="${escapeHtml(key)}" ${isResult ? `data-res="${escapeHtml(value15.valor)}"` : ""} ${negative ? 'data-neg="1"' : ""} aria-pressed="false">
-      <span class="mk"></span>${escapeHtml(value15.valor)}${value15.dato_tipo ? ` <span class="datom">${t("visit.record.withData")}</span>` : ""}</button>
-      ${value15.dato_tipo ? `<span class="datobox hide" data-box="${escapeHtml(key)}">${visitLegacy.dataField(value15, key)}</span>` : ""}</span>`;
+  function button(index, group, value18, isResult) {
+    const key = `${group.clave}::${value18.valor}`, negative = isResult && value18.extra === NEGATIVE;
+    index.set(key, { group: group.clave, value: value18 });
+    return `<span class="optw"${value18.oculto ? ' data-oculto="1"' : ""}><button type="button" class="opt ${negative ? "neg" : ""}" data-vk="${escapeHtml(key)}" ${isResult ? `data-res="${escapeHtml(value18.valor)}"` : ""} ${negative ? 'data-neg="1"' : ""} aria-pressed="false">
+      <span class="mk"></span>${escapeHtml(value18.valor)}${value18.dato_tipo ? ` <span class="datom">${t("visit.record.withData")}</span>` : ""}</button>
+      ${value18.dato_tipo ? `<span class="datobox hide" data-box="${escapeHtml(key)}">${visitLegacy.dataField(value18, key)}</span>` : ""}</span>`;
   }
   function hiddenButton(groups) {
-    const hidden = groups.flatMap((group) => group.valores).filter((value15) => value15.oculto).length;
+    const hidden = groups.flatMap((group) => group.valores).filter((value18) => value18.oculto).length;
     if (!hidden) return "";
     return `<button type="button" class="lnk" id="vtodos">${hidden === 1 ? t("visit.record.showOneHidden") : t("visit.record.showHidden", { count: hidden })}</button>`;
   }
   function resultsHtml(index, results, others) {
-    const positive = results.valores.filter((value15) => value15.extra !== NEGATIVE), negative = results.valores.filter((value15) => value15.extra === NEGATIVE);
+    const positive = results.valores.filter((value18) => value18.extra !== NEGATIVE), negative = results.valores.filter((value18) => value18.extra === NEGATIVE);
     const more = hiddenButton([results, ...others]);
     return `<label>${t("visit.record.resultLabel")} <span class="sm">${t("visit.record.severalResults", { done: term("visita", { adjective: "realizado" }) })}</span></label>
-    <div class="opciones">${positive.map((value15) => button(index, results, value15, true)).join("")}</div>${negative.length ? "" : more}
-    <div class="opciones" style="margin-top:8px">${negative.map((value15) => button(index, results, value15, true)).join("")}</div>${negative.length ? more : ""}
+    <div class="opciones">${positive.map((value18) => button(index, results, value18, true)).join("")}</div>${negative.length ? "" : more}
+    <div class="opciones" style="margin-top:8px">${negative.map((value18) => button(index, results, value18, true)).join("")}</div>${negative.length ? more : ""}
     ${others.map((group) => `<label>${escapeHtml(group.nombre)}${group.descripcion ? ` <span class="sm">· ${escapeHtml(group.descripcion)}</span>` : ""}</label>
-      <div class="opciones">${group.valores.map((value15) => button(index, group, value15, false)).join("")}</div>`).join("")}`;
+      <div class="opciones">${group.valores.map((value18) => button(index, group, value18, false)).join("")}</div>`).join("")}`;
   }
   function sampleRow(sample) {
     const available = sample.en_plazo && sample.quedan;
@@ -13418,7 +17669,7 @@
   var forgetOperation = () => {
     operationId = null;
   };
-  var value9 = (id) => document.getElementById(id)?.value ?? "";
+  var value13 = (id) => document.getElementById(id)?.value ?? "";
   function details(body2, marked, index) {
     return marked.map((key) => {
       const field8 = body2.querySelector(`[data-dato="${CSS.escape(key)}"]`), extra = field8 ? field8.value.trim() : "";
@@ -13433,17 +17684,17 @@
     const { error } = await legacyDb().from("cuentas").update({ urgente: false, urgente_motivo: null }).eq("id", id);
     notices.toast(t(error ? "visit.record.couldNotUnmark" : "visit.record.unmarked"), Boolean(error));
   }
-  function payload4(id, results, detailList) {
+  function payload5(id, results, detailList) {
     operationId ?? (operationId = `v-${id}-${Date.now()}`);
     return {
       cuenta_id: id,
-      ubicacion_id: value9("vc") || null,
-      fecha: value9("vf"),
+      ubicacion_id: value13("vc") || null,
+      fecha: value13("vf"),
       resultados: results,
       detalles: detailList,
-      nota: value9("vn").trim(),
-      proxima_accion: value9("vpa").trim(),
-      proxima_fecha: value9("vpf") || null,
+      nota: value13("vn").trim(),
+      proxima_accion: value13("vpa").trim(),
+      proxima_fecha: value13("vpf") || null,
       op_id: operationId
     };
   }
@@ -13464,7 +17715,7 @@
     }
     button2.disabled = true;
     button2.textContent = t("visit.edit.saving");
-    const { data, error } = await visitLegacy.writeRpc("registrar_actividad", { p: payload4(id, results, details(body2, marked, index)) });
+    const { data, error } = await visitLegacy.writeRpc("registrar_actividad", { p: payload5(id, results, details(body2, marked, index)) });
     button2.disabled = false;
     button2.textContent = t("visit.record.save", { visit: term("visita") });
     if (error) {
@@ -13537,10 +17788,10 @@
     });
   }
   function bindPhotos(draft) {
-    const paint9 = () => {
+    const paint10 = () => {
       paintPhotos(document.getElementById("vfotos"), draft.fotos, (index) => {
         draft.fotos.splice(index, 1);
-        paint9();
+        paint10();
       });
     };
     const input4 = document.getElementById("vfotof");
@@ -13554,7 +17805,7 @@
         if (photo) draft.fotos.push(photo);
       }
       input4.value = "";
-      paint9();
+      paint10();
     };
   }
   function bindSamples(body2, samples3, draft) {
@@ -13609,7 +17860,7 @@
     const first = box.querySelector(".chips, [data-res]"), container = first?.classList.contains("chips") ? first : first?.parentElement;
     container?.insertAdjacentHTML("afterend", `<p class="sm srnota">${t("visit.record.noReporting", { professional: term("medico", { article: "este", articleCapital: "C" }), visit: term("visita") })}</p>`);
   }
-  function paint6(id, data, date) {
+  function paint8(id, data, date) {
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
     const index = /* @__PURE__ */ new Map(), resultsKey = splitGroups(data.groups).results.clave;
@@ -13623,9 +17874,9 @@
     bindPhotos(draft);
     bindSamples(body2, data.samples, draft);
     applyDateRules(date);
-    const save21 = document.getElementById("vguardar");
-    if (save21) save21.onclick = () => {
-      void saveVisit(visit2, save21);
+    const save25 = document.getElementById("vguardar");
+    if (save25) save25.onclick = () => {
+      void saveVisit(visit2, save25);
     };
     box.showModal();
     if (data.noReporting) hideReporting(box);
@@ -13639,7 +17890,7 @@
         notices.toast(t("visit.record.couldNotOpen", { reason: t(data === "online" ? "visit.record.cardUnreadable" : "visit.record.noCopy") }), true);
         return;
       }
-      paint6(id, data, date);
+      paint8(id, data, date);
     });
   }
 
@@ -13718,7 +17969,7 @@
     return `<p class="sm" style="padding:0 16px 14px">
       ${t("commissions.homeCard.nextTier", { missing: formatNumber(next.faltan) })}${withAmount ? t("commissions.homeCard.nextTierAmount", { amount: formatCurrency(next.valor) }) : ""}.</p>`;
   }
-  function cardHtml3(period, withAmount) {
+  function cardHtml4(period, withAmount) {
     const title2 = t(withAmount ? "commissions.homeCard.yourCommission" : "commissions.homeCard.yourActivity", { period: formatMonth(period.periodo) });
     return `<h2>${title2}</h2>
     <div class="kpis" style="padding:10px 16px 4px;margin:0">
@@ -13741,7 +17992,7 @@
       box.innerHTML = "";
       return;
     }
-    box.innerHTML = cardHtml3(data, sees === AMOUNT && !data.sin_esquema);
+    box.innerHTML = cardHtml4(data, sees === AMOUNT && !data.sin_esquema);
   }
 
   // src/app/screens/commissions/model.ts
@@ -13762,7 +18013,7 @@
 
   // src/app/screens/commissions/scheme-people.ts
   var block = (inner) => `<div class="blk" id="esqpers"><h3>${t("commissions.people.title")}</h3>${inner}</div>`;
-  function rowHtml11(item, admin) {
+  function rowHtml17(item, admin) {
     const state = assignmentState(item), today = todayIso();
     const since = item.desde <= ALL_HISTORY ? t("commissions.people.allHistory") : t("commissions.people.since", { date: formatShortDate(item.desde) });
     return `<div class="esqfila"><span class="candado" title="${t("commissions.people.locked")}">🔒</span>
@@ -13779,14 +18030,14 @@
       <button type="button" class="btn sec" id="eaok">${t("commissions.people.assign")}</button></div>
       <p class="sm" style="margin-top:6px">${t("commissions.people.lockedHint")}</p>`;
   }
-  var value10 = (id) => document.getElementById(id)?.value ?? "";
+  var value14 = (id) => document.getElementById(id)?.value ?? "";
   async function assign(schemeId, repaint2) {
-    const user = value10("eap");
+    const user = value14("eap");
     if (!user) {
       notices.toast(t("commissions.people.choosePerson"), true);
       return;
     }
-    const mode = value10("eadm"), since = mode === "todo" ? ALL_HISTORY : mode === "fecha" ? value10("eadf") : todayIso();
+    const mode = value14("eadm"), since = mode === "todo" ? ALL_HISTORY : mode === "fecha" ? value14("eadf") : todayIso();
     const name = commissionsLegacy.team().find((member) => member.id === user)?.nombre ?? "";
     const when = mode === "todo" ? t("commissions.people.inAllHistory") : t("commissions.people.sinceDate", { date: formatShortDate(since) });
     if (!await notices.confirm(t("commissions.people.assignText", { name, when }), { titulo: t("commissions.people.assignTitle"), ok: t("commissions.people.assign") })) return;
@@ -13804,7 +18055,7 @@
     if (!await notices.confirm(t(asked.text), { titulo: t(asked.titulo), ok: t(asked.ok), peligro: true })) return;
     await legacyDb().rpc("asignar_esquema", { p_usuario: user, p_esquema: null, p_quitar: true, p_desde: since });
   }
-  function bind12(schemeId, list, repaint2) {
+  function bind17(schemeId, list, repaint2) {
     const mode = document.getElementById("eadm");
     if (mode) mode.onchange = () => {
       document.getElementById("eadfw")?.classList.toggle("hide", mode.value !== "fecha");
@@ -13826,15 +18077,15 @@
       };
     });
   }
-  async function paintList(schemeId) {
+  async function paintList2(schemeId) {
     const { data } = await legacyDb().rpc("asignaciones_esquema_lista");
     const list = document.getElementById("esqlista");
     if (!list) return;
     const assignments = (data ?? []).filter((item) => item.esquema_id === schemeId), admin = cardSectionsLegacy.can("administrar");
-    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml11(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
+    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml17(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
     ${admin ? addHtml() : ""}`;
-    if (admin) bind12(schemeId, list, () => {
-      void paintList(schemeId);
+    if (admin) bind17(schemeId, list, () => {
+      void paintList2(schemeId);
     });
   }
   async function paintSchemePeople(schemeId) {
@@ -13846,14 +18097,14 @@
     }
     buttons.insertAdjacentHTML("beforebegin", block(`<div id="esqlista" class="sm">${t("commissions.people.loading")}</div>`));
     if (!salesTeam.members().length) await salesTeam.load();
-    await paintList(schemeId);
+    await paintList2(schemeId);
   }
 
   // src/app/screens/commissions/scheme-editor.ts
   var FIXED = "fijo";
   var DEFAULT_CALCULATION = "tramo_alcanzado";
-  var option2 = (value15, label, chosen2) => `<option value="${value15}" ${chosen2 === value15 ? "selected" : ""}>${label}</option>`;
-  var input2 = (id) => document.getElementById(id);
+  var option2 = (value18, label, chosen2) => `<option value="${value18}" ${chosen2 === value18 ? "selected" : ""}>${label}</option>`;
+  var input3 = (id) => document.getElementById(id);
   var SchemeEditor = class {
     constructor(id, scheme, onSaved) {
       this.id = id;
@@ -13913,8 +18164,8 @@
       const box = document.getElementById("etramos");
       if (this.fixed || !box) return;
       this.tiers = [...box.children].map((row4, index) => {
-        const value15 = (attribute) => row4.querySelector(`[data-${attribute}="${index}"]`)?.value ?? "";
-        return { desde_u: Number(value15("td")) || 0, hasta_u: value15("th") === "" ? null : Number(value15("th")), valor: Number(value15("tv")) || 0 };
+        const value18 = (attribute) => row4.querySelector(`[data-${attribute}="${index}"]`)?.value ?? "";
+        return { desde_u: Number(value18("td")) || 0, hasta_u: value18("th") === "" ? null : Number(value18("th")), valor: Number(value18("tv")) || 0 };
       });
     }
     paint() {
@@ -13924,8 +18175,8 @@
       const calculation = document.getElementById("ecalc");
       if (calculation) calculation.onchange = () => {
         this.read();
-        const fixed = input2("efijo");
-        if (fixed) this.fixedValue = fixed.value;
+        const fixed2 = input3("efijo");
+        if (fixed2) this.fixedValue = fixed2.value;
         this.calculation = calculation.value;
         this.paint();
       };
@@ -13943,9 +18194,9 @@
         };
       });
       void paintSchemePeople(this.id);
-      const save21 = document.getElementById("eguardaresq");
-      if (save21) save21.onclick = () => {
-        void this.save(save21);
+      const save25 = document.getElementById("eguardaresq");
+      if (save25) save25.onclick = () => {
+        void this.save(save25);
       };
     }
     addTier() {
@@ -13961,13 +18212,13 @@
         atribucion: select3("eatr"),
         calculo: this.calculation,
         canal: select3("ecan") || null,
-        valor_fijo: this.fixed ? input2("efijo")?.value : null,
+        valor_fijo: this.fixed ? input3("efijo")?.value : null,
         ...this.fixed ? {} : { tramos: this.tiers }
       };
     }
     async save(button2) {
       this.read();
-      const name = input2("enom")?.value.trim() ?? "";
+      const name = input3("enom")?.value.trim() ?? "";
       if (!name) {
         notices.toast(t("commissions.editor.giveName"), true);
         return;
@@ -13994,16 +18245,16 @@
 
   // src/app/screens/commissions/settlements.ts
   var settlementFilters = { person: "", month: "" };
-  var rowHtml12 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
+  var rowHtml18 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
       <span class="ic ${item.estado === SETTLEMENT.paid ? "o" : ""}">${item.estado === SETTLEMENT.draft ? "○" : "✓"}</span>
       <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${t("commissions.page.settlementLine", { period: formatMonth(item.periodo), units: formatNumber(item.unidades), amount: formatCurrency(item.importe), state: escapeHtml(item.estado) })}</span></span>
       <span class="acts" style="margin:0">
         ${item.estado === SETTLEMENT.draft ? `<button class="btn sec" data-liq="${item.usuario_id}|${item.periodo}|${SETTLEMENT.approved}">${t("commissions.page.approve")}</button>` : ""}
         ${item.estado === SETTLEMENT.approved ? `<button class="btn sec" data-liq="${item.usuario_id}|${item.periodo}|${SETTLEMENT.paid}">${t("commissions.page.markPaid")}</button>` : ""}
       </span></div>`;
-  function filtersHtml(all) {
-    const people = [...new Map(all.map((item) => [item.usuario_id, item.nombre])).entries()].sort((first, second) => String(first[1]).localeCompare(String(second[1]), "es"));
-    const months2 = [...new Set(all.map((item) => item.periodo))].sort().reverse();
+  function filtersHtml(all2) {
+    const people = [...new Map(all2.map((item) => [item.usuario_id, item.nombre])).entries()].sort((first, second) => String(first[1]).localeCompare(String(second[1]), "es"));
+    const months2 = [...new Set(all2.map((item) => item.periodo))].sort().reverse();
     if (settlementFilters.person && !people.some(([id]) => id === settlementFilters.person)) settlementFilters.person = "";
     if (settlementFilters.month && !months2.includes(settlementFilters.month)) settlementFilters.month = "";
     return `<div class="liqfil" id="liqfil">
@@ -14028,12 +18279,12 @@
     notices.toast(t("commissions.page.settled", { state: state.toLowerCase() }));
     repaint2();
   }
-  function paintSettlements(list, all, repaint2) {
-    const paint9 = () => {
-      const shown5 = all.filter((item) => (!settlementFilters.person || item.usuario_id === settlementFilters.person) && (!settlementFilters.month || item.periodo === settlementFilters.month));
+  function paintSettlements(list, all2, repaint2) {
+    const paint10 = () => {
+      const shown5 = all2.filter((item) => (!settlementFilters.person || item.usuario_id === settlementFilters.person) && (!settlementFilters.month || item.periodo === settlementFilters.month));
       const result = document.getElementById("liqres");
       if (result) result.textContent = summary3(shown5);
-      list.innerHTML = shown5.map(rowHtml12).join("") || `<div class="vacio">${t(all.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
+      list.innerHTML = shown5.map(rowHtml18).join("") || `<div class="vacio">${t(all2.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
       list.querySelectorAll("[data-liq]").forEach((button2) => {
         button2.onclick = () => {
           void settle(button2, repaint2);
@@ -14043,13 +18294,13 @@
     const person = document.getElementById("liqfu"), month = document.getElementById("liqfp");
     if (person) person.onchange = () => {
       settlementFilters.person = person.value;
-      paint9();
+      paint10();
     };
     if (month) month.onchange = () => {
       settlementFilters.month = month.value;
-      paint9();
+      paint10();
     };
-    paint9();
+    paint10();
   }
   function resultText(period, done, closed, failed) {
     const doneText = done === 1 ? t("commissions.calculate.oneDone") : t("commissions.calculate.done", { count: done });
@@ -14114,7 +18365,7 @@
         ${people.length ? ` · ${people.map(escapeHtml).join(", ")}` : t("commissions.page.unassigned")}</span></span>
       <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${scheme.id}">${t("commissions.page.edit")}</button></span></div>`;
   }
-  function pageHtml4(all) {
+  function pageHtml6(all2) {
     const list = schemes();
     return `
     <h2>${t("commissions.page.schemes")}<span class="n">${list.length}</span></h2>
@@ -14126,7 +18377,7 @@
     <div class="acts" style="padding:0 16px">
       <input id="liqper" type="month" value="${todayIso().slice(0, 7)}" style="max-width:190px">
       <button class="btn sec" id="liqcalc">${t("commissions.page.calculate")}</button></div>
-    ${filtersHtml(all)}
+    ${filtersHtml(all2)}
     <div class="lista"></div>`;
   }
   var repaint = () => {
@@ -14142,7 +18393,7 @@
     commissionsLegacy.setSchemes(found ?? []);
     const body2 = document.getElementById("admcuerpo");
     if (!body2) return;
-    body2.innerHTML = pageHtml4(settlements ?? []);
+    body2.innerHTML = pageHtml6(settlements ?? []);
     const add2 = document.getElementById("esqnuevo");
     if (add2) add2.onclick = () => {
       editScheme(null, repaint);
@@ -14172,51 +18423,6 @@
     showCustomer: () => showCustomer
   });
 
-  // src/app/legacy/customers-bridge.ts
-  var customersLegacy = {
-    filters: () => PAC,
-    canSell: () => Boolean(puedeVentas()),
-    editCustomer: (customer, onSave) => {
-      editorContacto(customer, (saved2) => {
-        onSave(saved2);
-      });
-    },
-    orderPill: (state) => pillEstado(state),
-    newSale: (preset) => {
-      void nuevaVenta(preset);
-    },
-    shownCustomer: () => FICHA_PAC,
-    setShownCustomer: (id) => {
-      FICHA_PAC = id;
-    },
-    forgetShownAccount: () => {
-      FICHA_ID = null;
-    },
-    visibleFieldColumns: () => clasVisibles("cliente"),
-    fieldHeaders: (fields) => clasCabeceras(fields),
-    widenGrid: (grid, count2) => {
-      clasRejilla(grid, count2);
-    },
-    fieldFilters: (state) => camposFiltros("cliente", state, "pfcp"),
-    bindFieldFilters: (zone, state, onChange) => {
-      camposFiltrosActivar(zone, state, onChange);
-    },
-    showLoading: (element2, text2) => {
-      cargando(element2, text2);
-    },
-    clearModules: (except) => {
-      vaciarModulos(except);
-    },
-    customFields: (id, container) => bloqueCampos("contactos", id, container),
-    forgetPreloads: () => {
-      DB_PRE.clear();
-    },
-    /** Through the global name (the list bar and Pedidos call it too). */
-    repaintList: () => {
-      void listaPacientes();
-    }
-  };
-
   // src/app/screens/customers/model.ts
   var TYPES3 = { person: "Persona", company: "Empresa" };
   var words4 = () => ({
@@ -14228,7 +18434,7 @@
     Professional: term("medico", { capital: "C" })
   });
   var phoneOf = (customer) => orFallback(customer.telefono, customer.movil ?? "");
-  var textOrNull = (value15) => orFallback(value15, "") || null;
+  var textOrNull = (value18) => orFallback(value18, "") || null;
   var deliveryAddress = (customer) => [customer.direccion, [customer.cp, customer.municipio].filter(Boolean).join(" "), customer.provincia].filter(Boolean).join(", ");
   function taxIdText(customer) {
     if (!customer.nif) return t("customers.card.noTaxId");
@@ -14259,7 +18465,7 @@
   }
 
   // src/app/screens/customers/sheet.ts
-  var NOT_COUNTED2 = ["Anulado", "Borrador"];
+  var NOT_COUNTED3 = ["Anulado", "Borrador"];
   var FULL_SALES_LEVEL = 3;
   var sheetBody = () => document.getElementById("fbody");
   var sheetBox = () => document.getElementById("ficha");
@@ -14275,7 +18481,7 @@
     </div>`;
   }
   function contactHtml2(customer) {
-    const lines = [
+    const lines2 = [
       [t("customers.sheet.phone"), customer.telefono],
       [t("customers.sheet.mobile"), customer.movil],
       [t("customers.sheet.email"), customer.email],
@@ -14283,14 +18489,14 @@
       [t("customers.sheet.note"), customer.nota]
     ];
     return `<div class="blk"><h3>${t("customers.sheet.contact")}</h3>
-      ${lines.filter((line2) => line2[1]).map(([label, value15]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value15)}</div>`).join("") || `<div class="sm">${t("customers.sheet.noContact")}</div>`}</div>`;
+      ${lines2.filter((line2) => line2[1]).map(([label, value18]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value18)}</div>`).join("") || `<div class="sm">${t("customers.sheet.noContact")}</div>`}</div>`;
   }
   var orderHtml = (order) => `<button class="item" data-fpped="${order.id}" style="padding:8px 4px">
         <span class="tx"><b>${formatShortDate(order.fecha)} · ${escapeHtml(orFallback(order.productos, t("customers.sheet.noProducts")))}</b>
           <span class="sm">${t("customers.sheet.orderLine", { units: formatNumber(order.unidades), total: portalLegacy.euros(Number(order.total)) })}${order.medico ? ` · ${escapeHtml(order.medico)}` : ""}</span></span>
         ${customersLegacy.orderPill(order.estado)}</button>`;
-  function sheetHtml5(detail, customer, canSell) {
-    const orders = detail.pedidos ?? [], counted = orders.filter((order) => !NOT_COUNTED2.includes(order.estado));
+  function sheetHtml6(detail, customer, canSell) {
+    const orders2 = detail.pedidos ?? [], counted = orders2.filter((order) => !NOT_COUNTED3.includes(order.estado));
     return `
     <div class="fh"><div><h2>${escapeHtml(customer.nombre)}</h2><div class="sm">${words4().Patient}${customer.nif ? t("customers.sheet.taxId", { taxId: escapeHtml(customer.nif) }) : ""}</div></div>
       <button class="x" id="fpx" aria-label="${t("common.close")}">✕</button></div>
@@ -14303,7 +18509,7 @@
     ${professionalHtml(detail.medico, canSell)}
     ${contactHtml2(customer)}
     <div class="blk"><h3>${t("customers.sheet.ordersTitle")}</h3>
-      ${orders.map(orderHtml).join("") || `<div class="sm">${t("customers.sheet.noOrders")}</div>`}</div>`;
+      ${orders2.map(orderHtml).join("") || `<div class="sm">${t("customers.sheet.noOrders")}</div>`}</div>`;
   }
   async function assign2(id, professionalId) {
     const { data: result, error } = await legacyDb().rpc("asignar_cuenta_cliente", { p_contacto: id, p_medico: professionalId });
@@ -14315,7 +18521,7 @@
     void showCustomer(id);
     if (currentScreen() === "pacientes") customersLegacy.repaintList();
   }
-  function bind13(id, customer, professional) {
+  function bind18(id, customer, professional) {
     const body2 = sheetBody(), on4 = (elementId, action) => {
       const button2 = document.getElementById(elementId);
       if (button2) button2.onclick = action;
@@ -14367,17 +18573,17 @@
       return;
     }
     const canSell = customersLegacy.canSell();
-    body2.innerHTML = sheetHtml5(data, data.contacto, canSell);
-    bind13(id, data.contacto, data.medico);
+    body2.innerHTML = sheetHtml6(data, data.contacto, canSell);
+    bind18(id, data.contacto, data.medico);
   }
   async function addStatusButtons(id) {
     const body2 = sheetBody();
     if (!body2 || customersLegacy.shownCustomer() !== id || document.getElementById("cbajablk") || !customersLegacy.canSell()) return;
     const { data: customer } = await legacyDb().from("contactos").select("archivado_en").eq("id", id).maybeSingle();
     if (!customer || customersLegacy.shownCustomer() !== id) return;
-    const toggle = customer.archivado_en ? `<button type="button" class="btn sec chico" data-calta="${id}">${t("customers.sheet.reactivate")}</button>` : `<button type="button" class="btn sec chico" data-cbaja="${id}">${t("customers.sheet.deactivate")}</button>`;
+    const toggle2 = customer.archivado_en ? `<button type="button" class="btn sec chico" data-calta="${id}">${t("customers.sheet.reactivate")}</button>` : `<button type="button" class="btn sec chico" data-cbaja="${id}">${t("customers.sheet.deactivate")}</button>`;
     body2.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="cbajablk"><div class="acts">
-      ${toggle}
+      ${toggle2}
       ${permissions.salesLevel() >= FULL_SALES_LEVEL ? `<button type="button" class="btn sec dang chico" data-celim="${id}">${t("customers.sheet.delete", { thePatient: escapeHtml(term("paciente", { article: "el" })) })}</button>` : ""}</div></div>`);
   }
   async function showCustomer(id) {
@@ -14391,23 +18597,23 @@
   }
 
   // src/app/screens/customers/list.ts
-  var SEARCH_WAIT_MS3 = 300;
+  var SEARCH_WAIT_MS5 = 300;
   var empty = '<span class="vac">—</span>';
-  var shown3 = (value15) => value15 ? escapeHtml(value15) : empty;
-  function headerHtml6(fields) {
+  var shown3 = (value18) => value18 ? escapeHtml(value18) : empty;
+  function headerHtml7(fields) {
     const titles = [t("customers.list.customer"), t("customers.list.type"), t("customers.list.taxId"), t("customers.list.phone"), t("customers.list.email"), t("customers.list.town")];
     return `<div class="dh">${titles.map((title2) => `<span>${title2}</span>`).join("")}
       <span>${words4().Professional}</span><span>${t("customers.list.salesRep")}</span><span class="num">${t("customers.list.orders")}</span><span class="num">${t("customers.list.units")}</span><span>${t("customers.list.lastOrder")}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
   }
-  function rowHtml13(row4, fields) {
-    const company = row4.tipo === TYPES3.company, values = row4.clasificadores ?? {};
+  function rowHtml19(row4, fields) {
+    const company = row4.tipo === TYPES3.company, values2 = row4.clasificadores ?? {};
     return `<button class="dr" data-pac="${row4.id}">
       <span><b>${escapeHtml(row4.nombre)}</b></span>
       <span><span class="pill ${company ? "p-emp" : "p-per"}">${company ? t("customers.company") : words4().Patient}</span></span>
       <span>${shown3(row4.nif)}</span><span>${shown3(phoneOf(row4))}</span><span class="corta">${shown3(row4.email)}</span><span>${shown3(row4.municipio)}</span>
       <span class="corta">${row4.medico ? escapeHtml(row4.medico) : `<span class="vac">${t("customers.list.unassigned")}</span>`}</span><span>${shown3(row4.comercial)}</span>
       <span class="num">${formatNumber(row4.pedidos)}</span><span class="num"><b>${formatNumber(row4.unidades)}</b></span>
-      <span>${row4.ultimo_pedido ? formatShortDate(row4.ultimo_pedido) : empty}</span>${fields.map((field8) => `<span>${shown3(accountColumnsLegacy.fieldText(field8, values[field8.clave]))}</span>`).join("")}
+      <span>${row4.ultimo_pedido ? formatShortDate(row4.ultimo_pedido) : empty}</span>${fields.map((field8) => `<span>${shown3(accountColumnsLegacy.fieldText(field8, values2[field8.clave]))}</span>`).join("")}
     </button>`;
   }
   function paintRows3(page) {
@@ -14416,8 +18622,8 @@
     count2.innerHTML = `<b>${formatNumber(page.total)}</b> ${page.total === 1 ? t("customers.list.oneCustomer") : t("customers.list.customers")}`;
     const rows = page.filas ?? [], fields = customersLegacy.visibleFieldColumns();
     list.innerHTML = rows.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
-    ${headerHtml6(fields)}
-    ${rows.map((row4) => rowHtml13(row4, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
+    ${headerHtml7(fields)}
+    ${rows.map((row4) => rowHtml19(row4, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
     customersLegacy.widenGrid(list.querySelector(".dgrid.pacs"), fields.length);
     list.querySelectorAll("[data-pac]").forEach((button2) => {
       button2.onclick = () => {
@@ -14450,7 +18656,7 @@
     }
     paintRows3(data);
   }
-  var option3 = (value15, label, chosen2) => `<option value="${escapeHtml(value15)}" ${chosen2 === value15 ? "selected" : ""}>${label}</option>`;
+  var option3 = (value18, label, chosen2) => `<option value="${escapeHtml(value18)}" ${chosen2 === value18 ? "selected" : ""}>${label}</option>`;
   function filtersHtml2(towns) {
     const filters = customersLegacy.filters();
     filters.campos ?? (filters.campos = {});
@@ -14468,19 +18674,19 @@
         ${filters.medico ? `<div><label>${words4().Professional}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${escapeHtml(filters.medicoNombre)} ✕</button></div></div>` : ""}
       </div>`;
   }
-  var searchTimer3;
+  var searchTimer4;
   function bindFilters(body2) {
     const filters = customersLegacy.filters(), again = () => {
       filters.pagina = 0;
       void listCustomers();
     };
-    const search3 = document.getElementById("pacq");
-    if (search3) search3.oninput = () => {
-      clearTimeout(searchTimer3);
-      searchTimer3 = setTimeout(() => {
-        filters.q = search3.value.trim();
+    const search4 = document.getElementById("pacq");
+    if (search4) search4.oninput = () => {
+      clearTimeout(searchTimer4);
+      searchTimer4 = setTimeout(() => {
+        filters.q = search4.value.trim();
         again();
-      }, SEARCH_WAIT_MS3);
+      }, SEARCH_WAIT_MS5);
     };
     const onSelect = (id, set) => {
       const select3 = document.getElementById(id);
@@ -14489,14 +18695,14 @@
         again();
       };
     };
-    onSelect("pactipo", (value15) => {
-      filters.tipo = value15;
+    onSelect("pactipo", (value18) => {
+      filters.tipo = value18;
     });
-    onSelect("pacped", (value15) => {
-      filters.pedidos = value15;
+    onSelect("pacped", (value18) => {
+      filters.pedidos = value18;
     });
-    onSelect("pacmun", (value15) => {
-      filters.municipio = value15;
+    onSelect("pacmun", (value18) => {
+      filters.municipio = value18;
     });
     customersLegacy.bindFieldFilters(body2, filters.campos ?? {}, again);
     const professional = document.getElementById("pacmedx");
@@ -14541,17 +18747,17 @@
   // src/app/screens/customers/picker.ts
   var MIN_LETTERS = 2;
   var WAIT_MS = 250;
-  var SHOWN = 8;
+  var SHOWN2 = 8;
   var foundRow = (item, index) => `<button type="button" data-pc="${index}"><span class="gic">🧑</span>
           <span><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml([phoneOf(item), item.nif, item.municipio, item.medico].filter(Boolean).join(" · "))}</span></span></button>`;
   var CustomerPicker = class {
-    constructor(element2, options2) {
+    constructor(element2, options3) {
       this.element = element2;
-      this.options = options2;
+      this.options = options3;
       __publicField(this, "value");
       __publicField(this, "timer");
       __publicField(this, "asked", 0);
-      this.value = options2.valor ?? null;
+      this.value = options3.valor ?? null;
     }
     choose(customer) {
       this.value = customer;
@@ -14599,7 +18805,7 @@
       }, WAIT_MS);
     }
     async showFound(text2, turn, box, list) {
-      const { data } = await legacyDb().rpc("contactos_lista", { q: text2, lim: SHOWN });
+      const { data } = await legacyDb().rpc("contactos_lista", { q: text2, lim: SHOWN2 });
       if (turn !== this.asked) return;
       box.classList.remove("buscando");
       const found = data ?? [];
@@ -14611,13 +18817,13 @@
       });
     }
   };
-  function pickCustomer(element2, options2) {
-    new CustomerPicker(element2, options2).paint();
+  function pickCustomer(element2, options3) {
+    new CustomerPicker(element2, options3).paint();
   }
 
   // src/app/screens/customers/status.ts
   var MIN_LETTERS2 = 2;
-  var SHOWN2 = 8;
+  var SHOWN3 = 8;
   async function setCustomerOff(id, off) {
     const { data: result, error } = await legacyDb().rpc("baja_cliente", { p_id: id, p_baja: off });
     if (error || !result?.ok) {
@@ -14637,7 +18843,7 @@
   async function searchCustomers(text2) {
     const clean = text2.trim().replace(/[,()]/g, " ");
     if (clean.length < MIN_LETTERS2) return [];
-    const { data } = await legacyDb().from("contactos").select("id,nombre,telefono,movil,email,nif,cuenta_id").or(`nombre.ilike.%${clean}%,telefono.ilike.%${clean}%,movil.ilike.%${clean}%,nif.ilike.%${clean}%`).limit(SHOWN2);
+    const { data } = await legacyDb().from("contactos").select("id,nombre,telefono,movil,email,nif,cuenta_id").or(`nombre.ilike.%${clean}%,telefono.ilike.%${clean}%,movil.ilike.%${clean}%,nif.ilike.%${clean}%`).limit(SHOWN3);
     return data ?? [];
   }
 
@@ -14692,21 +18898,21 @@
     });
     return chosen2;
   }
-  var round23 = (value15) => Math.round((Number(value15) || 0) * 100) / 100;
+  var round24 = (value18) => Math.round((Number(value18) || 0) * 100) / 100;
   function lineAmount(productId, units2) {
     const product = opportunitiesLegacy.products().find((item) => item.id === productId);
     if (product?.precio === null || product?.precio === void 0) return 0;
-    return round23(product.precio * (1 + (Number(product.iva) || 0) / 100) * (Number(units2) || 0));
+    return round24(product.precio * (1 + (Number(product.iva) || 0) / 100) * (Number(units2) || 0));
   }
   function orderLineAmount(productId, units2) {
     const product = opportunitiesLegacy.products().find((item) => item.id === productId);
-    return product?.precio === null || product?.precio === void 0 ? null : round23(product.precio * units2);
+    return product?.precio === null || product?.precio === void 0 ? null : round24(product.precio * units2);
   }
   var isPhone = (text2) => /^[+\d\s]{6,}$/.test(text2);
 
   // src/app/screens/opportunities/call-record.ts
   var chosen = { motivo: "", resultado: "" };
-  var value11 = (id) => document.getElementById(id)?.value ?? "";
+  var value15 = (id) => document.getElementById(id)?.value ?? "";
   var needsFollowUp = (result) => Boolean(result) && result !== ORDER_DONE;
   function callRecordHtml(state) {
     const call = state ?? {}, outgoing = call.direccion === OUTGOING;
@@ -14755,7 +18961,7 @@
   }
   function readCallRecord() {
     if (!document.getElementById("kollam")) return null;
-    return { motivo: chosen.motivo, resultado: chosen.resultado, direccion: value11("kold"), nota: value11("kolno").trim(), proxima_fecha: value11("kolpf"), proxima_accion: value11("kolpa").trim() };
+    return { motivo: chosen.motivo, resultado: chosen.resultado, direccion: value15("kold"), nota: value15("kolno").trim(), proxima_fecha: value15("kolpf"), proxima_accion: value15("kolpa").trim() };
   }
   function caller(subject, state) {
     return {
@@ -14768,7 +18974,7 @@
       ...subject.datos && Object.keys(subject.datos).length ? { datos: subject.datos } : {}
     };
   }
-  function payload5(record2, subject, state) {
+  function payload6(record2, subject, state) {
     const followUp = needsFollowUp(subject.resultado);
     return {
       id: state.id ?? null,
@@ -14785,7 +18991,7 @@
     };
   }
   async function saveCallRecord(record2, subject, state) {
-    const { data: result, error } = await legacyDb().rpc("guardar_llamada", { p: payload5(record2, subject, state ?? {}) });
+    const { data: result, error } = await legacyDb().rpc("guardar_llamada", { p: payload6(record2, subject, state ?? {}) });
     if (error || result?.ok === false) {
       notices.toast(error ? t("opportunities.callRecord.couldNotSaveError", { error: error.message ?? "" }) : t("opportunities.callRecord.couldNotSave"), true);
       return null;
@@ -14807,11 +19013,11 @@
     const loss = document.getElementById("nvperd");
     if (loss) loss.innerHTML = totalInterest(draft) ? t("opportunities.editor.unsold", { amount: portalLegacy.euros(totalInterest(draft)) }) : "";
   }
-  function lineHtml(draft, products3, index) {
+  function lineHtml4(draft, products3, index) {
     const line2 = draft.lines[index] ?? { producto_id: "", unidades: 0 };
-    const options2 = products3.map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("") || `<option value="">${t("opportunities.editor.noProducts")}</option>`;
+    const options3 = products3.map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("") || `<option value="">${t("opportunities.editor.noProducts")}</option>`;
     return `<div class="nvlin" data-nvi="${index}">
-        <select data-nvf="producto_id" aria-label="${t("opportunities.editor.product")}">${options2}</select>
+        <select data-nvf="producto_id" aria-label="${t("opportunities.editor.product")}">${options3}</select>
         <input data-nvf="unidades" type="number" min="1" step="1" value="${escapeHtml(String(line2.unidades))}" aria-label="${t("opportunities.editor.units")}">
         <span class="nvimp">${portalLegacy.euros(lineAmount(line2.producto_id, line2.unidades))}</span>
         ${draft.lines.length > 1 ? `<button type="button" class="btn sec" data-nvx="${index}" aria-label="${t("opportunities.editor.remove")}">✕</button>` : "<span></span>"}</div>`;
@@ -14835,7 +19041,7 @@
     const box = document.getElementById("nvint");
     if (!box) return;
     const products3 = opportunitiesLegacy.products().filter((product) => product.tipo !== "servicio" && !HIDDEN_STATES.includes(product.estado ?? ""));
-    box.innerHTML = range(draft.lines.length).map((index) => lineHtml(draft, products3, index)).join("") + `<div class="nvtot"><button type="button" class="lnk" id="nvmas">${t("opportunities.editor.otherProduct")}</button><span>${t("opportunities.editor.wouldBuy", { amount: portalLegacy.euros(totalInterest(draft)) })}</span></div>`;
+    box.innerHTML = range(draft.lines.length).map((index) => lineHtml4(draft, products3, index)).join("") + `<div class="nvtot"><button type="button" class="lnk" id="nvmas">${t("opportunities.editor.otherProduct")}</button><span>${t("opportunities.editor.wouldBuy", { amount: portalLegacy.euros(totalInterest(draft)) })}</span></div>`;
     box.querySelectorAll("[data-nvi]").forEach((row4) => {
       bindLine(draft, row4);
     });
@@ -14868,17 +19074,17 @@
   }
 
   // src/app/screens/opportunities/editor/client.ts
-  var SEARCH_WAIT_MS4 = 250;
+  var SEARCH_WAIT_MS6 = 250;
   var ORDERS_SHOWN = 20;
   var CALLS_SHOWN = 5;
   var phoneOf2 = (client) => orFallback(client.movil, orFallback(client.telefono, orFallback(client.tel, "")));
   var orderTotal = (order) => sum(order.lineas_pedido.map((line2) => (Number(line2.importe) || 0) * (1 + (Number(line2.iva) || 0) / 100)));
   var productName = (id) => opportunitiesLegacy.products().find((product) => product.id === id)?.nombre ?? t("opportunities.editor.defaultProduct");
   async function pastOrders(clientId) {
-    const { data: orders } = await legacyDb().from("pedidos").select("id,numero,fecha,estado").eq("contacto_id", clientId).neq("estado", "Anulado").order("fecha", { ascending: false }).limit(ORDERS_SHOWN);
-    const list = orders ?? [];
-    const { data: lines } = list.length ? await legacyDb().from("lineas_pedido").select("pedido_id,producto_id,unidades,importe,iva").in("pedido_id", list.map((order) => order.id)) : { data: [] };
-    return list.map((order) => ({ ...order, lineas_pedido: (lines ?? []).filter((line2) => line2.pedido_id === order.id) }));
+    const { data: orders2 } = await legacyDb().from("pedidos").select("id,numero,fecha,estado").eq("contacto_id", clientId).neq("estado", "Anulado").order("fecha", { ascending: false }).limit(ORDERS_SHOWN);
+    const list = orders2 ?? [];
+    const { data: lines2 } = list.length ? await legacyDb().from("lineas_pedido").select("pedido_id,producto_id,unidades,importe,iva").in("pedido_id", list.map((order) => order.id)) : { data: [] };
+    return list.map((order) => ({ ...order, lineas_pedido: (lines2 ?? []).filter((line2) => line2.pedido_id === order.id) }));
   }
   async function pastCalls(draft, clientId) {
     if (!draft.recording) return [];
@@ -14887,40 +19093,40 @@
   }
   function lastOrderHtml(draft, last) {
     if (!last) return "";
-    const lines = last.lineas_pedido.map((line2) => `${productName(line2.producto_id)} × ${formatNumber(line2.unidades)}`).join(", ");
-    return `<div class="nvult"><span>${t("opportunities.editor.lastOrder", { date: formatShortDate(String(last.fecha).slice(0, 10)), lines: escapeHtml(lines), amount: portalLegacy.euros(orderTotal(last)) })}</span>
+    const lines2 = last.lineas_pedido.map((line2) => `${productName(line2.producto_id)} × ${formatNumber(line2.unidades)}`).join(", ");
+    return `<div class="nvult"><span>${t("opportunities.editor.lastOrder", { date: formatShortDate(String(last.fecha).slice(0, 10)), lines: escapeHtml(lines2), amount: portalLegacy.euros(orderTotal(last)) })}</span>
         ${draft.recording && !draft.closed ? `<button type="button" class="btn sec" id="nvrep">${t("opportunities.editor.repeat")}</button>` : ""}</div>`;
   }
-  function contextHtml(draft, orders, promised) {
-    if (!orders.length && !promised) return `<span class="sm">${t("opportunities.editor.noOrdersYet")}</span>`;
-    const count2 = { count: formatNumber(orders.length), amount: portalLegacy.euros(sum(orders.map(orderTotal))) };
-    const total2 = orders.length ? `<span class="sm">${t(orders.length === ORDERS_SHOWN ? "opportunities.editor.ordersMore" : "opportunities.editor.orders", count2)}</span>` : "";
+  function contextHtml(draft, orders2, promised) {
+    if (!orders2.length && !promised) return `<span class="sm">${t("opportunities.editor.noOrdersYet")}</span>`;
+    const count2 = { count: formatNumber(orders2.length), amount: portalLegacy.euros(sum(orders2.map(orderTotal))) };
+    const total2 = orders2.length ? `<span class="sm">${t(orders2.length === ORDERS_SHOWN ? "opportunities.editor.ordersMore" : "opportunities.editor.orders", count2)}</span>` : "";
     const callBack = promised ? `<div class="banda-aviso">${t("opportunities.editor.promised", {
       date: formatShortDate(promised.proxima_fecha ?? ""),
       action: promised.proxima_accion ? `: ${escapeHtml(promised.proxima_accion)}` : "",
       result: escapeHtml(orFallback(promised.resultado, ""))
     })}</div>` : "";
     return `
-      ${lastOrderHtml(draft, orders[0])}
+      ${lastOrderHtml(draft, orders2[0])}
       ${total2}
       ${callBack}`;
   }
   async function paintContext(draft) {
     const id = draft.client?.id;
     if (!id) return;
-    const [orders, calls] = await Promise.all([pastOrders(id), pastCalls(draft, id)]);
+    const [orders2, calls] = await Promise.all([pastOrders(id), pastCalls(draft, id)]);
     const box = document.getElementById("nvctx");
     if (draft.client?.id !== id || !box) return;
     const promised = calls.find((call) => call.proxima_fecha && !call.seguimiento_hecho_en && !call.pedido_id && call.id !== draft.source.id);
-    box.innerHTML = contextHtml(draft, orders, promised);
-    const repeat = document.getElementById("nvrep"), last = orders[0];
+    box.innerHTML = contextHtml(draft, orders2, promised);
+    const repeat = document.getElementById("nvrep"), last = orders2[0];
     if (repeat && last) repeat.onclick = () => {
       draft.lines = last.lineas_pedido.map((line2) => ({ producto_id: line2.producto_id, unidades: Number(line2.unidades) || 1 }));
       paintInterest(draft);
       notices.toast(t("opportunities.editor.repeated"));
     };
   }
-  async function choose(draft, client) {
+  async function choose2(draft, client) {
     if (!client) return;
     draft.client = client;
     if (client.cuenta_id && !draft.reference) {
@@ -14933,14 +19139,14 @@
     paintClient(draft);
   }
   var resultHtml = (client) => `<button type="button" class="item" data-nvc="${client.id}"><span class="tx"><b>${escapeHtml(orFallback(client.nombre, ""))}</b><span class="sm">${escapeHtml([orFallback(client.movil, orFallback(client.telefono, "")), client.nif].filter(Boolean).join(" · "))}</span></span></button>`;
-  var searchTimer4;
-  async function search(draft) {
+  var searchTimer5;
+  async function search2(draft) {
     const found = await opportunitiesLegacy.searchClients(typedQuery()), box = document.getElementById("nvres1");
     if (!box) return;
     box.innerHTML = found.map(resultHtml).join("") || (typedQuery().length > 1 ? `<div class="sm" style="padding:6px">${t("opportunities.editor.notFound")}</div>` : "");
     box.querySelectorAll("[data-nvc]").forEach((button2) => {
       button2.onclick = () => {
-        void choose(draft, found.find((client) => client.id === button2.dataset.nvc));
+        void choose2(draft, found.find((client) => client.id === button2.dataset.nvc));
       };
     });
   }
@@ -14958,10 +19164,10 @@
   function bindSearch(draft) {
     const input4 = document.getElementById("nvq");
     if (input4) input4.oninput = () => {
-      clearTimeout(searchTimer4);
-      searchTimer4 = setTimeout(() => {
-        void search(draft);
-      }, SEARCH_WAIT_MS4);
+      clearTimeout(searchTimer5);
+      searchTimer5 = setTimeout(() => {
+        void search2(draft);
+      }, SEARCH_WAIT_MS6);
     };
     const add2 = document.getElementById("nvalta");
     if (add2) add2.onclick = () => {
@@ -14969,7 +19175,7 @@
       opportunitiesLegacy.editContact(
         { nombre: phone ? "" : typed, movil: phone ? typed : "", cuenta_id: reference2 ? reference2.id : null, medico: reference2 ? orFallback(reference2.nombre, "") : "" },
         (client) => {
-          void choose(draft, client);
+          void choose2(draft, client);
         }
       );
     };
@@ -15045,7 +19251,7 @@
       ${noSaleHtml(draft)}
     </div>`;
   }
-  function editorHtml5(draft) {
+  function editorHtml8(draft) {
     const saveChanges2 = draft.recording && (draft.closed || draft.source.id) ? `<button class="btn sec" id="nvguar">${t("opportunities.editor.saveChanges")}</button>` : "";
     return `
     <div class="fh"><div><h2>${title(draft)}</h2>
@@ -15059,7 +19265,7 @@
   }
 
   // src/app/screens/opportunities/editor/outcome.ts
-  var closeWindow = () => {
+  var closeWindow2 = () => {
     document.getElementById("dlg")?.close();
   };
   var refreshList = () => {
@@ -15079,7 +19285,7 @@
     const followUp = Boolean(result) && result !== ORDER_DONE;
     return { proxima_fecha: followUp ? fieldValue("nvpf") ?? "" : "", proxima_accion: followUp ? (fieldValue("nvpa") ?? "").trim() : "" };
   }
-  function payload6(draft, result) {
+  function payload7(draft, result) {
     const source = draft.source, date = fieldValue("nvf");
     return {
       id: source.id ?? null,
@@ -15101,8 +19307,8 @@
     if (error) return t("opportunities.editor.couldNotSaveError", { error: error.message ?? "" });
     return t(result?.motivo === "extra" ? "opportunities.editor.noExtra" : "opportunities.editor.couldNotSave");
   }
-  async function save13(draft, result) {
-    const { data, error } = await legacyDb().rpc("guardar_llamada", { p: payload6(draft, result) });
+  async function save19(draft, result) {
+    const { data, error } = await legacyDb().rpc("guardar_llamada", { p: payload7(draft, result) });
     if (error || !data || data.ok === false) {
       notices.toast(failure2(error, data), true);
       return null;
@@ -15118,22 +19324,22 @@
     button2.disabled = true;
     let saved2 = null;
     if (draft.recording) {
-      saved2 = await save13(draft, "");
+      saved2 = await save19(draft, "");
       if (!saved2) {
         button2.disabled = false;
         return;
       }
     }
     const { data: contact } = await legacyDb().from("contactos").select("id,nombre,nif,email,telefono,movil,cuenta_id").eq("id", client.id).maybeSingle();
-    closeWindow();
+    closeWindow2();
     refreshList();
     if (saved2?.id) opportunitiesLegacy.setPendingCall(saved2.id);
-    const lines = draft.recording ? wantedLines(draft).map((line2) => ({ ...line2, importe: orderLineAmount(line2.producto_id, line2.unidades) })) : [];
+    const lines2 = draft.recording ? wantedLines(draft).map((line2) => ({ ...line2, importe: orderLineAmount(line2.producto_id, line2.unidades) })) : [];
     const reference2 = draft.reference;
     opportunitiesLegacy.editOrder({
       contacto: { ...contact ?? client, medico: reference2 ? orFallback(reference2.nombre, "") : "" },
       medico: reference2 ? { id: reference2.id, nombre: reference2.nombre } : null,
-      lineas: lines.length ? lines : void 0,
+      lineas: lines2.length ? lines2 : void 0,
       origen: /web/i.test(draft.origin) ? "web" : void 0
     });
   }
@@ -15147,17 +19353,17 @@
       return;
     }
     button2.disabled = true;
-    const saved2 = await save13(draft, draft.result);
+    const saved2 = await save19(draft, draft.result);
     button2.disabled = false;
     if (!saved2) return;
-    closeWindow();
+    closeWindow2();
     notices.toast(t("opportunities.editor.savedNoOrder"));
     refreshList();
   }
   async function saveChanges(draft) {
     const result = draft.closed ? orFallback(draft.source.resultado, ORDER_DONE) : draft.noSale ? draft.result : "";
-    if (!await save13(draft, result)) return;
-    closeWindow();
+    if (!await save19(draft, result)) return;
+    closeWindow2();
     notices.toast(t("opportunities.editor.saved"));
     refreshList();
   }
@@ -15188,11 +19394,11 @@
     if (client?.cuenta_id) return { id: client.cuenta_id, nombre: orFallback(client.medico, term("medico", { capital: "C" })) };
     return null;
   }
-  function draftOf(start2, previous) {
+  function draftOf2(start2, previous) {
     const now = (/* @__PURE__ */ new Date()).toISOString(), source = { fecha: now, ...start2 };
     if (!source.fecha) source.fecha = now;
     const recording = permissions.hasOpportunities(), client = clientOf(source);
-    const lines = (source.interes ?? []).map((line2) => ({ producto_id: line2.producto_id, unidades: line2.unidades }));
+    const lines2 = (source.interes ?? []).map((line2) => ({ producto_id: line2.producto_id, unidades: line2.unidades }));
     const defaultOrigin = previous ? OUTGOING_CALL : catalog("origen_oportunidad")[0]?.valor ?? "";
     return {
       source,
@@ -15201,7 +19407,7 @@
       closed: Boolean(source.pedido_id),
       client,
       reference: referenceOf(source, client),
-      lines: lines.length ? lines : [{ producto_id: opportunitiesLegacy.defaultProduct(), unidades: 1 }],
+      lines: lines2.length ? lines2 : [{ producto_id: opportunitiesLegacy.defaultProduct(), unidades: 1 }],
       origin: orFallback(source.origen, defaultOrigin),
       reason: orFallback(source.motivo, ""),
       result: orFallback(source.resultado, ""),
@@ -15247,10 +19453,10 @@
   async function editOpportunity(start2, previous = null) {
     await opportunitiesLegacy.loadProducts();
     if (permissions.hasOpportunities()) await loadOpportunityCatalogs();
-    const draft = draftOf(start2, previous);
+    const draft = draftOf2(start2, previous);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml5(draft);
+    body2.innerHTML = editorHtml8(draft);
     box.showModal();
     paintClient(draft);
     if (draft.recording) {
@@ -15277,13 +19483,13 @@
   }
 
   // src/app/screens/opportunities/charts.ts
-  function indicatorsHtml(summary4) {
-    const total2 = summary4.total ?? 0, orders = summary4.con_pedido ?? 0, closed = total2 - (summary4.sin_cerrar ?? 0);
-    const kpi = (value15, key) => `<div class="kpi"><b>${value15}</b><span>${t(key)}</span></div>`;
+  function indicatorsHtml2(summary4) {
+    const total2 = summary4.total ?? 0, orders2 = summary4.con_pedido ?? 0, closed = total2 - (summary4.sin_cerrar ?? 0);
+    const kpi = (value18, key) => `<div class="kpi"><b>${value18}</b><span>${t(key)}</span></div>`;
     return [
       kpi(formatNumber(total2), "opportunities.list.kpiOpportunities"),
-      kpi(formatNumber(orders), "opportunities.list.kpiOrders"),
-      kpi(closed ? `${Math.round(orders / closed * 100)}%` : "—", "opportunities.list.kpiConversion"),
+      kpi(formatNumber(orders2), "opportunities.list.kpiOrders"),
+      kpi(closed ? `${Math.round(orders2 / closed * 100)}%` : "—", "opportunities.list.kpiConversion"),
       kpi(portalLegacy.euros(summary4.importe_ganado ?? 0), "opportunities.list.kpiSold"),
       kpi(portalLegacy.euros(summary4.importe_perdido ?? 0), "opportunities.list.kpiUnsold"),
       kpi(formatNumber(summary4.sin_cerrar ?? 0), "opportunities.list.kpiNotClosed")
@@ -15313,7 +19519,7 @@
   }
 
   // src/app/screens/opportunities/follow-ups.ts
-  var SHOWN3 = 20;
+  var SHOWN4 = 20;
   function whenHtml(call, today) {
     if (call.proxima_fecha < today) return `<b style="color:var(--dang)">${t("opportunities.list.late")}</b>`;
     return call.proxima_fecha === today ? `<b style="color:var(--warn)">${t("opportunities.list.today")}</b>` : `${formatShortDate(call.proxima_fecha)} · `;
@@ -15322,7 +19528,7 @@
     if (call.proxima_fecha < today) return "background:#FDECEC;color:var(--dang)";
     return call.proxima_fecha === today ? "background:#FFF4E5;color:var(--warn)" : "";
   }
-  function rowHtml14(call, today) {
+  function rowHtml20(call, today) {
     const phone = orFallback(call.tel_cliente, orFallback(call.telefono, ""));
     const details2 = `${whenHtml(call, today)}${escapeHtml(orFallback(call.resultado, ""))}${call.proxima_accion ? ` · ${escapeHtml(call.proxima_accion)}` : ""}${call.medico ? t("opportunities.list.fromReference", { name: escapeHtml(call.medico) }) : ""}`;
     return `<div class="item" style="cursor:default">
@@ -15338,7 +19544,7 @@
     if (!box) return;
     box.innerHTML = !list.length ? "" : `<div class="card" id="llsegs"><h2>${t("opportunities.list.callAgainTitle")}<span class="n">${list.length}</span></h2>
       <p class="sm" style="padding:0 16px">${t("opportunities.list.callAgainHint")}</p>
-      <div class="lista">${list.slice(0, SHOWN3).map((call) => rowHtml14(call, today)).join("")}</div></div>`;
+      <div class="lista">${list.slice(0, SHOWN4).map((call) => rowHtml20(call, today)).join("")}</div></div>`;
     box.querySelectorAll("[data-llseg]").forEach((button2) => {
       button2.onclick = () => {
         const call = list.find((item) => item.id === button2.dataset.llseg);
@@ -15355,8 +19561,8 @@
   }
 
   // src/app/screens/opportunities/list.ts
-  var SEARCH_WAIT_MS5 = 300;
-  function pageHtml5() {
+  var SEARCH_WAIT_MS7 = 300;
+  function pageHtml7() {
     const results = catalog("resultado_llamada").map((entry) => `<option>${escapeHtml(entry.valor)}</option>`).join("");
     return `<div class="panel">
     <div id="llsegz"></div>
@@ -15372,7 +19578,7 @@
     const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, ORDER_DONE)) : `<span class="pill p-warn">${t("opportunities.list.notClosed")}</span>`;
     return `${ends}${item.pedido ? `<span class="sm">${t("opportunities.list.order", { number: escapeHtml(item.pedido) })}</span>` : ""}`;
   }
-  function rowHtml15(item) {
+  function rowHtml21(item) {
     const when = new Date(item.fecha).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
     const reference2 = typeof item.medico === "string" ? item.medico : "";
     return `<button class="dr" data-ll="${item.id}"><span>${when}<span class="sm">${escapeHtml(orFallback(item.origen, orFallback(item.direccion, "")))}</span></span>
@@ -15382,17 +19588,17 @@
         <span>${endsHtml2(item)}</span>
         <span class="sm">${item.proxima_fecha ? `${formatShortDate(item.proxima_fecha)} · ` : ""}${escapeHtml(orFallback(item.proxima_accion, ""))}</span><span class="sm">${escapeHtml(orFallback(item.usuario, ""))}</span></button>`;
   }
-  function tableHtml6(shown5) {
+  function tableHtml8(shown5) {
     const heads = [t("opportunities.list.date"), t("opportunities.list.client"), t("opportunities.list.wants"), term("medico", { capital: "C" }), t("opportunities.list.ends"), t("opportunities.list.next"), t("opportunities.list.attended")];
     return `<div class="dgrid-wrap"><div class="dgrid llam opor">
       <div class="dh">${heads.map((head) => `<span>${head}</span>`).join("")}</div>
-      ${shown5.map(rowHtml15).join("")}</div></div>`;
+      ${shown5.map(rowHtml21).join("")}</div></div>`;
   }
-  function paintList2(list, rows) {
+  function paintList3(list, rows) {
     const size = accountListLegacy.pageSize();
     opportunitiesLegacy.setPage(Math.min(opportunitiesLegacy.page(), Math.max(0, Math.ceil(rows.length / size) - 1)));
     const start2 = opportunitiesLegacy.page() * size;
-    list.innerHTML = rows.length ? tableHtml6(rows.slice(start2, start2 + size)) : `<div class="vacio">${t("opportunities.list.empty")}</div>`;
+    list.innerHTML = rows.length ? tableHtml8(rows.slice(start2, start2 + size)) : `<div class="vacio">${t("opportunities.list.empty")}</div>`;
     list.querySelectorAll("[data-ll]").forEach((button2) => {
       button2.onclick = () => {
         void editOpportunity(rows.find((item) => item.id === button2.dataset.ll) ?? null);
@@ -15422,25 +19628,25 @@
     ]);
     const list = document.getElementById("lllista"), totals = document.getElementById("lltot"), charts = document.getElementById("llres2");
     if (!list || !totals || !charts) return;
-    totals.innerHTML = indicatorsHtml(summary4 ?? {});
+    totals.innerHTML = indicatorsHtml2(summary4 ?? {});
     charts.innerHTML = chartsHtml(summary4 ?? {});
-    paintList2(list, rows ?? []);
+    paintList3(list, rows ?? []);
   }
-  var searchTimer5;
+  var searchTimer6;
   async function paintOpportunities() {
     await loadOpportunityCatalogs();
     const box = document.getElementById("vcuerpo");
     if (!box) return;
-    box.innerHTML = pageHtml5();
-    const search3 = document.getElementById("llq"), result = document.getElementById("llfres");
+    box.innerHTML = pageHtml7();
+    const search4 = document.getElementById("llq"), result = document.getElementById("llfres");
     opportunitiesLegacy.mountPeriod(document.getElementById("llper"), { id: "llamadas", valor: "mes", alCambiar: () => {
       void paintPeriod();
     } });
-    if (search3) search3.oninput = () => {
-      clearTimeout(searchTimer5);
-      searchTimer5 = setTimeout(() => {
+    if (search4) search4.oninput = () => {
+      clearTimeout(searchTimer6);
+      searchTimer6 = setTimeout(() => {
         void paintPeriod();
-      }, SEARCH_WAIT_MS5);
+      }, SEARCH_WAIT_MS7);
     };
     if (result) result.onchange = () => {
       void paintPeriod();
@@ -15493,7 +19699,7 @@
     ["sin_comercial", "quality.summary.noSalesperson", "quality.summary.noSalespersonHelp"],
     ["duplicados", "quality.summary.duplicates", "quality.summary.duplicatesHelp"]
   ];
-  function summaryHtml3(quality2) {
+  function summaryHtml5(quality2) {
     const percent3 = percentOf2(quality2.completas, quality2.total);
     return `<div class="card" id="calidad" style="padding-bottom:6px">
     <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">${t("quality.summary.complete", { percent: percent3 })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words6(), done: formatNumber(quality2.completas), total: formatNumber(quality2.total) })}</span></div>
@@ -15506,18 +19712,18 @@
   async function paintSummary() {
     const { data: quality2 } = await callRpc("calidad_datos", {});
     if (!quality2 || document.getElementById("calidad")) return;
-    document.querySelector("#v-seguimiento .saludo")?.insertAdjacentHTML("afterend", summaryHtml3(quality2));
+    document.querySelector("#v-seguimiento .saludo")?.insertAdjacentHTML("afterend", summaryHtml5(quality2));
   }
-  function placeRow2(place) {
-    const address2 = [place.centro_nombre, place.direccion, [place.cp, place.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
-    const distance = place.km !== null && place.km !== void 0 ? t("quality.addresses.farFrom", { km: formatNumber(place.km), municipality: escapeHtml(orFallback(place.municipio, "")) }) : t("quality.addresses.outOfSpain");
-    return `<div class="item cdir" data-cdir="${place.id}" style="cursor:default">
-      <span class="tx"><b>${escapeHtml(place.nombre)}</b>
+  function placeRow2(place2) {
+    const address2 = [place2.centro_nombre, place2.direccion, [place2.cp, place2.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
+    const distance = place2.km !== null && place2.km !== void 0 ? t("quality.addresses.farFrom", { km: formatNumber(place2.km), municipality: escapeHtml(orFallback(place2.municipio, "")) }) : t("quality.addresses.outOfSpain");
+    return `<div class="item cdir" data-cdir="${place2.id}" style="cursor:default">
+      <span class="tx"><b>${escapeHtml(place2.nombre)}</b>
         <span class="sm">${escapeHtml(address2 || t("quality.addresses.noAddress"))}</span>
         <span class="sm cdirkm">${distance}</span></span>
       <span class="acts" style="margin:0">
-        <button type="button" class="btn sec" data-cdirf="${place.cuenta_id}">${t("quality.addresses.card")}</button>
-        ${place.direccion || place.municipio ? `<button type="button" class="btn" data-cdirg="${place.id}">${t("quality.addresses.relocate")}</button>` : ""}</span></div>`;
+        <button type="button" class="btn sec" data-cdirf="${place2.cuenta_id}">${t("quality.addresses.card")}</button>
+        ${place2.direccion || place2.municipio ? `<button type="button" class="btn" data-cdirg="${place2.id}">${t("quality.addresses.relocate")}</button>` : ""}</span></div>`;
   }
   var addressesHtml = (places) => `<div class="card" id="caldirs">
     <div class="fh"><div><h2>${t("quality.addresses.title", { count: formatNumber(places.length) })}</h2>
@@ -15529,12 +19735,12 @@
     if (!left) box.remove();
     else if (title2) title2.textContent = t("quality.addresses.title", { count: formatNumber(left) });
   }
-  async function relocate(box, place, button2) {
+  async function relocate(box, place2, button2) {
     const text2 = button2.textContent;
     button2.disabled = true;
     button2.textContent = t("quality.addresses.searching");
-    const query = [place.direccion, place.cp, place.municipio, place.provincia, "España"].filter(Boolean).join(", ");
-    const found = await qualityLegacy.geocode(query, { direccion: place.direccion, municipio: place.municipio, cp: place.cp });
+    const query = [place2.direccion, place2.cp, place2.municipio, place2.provincia, "España"].filter(Boolean).join(", ");
+    const found = await qualityLegacy.geocode(query, { direccion: place2.direccion, municipio: place2.municipio, cp: place2.cp });
     button2.disabled = false;
     button2.textContent = text2;
     if (!found) {
@@ -15542,16 +19748,16 @@
       return;
     }
     if (found.fuera) {
-      notices.toast(t("quality.addresses.elsewhere", { place: found.fuera, municipality: orFallback(place.municipio, "") }), true);
+      notices.toast(t("quality.addresses.elsewhere", { place: found.fuera, municipality: orFallback(place2.municipio, "") }), true);
       return;
     }
-    const { error } = await legacyDb().from("ubicaciones").update({ lat: Number(found.lat), lon: Number(found.lon) }).eq("id", place.id);
+    const { error } = await legacyDb().from("ubicaciones").update({ lat: Number(found.lat), lon: Number(found.lon) }).eq("id", place2.id);
     if (error) {
       notices.toast(t("quality.addresses.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    notices.toast(t("quality.addresses.placed", { name: place.nombre, municipality: orFallback(place.municipio, "") }));
-    removeRow(box, place.id);
+    notices.toast(t("quality.addresses.placed", { name: place2.nombre, municipality: orFallback(place2.municipio, "") }));
+    removeRow(box, place2.id);
   }
   async function paintDoubtfulAddresses() {
     if (!document.getElementById("calidad") || document.getElementById("caldirs")) return;
@@ -15570,8 +19776,8 @@
     });
     box.querySelectorAll("[data-cdirg]").forEach((button2) => {
       button2.onclick = () => {
-        const place = places.find((item) => item.id === button2.dataset.cdirg);
-        if (place) void relocate(box, place, button2);
+        const place2 = places.find((item) => item.id === button2.dataset.cdirg);
+        if (place2) void relocate(box, place2, button2);
       };
     });
   }
@@ -15585,7 +19791,7 @@
     f_municipio: followUpState.muni || null,
     f_modo: followUpState.modo
   });
-  var loadingHtml2 = (text2) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text2)}</span></div>`;
+  var loadingHtml3 = (text2) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text2)}</span></div>`;
   function nameHtml(row4) {
     const urgent = row4.urgente ? `<span class="pill p-urg">${t("quality.followUp.urgent")}</span> ` : "";
     const reporting = row4.sin_reporting ? `<span class="pill p-sr" title="${t("quality.followUp.noReportingHelp", { visit: term("visita") })}">${t("quality.followUp.noReporting")}</span> ` : "";
@@ -15597,7 +19803,7 @@
            <br><span class="acts" style="margin:4px 0 0"><button class="btn sec chico" data-acc="hecha|${row4.id}">${t("quality.followUp.done")}</button>
            <button class="btn sec chico" data-acc="aplazar|${row4.id}">${t("quality.followUp.postpone")}</button></span>`;
   }
-  function rowHtml16(row4) {
+  function rowHtml22(row4) {
     const last = row4.ultima_visita ? t("quality.followUp.last", { date: formatShortDate(row4.ultima_visita), result: escapeHtml(orFallback(row4.ultimo_resultado, "")) }) : t("quality.followUp.notVisited");
     return `
     <button class="fila" data-id="${row4.id}">
@@ -15625,7 +19831,7 @@
     void paintFollowUp(true);
     void load();
   }
-  function bind14(list) {
+  function bind19(list) {
     list.onclick = (event) => {
       const target = event.target, action = target.closest("[data-acc]");
       if (action) {
@@ -15643,13 +19849,13 @@
       return;
     }
     list.innerHTML = "";
-    list.insertAdjacentHTML("beforeend", rows.map(rowHtml16).join(""));
+    list.insertAdjacentHTML("beforeend", rows.map(rowHtml22).join(""));
   }
   async function paintFollowUp(restart2) {
     const list = document.getElementById("slista"), count2 = document.getElementById("scuenta");
     if (!list || !count2) return;
     if (restart2) followUpState.pagina = 0;
-    list.innerHTML = loadingHtml2(t("quality.page.loadingFollowUp"));
+    list.innerHTML = loadingHtml3(t("quality.page.loadingFollowUp"));
     count2.textContent = t("quality.followUp.searching");
     const size = accountListLegacy.pageSize();
     const { data, error } = await legacyDb().rpc("seguimiento_lista", { ...filterParams2(), lim: size, desplaz: followUpState.pagina * size });
@@ -15672,21 +19878,21 @@
         void paintFollowUp(true);
       }
     });
-    bind14(list);
+    bind19(list);
   }
 
   // src/app/screens/quality/page.ts
   var MODES3 = [["todos", "quality.page.showAll"], ["visitados", "quality.page.showVisited"], ["sin_visitar", "quality.page.showNotVisited"], ["con_accion", "quality.page.showWithAction"], ["atrasados", "quality.page.showLate"]];
   var canSeeDuplicates = () => cardSectionsLegacy.can("administrar") || permissions.canReviewDuplicates();
-  function headerHtml7() {
+  function headerHtml8() {
     const duplicates = canSeeDuplicates() ? `<button class="btn sec" id="caldup">${icon("copy")} ${t("quality.page.duplicates")}</button>` : "";
     return `<button class="cfgvolver visible" id="calvolver" type="button">‹ ${escapeHtml(accountListLegacy.contactsLabel())}</button>
     <div class="saludo"><div><h1>${t("quality.page.title")}</h1><div class="fecha">${t("quality.page.subtitle", { professional: term("medico") })}</div></div>
       <div class="acts" style="margin:0">${duplicates}</div></div>`;
   }
-  function pageHtml6() {
-    const modes = MODES3.map(([value15, key]) => `<option value="${value15}">${t(key)}</option>`).join("");
-    return `${headerHtml7()}
+  function pageHtml8() {
+    const modes = MODES3.map(([value18, key]) => `<option value="${value18}">${t(key)}</option>`).join("");
+    return `${headerHtml8()}
     <div class="kpis" id="segkpis"><div class="skel"></div></div>
     <div class="panel">
       <div class="filtros">
@@ -15701,14 +19907,14 @@
     </div>`;
   }
   var selectValue = (id) => document.getElementById(id)?.value ?? "";
-  function fillFilters(options2) {
-    const fill2 = (id, list, all) => {
+  function fillFilters(options3) {
+    const fill2 = (id, list, all2) => {
       const select3 = document.getElementById(id);
-      if (select3) select3.innerHTML = `<option value="">${all}</option>${(list ?? []).map((option4) => `<option>${escapeHtml(option4.v)}</option>`).join("")}`;
+      if (select3) select3.innerHTML = `<option value="">${all2}</option>${(list ?? []).map((option4) => `<option>${escapeHtml(option4.v)}</option>`).join("")}`;
     };
-    fill2("sest", options2?.estados, t("quality.page.allStates"));
-    fill2("sprov", options2?.provincias, t("quality.page.allProvinces"));
-    fill2("smuni", options2?.municipios, t("quality.page.allMunicipalities"));
+    fill2("sest", options3?.estados, t("quality.page.allStates"));
+    fill2("sprov", options3?.provincias, t("quality.page.allProvinces"));
+    fill2("smuni", options3?.municipios, t("quality.page.allMunicipalities"));
     for (const id of ["sest", "sprov", "smuni", "smodo"]) {
       const select3 = document.getElementById(id);
       if (select3) select3.onchange = () => {
@@ -15749,10 +19955,10 @@
     const view = document.getElementById("v-seguimiento");
     if (!view) return;
     Object.assign(followUpState, { estado: "", prov: "", muni: "", modo: "todos", pagina: 0 });
-    view.innerHTML = pageHtml6();
+    view.innerHTML = pageHtml8();
     bindHeader3();
-    const { data: options2 } = await legacyDb().rpc("opciones_filtros", {});
-    fillFilters(options2);
+    const { data: options3 } = await legacyDb().rpc("opciones_filtros", {});
+    fillFilters(options3);
     const { data: summary4 } = await legacyDb().rpc("resumen_seguimiento");
     paintIndicators3(summary4);
     void paintFollowUp(true);
@@ -15822,11 +20028,11 @@
     closeAndGo("mangoir", screen2, screen2 === "config" ? "prefs" : void 0);
   }
   function listsHtml(section2) {
-    const level = sheetLevel(section2), lines = helpLines(section2.id), places = section2.config ?? [];
+    const level = sheetLevel(section2), lines2 = helpLines(section2.id), places = section2.config ?? [];
     const can = section2.hacer.map(([required, text2]) => `<li class="${level >= required ? "si" : "no"}"><span>${level >= required ? "✓" : "🔒"}</span><span>${escapeHtml(text2)}</span></li>`).join("");
     return `<h3 class="mansub">${t("manual.portal.whatYouCanDo")}</h3><ul class="manlist">${can}</ul>
-    ${lines.length ? `<h3 class="mansub">${t("manual.portal.howItWorks")}</h3><ul class="manlist">${lines.map((line2) => `<li><span>•</span><span>${line2}</span></li>`).join("")}</ul>` : ""}
-    ${places.length ? `<h3 class="mansub">${t("manual.portal.whereConfigured")}</h3><div class="mancfg">${places.map((place) => `<span>⚙ ${escapeHtml(place)}</span>`).join("")}</div>` : ""}`;
+    ${lines2.length ? `<h3 class="mansub">${t("manual.portal.howItWorks")}</h3><ul class="manlist">${lines2.map((line2) => `<li><span>•</span><span>${line2}</span></li>`).join("")}</ul>` : ""}
+    ${places.length ? `<h3 class="mansub">${t("manual.portal.whereConfigured")}</h3><div class="mancfg">${places.map((place2) => `<span>⚙ ${escapeHtml(place2)}</span>`).join("")}</div>` : ""}`;
   }
   var canGoToSettings = (settings) => settings !== void 0 && settings !== "" && (manualLegacy.can("administrar") || SETTINGS_FOR_EVERYONE.includes(settings));
   var canOpenScreen = (destination2) => destination2 !== null && destination2 !== "manual" && (destination2 === "config" || manualLegacy.canOpenModule(destination2));
@@ -15860,8 +20066,8 @@
       section2.hacer.forEach(([, text2]) => {
         add2(text2);
       });
-      (section2.config ?? []).forEach((place) => {
-        add2(t("manual.portal.configuredIn", { place }));
+      (section2.config ?? []).forEach((place2) => {
+        add2(t("manual.portal.configuredIn", { place: place2 }));
       });
       helpLines(section2.id, false).forEach((line2) => {
         add2(stripTags(line2));
@@ -15879,7 +20085,7 @@
     });
     return `<button class="manhit" ${entry.section ? `data-mansec2="${entry.section}"` : ""}><span class="mhm">${escapeHtml(entry.module)}</span><span>${text2}</span></button>`;
   }
-  function search2(input4, results, entries) {
+  function search3(input4, results, entries) {
     const query = normalise(input4.value.trim());
     document.querySelectorAll(".mancard").forEach((card2) => {
       card2.classList.remove("hide");
@@ -15900,7 +20106,7 @@
     const results = document.getElementById("manres"), entries = searchIndex();
     if (!results) return;
     input4.oninput = () => {
-      search2(input4, results, entries);
+      search3(input4, results, entries);
     };
     results.addEventListener("click", (event) => {
       const hit = event.target?.closest("[data-mansec2]");
@@ -15919,18 +20125,18 @@
       <div class="manbusca"><input id="manq" type="search" placeholder="${t("manual.portal.search")}" aria-label="${t("manual.portal.searchLabel")}"></div>
     </div>`;
   }
-  function cardHtml4(section2) {
+  function cardHtml5(section2) {
     const level = cardLevel(section2), pill = level >= 2 ? "p-est" : level === 1 ? "p-per" : "p-anu";
     return `<button class="mancard ${level ? "" : "bloq"}" data-mansec="${section2.id}"><span class="mci">${sectionIcon(section2.id)}</span>
         <b>${escapeHtml(section2.t)}</b><span class="mcd">${escapeHtml(section2.para)}</span><span class="pill ${pill}">${level ? t("manual.portal.yourAccess", { level: accessText(section2) }) : t("manual.portal.noAccess")}</span></button>`;
   }
-  function pageHtml7() {
+  function pageHtml9() {
     const steps3 = firstSteps().map(([stepIcon, title2, text2, screen2], index) => `<button class="manpaso" data-mira="${screen2}"><span class="mpn">${index + 1}</span><span class="mpi">${stepIcon}</span><b>${escapeHtml(title2)}</b><span>${escapeHtml(text2)}</span></button>`).join("");
     return `${heroHtml2()}
     <h2 class="mantit">${t("manual.portal.firstSteps")}</h2>
     <div class="manpasos">${steps3}</div>
     <h2 class="mantit">${t("manual.portal.byModule")}</h2>
-    <div class="mangrid">${manualLegacy.sections().map(cardHtml4).join("")}</div>
+    <div class="mangrid">${manualLegacy.sections().map(cardHtml5).join("")}</div>
     <h2 class="mantit">${t("manual.portal.faq")}</h2>
     <div class="card manfaqs">${manualLegacy.faq().map(([question, answer]) => `<details class="manfaq"><summary>${escapeHtml(question)}</summary><p>${escapeHtml(answer)}</p></details>`).join("")}</div>`;
   }
@@ -15949,7 +20155,7 @@
       };
     });
   }
-  function bind15(page) {
+  function bind20(page) {
     page.onclick = (event) => {
       const step = event.target?.closest("[data-mira]");
       if (!step) return;
@@ -15965,8 +20171,8 @@
   function paintPortalManual() {
     const page = document.getElementById("v-manual");
     if (!page) return;
-    page.innerHTML = pageHtml7();
-    bind15(page);
+    page.innerHTML = pageHtml9();
+    bind20(page);
     listenToSearch();
     markOutOfPlan(page);
   }
@@ -16029,9 +20235,9 @@
     window.scrollTo(0, back.y);
   }
   function addBackButton() {
-    const header = document.querySelector("#v-manual .saludo"), back = manualLegacy.back();
-    if (!header || !back || document.getElementById("manvolver")) return;
-    header.insertAdjacentHTML("afterbegin", `<button type="button" class="manvuelta" id="manvolver"><b aria-hidden="true">‹</b> ${t("manual.book.backTo", { name: escapeHtml(manualLegacy.screenName(back.tab)) })}</button>`);
+    const header2 = document.querySelector("#v-manual .saludo"), back = manualLegacy.back();
+    if (!header2 || !back || document.getElementById("manvolver")) return;
+    header2.insertAdjacentHTML("afterbegin", `<button type="button" class="manvuelta" id="manvolver"><b aria-hidden="true">‹</b> ${t("manual.book.backTo", { name: escapeHtml(manualLegacy.screenName(back.tab)) })}</button>`);
     const button2 = document.getElementById("manvolver");
     if (button2) button2.onclick = () => {
       void goBack();
@@ -16152,7 +20358,7 @@
     ["cobrado", false, ["cobrado", "pagado", "estado cobro"]],
     ["canal", false, ["canal"]]
   ];
-  var FIELDS = {
+  var FIELDS2 = {
     clientes: CUSTOMER_FIELDS,
     productos: PRODUCT_FIELDS,
     prescriptores: PROFESSIONAL_FIELDS,
@@ -16169,14 +20375,14 @@
     history: () => void 0
   };
   var STEP_NAMES = ["importing.steps.what", "importing.steps.file", "importing.steps.columns", "importing.steps.review"];
-  function stepsHtml2(current) {
+  function stepsHtml3(current) {
     return `<div class="imppasos">${STEP_NAMES.map((key, index) => {
       const step = index + 1, state = step < current ? "hecho" : step === current ? "actual" : "";
       return `<span class="${state}"><b>${step < current ? icon("check") : step}</b>${t(key)}</span>`;
     }).join("")}</div>`;
   }
   var pageBox = () => document.getElementById("cfgcuerpo");
-  function paint7(html) {
+  function paint9(html) {
     const box = pageBox();
     if (box) box.innerHTML = html;
     return box;
@@ -16195,19 +20401,19 @@
   var SAMPLE_ROWS = 40;
   var SAMPLES = 3;
   var samples2 = (index) => [...new Set(wizard.rows.slice(0, SAMPLE_ROWS).map((row4) => row4.v[index] ?? "").filter(Boolean))].slice(0, SAMPLES);
-  function columnHtml(header, index) {
+  function columnHtml(header2, index) {
     const chosen2 = wizard.mapping[index] ?? "no", entity = wizard.entity;
-    const options2 = FIELDS[entity].map(([key, required]) => `<option value="std:${key}" ${chosen2 === `std:${key}` ? "selected" : ""}>${escapeHtml(fieldLabel(entity, key))}${required ? " *" : ""}</option>`).join("");
+    const options3 = FIELDS2[entity].map(([key, required]) => `<option value="std:${key}" ${chosen2 === `std:${key}` ? "selected" : ""}>${escapeHtml(fieldLabel(entity, key))}${required ? " *" : ""}</option>`).join("");
     return `<div class="impcol ${chosen2 === "no" ? "ignorada" : ""}">
-      <div><b>${escapeHtml(header)}</b><span class="sm">${samples2(index).map(escapeHtml).join(" · ") || t("importing.columns.empty")}</span></div>
+      <div><b>${escapeHtml(header2)}</b><span class="sm">${samples2(index).map(escapeHtml).join(" · ") || t("importing.columns.empty")}</span></div>
       <span class="impflecha">→</span>
       <select data-impc="${index}"><option value="no" ${chosen2 === "no" ? "selected" : ""}>${t("importing.columns.skip")}</option>
-        <optgroup label="${t("importing.columns.platformFields")}">${options2}</optgroup>
-        <option value="extra" ${chosen2 === "extra" ? "selected" : ""}>${t("importing.columns.custom", { name: escapeHtml(header) })}</option></select></div>`;
+        <optgroup label="${t("importing.columns.platformFields")}">${options3}</optgroup>
+        <option value="extra" ${chosen2 === "extra" ? "selected" : ""}>${t("importing.columns.custom", { name: escapeHtml(header2) })}</option></select></div>`;
   }
-  function pageHtml8() {
+  function pageHtml10() {
     const intro = t("importing.columns.summary", { rows: formatNumber(wizard.rows.length), columns: wizard.headers.length }) + (wizard.remembered ? t("importing.columns.remembered") : t("importing.columns.proposed")) + t("importing.columns.customHint", { type: escapeHtml(entityName(wizard.entity)) });
-    return `<div class="card cfgpanel impcaja">${stepsHtml2(3)}
+    return `<div class="card cfgpanel impcaja">${stepsHtml3(3)}
     <h2 style="padding:0 0 4px">${t("importing.columns.title", { name: escapeHtml(wizard.fileName) })}</h2>
     <p class="sm">${intro}</p>
     <div class="impmapa">${wizard.headers.map(columnHtml).join("")}</div>
@@ -16215,8 +20421,8 @@
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button><button class="btn" type="button" id="impsig">${t("importing.columns.next")}</button></div></div>`;
   }
   function problems() {
-    const entity = wizard.entity, assigned = wizard.mapping.filter((value15) => value15.startsWith("std:")).map((value15) => value15.slice(4));
-    const missing2 = FIELDS[entity].filter(([key, required]) => required && !assigned.includes(key) && !(entity === "ventas" && key === "producto" && assigned.includes("referencia"))).map(([key]) => fieldLabel(entity, key));
+    const entity = wizard.entity, assigned = wizard.mapping.filter((value18) => value18.startsWith("std:")).map((value18) => value18.slice(4));
+    const missing2 = FIELDS2[entity].filter(([key, required]) => required && !assigned.includes(key) && !(entity === "ventas" && key === "producto" && assigned.includes("referencia"))).map(([key]) => fieldLabel(entity, key));
     const repeated = [...new Set(assigned.filter((key, index) => assigned.indexOf(key) !== index))].map((key) => fieldLabel(entity, key));
     return { missing: missing2, repeated };
   }
@@ -16229,7 +20435,7 @@
     if (next) next.disabled = Boolean(missing2.length || repeated.length);
   }
   function paintColumnsStep() {
-    const box = paint7(pageHtml8());
+    const box = paint9(pageHtml10());
     box?.querySelectorAll("[data-impc]").forEach((select3) => {
       select3.onchange = () => {
         wizard.mapping[Number(select3.dataset.impc)] = select3.value;
@@ -16257,11 +20463,11 @@
     for (const char of text2) hash = (hash << 5) + hash + char.charCodeAt(0) | 0;
     return (hash >>> 0).toString(36);
   }
-  var pad = (value15) => String(value15).padStart(2, "0");
-  function cellValue(value15) {
-    if (value15 === null || value15 === void 0) return "";
-    if (value15 instanceof Date) return Number.isNaN(value15.getTime()) ? "" : `${value15.getFullYear()}-${pad(value15.getMonth() + 1)}-${pad(value15.getDate())}`;
-    return String(value15).trim();
+  var pad = (value18) => String(value18).padStart(2, "0");
+  function cellValue(value18) {
+    if (value18 === null || value18 === void 0) return "";
+    if (value18 instanceof Date) return Number.isNaN(value18.getTime()) ? "" : `${value18.getFullYear()}-${pad(value18.getMonth() + 1)}-${pad(value18.getDate())}`;
+    return String(value18).trim();
   }
   function detectHeaderRow(rows) {
     const scores = rows.slice(0, TITLE_ROWS).map((row4) => row4.filter((cell3) => cell3.trim() && Number.isNaN(Number(cell3.replace(",", ".")))).length);
@@ -16283,15 +20489,15 @@
     });
     return 2 * common / (firstPairs.size + secondPairs.size);
   }
-  function score(header, synonym) {
-    if (header === synonym) return EXACT;
-    if (header.split(" ").includes(synonym) || synonym.length > 3 && header.includes(synonym)) return CONTAINED;
-    return Math.round(similarity(header, synonym) * SIMILAR);
+  function score(header2, synonym) {
+    if (header2 === synonym) return EXACT;
+    if (header2.split(" ").includes(synonym) || synonym.length > 3 && header2.includes(synonym)) return CONTAINED;
+    return Math.round(similarity(header2, synonym) * SIMILAR);
   }
-  function proposeField(header, entity, used) {
-    const normalised = normaliseHeader(header);
+  function proposeField(header2, entity, used) {
+    const normalised = normaliseHeader(header2);
     let best = null;
-    for (const [key, , synonyms] of FIELDS[entity]) {
+    for (const [key, , synonyms] of FIELDS2[entity]) {
       if (used.has(key)) continue;
       const points = Math.max(0, ...[...synonyms, key].map((synonym) => score(normalised, normaliseHeader(synonym))));
       if (points >= MIN_SCORE && (!best || points > best.points)) best = { key, points };
@@ -16304,7 +20510,7 @@
   function paintImport() {
     wizard.book = null;
     const types2 = entityTypes().map((type) => `<button class="imptipo" type="button" data-impt="${type.key}"><span class="imptic">${icon(type.icon)}</span><b>${escapeHtml(type.name)}</b><span class="sm">${escapeHtml(type.hint)}</span></button>`).join("");
-    const box = paint7(`<div class="card cfgpanel impcaja">${stepsHtml2(1)}
+    const box = paint9(`<div class="card cfgpanel impcaja">${stepsHtml3(1)}
     <h2 style="padding:0 0 4px">${t("importing.start.title")}</h2>
     <p class="sm">${t("importing.start.text")}</p>
     <div class="imptipos">${types2}</div></div>`);
@@ -16316,7 +20522,7 @@
     });
   }
   function paintFileStep() {
-    paint7(`<div class="card cfgpanel impcaja">${stepsHtml2(2)}
+    paint9(`<div class="card cfgpanel impcaja">${stepsHtml3(2)}
     <h2 style="padding:0 0 4px">${t("importing.file.title", { name: escapeHtml(entityName(wizard.entity).toLowerCase()) })}</h2>
     <p class="sm">${t("importing.file.text")}${wizard.entity === "ventas" ? t("importing.file.salesText") : ""}</p>
     <label class="impzona" id="impzona"><input type="file" id="impfile" accept=".xlsx,.xls,.csv,.txt" hidden>
@@ -16354,9 +20560,9 @@
     return reader.read(buffer, { type: "array", cellDates: true });
   }
   function askSheet(zone, file, book) {
-    const place = document.getElementById("imphojas");
-    if (!place) return;
-    place.innerHTML = `<label for="imphoja">${t("importing.file.sheets")}</label><select id="imphoja">${book.SheetNames.map((name) => `<option>${escapeHtml(name)}</option>`).join("")}</select>
+    const place2 = document.getElementById("imphojas");
+    if (!place2) return;
+    place2.innerHTML = `<label for="imphoja">${t("importing.file.sheets")}</label><select id="imphoja">${book.SheetNames.map((name) => `<option>${escapeHtml(name)}</option>`).join("")}</select>
         <div class="acts"><button class="btn" type="button" id="imphojaok">${t("importing.file.next")}</button></div>`;
     zoneText(zone, file.name);
     zone.classList.remove("leyendo");
@@ -16381,13 +20587,13 @@
   }
   function proposeMapping(template) {
     const used = /* @__PURE__ */ new Set();
-    return wizard.headers.map((header, index) => {
-      const remembered = template?.[header];
+    return wizard.headers.map((header2, index) => {
+      const remembered = template?.[header2];
       if (remembered) {
         if (remembered.startsWith("std:")) used.add(remembered.slice(4));
         return remembered;
       }
-      const field8 = proposeField(header, wizard.entity, used);
+      const field8 = proposeField(header2, wizard.entity, used);
       if (field8) {
         used.add(field8);
         return `std:${field8}`;
@@ -16400,7 +20606,7 @@
     const rows = reader.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: "" }).map((row4) => row4.map(cellValue));
     const titleRow = detectHeaderRow(rows);
     wizard.headers = (rows[titleRow] ?? []).map((cell3, index) => cell3 || t("importing.file.column", { index: index + 1 }));
-    wizard.rows = rows.slice(titleRow + 1).map((values, index) => ({ fila: titleRow + index + 2, v: values })).filter((row4) => row4.v.some((cell3) => cell3 !== ""));
+    wizard.rows = rows.slice(titleRow + 1).map((values2, index) => ({ fila: titleRow + index + 2, v: values2 })).filter((row4) => row4.v.some((cell3) => cell3 !== ""));
     if (!wizard.rows.length) {
       notices.toast(t("importing.file.noRows"), true);
       return;
@@ -16420,9 +20626,9 @@
   var BATCH = 200;
   function columnsOf() {
     const standard = /* @__PURE__ */ new Map(), custom = /* @__PURE__ */ new Map();
-    wizard.mapping.forEach((value15, index) => {
-      if (value15.startsWith("std:")) standard.set(value15.slice(4), index);
-      else if (value15 === "extra") custom.set(customFieldKey(wizard.headers[index] ?? ""), index);
+    wizard.mapping.forEach((value18, index) => {
+      if (value18.startsWith("std:")) standard.set(value18.slice(4), index);
+      else if (value18 === "extra") custom.set(customFieldKey(wizard.headers[index] ?? ""), index);
     });
     return { standard, custom };
   }
@@ -16432,13 +20638,13 @@
       result[key] = row4.v[index] ?? "";
     });
     columns.custom.forEach((index, key) => {
-      const value15 = row4.v[index];
-      if (value15 !== void 0 && value15 !== "") extra[key] = value15;
+      const value18 = row4.v[index];
+      if (value18 !== void 0 && value18 !== "") extra[key] = value18;
     });
     result.extra = extra;
     return result;
   }
-  var text = (value15) => typeof value15 === "string" ? value15 : "";
+  var text = (value18) => typeof value18 === "string" ? value18 : "";
   function newOrder(row4) {
     return {
       _fila: row4._fila,
@@ -16455,14 +20661,14 @@
     };
   }
   function salesOrders(rows) {
-    const orders = /* @__PURE__ */ new Map();
+    const orders2 = /* @__PURE__ */ new Map();
     for (const row4 of rows) {
       const key = text(row4.numero) ? `n:${text(row4.numero)}` : `f:${String(row4.fecha)}|${String(row4.cliente)}`;
-      const order = orders.get(key) ?? newOrder(row4);
-      orders.set(key, order);
+      const order = orders2.get(key) ?? newOrder(row4);
+      orders2.set(key, order);
       order.lineas.push({ producto: text(row4.producto), referencia: text(row4.referencia), unidades: row4.unidades, precio: row4.precio, importe: row4.importe, iva: row4.iva, medico: text(row4.medico) });
     }
-    return [...orders.values()];
+    return [...orders2.values()];
   }
   function rowsToImport() {
     const columns = columnsOf(), rows = wizard.rows.map((row4) => rowObject(row4, columns));
@@ -16475,15 +20681,15 @@
     total2.errores.push(...part.errores);
     total2.filas.push(...part.filas);
   }
-  async function sendInBatches(rows, options2, onProgress) {
+  async function sendInBatches(rows, options3, onProgress) {
     const total2 = { creados: 0, actualizados: 0, omitidos: 0, errores: [], filas: [] };
     for (let start2 = 0; start2 < rows.length; start2 += BATCH) {
       const { data, error } = await callRpc("importar_lote", {
-        p_imp: options2.importId,
-        p_entidad: options2.entity,
+        p_imp: options3.importId,
+        p_entidad: options3.entity,
         p_filas: rows.slice(start2, start2 + BATCH),
-        p_modo: options2.mode,
-        p_simular: options2.simulate
+        p_modo: options3.mode,
+        p_simular: options3.simulate
       });
       if (error || !data?.ok) throw new Error(error ? error.message ?? "" : data?.error ?? t("importing.run.noAnswer"));
       add(total2, data);
@@ -16496,21 +20702,21 @@
   var MAX_CLASSIFIER_VALUES = 30;
   var DESTINATIONS = { clientes: "pacientes", productos: "productos", prescriptores: "directorio", ventas: "ventas" };
   function customFields() {
-    return wizard.mapping.map((value15, index) => value15 === "extra" ? index : null).filter(isPresent).map((index) => {
-      const values = [...new Set(wizard.rows.map((row4) => row4.v[index] ?? "").filter(Boolean))], name = wizard.headers[index] ?? "";
-      return { clave: customFieldKey(name), nombre: name, valores: values.length <= MAX_CLASSIFIER_VALUES ? values : [] };
+    return wizard.mapping.map((value18, index) => value18 === "extra" ? index : null).filter(isPresent).map((index) => {
+      const values2 = [...new Set(wizard.rows.map((row4) => row4.v[index] ?? "").filter(Boolean))], name = wizard.headers[index] ?? "";
+      return { clave: customFieldKey(name), nombre: name, valores: values2.length <= MAX_CLASSIFIER_VALUES ? values2 : [] };
     });
   }
   async function start(rowCount) {
     const mapping = {};
-    wizard.headers.forEach((header, index) => {
-      mapping[header] = wizard.mapping[index] ?? "no";
+    wizard.headers.forEach((header2, index) => {
+      mapping[header2] = wizard.mapping[index] ?? "no";
     });
     const { data } = await callRpc("importar_iniciar", { p_entidad: wizard.entity, p_archivo: wizard.fileName, p_filas: rowCount, p_mapeo: mapping, p_firma: wizard.signature });
     return data?.ok ? data.id : null;
   }
   function finishedHtml(result) {
-    const errors = result.errores, figure2 = (value15, label, extraClass = "") => `<div class="${extraClass}"><b>${formatNumber(value15)}</b><span>${label}</span></div>`;
+    const errors = result.errores, figure2 = (value18, label, extraClass = "") => `<div class="${extraClass}"><b>${formatNumber(value18)}</b><span>${label}</span></div>`;
     return `<div class="card cfgpanel impcaja"><div class="impfin">${icon("check")}</div>
     <h2 style="padding:0 0 4px;text-align:center">${t("importing.run.finished")}</h2>
     <div class="impres">${figure2(result.creados, t("importing.run.created"), "ok")}${figure2(result.actualizados, t("importing.run.updated"))}
@@ -16532,7 +20738,7 @@
     }
     const fields = customFields();
     if (fields.length) await callRpc("importar_campos", { p_entidad: wizard.entity, p_campos: fields });
-    paint7(`<div class="card cfgpanel impcaja">${stepsHtml2(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+    paint9(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
     let result;
     try {
       result = await sendInBatches(rows, { entity: wizard.entity, mode, simulate: false, importId }, showRunProgress);
@@ -16543,7 +20749,7 @@
     await callRpc("importar_terminar", { p_imp: importId });
     importLegacy.countWrite();
     if (!pageBox()) return;
-    paint7(finishedHtml(result));
+    paint9(finishedHtml(result));
     const destination2 = DESTINATIONS[wizard.entity];
     onClick3("impdes", () => {
       void undoImport(importId);
@@ -16569,7 +20775,7 @@
 
   // src/app/screens/import/history.ts
   var UNDONE = "Deshecha";
-  function rowHtml17(item, names) {
+  function rowHtml23(item, names) {
     const date = new Date(item.creado_en).toLocaleString(t("dates.locale"), { dateStyle: "short", timeStyle: "short" });
     const line2 = t("importing.history.line", {
       date,
@@ -16587,9 +20793,9 @@
   async function paintImports() {
     const { data } = await callRpc("importaciones_lista", {});
     const names = new Map(entityTypes().map((type) => [type.key, type.name]));
-    const box = paint7(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
+    const box = paint9(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
     <p class="sm">${t("importing.history.text")}</p>
-    <div class="errlista">${(data ?? []).map((item) => rowHtml17(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
+    <div class="errlista">${(data ?? []).map((item) => rowHtml23(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
     box?.querySelectorAll("[data-impdes]").forEach((button2) => {
       button2.onclick = () => {
         void undoImport(button2.dataset.impdes ?? "");
@@ -16604,7 +20810,7 @@
     const count2 = (action) => check2.filas.filter((row4) => row4.accion === action).length;
     return { created: count2("nuevo"), existing: count2("actualizado"), skipped: count2("omitido"), unit: t(wizard.entity === "ventas" ? "importing.review.orders" : "importing.review.records") };
   }
-  function summaryHtml4(counts, errors) {
+  function summaryHtml6(counts, errors) {
     return `<div class="impres"><div class="ok"><b>${formatNumber(counts.created)}</b><span>${t("importing.review.newOnes", { unit: counts.unit })}</span></div>
       <div><b>${formatNumber(counts.existing + counts.skipped)}</b><span>${t("importing.review.existing")}${wizard.entity === "ventas" ? t("importing.review.untouched") : ""}</span></div>
       <div class="${errors ? "mal" : ""}"><b>${formatNumber(errors)}</b><span>${t("importing.review.withErrors")}</span></div></div>`;
@@ -16614,19 +20820,19 @@
     return `<label>${t("importing.review.existingLabel")}</label><div class="segs" id="impmodo"><button type="button" data-v="actualizar" class="on">${t("importing.review.update")}</button><button type="button" data-v="omitir">${t("importing.review.keep")}</button></div>
       <p class="sm">${t("importing.review.matchedBy", { keys: t(MATCHED_BY.get(wizard.entity) ?? "importing.review.byName") })}</p>`;
   }
-  function pageHtml9(check2, counts) {
-    const custom = wizard.mapping.map((value15, index) => value15 === "extra" ? wizard.headers[index] ?? "" : "").filter(Boolean);
+  function pageHtml11(check2, counts) {
+    const custom = wizard.mapping.map((value18, index) => value18 === "extra" ? wizard.headers[index] ?? "" : "").filter(Boolean);
     const errors = check2.errores;
-    return `<div class="card cfgpanel impcaja">${stepsHtml2(4)}
+    return `<div class="card cfgpanel impcaja">${stepsHtml3(4)}
     <h2 style="padding:0 0 4px">${t("importing.review.title", { name: escapeHtml(wizard.fileName) })}</h2>
-    ${summaryHtml4(counts, errors.length)}
+    ${summaryHtml6(counts, errors.length)}
     ${modeHtml(counts)}
     ${custom.length ? `<p class="sm">${t("importing.review.customFields", { fields: custom.map(escapeHtml).join(", ") })}</p>` : ""}
     ${errors.length ? `<details class="imperr" ${errors.length <= OPEN_ERRORS ? "open" : ""}><summary>${t("importing.review.seeErrors")}</summary><div>${errorLines(errors)}</div></details>` : ""}
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.review.backToColumns")}</button>
       <button class="btn" type="button" id="impok" ${counts.created + counts.existing ? "" : "disabled"}>${t("importing.review.run", { count: formatNumber(counts.created + counts.existing), unit: counts.unit })}</button></div></div>`;
   }
-  function bind16(rows, counts) {
+  function bind21(rows, counts) {
     let mode = "actualizar";
     const modes = document.getElementById("impmodo"), run = document.getElementById("impok");
     modes?.querySelectorAll("button").forEach((button2) => {
@@ -16645,7 +20851,7 @@
   }
   async function paintReviewStep() {
     const rows = rowsToImport();
-    paint7(`<div class="card cfgpanel impcaja">${stepsHtml2(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+    paint9(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
     let check2;
     try {
       check2 = await sendInBatches(rows, { entity: wizard.entity, mode: "actualizar", simulate: true, importId: null }, showProgress);
@@ -16655,8 +20861,8 @@
       return;
     }
     const counts = countsOf(check2);
-    paint7(pageHtml9(check2, counts));
-    bind16(rows, counts);
+    paint9(pageHtml11(check2, counts));
+    bind21(rows, counts);
   }
 
   // src/app/screens/import/index.ts
@@ -16671,492 +20877,6 @@
       void paintImports();
     }
   });
-
-  // src/app/screens/purchases/index.ts
-  var purchases_exports = {};
-  __export(purchases_exports, {
-    editPurchase: () => editPurchase,
-    editSupplier: () => editSupplier,
-    paintPurchases: () => paintPurchases,
-    paintSuppliers: () => paintSuppliers
-  });
-
-  // src/app/screens/purchases/model.ts
-  var STATES7 = {
-    draft: "Borrador",
-    sent: "Enviado",
-    inTransit: "En tránsito",
-    partlyReceived: "Recibido parcial",
-    received: "Recibido",
-    cancelled: "Cancelado"
-  };
-  var OPEN_STATES = [STATES7.sent, STATES7.inTransit, STATES7.partlyReceived];
-  var EDITABLE_STATES = [STATES7.draft, STATES7.sent, STATES7.inTransit];
-  var CLOSED_STATES = [STATES7.received, STATES7.cancelled];
-  var DEFAULT_LEAD_DAYS = 90;
-  var errorText2 = (error, result) => error?.message ?? result?.error ?? "";
-  var euros5 = (value15) => formatCurrency(Math.round((Number(value15) || 0) * 100) / 100);
-  function purchasePill(state) {
-    const kind = state === STATES7.received ? "p-est" : state === STATES7.cancelled ? "p-anu" : state === STATES7.draft ? "p-bor" : "p-per";
-    return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
-  }
-
-  // src/app/screens/purchases/editor-view.ts
-  var disabled = (editor) => editor.editable ? "" : "disabled";
-  function headerHtml8(editor) {
-    const { id, purchase } = editor;
-    const title2 = id ? t("purchases.editor.title", { number: escapeHtml(purchase.numero) }) : t("purchases.editor.newTitle");
-    return `<div class="fh"><div><h2>${title2} ${id ? purchasePill(purchase.estado) : ""}</h2>
-        <div class="sm">${id ? t("purchases.editor.createdOn", { date: formatShortDate(purchase.fecha) }) : t("purchases.editor.numberedOnSave")}</div></div>
-        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>`;
-  }
-  function supplierHtml(editor) {
-    const { purchase } = editor, off = disabled(editor);
-    const suppliers = purchasesLegacy.suppliers().filter((supplier) => supplier.activo === true || supplier.id === purchase.proveedor_id).map((supplier) => `<option value="${supplier.id ?? ""}" data-plazo="${nonZeroOr(supplier.plazo_dias, DEFAULT_LEAD_DAYS)}" ${supplier.id === purchase.proveedor_id ? "selected" : ""}>${escapeHtml(supplier.nombre)}</option>`).join("");
-    return `<div class="g2">
-        <div><label for="cpprov">${t("purchases.editor.supplier")}</label><select id="cpprov" ${off}>
-          ${suppliers}</select></div>
-        <div class="g2" style="margin:0">
-          <div><label for="cpfecha">${t("purchases.editor.date")}</label><input id="cpfecha" type="date" value="${escapeHtml(orFallback(purchase.fecha, todayIso()))}" ${off}></div>
-          <div><label for="cpprev">${t("purchases.editor.expected")}</label><input id="cpprev" type="date" value="${escapeHtml(purchase.fecha_prevista ?? "")}" ${off}></div></div>
-      </div>`;
-  }
-  function lineHtml2(editor, line2, index) {
-    const off = disabled(editor);
-    const products3 = purchasesLegacy.products().map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("");
-    const received = editor.id ? `<label>${t("purchases.editor.received")}</label><div class="cprec">${t("purchases.editor.receivedOf", { received: formatNumber(line2.recibidas ?? 0), units: formatNumber(line2.unidades) })}</div>` : "";
-    const remove7 = editor.editable && editor.lines.length > 1 ? `<button type="button" class="btn sec" data-clx="${index}" aria-label="${t("purchases.editor.remove")}">✕</button>` : "";
-    return `<div class="lin"><div class="lrow cprow">
-        <div><label>${t("purchases.editor.product")}</label><select data-cl="${index}|producto_id" ${off}>${products3}</select></div>
-        <div><label>${t("purchases.editor.units")}</label><input type="number" min="1" data-cl="${index}|unidades" value="${line2.unidades}" ${off}></div>
-        <div><label>${t("purchases.editor.unitCost")}</label><input type="number" step="0.0001" min="0" data-cl="${index}|coste_unitario" value="${line2.coste_unitario ?? ""}" ${off}></div>
-        <div>${received}</div>
-        <div>${remove7}</div></div></div>`;
-  }
-  function batchesHtml(editor) {
-    const batches = editor.detail?.lotes ?? [];
-    if (!batches.length) return "";
-    return `<div class="blk"><h3>${t("purchases.editor.batchesReceived")}</h3>${batches.map((batch) => `<div class="sm">${t("purchases.editor.batchLine", { product: escapeHtml(batch.producto), batch: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}${batch.caducidad ? t("purchases.editor.expires", { date: formatShortDate(batch.caducidad) }) : ""}</div>`).join("")}</div>`;
-  }
-  function stepButtons(editor) {
-    const state = editor.purchase.estado;
-    if (!purchasesLegacy.canBuy()) return [];
-    return [
-      state === STATES7.draft ? `<button class="btn sec" id="cpenviar">${t("purchases.editor.markSent")}</button>` : "",
-      state === STATES7.sent ? `<button class="btn sec" id="cptransito">${t("purchases.editor.inTransit")}</button>` : "",
-      editor.id && OPEN_STATES.includes(state) ? `<button class="btn" id="cprecibir">${t("purchases.editor.receive")}</button>` : ""
-    ];
-  }
-  function buttonsHtml3(editor) {
-    const { id, purchase, editable } = editor, state = purchase.estado;
-    const buttons = [
-      purchasesLegacy.canBuy() && id && !CLOSED_STATES.includes(state) ? `<button class="btn sec dang" id="cpcancel">${t("purchases.editor.cancelOrder")}</button>` : "",
-      editable ? `<button class="btn sec" id="cpguardar">${t(state === STATES7.draft ? "purchases.editor.saveDraft" : "purchases.editor.saveChanges")}</button>` : "",
-      ...stepButtons(editor)
-    ];
-    return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
-        <button class="btn sec" data-cerrar>${t("purchases.editor.close")}</button>
-        ${buttons.join("\n        ")}
-      </div>`;
-  }
-  function editorHtml6(editor) {
-    const { purchase } = editor, off = disabled(editor);
-    return `
-      ${headerHtml8(editor)}
-      ${supplierHtml(editor)}
-      <label>${t("purchases.editor.products")}</label>
-      <div id="cplin">${editor.lines.map((line2, index) => lineHtml2(editor, line2, index)).join("")}</div>
-      ${editor.editable ? `<div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="cpmas">${t("purchases.editor.addProduct")}</button></div>` : ""}
-      <div class="g2">
-        <div><label for="cpport">${t("purchases.editor.shipping")}</label><input id="cpport" type="number" step="0.01" min="0" value="${purchase.portes ? String(purchase.portes) : 0}" ${off}></div>
-        <div><label for="cpnota">${t("purchases.editor.note")}</label><input id="cpnota" value="${escapeHtml(purchase.nota ?? "")}" ${off}></div></div>
-      <div class="totbox" id="cptot"></div>
-      ${batchesHtml(editor)}
-      ${buttonsHtml3(editor)}`;
-  }
-  function totalsHtml3(lines, shipping) {
-    const amount3 = sum(lines.map((line2) => (Number(line2.unidades) || 0) * (Number(line2.coste_unitario) || 0))) + shipping;
-    return `<div><span>${t("purchases.editor.totalUnits")}</span><b>${formatNumber(sum(lines.map((line2) => Number(line2.unidades) || 0)))}</b></div>
-        <div class="tot"><span>${t("purchases.editor.totalAmount")}</span><b>${euros5(amount3)}</b></div>`;
-  }
-
-  // src/app/screens/purchases/receive.ts
-  var field5 = (row4, name) => row4.querySelector(`[data-r=${name}]`)?.value ?? "";
-  function lineHtml3(line2, storeId) {
-    const pending = line2.unidades - (line2.recibidas ?? 0);
-    return `<div class="lin" data-rl="${line2.id ?? ""}">
-      <b>${escapeHtml(line2.producto)}</b> <span class="sm">${t("purchases.receive.pending", { pending: formatNumber(pending), units: formatNumber(line2.unidades) })}</span>
-      <div class="rclotes">${purchasesLegacy.batchFields(line2, pending, storeId)}</div>
-      <button type="button" class="kcfg" data-rlmas="${line2.id ?? ""}">${t("purchases.receive.otherBatch")}</button></div>`;
-  }
-  function readRows(box) {
-    return [...box.querySelectorAll(".rcl")].map((row4) => ({
-      linea_id: row4.closest("[data-rl]")?.dataset.rl ?? "",
-      unidades: Number(field5(row4, "u")) || 0,
-      numero_lote: field5(row4, "lote").trim(),
-      caducidad: field5(row4, "cad"),
-      fecha_fabricacion: field5(row4, "fab"),
-      almacen_id: field5(row4, "alm")
-    })).filter((row4) => row4.unidades > 0);
-  }
-  async function checked2(rows) {
-    if (!rows.length) {
-      notices.toast(t("purchases.receive.writeUnits"), true);
-      return false;
-    }
-    if (rows.some((row4) => !row4.numero_lote)) {
-      notices.toast(t("purchases.receive.needsBatch"), true);
-      return false;
-    }
-    if (!rows.some((row4) => !row4.caducidad)) return true;
-    return notices.confirm(t("purchases.receive.noExpiryText"), { titulo: t("purchases.receive.noExpiryTitle"), ok: t("purchases.receive.noExpiryOk") });
-  }
-  async function record(id, box, button2) {
-    const rows = readRows(box);
-    if (!await checked2(rows)) return;
-    button2.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("recibir_compra", { p_compra: id, p_lineas: rows });
-    if (error || !result || result.ok === false) {
-      button2.disabled = false;
-      notices.toast(t("purchases.receive.couldNot", { error: errorText2(error, result) }), true);
-      return;
-    }
-    document.getElementById("dlg")?.close();
-    notices.toast(result.pendientes ? t("purchases.receive.stillToCome", { units: formatNumber(result.pendientes) }) : t("purchases.receive.complete"));
-    purchasesLegacy.reloadSales();
-  }
-  function receivePurchase(id, detail) {
-    const pending = detail.lineas.filter((line2) => line2.unidades > (line2.recibidas ?? 0));
-    const stores2 = purchasesLegacy.stores(), storeId = (stores2.find((store) => store.tipo === "central") ?? stores2[0])?.id;
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = `
-    <div class="fh"><div><h2>${t("purchases.receive.title", { number: escapeHtml(detail.compra.numero) })}</h2>
-      <div class="sm">${t("purchases.receive.subtitle")}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <div id="rclin">${pending.map((line2) => lineHtml3(line2, storeId)).join("")}</div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.receive.cancel")}</button><button class="btn" id="rcok">${t("purchases.receive.record")}</button></div>`;
-    const box = document.getElementById("rclin");
-    if (!box) return;
-    box.querySelectorAll("[data-rlmas]").forEach((button2) => {
-      button2.onclick = () => {
-        const line2 = pending.find((item) => item.id === button2.dataset.rlmas);
-        if (line2) button2.previousElementSibling?.insertAdjacentHTML("beforeend", purchasesLegacy.batchFields(line2, "", storeId));
-      };
-    });
-    const ok = document.getElementById("rcok");
-    if (ok) ok.onclick = () => {
-      void record(id, box, ok);
-    };
-  }
-
-  // src/app/screens/purchases/editor.ts
-  var input3 = (id) => document.getElementById(id);
-  var value12 = (id) => input3(id)?.value ?? "";
-  var closeWindow2 = () => {
-    document.getElementById("dlg")?.close();
-  };
-  function newLine() {
-    const first = purchasesLegacy.products()[0];
-    return { ...first ? { producto_id: first.id } : {}, unidades: 1, coste_unitario: first?.coste };
-  }
-  function paintTotals2(editor) {
-    const box = document.getElementById("cptot");
-    if (box) box.innerHTML = totalsHtml3(editor.lines, Number(value12("cpport")) || 0);
-  }
-  function onLineChange(editor, target) {
-    const [index = "", field8 = ""] = (target.dataset.cl ?? "").split("|"), line2 = editor.lines[Number(index)];
-    if (!field8 || !line2) return;
-    if (field8 === "producto_id") {
-      line2.producto_id = target.value;
-      const product = purchasesLegacy.products().find((item) => item.id === target.value);
-      if (product && product.coste !== null && product.coste !== void 0) {
-        line2.coste_unitario = product.coste;
-        paint8(editor);
-        return;
-      }
-    } else if (field8 === "unidades") line2.unidades = Number(target.value);
-    else line2.coste_unitario = Number(target.value);
-    paintTotals2(editor);
-  }
-  function suggestExpected() {
-    const supplier = document.getElementById("cpprov"), expected = input3("cpprev");
-    if (!supplier || !expected || expected.value) return;
-    expected.value = addDays(value12("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
-  }
-  function bindLines(editor) {
-    const lines = document.getElementById("cplin");
-    if (lines) lines.oninput = lines.onchange = (event) => {
-      onLineChange(editor, event.target);
-    };
-    const shipping = input3("cpport");
-    if (shipping) shipping.oninput = () => {
-      paintTotals2(editor);
-    };
-    const add2 = document.getElementById("cpmas");
-    if (add2) add2.onclick = () => {
-      editor.lines.push(newLine());
-      paint8(editor);
-    };
-    lines?.querySelectorAll("[data-clx]").forEach((button2) => {
-      button2.onclick = () => {
-        editor.lines.splice(Number(button2.dataset.clx), 1);
-        paint8(editor);
-      };
-    });
-    const supplier = document.getElementById("cpprov");
-    if (supplier) supplier.onchange = suggestExpected;
-    if (!value12("cpprev") && supplier?.value) suggestExpected();
-  }
-  function payload7(editor, state) {
-    const lines = editor.lines.filter((line2) => line2.producto_id && Number(line2.unidades) > 0).map((line2) => ({ producto_id: line2.producto_id, unidades: Number(line2.unidades), coste_unitario: line2.coste_unitario }));
-    return {
-      id: editor.id ?? null,
-      proveedor_id: value12("cpprov"),
-      fecha: value12("cpfecha"),
-      fecha_prevista: value12("cpprev"),
-      estado: state ?? editor.purchase.estado,
-      portes: value12("cpport"),
-      nota: value12("cpnota").trim(),
-      lineas: lines
-    };
-  }
-  async function save14(editor, state) {
-    if (!value12("cpprov")) {
-      notices.toast(t("purchases.editor.chooseSupplier"), true);
-      return;
-    }
-    const { data: result, error } = await legacyDb().rpc("guardar_compra", { p: payload7(editor, state) });
-    if (error || !result || result.ok === false) {
-      notices.toast(t("purchases.editor.couldNotSave", { error: errorText2(error, result) }), true);
-      return;
-    }
-    notices.toast(t("purchases.editor.saved", { number: result.numero ?? "" }));
-    closeWindow2();
-    if (currentScreen() === "ventas") purchasesLegacy.reloadSales();
-  }
-  var changeState = (purchase, state) => legacyDb().rpc("guardar_compra", { p: {
-    id: purchase.id,
-    proveedor_id: purchase.proveedor_id,
-    fecha: purchase.fecha,
-    fecha_prevista: purchase.fecha_prevista,
-    estado: state,
-    portes: purchase.portes,
-    nota: purchase.nota
-  } });
-  async function markInTransit(purchase) {
-    const { error } = await changeState(purchase, STATES7.inTransit);
-    if (error) {
-      notices.toast(t("purchases.editor.couldNot"), true);
-      return;
-    }
-    notices.toast(t("purchases.editor.markedInTransit"));
-    closeWindow2();
-    purchasesLegacy.reloadSales();
-  }
-  async function cancel2(purchase) {
-    if (!await notices.confirm(t("purchases.editor.cancelText"), { titulo: t("purchases.editor.cancelTitle"), ok: t("purchases.editor.cancelOrder"), peligro: true })) return;
-    await changeState(purchase, STATES7.cancelled);
-    notices.toast(t("purchases.editor.cancelled"));
-    closeWindow2();
-    purchasesLegacy.reloadSales();
-  }
-  function bindButtons(editor) {
-    const on4 = (id, action) => {
-      const button2 = document.getElementById(id);
-      if (button2) button2.onclick = action;
-    };
-    on4("cpguardar", () => {
-      void save14(editor);
-    });
-    on4("cpenviar", () => {
-      void save14(editor, STATES7.sent);
-    });
-    on4("cptransito", () => {
-      void markInTransit(editor.purchase);
-    });
-    on4("cpcancel", () => {
-      void cancel2(editor.purchase);
-    });
-    on4("cprecibir", () => {
-      if (editor.id && editor.detail) receivePurchase(editor.id, editor.detail);
-    });
-  }
-  function paint8(editor) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = editorHtml6(editor);
-    paintTotals2(editor);
-    if (editor.editable) bindLines(editor);
-    bindButtons(editor);
-  }
-  async function editPurchase(id) {
-    await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadSuppliers(), purchasesLegacy.loadStores()]);
-    const detail = id ? (await callRpc("compra_detalle", { p_id: id })).data : null;
-    const purchase = detail ? detail.compra : { estado: STATES7.draft, fecha: todayIso(), portes: 0 };
-    const editor = {
-      id,
-      purchase,
-      detail,
-      editable: purchasesLegacy.canBuy() && EDITABLE_STATES.includes(purchase.estado),
-      lines: detail ? detail.lineas.map((line2) => ({ ...line2 })) : [newLine()]
-    };
-    paint8(editor);
-    document.getElementById("dlg")?.showModal();
-  }
-
-  // src/app/screens/purchases/list.ts
-  var LATE_STYLE = "color:var(--danger);font-weight:700";
-  var loadingHtml3 = (text2) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text2)}</span></div>`;
-  function indicatorsHtml2(rows) {
-    const open2 = rows.filter((row4) => OPEN_STATES.includes(row4.estado)), late = rows.filter((row4) => row4.retrasada);
-    const yearStart = `${todayIso().slice(0, 4)}-01-01`;
-    const bought = sum(rows.filter((row4) => row4.estado !== STATES7.cancelled && row4.fecha >= yearStart).map((row4) => Number(row4.importe) || 0));
-    return `<div class="kpis vtot">
-      <div class="kpi"><b>${formatNumber(open2.length)}</b><span>${t("purchases.list.inProgress")}</span></div>
-      <div class="kpi"><b>${formatNumber(sum(open2.map((row4) => row4.unidades - row4.recibidas)))}</b><span>${t("purchases.list.unitsOnTheWay")}</span></div>
-      <div class="kpi ${late.length ? "warn" : ""}"><b>${formatNumber(late.length)}</b><span>${t("purchases.list.late")}</span></div>
-      <div class="kpi"><b>${euros5(bought)}</b><span>${t("purchases.list.boughtThisYear")}</span></div>
-    </div>`;
-  }
-  function rowHtml18(row4) {
-    const expected = row4.fecha_prevista ? formatShortDate(row4.fecha_prevista) + (row4.retrasada ? t("purchases.list.lateTag") : "") : "—";
-    const received = row4.recibidas && row4.recibidas < row4.unidades ? `${formatNumber(row4.recibidas)}/` : "";
-    return `<button class="dr" data-comp="${row4.id}">
-        <span><b>${escapeHtml(row4.numero)}</b></span><span>${escapeHtml(orFallback(row4.proveedor, "—"))}</span><span class="sm">${escapeHtml(row4.productos ?? "")}</span>
-        <span>${formatShortDate(row4.fecha)}</span>
-        <span style="${row4.retrasada ? LATE_STYLE : ""}">${expected}</span>
-        <span class="num">${received}${formatNumber(row4.unidades)}</span>
-        <span class="num">${euros5(row4.importe)}</span><span>${purchasePill(row4.estado)}</span></button>`;
-  }
-  function tableHtml7(rows) {
-    if (!rows.length) return `<div class="vacio">${t("purchases.list.none")}${purchasesLegacy.canBuy() ? t("purchases.list.createFirst") : ""}</div>`;
-    const head = [["", "number"], ["", "supplier"], ["", "products"], ["", "date"], ["", "expected"], ["num", "units"], ["num", "amount"], ["", "state"]];
-    return `<div class="dgrid-wrap"><div class="dgrid comps">
-      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.list.${key}`)}</span>`).join("")}</div>
-      ${rows.map(rowHtml18).join("")}
-    </div></div>`;
-  }
-  async function paintPurchases() {
-    const loading2 = document.getElementById("vcuerpo");
-    if (loading2) loading2.innerHTML = loadingHtml3(t("purchases.list.loading"));
-    const { data, error } = await legacyDb().rpc("compras_lista");
-    if (purchasesLegacy.section() !== "compras") return;
-    const box = document.getElementById("vcuerpo");
-    if (!box) return;
-    if (error) {
-      box.innerHTML = `<div class="vacio">${escapeHtml(error.message)}</div>`;
-      return;
-    }
-    const rows = data ?? [];
-    box.innerHTML = `<div class="panel">
-    ${indicatorsHtml2(rows)}
-    ${tableHtml7(rows)}</div>`;
-    box.querySelectorAll("[data-comp]").forEach((button2) => {
-      button2.onclick = () => {
-        purchasesLegacy.openPurchase(button2.dataset.comp ?? null);
-      };
-    });
-  }
-
-  // src/app/screens/purchases/suppliers.ts
-  var joined = (values) => values.filter(Boolean).join(" · ");
-  function rowHtml19(supplier) {
-    return `<button class="dr" data-prov="${supplier.id ?? ""}" style="${supplier.activo ? "" : "opacity:.55"}">
-      <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined([supplier.municipio, supplier.pais]))}</span></span>
-      <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
-      <span class="num">${t("purchases.suppliers.days", { count: formatNumber(supplier.plazo_dias ?? 0) })}</span><span class="num">${formatNumber(supplier.compras)}</span>
-      <span>${supplier.ultima_compra ? formatShortDate(supplier.ultima_compra) : "—"}</span>
-      <span><span class="pill ${supplier.activo ? "p-est" : "p-anu"}">${t(supplier.activo ? "purchases.suppliers.active" : "purchases.suppliers.inactive")}</span></span></button>`;
-  }
-  function listHtml2(suppliers) {
-    if (!suppliers.length) return `<div class="vacio">${t("purchases.suppliers.none")}</div>`;
-    const head = [["", "supplier"], ["", "taxId"], ["", "contact"], ["num", "leadTime"], ["num", "purchases"], ["", "lastPurchase"], ["", "state"]];
-    return `<div class="dgrid-wrap"><div class="dgrid provs">
-    <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.suppliers.${key}`)}</span>`).join("")}</div>
-    ${suppliers.map(rowHtml19).join("")}
-  </div></div>`;
-  }
-  async function paintSuppliers() {
-    const loading2 = document.getElementById("vcuerpo");
-    if (loading2) loading2.innerHTML = loadingHtml3(t("purchases.suppliers.loading"));
-    await purchasesLegacy.loadSuppliers();
-    const box = document.getElementById("vcuerpo");
-    if (!box) return;
-    const suppliers = purchasesLegacy.suppliers();
-    box.innerHTML = `<div class="panel">${listHtml2(suppliers)}</div>`;
-    box.querySelectorAll("[data-prov]").forEach((button2) => {
-      button2.onclick = () => {
-        editSupplier(suppliers.find((supplier) => supplier.id === button2.dataset.prov) ?? null);
-      };
-    });
-  }
-  var FIELDS2 = [
-    ["nombre", "purchases.supplierEditor.name"],
-    ["nif", "purchases.supplierEditor.taxId"],
-    ["contacto", "purchases.supplierEditor.contact"],
-    ["email", "purchases.supplierEditor.email", 'type="email"'],
-    ["telefono", "purchases.supplierEditor.phone"],
-    ["direccion", "purchases.supplierEditor.address"],
-    ["cp", "purchases.supplierEditor.postcode"],
-    ["municipio", "purchases.supplierEditor.town"],
-    ["provincia", "purchases.supplierEditor.province"],
-    ["pais", "purchases.supplierEditor.country"],
-    ["plazo_dias", "purchases.supplierEditor.leadTime", 'type="number" min="0"'],
-    ["forma_pago", "purchases.supplierEditor.payment"],
-    ["condiciones", "purchases.supplierEditor.conditions"],
-    ["cuenta_contable", "purchases.supplierEditor.account", 'placeholder="400xxxxx"']
-  ];
-  var SAVED_FIELDS = [...FIELDS2.map(([name]) => name), "nota"];
-  function fieldHtml(supplier, [name, label, extra = ""], readOnly) {
-    const current = supplier[name];
-    return `<div><label for="pv_${name}">${t(label)}</label><input id="pv_${name}" value="${escapeHtml(current ?? "")}" ${extra} ${readOnly}></div>`;
-  }
-  function editorHtml7(supplier, canBuy) {
-    const readOnly = canBuy ? "" : "disabled", pairs2 = [];
-    for (let i = 0; i < FIELDS2.length; i += 2) pairs2.push(`<div class="g2">${FIELDS2.slice(i, i + 2).map((item) => fieldHtml(supplier, item, readOnly)).join("")}</div>`);
-    return `
-    <div class="fh"><div><h2>${supplier.id ? escapeHtml(supplier.nombre) : t("purchases.supplierEditor.newTitle")}</h2><div class="sm">${t("purchases.supplierEditor.subtitle")}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    ${pairs2.join("\n    ")}
-    <label for="pv_nota">${t("purchases.supplierEditor.note")}</label><input id="pv_nota" value="${escapeHtml(supplier.nota ?? "")}" ${readOnly}>
-    ${supplier.id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="pv_activo" ${supplier.activo ? "checked" : ""} ${readOnly}> ${t("purchases.supplierEditor.active")}</label>` : ""}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.supplierEditor.close")}</button>${canBuy ? `<button class="btn" id="pvok">${t(supplier.id ? "purchases.supplierEditor.save" : "purchases.supplierEditor.create")}</button>` : ""}</div>`;
-  }
-  function readValues(supplier) {
-    const values = { id: supplier.id ?? null };
-    for (const name of SAVED_FIELDS) values[name] = (document.getElementById(`pv_${name}`)?.value ?? "").trim();
-    const active = document.getElementById("pv_activo");
-    if (active) values.activo = active.checked;
-    return values;
-  }
-  async function save15(supplier) {
-    const values = readValues(supplier);
-    if (!values.nombre) {
-      notices.toast(t("purchases.supplierEditor.writeName"), true);
-      return;
-    }
-    const { data: result, error } = await legacyDb().rpc("guardar_proveedor", { p: values });
-    if (error || result?.ok === false) {
-      notices.toast(t("purchases.supplierEditor.couldNotSave"), true);
-      return;
-    }
-    document.getElementById("dlg")?.close();
-    notices.toast(t(supplier.id ? "purchases.supplierEditor.saved" : "purchases.supplierEditor.created"));
-    await purchasesLegacy.loadSuppliers();
-    if (currentScreen() === "ventas" && purchasesLegacy.section() === "proveedores") void paintSuppliers();
-  }
-  function editSupplier(existing) {
-    const supplier = existing ?? { activo: true, plazo_dias: DEFAULT_LEAD_DAYS, pais: t("purchases.supplierEditor.defaultCountry") };
-    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
-    if (!body2 || !box) return;
-    body2.innerHTML = editorHtml7(supplier, purchasesLegacy.canBuy());
-    box.showModal();
-    const ok = document.getElementById("pvok");
-    if (ok) ok.onclick = () => {
-      void save15(supplier);
-    };
-  }
 
   // src/app/screens/tenders/index.ts
   var tenders_exports = {};
@@ -17175,19 +20895,19 @@
     const me = salesTeam.currentUserId(), members2 = salesTeam.members();
     return members2.some((member) => member.id === me) ? members2 : [{ id: me, nombre: appLegacy.currentUserName() }, ...members2];
   }
-  function editorHtml8(tender, existing, people) {
-    const value15 = (text2) => escapeHtml(text2 ?? "");
+  function editorHtml9(tender, existing, people) {
+    const value18 = (text2) => escapeHtml(text2 ?? "");
     return `<div class="fh"><div><h2>${t(existing ? "tenders.editor.changeTitle" : "tenders.editor.newTitle")}</h2><div class="sm">${t("tenders.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <label for="cont">${t("tenders.editor.title")}</label><input id="cont" value="${value15(tender.titulo)}" placeholder="${t("tenders.editor.titlePlaceholder")}">
+    <label for="cont">${t("tenders.editor.title")}</label><input id="cont" value="${value18(tender.titulo)}" placeholder="${t("tenders.editor.titlePlaceholder")}">
     <label>${t("tenders.editor.soldTo")}</label><div id="concta"></div>
-    <div class="g2"><div><label for="conexp">${t("tenders.editor.file")}</label><input id="conexp" value="${value15(tender.expediente)}"></div>
-      <div><label for="conorg">${t("tenders.editor.body")}</label><input id="conorg" value="${value15(tender.organismo)}" placeholder="${t("tenders.editor.bodyPlaceholder")}"></div></div>
-    <div class="g2"><div><label for="conpub">${t("tenders.editor.published")}</label><input id="conpub" type="date" value="${value15(tender.publicado)}"></div>
-      <div><label for="conlim">${t("tenders.editor.submitBy")}</label><input id="conlim" type="date" value="${value15(tender.limite)}"></div></div>
+    <div class="g2"><div><label for="conexp">${t("tenders.editor.file")}</label><input id="conexp" value="${value18(tender.expediente)}"></div>
+      <div><label for="conorg">${t("tenders.editor.body")}</label><input id="conorg" value="${value18(tender.organismo)}" placeholder="${t("tenders.editor.bodyPlaceholder")}"></div></div>
+    <div class="g2"><div><label for="conpub">${t("tenders.editor.published")}</label><input id="conpub" type="date" value="${value18(tender.publicado)}"></div>
+      <div><label for="conlim">${t("tenders.editor.submitBy")}</label><input id="conlim" type="date" value="${value18(tender.limite)}"></div></div>
     <div class="g2"><div><label for="conimp">${t("tenders.editor.amount")}</label><input id="conimp" type="number" min="0" step="0.01" value="${isPresent(tender.importe_licitacion) ? Number(tender.importe_licitacion) : ""}"></div>
       <div><label for="conres">${t("tenders.editor.responsible")}</label><select id="conres">${people.map((person) => `<option value="${person.id}" ${person.id === tender.responsable_id ? "selected" : ""}>${escapeHtml(person.nombre)}</option>`).join("")}</select></div></div>
-    <label for="conn">${t("tenders.editor.note")}</label><textarea id="conn" rows="2">${value15(tender.nota)}</textarea>
+    <label for="conn">${t("tenders.editor.note")}</label><textarea id="conn" rows="2">${value18(tender.nota)}</textarea>
     <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="conborrar">${t("tenders.editor.delete")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("tenders.editor.cancel")}</button><button type="button" class="btn" id="conok">${t(existing ? "tenders.editor.save" : "tenders.editor.create")}</button></div>`;
   }
@@ -17205,15 +20925,15 @@
       nota: textOrNull2("conn")
     };
   }
-  async function save16(existing, account, button2) {
+  async function save20(existing, account, button2) {
     const title2 = field6("cont").trim();
     if (!title2 || !account) {
       notices.toast(t("tenders.editor.missing"), true);
       return;
     }
     button2.disabled = true;
-    const table = legacyDb().from("concursos"), values = row3(title2, account);
-    const result = existing ? await table.update(values).eq("id", existing.id).select("id").single() : await table.insert(values).select("id").single();
+    const table = legacyDb().from("concursos"), values2 = row3(title2, account);
+    const result = existing ? await table.update(values2).eq("id", existing.id).select("id").single() : await table.insert(values2).select("id").single();
     button2.disabled = false;
     if (result.error) {
       notices.toast(writeFailure(result.error, t("tenders.editor.noPermission")), true);
@@ -17237,7 +20957,7 @@
     const people = await team();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml8(tender, existing, people);
+    body2.innerHTML = editorHtml9(tender, existing, people);
     if (!box.open) box.showModal();
     let account = existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : null;
     editorLegacy.pickAccount(document.getElementById("concta"), account, (picked) => {
@@ -17245,7 +20965,7 @@
     }, t("tenders.editor.soldToPlaceholder"));
     const ok = document.getElementById("conok");
     if (ok) ok.onclick = () => {
-      void save16(existing, account, ok);
+      void save20(existing, account, ok);
     };
     const erase = document.getElementById("conborrar");
     if (erase && existing) erase.onclick = () => {
@@ -17263,7 +20983,7 @@
     <p class="sm">${t("tenders.warnings.hint")}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("tenders.warnings.cancel")}</button><button class="btn" id="convok">${t("tenders.warnings.save")}</button></div>`;
   }
-  async function save17(box) {
+  async function save21(box) {
     const typed = document.getElementById("convd")?.value ?? "";
     const days = newestFirst([...new Set(typed.split(/[^0-9]+/).map(Number).filter((day) => day > 0 && day <= MAX_DAYS))]);
     const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "avisos_vencimiento", p_valor: { dias: days } });
@@ -17282,7 +21002,7 @@
     if (!box.open) box.showModal();
     const ok = document.getElementById("convok");
     if (ok) ok.onclick = () => {
-      void save17(box);
+      void save21(box);
     };
   }
 
@@ -17315,7 +21035,7 @@
     const wonText = won ? won === 1 ? t("tenders.list.oneWon") : t("tenders.list.won", { count: won }) : "";
     return ` · ${lots.length === 1 ? t("tenders.list.oneLot") : t("tenders.list.lots", { count: lots.length })}${wonText}`;
   }
-  function rowHtml20(tender, view, warnDays) {
+  function rowHtml24(tender, view, warnDays) {
     const extra = view === "contratos" ? contractPill(tender, warnDays) : view === "marcha" ? deadlinePill(tender) : "";
     return `<button type="button" class="item conrow" data-con="${tender.id}"><span class="tx"><b>${escapeHtml(tender.titulo)}</b>
       <span class="sm">${escapeHtml(tenderLine(tender))}${lotsText(tender)}${tender.importe_licitacion ? ` · ${formatCurrency(tender.importe_licitacion)}` : ""}</span></span>
@@ -17325,13 +21045,13 @@
     const when = days.length ? t("tenders.list.warnDays", { days: [...days].sort((first, second) => second - first).join(t("tenders.list.and")) }) : t("tenders.list.warnNever");
     return `<p class="sm">${t("tenders.list.contractsHint", { when })}</p>`;
   }
-  function pageHtml10(list, view) {
+  function pageHtml12(list, view) {
     const days = tendersLegacy.warningDays(), warnDays = Math.max(...days, 0);
     const empty2 = t(view === "contratos" ? "tenders.list.noContracts" : view === "cerrados" ? "tenders.list.noClosed" : "tenders.list.noOpen");
     return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="connuevo">${t("tenders.list.newTender")}</button>
       ${cardSectionsLegacy.can("administrar") ? `<button type="button" class="btn sec" id="conavisos">${t("tenders.list.warnings")}</button>` : ""}</div>
     ${view === "contratos" ? contractsHint(days) : ""}
-    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml20(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
+    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml24(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
   async function paintTenders(view) {
     if (!document.getElementById("cfgcuerpo")) return;
@@ -17347,7 +21067,7 @@
     }
     const days = setting?.valor?.dias;
     if (Array.isArray(days)) tendersLegacy.setWarningDays(days.map(Number).filter((day) => day > 0));
-    box.innerHTML = pageHtml10(shown4(data ?? [], view), view);
+    box.innerHTML = pageHtml12(shown4(data ?? [], view), view);
     const add2 = document.getElementById("connuevo");
     if (add2) add2.onclick = () => {
       void editTender(null);
@@ -17365,7 +21085,7 @@
 
   // src/app/screens/tenders/lots.ts
   var DISCONTINUED = "Descatalogado";
-  var amount2 = (value15) => isPresent(value15) ? String(Number(value15)) : "";
+  var amount2 = (value18) => isPresent(value18) ? String(Number(value18)) : "";
   function priceHtml(price, products3) {
     const name = orFallback(products3.find((product) => product.id === price.producto_id)?.nombre, t("tenders.lot.product"));
     return `<div class="conpf" data-cp="${price.id}"><span>${escapeHtml(name)}</span>
@@ -17375,8 +21095,8 @@
   }
   function addProductHtml(lot, products3) {
     const prices2 = lot.concurso_precios ?? [];
-    const options2 = products3.filter((product) => orFallback(product.estado, "Activo") !== DISCONTINUED && !prices2.some((price) => price.producto_id === product.id)).map((product) => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join("");
-    return `<div class="conpadd"><select data-cpnuevo aria-label="${t("tenders.lot.addProduct")}"><option value="">${t("tenders.lot.addProductOption")}</option>${options2}</select></div>`;
+    const options3 = products3.filter((product) => orFallback(product.estado, "Activo") !== DISCONTINUED && !prices2.some((price) => price.producto_id === product.id)).map((product) => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join("");
+    return `<div class="conpadd"><select data-cpnuevo aria-label="${t("tenders.lot.addProduct")}"><option value="">${t("tenders.lot.addProductOption")}</option>${options3}</select></div>`;
   }
   function lotHtml(lot, products3) {
     const states = LOT_STATE_LIST.map((state) => `<option ${state === lot.estado ? "selected" : ""}>${state}</option>`).join("");
@@ -17417,12 +21137,12 @@
   }
   async function savePrice(row4, input4, context) {
     const key = input4.dataset.cpf ?? "";
-    const value15 = input4.value === "" ? null : Math.max(0, key === "unidades" ? Math.floor(Number(input4.value)) : Number(input4.value));
-    if (key === "precio" && value15 === null) {
+    const value18 = input4.value === "" ? null : Math.max(0, key === "unidades" ? Math.floor(Number(input4.value)) : Number(input4.value));
+    if (key === "precio" && value18 === null) {
       notices.toast(t("tenders.lot.writePrice"), true);
       return;
     }
-    const { error } = await legacyDb().from("concurso_precios").update({ [key]: value15 }).eq("id", row4.dataset.cp);
+    const { error } = await legacyDb().from("concurso_precios").update({ [key]: value18 }).eq("id", row4.dataset.cp);
     if (error) context.fail(error);
   }
   async function removePrice(row4, context) {
@@ -17499,7 +21219,7 @@
     const account = escapeHtml(orFallback(tender.cuentas?.nombre, t("tenders.sheet.thisAccount")));
     return `<div class="banda-ok conok">${t("tenders.sheet.pricesApplied", { account, left: leftText(daysLeft(tender)) })}</div>`;
   }
-  function sheetHtml6(tender, lots, products3) {
+  function sheetHtml7(tender, lots, products3) {
     return `<div class="fh"><div><h2>${escapeHtml(tender.titulo)}</h2><div class="sm">${escapeHtml(tenderLine(tender))}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     ${dataHtml2(tender)}
@@ -17526,7 +21246,7 @@
       };
     });
   }
-  function bind17(tender, lots, context) {
+  function bind22(tender, lots, context) {
     const id = tender.id;
     const change = document.getElementById("coneditar");
     if (change) change.onclick = () => {
@@ -17564,9 +21284,9 @@
     const products3 = await portalLegacy.products(), lots = sortedLots(tender);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml6(tender, lots, products3);
+    body2.innerHTML = sheetHtml7(tender, lots, products3);
     if (!box.open) box.showModal();
-    bind17(tender, lots, { tenderId: id, products: products3, reopen: () => {
+    bind22(tender, lots, { tenderId: id, products: products3, reopen: () => {
       void showTender(id);
     }, fail });
   }
@@ -17576,7 +21296,7 @@
   __export(equipment_exports, {
     editEquipment: () => editEquipment,
     expiryPill: () => expiryPill,
-    paintEquipment: () => paintEquipment,
+    paintEquipment: () => paintEquipment2,
     reviewPill: () => reviewPill,
     showEquipment: () => showEquipment
   });
@@ -17584,8 +21304,8 @@
   // src/app/screens/equipment/editor.ts
   var MAX_REVIEW_MONTHS = 120;
   var field7 = (id) => document.getElementById(id);
-  var value13 = (id) => field7(id)?.value ?? "";
-  var trimmedOrNull = (id) => value13(id).trim() || null;
+  var value16 = (id) => field7(id)?.value ?? "";
+  var trimmedOrNull = (id) => value16(id).trim() || null;
   async function products2() {
     const { data } = await legacyDb().from("productos").select("id,nombre,es_equipo,revision_meses").order("nombre");
     return (data ?? []).sort((first, second) => Number(second.es_equipo) - Number(first.es_equipo) || String(first.nombre).localeCompare(String(second.nombre)));
@@ -17593,7 +21313,7 @@
   function productOptions(list, chosen2) {
     return list.map((product) => `<option value="${product.id}" data-rm="${product.revision_meses ?? 0}" ${product.id === chosen2 ? "selected" : ""}>${escapeHtml(product.nombre)}${product.es_equipo ? "" : t("equipment.editor.notMarked")}</option>`).join("");
   }
-  function editorHtml9(item, existing, list) {
+  function editorHtml10(item, existing, list) {
     const contracts = equipmentLegacy.contracts().map((kind) => `<option ${kind === item.contrato ? "selected" : ""}>${kind}</option>`).join("");
     return `<div class="fh"><div><h2>${t(existing ? "equipment.editor.changeTitle" : "equipment.editor.newTitle")}</h2><div class="sm">${t("equipment.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -17611,22 +21331,22 @@
       <button type="button" class="btn sec" data-cerrar>${t("equipment.editor.cancel")}</button><button type="button" class="btn" id="eqok">${t(existing ? "equipment.editor.save" : "equipment.editor.create")}</button></div>`;
   }
   function rowOf(account) {
-    const contract = value13("eqc");
+    const contract = value16("eqc");
     return {
       cuenta_id: account.id,
-      producto_id: value13("eqp"),
+      producto_id: value16("eqp"),
       serie: trimmedOrNull("eqs"),
       ubicacion: trimmedOrNull("equ"),
-      instalado: value13("eqi") || todayIso(),
+      instalado: value16("eqi") || todayIso(),
       contrato: contract,
-      contrato_fin: contract === SALE ? null : value13("eqcf") || null,
-      garantia_hasta: value13("eqg") || null,
-      revision_meses: Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(value13("eqr")) || 0))),
+      contrato_fin: contract === SALE ? null : value16("eqcf") || null,
+      garantia_hasta: value16("eqg") || null,
+      revision_meses: Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(value16("eqr")) || 0))),
       nota: trimmedOrNull("eqn")
     };
   }
-  async function save18(existing, account, button2) {
-    if (!account || !value13("eqp")) {
+  async function save22(existing, account, button2) {
+    if (!account || !value16("eqp")) {
       notices.toast(t("equipment.editor.missing"), true);
       return;
     }
@@ -17652,7 +21372,7 @@
     notices.toast(t("equipment.editor.retired"));
     relatedLegacy.openEquipment(existing.id);
   }
-  function bind18(existing, chosen2) {
+  function bind23(existing, chosen2) {
     editorLegacy.pickAccount(field7("eqcta"), chosen2.account, (account) => {
       chosen2.account = account;
     }, t("equipment.editor.wherePlaceholder"));
@@ -17668,7 +21388,7 @@
     };
     const ok = document.getElementById("eqok");
     if (ok) ok.onclick = () => {
-      void save18(existing, chosen2.account, ok);
+      void save22(existing, chosen2.account, ok);
     };
     const retireButton = field7("eqretirar");
     if (retireButton && existing) retireButton.onclick = () => {
@@ -17684,24 +21404,24 @@
     const list = await products2(), item = existing ?? newItem(list);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml9(item, existing, list);
+    body2.innerHTML = editorHtml10(item, existing, list);
     if (!box.open) box.showModal();
-    bind18(existing, { account: existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : account ?? null });
+    bind23(existing, { account: existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : account ?? null });
   }
 
   // src/app/screens/equipment/list.ts
   var LIMIT5 = 500;
   var SOON_DAYS2 = 30;
-  var SEARCH_WAIT_MS6 = 300;
+  var SEARCH_WAIT_MS8 = 300;
   var listState = { query: "" };
   var plain = (text2) => String(text2 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  function rowHtml21(item) {
+  function rowHtml25(item) {
     const details2 = [item.serie ? t("equipment.list.serial", { serial: item.serie }) : "", item.cuentas?.nombre, item.ubicacion, item.contrato].filter(Boolean).join(" · ");
     return `<button type="button" class="item conrow" data-eq="${item.id}"><span class="tx"><b>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</b>
       <span class="sm">${escapeHtml(details2)}${t("equipment.list.since", { date: formatShortDate(item.instalado ?? "") })}</span></span>
     <span class="cirest">${reviewPill(item)}${expiryPill(item)}</span></button>`;
   }
-  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml21).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
+  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml25).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
   function upcoming(list) {
     const installed = list.filter((item) => item.estado === STATES.installed), limit = addDays(todayIso(), SOON_DAYS2), warning = warningLimit();
     const reviews = installed.filter((item) => item.proxima_revision && item.proxima_revision <= limit).sort((first, second) => String(first.proxima_revision).localeCompare(String(second.proxima_revision)));
@@ -17711,7 +21431,7 @@
     }).sort((first, second) => String(expiryOf(first)).localeCompare(String(expiryOf(second))));
     return { reviews, expiring };
   }
-  function pageHtml11(list) {
+  function pageHtml13(list) {
     const { reviews, expiring } = upcoming(list), query = plain(listState.query);
     const found = list.filter((item) => !listState.query || plain([item.serie, item.productos?.nombre, item.cuentas?.nombre, item.ubicacion].join(" ")).includes(query));
     const empty2 = list.length ? t("equipment.list.noneFound") : t("equipment.list.noneYet");
@@ -17719,26 +21439,26 @@
     ${reviews.length ? block2(t("equipment.list.reviewsSoon"), reviews) : ""}
     ${expiring.length ? block2(t("equipment.list.expiring"), expiring) : ""}
     <section class="card cirbloque"><div class="cicbcab"><h2>${t("equipment.list.all", { count: formatNumber(list.length) })}</h2><input id="eqq" type="search" placeholder="${t("equipment.list.searchPlaceholder")}" value="${escapeHtml(listState.query)}" aria-label="${t("equipment.list.searchLabel")}"></div>
-      ${found.length ? `<div class="lista">${found.map(rowHtml21).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
+      ${found.length ? `<div class="lista">${found.map(rowHtml25).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
-  var searchTimer6;
-  function bind19(box, wasSearching) {
+  var searchTimer7;
+  function bind24(box, wasSearching) {
     const add2 = document.getElementById("eqnuevo");
     if (add2) add2.onclick = () => {
       void editEquipment(null);
     };
-    const search3 = document.getElementById("eqq");
-    if (search3) {
-      search3.oninput = () => {
-        clearTimeout(searchTimer6);
-        searchTimer6 = setTimeout(() => {
-          listState.query = search3.value.trim();
-          void paintEquipment();
-        }, SEARCH_WAIT_MS6);
+    const search4 = document.getElementById("eqq");
+    if (search4) {
+      search4.oninput = () => {
+        clearTimeout(searchTimer7);
+        searchTimer7 = setTimeout(() => {
+          listState.query = search4.value.trim();
+          void paintEquipment2();
+        }, SEARCH_WAIT_MS8);
       };
       if (wasSearching) {
-        search3.focus();
-        search3.setSelectionRange(search3.value.length, search3.value.length);
+        search4.focus();
+        search4.setSelectionRange(search4.value.length, search4.value.length);
       }
     }
     box.querySelectorAll("[data-eq]").forEach((button2) => {
@@ -17751,7 +21471,7 @@
     const days = setting?.valor?.dias;
     if (Array.isArray(days)) equipmentLegacy.setWarningDays(days.map(Number).filter((day) => day > 0));
   }
-  async function paintEquipment() {
+  async function paintEquipment2() {
     if (!document.getElementById("cfgcuerpo")) return;
     const [{ data, error }, { data: setting }] = await Promise.all([
       legacyDb().from("equipos").select("id,serie,ubicacion,instalado,contrato,contrato_fin,garantia_hasta,proxima_revision,estado,cuenta_id,cuentas(nombre),productos(nombre)").order("creado_en", { ascending: false }).limit(LIMIT5),
@@ -17764,9 +21484,9 @@
       return;
     }
     rememberWarningDays(setting);
-    const search3 = document.getElementById("eqq"), wasSearching = Boolean(search3) && document.activeElement === search3;
-    box.innerHTML = pageHtml11(data ?? []);
-    bind19(box, wasSearching);
+    const search4 = document.getElementById("eqq"), wasSearching = Boolean(search4) && document.activeElement === search4;
+    box.innerHTML = pageHtml13(data ?? []);
+    bind24(box, wasSearching);
   }
 
   // src/app/screens/equipment/sheet.ts
@@ -17790,7 +21510,7 @@
     if (!reviews.length) return `<div class="vacio vlinea">${t("equipment.sheet.noReviewsYet")}</div>`;
     return `<div class="lista">${reviews.map((review2) => `<div class="fmrow"><span><b>${formatShortDate(review2.fecha)}</b> · ${escapeHtml(review2.tipo)}${review2.nota ? `<span class="sm"> · ${escapeHtml(review2.nota)}</span>` : ""}</span><button type="button" class="x" data-rvq="${review2.id}" aria-label="${t("equipment.sheet.deleteReviewLabel")}">✕</button></div>`).join("")}</div>`;
   }
-  function sheetHtml7(item, reviews) {
+  function sheetHtml8(item, reviews) {
     const installed = item.estado === STATES.installed;
     return `<div class="fh"><div><h2>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</h2><div class="sm">${item.serie ? t("equipment.sheet.serial", { serial: escapeHtml(item.serie) }) : ""}${escapeHtml(orFallback(item.cuentas?.nombre, ""))}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -17819,12 +21539,12 @@
     relatedLegacy.openEquipment(id);
   }
   function openReviewForm(id) {
-    const place = document.getElementById("eqrevf");
-    if (!place) return;
-    place.innerHTML = reviewFormHtml();
+    const place2 = document.getElementById("eqrevf");
+    if (!place2) return;
+    place2.innerHTML = reviewFormHtml();
     const cancel3 = document.getElementById("eqrcanc");
     if (cancel3) cancel3.onclick = () => {
-      place.innerHTML = "";
+      place2.innerHTML = "";
     };
     const ok = document.getElementById("eqrok");
     if (ok) ok.onclick = () => {
@@ -17840,7 +21560,7 @@
     }
     relatedLegacy.openEquipment(id);
   }
-  function bind20(id, item) {
+  function bind25(id, item) {
     const body2 = document.getElementById("dbody");
     if (!body2) return;
     const on4 = (elementId, action) => {
@@ -17880,9 +21600,9 @@
     }
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml7(item, reviews ?? []);
+    body2.innerHTML = sheetHtml8(item, reviews ?? []);
     if (!box.open) box.showModal();
-    bind20(id, item);
+    bind25(id, item);
   }
 
   // src/app/screens/surgeries/index.ts
@@ -17894,13 +21614,13 @@
   });
 
   // src/app/screens/surgeries/editor.ts
-  var value14 = (id) => document.getElementById(id)?.value ?? "";
+  var value17 = (id) => document.getElementById(id)?.value ?? "";
   async function team2() {
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     const me = salesTeam.currentUserId(), members2 = salesTeam.members();
     return members2.some((member) => member.id === me) ? members2 : [{ id: me, nombre: appLegacy.currentUserName() }, ...members2];
   }
-  function editorHtml10(surgery, existing, people) {
+  function editorHtml11(surgery, existing, people) {
     const origins = ORIGINS.map((origin) => `<button type="button" data-o="${origin}" class="${origin === surgery.origen ? "on" : ""}" aria-pressed="${String(origin === surgery.origen)}">${originLabel(origin)}</button>`).join("");
     return `<div class="fh"><div><h2>${t(existing ? "surgeries.editor.changeTitle" : "surgeries.editor.newTitle")}</h2><div class="sm">${t("surgeries.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -17921,22 +21641,22 @@
   function payload8(existing, centre, responsible, state) {
     return {
       id: existing?.id ?? null,
-      fecha: value14("cirf"),
-      hora: value14("cirh") || null,
+      fecha: value17("cirf"),
+      hora: value17("cirh") || null,
       hospital_id: centre.id,
       cirujano_id: responsible.id,
-      procedimiento: value14("cirp"),
-      quirofano: value14("cirq"),
-      asistente_id: value14("cira"),
+      procedimiento: value17("cirp"),
+      quirofano: value17("cirq"),
+      asistente_id: value17("cira"),
       origen: document.querySelector("#cirori .on")?.dataset.o,
-      referencia_caso: value14("cirref"),
-      nota: value14("cirn"),
+      referencia_caso: value17("cirref"),
+      nota: value17("cirn"),
       estado: state
     };
   }
   var failureText4 = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
-  async function save19(existing, choice, state, button2) {
-    if (!value14("cirf") || !choice.hos || !choice.cir) {
+  async function save23(existing, choice, state, button2) {
+    if (!value17("cirf") || !choice.hos || !choice.cir) {
       notices.toast(t("surgeries.editor.missing"), true);
       return;
     }
@@ -17952,7 +21672,7 @@
     if (state === STATES2.cancelled) document.getElementById("dlg")?.close();
     else relatedLegacy.openSurgery(result.id ?? "");
   }
-  function bind21(existing, choice) {
+  function bind26(existing, choice) {
     editorLegacy.pickAccount(document.getElementById("cirhos"), choice.hos, (account) => {
       choice.hos = account;
     }, t("surgeries.editor.centrePlaceholder"));
@@ -17970,12 +21690,12 @@
     });
     const ok = document.getElementById("cirok");
     if (ok) ok.onclick = () => {
-      void save19(existing, choice, STATES2.scheduled, ok);
+      void save23(existing, choice, STATES2.scheduled, ok);
     };
     const cancel3 = document.getElementById("ciranular");
     if (cancel3) cancel3.onclick = async () => {
       if (!await notices.confirm(t("surgeries.editor.cancelText"), { titulo: t("surgeries.editor.cancelTitle"), ok: t("surgeries.editor.cancelSurgery"), peligro: true })) return;
-      await save19(existing, choice, STATES2.cancelled, cancel3);
+      await save23(existing, choice, STATES2.cancelled, cancel3);
     };
   }
   async function editSurgery(existing) {
@@ -17983,13 +21703,13 @@
     const people = await team2();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml10(surgery, existing, people);
+    body2.innerHTML = editorHtml11(surgery, existing, people);
     if (!box.open) box.showModal();
     const choice = {
       hos: existing ? { id: existing.hospital_id ?? "", nombre: existing.hospital ?? "" } : null,
       cir: existing ? { id: existing.cirujano_id ?? "", nombre: existing.cirujano ?? "", ...existing.especialidad ? { especialidad: existing.especialidad } : {} } : null
     };
-    bind21(existing, choice);
+    bind26(existing, choice);
   }
 
   // src/app/screens/surgeries/list.ts
@@ -18035,18 +21755,18 @@
   }
 
   // src/app/screens/surgeries/use.ts
-  var MAX_SERIALS = 30;
-  function lineHtml4(line2, index) {
+  var MAX_SERIALS2 = 30;
+  function lineHtml5(line2, index) {
     const details2 = `${escapeHtml(line2.numero_lote ?? t("surgeries.use.noBatch"))}${line2.caducidad ? t("surgeries.use.expires", { date: formatShortDate(line2.caducidad) }) : ""}${t("surgeries.use.available", { count: formatNumber(line2.unidades) })}`;
     return `<div class="cirl" data-ci="${index}"><label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${details2}</span></span>
       <input type="number" min="0" max="${line2.unidades}" step="1" data-cu="${index}" placeholder="0" aria-label="${t("surgeries.use.usedOf", { name: escapeHtml(line2.nombre) })}"></label><div class="cirser" data-cs="${index}"></div></div>`;
   }
   function paintSerials(box, input4) {
     const key = input4.dataset.cu ?? "", units2 = Math.min(Number(input4.max), Math.max(0, Math.floor(Number(input4.value) || 0)));
-    const place = box.querySelector(`[data-cs="${key}"]`);
-    if (!place) return;
-    const written = [...place.querySelectorAll("input")].map((field8) => field8.value);
-    place.innerHTML = range(Math.min(units2, MAX_SERIALS)).map((index) => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? "")}" placeholder="${t("surgeries.use.serialOf", { index: index + 1 })}" aria-label="${t("surgeries.use.serialLabel", { index: index + 1 })}">`).join("");
+    const place2 = box.querySelector(`[data-cs="${key}"]`);
+    if (!place2) return;
+    const written = [...place2.querySelectorAll("input")].map((field8) => field8.value);
+    place2.innerHTML = range(Math.min(units2, MAX_SERIALS2)).map((index) => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? "")}" placeholder="${t("surgeries.use.serialOf", { index: index + 1 })}" aria-label="${t("surgeries.use.serialLabel", { index: index + 1 })}">`).join("");
   }
   async function saveUsed(surgery, stock, box, button2) {
     const items = stock.map((line2, index) => ({
@@ -18089,7 +21809,7 @@
     }
     box.innerHTML = `<details class="cirdet"><summary class="btn">${t("surgeries.use.record")}</summary><div class="depbox">
     <span class="sm">${t("surgeries.use.hint")}</span>
-    <div class="cirlin">${stock.map(lineHtml4).join("")}</div>
+    <div class="cirlin">${stock.map(lineHtml5).join("")}</div>
     <label for="cirref2">${t("surgeries.editor.caseReference", { patient: term("paciente", { article: "del" }) })}</label><input id="cirref2" maxlength="60" value="${escapeHtml(surgery.referencia_caso ?? "")}" placeholder="${t("surgeries.editor.caseReferencePlaceholder")}">
     <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">${t("surgeries.use.save")}</button></div></div></details>`;
     box.querySelectorAll("[data-cu]").forEach((input4) => {
@@ -18097,9 +21817,9 @@
         paintSerials(box, input4);
       };
     });
-    const save21 = document.getElementById("cirusok");
-    if (save21) save21.onclick = () => {
-      void saveUsed(surgery, stock, box, save21);
+    const save25 = document.getElementById("cirusok");
+    if (save25) save25.onclick = () => {
+      void saveUsed(surgery, stock, box, save25);
     };
   }
 
@@ -18123,7 +21843,7 @@
     return `<h3>${t("surgeries.sheet.used")}</h3><div class="deptab"><div class="deph cirh"><span>${t("surgeries.sheet.product")}</span><span>${t("surgeries.sheet.batch")}</span><span>${t("surgeries.sheet.serial")}</span><span>${t("surgeries.sheet.units")}</span></div>
       ${used.map((line2) => `<div class="depf cirh"><span>${escapeHtml(line2.producto)}</span><span>${escapeHtml(orFallback(line2.numero_lote, t("surgeries.sheet.noBatch")))}</span><span>${escapeHtml(orFallback(line2.serie, "—"))}</span><b>${formatNumber(line2.unidades)}</b></div>`).join("")}</div>`;
   }
-  function sheetHtml8(detail, notice) {
+  function sheetHtml9(detail, notice) {
     const surgery = detail.cirugia, scheduled = surgery.estado === STATES2.scheduled, replenishment = replenishmentOf(surgery), can = Boolean(detail.puede);
     return `<div class="fh"><div><h2>${escapeHtml(orFallback(surgery.procedimiento, t("surgeries.surgery")))}</h2>
       <div class="sm">${escapeHtml(formatLongDate(surgery.fecha))}${surgery.hora ? ` · ${escapeHtml(timeOf(surgery))}` : ""} · ${escapeHtml(detail.hospital)}${surgery.quirofano ? ` · ${escapeHtml(surgery.quirofano)}` : ""}</div></div>
@@ -18134,9 +21854,9 @@
     ${surgery.estado === STATES2.done && !surgery.pedido_id ? `<div class="banda-aviso cirsinped">${t("surgeries.sheet.noOrder")} <button type="button" class="btn sec" id="cirhacerped">${t("surgeries.sheet.createOrder")}</button></div>` : ""}
     ${scheduled && can ? '<div id="cirusar"></div>' : ""}
     ${usedHtml(detail.consumos ?? [])}
-    ${actionsHtml5(surgery, replenishment, can)}`;
+    ${actionsHtml6(surgery, replenishment, can)}`;
   }
-  function actionsHtml5(surgery, replenishment, can) {
+  function actionsHtml6(surgery, replenishment, can) {
     const scheduled = surgery.estado === STATES2.scheduled;
     return `<div class="acts" style="justify-content:flex-end">${surgery.pedido_id ? `<button type="button" class="btn sec" id="cirped">${t("surgeries.sheet.seeOrder")}</button>` : ""}
       ${replenishment && replenishment !== "repuesta" && can ? `<button type="button" class="btn" id="cirrepo">${t("surgeries.sheet.replenishNow")}</button>` : ""}
@@ -18164,7 +21884,7 @@
     notices.toast(t(result.a_tiempo === false ? "surgeries.sheet.replenishedLate" : "surgeries.sheet.replenished"));
     relatedLegacy.openSurgery(id);
   }
-  function bind22(id, detail) {
+  function bind27(id, detail) {
     const surgery = detail.cirugia, on4 = (elementId, action) => {
       const button2 = document.getElementById(elementId);
       if (button2) button2.onclick = () => {
@@ -18198,9 +21918,9 @@
     }
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml8(detail, notice);
+    body2.innerHTML = sheetHtml9(detail, notice);
     if (!box.open) box.showModal();
-    bind22(id, detail);
+    bind27(id, detail);
     if (document.getElementById("cirusar")) paintUse(detail.cirugia, detail.stock ?? []);
   }
 
@@ -18228,9 +21948,9 @@
     [6, "cycle.editor.half"],
     [12, "cycle.editor.year"]
   ];
-  var visits = (value15) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value15) || 0)));
-  function editorHtml11(current) {
-    const months2 = LENGTHS.map(([value15, key]) => `<option value="${value15}" ${Number(current.meses) === value15 ? "selected" : ""}>${t(key)}</option>`).join("");
+  var visits = (value18) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value18) || 0)));
+  function editorHtml12(current) {
+    const months2 = LENGTHS.map(([value18, key]) => `<option value="${value18}" ${Number(current.meses) === value18 ? "selected" : ""}>${t(key)}</option>`).join("");
     const goals = CLASSES.map((letter) => `<label>${classPill(letter)}<span>${t("cycle.editor.perCycle", words())}</span><input type="number" min="0" max="${MAX_VISITS}" step="1" data-cobj="${letter}" value="${Math.max(0, Number(current[letter]) || 0)}" aria-label="${t("cycle.editor.ofClass", { ...words(), class: letter })}"></label>`).join("");
     return `<div class="fh"><div><h2>${t("cycle.editor.title", words())}</h2>
       <div class="sm">${t("cycle.editor.subtitle", words())}</div></div>
@@ -18240,17 +21960,17 @@
     <p class="sm">${t("cycle.editor.zeroHint", words())}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
   }
-  async function save20(body2, box) {
-    const value15 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
+  async function save24(body2, box) {
+    const value18 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
     body2.querySelectorAll("[data-cobj]").forEach((input4) => {
-      value15[input4.dataset.cobj ?? ""] = visits(input4.value);
+      value18[input4.dataset.cobj ?? ""] = visits(input4.value);
     });
-    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value15 });
+    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value18 });
     if (error || result?.ok === false) {
       notices.toast(t("cycle.editor.couldNotSave"), true);
       return;
     }
-    cycleLegacy.setSetting("ciclo_visitas", value15);
+    cycleLegacy.setSetting("ciclo_visitas", value18);
     box.close();
     notices.toast(t("cycle.editor.saved"));
     appLegacy.forgetCache();
@@ -18260,11 +21980,11 @@
     const current = { ...DEFAULTS2, ...cycleLegacy.setting("ciclo_visitas") };
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml11(current);
+    body2.innerHTML = editorHtml12(current);
     if (!box.open) box.showModal();
     const ok = document.getElementById("cicok");
     if (ok) ok.onclick = () => {
-      void save20(body2, box);
+      void save24(body2, box);
     };
   }
 
@@ -18278,11 +21998,11 @@
       ${summary4.cuentas ? `${progressBar(percent3, "div")}<span class="sm">${t("cycle.current.doneOf", { done: formatNumber(summary4.hechas), goal: visitsText(summary4.objetivo), percent: percent3 })}</span>` : ""}</div>`;
   }
   function pendingRow3(item) {
-    const place = escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "));
+    const place2 = escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "));
     const last = item.ultima_visita ? t("cycle.current.lastVisit", { ...words(), date: formatShortDate(item.ultima_visita) }) : t("cycle.current.noVisits", words());
     return `<div class="item cicrow">${classPill(item.clase)}
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
-          <span class="sm">${place}${last}</span></span>
+          <span class="sm">${place2}${last}</span></span>
         <span class="cicfal"><b>${t("cycle.current.progress", { done: item.hechas, goal: item.objetivo })}</b><span class="sm">${item.faltan === 1 ? t("cycle.current.oneMissing") : t("cycle.current.missing", { count: item.faltan })}</span></span>
         ${item.proxima_cita ? `<span class="pill p-per">${t("cycle.current.appointmentOn", { date: formatShortDate(item.proxima_cita) })}</span>` : `<button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button>`}</div>`;
   }
@@ -18300,13 +22020,13 @@
   }
   function missingHtml(data) {
     const filter = cycleState.classFilter, pending = (data.pendientes ?? []).filter((item) => !filter || item.clase === filter), cycle3 = cycleName(data.meses);
-    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value15 = "", label = ""]) => `<button type="button" data-cf="${value15}" class="${value15 === filter ? "on" : ""}" aria-pressed="${String(value15 === filter)}">${label}</button>`).join("");
+    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value18 = "", label = ""]) => `<button type="button" data-cf="${value18}" class="${value18 === filter ? "on" : ""}" aria-pressed="${String(value18 === filter)}">${label}</button>`).join("");
     const empty2 = filter ? t("cycle.current.noneMissingIn", { ...words(), class: filter }) : t("cycle.current.allUpToDate", { cycle: cycle3 });
     return `<section class="card cicbloque"><div class="cicbcab"><h2>${t("cycle.current.missingTitle", { ...words(), cycle: cycle3 })}</h2>
         <span class="segs" id="cicfil" role="group" aria-label="${t("cycle.classLabel")}">${buttons}</span></div>
       ${pending.length ? `<div class="lista">${pending.map(pendingRow3).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section>`;
   }
-  function pageHtml12(data, selector) {
+  function pageHtml14(data, selector) {
     const classified = sum((data.resumen ?? []).map((item) => item.cuentas));
     return `<div class="cicpag">${headerHtml9(data, selector)}
     ${unclassifiedHtml(data.sin_clase ?? 0)}
@@ -18332,7 +22052,7 @@
       goToTab("clasificar");
     };
   }
-  function bind23(box) {
+  function bind28(box) {
     bindOwner(paintCycle);
     const adjust = document.getElementById("cicajustar");
     if (adjust) adjust.onclick = () => {
@@ -18356,14 +22076,14 @@
       box.innerHTML = `<div class="vacio">${t("cycle.current.couldNotLoad")}</div>`;
       return;
     }
-    box.innerHTML = pageHtml12(data, selector);
-    bind23(box);
+    box.innerHTML = pageHtml14(data, selector);
+    bind28(box);
   }
 
   // src/app/screens/cycle/classify.ts
-  var SHOWN4 = 300;
-  var SEARCH_WAIT_MS7 = 350;
-  function rowHtml22(item) {
+  var SHOWN5 = 300;
+  var SEARCH_WAIT_MS9 = 350;
+  function rowHtml26(item) {
     return `<div class="item cicrow" data-cfila="${item.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
           <span class="sm">${escapeHtml([item.especialidad, item.municipio, item.estado_comercial].filter(Boolean).join(" · "))}</span></span>
@@ -18372,35 +22092,35 @@
   }
   function listHtml3(rows) {
     if (!rows.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
-    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml22).join("")}</div></section>${rows.length >= SHOWN4 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
+    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml26).join("")}</div></section>${rows.length >= SHOWN5 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
   }
-  function pageHtml13(rows, selector) {
-    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value15 = "", label = ""]) => `<button type="button" data-cl="${value15}" class="${value15 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value15 === cycleState.classifyFilter)}">${label}</button>`).join("");
+  function pageHtml15(rows, selector) {
+    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value18 = "", label = ""]) => `<button type="button" data-cl="${value18}" class="${value18 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value18 === cycleState.classifyFilter)}">${label}</button>`).join("");
     return `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="${t("cycle.classifyPage.show")}">${filters}</span>
       <span class="cicacc"><input id="cicq" type="search" placeholder="${t("cycle.classifyPage.search", words())}" value="${escapeHtml(cycleState.query)}" aria-label="${t("cycle.classifyPage.searchLabel")}">${selector}</span></div>
     <p class="sm">${t("cycle.classifyPage.hint", words())}</p>
     ${listHtml3(rows)}</div>`;
   }
-  var searchTimer7;
-  function bind24(box, wasSearching) {
+  var searchTimer8;
+  function bind29(box, wasSearching) {
     box.querySelectorAll("#cicclf [data-cl]").forEach((button2) => {
       button2.onclick = () => {
         cycleState.classifyFilter = button2.dataset.cl ?? "sin";
         void paintClassify();
       };
     });
-    const search3 = document.getElementById("cicq");
-    if (search3) {
-      search3.oninput = () => {
-        clearTimeout(searchTimer7);
-        searchTimer7 = setTimeout(() => {
-          cycleState.query = search3.value.trim();
+    const search4 = document.getElementById("cicq");
+    if (search4) {
+      search4.oninput = () => {
+        clearTimeout(searchTimer8);
+        searchTimer8 = setTimeout(() => {
+          cycleState.query = search4.value.trim();
           void paintClassify();
-        }, SEARCH_WAIT_MS7);
+        }, SEARCH_WAIT_MS9);
       };
       if (wasSearching) {
-        search3.focus();
-        search3.setSelectionRange(search3.value.length, search3.value.length);
+        search4.focus();
+        search4.setSelectionRange(search4.value.length, search4.value.length);
       }
     }
     bindOwner(paintClassify);
@@ -18418,9 +22138,9 @@
       box.innerHTML = `<div class="vacio">${t("cycle.classifyPage.couldNotLoad")}</div>`;
       return;
     }
-    const search3 = document.getElementById("cicq"), wasSearching = Boolean(search3) && document.activeElement === search3;
-    box.innerHTML = pageHtml13(data ?? [], selector);
-    bind24(box, wasSearching);
+    const search4 = document.getElementById("cicq"), wasSearching = Boolean(search4) && document.activeElement === search4;
+    box.innerHTML = pageHtml15(data ?? [], selector);
+    bind29(box, wasSearching);
   }
   async function classify(button2, onCard) {
     const [id = "", letter = ""] = (button2.dataset.ccl ?? "").split("|"), group = button2.closest(".cicsegs");
@@ -18499,18 +22219,18 @@
 
   // src/app/screens/cycle/team.ts
   var ofText = (done, goal) => t("cycle.current.progress", { done: formatNumber(done), goal: formatNumber(goal) });
-  function rowHtml23(member) {
+  function rowHtml27(member) {
     const classified = member.a + member.b + member.c, percent3 = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
     const progress = percent3 === null ? "—" : `<span class="cicbarc">${progressBar(percent3)}${ofText(member.hechas, member.objetivo)} · ${percent3}%</span>`;
     return `<tr><td><button type="button" class="lnk" data-cde="${member.id}"><b>${escapeHtml(member.nombre)}</b></button><span class="sm"> · ${escapeHtml(member.rol)}</span></td><td>${formatNumber(member.cartera)}</td><td>${formatNumber(member.a)}</td><td>${formatNumber(member.b)}</td><td>${formatNumber(member.c)}</td>
           <td class="${member.sin_clase ? "cicaviso" : ""}">${formatNumber(member.sin_clase)}</td><td>${classified ? ofText(member.al_dia, classified) : "—"}</td>
           <td>${progress}</td></tr>`;
   }
-  function tableHtml8(members2) {
+  function tableHtml9(members2) {
     if (!members2.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
     const head = [t("cycle.team.person"), t("cycle.team.portfolio"), "A", "B", "C", t("cycle.team.noClass"), t("cycle.team.upToDate"), t("cycle.team.cycleVisits", words())];
     return `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr>${head.map((title2) => `<th>${title2}</th>`).join("")}</tr></thead>
-      <tbody>${members2.map(rowHtml23).join("")}</tbody></table></div></div>
+      <tbody>${members2.map(rowHtml27).join("")}</tbody></table></div></div>
       <p class="sm">${t("cycle.team.countHint", words())}</p>`;
   }
   async function paintCycleTeam() {
@@ -18521,7 +22241,7 @@
     const range2 = (ranges ?? [])[0];
     const goals = range2 ? `<p class="sm">${escapeHtml(rangeText(range2))}${t("cycle.team.goals", { ...words(), a: visitsText(range2.obj_a), b: range2.obj_b, c: range2.obj_c })}</p>` : "";
     box.innerHTML = `<div class="cicpag">${goals}
-    ${tableHtml8(members2 ?? [])}</div>`;
+    ${tableHtml9(members2 ?? [])}</div>`;
     box.querySelectorAll("[data-cde]").forEach((button2) => {
       button2.onclick = () => {
         cycleState.owner = button2.dataset.cde ?? "";
@@ -18532,13 +22252,13 @@
 
   // src/app/screens/agenda/your-day/card-buttons.ts
   function swapWithNeighbour(item, action) {
-    const all = legacyAgenda.dayAppointments(), open2 = all.filter((entry) => isOpen(entry.estado));
+    const all2 = legacyAgenda.dayAppointments(), open2 = all2.filter((entry) => isOpen(entry.estado));
     const from = open2.indexOf(item), to = action === "sube" ? from - 1 : from + 1;
     const neighbour = open2[to];
     if (!neighbour) return;
     open2[from] = neighbour;
     open2[to] = item;
-    void moveAppointment([...all.filter((entry) => !isOpen(entry.estado)), ...open2], item.id, action);
+    void moveAppointment([...all2.filter((entry) => !isOpen(entry.estado)), ...open2], item.id, action);
   }
   function cardButton(button2) {
     const [action = "", id = ""] = (button2.dataset.td ?? "").split("|");
@@ -18547,7 +22267,7 @@
     if (action === "mas") openMenu(button2, item);
     else if (action === "visita") {
       if (yourDayLegacy.canRecordOn(item.fecha)) appointmentLegacy.recordVisit(item.cuenta_id, item.fecha);
-    } else if (action === "nueva") void appointmentLegacy.newDateAfterAbsent(item);
+    } else if (action === "nueva") void newDateAfterAbsent(item);
     else if (action === "sube" || action === "baja") swapWithNeighbour(item, action);
   }
   function taskRow2(row4, target) {
@@ -18603,6 +22323,9 @@
       agenda: agenda_exports,
       accounts: accounts_exports,
       events: events_exports,
+      access: access_exports,
+      routes: routes_exports,
+      orders: orders_exports,
       products: products_exports,
       billing: billing_exports,
       platform: platform_exports,
@@ -18623,6 +22346,9 @@
     }
   };
   listenToSameCentre();
+  listenToMapCards((id) => {
+    void openAccountCard(id);
+  });
   listenToYourDay();
   listenToCards();
   listenToColumnResize(paintHeader);
@@ -20709,43 +24435,6 @@ const eurW = n => { const s = eur(n); return Math.round(+n * 100) % 100 === 0 ? 
 // servicios/mapas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-async function pintarMapa() {
-  if (!window.L) { $('mapleg').textContent = 'El mapa necesita conexión.'; return; }
-  $('mapleg').textContent = 'Cargando puntos…';
-
-  const { data, error } = await db.rpc('mapa_cuentas', {
-    q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
-    f_estado: F.est || null, f_especialidad: F.esp || null, f_urgentes: !!F.urg
-  });
-  if (error) { $('mapleg').textContent = 'No se ha podido cargar el mapa: ' + error.message; return; }
-
-  if (!MAPA) {
-    MAPA = L.map('mapa', { preferCanvas: true }).setView([41.6, 1.9], 9);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(MAPA);
-  }
-  if (CAPA) CAPA.remove();
-  CAPA = L.layerGroup().addTo(MAPA);
-
-  const puntos = data || [];
-  puntos.forEach(m => {
-    const col = m.urgente && !m.ultima_visita ? '#B42318' : (colEstado(m.estado) || '#6B7F95');
-    L.circleMarker([m.lat, m.lon], {
-      radius: m.urgente ? 7 : 5, color: '#fff', weight: 1.5, fillColor: col, fillOpacity: .92
-    }).addTo(CAPA).bindPopup(
-      `<b>${esc(m.nombre)}</b><br>${esc(m.especialidad || '')}<br>${esc(m.centro || '')} ${esc(m.municipio || '')}<br>
-       <span style="color:${col};font-weight:700">${esc(m.estado)}</span><br>
-       <a href="#" onclick="abrirFicha('${m.id}');return false">Abrir ficha</a>`);
-  });
-
-  if (puntos.length) MAPA.fitBounds(puntos.map(m => [m.lat, m.lon]), { padding: [30, 30] });
-  setTimeout(() => MAPA.invalidateSize(), 60);
-
-  $('mapleg').innerHTML =
-    `<span><i style="background:#B42318"></i>Urgente sin visitar</span>` +
-    ESTADOS_DEF.map(x => `<span><i style="background:${colEstado(x.valor) || '#6B7F95'}"></i>${esc(x.valor)}</span>`).join('') +
-    `<span style="margin-left:auto"><b>${num(puntos.length)}</b> con ubicación de ${num(F.total)} encontrados</span>`;
-}
 
 function enlaceNav(destino, paradas, n = 'google') {
   const d = Array.isArray(destino) ? destino.join(',') : destino;
@@ -20868,6 +24557,9 @@ async function geocodificar(q, o = {}) {
   if (muni && l.length) return Object.assign({}, l[0], { fuera: lugar(l[0]) || 'otro sitio' });
   return l[0] || null;
 }
+
+// El mapa de Cuentas está en src/app/screens/accounts/map (v2.414.0); el nombre se queda: lo llama «Ver mapa» (legado 006).
+function pintarMapa() { return window.delcos.screens.accounts.paintMap(); }
 // servicios/pdf.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -23704,107 +27396,11 @@ function claveAlerta(titulo, x) {
   return normAl(titulo) + ':' + (id || normAl((x.querySelector('.tx b') || x).textContent));
 }
 
-// Seguridad de una contraseña: 0 muy débil … 4 muy segura
-function seguridadClave(p) {
-  if (!p) return { n: -1, t: '' };
-  let pts = 0;
-  if (p.length >= 8) pts++; if (p.length >= 12) pts++; if (p.length >= 16) pts++;
-  const tipos = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter(r => r.test(p)).length;
-  pts += Math.max(0, tipos - 1);
-  if (/^(.)\1+$/.test(p) || (/^(1234|abcd|qwer|contrase|password|dlc)/i.test(p) && p.length < 12)) pts = Math.min(pts, 1);
-  const n = p.length < 8 ? 0 : Math.min(4, Math.max(1, pts - 1));
-  return { n, t: ['Muy débil', 'Débil', 'Aceptable', 'Segura', 'Muy segura'][n] };
-}
 
-// Añade el indicador a un campo de contraseña (y la comprobación de la repetición, si la hay)
-function medidorClave(inp, rep, boton) {
-  if (!inp || inp.dataset.medidor) return;
-  inp.dataset.medidor = '1';
-  inp.insertAdjacentHTML('afterend', `<div class="clavemed"><div class="clavebar"><i></i><i></i><i></i><i></i></div><span class="clavetxt"></span>
-    <ul class="clavereq"><li data-r="len">Al menos 8 caracteres</li><li data-r="may">Mayúsculas y minúsculas</li><li data-r="num">Algún número</li><li data-r="sim">Algún símbolo (opcional, la hace más segura)</li></ul></div>`);
-  const med = inp.nextElementSibling;
-  if (rep) rep.insertAdjacentHTML('afterend', '<div class="clavecoin sm"></div>');
-  const act = () => {
-    const p = inp.value, s = seguridadClave(p), col = ['#C24141', '#D9480F', '#D97706', '#12805C', '#0F6E4C'][Math.max(0, s.n)];
-    med.querySelectorAll('.clavebar i').forEach((x, i) => { x.style.background = p && i < Math.max(1, s.n) ? col : ''; });
-    med.querySelector('.clavetxt').textContent = p ? s.t : ''; med.querySelector('.clavetxt').style.color = col;
-    const ok = { len: p.length >= 8, may: /[a-z]/.test(p) && /[A-Z]/.test(p), num: /\d/.test(p), sim: /[^A-Za-z0-9]/.test(p) };
-    med.querySelectorAll('[data-r]').forEach(li => li.classList.toggle('ok', ok[li.dataset.r]));
-    let valida = p.length >= 8;
-    if (rep) {
-      const c = rep.nextElementSibling, iguales = rep.value && rep.value === p;
-      c.textContent = !rep.value ? '' : iguales ? '✓ Coinciden' : '✗ No coinciden';
-      c.style.color = iguales ? 'var(--ok)' : 'var(--dang)';
-      valida = valida && iguales;
-    }
-    if (boton) boton.disabled = !valida;
-  };
-  inp.addEventListener('input', act); if (rep) rep.addEventListener('input', act); act();
-}
 
-// En el acceso: aviso y botón «Enviarme un enlace nuevo» con el correo escrito
-function accesoSinActivar(texto) {
-  const msg = $('lmsg'); if (!msg) return;
-  msg.innerHTML = `<span>${esc(texto)}</span> <button type="button" class="btn sec chico" id="lreenv">Enviarme un enlace nuevo</button>`;
-  $('lreenv').onclick = async () => {
-    const b = $('lreenv'); b.disabled = true;
-    await reenviarActivacion($('lu').value, { ok: t => { msg.textContent = t; }, err: t => { msg.querySelector('span').textContent = t; b.disabled = false; } });
-  };
-}
 
-async function restablecerPassword(u) {
-  if (!u.email) { toast('Ese usuario no tiene correo', true); return; }
-  if (!await preguntar(`Se enviará a ${u.email} un correo para que cree una contraseña nueva.`,
-    { titulo: '¿Restablecer la contraseña?', ok: 'Enviar correo' })) return;
-  const { error } = await db.auth.resetPasswordForEmail(u.email, { redirectTo: location.origin + location.pathname });
-  if (error) { toast('No se ha podido enviar: ' + error.message, true); return; }
-  toast('Correo enviado a ' + u.email);
-}
 
-async function bienvenidaAlta() {
-  try { await pagoCargarEstado(); } catch (e) {}
-  const pl = PLAN_ACTUAL || {};
-  const pasos = [
-    ['importar', 'Trae tus datos', `Sube tu Excel de ${TT('medico', 'p', '', 'l', 'l')}, centros o clientes y los ordenamos por ti.`],
-    ['equipo', 'Invita a tu equipo', 'Da acceso a las personas que van a usar delcos, cada una con su rol.'],
-    ['marca', 'Pon tu marca', 'Tu logotipo y tu nombre en la plataforma y en los documentos.']];
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Te damos la bienvenida a delcos</h2>
-      <div class="sm">${esc(nombreApp())} ya está en marcha${pl.en_prueba && pl.periodo_fin ? ` · prueba gratis hasta el ${fechaCorta(pl.periodo_fin)}` : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Tres pasos para empezar con buen pie (los puedes hacer cuando quieras):</p>
-    <div class="bienpasos">${pasos.map(([k, t, d], i) => `<button type="button" class="bienpaso" data-bien="${k}"><span class="bienn">${i + 1}</span>
-      <span><b>${esc(t)}</b><span class="sm">${esc(d)}</span></span></button>`).join('')}</div>
-    ${pl.en_prueba ? `<p class="sm">Durante la prueba no se cobra nada. Si decides no seguir, date de baja en Organización → Plan y suscripción antes del ${fechaCorta(pl.periodo_fin)}.</p>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Empezar</button></div>`;
-  $('dbody').querySelectorAll('[data-bien]').forEach(b => b.onclick = () => {
-    $('dlg').close();
-    const k = b.dataset.bien;
-    if (k === 'importar') { CFG_SEC = 'importar'; ir('config'); }
-    else if (k === 'equipo') ir('usuarios');
-    else ir('organizacion');
-  });
-  $('dlg').showModal();
-}
 
-/* ============================================================
-   v2.305.0 · Reenviar el correo de activación (aviso de Eric: un profesional abrió el enlace del correo de alta cuando ya
-   había caducado y no tenía forma de pedir otro). Supabase reenvía el correo de confirmación con auth.resend (no hace falta
-   SQL): desde la ficha del usuario (administración) y desde la pantalla de acceso, que avisa si el enlace ha caducado o si
-   la cuenta aún no está activada.
-   ============================================================ */
-async function reenviarActivacion(email, o = {}) {
-  email = String(email || '').trim();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { (o.err || (t => toast(t, true)))('Escribe tu correo para enviarte un enlace nuevo.'); return false; }
-  const { error } = await db.auth.resend({ type: 'signup', email, options: { emailRedirectTo: location.origin + location.pathname } });
-  if (error) {
-    const t = /rate|seconds|429|security purposes/i.test(error.message + (error.status || '')) ? 'Se acaba de enviar uno: espera un minuto antes de pedir otro.'
-      : /already|confirmed/i.test(error.message) ? 'Esa cuenta ya está activada: puede entrar con su correo y contraseña (o usar «Enviar cambio de contraseña»).'
-      : 'No se ha podido enviar: ' + error.message;
-    (o.err || (x => toast(x, true)))(t); return false;
-  }
-  (o.ok || toast)('Correo de activación enviado a ' + email + '. El enlace nuevo sustituye al anterior.');
-  return true;
-}
 
 /* v2.181.0 · Nombres neutros en las respuestas de la base (decisión de Eric: dos versiones). Desde la v2.182.0 (SQL 116) estas funciones
    responden con nombres neutros (cuenta, ubicaciones, actividades…) en lugar de los de DLC (medico, consultas, visitas…). La app sigue usando
@@ -23822,27 +27418,20 @@ const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 
 let PAG_CLAVE = '';
 
-function mostrarLoginBase(msg) {
-  $('bootsplash').classList.add('hide');
-  $('app').classList.add('hide');
-  $('login').classList.remove('hide');
-  if (msg) $('lmsg').textContent = msg;
-  APP_VISIBLE = false;
-}
-
-function mostrarLogin(...a) { document.body.classList.add('sin-sesion'); return mostrarLoginBase.apply(this, a); }
+// Acceso está en src/app/screens/access (v2.414.0). Estos nombres se quedan: el acceso, la navegación, Configuración,
+// legado 001, 047, 076 y 129 y las pruebas los usan.
+function medidorClave(inp, rep, boton) { window.delcos.screens.access.addPasswordMeter(inp, rep, boton); }
+function accesoSinActivar(texto) { window.delcos.screens.access.showNotActivated(texto); }
+function restablecerPassword(u) { return window.delcos.screens.access.resetPassword(u); }
+function bienvenidaAlta() { return window.delcos.screens.access.showWelcome(); }
+function reenviarActivacion(email, o = {}) { return window.delcos.screens.access.resendActivation(email, o); }
+function mostrarLogin(msg) { window.delcos.screens.access.showLogin(msg); }
 // pantallas/agenda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
 // La precarga de datos de la Agenda está en src/app/screens/agenda/preload.ts (v2.393.0)
 const datosAgenda = window.delcos.screens.agenda.data;
 
-function jornadaActiva() {
-  let j = null;
-  try { j = JSON.parse(localStorage.getItem(JKEY()) || 'null'); } catch (e) {}
-  if (j && j.fecha !== hoyISO()) { localStorage.removeItem(JKEY()); return null; }   // una jornada solo dura su día
-  return j;
-}
 
 async function citasDelDia(fecha) {
   const r = await rpcCache('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: PERFIL.id }, 'agenda-' + fecha);
@@ -23850,63 +27439,7 @@ async function citasDelDia(fecha) {
 }
 
 
-async function reprogramarCitas(citas, titulo, texto) {
-  if (!citas.length) return false;
-  const conH = await conHorarios(citas.map(c => Object.assign({ id: c.cuenta_id }, 'dias' in c ? { dias: c.dias } : {})));
-  const dias = {}; conH.forEach(h => dias[h.id] = h.dias || {});
-  const base = hoyISO();
-  const filas = citas.map(c => ({ c, fecha: proximoDiaConsulta(dias[c.cuenta_id], c.fecha > base ? c.fecha : base),
-    horario: Object.keys(dias[c.cuenta_id] || {}).filter(k => (dias[c.cuenta_id] || {})[k]).join(' ') }));
-  return new Promise(res => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${esc(titulo)}</h2><div class="sm">${esc(texto)}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <p class="sm">Te propongo el próximo día que cada ${TT('medico', 's', '', 'l', 'l')} atiende. Cambia la fecha si quieres o desmarca los que no quieras mover.</p>
-      <div class="lista reprog" data-nosucio>${filas.map((f, i) => `<div class="item" style="cursor:default">
-        <input type="checkbox" data-rpi="${i}" checked aria-label="Mover">
-        <span class="tx"><b>${esc(f.c.nombre)}</b>
-          <span class="sm">${esc([f.c.centro_nombre, f.c.municipio].filter(Boolean).join(' · '))}${f.c.fecha < base ? ' · era el ' + fechaCorta(f.c.fecha) : ''}</span>
-          <span class="sm">${f.horario ? 'Atiende: ' + esc(f.horario) : 'Sin días de atención conocidos'}</span></span>
-        <input type="date" data-rpf="${i}" value="${f.fecha}" min="${base}"></div>`).join('')}</div>
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" id="rpno">Dejarlas como están</button>
-        <button class="btn" id="rpok">Mover las marcadas</button></div>`;
-    const cerrar = v => { $('dlg').close(); res(v); };
-    $('rpno').onclick = () => cerrar(false);
-    $('rpok').onclick = async ev => {
-      ev.target.disabled = true; ev.target.textContent = 'Moviendo…';
-      let n = 0;
-      for (let i = 0; i < filas.length; i++) {
-        if (!$('dbody').querySelector(`[data-rpi="${i}"]`).checked) continue;
-        const f = $('dbody').querySelector(`[data-rpf="${i}"]`).value; if (!f) continue;
-        const { data: r } = await db.rpc('aplazar_cita', { p_id: filas[i].c.id, p_fecha: f, p_hora: null, p_origen: 'Reprogramada' });
-        if (r && r.ok) n++;
-      }
-      toast(n ? `${n} ${n === 1 ? 'cita movida' : 'citas movidas'}` : 'No se ha movido ninguna');
-      cerrar(n > 0);
-      cargarAgenda(); cargarInicio(); pintarRutaBarra();
-    };
-    $('dlg').showModal();
-  });
-}
 
-async function terminarJornada() {
-  const j = jornadaActiva(); if (!j) return;
-  invalidarCache();
-  const citas = await citasDelDia(hoyISO());
-  const hechas = citas.filter(c => c.estado === 'Visitada').length;
-  const abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado));
-  const ok = await preguntar(`Tiempo: ${durTxt(Date.now() - j.inicio)} · Visitadas: ${hechas} de ${citas.filter(c => !['Descartada', 'Aplazada'].includes(c.estado)).length}` +
-    (abiertas.length ? `\n\nTe quedan ${abiertas.length} ${abiertas.length === 1 ? 'cita abierta' : 'citas abiertas'}. Al terminar te propongo a qué día moverlas.` : ''),
-    { titulo: '¿Terminar la jornada?', ok: 'Terminar jornada' });
-  if (!ok) return;
-  localStorage.removeItem(JKEY());
-  pintarRutaBarra();
-  toast(`Jornada terminada · ${hechas} visitadas`);
-  if (abiertas.length) await reprogramarCitas(abiertas, 'Lo que ha quedado pendiente hoy', `${abiertas.length} sin visitar`);
-  if (TAB === 'agenda') cargarAgenda();
-  if (TAB === 'rutas') cargarRutas();
-}
 
 function agUid() { return AG_VISTA ? AG_VISTA.id : PERFIL.id; }
 
@@ -23923,35 +27456,6 @@ async function verAgendaDe(id) {
   cargarAgenda();
 }
 
-async function menuDiaSemana(boton, fecha, bloqueado) {
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = [
-    fecha >= hoyISO() ? ['nueva', 'Nueva cita', `Añadir ${TT('medico', 's', 'un', 'l', 'l')} a este día`] : null,
-    ['ver', 'Ver el día', 'Abrirlo en «Tu día»'],
-    fecha >= hoyISO() ? (bloqueado ? ['desbloquear', 'Desbloquear el día', 'Vuelve a estar disponible para planificar']
-      : ['bloquear', 'Bloquear el día', 'Vacaciones, formación, congreso… El planificador no lo usará']) : null
-  ].filter(Boolean).map(([k, t, s]) => `<button data-dmo="${k}"><b>${esc(t)}</b><span>${esc(s)}</span></button>`).join('');
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelectorAll('[data-dmo]').forEach(b => b.onclick = async () => {
-    m.remove();
-    const k = b.dataset.dmo;
-    if (k === 'nueva') return nuevaCita(null, fecha);
-    if (k === 'ver') { AG_FECHA = fecha; AG_MODO = 'dia'; return cargarAgenda(); }
-    let motivo = null;
-    if (k === 'bloquear') {
-      motivo = await pedirTexto('Motivo (opcional)', '', { titulo: 'Bloquear el ' + fechaCorta(fecha), ok: 'Bloquear' });
-      if (motivo === null) return;
-    }
-    const { data: r2, error } = await RPC_ORIG('bloquear_dia', { p_fecha: fecha, p_motivo: motivo, p_usuario: agUid(), p_bloquear: k === 'bloquear' });
-    if (error || (r2 && r2.ok === false)) { toast('No se ha podido cambiar', true); return; }
-    toast(k === 'bloquear' ? 'Día bloqueado' : 'Día desbloqueado'); cargarAgenda();
-  });
-}
 
 
 // Mis citas pendientes (planificadas o confirmadas) desde hoy: médico → primera fecha
@@ -24003,23 +27507,7 @@ function agCambiosEnVentana() { return RC_EPOCA !== DLG_EPOCA; }
    - La nueva hereda la anterior: de qué día viene y cómo se citó la primera vez (Ruta, Ficha…), en lugar de «Aplazada».
    - Si vuelve a un día en que estaba aplazada, la base la reactiva y se ve como las demás (aplazar_cita y reabrir_cita).
    - En la ventana de la cita, botones para ir al día al que se movió o del que viene. */
-function diaCita(f) {
-  const d = new Date(f + 'T12:00:00');
-  return d.toLocaleDateString('es-ES', { weekday: 'long' }) + ' ' + d.getDate() + '/' + (d.getMonth() + 1);
-}
 
-function textoOrigenCita(c) {
-  const p = [];
-  if (c.estado === 'Aplazada' && c.aplazada_a_fecha) {
-    const fin = c.aplazada_a_estado && !CITA_ABIERTA.includes(c.aplazada_a_estado) && c.aplazada_a_estado !== 'Aplazada' ? ' (' + c.aplazada_a_estado.toLowerCase() + ')' : '';
-    p.push('movida al ' + diaCita(c.aplazada_a_fecha) + fin);
-  }
-  if (c.aplazada_de_fecha) {
-    p.push('viene del ' + diaCita(c.aplazada_de_fecha));
-    if (c.origen_inicial && !['Aplazada', 'Reprogramada'].includes(c.origen_inicial)) p.push(c.origen_inicial);
-  } else if (c.origen && !(c.estado === 'Aplazada' && c.aplazada_a_fecha && c.origen === 'Aplazada')) p.push(c.origen);
-  return p.length ? ' · ' + esc(p.join(' · ')) : '';
-}
 
 function puedeRegistrarEnDia(f) {
   const h = hoyISO();
@@ -24030,26 +27518,6 @@ async function agBloqueos(desde, n) { try { return await bloqueadosSemana(desde,
 
 
 
-async function rnPasarAgenda(item, btn) {
-  const { r } = item, ms = (item.ms || []).filter(m => m.lat != null);
-  if (!ms.length) { toast(`Esta ruta no tiene ${TT('medico', 'p', '', 'l', 'l')} con ubicación`, true); return; }
-  let rep = r.repeticion || null, fechas;
-  if (!rep) {
-    const f = await pedirCampo('¿Qué día la haces?', 'date', siguienteLaborable(), 'Día');
-    if (!f) return; fechas = [f];
-  } else fechas = rnFechas(rep, rep.desde && rep.desde > hoyISO() ? rep.desde : hoyISO(), rnHorizonte(rep));
-  if (!fechas.length) { toast('No hay ningún día próximo para esta ruta', true); return; }
-  if (fechas.length > 1 && !await preguntar(`Se añaden ${ms.length} ${ms.length === 1 ? "cita" : "citas"} cada día, en ${fechas.length} días: ${fechas.map(f => fechaCorta(f)).join(', ')}. Los días bloqueados se saltan y no se repite a nadie que ya tenga cita ese día.`,
-    { titulo: 'Pasar la ruta a tu agenda', ok: 'Añadir' })) return;
-  if (btn) btn.disabled = true;
-  try {
-    const res = await rnCitasEn(r, ms, fechas);
-    if (res.error) return;
-    if (rep && rep.tipo !== 'fecha') await db.rpc('guardar_ruta', { p: { id: r.id, repeticion: Object.assign({}, rep, { hasta: fechas[fechas.length - 1] }) } });
-    toast(`${res.n} ${res.n === 1 ? 'cita añadida' : 'citas añadidas'}${res.saltados.length ? ` · ${res.saltados.length} ${res.saltados.length === 1 ? 'día bloqueado' : 'días bloqueados'} sin tocar` : ''}`);
-    AG_MODO = 'dia'; AG_FECHA = fechas.find(f => !res.saltados.includes(f)) || fechas[0]; ir('agenda');
-  } finally { if (btn) btn.disabled = false; }
-}
 
 
 
@@ -24124,18 +27592,6 @@ function tdMarcaTrafico() {
 
 
 
-async function nuevaFechaTrasNoEstaba(c) {
-  const prop = proximoDiaConsulta(c.dias, c.fecha);
-  const op = await elegirOpcion('¿Le buscamos otro día?', `${c.nombre}\n\nEl próximo día que atiende es el ${fechaLarga(new Date(prop + 'T00:00:00'))}.`,
-    [{ k: 'no', t: 'Ahora no', cls: 'sec' }, { k: 'otra', t: 'Elegir otra fecha', cls: 'sec' }, { k: 'prop', t: 'Cita el ' + fechaCorta(prop) }]);
-  if (!op) return;
-  let f = prop;
-  if (op === 'otra') { f = await pedirFecha('¿Qué día?', prop, { titulo: 'Nueva cita', ok: 'Crear cita' }); if (!f) return; }
-  const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: c.cuenta_id, fecha: f, centro_nombre: c.centro_nombre,
-    estado: 'Planificada', origen: 'No estaba el ' + fechaCorta(c.fecha), op_id: 'ne-' + c.id + '-' + f } });
-  if (error || (r && r.ok === false)) { toast('No se ha podido crear la cita', true); return; }
-  toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
-}
 
 // El mes está en src/app/screens/agenda (v2.390.0); este nombre se queda porque lo llaman el escuchador de Escape y las pruebas
 function cerrarMesCinta() { window.delcos.screens.agenda.closeMonth(); }
@@ -24238,15 +27694,6 @@ const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 
 // Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
 
-async function empezarJornadaBase() {
-  const citas = await citasDelDia(hoyISO());
-  if (!citas.some(c => CITA_ABIERTA.includes(c.estado))) { toast('No tienes citas abiertas hoy. Añade citas o planifica una ruta.', true); return; }
-  localStorage.setItem(JKEY(), JSON.stringify({ fecha: hoyISO(), inicio: Date.now() }));
-  pintarRutaBarra();
-  toast('Jornada iniciada');
-  AG_MODO = 'dia'; AG_FECHA = hoyISO();
-  if (TAB === 'agenda') cargarAgenda(); else ir('agenda');
-}
 
 async function bloqueadosSemanaBase(desde, hasta) {
   const { data } = await RPC_ORIG('dias_bloqueados_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUid() });
@@ -24275,11 +27722,6 @@ function bloqueadosSemana(d, h) {
 // ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
 
 
-async function empezarJornada(...a) {
-  const r = await empezarJornadaBase.apply(this, a);
-  try { if (AG_FECHA === hoyISO()) tdTrafico(true); } catch (e) {}
-  return r;
-}
 
 
 
@@ -24325,6 +27767,13 @@ function agRefrescoQuieto(id, o = {}) { window.delcos.screens.agenda.refreshQuie
 // La ventana «Nueva cita» está en src/app/screens/agenda/editors/appointment-editor.ts (v2.400.0); el nombre se queda porque
 // la abren siete archivos antiguos (ficha, ciclo, configuración, parque…).
 function nuevaCita(medicoId, fecha, op = {}) { return window.delcos.screens.agenda.newAppointment(medicoId, fecha, op); }
+
+// La jornada, reprogramar, el menú del día y el origen de la cita están en src/app/screens/agenda (v2.414.0). Estos nombres
+// se quedan: Rutas y las pruebas los usan.
+function jornadaActiva() { return window.delcos.screens.agenda.activeWorkingDay(); }
+function empezarJornada() { return window.delcos.screens.agenda.startWorkingDay(); }
+function terminarJornada() { return window.delcos.screens.agenda.endWorkingDay(); }
+function textoOrigenCita(c) { return window.delcos.screens.agenda.originText(c); }
 // pantallas/analitica.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -30168,203 +33617,6 @@ function verEquipo(id) { return window.delcos.screens.equipment.showEquipment(id
 // pantallas/pedidos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-// Ver pedido · Operativa: pago, paquete, emails
-async function pedidoOperativa(id) {
-  if (!$('dlg').open || !(VE_TODO() || puede('administrar'))) return;
-  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  const p = data && data.pedido; if (!p || p.estado !== 'Confirmado' || $('pdops')) return;
-  await cargarAjustes();
-  const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
-  const permitido = VE_TODO() && nivelDe2('V') >= 2;
-  const acts = $('dbody').querySelector('.acts:last-of-type');
-  acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdops" data-nosucio><h3>Operativa</h3>
-    ${p.sin_cargo ? '<p class="sm">Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.</p>' : ''}${OPS.filter(([k]) => !(p.sin_cargo && k === 'pago')).map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
-      <span>${esc(t)}${k === 'pago' && p.forma_pago ? ` <span class="sm">· ${esc(p.forma_pago)}${/reembolso/i.test(p.forma_pago) ? ' (se cobra al entregar)' : ''}</span>` : ''}</span></label>`).join('')}
-    <label class="opchk ${p.reportar_profesional ? 'on' : ''}"><input type="checkbox" data-reporte ${p.reportar_profesional ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
-      <span>Reportado ${esc(TT('medico', 's', 'al', 'l', 'l'))}</span></label>
-    <div class="acts" style="margin:6px 0 0">
-      ${p.sin_cargo ? '' : cli.email ? `<a class="btn sec" id="pdmailpago" data-ped="${id}" href="mailto:${esc(cli.email)}?subject=${encodeURIComponent(asuntoEmailPago(p, total, cli.nombre))}&body=${encodeURIComponent(textoEmailPago(p, total, cli.nombre))}">✉️ Preparar email con los datos de pago</a>` : '<span class="sm">El cliente no tiene email en su ficha.</span>'}
-    </div></div>`);
-  $('dbody').querySelectorAll('[data-op]').forEach(c => c.onchange = async () => {
-    const { data: r, error } = await db.rpc('marcar_operativa', { p_pedido: id, p_campo: c.dataset.op, p_hecho: c.checked });
-    if (error || (r && r.ok === false)) { c.checked = !c.checked; toast('No se ha podido guardar', true); return; }
-    c.closest('.opchk').classList.toggle('on', c.checked);
-    toast(c.checked ? (c.dataset.op === 'pago' ? 'Cobrado' + (p.factura_id ? ' · cobro anotado en la factura' : '') : 'Hecho') : 'Desmarcado');
-    if (TAB === 'ventas' && PEDSEC === 'ventas') pintarOperativa();
-  });
-  const crep = $('dbody').querySelector('[data-reporte]');   // v2.328.0
-  if (crep) crep.onchange = async () => {
-    const { data: r, error } = await db.rpc('marcar_reporte', { p_id: id, p_valor: crep.checked });
-    if (error || (r && r.ok === false)) { crep.checked = !crep.checked; toast('No se ha podido guardar', true); return; }
-    crep.closest('.opchk').classList.toggle('on', crep.checked);
-    toast(crep.checked ? 'Reportado' : 'Ya no se reporta');
-  };
-  if ($('pdmailpago')) $('pdmailpago').addEventListener('click', () => setTimeout(async () => {
-    if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' })) {
-      await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true }); verPedido(id);
-    }
-  }, 800));
-}
-
-function totalesPedido(lineas, d, dt, env) {
-  const ls = lineas.map(l => ({ b: (+l.importe || 0) * (1 - (+l.descuento || 0) / 100), iva: +l.iva || 0, u: +l.unidades || 0 }));
-  const sb = ls.reduce((n, l) => n + l.b, 0);
-  const k = !+d || !sb ? 1 : dt === 'importe' ? Math.max(0, 1 - d / sb) : Math.max(0, 1 - d / 100);
-  const porIva = {};
-  ls.forEach(l => { porIva[l.iva] = (porIva[l.iva] || 0) + l.b * k * l.iva / 100; });
-  const t = { unidades: ls.reduce((n, l) => n + l.u, 0), bruto: sb, descuento: sb * (1 - k), baseProd: sb * k, porIva };
-  // El envío se escribe con IVA; aquí se separa su base y su IVA
-  t.envio = env && env.on ? { con: r2(env.con), iva: +env.iva || 0, base: (+env.con || 0) / (1 + (+env.iva || 0) / 100), nombre: env.nombre || 'Envío' } : null;
-  if (t.envio) { t.envio.ivaImp = t.envio.con - t.envio.base; porIva[t.envio.iva] = (porIva[t.envio.iva] || 0) + t.envio.ivaImp; }
-  t.base = t.baseProd + (t.envio ? t.envio.base : 0);
-  t.iva = Object.values(porIva).reduce((n, x) => n + x, 0);
-  t.total = t.base + t.iva;
-  return t;
-}
-
-// Pedidos · Pestañas Ventas, Compras y Proveedores, y contenido de Compras y Proveedores
-async function pedidosSecciones() {
-  const v = $('v-ventas');
-  v.querySelector('.saludo h1').firstChild.textContent = 'Pedidos';
-  v.querySelector('.saludo .fecha').textContent = 'Ventas, compras y proveedores';
-  v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="subnav" id="pedsub">
-    <button data-pedsec="ventas" aria-pressed="${pedsecVista() === 'ventas'}">Ventas</button>
-    <button data-pedsec="compras" aria-pressed="${pedsecVista() === 'compras'}">Compras</button>
-    <button data-pedsec="proveedores" aria-pressed="${pedsecVista() === 'proveedores'}">Proveedores</button></div>`);
-  v.querySelectorAll('[data-pedsec]').forEach(b => b.onclick = () => { PEDSEC = b.dataset.pedsec; cargarVentas(); });
-  if (PEDSEC === 'ventas') return;
-  const acts = v.querySelector('.saludo .acts');
-  acts.innerHTML = puedeCompras() ? (PEDSEC === 'compras' ? '<button class="btn" id="compnueva">+ Nuevo pedido de compra</button>'
-    : '<button class="btn" id="provnuevo">+ Nuevo proveedor</button>') : '';
-  if ($('compnueva')) $('compnueva').onclick = () => editorCompra(null);
-  if ($('provnuevo')) $('provnuevo').onclick = () => editorProveedor(null);
-  if (PEDSEC === 'compras') pintarCompras(); else pintarProveedores();
-}
-
-// Pedidos · Pestaña Llamadas y operativa de ventas
-async function pedidosLlamadas(sec) {
-  PEDSEC = sec;
-  const sub = $('pedsub');
-  if (PEDSEC === 'llamadas' && !hayOportunidades()) PEDSEC = 'ventas';
-  if (sub && VE_TODO() && hayOportunidades() && !sub.querySelector('[data-pedsec="llamadas"]')) {
-    sub.insertAdjacentHTML('beforeend', `<button data-pedsec="llamadas" aria-pressed="${PEDSEC === 'llamadas'}">Oportunidades</button>`);
-    sub.querySelector('[data-pedsec="llamadas"]').onclick = () => { PEDSEC = 'llamadas'; cargarVentas(); };
-  }
-  if (sub) sub.querySelectorAll('[data-pedsec]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pedsec === PEDSEC)));
-  if (PEDSEC === 'ventas' && VE_TODO()) pintarOperativa();
-  if (PEDSEC === 'llamadas') {
-    const acts = $('v-ventas').querySelector('.saludo .acts');
-    acts.innerHTML = '<button class="btn" id="llnueva">+ Nueva venta</button>';
-    $('llnueva').onclick = () => nuevaVenta();
-    pintarLlamadas();
-  }
-}
-
-// Pedidos · Botón «Registrar llamada» en Ventas
-async function pedidosBotonLlamada() {
-  return;   // v2.125.0: «+ Nueva venta» une llamada y pedido
-  if (!VE_TODO() || PEDSEC !== 'ventas') return;
-  const acts = $('v-ventas').querySelector('.saludo .acts');
-  if (acts && !$('pedllam')) {
-    acts.insertAdjacentHTML('afterbegin', '<button class="btn sec" id="pedllam">📞 Registrar llamada</button>');
-    $('pedllam').onclick = () => editorOportunidad(null);
-  }
-}
-
-/* Parte base; cargarVentas le añade el resto */
-async function cargarVentasBase() {
-  vaciarModulos('v-ventas');
-  $('v-ventas').innerHTML = `
-    <div class="saludo"><div><h1>Ventas</h1><div class="fecha">Pedidos, unidades e importes</div></div>
-      <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pednuevo">+ Nueva venta</button>' : ''}</div></div>
-    <div id="vcuerpo">
-      <div class="panel">
-        <div class="filtros">
-          <div id="pper"></div>
-          <div><label for="pcanal">Canal</label><select id="pcanal">
-            <option value="">Todos</option><option value="paciente">Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
-            <option value="centro">Venta a centro</option></select></div>
-          <div><label for="pestado">Estado</label><select id="pestado">
-            <option value="">Todos</option><option value="Confirmado">Confirmados</option>
-            <option value="Borrador">Borradores</option><option value="Anulado">Anulados</option></select></div>
-          <div><label for="pq">Buscar</label><input id="pq" type="search" placeholder="${TT('medico', 's', '', 'l', 'C')}, ${TT('paciente', 's', '', 'l', 'l')} o nº de pedido"></div>
-        </div>
-        <div class="kpis vtot" id="ptotales"></div>
-        <div id="pedlista"></div>
-      </div>
-    </div>`;
-  if ($('pednuevo')) $('pednuevo').onclick = () => nuevaVenta();   // v2.125.0: cliente, interés y cierre en un recorrido
-  montarPeriodo($('pper'), { id: 'ventas', valor: 'mes', alCambiar: listaPedidos });
-  ['pcanal', 'pestado'].forEach(id => $(id).onchange = listaPedidos);
-  let tq; $('pq').oninput = () => { clearTimeout(tq); tq = setTimeout(listaPedidos, 350); };
-  await cargarProductos();
-  listaPedidos();
-  pintarSinAtribuir();
-}
-
-function textoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'texto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); }
-
-async function listaPedidos() {
-  if (!$('pedlista') || !$('pper') || !$('pcanal')) return;
-  const r = $('pper').__rango();
-  if (!$('popf') && $('pestado')) {
-    $('pestado').closest('div').insertAdjacentHTML('afterend', `<div><label for="popf">Operativa</label><select id="popf">
-      <option value="">Todo</option><option value="pago">Pendiente de cobro</option><option value="paquete">Paquete por preparar</option><option value="email">Factura por enviar</option></select></div>`);
-    $('popf').onchange = () => { PEDPAG = 0; listaPedidos(); };
-  }
-  // v2.115.0: origen del pedido (web o el resto)
-  if (!$('porigf') && $('popf')) {
-    $('popf').closest('div').insertAdjacentHTML('afterend', `<div><label for="porigf">Origen</label><select id="porigf">
-      <option value="">Todos</option><option value="web">Por la web</option><option value="portal">Portal del centro</option><option value="otros">Comercial, teléfono o correo</option></select></div>`);
-    $('porigf').onchange = () => { PEDPAG = 0; listaPedidos(); };
-  }
-  // v2.329.0: reportados o no al profesional (interno: solo quien ve todo)
-  if (!$('prepf') && $('porigf') && VE_TODO()) {
-    $('porigf').closest('div').insertAdjacentHTML('afterend', `<div><label for="prepf">Reporte</label><select id="prepf">
-      <option value="">Todos</option><option value="si">Reportados</option><option value="no">Sin reportar</option></select></div>`);
-    $('prepf').onchange = () => { PEDPAG = 0; listaPedidos(); };
-  }
-  filtrosRestaurar($('v-ventas'));   // v2.269.0: los filtros que tenías
-  const params = { p_desde: r.desde, p_hasta: r.hasta, p_canal: $('pcanal').value || null, q: ($('pq') && $('pq').value.trim()) || null,
-    p_estado: $('pestado').value || null, p_operativa: ($('popf') && $('popf').value) || null, lim: tamPagina(), desplaz: PEDPAG * tamPagina(),
-    ...(($('porigf') && $('porigf').value) ? { p_origen: $('porigf').value } : {}),
-    ...(($('prepf') && $('prepf').value) ? { p_reportado: $('prepf').value } : {}),
-    ...(Object.keys(PEDF).length ? { f_campos: PEDF } : {}) };
-  const clave = 'pedidos-' + JSON.stringify(params);
-  if (!$('pedlista').querySelector('.dgrid')) cargando($('pedlista'), 'Cargando pedidos…');
-  const res = await rpcCache('pedidos_pagina', params, clave);
-  if (!$('pedlista') || !$('pestado')) return;
-  if (!res.data) { $('pedlista').innerHTML = `<div class="vacio">No se ha podido cargar${res.error ? ': ' + esc(res.error.message) : ''}.</div>`; return; }
-  const d = res.data, s = d.resumen || {}, imp = verImportes();
-  PEDIDOS = d.filas || [];
-  $('ptotales').innerHTML = `
-    <div class="kpi"><b>${num(s.pedidos || 0)}</b><span>Pedidos completados${s.borradores ? ` · ${s.borradores} en borrador` : ''}</span></div>
-    <div class="kpi"><b>${num(s.unidades || 0)}</b><span>Unidades</span></div>
-    ${s.web_pedidos != null ? `<div class="kpi" id="pkweb"><b>${num(s.web_pedidos || 0)}</b><span>Por la web${imp && s.web_base != null ? ` · ${eurI(s.web_base || 0)} sin IVA` : ''}</span></div>` : ''}
-    ${imp ? `<div class="kpi"><b>${eurI(s.base || 0)}</b><span>Base sin IVA</span></div>
-    <div class="kpi"><b>${eurI(s.iva || 0)}</b><span>IVA</span></div>
-    <div class="kpi ok"><b>${eurI(s.total || 0)}</b><span>Total con IVA</span></div>` : ''}`;
-  const ico = p => p.estado !== 'Confirmado' ? '' : p.sin_cargo ? `<span class="opico" title="Paquete ${p.paquete_en ? 'preparado' : 'por preparar'}"><i class="${p.paquete_en ? 'ok' : 'no'}">📦</i></span>` : `<span class="opico" title="Pago ${p.pago_estado === 'Cobrado' ? 'recibido' : 'pendiente'} · Paquete ${p.paquete_en ? 'preparado' : 'por preparar'}${p.factura ? ' · Factura ' + (p.email_factura_en ? 'enviada' : 'por enviar') : ''}">
-      <i class="${p.pago_estado === 'Cobrado' ? 'ok' : 'no'}">💳</i><i class="${p.paquete_en ? 'ok' : 'no'}">📦</i>${p.factura ? `<i class="${p.email_factura_en ? 'ok' : 'no'}">🧾</i>` : ''}</span>`;
-  const cpCols = clasVisibles('pedido');
-  $('pedlista').innerHTML = PEDIDOS.length ? `<div class="dgrid-wrap"><div class="dgrid peds2 ${imp ? '' : 'sinimp'}">
-    <div class="dh"><span>Fecha</span><span>Cliente</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Comercial</span><span>Productos</span>
-      <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span><span>Notas</span>${clasCabeceras(cpCols)}</div>
-    ${PEDIDOS.map(p => `<button class="dr" data-ped="${p.id}" style="${p.estado === 'Anulado' ? 'opacity:.55' : ''}">
-      <span>${fechaCorta(p.fecha)}${p.factura || p.numero ? `<span class="sm">${esc(p.factura || p.numero)}</span>` : ''}</span>
-      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${etiquetaCanal(p, p.total)}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : p.origen === 'portal' ? ' · <span class="pweb">Portal</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
-      <span class="corta">${p.medico ? esc(p.medico) : '<span class="vac">Sin atribuir</span>'}</span>
-      <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
-      <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
-      ${imp ? `<span class="num">${eurI(p.base)}</span><span class="num"><b>${eurI(p.total)}</b></span>` : ''}
-      <span>${pillPaso(p)}</span><span>${ico(p)}</span><span class="sm corta pednota" title="${esc(p.nota || '')}">${esc(p.nota || '')}</span>${clasCeldas(cpCols, p.clasificadores)}</button>`).join('')}
-  </div></div>` : '<div class="vacio">No hay pedidos con estos filtros.</div>';
-  clasRejilla($('pedlista').querySelector('.dgrid.peds2'), cpCols.length);
-  if (!$('pedpag')) $('pedlista').insertAdjacentHTML('afterend', '<div id="pedpag"></div>');
-  paginador($('pedpag'), d.total, PEDPAG, p => { PEDPAG = p; listaPedidos(); $('pedlista').scrollIntoView({ block: 'start' }); }, () => { PEDPAG = 0; listaPedidos(); });
-  if (res.cache) avisoCache($('pedlista'), res.fecha);
-  $('pedlista').querySelectorAll('[data-ped]').forEach(b => b.onclick = () => verPedido(b.dataset.ped));
-}
 
 function nuevaVenta(pre) { return editorOportunidad(pre || null); }
 
@@ -30381,30 +33633,6 @@ function menuPedidos2139() {
   });
 }
 
-async function configurarAvisosPedidos(oblig) {
-  const pref = ((PERFIL.preferencias || {}).avisos_pedidos) || {}, admin = puede('administrar');
-  const { data: aj } = admin ? await db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle() : { data: null };
-  const fij = ((aj && aj.valor) || {}).obligatorios || {}, roles = admin ? rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor')) : [];
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos de pedidos</h2><div class="sm">Qué avisos quieres ver arriba en Pedidos</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="lista">${AVISOS_PED.map(([k, t, ic]) => `<label class="item" style="cursor:default"><input type="checkbox" data-avp="${k}" ${oblig.includes(k) || pref[k] !== false ? 'checked' : ''} ${oblig.includes(k) ? 'disabled' : ''}>
-        <span class="tx"><b>${ic} ${t}</b>${oblig.includes(k) ? '<span class="sm">Obligatorio para tu rol</span>' : ''}</span></label>`).join('')}</div>
-    ${admin ? `<h3 style="margin:14px 0 4px">Obligatorios por rol</h3><p class="sm">Los marcados no se pueden ocultar ni quitar.</p>
-      <div class="dgrid-wrap"><table class="tabla avrol"><thead><tr><th>Rol</th>${AVISOS_PED.map(([, t]) => `<th>${t}</th>`).join('')}</tr></thead>
-        <tbody>${roles.map(r => `<tr><td>${esc(r)}</td>${AVISOS_PED.map(([k]) => `<td style="text-align:center"><input type="checkbox" data-avr="${esc(r)}|${k}" ${(fij[r] || []).includes(k) ? 'checked' : ''} aria-label="${esc(r)}: obligatorio"></td>`).join('')}</tr>`).join('')}</tbody></table></div>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="avpok">Guardar</button></div>`;
-  $('dlg').showModal();
-  $('avpok').onclick = async () => {
-    const av = {}; $('dbody').querySelectorAll('[data-avp]').forEach(x => { if (!x.disabled) av[x.dataset.avp] = x.checked; });
-    if (!await guardarPrefsAvisos(av)) return;
-    if (admin) {
-      const ob = {}; $('dbody').querySelectorAll('[data-avr]:checked').forEach(x => { const [r, k] = x.dataset.avr.split('|'); (ob[r] = ob[r] || []).push(k); });
-      const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'avisos_pedidos', p_valor: { obligatorios: ob } });
-      if (error || (r && r.ok === false)) { toast('No se han podido guardar los obligatorios', true); return; }
-    }
-    $('dlg').close(); toast('Avisos guardados'); pintarOperativa();
-  };
-}
 
 async function pagoLlamar(cuerpo, boton) {
   if (boton) { boton.disabled = true; boton.dataset.txt = boton.textContent; boton.textContent = 'Abriendo…'; }
@@ -30516,136 +33744,6 @@ function pkMarcar() {
   document.querySelectorAll('#operativa [data-pk]').forEach(b => { b.classList.toggle('on', b.dataset.pk === v); b.setAttribute('aria-pressed', b.dataset.pk === v); });
 }
 
-function editarDistribuidor(d) {
-  const nuevo = !d; d = d || {};
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>${nuevo ? 'Nuevo distribuidor' : 'Editar distribuidor'}</h2><div class="sm">Mayorista o depósito que sirve pedidos a vuestros clientes</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="dsn">Nombre</label><input id="dsn" placeholder="p. ej. Cofares" value="${esc(d.nombre || '')}">
-    <div class="g2"><div><label for="dse">Correo para pedidos</label><input id="dse" type="email" value="${esc(d.email || '')}"></div>
-      <div><label for="dst">Teléfono</label><input id="dst" inputmode="tel" value="${esc(d.telefono || '')}"></div></div>
-    <label for="dsnota">Nota</label><input id="dsnota" placeholder="Horario de pedidos, persona de contacto…" value="${esc(d.nota || '')}">
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="dsok">${nuevo ? 'Añadir' : 'Guardar'}</button></div>`;
-  $('dlg2').showModal();
-  $('dsok').onclick = async () => {
-    const nombre = $('dsn').value.trim(); if (!nombre) { toast('Escribe el nombre', true); return; }
-    const email = $('dse').value.trim() || null;
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('El correo no parece válido', true); return; }
-    const fila = { nombre, email, telefono: $('dst').value.trim() || null, nota: $('dsnota').value.trim() || null };
-    $('dsok').disabled = true;
-    const { error } = nuevo ? await db.from('distribuidores').insert(fila) : await db.from('distribuidores').update(fila).eq('id', d.id);
-    if (error) { $('dsok').disabled = false; toast((nuevo ? 'No se ha podido añadir: ' : 'No se ha podido guardar: ') + error.message, true); return; }
-    $('dlg2').close(); toast(nuevo ? 'Distribuidor añadido' : 'Guardado');
-    await cargarDistribuidores(true).catch(() => []);
-    if (CFG_KEY === 'distribuidores' && $('cfgcuerpo')) pintarDistribuidores();
-  };
-}
-
-// En el bloque del distribuidor del pedido (se llama en el mismo momento en que se pinta el bloque)
-function trfPoner(id, p, d, data) {
-  const caja = $('pddist'); if (!caja || $('pdtrf') || !$('pdmailest')) return;
-  caja.insertAdjacentHTML('beforeend', `<div class="pdtrf" id="pdtrf"><span class="sm">Estado del transfer</span>
-      <div class="segs" role="group" aria-label="Estado del transfer">${TRF_EST.map(([k, t]) => `<button type="button" data-trf="${k}" class="${p.transfer_estado === k ? 'on' : ''}" aria-pressed="${p.transfer_estado === k}">${t}</button>`).join('')}</div>
-      <button type="button" class="btn sec" id="pdtrfpdf">Descargar transfer</button>
-      <p class="sm" id="pdtrfnota">${p.transfer_nota ? 'Nota: ' + esc(p.transfer_nota) : ''}</p></div>`);
-  caja.querySelectorAll('[data-trf]').forEach(b => b.onclick = async () => {
-    const e = b.dataset.trf; let nota = null;
-    if (e === 'Incidencia') { nota = await pedirTexto('Qué ha pasado (falta de stock, dirección, código del cliente…)', p.transfer_nota || '', { titulo: 'Incidencia en el transfer', ok: 'Guardar' }); if (nota === null) return; }
-    const { data: r, error } = await db.rpc('estado_transfer', { p_id: id, p_estado: e, p_nota: nota });
-    if (error || !r || !r.ok) { toast(({ permiso: 'No tienes permiso para cambiarlo' })[(r && r.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true); return; }
-    p.transfer_estado = e; if (nota !== null) p.transfer_nota = nota || null;
-    caja.querySelectorAll('[data-trf]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
-    $('pdtrfnota').textContent = p.transfer_nota ? 'Nota: ' + p.transfer_nota : '';
-    if (!p.transfer_enviado_en && $('pdmailest')) { p.transfer_enviado_en = new Date().toISOString(); $('pdmailest').textContent = 'Enviado el ' + fechaCorta(hoyISO()); }
-    toast('Transfer: ' + e.toLowerCase());
-  });
-  $('pdtrfpdf').onclick = () => trfPDF(p, d, data).catch(e => toast('No se ha podido preparar el PDF: ' + (e.message || e), true));
-  // Preparar el correo deja el transfer «Enviado» si no tenía estado
-  if ($('pdmaild')) $('pdmaild').addEventListener('click', () => {
-    if (p.transfer_estado) return; p.transfer_estado = 'Enviado';
-    const b = caja.querySelector('[data-trf="Enviado"]'); if (b) { b.classList.add('on'); b.setAttribute('aria-pressed', 'true'); }
-  });
-}
-
-async function trfPDF(p, d, data) {
-  const J = await cargarJsPDF(), doc = new J({ unit: 'mm', format: 'a4' });
-  const l = (data && data.lineas) || [], cli = (data && data.contacto) || {};
-  const ids = [...new Set(l.map(x => x.producto_id).filter(Boolean))];
-  const { data: pr } = ids.length ? await db.from('productos').select('id,referencia,codigo_barras').in('id', ids) : { data: [] };
-  const pm = new Map((pr || []).map(x => [x.id, x]));
-  let y = 18; const t = (s, x, yy, o) => doc.text(String(s || ''), x, yy, o);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); t(`Transfer · Pedido ${p.numero || ''}`, 15, y); y += 7;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); t(`${nombreApp()} · ${fechaCorta(String(p.fecha || hoyISO()).slice(0, 10))}`, 15, y); y += 10;
-  doc.setFont('helvetica', 'bold'); t('Distribuidor', 15, y); t('Cliente', 110, y); y += 5; doc.setFont('helvetica', 'normal');
-  const izq = [d.nombre, d.email, d.telefono].filter(Boolean);
-  const der = [cli.nombre || p.cuenta_texto, p.distribuidor_codigo ? 'Código en el distribuidor: ' + p.distribuidor_codigo : '', [cli.direccion, cli.cp, cli.municipio].filter(Boolean).join(', '), cli.nif ? 'NIF: ' + cli.nif : ''].filter(Boolean);
-  for (let i = 0; i < Math.max(izq.length, der.length); i++) { if (izq[i]) t(izq[i], 15, y); if (der[i]) doc.text(doc.splitTextToSize(der[i], 85), 110, y); y += 5; }
-  y += 6; doc.setFont('helvetica', 'bold'); t('Producto', 15, y); t('Referencia', 105, y); t('Código de barras', 140, y); t('Uds.', 195, y, { align: 'right' });
-  doc.setDrawColor(200); doc.line(15, y + 2, 195, y + 2); y += 8; doc.setFont('helvetica', 'normal');
-  l.forEach(x => {
-    if (y > 270) { doc.addPage(); y = 20; }
-    const m = pm.get(x.producto_id) || {};
-    doc.text(doc.splitTextToSize(String(x.producto || ''), 86), 15, y); t(m.referencia || '—', 105, y); t(m.codigo_barras || '—', 140, y); t(num(x.unidades), 195, y, { align: 'right' });
-    y += 7;
-  });
-  doc.line(15, y - 3, 195, y - 3); y += 4;
-  doc.setFont('helvetica', 'bold'); t(`Total: ${num(l.reduce((n, x) => n + (+x.unidades || 0), 0))} unidades`, 195, y, { align: 'right' }); y += 8;
-  doc.setFont('helvetica', 'normal'); t(p.factura_distribuidor ? 'Lo factura el distribuidor.' : `Lo factura ${nombreApp()}.`, 15, y); y += 6;
-  if (p.nota) doc.text(doc.splitTextToSize('Nota: ' + p.nota, 180), 15, y);
-  doc.save(`transfer_${String(p.numero || p.id).replace(/[^\w-]+/g, '_')}.pdf`);
-}
-
-async function verTransfers(dist) {
-  const d = (DIS_TODOS || []).find(x => x.id === dist) || {};
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Transfers · ${esc(d.nombre || '')}</h2><div class="sm">Pedidos que sirve este distribuidor (los 200 últimos)</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div><div id="trfcuerpo"></div>`;
-  cargando($('trfcuerpo'), 'Cargando los transfers…');
-  $('dlg2').showModal();
-  const { data, error } = await db.rpc('transfers_distribuidor', { p_dist: dist });
-  const caja = $('trfcuerpo'); if (!caja) return;
-  if (error) { caja.innerHTML = `<p class="vacio">No se han podido leer: ${esc(error.message)}</p>`; return; }
-  const s = (data && data.resumen) || {}, l = (data && data.pedidos) || [];
-  caja.innerHTML = `<div class="trfres">${[['Sin enviar', s.sin_enviar], ['Enviados', s.enviado], ['Aceptados', s.aceptado], ['Servidos', s.servido], ['Con incidencia', s.incidencia]]
-      .map(([t, n]) => `<span class="${t === 'Con incidencia' && n ? 'warn' : ''}"><b>${num(n || 0)}</b> ${t}</span>`).join('')}</div>
-    ${l.length ? `<div class="lista trflista">${l.map(x => `<button type="button" class="item" data-trfped="${x.id}">
-        <span class="tx"><b>${esc(x.numero || 'Pedido')} · ${esc(x.cliente || '—')}</b><span class="sm">${fechaCorta(String(x.fecha).slice(0, 10))} · ${num(x.unidades)} uds · ${eurI(x.base)}${x.transfer_nota ? ' · ' + esc(x.transfer_nota) : ''}</span></span>
-        ${trfPill(x.transfer_estado)}</button>`).join('')}</div>` : '<p class="vacio">Todavía no hay pedidos de este distribuidor.</p>'}`;
-  caja.querySelectorAll('[data-trfped]').forEach(b => b.onclick = () => { $('dlg2').close(); verPedido(b.dataset.trfped); });
-}
-
-// (R-12: textoEmailPago se definía aquí otra vez; ahora está en su sitio, más arriba)
-function asuntoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'asunto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); }
-
-/* ============================================================
-   v2.307.0 · Datos no fiscales de un pedido confirmado (petición de Eric: «todo lo que no es fiscal debe poder editarse»).
-   «Editar datos» en un pedido confirmado o facturado: nota, forma de pago, referencia del pago y campos personalizados del
-   pedido. Las líneas, precios, IVA, cliente y fecha no se tocan (son la base de la factura); una factura emitida tampoco
-   cambia: conserva la forma de pago con la que se emitió. Se guarda directamente (la regla ped_edit ya lo permite a
-   administración y a quien lleva ventas con nivel 2) y queda en el historial de cambios.
-   ============================================================ */
-function editarPedidoNoFiscal(data) {
-  const p = data.pedido, cps = camposHTML('pedido', p.clasificadores || {});
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Editar datos del pedido ${esc(p.numero || '')}</h2>
-      <div class="sm">Solo lo que no es fiscal: las líneas, los importes, el cliente y la fecha no cambian.</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="nfnota">Nota</label><textarea id="nfnota" rows="4">${esc(p.nota || '')}</textarea>
-    <div class="g2"><div><label for="nffp">Forma de pago</label><select id="nffp"><option value="">—</option>${(CAT.forma_pago || []).map(x => `<option ${p.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
-      <div><label for="nfref">Referencia del pago</label><input id="nfref" value="${esc(p.pago_referencia || '')}" placeholder="p. ej. número de la transferencia"></div></div>
-    ${p.factura_id ? '<p class="sm">Este pedido ya tiene factura: la factura emitida conserva la forma de pago con la que se hizo.</p>' : ''}
-    <div id="nfcampos">${cps}</div>
-    <div class="acts nfacts"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="nfok">Guardar</button></div>`;
-  $('dlg2').showModal();
-  $('nfok').onclick = async ev => {
-    const leido = camposLeer($('nfcampos'));
-    if (leido && leido.falta.length) { toast(`Rellena «${leido.falta[0]}»`, true); return; }
-    ev.target.disabled = true;
-    const { error } = await db.from('pedidos').update({ nota: $('nfnota').value.trim() || null, forma_pago: $('nffp').value || null, pago_referencia: $('nfref').value.trim() || null }).eq('id', p.id);
-    if (error) { ev.target.disabled = false; toast('No se ha podido guardar: ' + error.message, true); return; }
-    if (!(await camposGuardar(leido, p.id))) { ev.target.disabled = false; return; }
-    $('dlg2').close(); toast('Datos del pedido guardados');
-    try { invalidarCache(); } catch (e) {}
-    verPedido(p.id);
-  };
-}
 
 /* ============================================================
    v2.314.0 · Pedido con pago por transferencia (aviso de Eric: el correo con los datos de pago solo salía con el pedido
@@ -30654,8 +33752,6 @@ function editarPedidoNoFiscal(data) {
    se guarda en borrador hasta que llegue el pago. En el borrador, el bloque «Pago por transferencia» con el estado del correo,
    «Enviar los datos de pago» y «Pago recibido · validar» (valida el pedido y anota el pago).
    ============================================================ */
-/* v2.315.0: la pregunta usa elegirOpcion de siempre (una segunda declaración con el mismo nombre la sustituía y rompía las demás ventanas). */
-function esTransferencia(fp) { return /transfer/i.test(fp || ''); }
 
 function pkFestivo(iso) { return PK_FESTIVOS.includes(iso.slice(5)) || iso === isoMas(pkPascua(+iso.slice(0, 4)), -2); }
 
@@ -30800,56 +33896,6 @@ async function tpvAvisoImporte(id) {
     toast(`El enlace de pago enviado era de ${eurI(+t.importe)} y el pedido es ahora de ${eurI(tot)}: envía uno nuevo desde el pedido`, true);
 }
 
-function pillCobroPed(p) {
-  if (p.estado !== 'Confirmado') return '';
-  const c = cobroDe(p);
-  return ' <span class="pill ' + (c === 'Cobrado' ? 'p-trfok' : c === 'Sin cargo' ? 'p-sr' : 'p-bor') + '">' + c + '</span>';
-}
-
-function pasoPedido(p) {
-  if (p.estado === 'Anulado') return ['Anulado', 'p-anu'];
-  if (p.estado === 'Borrador') return p.email_pago_en ? ['Esperando pago', 'p-bor'] : ['Borrador', 'p-sr'];
-  if (p.completado === true) return ['Completado', 'p-trfok'];   // v2.351.0: la misma regla que las cifras (pedido_completado)
-  const alEntregar = /reembolso/i.test(p.forma_pago || ''), porCobrar = cobroDe(p) === 'Pendiente de cobro';
-  if (porCobrar && !alEntregar) return ['Por cobrar', 'p-bor'];
-  if (!p.paquete_en) return ['Por preparar', 'p-est'];
-  if (porCobrar) return ['Por cobrar', 'p-bor'];
-  if (p.completado === false || (!p.factura && !p.factura_id && cobroDe(p) !== 'Sin cargo')) return ['Por facturar', 'p-est'];
-  return ['Completado', 'p-trfok'];
-}
-
-async function atribuir(lineaId, texto) {
-  const { data } = await db.rpc('resolver_cuenta', { p_texto: texto || '' });
-  const cand = data || [];
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Atribuir a ${TT('medico', 's', 'un', 'l', 'l')}</h2><div class="sm">Texto del pedido: ${esc(texto || '(vacío)')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="abusca">Buscar ${TT('medico', 's', '', 'l', 'l')}</label><input id="abusca" value="${esc(texto || '')}" placeholder="Código o nombre">
-    <div id="acand" class="lista">${cand.map(c => `<button class="item" data-am="${c.id}">
-      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
-      || '<div class="vacio">Sin coincidencias. Escribe otro nombre o código.</div>'}</div>`;
-
-  const pintar = lista => {
-    $('acand').innerHTML = lista.length ? lista.map(c => `<button class="item" data-am="${c.id}">
-      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
-      : '<div class="vacio">Sin coincidencias.</div>';
-    $('acand').querySelectorAll('[data-am]').forEach(b => b.onclick = async () => {
-      const { data: r, error } = await db.rpc('atribuir_linea', { p_linea: lineaId, p_medico: b.dataset.am });
-      if (error || (r && r.ok === false)) { toast('No se ha podido atribuir', true); return; }
-      $('dlg').close(); toast('Atribuido'); pintarSinAtribuir(); listaPedidos();
-    });
-  };
-  pintar(cand);
-  let t;
-  $('abusca').oninput = e => {
-    clearTimeout(t);
-    t = setTimeout(async () => {
-      const { data: d2 } = await db.rpc('resolver_cuenta', { p_texto: e.target.value });
-      pintar(d2 || []);
-    }, 300);
-  };
-  $('dlg').showModal();
-}
 
 function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
 
@@ -30912,69 +33958,18 @@ function esPorcentajeIva(i) {
   return r;
 }
 
-async function verJustificante(id) {
-  const { data, error } = await db.from('pedidos_justificantes').select('nombre,tipo,datos').eq('id', id).single();
-  if (error || !data) { toast('No se ha podido abrir el justificante', true); return; }
-  const bin = atob(data.datos), u8 = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-  const url = URL.createObjectURL(new Blob([u8], { type: data.tipo }));
-  const w = window.open(url, '_blank');
-  if (!w) { const a = document.createElement('a'); a.href = url; a.download = data.nombre; a.click(); }
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
-
-/* ============================================================
-   v2.325.0 · Pedidos: pago solo de lectura y entregas sin cargo (aviso de Eric, 16/10/2026).
-   - El bloque «Pago» del pedido ya no se edita a medias: enseña la referencia y los justificantes que haya; se cambian con
-     «Editar» (o «Editar datos» si ya tiene factura). Fuera «Guardar referencia» y «Añadir justificante» (basta el check de
-     «Pago recibido»); en el editor tampoco se adjuntan justificantes.
-   - Un pedido sin cargo (marcado así o a 0 € con unidades) se describe como «Entrega sin cargo» y no como «Venta al …»: no es una
-     venta (también los que se hicieron antes al 100 % de descuento).
-   ============================================================ */
-function sinCargoP(p, total) { return !!(p && (p.sin_cargo || (total != null && Math.abs(+total) < 0.005 && (p.unidades == null || +p.unidades > 0)))); }
-
-function pillPaso(p) {
-  const [t, c] = pasoPedido(p);
-  const hechos = p.estado === 'Confirmado' ? ['Confirmado', p.paquete_en ? 'Preparado' : '', cobroDe(p) === 'Cobrado' ? 'Cobrado' : '', p.factura ? 'Facturado' : ''].filter(Boolean).join(' · ') : '';
-  return '<span class="pill ' + c + '"' + (hechos ? ' title="Hecho: ' + hechos + '"' : '') + '>' + t + '</span>';
-}
-
-function lineaDesglose(l) {
-  const bruto = +l.importe || 0, base = bruto * (1 - (+l.descuento || 0) / 100), iva = base * (+l.iva || 0) / 100;
-  return { bruto, base, iva, total: base + iva };
-}
-
-function bloqueTotales(t) {
-  const tipos = Object.keys(t.porIva).sort((a, b) => a - b);
-  return `<div><span>Unidades</span><b>${num(t.unidades)}</b></div>
-    ${t.descuento > 0.004 ? `<div><span>Suma de líneas</span><b>${eurI(t.bruto)}</b></div>
-      <div><span>Descuento general</span><b>−${eurI(t.descuento)}</b></div>` : ''}
-    ${t.envio ? `<div><span>Productos sin IVA</span><b>${eurI(t.baseProd)}</b></div>
-      <div><span>${esc(t.envio.nombre)} sin IVA</span><b>${eurI(t.envio.base)}</b></div>` : ''}
-    <div><span>Base imponible</span><b>${eurI(t.base)}</b></div>
-    ${tipos.filter(k => t.porIva[k] > 0.004 || tipos.length === 1).map(k => `<div><span>IVA ${k}%</span><b>${eurI(t.porIva[k])}</b></div>`).join('')}
-    ${t.envio ? `<div class="sm" style="justify-content:flex-end"><span>Incluye ${esc(t.envio.nombre.toLowerCase())} de ${eurI(t.envio.con)} con IVA</span></div>` : ''}
-    <div class="tot"><span>Total con IVA</span><b>${eurI(t.total)}</b></div>`;
-}
 
 const veVentas = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 1 || puede('cartera'));
 
 let VSEC = 'pedidos';
 
-const pillEstado = e => `<span class="pill ${e === 'Borrador' ? 'p-bor' : e === 'Anulado' ? 'p-anu' : 'p-est'}">${esc(e)}</span>`;
 
 const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
 
-const OPS = [['pago', 'Cobrado', 'pago_estado', '💳'], ['paquete', 'Paquete preparado', 'paquete_en', '📦'],
-  ['email_factura', 'Email con la factura enviado', 'email_factura_en', '🧾'], ['email_pago', 'Email con los datos de pago enviado', 'email_pago_en', '✉️']];
-
-const opHecho = (p, k) => k === 'pago' ? p.pago_estado === 'Cobrado' : !!p[OPS.find(o => o[0] === k)[2]];
 
 let PEDPAG = 0;
 
 let PEDF = {};   // v2.88.0: filtros por campos del pedido (Clasificadores)
-
-
 
 
 // Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
@@ -30983,8 +33978,6 @@ const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedor
 const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus unidades e importes'], llamadas: ['Oportunidades', 'Cada venta, se cierre con pedido o no, y por qué'],
   compras: ['Compras', 'Pedidos a proveedores y mercancía en camino'], proveedores: ['Proveedores', 'A quién compras y en qué condiciones'] };
 
-// «Por hacer» de pedidos, configurable
-const AVISOS_PED = [['pago', 'Pendientes de cobro', '💳'], ['paquete', 'Paquetes por preparar', '📦'], ['email_factura', 'Facturas por enviar', '🧾'], ['email_pago', 'Datos de pago por enviar', '✉️']];
 
 /* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
    abre el pago seguro de Stripe (tarjeta), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
@@ -31028,18 +34021,6 @@ const PK_TARJ = [['pago', 'pago', 'Pendientes de cobro', 'credit-card'], ['paque
 
 const pkMovimiento = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let DIS_TODOS = null;
-
-/* ============================================================
-   v2.265.0 · Transfer completo con el distribuidor (grupo 4 del plan del 11/10/2026; necesita el SQL 142).
-   - Ver pedido → bloque «Distribuidor»: en qué punto está el transfer (Enviado, Aceptado, Servido o Incidencia, con su nota) y
-     «Descargar transfer», un PDF con el cliente, su código en el distribuidor y las líneas con referencia y código de barras.
-   - Configuración → Datos → Distribuidores: cada distribuidor con sus transfers (cuántos sin enviar, en marcha, servidos y con
-     incidencia); al pulsar uno se abre el pedido.
-   ============================================================ */
-const TRF_EST = [['Enviado', 'Enviado'], ['Aceptado', 'Aceptado'], ['Servido', 'Servido'], ['Incidencia', 'Incidencia']];
-
-const trfPill = e => e ? `<span class="pill ${e === 'Servido' ? 'p-trfok' : e === 'Incidencia' ? 'p-urg' : 'p-per'}">${esc(e)}</span>` : '<span class="pill">Sin enviar</span>';
 
 const PK_FESTIVOS = ['01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'];
 
@@ -31341,84 +34322,6 @@ async function editorPedidoBase(pedido) {
   $('dlg').showModal();
 }
 
-/* Parte base; verPedido le añade el resto */
-async function verPedidoBaseBase(id) {
-  cargando($('dbody'), 'Abriendo el pedido…');
-  $('dlg').showModal();
-  const { data, error } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  if (error || !data || !data.pedido) { $('dbody').innerHTML = `<div class="vacio">${esc(error ? error.message : 'No se ha encontrado el pedido.')}</div>`; return; }
-  const p = data.pedido, l = data.lineas || [], c = data.contacto;
-  const t = totalesPedido(l, +p.descuento || 0, p.descuento_tipo,
-    { on: !!p.envio, con: r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)), iva: +p.envio_iva || 0,
-      nombre: ((SERVICIOS.find(x => x.id === p.servicio_id) || {}).nombre) || 'Envío' });
-  const bor = p.estado === 'Borrador', anulado = p.estado === 'Anulado';
-
-  $('dbody').innerHTML = `
-    <div class="fh pdcab"><div class="pdcabt"><h2>Pedido${p.numero ? ' ' + esc(p.numero) : ''}</h2>${pillEstado(p.estado)}${pillCobroPed(p)}
-      <span class="sm pdmeta">${fechaCorta(p.fecha)} · ${etiquetaCanal(p, t.total)}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${bor ? '<div class="cacheaviso" style="margin-top:10px">Borrador: todavía no cuenta en métricas ni en comisiones.</div>' : ''}
-    ${c ? `<div class="blk"><h3>${TT('paciente', 's', '', 'l', 'C')}</h3><div><b>${esc(c.nombre)}</b></div>
-      <div class="sm">${esc(c.telefono || c.movil || '')} ${esc(c.email || '')}</div>
-      <div class="acts"><button class="btn sec" data-vpac="${c.id}">Ver ficha ${TT('paciente', 's', 'del', 'l', 'l')}</button></div></div>` : ''}
-    ${data.medico ? `<div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')}</h3><div><b>${esc(data.medico.nombre)}</b> <span class="sm">· código ${esc(data.medico.codigo)}</span></div>
-      ${l[0] && l[0].comercial ? `<div class="sm">Comercial: ${esc(l[0].comercial)}</div>` : ''}</div>` : ''}
-    <div class="blk"><h3>Líneas</h3>
-      ${l.map(x => { const d = lineaDesglose(x); return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)">
-        <span><b>${esc(x.producto || 'Sin producto')}</b> · ${num(x.unidades)} uds.
-          <div class="sm">Base ${eurI(d.base)}${+x.descuento ? ` (dto. ${num(x.descuento)}%)` : ''} · IVA ${num(x.iva || 0)}% ${eurI(d.iva)}</div></span>
-        <b style="white-space:nowrap">${eurI(d.total)}</b></div>`; }).join('') || '<div class="sm">Sin líneas.</div>'}
-      <div class="totbox">${bloqueTotales(t)}</div></div>
-    ${p.nota ? `<div class="blk"><h3>Nota</h3><div>${esc(p.nota)}</div></div>` : ''}
-    <div class="acts" style="justify-content:flex-end">
-      ${puedeVentas() && bor ? `<button class="btn sec dang" id="pdborrar">Eliminar borrador</button>
-        <button class="btn sec" id="pdeditar">Editar</button>
-        <button class="btn" id="pdvalidar">Confirmar pedido</button>` : ''}
-      ${puedeVentas() && !bor && !anulado ? (p.factura_id ? '<button class="btn sec" id="pdeditnf">Editar datos</button>' : '<button class="btn sec" id="pdeditar">Editar pedido</button>') : ''}
-      ${puedeVentas() && !bor && !anulado ? '<button class="btn sec dang" id="pdanular">Anular pedido</button>' : ''}
-      <button class="btn sec" data-cerrar>Cerrar</button></div>`;
-
-  const vp = $('dbody').querySelector('[data-vpac]');
-  if (vp) vp.onclick = () => { $('dlg').close(); fichaPaciente(vp.dataset.vpac); };
-  if ($('pdeditar')) $('pdeditar').onclick = () => editorPedido(data);
-  if ($('pdeditnf')) $('pdeditnf').onclick = () => editarPedidoNoFiscal(data);   // v2.307.0
-  if ($('pdborrar')) $('pdborrar').onclick = async () => {
-    if (!await preguntar('El borrador desaparece por completo.', { titulo: '¿Eliminar el borrador?', ok: 'Eliminar', peligro: true })) return;
-    const { data: r, error: e } = await db.rpc('borrar_pedido', { p_id: id });
-    if (e || (r && r.ok === false)) { toast(r && r.error === 'validado' ? 'Solo se pueden eliminar borradores' : 'No se ha podido eliminar', true); return; }
-    $('dlg').close(); toast('Borrador eliminado'); if (TAB === 'ventas') cargarVentas();
-  };
-  if ($('pdvalidar')) $('pdvalidar').onclick = async e => {
-    if (!await preguntar((e.target.dataset.pago ? 'Se anota el pago como recibido. ' : '') + 'Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
-      { titulo: '¿Confirmar el pedido?', ok: 'Confirmar' })) return;
-    e.target.disabled = true;
-    const { data: r, error: er } = await db.rpc('guardar_pedido', { p: {
-      id, estado: 'Confirmado', fecha: p.fecha, canal: p.canal, contacto_id: p.contacto_id, centro_id: p.centro_id,
-      cuenta_id: data.medico ? data.medico.id : null, cuenta_texto: p.cuenta_texto, nota: p.nota, forma_pago: p.forma_pago, pago_referencia: p.pago_referencia || '',
-      descuento: p.descuento || 0, descuento_tipo: p.descuento_tipo,
-      envio: !!p.envio, envio_con_iva: p.envio ? r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)) : 0, envio_iva: p.envio_iva, servicio_id: p.servicio_id,
-      lineas: l.map(x => ({ producto_id: x.producto_id, unidades: x.unidades, importe: x.importe, descuento: x.descuento, iva: x.iva })) } });
-    e.target.disabled = false;
-    if (er || (r && r.ok === false)) { toast('No se ha podido confirmar: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
-    if (e.target.dataset.pago) await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'pago', p_hecho: true });   // v2.314.0
-    toast(e.target.dataset.pago ? 'Pedido confirmado y cobrado' : 'Pedido confirmado'); verPedido(id); if (TAB === 'ventas') cargarVentas();
-  };
-  if ($('pdanular')) $('pdanular').onclick = async () => {
-    const motivo = await pedirTexto('Motivo de la anulación (opcional)', '', { titulo: '¿Anular el pedido?', ok: 'Anular' });
-    if (motivo === null) return;
-    const { data: r, error: er } = await db.rpc('anular_pedido', { p_id: id, p_motivo: motivo || null });
-    if (er || (r && r.ok === false)) { toast(r && r.error === 'facturado' ? 'Tiene factura: emite antes una rectificativa de toda la factura y marca «Anular también el pedido»' : 'No se ha podido anular: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
-    $('dlg').close(); toast('Pedido anulado'); if (TAB === 'ventas') cargarVentas();
-  };
-}
-
-// Desde el pedido: la ficha del cliente se abre como panel encima, sin cerrar el pedido
-async function verPedidoBase(...a) {
-  const r = await verPedidoBaseBase.apply(this, a);
-  const vp = $('dbody').querySelector('[data-vpac]');
-  if (vp) vp.onclick = () => fichaPaciente(vp.dataset.vpac);
-  return r;
-}
 
 // Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
 function pagoAvisoBase() {
@@ -31467,107 +34370,6 @@ function pkContar(els, fmt) {
   return pkContarBase(els, fmt);
 }
 
-async function pintarDistribuidoresBase() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  cargando(c, 'Cargando los distribuidores…');
-  const { data, error } = await db.from('distribuidores').select('id,nombre,email,telefono,nota,activo').order('nombre');
-  if (!$('cfgcuerpo') || CFG_KEY !== 'distribuidores') return;
-  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los distribuidores: ${esc(error.message)}</p></div>`; return; }
-  DIS_TODOS = data || [];
-  const fila = d => `<div class="ajfila disfila${d.activo ? '' : ' disoff'}" data-disid="${d.id}">
-      <div><b>${esc(d.nombre)}${d.activo ? '' : ' <span class="pill">No se usa</span>'}</b>
-        <span class="sm">${[d.email, d.telefono].filter(Boolean).map(esc).join(' · ') || 'Sin correo ni teléfono'}${d.nota ? ' · ' + esc(d.nota) : ''}</span></div>
-      <div class="ajctl"><button type="button" class="btn sec" data-dised="${d.id}">Editar</button>
-        <button type="button" class="btn sec" data-disact="${d.id}">${d.activo ? 'Dejar de usar' : 'Volver a usar'}</button></div></div>`;
-  const act = DIS_TODOS.filter(d => d.activo), off = DIS_TODOS.filter(d => !d.activo);
-  c.innerHTML = `<div class="card disw">
-      <div class="discab"><p class="sm">Mayoristas o depósitos que sirven pedidos a vuestros clientes. Al hacer un pedido se elige si lo servís vosotros o uno de ellos; el suyo no descuenta stock de vuestro almacén.</p>
-        <button type="button" class="btn" id="disnuevo">+ Nuevo distribuidor</button></div>
-      ${DIS_TODOS.length ? act.map(fila).join('') + (off.length ? `<h3 class="dissub">Que ya no se usan</h3>` + off.map(fila).join('') : '')
-        : '<p class="vacio" id="disvacio">Todavía no hay distribuidores.</p>'}</div>`;
-  $('disnuevo').onclick = () => editarDistribuidor(null);
-  c.querySelectorAll('[data-dised]').forEach(b => b.onclick = () => editarDistribuidor(DIS_TODOS.find(d => d.id === b.dataset.dised)));
-  c.querySelectorAll('[data-disact]').forEach(b => b.onclick = async () => {
-    const d = DIS_TODOS.find(x => x.id === b.dataset.disact); if (!d) return;
-    if (d.activo && !await preguntar('No saldrá al hacer pedidos nuevos. Los pedidos que ya sirvió siguen diciendo que fue él.', { titulo: `¿Dejar de usar ${d.nombre}?`, ok: 'Dejar de usar' })) return;
-    b.disabled = true;
-    const { error } = await db.from('distribuidores').update({ activo: !d.activo }).eq('id', d.id);
-    if (error) { b.disabled = false; toast('No se ha podido cambiar: ' + error.message, true); return; }
-    toast(d.activo ? 'Ya no se usa' : 'Se vuelve a usar');
-    await cargarDistribuidores(true).catch(() => []);
-    pintarDistribuidores();
-  });
-}
-
-// Distribuidores: los transfers de cada uno
-async function pintarDistribuidores(...a) {
-  const r = await pintarDistribuidoresBase.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c || CFG_KEY !== 'distribuidores') return r;
-  c.querySelectorAll('.disfila[data-disid] .ajctl').forEach(x => {
-    if (x.querySelector('[data-distrf]')) return;
-    x.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec" data-distrf="${x.closest('.disfila').dataset.disid}">Transfers</button>`);
-  });
-  c.querySelectorAll('[data-distrf]').forEach(b => b.onclick = () => verTransfers(b.dataset.distrf));
-  return r;
-}
-
-async function enviarDatosPagoBase(id) {
-  if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return false; }
-  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  const p = data && data.pedido; if (!p) { toast('No se ha encontrado el pedido', true); return false; }
-  const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
-  if (!cli.email) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene email en su ficha`, true); return false; }
-  const asunto = asuntoEmailPago(p, total, cli.nombre), texto = textoEmailPago(p, total, cli.nombre);
-  const { data: r, error } = await db.functions.invoke('enviar_email', { body: { para: cli.email, asunto, texto, pedido_id: id, marca: 'email_pago' } });
-  if (!error && r && r.ok) { toast('Datos de pago enviados · el pedido espera al pago en borrador'); return true; }
-  location.href = `mailto:${cli.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;   // sin envío directo: el correo del dispositivo
-  if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' }))
-    await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true });
-  return true;
-}
-
-async function enviarDatosPago(id, ...a) {
-  if (!await elegirPlantillaCorreo('pago')) return false;
-  try { return await enviarDatosPagoBase.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
-}
-
-// (v2.183.0: aquí iba la primera versión de ventanaCargando; se redefine entera más abajo)
-/* Ver pedido: la ventana base, sus facturas (o emitirla) y la operativa (antes eran 4 capas). */
-async function verPedidoBase2(id) {
-  return ventanaCargando(async () => {
-    await verPedidoBase(id);
-    await pedidoFacturas(id);
-    await pedidoOperativa(id);
-    await pedidoPago(id);
-  });
-}
-
-/* Pedidos: la base y, en orden, las secciones, las llamadas y el botón de registrar llamada (antes eran 4 capas). */
-async function cargarVentasBase2() {
-  // «Llamadas» solo para quien ve todo el equipo; la base pinta la cabecera como «Compras» y luego se sustituye
-  if (PEDSEC === 'llamadas' && !VE_TODO()) PEDSEC = 'ventas';
-  const sec = PEDSEC;
-  if (sec === 'llamadas') PEDSEC = 'compras';
-  PEDSEC_CARGA = sec;   // v2.335.0: mientras se monta sobre «Compras», el menú y las pestañas marcan ya la sección de verdad
-  try {
-    await cargarVentasBase();
-    await pedidosSecciones();
-  } finally { PEDSEC_CARGA = null; }
-  await pedidosLlamadas(sec);
-  await pedidosBotonLlamada();
-}
-
-/* v2.74.0 · El detalle del pedido muestra sus campos personalizados */
-async function verPedidoBase3(id, ...a) { const r = await verPedidoBase2.call(this, id, ...a); if (id) setTimeout(() => bloqueCampos('pedidos', id, $('dbody')), 150); return r; }
-
-async function cargarVentasBase3(...a) {
-  const r = await cargarVentasBase2.apply(this, a);
-  const v = $('v-ventas'), [t, d] = TITULO_PEDSEC[PEDSEC] || TITULO_PEDSEC.ventas;
-  const h = v && v.querySelector('.saludo h1'); if (h && h.firstChild) h.firstChild.textContent = t;
-  const f = v && v.querySelector('.saludo .fecha'); if (f) f.textContent = d;
-  marcarPedsec();
-  return r;
-}
 
 async function pagoCargarEstadoBase() {
   const { data } = await RPC_ORIG('plan_uso', {});
@@ -31590,131 +34392,6 @@ async function pagoCargarEstado(...a) {
   return r;
 }
 
-// Ver pedido: distribuidor, correo para él y sin «Emitir factura» si factura él
-async function verPedidoBase4(id, ...a) {
-  const r = await verPedidoBase3.call(this, id, ...a);
-  try {
-    if (!$('dlg').open || $('pddist')) return r;
-    const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-    const p = data && data.pedido; if (!p || !p.distribuidor_id || !$('dlg').open || $('pddist')) return r;
-    const d = (await cargarDistribuidores()).find(x => x.id === p.distribuidor_id) || (await cargarDistribuidores(true)).find(x => x.id === p.distribuidor_id) || { nombre: 'Distribuidor' };
-    if (p.factura_distribuidor && $('pvemitir')) $('pvemitir').remove();
-    const cli = data.contacto || {}, l = data.lineas || [];
-    const cuerpo = [`Pedido ${p.numero || ''} de ${nombreApp()}`, '', `Cliente: ${cli.nombre || p.cuenta_texto || ''}${p.distribuidor_codigo ? ' · código ' + p.distribuidor_codigo : ''}`,
-      cli.direccion ? `Dirección: ${[cli.direccion, cli.cp, cli.municipio].filter(Boolean).join(', ')}` : '', '',
-      ...l.map(x => `- ${x.unidades} × ${x.producto || x.nombre || ''}`), '', p.factura_distribuidor ? 'Lo factura el distribuidor.' : 'Lo factura ' + nombreApp() + '.',
-      p.nota ? '\nNota: ' + p.nota : ''].filter(x => x !== null).join('\n');
-    const asunto = `Pedido ${p.numero || ''} · ${cli.nombre || p.cuenta_texto || ''}`;
-    const sitio = $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
-    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pddist"><h3>Distribuidor</h3>
-      <p>Lo sirve <b>${esc(d.nombre)}</b>${p.distribuidor_codigo ? ` · código del cliente <b>${esc(p.distribuidor_codigo)}</b>` : ''} · ${p.factura_distribuidor ? 'lo factura el distribuidor' : 'lo facturamos nosotros'}</p>
-      ${p.estado === 'Confirmado' ? `<div class="acts" style="justify-content:flex-start;margin-top:6px">${d.email ? `<a class="btn sec" id="pdmaild" href="mailto:${esc(d.email)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}">Preparar correo al distribuidor</a>` : '<span class="sm">El distribuidor no tiene correo: añádelo en sus datos.</span>'}
-        <span class="sm" id="pdmailest">${p.transfer_enviado_en ? 'Correo preparado el ' + fechaCorta(String(p.transfer_enviado_en).slice(0, 10)) : 'Correo sin preparar'}</span></div>` : '<p class="sm">Al confirmarlo podrás preparar el correo al distribuidor.</p>'}</div>`);
-    trfPoner(id, p, d, data);   // v2.265.0
-    if ($('pdmaild')) $('pdmaild').addEventListener('click', async () => {
-      const { data: m } = await db.rpc('marcar_transfer_enviado', { p_id: id });
-      if (m && m.ok && $('pdmailest')) $('pdmailest').textContent = 'Correo preparado el ' + fechaCorta(hoyISO());
-    });
-  } catch (e) {}
-  return r;
-}
-
-// Pedido validado con productos «equipo»: dar de alta los equipos con su número de serie
-async function verPedidoBase5(id, ...a) {
-  const r = await verPedidoBase4.call(this, id, ...a);
-  try {
-    if (!$('dlg').open || $('pdequipos') || !planIncluyeSeccion('parque')) return r;
-    const { data: p } = await db.from('pedidos').select('estado').eq('id', id).maybeSingle();
-    if (!p || p.estado !== 'Confirmado') return r;
-    const { data: pend } = await db.rpc('equipos_pendientes_pedido', { p_pedido: id });
-    const l = (pend || []).filter(x => x.faltan > 0);
-    if (!l.length || !$('dlg').open || $('pdequipos')) return r;
-    const sitio = $('pddist') || $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
-    const n = l.reduce((s, x) => s + x.faltan, 0);
-    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdequipos"><h3>Equipos</h3>
-      <div class="banda-aviso">${n === 1 ? 'Falta dar de alta 1 equipo' : `Faltan por dar de alta ${n} equipos`} de este pedido en el parque instalado. <button type="button" class="btn sec" id="pdeqalta">Dar de alta los equipos</button></div>
-      <div id="pdeqf"></div></div>`);
-    $('pdeqalta').onclick = () => {
-      $('pdeqf').innerHTML = `<div class="depbox"><span class="sm">Escribe el número de serie de cada unidad.</span>
-        ${l.map((x, i) => `<div><b>${esc(x.nombre)}</b> <span class="sm">· ${esc(x.cuenta || '')}</span><div class="cirser">${Array.from({ length: Math.min(x.faltan, 30) }, (_, j) => `<input data-pqs="${i}" maxlength="120" placeholder="Nº de serie de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1} de ${esc(x.nombre)}">`).join('')}</div></div>`).join('')}
-        <div class="g2"><div><label for="pdeqi">Instalado el</label><input id="pdeqi" type="date" value="${hoyISO()}"></div><div><label for="pdequ">Ubicación</label><input id="pdequ" placeholder="p. ej. Sala 2"></div></div>
-        <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">Dar de alta</button></div></div>`;
-      $('pdeqok').onclick = async ev => {
-        const filas = [];
-        l.forEach((x, i) => $('pdeqf').querySelectorAll(`[data-pqs="${i}"]`).forEach(inp => {
-          if (!inp.value.trim() || !x.cuenta_id) return;
-          filas.push({ cuenta_id: x.cuenta_id, producto_id: x.producto_id, serie: inp.value.trim(), instalado: $('pdeqi').value || hoyISO(), ubicacion: $('pdequ').value.trim() || null, revision_meses: +x.revision_meses || 0, pedido_id: id });
-        }));
-        if (!filas.length) { toast(l.some(x => !x.cuenta_id) ? 'El pedido no tiene ficha: da de alta los equipos desde la ficha del centro' : 'Escribe al menos un número de serie', true); return; }
-        ev.target.disabled = true;
-        const { error } = await db.from('equipos').insert(filas);
-        ev.target.disabled = false;
-        if (error) { toast(/row-level|policy/i.test(error.message) ? 'No puedes dar de alta equipos de esta ficha' : 'No se ha podido guardar: ' + error.message, true); return; }
-        toast(filas.length === 1 ? 'Equipo dado de alta' : `${filas.length} equipos dados de alta`); verPedido(id);
-      };
-    };
-  } catch (e) {}
-  return r;
-}
-
-async function cargarVentas(...a) {
-  const r = await cargarVentasBase3.apply(this, a);
-  const cuerpo = $('vcuerpo');
-  if (PEDSEC === 'ventas' && cuerpo && puedeAtribuir() && !$('cardsinatr')) {
-    cuerpo.insertAdjacentHTML('afterbegin', '<div class="card hide" id="cardsinatr"></div>');
-    pintarSinAtribuir();
-  }
-  return r;
-}
-
-async function verPedidoBase6(id, ...a) {
-  const r = await verPedidoBase5.call(this, id, ...a);
-  try {
-    if (!$('dlg').open || $('pdtrfb') || !$('pdvalidar') || !puedeVentas()) return r;
-    const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-    const p = data && data.pedido;
-    if (!p || p.estado !== 'Borrador' || !esTransferencia(p.forma_pago) || $('pdtrfb') || !$('pdvalidar')) return r;
-    const cli = data.contacto || {};
-    const acts = $('pdvalidar').closest('.acts');
-    acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdtrfb"><h3>Pago por transferencia</h3>
-      <p class="sm">${p.email_pago_en ? `Datos de pago enviados el ${fechaCorta(String(p.email_pago_en).slice(0, 10))}. El pedido espera en borrador hasta que llegue el pago.` : 'Datos de pago sin enviar. El pedido espera en borrador hasta que llegue el pago.'}</p>
-      <div class="acts pdtrfacts">${cli.email ? `<button type="button" class="btn sec chico" id="pdtrfmail">${p.email_pago_en ? 'Volver a enviar los datos de pago' : 'Enviar los datos de pago'}</button>` : `<span class="sm">${esc(TT('paciente', 's', '', 'l', 'C'))} no tiene email en su ficha.</span>`}
-        <button type="button" class="btn chico" id="pdtrfok">Cobrado · confirmar</button></div></div>`);
-    if ($('pdtrfmail')) $('pdtrfmail').onclick = async e => { e.target.disabled = true; if (await enviarDatosPago(id)) verPedido(id); else e.target.disabled = false; };
-    $('pdtrfok').onclick = () => { const v = $('pdvalidar'); v.dataset.pago = '1'; v.click(); setTimeout(() => { if (v.isConnected) delete v.dataset.pago; }, 60000); };
-  } catch (e) {}
-  return r;
-}
-
-/* ============================================================
-   v2.350.0 · Ventanas de Pedidos sin saltos (avisos de Eric, 22/10/2026).
-   1. El pedido aparece de una vez: mientras se pintan sus partes (facturas, operativa, pago, distribuidor, equipos…) la ventana
-      enseña el cargador; antes los botones llegaban por tandas y «Ver la factura» empujaba a «Editar pedido» justo al pulsar.
-   2. Una ventana que la persona cierra mientras carga (✕, «Cancelar», Escape o fuera) no vuelve a abrirse sola: solo con otro
-      clic o tecla (o al volver a la ventana anterior con «‹ Volver»).
-   ============================================================ */
-async function verPedido(id, ...a) {
-  const d = $('dlg'); d.classList.add('pdprep');
-  try { return await verPedidoBase6.call(this, id, ...a); }
-  finally { try { await estable($('dbody'), 2500); } catch (e) {} d.classList.remove('pdprep'); }
-}
-
-// Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
-async function pedidoPagoBase(id) {
-  if (!$('dlg').open || $('pdpago')) return;
-  const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),
-    db.from('pedidos_justificantes').select('id,nombre,tamano,creado_en').eq('pedido_id', id).order('creado_en')]);
-  const p = data && data.pedido; if (!p || !$('dlg').open || $('pdpago')) return;
-  if (p.sin_cargo) return;
-  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
-  const ref = $('pdops') || acts;
-  ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdpago"><h3>Pago</h3>
-    ${p.origen === 'web' ? '<p class="sm"><span class="pill p-est">Pedido por la web</span></p>' : ''}
-    <div class="pdpagof"><span class="sm">Referencia del pago</span><b>${p.pago_referencia ? esc(p.pago_referencia) : '—'}</b></div>
-    ${(js || []).length ? `<div class="lista" id="pdjus">${js.map(j => `<div class="item"><span class="tx"><b>${esc(j.nombre)}</b><span class="sm">${fechaCorta(String(j.creado_en).slice(0, 10))} · ${num(Math.round(j.tamano / 1024))} KB</span></span>
-      <button type="button" class="btn sec chico" data-jver="${j.id}">Ver</button></div>`).join('')}</div>` : ''}</div>`);
-  $('pdpago').querySelectorAll('[data-jver]').forEach(b => b.onclick = () => verJustificante(b.dataset.jver));
-}
 
 // Ventana de contratar o cambiar (la de la v2.162.0, con la bajada al final del periodo y lo que se pierde)
 function elegirPago(planIni) {
@@ -31763,11 +34440,24 @@ function elegirPago(planIni) {
   pinta(); $('dlg').showModal();
 }
 
-async function pedidoPago(id, ...a) {
-  const r = await pedidoPagoBase.call(this, id, ...a);
-  await tpvBloque(id);
-  return r;
-}
+// Pedidos está en src/app/screens/orders (v2.414.0). Estos nombres se quedan: el editor del pedido y el cobro con tarjeta (aquí),
+// otras pantallas, legado 001/034/057/058/073/082/089/105/139, «‹ Volver» y las pruebas los usan.
+function cargarVentas() { return window.delcos.screens.orders.loadSales(); }
+function listaPedidos() { return window.delcos.screens.orders.paintOrderList(); }
+function verPedido(id) { return window.delcos.screens.orders.showOrder(id); }
+function pintarDistribuidores() { return window.delcos.screens.orders.paintDistributors(); }
+function configurarAvisosPedidos(oblig) { return window.delcos.screens.orders.configureAlerts(oblig || []); }
+function enviarDatosPago(id) { return window.delcos.screens.orders.sendPaymentDetails(id); }
+function totalesPedido(lineas, d, dt, env) { return window.delcos.screens.orders.orderTotals(lineas, d, dt, env); }
+function lineaDesglose(l) { return window.delcos.screens.orders.lineBreakdown(l); }
+function bloqueTotales(t) { return window.delcos.screens.orders.totalsHtml(t); }
+function esTransferencia(fp) { return window.delcos.screens.orders.isBankTransfer(fp); }
+function sinCargoP(p, total) { return window.delcos.screens.orders.isFree(p, total); }
+function pasoPedido(p) { return window.delcos.screens.orders.orderStep(p); }
+function pillPaso(p) { return window.delcos.screens.orders.stepPill(p); }
+function pillEstado(e) { return window.delcos.screens.orders.statePill(e); }
+function asuntoEmailPago(p, total, cliente) { return window.delcos.screens.orders.paymentSubject(p, total, cliente); }
+function textoEmailPago(p, total, cliente) { return window.delcos.screens.orders.paymentText(p, total, cliente); }
 // pantallas/portal.js · el portal del profesional y del centro está en src/app/screens/portal (v2.413.0).
 // Aquí quedan el pago del plan desde el portal (Configuración y Pedidos), la «i» que usan muchas pantallas y los nombres que
 // usan la tabla de pantallas (legado 001), los avisos en vivo, Configuración y las pruebas.
@@ -33028,410 +35718,6 @@ function pintarRutasMapa(ml, P, tramos) {
   mover();
 }
 
-function rnCumple(rep, f) {
-  if (!rep) return false;
-  const d = new Date(f + 'T12:00:00');
-  if (rep.tipo === 'fecha') return rep.fecha === f;
-  if (d.getDay() !== rnDiaSem(rep.dia)) return false;
-  if (rep.tipo === 'semanal') return !rep.desde || f >= rep.desde;
-  if (rep.tipo === 'quincenal') { const base = new Date((rep.desde || f) + 'T12:00:00'); const sem = Math.round((d - base) / 864e5 / 7); return f >= (rep.desde || f) && sem % 2 === 0; }
-  if (rep.tipo === 'mensual') {
-    const n = Math.ceil(d.getDate() / 7);
-    if (+rep.semana === 5) { const sig = new Date(d); sig.setDate(d.getDate() + 7); return sig.getMonth() !== d.getMonth(); }
-    return n === +rep.semana;
-  }
-  return false;
-}
-
-function rnFechas(rep, desde, hasta) {
-  const out = []; if (!rep) return out;
-  if (rep.tipo === 'fecha') return rep.fecha && rep.fecha >= desde && rep.fecha <= hasta ? [rep.fecha] : [];
-  for (let f = desde; f <= hasta; f = isoMas(f, 1)) if (rnCumple(rep, f)) out.push(f);
-  return out;
-}
-
-function rnCuando(rep) {
-  if (!rep) return 'Sin fecha fija';
-  if (rep.tipo === 'fecha') return rep.fecha ? fechaLarga(new Date(rep.fecha + 'T12:00:00')).replace(/^./, c => c.toUpperCase()) : 'Un día concreto';
-  if (rep.tipo === 'semanal') return `Cada ${RN_DIAN[rep.dia]}`;
-  if (rep.tipo === 'quincenal') return `Cada 15 días, los ${RN_DIAN[rep.dia]}`;
-  if (rep.tipo === 'mensual') return `El ${RN_SEM[rep.semana] || 'primer'} ${RN_DIAN[rep.dia]} de cada mes`;
-  return '';
-}
-
-// El día de referencia para las horas de atención: el de la repetición o el siguiente laborable
-function rnFechaRef(rep, nombre) {
-  const p = rnProxima(rep); if (p) return p;
-  const m = String(nombre || '').toLowerCase().match(/^(lunes|martes|miércoles|jueves|viernes)(?=[\s·]|$)/);
-  if (m) { const d = RN_DIAS.find(k => RN_DIAN[k] === m[1]); return rnFechas({ tipo: 'semanal', dia: d }, isoMas(hoyISO(), 1), isoMas(hoyISO(), 8))[0] || siguienteLaborable(); }
-  return siguienteLaborable();
-}
-
-// ---------- horas ----------
-function rnItems(ms, fecha) { return ms.map(m => ({ id: m.id, ref: m, xy: m.lat != null && m.lon != null ? [+m.lat, +m.lon] : null, ventanas: ventanasDe(m.dias, fecha), fija: null })); }
-
-function rnConHor(salida, vuelta, fn) { return conHor({ salida: salida || '09:00', vuelta: vuelta || null }, fn); }
-
-// El mejor orden: el planificador de siempre (cercanía y horas de atención)
-function rnOrdenAuto(ms, fecha, salida, vuelta) {
-  return rnConHor(salida, vuelta, () => {
-    const { seq, fuera } = programarVisitas(rnItems(ms, fecha), minHora(salida || '09:00'));
-    return seq.map(s => s.it.ref).concat(fuera.map(f => f.it.ref));
-  });
-}
-
-// Horas siguiendo el orden que hay (con las fijadas a mano)
-function rnHoras(ms, fecha, salida, vuelta, fijas) {
-  return rnConHor(salida, vuelta, () => {
-    const cfg = PLANCFG(), sal = salidaUsuario(), dura = cfg.visita || 15;
-    let pos = sal.lat != null ? [+sal.lat, +sal.lon] : null, t = minHora(salida || '09:00'), km = 0;
-    const out = ms.map((m, i) => {
-      const xy = m.lat != null ? [+m.lat, +m.lon] : null, ven = ventanasDe(m.dias, fecha);
-      const mismo = pos && xy && pos[0] === xy[0] && pos[1] === xy[1];
-      const v = pos && xy && !mismo ? minutosEntre(pos, xy) + (cfg.parada || 0) : 0;
-      if (pos && xy && !mismo) km += Math.hypot((xy[0] - pos[0]) * 111.32, (xy[1] - pos[1]) * 111.32 * Math.cos(xy[0] * Math.PI / 180)) * 1.3;
-      let ini = t + v; const fija = fijas && fijas[m.id] ? minHora(fijas[m.id]) : null;
-      if (fija != null) ini = Math.max(ini, fija);
-      else if (ven && ven.length) { const w = ven.find(([a, b]) => ini <= b - dura) || null; if (w && ini < w[0]) ini = w[0]; }
-      const aviso = !xy ? 'Sin ubicación' : ven && !ven.length ? `Ese día no atiende` : ven && ven.length && !ven.some(([a, b]) => ini >= a && ini + dura <= b) ? `Fuera de su horario (${txtVentanas(ven)})` : '';
-      const r = { m, i, ini, fin: ini + dura, viaje: v, ven, aviso, fija: fija != null, mismo }; if (xy) pos = xy; t = ini + dura; return r;
-    });
-    const tope = minHora(cfg.tope);
-    return { filas: out, fin: t, km, pasa: vuelta && t > tope };
-  });
-}
-
-function rnNombreAuto(ms, rep) {
-  const munis = [...new Set(ms.map(m => rpTitulo(m.municipio || '')).filter(Boolean))];
-  const dia = rep && rep.dia ? RN_DIAN[rep.dia].replace(/^./, c => c.toUpperCase()) : rep && rep.tipo === 'fecha' && rep.fecha ? fechaCorta(rep.fecha) : '';
-  const zona = munis.length ? munis.slice(0, 2).join(' y ') + (munis.length > 2 ? ' y más' : '') : 'Nueva ruta';
-  return dia ? `${dia} · ${zona}` : zona;
-}
-
-// ---------- Mis rutas ----------
-function rnCroquis(ms) {
-  const pts = []; ms.forEach(m => { if (m.lat == null) return; if (!pts.some(u => u.lat === +m.lat && u.lon === +m.lon)) pts.push({ lat: +m.lat, lon: +m.lon }); });
-  if (!pts.length) return '<div class="rnsin">Sin ubicaciones</div>';
-  const W = 400, H = 140, P = 22, PT = 44, la = pts.map(p => p.lat), lo = pts.map(p => p.lon);
-  const a0 = Math.min(...la), a1 = Math.max(...la), o0 = Math.min(...lo), o1 = Math.max(...lo), k = Math.cos(a0 * Math.PI / 180);
-  const s = Math.min((W - 2 * P) / Math.max(1e-6, (o1 - o0) * k), (H - P - PT) / Math.max(1e-6, a1 - a0));
-  const cx = (W - (o1 - o0) * k * s) / 2, cy = (H - PT - P - (a1 - a0) * s) / 2 + P;
-  const ps = pts.map(p => [cx + (p.lon - o0) * k * s, H - cy - (p.lat - a0) * s]);
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><polyline points="${ps.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#3F82C0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-    ${ps.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="10.5" fill="#17457A" stroke="#fff" stroke-width="2.5"/><text x="${p[0].toFixed(1)}" y="${(p[1] + 4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="Manrope, sans-serif">${i + 1}</text>`).join('')}</svg>`;
-}
-
-async function rnMiembros(r) {
-  const { data } = await db.rpc('cuentas_de_ruta', { p_id: r.id });
-  const ms = data || [], pos = id => { const i = (r.codigos || []).indexOf(id); return i < 0 ? 1e9 : i; };
-  return r.dinamica ? ms : ms.slice().sort((a, b) => pos(a.id) - pos(b.id));
-}
-
-// ---------- pasar a la agenda ----------
-async function rnCitasEn(r, ms, fechas) {
-  let n = 0, saltados = [];
-  const bloq = fechas.length ? await bloqueadosSemana(fechas[0], fechas[fechas.length - 1]) : {};
-  for (const f of fechas) {
-    if (bloq[f]) { saltados.push(f); continue; }
-    const existentes = await citasDelDia(f), ids = [];
-    let orden = existentes.length;
-    for (const m of ms) {
-      const ya = existentes.find(c => c.cuenta_id === m.id && CITA_ABIERTA.includes(c.estado));
-      if (ya) { ids.push(ya.id); continue; }
-      const { data: x, error } = await db.rpc('guardar_cita', { p: { cuenta_id: m.id, fecha: f, hora: (r.fijas || {})[m.id] || null, centro_nombre: m.centro_nombre || null,
-        estado: CITA_ABIERTA[0], origen: 'Ruta', orden: ++orden, salida: r.salida || null, vuelta: r.vuelta || null, op_id: `r-${r.id}-${m.id}-${f}` } });
-      if (error || !x || !x.ok) { toast('No se ha podido guardar alguna cita', true); return { n, saltados, error: true }; }
-      ids.push(x.id); n++;
-    }
-    const cerradas = existentes.filter(c => !CITA_ABIERTA.includes(c.estado)).map(c => c.id);
-    const otras = existentes.filter(c => CITA_ABIERTA.includes(c.estado) && !ids.includes(c.id)).map(c => c.id);
-    await db.rpc('ordenar_citas', { p_ids: cerradas.concat(otras, ids) });
-  }
-  invalidarCache();
-  return { n, saltados };
-}
-
-// Las rutas que se repiten se rellenan solas hasta 4 semanas vista (una vez al día, solo las propias)
-async function rnRellenar() {
-  try {
-    const k = 'delcos-rnrell-' + (PERFIL || {}).id; if (localStorage.getItem(k) === hoyISO()) return;
-    localStorage.setItem(k, hoyISO());
-    const { data } = await RPC_ORIG('rutas_visibles', {});
-    for (const r of (data || []).filter(x => x.mia && x.repeticion && x.repeticion.tipo !== 'fecha')) {
-      const rep = r.repeticion, desde = rep.hasta && rep.hasta >= hoyISO() ? isoMas(rep.hasta, 1) : (rep.desde && rep.desde > hoyISO() ? rep.desde : hoyISO());
-      const fechas = rnFechas(rep, desde, isoMas(hoyISO(), 28)); if (!fechas.length) continue;
-      const ms = (await rnMiembros(r)).filter(m => m.lat != null); if (!ms.length) continue;
-      const res = await rnCitasEn(r, ms, fechas);
-      if (!res.error) await db.rpc('guardar_ruta', { p: { id: r.id, repeticion: Object.assign({}, rep, { hasta: fechas[fechas.length - 1] }) } });
-    }
-  } catch (e) {}
-}
-
-// ---------- crear o editar ----------
-function rnAbrir(item, paso) {
-  const r = item && item.r;
-  const rep = r ? (r.repeticion || null) : { tipo: 'semanal', dia: RN_DIAS[Math.max(0, new Date(siguienteLaborable() + 'T12:00:00').getDay() - 1)] || 'L', desde: siguienteLaborable() };
-  RN = { id: r ? r.id : null, nombre: r ? r.nombre : '', auto: !r, ms: item ? item.ms.slice() : [], rep, salida: r && r.salida ? String(r.salida).slice(0, 5) : '09:00',
-    vuelta: r && r.vuelta ? String(r.vuelta).slice(0, 5) : '', fijas: Object.assign({}, (r && r.fijas) || {}), ordenManual: !!r, paso: paso || 1, centros: r ? r.centros || [] : [],
-    q: '', fil: { mios: true, urg: false, dia: false, nunca: false }, res: [], mapa: null };
-  if (TAB !== 'rutas') ir('rutas'); else rnPintar();
-}
-
-function rnCerrar() { RN = null; if (RM_MAPA) { try { RM_MAPA.remove(); } catch (e) {} RM_MAPA = null; } cargarRutas(); }
-
-function rnNombre() { if (RN.auto) RN.nombre = rnNombreAuto(RN.ms, RN.rep); return RN.nombre || 'Nueva ruta'; }
-
-function rnPintar() {
-  const v = $('v-rutas'); if (!v || !RN) return;
-  const pasos = [['1', 'A quién vas a ver'], ['2', 'Orden y horario'], ['3', 'Vista previa y cuándo']];
-  v.innerHTML = `<div class="rnroot">
-    <div><button class="rnvol" type="button" id="rnvol">‹ Mis rutas</button>
-      <div class="rntit"><input id="rnnom" value="${esc(rnNombre())}" aria-label="Nombre de la ruta" maxlength="80"><span class="rnlap">${rnSV(RN_IC.lapiz)}</span></div>
-      <div class="sm rnnomsm">${RN.auto ? 'Nombre propuesto con el día y los municipios: puedes cambiarlo' : 'Nombre de la ruta'}</div></div>
-    <div class="rnpasos" role="tablist">${pasos.map(([n, t]) => `<button type="button" role="tab" data-rnp="${n}" class="${+n === RN.paso ? 'on' : +n < RN.paso ? 'ok' : ''}" aria-selected="${+n === RN.paso}" ${+n > 1 && !RN.ms.length ? 'disabled' : ''}><i>${+n < RN.paso ? '✓' : n}</i><span>${t}</span></button>`).join('')}</div>
-    <div id="rnpaso"></div></div>`;
-  $('rnvol').onclick = rnCerrar;
-  $('rnnom').oninput = e => { RN.nombre = e.target.value; RN.auto = !e.target.value.trim(); };
-  v.querySelectorAll('[data-rnp]').forEach(b => b.onclick = () => { if (b.disabled) return; RN.paso = +b.dataset.rnp; rnPintar(); });
-  if (RN.paso === 1) rnPaso1(); else if (RN.paso === 2) rnPaso2(); else rnPaso3();
-}
-
-// Paso 1: a quién vas a ver
-async function rnBuscar() {
-  const f = RN.fil, dia = RN.rep && RN.rep.dia;
-  const { data } = await db.rpc('buscar_cuentas', { q: RN.q || null, f_provincia: null, f_municipio: null, f_estado: null, f_especialidad: null, f_area: null,
-    f_urgentes: !!f.urg, f_mios: !!f.mios, f_sin_visitar: !!f.nunca, f_comercial: null, f_reporting: null, orden: null, lim: 200, desplaz: 0 });
-  let l = ((data || {}).filas || []);
-  // Sin cartera propia (p. ej. administración), «Mi cartera» se quita sola la primera vez
-  if (f.mios && !l.length && !RN.q && !RN.__sinCartera) { RN.__sinCartera = true; f.mios = false; return rnBuscar(); }
-  if (f.dia && dia) l = l.filter(m => m.dias && m.dias[dia]);
-  RN.res = l;
-}
-
-async function rnPaso1() {
-  const caja = $('rnpaso'), dia = RN.rep && RN.rep.dia;
-  caja.innerHTML = `<div class="rnb1"><div class="rnsel">
-      <div class="rnbus">${rnSV(RN_IC.lupa)}<input id="rnq" placeholder="Busca por nombre, centro o municipio" value="${esc(RN.q)}" autocomplete="off"></div>
-      <div class="rnfil" role="group" aria-label="Filtros">
-        <button type="button" data-rnf="mios" class="${RN.fil.mios ? 'on' : ''}" id="rnfmios">Mi cartera</button><button type="button" data-rnf="urg" class="${RN.fil.urg ? 'on' : ''}">Urgentes</button>
-        ${dia ? `<button type="button" data-rnf="dia" class="${RN.fil.dia ? 'on' : ''}">Atienden el ${RN_DIAN[dia]}</button>` : ''}<button type="button" data-rnf="nunca" class="${RN.fil.nunca ? 'on' : ''}">Nunca visitados</button></div>
-      <div class="rnres" id="rnres"><div class="sm" style="padding:10px 4px">Buscando…</div></div></div>
-    <div class="rnmini"><div class="mc" id="rnmc"></div><div class="rnley"><span><i style="background:#17457A"></i>En la ruta</span><span><i style="background:#9FB6CE"></i>Para añadir</span><span><i style="background:#E08A00"></i>Urgente</span></div></div></div>
-    ${rnPie(`<b id="rnn">${RN.ms.length}</b> elegidos`, `<button class="btn" type="button" id="rnsig1" ${RN.ms.length ? '' : 'disabled'}>Siguiente: orden y horario</button>`)}`;
-  let tq = null;
-  $('rnq').oninput = e => { RN.q = e.target.value; clearTimeout(tq); tq = setTimeout(async () => { await rnBuscar(); rnLista1(); rnMapa1(); }, 300); };
-  caja.querySelectorAll('[data-rnf]').forEach(b => b.onclick = async () => { RN.fil[b.dataset.rnf] = !RN.fil[b.dataset.rnf]; b.classList.toggle('on'); await rnBuscar(); rnLista1(); rnMapa1(); });
-  $('rnsig1').onclick = () => { RN.paso = 2; if (!RN.ordenManual) rnAuto(); rnPintar(); };
-  await rnBuscar(); if (!$('rnres')) return;
-  if ($('rnfmios')) $('rnfmios').classList.toggle('on', !!RN.fil.mios);
-  rnLista1(); rnMapa1();
-}
-
-function rnToggle(m) {
-  const i = RN.ms.findIndex(x => x.id === m.id);
-  if (i >= 0) { RN.ms.splice(i, 1); delete RN.fijas[m.id]; } else RN.ms.push(m);
-  RN.ordenManual = false;
-  if ($('rnn')) $('rnn').textContent = RN.ms.length;
-  if ($('rnsig1')) $('rnsig1').disabled = !RN.ms.length;
-  if (RN.auto && $('rnnom')) $('rnnom').value = rnNombre();
-  document.querySelectorAll('[data-rnp="2"], [data-rnp="3"]').forEach(b => b.disabled = !RN.ms.length);
-  rnLista1(); rnMapa1();
-}
-
-function rnLista1() {
-  const c = $('rnres'); if (!c) return;
-  const sel = new Set(RN.ms.map(m => m.id)), dia = RN.rep && RN.rep.dia;
-  const l = RN.ms.filter(m => !RN.res.some(x => x.id === m.id)).concat(RN.res);
-  c.innerHTML = l.length ? l.slice(0, 120).map(m => `<button type="button" class="rnopt ${sel.has(m.id) ? 'on' : ''}" data-rnm="${m.id}" aria-pressed="${sel.has(m.id)}">
-      <span class="ck">${sel.has(m.id) ? rnSV(RN_IC.check) : ''}</span>
-      <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc([m.centro_nombre, rpTitulo(m.municipio || '')].filter(Boolean).join(' · '))}${dia && m.dias ? (m.dias[dia] ? ` · atiende ${esc(String(m.dias[dia]))}` : ` · no atiende el ${RN_DIAN[dia]}`) : ''}</span></span>
-      <span class="tag ${m.urgente ? 'u' : ''}">${m.urgente ? 'Urgente' : esc(m.estado_comercial || '')}</span></button>`).join('')
-    : `<div class="vacio">No hay ${TT('medico', 'p', '', 'l', 'l')} con esos filtros.</div>`;
-  c.querySelectorAll('[data-rnm]').forEach(b => b.onclick = () => { const m = l.find(x => x.id === b.dataset.rnm); if (m) rnToggle(m); });
-}
-
-async function rnMapaBase(el, ms) {
-  const ml = await rmLib();
-  if (RM_MAPA) { const viejo = RM_MAPA; RM_MAPA = null; setTimeout(() => { try { viejo.remove(); } catch (e) {} }, 0); }
-  const map = new ml.Map({ container: el, style: 'https://tiles.openfreemap.org/styles/liberty', maxPitch: 0, dragRotate: false, attributionControl: { compact: true } });
-  RM_MAPA = map; map.touchZoomRotate.disableRotation();
-  map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
-  map.__mk = [];
-  map.on('load', () => { if (!map.style) return; rnRestilo(map); map.__listo = true; });
-  return { ml, map };
-}
-
-function rnRestilo(map) {
-  (map.getStyle().layers || []).forEach(l => {
-    const id = l.id, set = (k, v) => { try { map.setPaintProperty(id, k, v); } catch (e) {} }, off = () => { try { map.setLayoutProperty(id, 'visibility', 'none'); } catch (e) {} };
-    if (/^rn-/.test(id)) return;
-    if (l.type === 'fill-extrusion') return off();
-    if (l.type === 'background') return set('background-color', RM_PAL.tierra);
-    if (l.type === 'symbol') { if (/poi|aeroway|housenumber|transit|rail|ferry|shield/i.test(id)) return off(); set('text-color', RM_PAL.texto); set('text-halo-color', '#FFFFFF'); set('text-halo-width', 1.4); return; }
-    if (l.type === 'fill') { if (/water/i.test(id)) return set('fill-color', RM_PAL.agua); if (/building/i.test(id)) return set('fill-color', RM_PAL.edif); if (/park|wood|grass|forest|landcover|cemetery|pitch/i.test(id)) { set('fill-color', RM_PAL.parque); return set('fill-opacity', 0.8); } set('fill-color', RM_PAL.zona); return set('fill-opacity', 0.6); }
-    if (l.type === 'line') { if (/water|river|stream|canal/i.test(id)) return set('line-color', RM_PAL.agua); if (/rail|ferry|aeroway|boundary|admin/i.test(id)) return off(); const g = /motorway|trunk|primary/i.test(id); set('line-color', /casing/i.test(id) ? (g ? RM_PAL.viaBorde : RM_PAL.borde) : (g ? RM_PAL.via : RM_PAL.calle)); }
-  });
-}
-
-function rnPintarCapas(map, ml, ms, otros, linea, encaje) {
-  if (!map || !ml || !map.getContainer().isConnected) return;
-  const fijo = () => {
-    if (!map.style || !map.getContainer().isConnected) return;
-    const src = (id, data) => { const s = map.getSource(id); if (s) s.setData(data); else map.addSource(id, { type: 'geojson', data }); };
-    src('rn-otros', rnFC((otros || []).filter(m => m.lat != null).map(m => ({ type: 'Feature', properties: { id: m.id, u: m.urgente ? 1 : 0 }, geometry: { type: 'Point', coordinates: [+m.lon, +m.lat] } }))));
-    src('rn-linea', { type: 'Feature', geometry: { type: 'LineString', coordinates: linea || [] } });
-    if (!map.getLayer('rn-linea-b')) {
-      map.addLayer({ id: 'rn-linea-b', type: 'line', source: 'rn-linea', paint: { 'line-color': RM_PAL.rutaBorde, 'line-width': 7 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-      map.addLayer({ id: 'rn-linea', type: 'line', source: 'rn-linea', paint: { 'line-color': RM_PAL.ruta, 'line-width': 4.5 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-      map.addLayer({ id: 'rn-otros', type: 'circle', source: 'rn-otros', paint: { 'circle-radius': 7, 'circle-color': ['case', ['==', ['get', 'u'], 1], '#E08A00', '#9FB6CE'], 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
-      map.on('click', 'rn-otros', e => { const id = e.features && e.features[0] && e.features[0].properties.id; const m = (RN && RN.res || []).find(x => x.id === id); if (m) rnToggle(m); });
-      map.on('mouseenter', 'rn-otros', () => { map.getCanvas().style.cursor = 'pointer'; }); map.on('mouseleave', 'rn-otros', () => { map.getCanvas().style.cursor = ''; });
-    }
-  };
-  if (map.__listo) fijo(); else map.once('load', () => setTimeout(fijo, 0));
-  map.__mk.forEach(m => m.remove()); map.__mk = [];
-  const sal = salidaUsuario();
-  if (sal.lat != null) { const e = document.createElement('div'); e.className = 'rmcasa'; e.innerHTML = svgIco(ICON_NOM.house || ''); map.__mk.push(new ml.Marker({ element: e }).setLngLat([+sal.lon, +sal.lat]).addTo(map)); }
-  const grupos = []; ms.forEach((m, i) => { if (m.lat == null) return; const u = grupos[grupos.length - 1]; if (u && u.lat === +m.lat && u.lon === +m.lon) u.n.push(i + 1); else grupos.push({ lat: +m.lat, lon: +m.lon, n: [i + 1], m }); });
-  grupos.forEach(g => { const e = document.createElement('button'); e.type = 'button'; e.className = 'rmmk' + (g.n.length > 1 ? ' multi' : ''); e.style.setProperty('--c', '#17457A');
-    e.innerHTML = `<span>${g.n.length > 2 ? g.n[0] + '–' + g.n[g.n.length - 1] : g.n.join('·')}</span>`; e.title = g.m.nombre;
-    if (RN && RN.paso === 1) e.onclick = ev => { ev.stopPropagation(); rnToggle(g.m); };
-    map.__mk.push(new ml.Marker({ element: e, anchor: 'bottom' }).setLngLat([g.lon, g.lat]).addTo(map)); });
-  if (encaje !== false) {
-    const xs = ms.concat(otros || []).filter(m => m.lat != null).map(m => [+m.lon, +m.lat]).concat(sal.lat != null && ms.length ? [[+sal.lon, +sal.lat]] : []);
-    if (xs.length) { const b = xs.reduce((b, p) => [[Math.min(b[0][0], p[0]), Math.min(b[0][1], p[1])], [Math.max(b[1][0], p[0]), Math.max(b[1][1], p[1])]], [[180, 90], [-180, -90]]);
-      map.fitBounds(b, { padding: 50, duration: map.__ya ? 500 : 0, maxZoom: 14 }); map.__ya = true; }
-  }
-}
-
-async function rnMapa1() {
-  const el = $('rnmc'); if (!el || !RN) return;
-  if (!RM_MAPA || RM_MAPA.getContainer() !== el) {
-    if (!RN_MAPA_P || RN_MAPA_P.el !== el) { RN_MAPA_P = rnMapaBase(el).then(({ ml, map }) => { map.__ml = ml; }); RN_MAPA_P.el = el; }
-    await RN_MAPA_P;
-  }
-  if (!$('rnmc') || !RM_MAPA || !RM_MAPA.__ml || RM_MAPA.getContainer() !== $('rnmc')) return;
-  const map = RM_MAPA, sel = new Set(RN.ms.map(m => m.id)), sal = salidaUsuario();
-  const linea = (sal.lat != null && RN.ms.length ? [[+sal.lon, +sal.lat]] : []).concat(RN.ms.filter(m => m.lat != null).map(m => [+m.lon, +m.lat]));
-  rnPintarCapas(map, map.__ml, RN.ms, RN.res.filter(m => !sel.has(m.id)), linea, !map.__ya);
-}
-
-// Paso 2: orden y horario
-function rnAuto() { const f = rnFechaRef(RN.rep, RN.nombre); RN.ms = rnOrdenAuto(RN.ms, f, RN.salida, RN.vuelta); RN.ordenManual = false; }
-
-function rnPaso2() {
-  const caja = $('rnpaso'), f = rnFechaRef(RN.rep, RN.nombre), h = rnHoras(RN.ms, f, RN.salida, RN.vuelta, RN.fijas);
-  const sal = salidaUsuario();
-  caja.innerHTML = `<div class="rnb2"><div class="rnord">
-      <div class="rnordcab"><div class="rnhor2"><label>Sales a las <input type="time" id="rnsal" value="${esc(RN.salida)}"></label><label>Vuelves como tarde <input type="time" id="rnvue" value="${esc(RN.vuelta)}" placeholder="Sin hora"></label>
-        <span class="sm">Desde ${esc(sal.nombre || 'tu punto de salida')} · horas calculadas para el ${esc(fechaLarga(new Date(f + 'T12:00:00')))}</span></div>
-        <button class="btn sec" type="button" id="rnauto">${rnSV(RN_IC.varita)} ${RN.ordenManual ? 'Volver al orden automático' : 'Orden automático'}</button></div>
-      <p class="sm rnordtx">${RN.ordenManual ? 'Has cambiado el orden a mano.' : 'El mejor orden: el más corto que respeta las horas de atención.'} Usa las flechas para cambiarlo y toca una hora para fijarla.</p>
-      <div class="rnlst">${h.filas.map((x, i) => `${i && !x.mismo && x.viaje ? `<div class="rntramo">${Math.round(x.viaje)} min</div>` : ''}<div class="rnpar ${x.aviso ? 'aviso' : ''}">
-          <span class="n">${i + 1}</span>
-          <div class="tx"><b>${esc(x.m.nombre)}</b><span class="sm">${esc([x.m.centro_nombre, rpTitulo(x.m.municipio || '')].filter(Boolean).join(' · '))}</span>
-            <span class="sm ${x.aviso ? 'rnav' : ''}">${esc(x.aviso || (x.ven && x.ven.length ? 'Atiende ' + txtVentanas(x.ven) : ''))}</span></div>
-          <div class="der"><button type="button" class="rnh ${x.fija ? 'fija' : ''}" data-rnh="${x.m.id}" title="${x.fija ? 'Hora fijada: toca para cambiarla o quitarla' : 'Hora calculada: toca para fijarla'}">${x.fija ? rnSV(RN_IC.reloj) : '~'}${hm(x.ini)}</button>
-            <span class="ops"><button type="button" data-rnmv="-1|${i}" aria-label="Subir" ${i ? '' : 'disabled'}>${rnSV(RN_IC.up)}</button><button type="button" data-rnmv="1|${i}" aria-label="Bajar" ${i < h.filas.length - 1 ? '' : 'disabled'}>${rnSV(RN_IC.down)}</button>
-              <button type="button" data-rnx="${i}" aria-label="Quitar">${rnSV(RN_IC.x)}</button></span></div></div>`).join('')}</div></div>
-    <div class="rnresum"><div><b>${RN.ms.length}</b>${TT('medico', 'p', '', 'l', 'l')}</div><div><b>${new Set(RN.ms.filter(m => m.lat != null).map(m => m.lat + ',' + m.lon)).size}</b>paradas</div>
-      <div><b>${Math.round(h.km)} km</b>aprox.</div><div><b class="${h.pasa ? 'rnmal' : ''}">${hm(h.fin)}</b>terminas${h.pasa ? ' (pasa de tu hora de vuelta)' : ''}</div></div></div>
-    ${rnPie('Lo ves en el mapa en el paso siguiente.', '<button class="btn sec" type="button" id="rnant2">‹ Atrás</button><button class="btn" type="button" id="rnsig2">Siguiente: vista previa</button>')}`;
-  $('rnsal').onchange = e => { RN.salida = e.target.value || '09:00'; if (!RN.ordenManual) rnAuto(); rnPaso2(); };
-  $('rnvue').onchange = e => { RN.vuelta = e.target.value || ''; if (!RN.ordenManual) rnAuto(); rnPaso2(); };
-  $('rnauto').onclick = () => { rnAuto(); rnPaso2(); };
-  caja.querySelectorAll('[data-rnmv]').forEach(b => b.onclick = () => { const [d, i] = b.dataset.rnmv.split('|').map(Number), j = i + d; [RN.ms[i], RN.ms[j]] = [RN.ms[j], RN.ms[i]]; RN.ordenManual = true; rnPaso2(); });
-  caja.querySelectorAll('[data-rnx]').forEach(b => b.onclick = () => { const m = RN.ms.splice(+b.dataset.rnx, 1)[0]; if (m) delete RN.fijas[m.id]; if (!RN.ms.length) { RN.paso = 1; return rnPintar(); } rnPaso2(); });
-  caja.querySelectorAll('[data-rnh]').forEach(b => b.onclick = async () => {
-    const id = b.dataset.rnh, x = h.filas.find(y => y.m.id === id);
-    const op = await elegirOpcion('Hora de la visita', `${x.m.nombre}${x.ven && x.ven.length ? ' · atiende ' + txtVentanas(x.ven) : ''}`,
-      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(RN.fijas[id] ? [{ k: 'quitar', t: 'Que la calcule la app', cls: 'sec' }] : []).concat([{ k: 'fijar', t: 'Fijar una hora' }]));
-    if (op === 'quitar') { delete RN.fijas[id]; return rnPaso2(); }
-    if (op !== 'fijar') return;
-    const v = await pedirCampo('Fijar la hora', 'time', RN.fijas[id] || hm(x.ini), 'Hora'); if (!v) return;
-    RN.fijas[id] = v; rnPaso2();
-  });
-  $('rnant2').onclick = () => { RN.paso = 1; rnPintar(); };
-  $('rnsig2').onclick = () => { RN.paso = 3; rnPintar(); };
-}
-
-// Paso 3: vista previa y cuándo
-function rnRepHtml() {
-  const rep = RN.rep || null, t = rep ? rep.tipo : 'nada', dia = (rep && rep.dia) || 'L';
-  const op = (k, tx) => `<button type="button" data-rnrt="${k}" class="${t === k ? 'on' : ''}" aria-pressed="${t === k}">${tx}</button>`;
-  return `<div class="rncuando"><h3>¿Cuándo la haces?</h3>
-    <div class="segs rnrt" role="group" aria-label="Cuándo">${op('fecha', 'Un día')}${op('semanal', 'Cada semana')}${op('quincenal', 'Cada 15 días')}${op('mensual', 'Una vez al mes')}${op('nada', 'Sin fecha')}</div>
-    ${t === 'fecha' ? `<label for="rnfe">Día</label><input type="date" id="rnfe" value="${esc((rep && rep.fecha) || siguienteLaborable())}" min="${hoyISO()}">` : ''}
-    ${['semanal', 'quincenal', 'mensual'].includes(t) ? `<div class="rndias2" role="group" aria-label="Día de la semana">${RN_DIAS.map(d => `<button type="button" data-rnd="${d}" class="${d === dia ? 'on' : ''}">${RN_DIAN[d].charAt(0).toUpperCase() + RN_DIAN[d].slice(1, 3)}</button>`).join('')}</div>` : ''}
-    ${t === 'mensual' ? `<label for="rnsem">Qué semana del mes</label><select id="rnsem">${[1, 2, 3, 4, 5].map(n => `<option value="${n}" ${+((rep && rep.semana) || 1) === n ? 'selected' : ''}>${n === 5 ? 'La última' : `La ${RN_SEM[n].replace(/r$/, 'ra')}`}</option>`).join('')}</select>` : ''}
-    ${t === 'quincenal' ? `<label for="rnde">Empezando el</label><input type="date" id="rnde" value="${esc((rep && rep.desde) || siguienteLaborable())}" min="${hoyISO()}">` : ''}
-    <p class="sm rnrtx">${t === 'nada' ? 'Se guarda sin fecha: la pasas a tu agenda cuando quieras.' : `${esc(rnCuando(rep))}.${(() => { const f = rnFechas(rep, hoyISO(), rnHorizonte(rep)).slice(0, 4); return f.length ? ` Próximas: ${f.map(x => fechaCorta(x)).join(', ')}.` : ''; })()}`}</p></div>`;
-}
-
-async function rnPaso3() {
-  const caja = $('rnpaso'), f = rnFechaRef(RN.rep, RN.nombre), h = rnHoras(RN.ms, f, RN.salida, RN.vuelta, RN.fijas), sal = salidaUsuario();
-  const repetida = RN.rep && RN.rep.tipo !== 'fecha';
-  caja.innerHTML = `<div class="rnb3"><div class="rnmini"><div class="mc" id="rnmc"></div><div class="rnchip" id="rnchip">Calculando la ruta…</div></div>
-      <div class="rnlado"><div class="rntl"><h3 id="rntlh">${esc(fechaLarga(new Date(f + 'T12:00:00')).replace(/^./, c => c.toUpperCase()))} · así será tu día</h3><div id="rntl"></div></div>${rnRepHtml()}</div></div>
-    ${rnPie(RN.id ? 'Los cambios se guardan en la ruta; las citas que ya están en tu agenda no cambian.' : 'Se guarda en Mis rutas.',
-      `<button class="btn sec" type="button" id="rnant3">‹ Atrás</button><button class="btn sec" type="button" id="rnguar">Guardar ruta</button><button class="btn" type="button" id="rnguarag">${RN.rep ? 'Guardar y pasar a mi agenda' : 'Guardar y elegir el día'}</button>`)}`;
-  const tl = (hh, tramos) => {
-    const filas = hh.filas;
-    $('rntl').innerHTML = `<div class="rntli viaje"><span class="h">${hm(minHora(RN.salida || '09:00'))}</span><span class="l"></span><span class="t">Sales de ${esc(sal.nombre || 'tu punto de salida')}</span></div>
-      ${filas.map((x, i) => `${i && !x.mismo && x.viaje ? `<div class="rntli viaje"><span class="h"></span><span class="l"></span><span class="t">${Math.round(x.viaje)} min de coche</span></div>` : ''}
-        <div class="rntli"><span class="h">${hm(x.ini)}</span><span class="l"><i></i></span><span class="t"><b>${i + 1}. ${esc(x.m.nombre)}</b><span class="sm">${esc(x.m.centro_nombre || rpTitulo(x.m.municipio || ''))}${x.aviso ? ` · <span class="rnav">${esc(x.aviso)}</span>` : ''}</span></span></div>`).join('')}
-      <div class="rntli viaje"><span class="h">${hm(hh.fin)}</span><span class="l"></span><span class="t">Terminas la última ${TT('visita', 's', '', 'l', 'l')}</span></div>`;
-  };
-  tl(h);
-  const pon = () => { const c = caja.querySelector('.rncuando'); c.outerHTML = rnRepHtml(); engancharRep(); const f2 = rnFechaRef(RN.rep, RN.nombre); if ($('rntlh')) $('rntlh').textContent = fechaLarga(new Date(f2 + 'T12:00:00')).replace(/^./, c => c.toUpperCase()) + ' · así será tu día'; tl(rnHoras(RN.ms, f2, RN.salida, RN.vuelta, RN.fijas)); if (RN.auto && $('rnnom')) $('rnnom').value = rnNombre(); $('rnguarag').textContent = RN.rep ? 'Guardar y pasar a mi agenda' : 'Guardar y elegir el día'; };
-  const engancharRep = () => {
-    caja.querySelectorAll('[data-rnrt]').forEach(b => b.onclick = () => { const t = b.dataset.rnrt, dia = (RN.rep && RN.rep.dia) || 'L';
-      RN.rep = t === 'nada' ? null : t === 'fecha' ? { tipo: 'fecha', fecha: (RN.rep && RN.rep.fecha) || siguienteLaborable() } : t === 'mensual' ? { tipo: 'mensual', dia, semana: (RN.rep && RN.rep.semana) || 1 }
-        : { tipo: t, dia, desde: (RN.rep && RN.rep.desde) || siguienteLaborable() }; pon(); });
-    caja.querySelectorAll('[data-rnd]').forEach(b => b.onclick = () => { RN.rep = Object.assign({}, RN.rep, { dia: b.dataset.rnd }); pon(); });
-    if ($('rnfe')) $('rnfe').onchange = e => { RN.rep = { tipo: 'fecha', fecha: e.target.value }; pon(); };
-    if ($('rnde')) $('rnde').onchange = e => { RN.rep = Object.assign({}, RN.rep, { desde: e.target.value }); pon(); };
-    if ($('rnsem')) $('rnsem').onchange = e => { RN.rep = Object.assign({}, RN.rep, { semana: +e.target.value }); pon(); };
-    if (typeof mejorarCampos === 'function') mejorarCampos(caja);
-  };
-  engancharRep();
-  $('rnant3').onclick = () => { RN.paso = 2; rnPintar(); };
-  $('rnguar').onclick = () => rnGuardar(false);
-  $('rnguarag').onclick = () => rnGuardar(true);
-  // El mapa: en recto y, si contesta la función, por las calles
-  const el = $('rnmc'); const { ml, map } = await rnMapaBase(el); if (!$('rnmc')) return;
-  const conXY = RN.ms.filter(m => m.lat != null);
-  const pts = (sal.lat != null ? [[+sal.lat, +sal.lon]] : []).concat(conXY.map(m => [+m.lat, +m.lon]));
-  const puntos = pts.filter((p, i) => !i || p[0] !== pts[i - 1][0] || p[1] !== pts[i - 1][1]);
-  rnPintarCapas(map, ml, RN.ms, null, puntos.map(p => [p[1], p[0]]));
-  if (puntos.length < 2 || puntos.length > 30) { $('rnchip').textContent = 'Vista previa en línea recta'; return; }
-  const res = await rmRuta(puntos, `${f}T${RN.salida || '09:00'}:00`); if (!$('rnchip')) return;
-  if (res.ok && res.tramos && res.tramos.length === puntos.length - 1) {
-    const linea = res.tramos.flatMap(t => (t.linea || []).map(([la, lo]) => [lo, la]));
-    rnPintarCapas(map, ml, RN.ms, null, linea, false);
-    $('rnchip').innerHTML = `Por las calles, con tráfico · <b>${String(res.km).replace('.', ',')} km</b> · <b>${rmDur(res.min)}</b> al volante <span class="rmfuente">Ruta: © TomTom</span>`;
-  } else $('rnchip').textContent = `${RM_MOTIVO[res.motivo] || RM_MOTIVO.servicio}: vista previa en línea recta`;
-}
-
-async function rnGuardar(agenda) {
-  const nombre = ($('rnnom') && $('rnnom').value.trim()) || rnNombre();
-  const rep = RN.rep ? Object.assign({}, RN.rep) : null;
-  if (rep) delete rep.hasta;   // al cambiar la ruta, la agenda se vuelve a mirar desde hoy
-  const p = { nombre, codigos: RN.ms.map(m => m.id), reglas: null, salida: RN.salida || null, vuelta: RN.vuelta || null, repeticion: rep,
-    fijas: Object.keys(RN.fijas).length ? RN.fijas : null, centros: RN.centros || [] };
-  if (RN.id) p.id = RN.id;
-  const b1 = $('rnguar'), b2 = $('rnguarag'); [b1, b2].forEach(b => b && (b.disabled = true));
-  const { data, error } = await db.rpc('guardar_ruta', { p });
-  [b1, b2].forEach(b => b && (b.disabled = false));
-  if (error || !data || !data.ok) { toast('No se ha podido guardar la ruta' + (error ? ': ' + error.message : ''), true); return; }
-  invalidarCache();
-  const ms = RN.ms.slice();
-  RN = null;
-  toast('Ruta guardada');
-  if (agenda) return rnPasarAgenda({ r: Object.assign({}, p, { id: data.id, mia: true }), ms });
-  cargarRutas();
-}
-
 async function planificar(rutaId, btn) {
   const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Calculando…';
   const { data, error } = await db.rpc('cuentas_de_ruta', { p_id: rutaId });
@@ -33897,26 +36183,8 @@ const RM_MOTIVO = {
   servicio: 'El servicio de rutas no ha contestado', sesion: 'No se ha podido comprobar tu sesión', datos: 'Alguna parada no tiene una ubicación válida'
 };
 
-const RN_SEM = { 1: 'primer', 2: 'segundo', 3: 'tercer', 4: 'cuarto', 5: 'último' };
 
 let RN = null;          // la ruta que se está creando o editando
-
-const rnSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
-
-const RN_IC = { up: '<path d="m18 15-6-6-6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
-  lapiz: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>', papelera: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
-  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', varita: '<path d="m15 4 5 5"/><path d="M3 21 15 9"/><path d="M19 3v4M17 5h4M7 3v2M6 4h2"/>', check: '<path d="M20 6 9 17l-5-5"/>' };
-
-// ---------- fechas de una ruta que se repite ----------
-const rnDiaSem = d => RN_DIAS.indexOf(d) + 1;   // L = 1 … V = 5 (getDay)
-
-const rnHorizonte = rep => isoMas(hoyISO(), rep && rep.tipo === 'mensual' ? 92 : 56);
-
-const rnProxima = rep => rnFechas(rep, hoyISO(), isoMas(hoyISO(), 120))[0] || null;
-
-const rnPie = (izq, der) => `<div class="rnpie"><span>${izq}</span><span class="rnpieb">${der}</span></div>`;
-
-const rnFC = l => ({ type: 'FeatureCollection', features: l });
 
 /* cargarRutas: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
 async function cargarRutasBase2() {
@@ -34034,40 +36302,11 @@ async function cargarRutasPaso2Base2(...a) {
 
 function cargarRutasPaso2(...a) { if (RN) return; return cargarRutasPaso2Base2.apply(this, a); }
 
-async function cargarRutasBase() {
-  const v = $('v-rutas');
-  if (RN) return rnPintar();
-  const { data: rutas } = await db.rpc('rutas_visibles');
-  RUTAS = rutas || [];
-  const lista = await Promise.all(RUTAS.map(async r => ({ r, ms: await rnMiembros(r) })));
-  RN_LISTA = lista;
-  v.innerHTML = `
-    <div class="saludo"><div><h1>Rutas</h1><div class="fecha">Tus rutas: créalas paso a paso, revísalas y pásalas a tu agenda</div></div>
-      <div class="acts" style="margin:0"><button class="btn" id="rnueva">+ Nueva ruta</button></div></div>
-    <div class="rngrid" id="rngrid">${lista.map(({ r, ms }, i) => {
-      const rep = r.repeticion || null, f = rnFechaRef(rep, r.nombre), h = rnHoras(ms, f, r.salida, r.vuelta, r.fijas), prox = rnProxima(rep);
-      const paradas = new Set(ms.filter(m => m.lat != null).map(m => (+m.lat).toFixed(5) + ',' + (+m.lon).toFixed(5))).size;
-      return `<article class="rncard" data-rni="${i}"><div class="rncro">${rnCroquis(ms)}<span class="rndia">${esc(rnCuando(rep))}</span></div>
-        <div class="rntx"><b>${esc(r.nombre)}</b>
-          <span class="sm">${num(ms.length)} ${ms.length === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${paradas} ${paradas === 1 ? 'parada' : 'paradas'}${h.km >= 1 ? ' · ' + Math.round(h.km) + ' km' : ''}</span>
-          <span class="sm">${ms.length ? `De ${r.salida ? String(r.salida).slice(0, 5) : '09:00'} a ${hm(h.fin)}` : 'Todavía sin nadie'}${prox ? ` · próxima: ${esc(fechaCorta(prox))}` : ''}${r.mia ? '' : ' · de ' + esc(r.duenyo || '')}</span></div>
-        <div class="rnacts"><button class="btn chico" type="button" data-rnag="${i}">Pasar a mi agenda</button>
-          ${r.mia || puede('administrar') ? `<button class="btn sec chico" type="button" data-rned="${i}">${rnSV(RN_IC.lapiz)} Editar</button>
-          <button class="btn sec chico rnico" type="button" data-rnbor="${i}" aria-label="Eliminar ${esc(r.nombre)}" title="Eliminar">${rnSV(RN_IC.papelera)}</button>` : `<button class="btn sec chico" type="button" data-rnver="${i}">Ver</button>`}</div></article>`; }).join('')}
-      <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>Nueva ruta</b><span class="sm">${lista.length ? 'Elige a quién vas a ver y en qué orden' : `Tu primera ruta: elige a quién vas a ver, el orden y cuándo. La app calcula las horas.`}</span></span></button></div>
-    <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
-  $('rnueva').onclick = $('rnnueva2').onclick = () => rnAbrir(null);
-  v.querySelectorAll('[data-rned]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rned], 3));
-  v.querySelectorAll('[data-rnver]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rnver], 3));
-  v.querySelectorAll('[data-rnag]').forEach(b => b.onclick = () => rnPasarAgenda(lista[+b.dataset.rnag], b));
-  v.querySelectorAll('[data-rnbor]').forEach(b => b.onclick = async () => {
-    const { r } = lista[+b.dataset.rnbor];
-    if (!await preguntar(`Se elimina «${r.nombre}». Las citas que ya están en tu agenda no se borran.`, { titulo: '¿Eliminar la ruta?', ok: 'Eliminar', peligro: true })) return;
-    const { error } = await db.rpc('guardar_ruta', { p: { id: r.id, activa: false } });
-    if (error) { toast('No se ha podido eliminar', true); return; }
-    toast('Ruta eliminada'); invalidarCache(); cargarRutas();
-  });
-}
+// «Mis rutas», el asistente y pasar una ruta a la agenda están en src/app/screens/routes (v2.414.0). Estos nombres se quedan:
+// la cadena cargarRutas pinta la lista, legado 083 rellena las rutas que se repiten y las pruebas abren el asistente.
+function cargarRutasBase() { return window.delcos.screens.routes.paintRoutes(); }
+function rnAbrir(item, paso) { return window.delcos.screens.routes.openRoute(item || null, paso || 1); }
+function rnRellenar() { return window.delcos.screens.routes.refillRepeating(); }
 // pantallas/visita.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -34885,7 +37124,7 @@ document.addEventListener('click', async e => {
    DLC OS 2.0 · Entrega 7: mapa, móvil y avisos de versión
    ============================================================ */
 
-let MAPA = null, CAPA = null, MODO_MAPA = false, CAPA_RUTA = null;
+let MODO_MAPA = false, CAPA_RUTA = null;
 
 /* ---------------- barra inferior en móvil ---------------- */
 
@@ -40474,7 +42713,6 @@ let RM_LIB = null, RM_MAPA = null, RM_ANIM = null;
      semana). El nombre se propone solo (día y municipios) y se puede cambiar.
    - Pasar a la agenda: las citas de los días que tocan (8 semanas o 3 meses), sin duplicar (op_id por ruta, ficha y día) y saltando
      los días bloqueados. Las rutas que se repiten se rellenan solas hasta 4 semanas vista (repeticion.hasta guarda hasta dónde). */
-const RN_DIAS = ['L', 'M', 'X', 'J', 'V'], RN_DIAN = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
 let RN_LISTA = null, RN_MAPA_P = null;    // tarjetas de Mis rutas: [{r, ms}]
 
 

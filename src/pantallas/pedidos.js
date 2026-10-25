@@ -1,203 +1,6 @@
 // pantallas/pedidos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-// Ver pedido · Operativa: pago, paquete, emails
-async function pedidoOperativa(id) {
-  if (!$('dlg').open || !(VE_TODO() || puede('administrar'))) return;
-  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  const p = data && data.pedido; if (!p || p.estado !== 'Confirmado' || $('pdops')) return;
-  await cargarAjustes();
-  const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
-  const permitido = VE_TODO() && nivelDe2('V') >= 2;
-  const acts = $('dbody').querySelector('.acts:last-of-type');
-  acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdops" data-nosucio><h3>Operativa</h3>
-    ${p.sin_cargo ? '<p class="sm">Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.</p>' : ''}${OPS.filter(([k]) => !(p.sin_cargo && k === 'pago')).map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
-      <span>${esc(t)}${k === 'pago' && p.forma_pago ? ` <span class="sm">· ${esc(p.forma_pago)}${/reembolso/i.test(p.forma_pago) ? ' (se cobra al entregar)' : ''}</span>` : ''}</span></label>`).join('')}
-    <label class="opchk ${p.reportar_profesional ? 'on' : ''}"><input type="checkbox" data-reporte ${p.reportar_profesional ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
-      <span>Reportado ${esc(TT('medico', 's', 'al', 'l', 'l'))}</span></label>
-    <div class="acts" style="margin:6px 0 0">
-      ${p.sin_cargo ? '' : cli.email ? `<a class="btn sec" id="pdmailpago" data-ped="${id}" href="mailto:${esc(cli.email)}?subject=${encodeURIComponent(asuntoEmailPago(p, total, cli.nombre))}&body=${encodeURIComponent(textoEmailPago(p, total, cli.nombre))}">✉️ Preparar email con los datos de pago</a>` : '<span class="sm">El cliente no tiene email en su ficha.</span>'}
-    </div></div>`);
-  $('dbody').querySelectorAll('[data-op]').forEach(c => c.onchange = async () => {
-    const { data: r, error } = await db.rpc('marcar_operativa', { p_pedido: id, p_campo: c.dataset.op, p_hecho: c.checked });
-    if (error || (r && r.ok === false)) { c.checked = !c.checked; toast('No se ha podido guardar', true); return; }
-    c.closest('.opchk').classList.toggle('on', c.checked);
-    toast(c.checked ? (c.dataset.op === 'pago' ? 'Cobrado' + (p.factura_id ? ' · cobro anotado en la factura' : '') : 'Hecho') : 'Desmarcado');
-    if (TAB === 'ventas' && PEDSEC === 'ventas') pintarOperativa();
-  });
-  const crep = $('dbody').querySelector('[data-reporte]');   // v2.328.0
-  if (crep) crep.onchange = async () => {
-    const { data: r, error } = await db.rpc('marcar_reporte', { p_id: id, p_valor: crep.checked });
-    if (error || (r && r.ok === false)) { crep.checked = !crep.checked; toast('No se ha podido guardar', true); return; }
-    crep.closest('.opchk').classList.toggle('on', crep.checked);
-    toast(crep.checked ? 'Reportado' : 'Ya no se reporta');
-  };
-  if ($('pdmailpago')) $('pdmailpago').addEventListener('click', () => setTimeout(async () => {
-    if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' })) {
-      await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true }); verPedido(id);
-    }
-  }, 800));
-}
-
-function totalesPedido(lineas, d, dt, env) {
-  const ls = lineas.map(l => ({ b: (+l.importe || 0) * (1 - (+l.descuento || 0) / 100), iva: +l.iva || 0, u: +l.unidades || 0 }));
-  const sb = ls.reduce((n, l) => n + l.b, 0);
-  const k = !+d || !sb ? 1 : dt === 'importe' ? Math.max(0, 1 - d / sb) : Math.max(0, 1 - d / 100);
-  const porIva = {};
-  ls.forEach(l => { porIva[l.iva] = (porIva[l.iva] || 0) + l.b * k * l.iva / 100; });
-  const t = { unidades: ls.reduce((n, l) => n + l.u, 0), bruto: sb, descuento: sb * (1 - k), baseProd: sb * k, porIva };
-  // El envío se escribe con IVA; aquí se separa su base y su IVA
-  t.envio = env && env.on ? { con: r2(env.con), iva: +env.iva || 0, base: (+env.con || 0) / (1 + (+env.iva || 0) / 100), nombre: env.nombre || 'Envío' } : null;
-  if (t.envio) { t.envio.ivaImp = t.envio.con - t.envio.base; porIva[t.envio.iva] = (porIva[t.envio.iva] || 0) + t.envio.ivaImp; }
-  t.base = t.baseProd + (t.envio ? t.envio.base : 0);
-  t.iva = Object.values(porIva).reduce((n, x) => n + x, 0);
-  t.total = t.base + t.iva;
-  return t;
-}
-
-// Pedidos · Pestañas Ventas, Compras y Proveedores, y contenido de Compras y Proveedores
-async function pedidosSecciones() {
-  const v = $('v-ventas');
-  v.querySelector('.saludo h1').firstChild.textContent = 'Pedidos';
-  v.querySelector('.saludo .fecha').textContent = 'Ventas, compras y proveedores';
-  v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="subnav" id="pedsub">
-    <button data-pedsec="ventas" aria-pressed="${pedsecVista() === 'ventas'}">Ventas</button>
-    <button data-pedsec="compras" aria-pressed="${pedsecVista() === 'compras'}">Compras</button>
-    <button data-pedsec="proveedores" aria-pressed="${pedsecVista() === 'proveedores'}">Proveedores</button></div>`);
-  v.querySelectorAll('[data-pedsec]').forEach(b => b.onclick = () => { PEDSEC = b.dataset.pedsec; cargarVentas(); });
-  if (PEDSEC === 'ventas') return;
-  const acts = v.querySelector('.saludo .acts');
-  acts.innerHTML = puedeCompras() ? (PEDSEC === 'compras' ? '<button class="btn" id="compnueva">+ Nuevo pedido de compra</button>'
-    : '<button class="btn" id="provnuevo">+ Nuevo proveedor</button>') : '';
-  if ($('compnueva')) $('compnueva').onclick = () => editorCompra(null);
-  if ($('provnuevo')) $('provnuevo').onclick = () => editorProveedor(null);
-  if (PEDSEC === 'compras') pintarCompras(); else pintarProveedores();
-}
-
-// Pedidos · Pestaña Llamadas y operativa de ventas
-async function pedidosLlamadas(sec) {
-  PEDSEC = sec;
-  const sub = $('pedsub');
-  if (PEDSEC === 'llamadas' && !hayOportunidades()) PEDSEC = 'ventas';
-  if (sub && VE_TODO() && hayOportunidades() && !sub.querySelector('[data-pedsec="llamadas"]')) {
-    sub.insertAdjacentHTML('beforeend', `<button data-pedsec="llamadas" aria-pressed="${PEDSEC === 'llamadas'}">Oportunidades</button>`);
-    sub.querySelector('[data-pedsec="llamadas"]').onclick = () => { PEDSEC = 'llamadas'; cargarVentas(); };
-  }
-  if (sub) sub.querySelectorAll('[data-pedsec]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pedsec === PEDSEC)));
-  if (PEDSEC === 'ventas' && VE_TODO()) pintarOperativa();
-  if (PEDSEC === 'llamadas') {
-    const acts = $('v-ventas').querySelector('.saludo .acts');
-    acts.innerHTML = '<button class="btn" id="llnueva">+ Nueva venta</button>';
-    $('llnueva').onclick = () => nuevaVenta();
-    pintarLlamadas();
-  }
-}
-
-// Pedidos · Botón «Registrar llamada» en Ventas
-async function pedidosBotonLlamada() {
-  return;   // v2.125.0: «+ Nueva venta» une llamada y pedido
-  if (!VE_TODO() || PEDSEC !== 'ventas') return;
-  const acts = $('v-ventas').querySelector('.saludo .acts');
-  if (acts && !$('pedllam')) {
-    acts.insertAdjacentHTML('afterbegin', '<button class="btn sec" id="pedllam">📞 Registrar llamada</button>');
-    $('pedllam').onclick = () => editorOportunidad(null);
-  }
-}
-
-/* Parte base; cargarVentas le añade el resto */
-async function cargarVentasBase() {
-  vaciarModulos('v-ventas');
-  $('v-ventas').innerHTML = `
-    <div class="saludo"><div><h1>Ventas</h1><div class="fecha">Pedidos, unidades e importes</div></div>
-      <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pednuevo">+ Nueva venta</button>' : ''}</div></div>
-    <div id="vcuerpo">
-      <div class="panel">
-        <div class="filtros">
-          <div id="pper"></div>
-          <div><label for="pcanal">Canal</label><select id="pcanal">
-            <option value="">Todos</option><option value="paciente">Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
-            <option value="centro">Venta a centro</option></select></div>
-          <div><label for="pestado">Estado</label><select id="pestado">
-            <option value="">Todos</option><option value="Confirmado">Confirmados</option>
-            <option value="Borrador">Borradores</option><option value="Anulado">Anulados</option></select></div>
-          <div><label for="pq">Buscar</label><input id="pq" type="search" placeholder="${TT('medico', 's', '', 'l', 'C')}, ${TT('paciente', 's', '', 'l', 'l')} o nº de pedido"></div>
-        </div>
-        <div class="kpis vtot" id="ptotales"></div>
-        <div id="pedlista"></div>
-      </div>
-    </div>`;
-  if ($('pednuevo')) $('pednuevo').onclick = () => nuevaVenta();   // v2.125.0: cliente, interés y cierre en un recorrido
-  montarPeriodo($('pper'), { id: 'ventas', valor: 'mes', alCambiar: listaPedidos });
-  ['pcanal', 'pestado'].forEach(id => $(id).onchange = listaPedidos);
-  let tq; $('pq').oninput = () => { clearTimeout(tq); tq = setTimeout(listaPedidos, 350); };
-  await cargarProductos();
-  listaPedidos();
-  pintarSinAtribuir();
-}
-
-function textoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'texto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); }
-
-async function listaPedidos() {
-  if (!$('pedlista') || !$('pper') || !$('pcanal')) return;
-  const r = $('pper').__rango();
-  if (!$('popf') && $('pestado')) {
-    $('pestado').closest('div').insertAdjacentHTML('afterend', `<div><label for="popf">Operativa</label><select id="popf">
-      <option value="">Todo</option><option value="pago">Pendiente de cobro</option><option value="paquete">Paquete por preparar</option><option value="email">Factura por enviar</option></select></div>`);
-    $('popf').onchange = () => { PEDPAG = 0; listaPedidos(); };
-  }
-  // v2.115.0: origen del pedido (web o el resto)
-  if (!$('porigf') && $('popf')) {
-    $('popf').closest('div').insertAdjacentHTML('afterend', `<div><label for="porigf">Origen</label><select id="porigf">
-      <option value="">Todos</option><option value="web">Por la web</option><option value="portal">Portal del centro</option><option value="otros">Comercial, teléfono o correo</option></select></div>`);
-    $('porigf').onchange = () => { PEDPAG = 0; listaPedidos(); };
-  }
-  // v2.329.0: reportados o no al profesional (interno: solo quien ve todo)
-  if (!$('prepf') && $('porigf') && VE_TODO()) {
-    $('porigf').closest('div').insertAdjacentHTML('afterend', `<div><label for="prepf">Reporte</label><select id="prepf">
-      <option value="">Todos</option><option value="si">Reportados</option><option value="no">Sin reportar</option></select></div>`);
-    $('prepf').onchange = () => { PEDPAG = 0; listaPedidos(); };
-  }
-  filtrosRestaurar($('v-ventas'));   // v2.269.0: los filtros que tenías
-  const params = { p_desde: r.desde, p_hasta: r.hasta, p_canal: $('pcanal').value || null, q: ($('pq') && $('pq').value.trim()) || null,
-    p_estado: $('pestado').value || null, p_operativa: ($('popf') && $('popf').value) || null, lim: tamPagina(), desplaz: PEDPAG * tamPagina(),
-    ...(($('porigf') && $('porigf').value) ? { p_origen: $('porigf').value } : {}),
-    ...(($('prepf') && $('prepf').value) ? { p_reportado: $('prepf').value } : {}),
-    ...(Object.keys(PEDF).length ? { f_campos: PEDF } : {}) };
-  const clave = 'pedidos-' + JSON.stringify(params);
-  if (!$('pedlista').querySelector('.dgrid')) cargando($('pedlista'), 'Cargando pedidos…');
-  const res = await rpcCache('pedidos_pagina', params, clave);
-  if (!$('pedlista') || !$('pestado')) return;
-  if (!res.data) { $('pedlista').innerHTML = `<div class="vacio">No se ha podido cargar${res.error ? ': ' + esc(res.error.message) : ''}.</div>`; return; }
-  const d = res.data, s = d.resumen || {}, imp = verImportes();
-  PEDIDOS = d.filas || [];
-  $('ptotales').innerHTML = `
-    <div class="kpi"><b>${num(s.pedidos || 0)}</b><span>Pedidos completados${s.borradores ? ` · ${s.borradores} en borrador` : ''}</span></div>
-    <div class="kpi"><b>${num(s.unidades || 0)}</b><span>Unidades</span></div>
-    ${s.web_pedidos != null ? `<div class="kpi" id="pkweb"><b>${num(s.web_pedidos || 0)}</b><span>Por la web${imp && s.web_base != null ? ` · ${eurI(s.web_base || 0)} sin IVA` : ''}</span></div>` : ''}
-    ${imp ? `<div class="kpi"><b>${eurI(s.base || 0)}</b><span>Base sin IVA</span></div>
-    <div class="kpi"><b>${eurI(s.iva || 0)}</b><span>IVA</span></div>
-    <div class="kpi ok"><b>${eurI(s.total || 0)}</b><span>Total con IVA</span></div>` : ''}`;
-  const ico = p => p.estado !== 'Confirmado' ? '' : p.sin_cargo ? `<span class="opico" title="Paquete ${p.paquete_en ? 'preparado' : 'por preparar'}"><i class="${p.paquete_en ? 'ok' : 'no'}">📦</i></span>` : `<span class="opico" title="Pago ${p.pago_estado === 'Cobrado' ? 'recibido' : 'pendiente'} · Paquete ${p.paquete_en ? 'preparado' : 'por preparar'}${p.factura ? ' · Factura ' + (p.email_factura_en ? 'enviada' : 'por enviar') : ''}">
-      <i class="${p.pago_estado === 'Cobrado' ? 'ok' : 'no'}">💳</i><i class="${p.paquete_en ? 'ok' : 'no'}">📦</i>${p.factura ? `<i class="${p.email_factura_en ? 'ok' : 'no'}">🧾</i>` : ''}</span>`;
-  const cpCols = clasVisibles('pedido');
-  $('pedlista').innerHTML = PEDIDOS.length ? `<div class="dgrid-wrap"><div class="dgrid peds2 ${imp ? '' : 'sinimp'}">
-    <div class="dh"><span>Fecha</span><span>Cliente</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Comercial</span><span>Productos</span>
-      <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span><span>Notas</span>${clasCabeceras(cpCols)}</div>
-    ${PEDIDOS.map(p => `<button class="dr" data-ped="${p.id}" style="${p.estado === 'Anulado' ? 'opacity:.55' : ''}">
-      <span>${fechaCorta(p.fecha)}${p.factura || p.numero ? `<span class="sm">${esc(p.factura || p.numero)}</span>` : ''}</span>
-      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${etiquetaCanal(p, p.total)}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : p.origen === 'portal' ? ' · <span class="pweb">Portal</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
-      <span class="corta">${p.medico ? esc(p.medico) : '<span class="vac">Sin atribuir</span>'}</span>
-      <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
-      <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
-      ${imp ? `<span class="num">${eurI(p.base)}</span><span class="num"><b>${eurI(p.total)}</b></span>` : ''}
-      <span>${pillPaso(p)}</span><span>${ico(p)}</span><span class="sm corta pednota" title="${esc(p.nota || '')}">${esc(p.nota || '')}</span>${clasCeldas(cpCols, p.clasificadores)}</button>`).join('')}
-  </div></div>` : '<div class="vacio">No hay pedidos con estos filtros.</div>';
-  clasRejilla($('pedlista').querySelector('.dgrid.peds2'), cpCols.length);
-  if (!$('pedpag')) $('pedlista').insertAdjacentHTML('afterend', '<div id="pedpag"></div>');
-  paginador($('pedpag'), d.total, PEDPAG, p => { PEDPAG = p; listaPedidos(); $('pedlista').scrollIntoView({ block: 'start' }); }, () => { PEDPAG = 0; listaPedidos(); });
-  if (res.cache) avisoCache($('pedlista'), res.fecha);
-  $('pedlista').querySelectorAll('[data-ped]').forEach(b => b.onclick = () => verPedido(b.dataset.ped));
-}
 
 function nuevaVenta(pre) { return editorOportunidad(pre || null); }
 
@@ -214,30 +17,6 @@ function menuPedidos2139() {
   });
 }
 
-async function configurarAvisosPedidos(oblig) {
-  const pref = ((PERFIL.preferencias || {}).avisos_pedidos) || {}, admin = puede('administrar');
-  const { data: aj } = admin ? await db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle() : { data: null };
-  const fij = ((aj && aj.valor) || {}).obligatorios || {}, roles = admin ? rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor')) : [];
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos de pedidos</h2><div class="sm">Qué avisos quieres ver arriba en Pedidos</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="lista">${AVISOS_PED.map(([k, t, ic]) => `<label class="item" style="cursor:default"><input type="checkbox" data-avp="${k}" ${oblig.includes(k) || pref[k] !== false ? 'checked' : ''} ${oblig.includes(k) ? 'disabled' : ''}>
-        <span class="tx"><b>${ic} ${t}</b>${oblig.includes(k) ? '<span class="sm">Obligatorio para tu rol</span>' : ''}</span></label>`).join('')}</div>
-    ${admin ? `<h3 style="margin:14px 0 4px">Obligatorios por rol</h3><p class="sm">Los marcados no se pueden ocultar ni quitar.</p>
-      <div class="dgrid-wrap"><table class="tabla avrol"><thead><tr><th>Rol</th>${AVISOS_PED.map(([, t]) => `<th>${t}</th>`).join('')}</tr></thead>
-        <tbody>${roles.map(r => `<tr><td>${esc(r)}</td>${AVISOS_PED.map(([k]) => `<td style="text-align:center"><input type="checkbox" data-avr="${esc(r)}|${k}" ${(fij[r] || []).includes(k) ? 'checked' : ''} aria-label="${esc(r)}: obligatorio"></td>`).join('')}</tr>`).join('')}</tbody></table></div>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="avpok">Guardar</button></div>`;
-  $('dlg').showModal();
-  $('avpok').onclick = async () => {
-    const av = {}; $('dbody').querySelectorAll('[data-avp]').forEach(x => { if (!x.disabled) av[x.dataset.avp] = x.checked; });
-    if (!await guardarPrefsAvisos(av)) return;
-    if (admin) {
-      const ob = {}; $('dbody').querySelectorAll('[data-avr]:checked').forEach(x => { const [r, k] = x.dataset.avr.split('|'); (ob[r] = ob[r] || []).push(k); });
-      const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'avisos_pedidos', p_valor: { obligatorios: ob } });
-      if (error || (r && r.ok === false)) { toast('No se han podido guardar los obligatorios', true); return; }
-    }
-    $('dlg').close(); toast('Avisos guardados'); pintarOperativa();
-  };
-}
 
 async function pagoLlamar(cuerpo, boton) {
   if (boton) { boton.disabled = true; boton.dataset.txt = boton.textContent; boton.textContent = 'Abriendo…'; }
@@ -349,136 +128,6 @@ function pkMarcar() {
   document.querySelectorAll('#operativa [data-pk]').forEach(b => { b.classList.toggle('on', b.dataset.pk === v); b.setAttribute('aria-pressed', b.dataset.pk === v); });
 }
 
-function editarDistribuidor(d) {
-  const nuevo = !d; d = d || {};
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>${nuevo ? 'Nuevo distribuidor' : 'Editar distribuidor'}</h2><div class="sm">Mayorista o depósito que sirve pedidos a vuestros clientes</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="dsn">Nombre</label><input id="dsn" placeholder="p. ej. Cofares" value="${esc(d.nombre || '')}">
-    <div class="g2"><div><label for="dse">Correo para pedidos</label><input id="dse" type="email" value="${esc(d.email || '')}"></div>
-      <div><label for="dst">Teléfono</label><input id="dst" inputmode="tel" value="${esc(d.telefono || '')}"></div></div>
-    <label for="dsnota">Nota</label><input id="dsnota" placeholder="Horario de pedidos, persona de contacto…" value="${esc(d.nota || '')}">
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="dsok">${nuevo ? 'Añadir' : 'Guardar'}</button></div>`;
-  $('dlg2').showModal();
-  $('dsok').onclick = async () => {
-    const nombre = $('dsn').value.trim(); if (!nombre) { toast('Escribe el nombre', true); return; }
-    const email = $('dse').value.trim() || null;
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('El correo no parece válido', true); return; }
-    const fila = { nombre, email, telefono: $('dst').value.trim() || null, nota: $('dsnota').value.trim() || null };
-    $('dsok').disabled = true;
-    const { error } = nuevo ? await db.from('distribuidores').insert(fila) : await db.from('distribuidores').update(fila).eq('id', d.id);
-    if (error) { $('dsok').disabled = false; toast((nuevo ? 'No se ha podido añadir: ' : 'No se ha podido guardar: ') + error.message, true); return; }
-    $('dlg2').close(); toast(nuevo ? 'Distribuidor añadido' : 'Guardado');
-    await cargarDistribuidores(true).catch(() => []);
-    if (CFG_KEY === 'distribuidores' && $('cfgcuerpo')) pintarDistribuidores();
-  };
-}
-
-// En el bloque del distribuidor del pedido (se llama en el mismo momento en que se pinta el bloque)
-function trfPoner(id, p, d, data) {
-  const caja = $('pddist'); if (!caja || $('pdtrf') || !$('pdmailest')) return;
-  caja.insertAdjacentHTML('beforeend', `<div class="pdtrf" id="pdtrf"><span class="sm">Estado del transfer</span>
-      <div class="segs" role="group" aria-label="Estado del transfer">${TRF_EST.map(([k, t]) => `<button type="button" data-trf="${k}" class="${p.transfer_estado === k ? 'on' : ''}" aria-pressed="${p.transfer_estado === k}">${t}</button>`).join('')}</div>
-      <button type="button" class="btn sec" id="pdtrfpdf">Descargar transfer</button>
-      <p class="sm" id="pdtrfnota">${p.transfer_nota ? 'Nota: ' + esc(p.transfer_nota) : ''}</p></div>`);
-  caja.querySelectorAll('[data-trf]').forEach(b => b.onclick = async () => {
-    const e = b.dataset.trf; let nota = null;
-    if (e === 'Incidencia') { nota = await pedirTexto('Qué ha pasado (falta de stock, dirección, código del cliente…)', p.transfer_nota || '', { titulo: 'Incidencia en el transfer', ok: 'Guardar' }); if (nota === null) return; }
-    const { data: r, error } = await db.rpc('estado_transfer', { p_id: id, p_estado: e, p_nota: nota });
-    if (error || !r || !r.ok) { toast(({ permiso: 'No tienes permiso para cambiarlo' })[(r && r.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true); return; }
-    p.transfer_estado = e; if (nota !== null) p.transfer_nota = nota || null;
-    caja.querySelectorAll('[data-trf]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
-    $('pdtrfnota').textContent = p.transfer_nota ? 'Nota: ' + p.transfer_nota : '';
-    if (!p.transfer_enviado_en && $('pdmailest')) { p.transfer_enviado_en = new Date().toISOString(); $('pdmailest').textContent = 'Enviado el ' + fechaCorta(hoyISO()); }
-    toast('Transfer: ' + e.toLowerCase());
-  });
-  $('pdtrfpdf').onclick = () => trfPDF(p, d, data).catch(e => toast('No se ha podido preparar el PDF: ' + (e.message || e), true));
-  // Preparar el correo deja el transfer «Enviado» si no tenía estado
-  if ($('pdmaild')) $('pdmaild').addEventListener('click', () => {
-    if (p.transfer_estado) return; p.transfer_estado = 'Enviado';
-    const b = caja.querySelector('[data-trf="Enviado"]'); if (b) { b.classList.add('on'); b.setAttribute('aria-pressed', 'true'); }
-  });
-}
-
-async function trfPDF(p, d, data) {
-  const J = await cargarJsPDF(), doc = new J({ unit: 'mm', format: 'a4' });
-  const l = (data && data.lineas) || [], cli = (data && data.contacto) || {};
-  const ids = [...new Set(l.map(x => x.producto_id).filter(Boolean))];
-  const { data: pr } = ids.length ? await db.from('productos').select('id,referencia,codigo_barras').in('id', ids) : { data: [] };
-  const pm = new Map((pr || []).map(x => [x.id, x]));
-  let y = 18; const t = (s, x, yy, o) => doc.text(String(s || ''), x, yy, o);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); t(`Transfer · Pedido ${p.numero || ''}`, 15, y); y += 7;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); t(`${nombreApp()} · ${fechaCorta(String(p.fecha || hoyISO()).slice(0, 10))}`, 15, y); y += 10;
-  doc.setFont('helvetica', 'bold'); t('Distribuidor', 15, y); t('Cliente', 110, y); y += 5; doc.setFont('helvetica', 'normal');
-  const izq = [d.nombre, d.email, d.telefono].filter(Boolean);
-  const der = [cli.nombre || p.cuenta_texto, p.distribuidor_codigo ? 'Código en el distribuidor: ' + p.distribuidor_codigo : '', [cli.direccion, cli.cp, cli.municipio].filter(Boolean).join(', '), cli.nif ? 'NIF: ' + cli.nif : ''].filter(Boolean);
-  for (let i = 0; i < Math.max(izq.length, der.length); i++) { if (izq[i]) t(izq[i], 15, y); if (der[i]) doc.text(doc.splitTextToSize(der[i], 85), 110, y); y += 5; }
-  y += 6; doc.setFont('helvetica', 'bold'); t('Producto', 15, y); t('Referencia', 105, y); t('Código de barras', 140, y); t('Uds.', 195, y, { align: 'right' });
-  doc.setDrawColor(200); doc.line(15, y + 2, 195, y + 2); y += 8; doc.setFont('helvetica', 'normal');
-  l.forEach(x => {
-    if (y > 270) { doc.addPage(); y = 20; }
-    const m = pm.get(x.producto_id) || {};
-    doc.text(doc.splitTextToSize(String(x.producto || ''), 86), 15, y); t(m.referencia || '—', 105, y); t(m.codigo_barras || '—', 140, y); t(num(x.unidades), 195, y, { align: 'right' });
-    y += 7;
-  });
-  doc.line(15, y - 3, 195, y - 3); y += 4;
-  doc.setFont('helvetica', 'bold'); t(`Total: ${num(l.reduce((n, x) => n + (+x.unidades || 0), 0))} unidades`, 195, y, { align: 'right' }); y += 8;
-  doc.setFont('helvetica', 'normal'); t(p.factura_distribuidor ? 'Lo factura el distribuidor.' : `Lo factura ${nombreApp()}.`, 15, y); y += 6;
-  if (p.nota) doc.text(doc.splitTextToSize('Nota: ' + p.nota, 180), 15, y);
-  doc.save(`transfer_${String(p.numero || p.id).replace(/[^\w-]+/g, '_')}.pdf`);
-}
-
-async function verTransfers(dist) {
-  const d = (DIS_TODOS || []).find(x => x.id === dist) || {};
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Transfers · ${esc(d.nombre || '')}</h2><div class="sm">Pedidos que sirve este distribuidor (los 200 últimos)</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div><div id="trfcuerpo"></div>`;
-  cargando($('trfcuerpo'), 'Cargando los transfers…');
-  $('dlg2').showModal();
-  const { data, error } = await db.rpc('transfers_distribuidor', { p_dist: dist });
-  const caja = $('trfcuerpo'); if (!caja) return;
-  if (error) { caja.innerHTML = `<p class="vacio">No se han podido leer: ${esc(error.message)}</p>`; return; }
-  const s = (data && data.resumen) || {}, l = (data && data.pedidos) || [];
-  caja.innerHTML = `<div class="trfres">${[['Sin enviar', s.sin_enviar], ['Enviados', s.enviado], ['Aceptados', s.aceptado], ['Servidos', s.servido], ['Con incidencia', s.incidencia]]
-      .map(([t, n]) => `<span class="${t === 'Con incidencia' && n ? 'warn' : ''}"><b>${num(n || 0)}</b> ${t}</span>`).join('')}</div>
-    ${l.length ? `<div class="lista trflista">${l.map(x => `<button type="button" class="item" data-trfped="${x.id}">
-        <span class="tx"><b>${esc(x.numero || 'Pedido')} · ${esc(x.cliente || '—')}</b><span class="sm">${fechaCorta(String(x.fecha).slice(0, 10))} · ${num(x.unidades)} uds · ${eurI(x.base)}${x.transfer_nota ? ' · ' + esc(x.transfer_nota) : ''}</span></span>
-        ${trfPill(x.transfer_estado)}</button>`).join('')}</div>` : '<p class="vacio">Todavía no hay pedidos de este distribuidor.</p>'}`;
-  caja.querySelectorAll('[data-trfped]').forEach(b => b.onclick = () => { $('dlg2').close(); verPedido(b.dataset.trfped); });
-}
-
-// (R-12: textoEmailPago se definía aquí otra vez; ahora está en su sitio, más arriba)
-function asuntoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'asunto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); }
-
-/* ============================================================
-   v2.307.0 · Datos no fiscales de un pedido confirmado (petición de Eric: «todo lo que no es fiscal debe poder editarse»).
-   «Editar datos» en un pedido confirmado o facturado: nota, forma de pago, referencia del pago y campos personalizados del
-   pedido. Las líneas, precios, IVA, cliente y fecha no se tocan (son la base de la factura); una factura emitida tampoco
-   cambia: conserva la forma de pago con la que se emitió. Se guarda directamente (la regla ped_edit ya lo permite a
-   administración y a quien lleva ventas con nivel 2) y queda en el historial de cambios.
-   ============================================================ */
-function editarPedidoNoFiscal(data) {
-  const p = data.pedido, cps = camposHTML('pedido', p.clasificadores || {});
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Editar datos del pedido ${esc(p.numero || '')}</h2>
-      <div class="sm">Solo lo que no es fiscal: las líneas, los importes, el cliente y la fecha no cambian.</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="nfnota">Nota</label><textarea id="nfnota" rows="4">${esc(p.nota || '')}</textarea>
-    <div class="g2"><div><label for="nffp">Forma de pago</label><select id="nffp"><option value="">—</option>${(CAT.forma_pago || []).map(x => `<option ${p.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
-      <div><label for="nfref">Referencia del pago</label><input id="nfref" value="${esc(p.pago_referencia || '')}" placeholder="p. ej. número de la transferencia"></div></div>
-    ${p.factura_id ? '<p class="sm">Este pedido ya tiene factura: la factura emitida conserva la forma de pago con la que se hizo.</p>' : ''}
-    <div id="nfcampos">${cps}</div>
-    <div class="acts nfacts"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="nfok">Guardar</button></div>`;
-  $('dlg2').showModal();
-  $('nfok').onclick = async ev => {
-    const leido = camposLeer($('nfcampos'));
-    if (leido && leido.falta.length) { toast(`Rellena «${leido.falta[0]}»`, true); return; }
-    ev.target.disabled = true;
-    const { error } = await db.from('pedidos').update({ nota: $('nfnota').value.trim() || null, forma_pago: $('nffp').value || null, pago_referencia: $('nfref').value.trim() || null }).eq('id', p.id);
-    if (error) { ev.target.disabled = false; toast('No se ha podido guardar: ' + error.message, true); return; }
-    if (!(await camposGuardar(leido, p.id))) { ev.target.disabled = false; return; }
-    $('dlg2').close(); toast('Datos del pedido guardados');
-    try { invalidarCache(); } catch (e) {}
-    verPedido(p.id);
-  };
-}
 
 /* ============================================================
    v2.314.0 · Pedido con pago por transferencia (aviso de Eric: el correo con los datos de pago solo salía con el pedido
@@ -487,8 +136,6 @@ function editarPedidoNoFiscal(data) {
    se guarda en borrador hasta que llegue el pago. En el borrador, el bloque «Pago por transferencia» con el estado del correo,
    «Enviar los datos de pago» y «Pago recibido · validar» (valida el pedido y anota el pago).
    ============================================================ */
-/* v2.315.0: la pregunta usa elegirOpcion de siempre (una segunda declaración con el mismo nombre la sustituía y rompía las demás ventanas). */
-function esTransferencia(fp) { return /transfer/i.test(fp || ''); }
 
 function pkFestivo(iso) { return PK_FESTIVOS.includes(iso.slice(5)) || iso === isoMas(pkPascua(+iso.slice(0, 4)), -2); }
 
@@ -633,56 +280,6 @@ async function tpvAvisoImporte(id) {
     toast(`El enlace de pago enviado era de ${eurI(+t.importe)} y el pedido es ahora de ${eurI(tot)}: envía uno nuevo desde el pedido`, true);
 }
 
-function pillCobroPed(p) {
-  if (p.estado !== 'Confirmado') return '';
-  const c = cobroDe(p);
-  return ' <span class="pill ' + (c === 'Cobrado' ? 'p-trfok' : c === 'Sin cargo' ? 'p-sr' : 'p-bor') + '">' + c + '</span>';
-}
-
-function pasoPedido(p) {
-  if (p.estado === 'Anulado') return ['Anulado', 'p-anu'];
-  if (p.estado === 'Borrador') return p.email_pago_en ? ['Esperando pago', 'p-bor'] : ['Borrador', 'p-sr'];
-  if (p.completado === true) return ['Completado', 'p-trfok'];   // v2.351.0: la misma regla que las cifras (pedido_completado)
-  const alEntregar = /reembolso/i.test(p.forma_pago || ''), porCobrar = cobroDe(p) === 'Pendiente de cobro';
-  if (porCobrar && !alEntregar) return ['Por cobrar', 'p-bor'];
-  if (!p.paquete_en) return ['Por preparar', 'p-est'];
-  if (porCobrar) return ['Por cobrar', 'p-bor'];
-  if (p.completado === false || (!p.factura && !p.factura_id && cobroDe(p) !== 'Sin cargo')) return ['Por facturar', 'p-est'];
-  return ['Completado', 'p-trfok'];
-}
-
-async function atribuir(lineaId, texto) {
-  const { data } = await db.rpc('resolver_cuenta', { p_texto: texto || '' });
-  const cand = data || [];
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Atribuir a ${TT('medico', 's', 'un', 'l', 'l')}</h2><div class="sm">Texto del pedido: ${esc(texto || '(vacío)')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="abusca">Buscar ${TT('medico', 's', '', 'l', 'l')}</label><input id="abusca" value="${esc(texto || '')}" placeholder="Código o nombre">
-    <div id="acand" class="lista">${cand.map(c => `<button class="item" data-am="${c.id}">
-      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
-      || '<div class="vacio">Sin coincidencias. Escribe otro nombre o código.</div>'}</div>`;
-
-  const pintar = lista => {
-    $('acand').innerHTML = lista.length ? lista.map(c => `<button class="item" data-am="${c.id}">
-      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
-      : '<div class="vacio">Sin coincidencias.</div>';
-    $('acand').querySelectorAll('[data-am]').forEach(b => b.onclick = async () => {
-      const { data: r, error } = await db.rpc('atribuir_linea', { p_linea: lineaId, p_medico: b.dataset.am });
-      if (error || (r && r.ok === false)) { toast('No se ha podido atribuir', true); return; }
-      $('dlg').close(); toast('Atribuido'); pintarSinAtribuir(); listaPedidos();
-    });
-  };
-  pintar(cand);
-  let t;
-  $('abusca').oninput = e => {
-    clearTimeout(t);
-    t = setTimeout(async () => {
-      const { data: d2 } = await db.rpc('resolver_cuenta', { p_texto: e.target.value });
-      pintar(d2 || []);
-    }, 300);
-  };
-  $('dlg').showModal();
-}
 
 function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
 
@@ -745,69 +342,18 @@ function esPorcentajeIva(i) {
   return r;
 }
 
-async function verJustificante(id) {
-  const { data, error } = await db.from('pedidos_justificantes').select('nombre,tipo,datos').eq('id', id).single();
-  if (error || !data) { toast('No se ha podido abrir el justificante', true); return; }
-  const bin = atob(data.datos), u8 = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-  const url = URL.createObjectURL(new Blob([u8], { type: data.tipo }));
-  const w = window.open(url, '_blank');
-  if (!w) { const a = document.createElement('a'); a.href = url; a.download = data.nombre; a.click(); }
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
-
-/* ============================================================
-   v2.325.0 · Pedidos: pago solo de lectura y entregas sin cargo (aviso de Eric, 16/10/2026).
-   - El bloque «Pago» del pedido ya no se edita a medias: enseña la referencia y los justificantes que haya; se cambian con
-     «Editar» (o «Editar datos» si ya tiene factura). Fuera «Guardar referencia» y «Añadir justificante» (basta el check de
-     «Pago recibido»); en el editor tampoco se adjuntan justificantes.
-   - Un pedido sin cargo (marcado así o a 0 € con unidades) se describe como «Entrega sin cargo» y no como «Venta al …»: no es una
-     venta (también los que se hicieron antes al 100 % de descuento).
-   ============================================================ */
-function sinCargoP(p, total) { return !!(p && (p.sin_cargo || (total != null && Math.abs(+total) < 0.005 && (p.unidades == null || +p.unidades > 0)))); }
-
-function pillPaso(p) {
-  const [t, c] = pasoPedido(p);
-  const hechos = p.estado === 'Confirmado' ? ['Confirmado', p.paquete_en ? 'Preparado' : '', cobroDe(p) === 'Cobrado' ? 'Cobrado' : '', p.factura ? 'Facturado' : ''].filter(Boolean).join(' · ') : '';
-  return '<span class="pill ' + c + '"' + (hechos ? ' title="Hecho: ' + hechos + '"' : '') + '>' + t + '</span>';
-}
-
-function lineaDesglose(l) {
-  const bruto = +l.importe || 0, base = bruto * (1 - (+l.descuento || 0) / 100), iva = base * (+l.iva || 0) / 100;
-  return { bruto, base, iva, total: base + iva };
-}
-
-function bloqueTotales(t) {
-  const tipos = Object.keys(t.porIva).sort((a, b) => a - b);
-  return `<div><span>Unidades</span><b>${num(t.unidades)}</b></div>
-    ${t.descuento > 0.004 ? `<div><span>Suma de líneas</span><b>${eurI(t.bruto)}</b></div>
-      <div><span>Descuento general</span><b>−${eurI(t.descuento)}</b></div>` : ''}
-    ${t.envio ? `<div><span>Productos sin IVA</span><b>${eurI(t.baseProd)}</b></div>
-      <div><span>${esc(t.envio.nombre)} sin IVA</span><b>${eurI(t.envio.base)}</b></div>` : ''}
-    <div><span>Base imponible</span><b>${eurI(t.base)}</b></div>
-    ${tipos.filter(k => t.porIva[k] > 0.004 || tipos.length === 1).map(k => `<div><span>IVA ${k}%</span><b>${eurI(t.porIva[k])}</b></div>`).join('')}
-    ${t.envio ? `<div class="sm" style="justify-content:flex-end"><span>Incluye ${esc(t.envio.nombre.toLowerCase())} de ${eurI(t.envio.con)} con IVA</span></div>` : ''}
-    <div class="tot"><span>Total con IVA</span><b>${eurI(t.total)}</b></div>`;
-}
 
 const veVentas = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 1 || puede('cartera'));
 
 let VSEC = 'pedidos';
 
-const pillEstado = e => `<span class="pill ${e === 'Borrador' ? 'p-bor' : e === 'Anulado' ? 'p-anu' : 'p-est'}">${esc(e)}</span>`;
 
 const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
 
-const OPS = [['pago', 'Cobrado', 'pago_estado', '💳'], ['paquete', 'Paquete preparado', 'paquete_en', '📦'],
-  ['email_factura', 'Email con la factura enviado', 'email_factura_en', '🧾'], ['email_pago', 'Email con los datos de pago enviado', 'email_pago_en', '✉️']];
-
-const opHecho = (p, k) => k === 'pago' ? p.pago_estado === 'Cobrado' : !!p[OPS.find(o => o[0] === k)[2]];
 
 let PEDPAG = 0;
 
 let PEDF = {};   // v2.88.0: filtros por campos del pedido (Clasificadores)
-
-
 
 
 // Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
@@ -816,8 +362,6 @@ const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedor
 const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus unidades e importes'], llamadas: ['Oportunidades', 'Cada venta, se cierre con pedido o no, y por qué'],
   compras: ['Compras', 'Pedidos a proveedores y mercancía en camino'], proveedores: ['Proveedores', 'A quién compras y en qué condiciones'] };
 
-// «Por hacer» de pedidos, configurable
-const AVISOS_PED = [['pago', 'Pendientes de cobro', '💳'], ['paquete', 'Paquetes por preparar', '📦'], ['email_factura', 'Facturas por enviar', '🧾'], ['email_pago', 'Datos de pago por enviar', '✉️']];
 
 /* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
    abre el pago seguro de Stripe (tarjeta), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
@@ -861,18 +405,6 @@ const PK_TARJ = [['pago', 'pago', 'Pendientes de cobro', 'credit-card'], ['paque
 
 const pkMovimiento = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let DIS_TODOS = null;
-
-/* ============================================================
-   v2.265.0 · Transfer completo con el distribuidor (grupo 4 del plan del 11/10/2026; necesita el SQL 142).
-   - Ver pedido → bloque «Distribuidor»: en qué punto está el transfer (Enviado, Aceptado, Servido o Incidencia, con su nota) y
-     «Descargar transfer», un PDF con el cliente, su código en el distribuidor y las líneas con referencia y código de barras.
-   - Configuración → Datos → Distribuidores: cada distribuidor con sus transfers (cuántos sin enviar, en marcha, servidos y con
-     incidencia); al pulsar uno se abre el pedido.
-   ============================================================ */
-const TRF_EST = [['Enviado', 'Enviado'], ['Aceptado', 'Aceptado'], ['Servido', 'Servido'], ['Incidencia', 'Incidencia']];
-
-const trfPill = e => e ? `<span class="pill ${e === 'Servido' ? 'p-trfok' : e === 'Incidencia' ? 'p-urg' : 'p-per'}">${esc(e)}</span>` : '<span class="pill">Sin enviar</span>';
 
 const PK_FESTIVOS = ['01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'];
 
@@ -1174,84 +706,6 @@ async function editorPedidoBase(pedido) {
   $('dlg').showModal();
 }
 
-/* Parte base; verPedido le añade el resto */
-async function verPedidoBaseBase(id) {
-  cargando($('dbody'), 'Abriendo el pedido…');
-  $('dlg').showModal();
-  const { data, error } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  if (error || !data || !data.pedido) { $('dbody').innerHTML = `<div class="vacio">${esc(error ? error.message : 'No se ha encontrado el pedido.')}</div>`; return; }
-  const p = data.pedido, l = data.lineas || [], c = data.contacto;
-  const t = totalesPedido(l, +p.descuento || 0, p.descuento_tipo,
-    { on: !!p.envio, con: r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)), iva: +p.envio_iva || 0,
-      nombre: ((SERVICIOS.find(x => x.id === p.servicio_id) || {}).nombre) || 'Envío' });
-  const bor = p.estado === 'Borrador', anulado = p.estado === 'Anulado';
-
-  $('dbody').innerHTML = `
-    <div class="fh pdcab"><div class="pdcabt"><h2>Pedido${p.numero ? ' ' + esc(p.numero) : ''}</h2>${pillEstado(p.estado)}${pillCobroPed(p)}
-      <span class="sm pdmeta">${fechaCorta(p.fecha)} · ${etiquetaCanal(p, t.total)}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${bor ? '<div class="cacheaviso" style="margin-top:10px">Borrador: todavía no cuenta en métricas ni en comisiones.</div>' : ''}
-    ${c ? `<div class="blk"><h3>${TT('paciente', 's', '', 'l', 'C')}</h3><div><b>${esc(c.nombre)}</b></div>
-      <div class="sm">${esc(c.telefono || c.movil || '')} ${esc(c.email || '')}</div>
-      <div class="acts"><button class="btn sec" data-vpac="${c.id}">Ver ficha ${TT('paciente', 's', 'del', 'l', 'l')}</button></div></div>` : ''}
-    ${data.medico ? `<div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')}</h3><div><b>${esc(data.medico.nombre)}</b> <span class="sm">· código ${esc(data.medico.codigo)}</span></div>
-      ${l[0] && l[0].comercial ? `<div class="sm">Comercial: ${esc(l[0].comercial)}</div>` : ''}</div>` : ''}
-    <div class="blk"><h3>Líneas</h3>
-      ${l.map(x => { const d = lineaDesglose(x); return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)">
-        <span><b>${esc(x.producto || 'Sin producto')}</b> · ${num(x.unidades)} uds.
-          <div class="sm">Base ${eurI(d.base)}${+x.descuento ? ` (dto. ${num(x.descuento)}%)` : ''} · IVA ${num(x.iva || 0)}% ${eurI(d.iva)}</div></span>
-        <b style="white-space:nowrap">${eurI(d.total)}</b></div>`; }).join('') || '<div class="sm">Sin líneas.</div>'}
-      <div class="totbox">${bloqueTotales(t)}</div></div>
-    ${p.nota ? `<div class="blk"><h3>Nota</h3><div>${esc(p.nota)}</div></div>` : ''}
-    <div class="acts" style="justify-content:flex-end">
-      ${puedeVentas() && bor ? `<button class="btn sec dang" id="pdborrar">Eliminar borrador</button>
-        <button class="btn sec" id="pdeditar">Editar</button>
-        <button class="btn" id="pdvalidar">Confirmar pedido</button>` : ''}
-      ${puedeVentas() && !bor && !anulado ? (p.factura_id ? '<button class="btn sec" id="pdeditnf">Editar datos</button>' : '<button class="btn sec" id="pdeditar">Editar pedido</button>') : ''}
-      ${puedeVentas() && !bor && !anulado ? '<button class="btn sec dang" id="pdanular">Anular pedido</button>' : ''}
-      <button class="btn sec" data-cerrar>Cerrar</button></div>`;
-
-  const vp = $('dbody').querySelector('[data-vpac]');
-  if (vp) vp.onclick = () => { $('dlg').close(); fichaPaciente(vp.dataset.vpac); };
-  if ($('pdeditar')) $('pdeditar').onclick = () => editorPedido(data);
-  if ($('pdeditnf')) $('pdeditnf').onclick = () => editarPedidoNoFiscal(data);   // v2.307.0
-  if ($('pdborrar')) $('pdborrar').onclick = async () => {
-    if (!await preguntar('El borrador desaparece por completo.', { titulo: '¿Eliminar el borrador?', ok: 'Eliminar', peligro: true })) return;
-    const { data: r, error: e } = await db.rpc('borrar_pedido', { p_id: id });
-    if (e || (r && r.ok === false)) { toast(r && r.error === 'validado' ? 'Solo se pueden eliminar borradores' : 'No se ha podido eliminar', true); return; }
-    $('dlg').close(); toast('Borrador eliminado'); if (TAB === 'ventas') cargarVentas();
-  };
-  if ($('pdvalidar')) $('pdvalidar').onclick = async e => {
-    if (!await preguntar((e.target.dataset.pago ? 'Se anota el pago como recibido. ' : '') + 'Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
-      { titulo: '¿Confirmar el pedido?', ok: 'Confirmar' })) return;
-    e.target.disabled = true;
-    const { data: r, error: er } = await db.rpc('guardar_pedido', { p: {
-      id, estado: 'Confirmado', fecha: p.fecha, canal: p.canal, contacto_id: p.contacto_id, centro_id: p.centro_id,
-      cuenta_id: data.medico ? data.medico.id : null, cuenta_texto: p.cuenta_texto, nota: p.nota, forma_pago: p.forma_pago, pago_referencia: p.pago_referencia || '',
-      descuento: p.descuento || 0, descuento_tipo: p.descuento_tipo,
-      envio: !!p.envio, envio_con_iva: p.envio ? r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)) : 0, envio_iva: p.envio_iva, servicio_id: p.servicio_id,
-      lineas: l.map(x => ({ producto_id: x.producto_id, unidades: x.unidades, importe: x.importe, descuento: x.descuento, iva: x.iva })) } });
-    e.target.disabled = false;
-    if (er || (r && r.ok === false)) { toast('No se ha podido confirmar: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
-    if (e.target.dataset.pago) await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'pago', p_hecho: true });   // v2.314.0
-    toast(e.target.dataset.pago ? 'Pedido confirmado y cobrado' : 'Pedido confirmado'); verPedido(id); if (TAB === 'ventas') cargarVentas();
-  };
-  if ($('pdanular')) $('pdanular').onclick = async () => {
-    const motivo = await pedirTexto('Motivo de la anulación (opcional)', '', { titulo: '¿Anular el pedido?', ok: 'Anular' });
-    if (motivo === null) return;
-    const { data: r, error: er } = await db.rpc('anular_pedido', { p_id: id, p_motivo: motivo || null });
-    if (er || (r && r.ok === false)) { toast(r && r.error === 'facturado' ? 'Tiene factura: emite antes una rectificativa de toda la factura y marca «Anular también el pedido»' : 'No se ha podido anular: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
-    $('dlg').close(); toast('Pedido anulado'); if (TAB === 'ventas') cargarVentas();
-  };
-}
-
-// Desde el pedido: la ficha del cliente se abre como panel encima, sin cerrar el pedido
-async function verPedidoBase(...a) {
-  const r = await verPedidoBaseBase.apply(this, a);
-  const vp = $('dbody').querySelector('[data-vpac]');
-  if (vp) vp.onclick = () => fichaPaciente(vp.dataset.vpac);
-  return r;
-}
 
 // Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
 function pagoAvisoBase() {
@@ -1300,107 +754,6 @@ function pkContar(els, fmt) {
   return pkContarBase(els, fmt);
 }
 
-async function pintarDistribuidoresBase() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  cargando(c, 'Cargando los distribuidores…');
-  const { data, error } = await db.from('distribuidores').select('id,nombre,email,telefono,nota,activo').order('nombre');
-  if (!$('cfgcuerpo') || CFG_KEY !== 'distribuidores') return;
-  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los distribuidores: ${esc(error.message)}</p></div>`; return; }
-  DIS_TODOS = data || [];
-  const fila = d => `<div class="ajfila disfila${d.activo ? '' : ' disoff'}" data-disid="${d.id}">
-      <div><b>${esc(d.nombre)}${d.activo ? '' : ' <span class="pill">No se usa</span>'}</b>
-        <span class="sm">${[d.email, d.telefono].filter(Boolean).map(esc).join(' · ') || 'Sin correo ni teléfono'}${d.nota ? ' · ' + esc(d.nota) : ''}</span></div>
-      <div class="ajctl"><button type="button" class="btn sec" data-dised="${d.id}">Editar</button>
-        <button type="button" class="btn sec" data-disact="${d.id}">${d.activo ? 'Dejar de usar' : 'Volver a usar'}</button></div></div>`;
-  const act = DIS_TODOS.filter(d => d.activo), off = DIS_TODOS.filter(d => !d.activo);
-  c.innerHTML = `<div class="card disw">
-      <div class="discab"><p class="sm">Mayoristas o depósitos que sirven pedidos a vuestros clientes. Al hacer un pedido se elige si lo servís vosotros o uno de ellos; el suyo no descuenta stock de vuestro almacén.</p>
-        <button type="button" class="btn" id="disnuevo">+ Nuevo distribuidor</button></div>
-      ${DIS_TODOS.length ? act.map(fila).join('') + (off.length ? `<h3 class="dissub">Que ya no se usan</h3>` + off.map(fila).join('') : '')
-        : '<p class="vacio" id="disvacio">Todavía no hay distribuidores.</p>'}</div>`;
-  $('disnuevo').onclick = () => editarDistribuidor(null);
-  c.querySelectorAll('[data-dised]').forEach(b => b.onclick = () => editarDistribuidor(DIS_TODOS.find(d => d.id === b.dataset.dised)));
-  c.querySelectorAll('[data-disact]').forEach(b => b.onclick = async () => {
-    const d = DIS_TODOS.find(x => x.id === b.dataset.disact); if (!d) return;
-    if (d.activo && !await preguntar('No saldrá al hacer pedidos nuevos. Los pedidos que ya sirvió siguen diciendo que fue él.', { titulo: `¿Dejar de usar ${d.nombre}?`, ok: 'Dejar de usar' })) return;
-    b.disabled = true;
-    const { error } = await db.from('distribuidores').update({ activo: !d.activo }).eq('id', d.id);
-    if (error) { b.disabled = false; toast('No se ha podido cambiar: ' + error.message, true); return; }
-    toast(d.activo ? 'Ya no se usa' : 'Se vuelve a usar');
-    await cargarDistribuidores(true).catch(() => []);
-    pintarDistribuidores();
-  });
-}
-
-// Distribuidores: los transfers de cada uno
-async function pintarDistribuidores(...a) {
-  const r = await pintarDistribuidoresBase.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c || CFG_KEY !== 'distribuidores') return r;
-  c.querySelectorAll('.disfila[data-disid] .ajctl').forEach(x => {
-    if (x.querySelector('[data-distrf]')) return;
-    x.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec" data-distrf="${x.closest('.disfila').dataset.disid}">Transfers</button>`);
-  });
-  c.querySelectorAll('[data-distrf]').forEach(b => b.onclick = () => verTransfers(b.dataset.distrf));
-  return r;
-}
-
-async function enviarDatosPagoBase(id) {
-  if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return false; }
-  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  const p = data && data.pedido; if (!p) { toast('No se ha encontrado el pedido', true); return false; }
-  const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
-  if (!cli.email) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene email en su ficha`, true); return false; }
-  const asunto = asuntoEmailPago(p, total, cli.nombre), texto = textoEmailPago(p, total, cli.nombre);
-  const { data: r, error } = await db.functions.invoke('enviar_email', { body: { para: cli.email, asunto, texto, pedido_id: id, marca: 'email_pago' } });
-  if (!error && r && r.ok) { toast('Datos de pago enviados · el pedido espera al pago en borrador'); return true; }
-  location.href = `mailto:${cli.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;   // sin envío directo: el correo del dispositivo
-  if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' }))
-    await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true });
-  return true;
-}
-
-async function enviarDatosPago(id, ...a) {
-  if (!await elegirPlantillaCorreo('pago')) return false;
-  try { return await enviarDatosPagoBase.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
-}
-
-// (v2.183.0: aquí iba la primera versión de ventanaCargando; se redefine entera más abajo)
-/* Ver pedido: la ventana base, sus facturas (o emitirla) y la operativa (antes eran 4 capas). */
-async function verPedidoBase2(id) {
-  return ventanaCargando(async () => {
-    await verPedidoBase(id);
-    await pedidoFacturas(id);
-    await pedidoOperativa(id);
-    await pedidoPago(id);
-  });
-}
-
-/* Pedidos: la base y, en orden, las secciones, las llamadas y el botón de registrar llamada (antes eran 4 capas). */
-async function cargarVentasBase2() {
-  // «Llamadas» solo para quien ve todo el equipo; la base pinta la cabecera como «Compras» y luego se sustituye
-  if (PEDSEC === 'llamadas' && !VE_TODO()) PEDSEC = 'ventas';
-  const sec = PEDSEC;
-  if (sec === 'llamadas') PEDSEC = 'compras';
-  PEDSEC_CARGA = sec;   // v2.335.0: mientras se monta sobre «Compras», el menú y las pestañas marcan ya la sección de verdad
-  try {
-    await cargarVentasBase();
-    await pedidosSecciones();
-  } finally { PEDSEC_CARGA = null; }
-  await pedidosLlamadas(sec);
-  await pedidosBotonLlamada();
-}
-
-/* v2.74.0 · El detalle del pedido muestra sus campos personalizados */
-async function verPedidoBase3(id, ...a) { const r = await verPedidoBase2.call(this, id, ...a); if (id) setTimeout(() => bloqueCampos('pedidos', id, $('dbody')), 150); return r; }
-
-async function cargarVentasBase3(...a) {
-  const r = await cargarVentasBase2.apply(this, a);
-  const v = $('v-ventas'), [t, d] = TITULO_PEDSEC[PEDSEC] || TITULO_PEDSEC.ventas;
-  const h = v && v.querySelector('.saludo h1'); if (h && h.firstChild) h.firstChild.textContent = t;
-  const f = v && v.querySelector('.saludo .fecha'); if (f) f.textContent = d;
-  marcarPedsec();
-  return r;
-}
 
 async function pagoCargarEstadoBase() {
   const { data } = await RPC_ORIG('plan_uso', {});
@@ -1423,131 +776,6 @@ async function pagoCargarEstado(...a) {
   return r;
 }
 
-// Ver pedido: distribuidor, correo para él y sin «Emitir factura» si factura él
-async function verPedidoBase4(id, ...a) {
-  const r = await verPedidoBase3.call(this, id, ...a);
-  try {
-    if (!$('dlg').open || $('pddist')) return r;
-    const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-    const p = data && data.pedido; if (!p || !p.distribuidor_id || !$('dlg').open || $('pddist')) return r;
-    const d = (await cargarDistribuidores()).find(x => x.id === p.distribuidor_id) || (await cargarDistribuidores(true)).find(x => x.id === p.distribuidor_id) || { nombre: 'Distribuidor' };
-    if (p.factura_distribuidor && $('pvemitir')) $('pvemitir').remove();
-    const cli = data.contacto || {}, l = data.lineas || [];
-    const cuerpo = [`Pedido ${p.numero || ''} de ${nombreApp()}`, '', `Cliente: ${cli.nombre || p.cuenta_texto || ''}${p.distribuidor_codigo ? ' · código ' + p.distribuidor_codigo : ''}`,
-      cli.direccion ? `Dirección: ${[cli.direccion, cli.cp, cli.municipio].filter(Boolean).join(', ')}` : '', '',
-      ...l.map(x => `- ${x.unidades} × ${x.producto || x.nombre || ''}`), '', p.factura_distribuidor ? 'Lo factura el distribuidor.' : 'Lo factura ' + nombreApp() + '.',
-      p.nota ? '\nNota: ' + p.nota : ''].filter(x => x !== null).join('\n');
-    const asunto = `Pedido ${p.numero || ''} · ${cli.nombre || p.cuenta_texto || ''}`;
-    const sitio = $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
-    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pddist"><h3>Distribuidor</h3>
-      <p>Lo sirve <b>${esc(d.nombre)}</b>${p.distribuidor_codigo ? ` · código del cliente <b>${esc(p.distribuidor_codigo)}</b>` : ''} · ${p.factura_distribuidor ? 'lo factura el distribuidor' : 'lo facturamos nosotros'}</p>
-      ${p.estado === 'Confirmado' ? `<div class="acts" style="justify-content:flex-start;margin-top:6px">${d.email ? `<a class="btn sec" id="pdmaild" href="mailto:${esc(d.email)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}">Preparar correo al distribuidor</a>` : '<span class="sm">El distribuidor no tiene correo: añádelo en sus datos.</span>'}
-        <span class="sm" id="pdmailest">${p.transfer_enviado_en ? 'Correo preparado el ' + fechaCorta(String(p.transfer_enviado_en).slice(0, 10)) : 'Correo sin preparar'}</span></div>` : '<p class="sm">Al confirmarlo podrás preparar el correo al distribuidor.</p>'}</div>`);
-    trfPoner(id, p, d, data);   // v2.265.0
-    if ($('pdmaild')) $('pdmaild').addEventListener('click', async () => {
-      const { data: m } = await db.rpc('marcar_transfer_enviado', { p_id: id });
-      if (m && m.ok && $('pdmailest')) $('pdmailest').textContent = 'Correo preparado el ' + fechaCorta(hoyISO());
-    });
-  } catch (e) {}
-  return r;
-}
-
-// Pedido validado con productos «equipo»: dar de alta los equipos con su número de serie
-async function verPedidoBase5(id, ...a) {
-  const r = await verPedidoBase4.call(this, id, ...a);
-  try {
-    if (!$('dlg').open || $('pdequipos') || !planIncluyeSeccion('parque')) return r;
-    const { data: p } = await db.from('pedidos').select('estado').eq('id', id).maybeSingle();
-    if (!p || p.estado !== 'Confirmado') return r;
-    const { data: pend } = await db.rpc('equipos_pendientes_pedido', { p_pedido: id });
-    const l = (pend || []).filter(x => x.faltan > 0);
-    if (!l.length || !$('dlg').open || $('pdequipos')) return r;
-    const sitio = $('pddist') || $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
-    const n = l.reduce((s, x) => s + x.faltan, 0);
-    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdequipos"><h3>Equipos</h3>
-      <div class="banda-aviso">${n === 1 ? 'Falta dar de alta 1 equipo' : `Faltan por dar de alta ${n} equipos`} de este pedido en el parque instalado. <button type="button" class="btn sec" id="pdeqalta">Dar de alta los equipos</button></div>
-      <div id="pdeqf"></div></div>`);
-    $('pdeqalta').onclick = () => {
-      $('pdeqf').innerHTML = `<div class="depbox"><span class="sm">Escribe el número de serie de cada unidad.</span>
-        ${l.map((x, i) => `<div><b>${esc(x.nombre)}</b> <span class="sm">· ${esc(x.cuenta || '')}</span><div class="cirser">${Array.from({ length: Math.min(x.faltan, 30) }, (_, j) => `<input data-pqs="${i}" maxlength="120" placeholder="Nº de serie de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1} de ${esc(x.nombre)}">`).join('')}</div></div>`).join('')}
-        <div class="g2"><div><label for="pdeqi">Instalado el</label><input id="pdeqi" type="date" value="${hoyISO()}"></div><div><label for="pdequ">Ubicación</label><input id="pdequ" placeholder="p. ej. Sala 2"></div></div>
-        <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">Dar de alta</button></div></div>`;
-      $('pdeqok').onclick = async ev => {
-        const filas = [];
-        l.forEach((x, i) => $('pdeqf').querySelectorAll(`[data-pqs="${i}"]`).forEach(inp => {
-          if (!inp.value.trim() || !x.cuenta_id) return;
-          filas.push({ cuenta_id: x.cuenta_id, producto_id: x.producto_id, serie: inp.value.trim(), instalado: $('pdeqi').value || hoyISO(), ubicacion: $('pdequ').value.trim() || null, revision_meses: +x.revision_meses || 0, pedido_id: id });
-        }));
-        if (!filas.length) { toast(l.some(x => !x.cuenta_id) ? 'El pedido no tiene ficha: da de alta los equipos desde la ficha del centro' : 'Escribe al menos un número de serie', true); return; }
-        ev.target.disabled = true;
-        const { error } = await db.from('equipos').insert(filas);
-        ev.target.disabled = false;
-        if (error) { toast(/row-level|policy/i.test(error.message) ? 'No puedes dar de alta equipos de esta ficha' : 'No se ha podido guardar: ' + error.message, true); return; }
-        toast(filas.length === 1 ? 'Equipo dado de alta' : `${filas.length} equipos dados de alta`); verPedido(id);
-      };
-    };
-  } catch (e) {}
-  return r;
-}
-
-async function cargarVentas(...a) {
-  const r = await cargarVentasBase3.apply(this, a);
-  const cuerpo = $('vcuerpo');
-  if (PEDSEC === 'ventas' && cuerpo && puedeAtribuir() && !$('cardsinatr')) {
-    cuerpo.insertAdjacentHTML('afterbegin', '<div class="card hide" id="cardsinatr"></div>');
-    pintarSinAtribuir();
-  }
-  return r;
-}
-
-async function verPedidoBase6(id, ...a) {
-  const r = await verPedidoBase5.call(this, id, ...a);
-  try {
-    if (!$('dlg').open || $('pdtrfb') || !$('pdvalidar') || !puedeVentas()) return r;
-    const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-    const p = data && data.pedido;
-    if (!p || p.estado !== 'Borrador' || !esTransferencia(p.forma_pago) || $('pdtrfb') || !$('pdvalidar')) return r;
-    const cli = data.contacto || {};
-    const acts = $('pdvalidar').closest('.acts');
-    acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdtrfb"><h3>Pago por transferencia</h3>
-      <p class="sm">${p.email_pago_en ? `Datos de pago enviados el ${fechaCorta(String(p.email_pago_en).slice(0, 10))}. El pedido espera en borrador hasta que llegue el pago.` : 'Datos de pago sin enviar. El pedido espera en borrador hasta que llegue el pago.'}</p>
-      <div class="acts pdtrfacts">${cli.email ? `<button type="button" class="btn sec chico" id="pdtrfmail">${p.email_pago_en ? 'Volver a enviar los datos de pago' : 'Enviar los datos de pago'}</button>` : `<span class="sm">${esc(TT('paciente', 's', '', 'l', 'C'))} no tiene email en su ficha.</span>`}
-        <button type="button" class="btn chico" id="pdtrfok">Cobrado · confirmar</button></div></div>`);
-    if ($('pdtrfmail')) $('pdtrfmail').onclick = async e => { e.target.disabled = true; if (await enviarDatosPago(id)) verPedido(id); else e.target.disabled = false; };
-    $('pdtrfok').onclick = () => { const v = $('pdvalidar'); v.dataset.pago = '1'; v.click(); setTimeout(() => { if (v.isConnected) delete v.dataset.pago; }, 60000); };
-  } catch (e) {}
-  return r;
-}
-
-/* ============================================================
-   v2.350.0 · Ventanas de Pedidos sin saltos (avisos de Eric, 22/10/2026).
-   1. El pedido aparece de una vez: mientras se pintan sus partes (facturas, operativa, pago, distribuidor, equipos…) la ventana
-      enseña el cargador; antes los botones llegaban por tandas y «Ver la factura» empujaba a «Editar pedido» justo al pulsar.
-   2. Una ventana que la persona cierra mientras carga (✕, «Cancelar», Escape o fuera) no vuelve a abrirse sola: solo con otro
-      clic o tecla (o al volver a la ventana anterior con «‹ Volver»).
-   ============================================================ */
-async function verPedido(id, ...a) {
-  const d = $('dlg'); d.classList.add('pdprep');
-  try { return await verPedidoBase6.call(this, id, ...a); }
-  finally { try { await estable($('dbody'), 2500); } catch (e) {} d.classList.remove('pdprep'); }
-}
-
-// Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
-async function pedidoPagoBase(id) {
-  if (!$('dlg').open || $('pdpago')) return;
-  const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),
-    db.from('pedidos_justificantes').select('id,nombre,tamano,creado_en').eq('pedido_id', id).order('creado_en')]);
-  const p = data && data.pedido; if (!p || !$('dlg').open || $('pdpago')) return;
-  if (p.sin_cargo) return;
-  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
-  const ref = $('pdops') || acts;
-  ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdpago"><h3>Pago</h3>
-    ${p.origen === 'web' ? '<p class="sm"><span class="pill p-est">Pedido por la web</span></p>' : ''}
-    <div class="pdpagof"><span class="sm">Referencia del pago</span><b>${p.pago_referencia ? esc(p.pago_referencia) : '—'}</b></div>
-    ${(js || []).length ? `<div class="lista" id="pdjus">${js.map(j => `<div class="item"><span class="tx"><b>${esc(j.nombre)}</b><span class="sm">${fechaCorta(String(j.creado_en).slice(0, 10))} · ${num(Math.round(j.tamano / 1024))} KB</span></span>
-      <button type="button" class="btn sec chico" data-jver="${j.id}">Ver</button></div>`).join('')}</div>` : ''}</div>`);
-  $('pdpago').querySelectorAll('[data-jver]').forEach(b => b.onclick = () => verJustificante(b.dataset.jver));
-}
 
 // Ventana de contratar o cambiar (la de la v2.162.0, con la bajada al final del periodo y lo que se pierde)
 function elegirPago(planIni) {
@@ -1596,8 +824,21 @@ function elegirPago(planIni) {
   pinta(); $('dlg').showModal();
 }
 
-async function pedidoPago(id, ...a) {
-  const r = await pedidoPagoBase.call(this, id, ...a);
-  await tpvBloque(id);
-  return r;
-}
+// Pedidos está en src/app/screens/orders (v2.414.0). Estos nombres se quedan: el editor del pedido y el cobro con tarjeta (aquí),
+// otras pantallas, legado 001/034/057/058/073/082/089/105/139, «‹ Volver» y las pruebas los usan.
+function cargarVentas() { return window.delcos.screens.orders.loadSales(); }
+function listaPedidos() { return window.delcos.screens.orders.paintOrderList(); }
+function verPedido(id) { return window.delcos.screens.orders.showOrder(id); }
+function pintarDistribuidores() { return window.delcos.screens.orders.paintDistributors(); }
+function configurarAvisosPedidos(oblig) { return window.delcos.screens.orders.configureAlerts(oblig || []); }
+function enviarDatosPago(id) { return window.delcos.screens.orders.sendPaymentDetails(id); }
+function totalesPedido(lineas, d, dt, env) { return window.delcos.screens.orders.orderTotals(lineas, d, dt, env); }
+function lineaDesglose(l) { return window.delcos.screens.orders.lineBreakdown(l); }
+function bloqueTotales(t) { return window.delcos.screens.orders.totalsHtml(t); }
+function esTransferencia(fp) { return window.delcos.screens.orders.isBankTransfer(fp); }
+function sinCargoP(p, total) { return window.delcos.screens.orders.isFree(p, total); }
+function pasoPedido(p) { return window.delcos.screens.orders.orderStep(p); }
+function pillPaso(p) { return window.delcos.screens.orders.stepPill(p); }
+function pillEstado(e) { return window.delcos.screens.orders.statePill(e); }
+function asuntoEmailPago(p, total, cliente) { return window.delcos.screens.orders.paymentSubject(p, total, cliente); }
+function textoEmailPago(p, total, cliente) { return window.delcos.screens.orders.paymentText(p, total, cliente); }

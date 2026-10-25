@@ -11,6 +11,7 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { range } from '../../services/values';
 import { weekLoads, withData } from './preload';
+import { openDayMenu } from './day-menu';
 
 const WEEK_DAYS = 7, SHOWN_PER_DAY = 9, SHOWN_WITHOUT_DAY = 25;
 const NOT_SHOWN = ['Descartada', 'Aplazada'];
@@ -110,7 +111,7 @@ async function moveTo(item: WeekAppointment, day: string, data: WeekData): Promi
 function onDayClick(event: Event, column: HTMLElement, data: WeekData): void {
   const target = event.target instanceof Element ? event.target : null;
   const menu = target?.closest<HTMLElement>('[data-semmenu]');
-  if (menu) { const day = menu.dataset.semmenu ?? ''; legacyAgendaParts.dayMenu(menu, day, Boolean(data.blocked[day])); return; }
+  if (menu) { const day = menu.dataset.semmenu ?? ''; openDayMenu(menu, day, Boolean(data.blocked[day])); return; }
   if (target?.closest('.semcita.nueva')) return;
   const account = target?.closest<HTMLElement>('[data-semficha]');
   if (account) { agendaActions.openAccount(account.dataset.semficha ?? ''); return; }

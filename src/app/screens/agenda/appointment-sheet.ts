@@ -14,6 +14,7 @@ import { runAction } from './appointment-actions';
 import { hasMenu, type AppointmentAction } from './appointment-options';
 import { refreshQuietly } from './your-day/reorder';
 import { canPlanAgain, isDone, isOpen, pointOf, statePill, STATES } from './appointment-state';
+import { appointmentDay, originText } from './appointment-origin';
 
 const DAY_MINUTES = 24 * 60;
 
@@ -33,7 +34,7 @@ function timetableText(item: SheetAppointment, info: StopInfo): string {
 const row = (label: string, value: string): string => `<div class="vcfila"><span>${label}</span><b>${value}</b></div>`;
 
 function dataHtml(item: SheetAppointment, info: StopInfo): string {
-  const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(' · '), timetable = timetableText(item, info), origin = yourDayLegacy.originText(item);
+  const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(' · '), timetable = timetableText(item, info), origin = originText(item);
   return `<div class="vcdatos">
       ${row(t('agenda.sheet.when'), `${escapeHtml(capitalise(formatLongDate(item.fecha)))} · ${escapeHtml(timeText(item, info))}`)}
       ${row(t('agenda.sheet.where'), escapeHtml(where || t('agenda.sheet.noCentre')))}
@@ -50,7 +51,7 @@ function closedHtml(item: SheetAppointment): string {
 }
 
 function goToButton(day: string | null | undefined, label: 'agenda.sheet.goTo' | 'agenda.sheet.seeDay', id: string, item: SheetAppointment): string {
-  return day && day !== item.fecha ? `<button type="button" class="btn sec" id="${id}" data-vcdia="${day}">${escapeHtml(t(label, { day: appointmentLegacy.dayLabel(day) }))}</button>` : '';
+  return day && day !== item.fecha ? `<button type="button" class="btn sec" id="${id}" data-vcdia="${day}">${escapeHtml(t(label, { day: appointmentDay(day) }))}</button>` : '';
 }
 
 function buttonsHtml(item: SheetAppointment): string {

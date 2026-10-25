@@ -9,6 +9,7 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml } from '../../services/format';
 import { isPresent } from '../../services/values';
 import { withAppointmentToday } from './same-centre';
+import { rescheduleAppointments } from './reschedule';
 
 type Tray = 'toca' | 'pend';
 const CONTEXT_PREFIX = 'agband-';
@@ -87,7 +88,7 @@ function bindTray(panel: HTMLElement, due: readonly DueAccount[], pending: reado
   const route = document.getElementById('agbruta');
   if (route) route.onclick = (): void => { close(); goTo('rutas'); setTimeout(() => { agendaActions.planRoute(due, route); }, ROUTES_MOUNT_MS); };
   const reschedule = document.getElementById('agbrepro');
-  if (reschedule) reschedule.onclick = (): void => { agendaActions.reschedule(pending, t('agenda.trays.pending'), t('agenda.trays.notVisited', { count: pending.length })); };
+  if (reschedule) reschedule.onclick = (): void => { void rescheduleAppointments(pending, t('agenda.trays.pending'), t('agenda.trays.notVisited', { count: pending.length })); };
 }
 
 /** Opens a tray in the side panel. */

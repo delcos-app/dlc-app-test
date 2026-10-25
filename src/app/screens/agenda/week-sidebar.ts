@@ -10,6 +10,7 @@ import { escapeHtml } from '../../services/format';
 import { orFallback, range } from '../../services/values';
 import { weekLoads, withData } from './preload';
 import { shareWeek } from './strip';
+import { openDayMenu } from './day-menu';
 
 const SHOWN_PER_DAY = 3, WEEK_DAYS = 7;
 
@@ -46,7 +47,7 @@ function dayHtml(isoDate: string, items: readonly RangeAppointment[], context: D
 
 function bind(box: HTMLElement, blocked: Readonly<Record<string, string>>): void {
   box.querySelectorAll<HTMLElement>('[data-agslm]').forEach(button => {
-    button.onclick = (event): void => { event.stopPropagation(); const day = button.dataset.agslm ?? ''; legacyAgendaParts.dayMenu(button, day, Boolean(blocked[day])); };
+    button.onclick = (event): void => { event.stopPropagation(); const day = button.dataset.agslm ?? ''; openDayMenu(button, day, Boolean(blocked[day])); };
   });
   box.querySelectorAll<HTMLElement>('[data-agsl]').forEach(day => {
     const show = (): void => { legacyAgenda.showDay(day.dataset.agsl ?? ''); };

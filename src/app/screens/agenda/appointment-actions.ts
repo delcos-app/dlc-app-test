@@ -9,6 +9,7 @@ import { formatShortDate } from '../../services/date-format';
 import type { AppointmentAction } from './appointment-options';
 import { isOpen, pointOf, STATES } from './appointment-state';
 import { refreshQuietly, repaintSmoothly, saveOrder } from './your-day/reorder';
+import { newDateAfterAbsent } from './absent';
 
 
 const refresh = (item: SheetAppointment): void => { refreshQuietly(item.id); };
@@ -59,7 +60,7 @@ async function absent(item: SheetAppointment): Promise<void> {
   if (error) { notices.toast(t('agenda.actions.couldNotSave', { error: error.message ?? '' }), true); return; }
   notices.toast(t('agenda.actions.noted', { result }));
   refresh(item);
-  await appointmentLegacy.newDateAfterAbsent(item);
+  await newDateAfterAbsent(item);
 }
 
 async function planAgain(item: SheetAppointment): Promise<void> {
@@ -79,7 +80,7 @@ const ACTIONS: Readonly<Record<AppointmentAction, (item: SheetAppointment) => Pr
   borrar: remove,
   aplazar: postpone,
   noestaba: absent,
-  nueva: item => appointmentLegacy.newDateAfterAbsent(item),
+  nueva: item => newDateAfterAbsent(item),
   rehacer: planAgain,
 };
 

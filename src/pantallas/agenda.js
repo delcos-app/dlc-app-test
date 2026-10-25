@@ -4,12 +4,6 @@
 // La precarga de datos de la Agenda está en src/app/screens/agenda/preload.ts (v2.393.0)
 const datosAgenda = window.delcos.screens.agenda.data;
 
-function jornadaActiva() {
-  let j = null;
-  try { j = JSON.parse(localStorage.getItem(JKEY()) || 'null'); } catch (e) {}
-  if (j && j.fecha !== hoyISO()) { localStorage.removeItem(JKEY()); return null; }   // una jornada solo dura su día
-  return j;
-}
 
 async function citasDelDia(fecha) {
   const r = await rpcCache('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: PERFIL.id }, 'agenda-' + fecha);
@@ -17,63 +11,7 @@ async function citasDelDia(fecha) {
 }
 
 
-async function reprogramarCitas(citas, titulo, texto) {
-  if (!citas.length) return false;
-  const conH = await conHorarios(citas.map(c => Object.assign({ id: c.cuenta_id }, 'dias' in c ? { dias: c.dias } : {})));
-  const dias = {}; conH.forEach(h => dias[h.id] = h.dias || {});
-  const base = hoyISO();
-  const filas = citas.map(c => ({ c, fecha: proximoDiaConsulta(dias[c.cuenta_id], c.fecha > base ? c.fecha : base),
-    horario: Object.keys(dias[c.cuenta_id] || {}).filter(k => (dias[c.cuenta_id] || {})[k]).join(' ') }));
-  return new Promise(res => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${esc(titulo)}</h2><div class="sm">${esc(texto)}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <p class="sm">Te propongo el próximo día que cada ${TT('medico', 's', '', 'l', 'l')} atiende. Cambia la fecha si quieres o desmarca los que no quieras mover.</p>
-      <div class="lista reprog" data-nosucio>${filas.map((f, i) => `<div class="item" style="cursor:default">
-        <input type="checkbox" data-rpi="${i}" checked aria-label="Mover">
-        <span class="tx"><b>${esc(f.c.nombre)}</b>
-          <span class="sm">${esc([f.c.centro_nombre, f.c.municipio].filter(Boolean).join(' · '))}${f.c.fecha < base ? ' · era el ' + fechaCorta(f.c.fecha) : ''}</span>
-          <span class="sm">${f.horario ? 'Atiende: ' + esc(f.horario) : 'Sin días de atención conocidos'}</span></span>
-        <input type="date" data-rpf="${i}" value="${f.fecha}" min="${base}"></div>`).join('')}</div>
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" id="rpno">Dejarlas como están</button>
-        <button class="btn" id="rpok">Mover las marcadas</button></div>`;
-    const cerrar = v => { $('dlg').close(); res(v); };
-    $('rpno').onclick = () => cerrar(false);
-    $('rpok').onclick = async ev => {
-      ev.target.disabled = true; ev.target.textContent = 'Moviendo…';
-      let n = 0;
-      for (let i = 0; i < filas.length; i++) {
-        if (!$('dbody').querySelector(`[data-rpi="${i}"]`).checked) continue;
-        const f = $('dbody').querySelector(`[data-rpf="${i}"]`).value; if (!f) continue;
-        const { data: r } = await db.rpc('aplazar_cita', { p_id: filas[i].c.id, p_fecha: f, p_hora: null, p_origen: 'Reprogramada' });
-        if (r && r.ok) n++;
-      }
-      toast(n ? `${n} ${n === 1 ? 'cita movida' : 'citas movidas'}` : 'No se ha movido ninguna');
-      cerrar(n > 0);
-      cargarAgenda(); cargarInicio(); pintarRutaBarra();
-    };
-    $('dlg').showModal();
-  });
-}
 
-async function terminarJornada() {
-  const j = jornadaActiva(); if (!j) return;
-  invalidarCache();
-  const citas = await citasDelDia(hoyISO());
-  const hechas = citas.filter(c => c.estado === 'Visitada').length;
-  const abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado));
-  const ok = await preguntar(`Tiempo: ${durTxt(Date.now() - j.inicio)} · Visitadas: ${hechas} de ${citas.filter(c => !['Descartada', 'Aplazada'].includes(c.estado)).length}` +
-    (abiertas.length ? `\n\nTe quedan ${abiertas.length} ${abiertas.length === 1 ? 'cita abierta' : 'citas abiertas'}. Al terminar te propongo a qué día moverlas.` : ''),
-    { titulo: '¿Terminar la jornada?', ok: 'Terminar jornada' });
-  if (!ok) return;
-  localStorage.removeItem(JKEY());
-  pintarRutaBarra();
-  toast(`Jornada terminada · ${hechas} visitadas`);
-  if (abiertas.length) await reprogramarCitas(abiertas, 'Lo que ha quedado pendiente hoy', `${abiertas.length} sin visitar`);
-  if (TAB === 'agenda') cargarAgenda();
-  if (TAB === 'rutas') cargarRutas();
-}
 
 function agUid() { return AG_VISTA ? AG_VISTA.id : PERFIL.id; }
 
@@ -90,35 +28,6 @@ async function verAgendaDe(id) {
   cargarAgenda();
 }
 
-async function menuDiaSemana(boton, fecha, bloqueado) {
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = [
-    fecha >= hoyISO() ? ['nueva', 'Nueva cita', `Añadir ${TT('medico', 's', 'un', 'l', 'l')} a este día`] : null,
-    ['ver', 'Ver el día', 'Abrirlo en «Tu día»'],
-    fecha >= hoyISO() ? (bloqueado ? ['desbloquear', 'Desbloquear el día', 'Vuelve a estar disponible para planificar']
-      : ['bloquear', 'Bloquear el día', 'Vacaciones, formación, congreso… El planificador no lo usará']) : null
-  ].filter(Boolean).map(([k, t, s]) => `<button data-dmo="${k}"><b>${esc(t)}</b><span>${esc(s)}</span></button>`).join('');
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelectorAll('[data-dmo]').forEach(b => b.onclick = async () => {
-    m.remove();
-    const k = b.dataset.dmo;
-    if (k === 'nueva') return nuevaCita(null, fecha);
-    if (k === 'ver') { AG_FECHA = fecha; AG_MODO = 'dia'; return cargarAgenda(); }
-    let motivo = null;
-    if (k === 'bloquear') {
-      motivo = await pedirTexto('Motivo (opcional)', '', { titulo: 'Bloquear el ' + fechaCorta(fecha), ok: 'Bloquear' });
-      if (motivo === null) return;
-    }
-    const { data: r2, error } = await RPC_ORIG('bloquear_dia', { p_fecha: fecha, p_motivo: motivo, p_usuario: agUid(), p_bloquear: k === 'bloquear' });
-    if (error || (r2 && r2.ok === false)) { toast('No se ha podido cambiar', true); return; }
-    toast(k === 'bloquear' ? 'Día bloqueado' : 'Día desbloqueado'); cargarAgenda();
-  });
-}
 
 
 // Mis citas pendientes (planificadas o confirmadas) desde hoy: médico → primera fecha
@@ -170,23 +79,7 @@ function agCambiosEnVentana() { return RC_EPOCA !== DLG_EPOCA; }
    - La nueva hereda la anterior: de qué día viene y cómo se citó la primera vez (Ruta, Ficha…), en lugar de «Aplazada».
    - Si vuelve a un día en que estaba aplazada, la base la reactiva y se ve como las demás (aplazar_cita y reabrir_cita).
    - En la ventana de la cita, botones para ir al día al que se movió o del que viene. */
-function diaCita(f) {
-  const d = new Date(f + 'T12:00:00');
-  return d.toLocaleDateString('es-ES', { weekday: 'long' }) + ' ' + d.getDate() + '/' + (d.getMonth() + 1);
-}
 
-function textoOrigenCita(c) {
-  const p = [];
-  if (c.estado === 'Aplazada' && c.aplazada_a_fecha) {
-    const fin = c.aplazada_a_estado && !CITA_ABIERTA.includes(c.aplazada_a_estado) && c.aplazada_a_estado !== 'Aplazada' ? ' (' + c.aplazada_a_estado.toLowerCase() + ')' : '';
-    p.push('movida al ' + diaCita(c.aplazada_a_fecha) + fin);
-  }
-  if (c.aplazada_de_fecha) {
-    p.push('viene del ' + diaCita(c.aplazada_de_fecha));
-    if (c.origen_inicial && !['Aplazada', 'Reprogramada'].includes(c.origen_inicial)) p.push(c.origen_inicial);
-  } else if (c.origen && !(c.estado === 'Aplazada' && c.aplazada_a_fecha && c.origen === 'Aplazada')) p.push(c.origen);
-  return p.length ? ' · ' + esc(p.join(' · ')) : '';
-}
 
 function puedeRegistrarEnDia(f) {
   const h = hoyISO();
@@ -197,26 +90,6 @@ async function agBloqueos(desde, n) { try { return await bloqueadosSemana(desde,
 
 
 
-async function rnPasarAgenda(item, btn) {
-  const { r } = item, ms = (item.ms || []).filter(m => m.lat != null);
-  if (!ms.length) { toast(`Esta ruta no tiene ${TT('medico', 'p', '', 'l', 'l')} con ubicación`, true); return; }
-  let rep = r.repeticion || null, fechas;
-  if (!rep) {
-    const f = await pedirCampo('¿Qué día la haces?', 'date', siguienteLaborable(), 'Día');
-    if (!f) return; fechas = [f];
-  } else fechas = rnFechas(rep, rep.desde && rep.desde > hoyISO() ? rep.desde : hoyISO(), rnHorizonte(rep));
-  if (!fechas.length) { toast('No hay ningún día próximo para esta ruta', true); return; }
-  if (fechas.length > 1 && !await preguntar(`Se añaden ${ms.length} ${ms.length === 1 ? "cita" : "citas"} cada día, en ${fechas.length} días: ${fechas.map(f => fechaCorta(f)).join(', ')}. Los días bloqueados se saltan y no se repite a nadie que ya tenga cita ese día.`,
-    { titulo: 'Pasar la ruta a tu agenda', ok: 'Añadir' })) return;
-  if (btn) btn.disabled = true;
-  try {
-    const res = await rnCitasEn(r, ms, fechas);
-    if (res.error) return;
-    if (rep && rep.tipo !== 'fecha') await db.rpc('guardar_ruta', { p: { id: r.id, repeticion: Object.assign({}, rep, { hasta: fechas[fechas.length - 1] }) } });
-    toast(`${res.n} ${res.n === 1 ? 'cita añadida' : 'citas añadidas'}${res.saltados.length ? ` · ${res.saltados.length} ${res.saltados.length === 1 ? 'día bloqueado' : 'días bloqueados'} sin tocar` : ''}`);
-    AG_MODO = 'dia'; AG_FECHA = fechas.find(f => !res.saltados.includes(f)) || fechas[0]; ir('agenda');
-  } finally { if (btn) btn.disabled = false; }
-}
 
 
 
@@ -291,18 +164,6 @@ function tdMarcaTrafico() {
 
 
 
-async function nuevaFechaTrasNoEstaba(c) {
-  const prop = proximoDiaConsulta(c.dias, c.fecha);
-  const op = await elegirOpcion('¿Le buscamos otro día?', `${c.nombre}\n\nEl próximo día que atiende es el ${fechaLarga(new Date(prop + 'T00:00:00'))}.`,
-    [{ k: 'no', t: 'Ahora no', cls: 'sec' }, { k: 'otra', t: 'Elegir otra fecha', cls: 'sec' }, { k: 'prop', t: 'Cita el ' + fechaCorta(prop) }]);
-  if (!op) return;
-  let f = prop;
-  if (op === 'otra') { f = await pedirFecha('¿Qué día?', prop, { titulo: 'Nueva cita', ok: 'Crear cita' }); if (!f) return; }
-  const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: c.cuenta_id, fecha: f, centro_nombre: c.centro_nombre,
-    estado: 'Planificada', origen: 'No estaba el ' + fechaCorta(c.fecha), op_id: 'ne-' + c.id + '-' + f } });
-  if (error || (r && r.ok === false)) { toast('No se ha podido crear la cita', true); return; }
-  toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
-}
 
 // El mes está en src/app/screens/agenda (v2.390.0); este nombre se queda porque lo llaman el escuchador de Escape y las pruebas
 function cerrarMesCinta() { window.delcos.screens.agenda.closeMonth(); }
@@ -405,15 +266,6 @@ const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 
 // Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
 
-async function empezarJornadaBase() {
-  const citas = await citasDelDia(hoyISO());
-  if (!citas.some(c => CITA_ABIERTA.includes(c.estado))) { toast('No tienes citas abiertas hoy. Añade citas o planifica una ruta.', true); return; }
-  localStorage.setItem(JKEY(), JSON.stringify({ fecha: hoyISO(), inicio: Date.now() }));
-  pintarRutaBarra();
-  toast('Jornada iniciada');
-  AG_MODO = 'dia'; AG_FECHA = hoyISO();
-  if (TAB === 'agenda') cargarAgenda(); else ir('agenda');
-}
 
 async function bloqueadosSemanaBase(desde, hasta) {
   const { data } = await RPC_ORIG('dias_bloqueados_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUid() });
@@ -442,11 +294,6 @@ function bloqueadosSemana(d, h) {
 // ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
 
 
-async function empezarJornada(...a) {
-  const r = await empezarJornadaBase.apply(this, a);
-  try { if (AG_FECHA === hoyISO()) tdTrafico(true); } catch (e) {}
-  return r;
-}
 
 
 
@@ -492,3 +339,10 @@ function agRefrescoQuieto(id, o = {}) { window.delcos.screens.agenda.refreshQuie
 // La ventana «Nueva cita» está en src/app/screens/agenda/editors/appointment-editor.ts (v2.400.0); el nombre se queda porque
 // la abren siete archivos antiguos (ficha, ciclo, configuración, parque…).
 function nuevaCita(medicoId, fecha, op = {}) { return window.delcos.screens.agenda.newAppointment(medicoId, fecha, op); }
+
+// La jornada, reprogramar, el menú del día y el origen de la cita están en src/app/screens/agenda (v2.414.0). Estos nombres
+// se quedan: Rutas y las pruebas los usan.
+function jornadaActiva() { return window.delcos.screens.agenda.activeWorkingDay(); }
+function empezarJornada() { return window.delcos.screens.agenda.startWorkingDay(); }
+function terminarJornada() { return window.delcos.screens.agenda.endWorkingDay(); }
+function textoOrigenCita(c) { return window.delcos.screens.agenda.originText(c); }
