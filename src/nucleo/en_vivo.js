@@ -12,7 +12,7 @@ function avisosEnVivo() {
       espera = setTimeout(() => {
         refrescarCampana();
         if (ES_MEDICO() && $('v-informe') && TAB === 'informe') { try { if (puede('portal_centro') && typeof centroPintar === 'function') centroPintar(); else portalMedico(); } catch (e) {} }
-        if (que !== 'notif' && typeof FICHA_ID !== 'undefined' && FICHA_ID && $('fportal')) { const b = $('fportal'); b.remove(); try { fichaPortal(FICHA_ID); } catch (e) {} }
+        if (que !== 'notif' && typeof FICHA_ID !== 'undefined' && FICHA_ID && $('fportal')) { try { window.delcos.screens.accounts.refreshPortal(FICHA_ID); } catch (e) {} }
       }, 400);
     };
     VIVO = db.channel('vivo-' + PERFIL.id)

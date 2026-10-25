@@ -2,39 +2,6 @@
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
 // ——— Lado de quien lleva la ficha ———
-async function fichaPortal(id) {
-  if (ES_MEDICO() || !hayExtra('portal') || FICHA_ID !== id || !$('fbody') || $('fportal')) return;
-  const [{ data: sols }, { data: msgs }, { data: acc }] = await Promise.all([
-    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').eq('cuenta_id', id).order('creado_en', { ascending: false }).limit(10),
-    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').eq('cuenta_id', id).order('creado_en', { ascending: true }).limit(200),
-    db.from('perfiles').select('id').eq('cuenta_id', id).eq('activo', true).limit(1)]);
-  if (FICHA_ID !== id || !$('fbody') || $('fportal')) return;
-  const ls = sols || [], lm = msgs || [], pend = ls.filter(x => x.estado === 'Pendiente'), sinLeer = lm.filter(x => x.del_portal && !x.leido_en).length;
-  if (!ls.length && !lm.length && !(acc || []).length) return;   // sin portal ni actividad: no se ocupa sitio
-  const html = `<section class="blk" id="fportal"><h3>Portal${pend.length ? ` <span class="pill p-warn">${num(pend.length)} material por entregar</span>` : ''}${sinLeer ? ` <span class="pill p-urg">${num(sinLeer)} sin leer</span>` : ''}</h3>
-    ${ls.length ? `<div class="lista">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
-        <span class="sm">Pedido el ${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
-        ${x.estado === 'Pendiente' ? `<button type="button" class="btn chico" data-fpent="${x.id}">Entregado</button>` : ''}</div>`).join('')}</div>` : ''}
-    <div class="fpmsg"><b class="sm">Mensajes</b><div id="fphilo">${hiloMensajes(lm, false)}</div>
-      <div class="fpresp"><input id="fpmsgt" placeholder="Contestar" aria-label="Contestar"><button type="button" class="btn sec" id="fpmsgok">Enviar</button></div></div></section>`;
-  const vis = $('fbody').querySelector('section.fvis');
-  if (vis) vis.insertAdjacentHTML('afterend', html); else $('fbody').insertAdjacentHTML('beforeend', html);
-  const rehacer = () => { const b = $('fportal'); if (b) b.remove(); fichaPortal(id); };
-  $('fportal').querySelectorAll('[data-fpent]').forEach(b => b.onclick = async () => {
-    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.fpent, p_estado: 'Entregado' });
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast('Material entregado: se le avisa'); rehacer();
-  });
-  $('fpmsgok').onclick = async ev => {
-    const t = $('fpmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: id, p_texto: t });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast('Mensaje enviado'); rehacer();
-  };
-  if (sinLeer) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: id });
-}
 
 // (v2.183.0: aquí iba la primera versión de elegirPago; se redefine entera más abajo)
 async function pagoPortal(boton) { const d = await pagoLlamar({ accion: 'portal' }, boton); if (d && d.url) location.href = d.url; }

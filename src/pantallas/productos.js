@@ -251,38 +251,6 @@ async function impLotes(filas, modo, simular, imp, avance) {
 }
 
 // Ficha de un centro: qué productos puede pedir y a qué precio (sin IVA; vacío = tarifa)
-async function fichaProductosCentro(id) {
-  if (ES_MEDICO() || !hayExtra('portal') || FICHA_ID !== id || !$('fbody') || $('fprodc')) return;
-  const rf = await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id);
-  const m = (rf && rf.data && rf.data.medico) || {};
-  if (m.tipo !== 'Centro' || FICHA_ID !== id || $('fprodc')) return;
-  if (!PRODUCTOS.length) await cargarProductos();
-  const { data: act } = await db.from('productos_cuenta').select('producto_id,precio').eq('cuenta_id', id);
-  if (FICHA_ID !== id || $('fprodc')) return;
-  const sel = {}; (act || []).forEach(x => sel[x.producto_id] = x);
-  const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && (p.estado || 'Activo') === 'Activo');
-  const html = `<section class="blk" id="fprodc"><h3>Productos del centro <span class="n">${num((act || []).length)}</span></h3>
-    <p class="sm">Lo que puede pedir desde su portal. Precio sin IVA; si lo dejas vacío, el de tarifa.</p>
-    <div class="lista">${lista.map(p => `<label class="item" style="cursor:default"><input type="checkbox" data-fpcp="${p.id}" ${sel[p.id] ? 'checked' : ''}>
-        <span class="tx"><b>${esc(p.nombre)}</b><span class="sm">Tarifa ${p.precio != null ? eurI(p.precio) : '—'} sin IVA</span></span>
-        <input type="number" min="0" step="0.01" data-fpcx="${p.id}" value="${sel[p.id] && sel[p.id].precio != null ? +sel[p.id].precio : ''}" placeholder="Tarifa" style="max-width:120px" aria-label="Precio de ${esc(p.nombre)} para el centro"></label>`).join('')
-      || '<div class="sm">No hay productos activos.</div>'}</div>
-    <div class="acts" style="margin:8px 0 0;justify-content:flex-end"><button type="button" class="btn sec" id="fpcok">Guardar productos</button></div></section>`;
-  const tras = $('fportal') || $('fbody').querySelector('section.fvis');
-  if (tras) tras.insertAdjacentHTML('afterend', html); else $('fbody').insertAdjacentHTML('beforeend', html);
-  $('fpcok').onclick = async ev => {
-    const items = [...$('fprodc').querySelectorAll('[data-fpcp]')].filter(x => x.checked).map(x => {
-      const v = $('fprodc').querySelector(`[data-fpcx="${x.dataset.fpcp}"]`).value;
-      return { producto_id: x.dataset.fpcp, precio: v === '' ? null : Math.max(0, +v) };
-    });
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('guardar_productos_cuenta', { p_cuenta: id, p_items: items });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast(`Productos del centro guardados (${num(r.productos)})`);
-    const b = $('fprodc'); if (b) b.remove(); fichaProductosCentro(id);
-  };
-}
 
 async function verDeposito(cuenta, nombre, aviso) {
   const { data: e, error } = await db.rpc('deposito_estado', { p_cuenta: cuenta });

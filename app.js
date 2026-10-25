@@ -521,6 +521,51 @@
       withoutOrders: "Sin pedidos",
       noneAssociated: "Todavía no tiene {patients} asociados."
     },
+    portal: {
+      title: "Portal",
+      toDeliver: "{count} material por entregar",
+      unread: "{count} sin leer",
+      requested: "Pedido el {date}",
+      delivered: "Entregado",
+      messages: "Mensajes",
+      reply: "Contestar",
+      send: "Enviar",
+      deliveredDone: "Material entregado: se le avisa",
+      writeMessage: "Escribe el mensaje",
+      sent: "Mensaje enviado",
+      productsTitle: "Productos del centro",
+      productsNote: "Lo que puede pedir desde su portal. Precio sin IVA; si lo dejas vacío, el de tarifa.",
+      tariff: "Tarifa {price} sin IVA",
+      tariffPlaceholder: "Tarifa",
+      priceFor: "Precio de {name} para el centro",
+      noProducts: "No hay productos activos.",
+      saveProducts: "Guardar productos",
+      productsSaved: "Productos del centro guardados ({count})"
+    },
+    access: {
+      title: "Acceso a la plataforma",
+      hasAccess: "Tiene acceso",
+      asEmail: " como <b>{email}</b>",
+      disabled: " (desactivado)",
+      centreUses: "pide la reposición de sus productos, material y escribe a su comercial",
+      portalUses: "ve su portal: cifras agregadas, sin importes ni datos de personas",
+      impersonate: "👤 Impersonalizar",
+      centreCan: "Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.",
+      portalCan: "Puede tener acceso a su portal (cifras agregadas de {prescriptions}), pedir material y escribir a su comercial. No verá importes ni datos de {patients}.",
+      give: "Dar acceso",
+      email: "Correo",
+      emailPlaceholder: "nombre@correo.com",
+      invalidEmail: "Escribe un correo válido",
+      noPermission: "Tu rol no puede dar acceso",
+      notYours: "Solo puedes dar acceso a {professionals} de tu cartera",
+      alreadyHas: "Esta ficha ya tiene acceso",
+      emailInUse: "Ese correo ya es de otro usuario",
+      emailWrong: "El correo no es válido",
+      noPortalRole: "No hay ningún rol con acceso al portal: créalo en Configuración → Roles",
+      couldNotGive: "No se ha podido dar acceso",
+      couldNotCreate: "No se ha podido crear el acceso: {error}",
+      created: '<b style="color:var(--ok)">Acceso creado.</b> Contraseña temporal: <b>{password}</b>. Pásasela y que la cambie al entrar.'
+    },
     history: {
       title: "Historial de cambios",
       undo: "Deshacer",
@@ -1073,7 +1118,8 @@
   // src/app/screens/accounts/index.ts
   var accounts_exports = {};
   __export(accounts_exports, {
-    openAccountCard: () => openAccountCard
+    openAccountCard: () => openAccountCard,
+    refreshPortal: () => refreshPortal
   });
 
   // src/app/legacy/bridge.ts
@@ -1413,10 +1459,7 @@
     planIncludes: (section) => planIncluyeSeccion(section),
     canEditType: (type) => puedeEditarTipo(type),
     /** The base sections, in their legacy order (each one paints a block of the card). */
-    base: { access: fichaAcceso },
     customFields: (id, container) => bloqueCampos("cuentas", id, container),
-    portal: (id) => fichaPortal(id),
-    centreProducts: (id) => fichaProductosCentro(id),
     cycle: (id) => cicFicha(id)
   };
   var relatedLegacy = {
@@ -1493,6 +1536,35 @@
     detailSummary: (detail) => resumenDetalle(detail),
     undo: (id, then) => {
       void deshacerUno(id, then);
+    }
+  };
+  var portalLegacy = {
+    hasPortal: () => hayExtra("portal"),
+    materialPill: (state) => pillMaterial(state),
+    messageThread: (list) => hiloMensajes(list, false),
+    failureText: (result) => motivoPortal(result),
+    products: async () => {
+      if (!PRODUCTOS.length) await cargarProductos();
+      return PRODUCTOS;
+    },
+    euros: (value2) => eurI(value2)
+  };
+  var accessLegacy = {
+    connectionInfo: (userId) => {
+      void facccon(userId);
+    },
+    canImpersonate: (user) => puedeVerComo(user),
+    newUser: (preset) => {
+      nuevoUsuario(preset);
+    },
+    forgetAccessCache: () => {
+      MED_ACCESO = null;
+    },
+    /** A user is created with a separate client (no session kept), as the legacy sign-up did. */
+    signUp: async (email, password, name) => {
+      const client = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
+      const { error } = await client.auth.signUp({ email, password, options: { data: { nombre: name, usuario: email.split("@")[0] } } });
+      return error;
     }
   };
 
@@ -1718,6 +1790,97 @@
       ${permissions.levelOf("M") >= DELETE_LEVEL ? `<button type="button" class="btn sec dang chico" data-felim="${id}">${t("accounts.card.delete")}</button>` : ""}</div></div>`);
   }
 
+  // src/app/screens/accounts/card/sections-access.ts
+  var CENTRE2 = "Centro";
+  var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  var canShow = (id) => stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById("facceso");
+  var accountOf = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico ?? {};
+  function hasAccessHtml(user, isCentre2, withConnection) {
+    const impersonate = user.activo && accessLegacy.canImpersonate(user) ? `<button class="btn sec" data-ucomo="${user.id}">${t("accounts.access.impersonate")}</button>` : "";
+    return `<p class="sm">${t("accounts.access.hasAccess")}${user.email ? t("accounts.access.asEmail", { email: escapeHtml(user.email) }) : ""}${user.activo ? "" : t("accounts.access.disabled")}: ${t(isCentre2 ? "accounts.access.centreUses" : "accounts.access.portalUses")}.</p>` + (withConnection ? `<p class="sm facccon" data-facccon="${user.id}"></p>` : "") + impersonate;
+  }
+  var canText = (isCentre2) => isCentre2 ? t("accounts.access.centreCan") : t("accounts.access.portalCan", { prescriptions: term("pauta", { number: "p" }), patients: term("paciente", { number: "p" }) });
+  async function adminAccess(id) {
+    const [{ data: users }, account] = await Promise.all([callRpc("usuarios_resumen", {}), accountOf(id)]);
+    if (!canShow(id)) return;
+    const user = (users ?? []).find((item) => item.cuenta_id === id), isCentre2 = account.tipo === CENTRE2;
+    document.getElementById("fbody")?.insertAdjacentHTML("beforeend", `<div class="blk" id="facceso"><h3>${t("accounts.access.title")}</h3>
+    ${user ? hasAccessHtml(user, isCentre2, true) : `<p class="sm">${canText(isCentre2)}</p>
+         <button class="btn sec" id="fdaracc">${t("accounts.access.give")}</button>`}</div>`);
+    if (user) accessLegacy.connectionInfo(user.id);
+    const give = document.getElementById("fdaracc");
+    if (give) give.onclick = async () => {
+      const { data } = await legacyDb().rpc("ficha_cuenta", { p_id: id });
+      const professional = data?.medico;
+      if (!professional) return;
+      document.getElementById("ficha")?.close();
+      accessLegacy.newUser({ medico: { id, nombre: professional.nombre }, nombre: professional.nombre, email: professional.email ?? "", centro: professional.tipo === CENTRE2 });
+    };
+  }
+  var FAILURES = {
+    permiso: "accounts.access.noPermission",
+    cartera: "accounts.access.notYours",
+    ya_tiene: "accounts.access.alreadyHas",
+    correo_en_uso: "accounts.access.emailInUse",
+    email: "accounts.access.emailWrong",
+    sin_rol_portal: "accounts.access.noPortalRole"
+  };
+  async function linkAccess(id, email) {
+    const { data: result, error } = await legacyDb().rpc("dar_acceso_cuenta", { p_cuenta: id, p_email: email });
+    if (!error && result?.ok) return true;
+    const key = FAILURES[result?.error ?? ""];
+    notices.toast(key ? t(key, { professionals: term("medico", { number: "p" }) }) : t("accounts.access.couldNotGive"), true);
+    return false;
+  }
+  async function giveAccess(id, account, button) {
+    const field = document.getElementById("faccmail"), email = field?.value.trim() ?? "";
+    if (!EMAIL.test(email)) {
+      notices.toast(t("accounts.access.invalidEmail"), true);
+      return;
+    }
+    button.disabled = true;
+    if (!await linkAccess(id, email)) {
+      button.disabled = false;
+      return;
+    }
+    const password = `Tmp-${Math.random().toString(36).slice(2, 8)}`;
+    const failure = await accessLegacy.signUp(email, password, orFallback(account.nombre, email.split("@").shift() ?? email));
+    button.disabled = false;
+    if (failure) {
+      notices.toast(t("accounts.access.couldNotCreate", { error: failure.message ?? "" }), true);
+      return;
+    }
+    button.remove();
+    if (field) field.disabled = true;
+    accessLegacy.forgetAccessCache();
+    const message = document.getElementById("faccmsg");
+    if (message) message.innerHTML = t("accounts.access.created", { password: escapeHtml(password) });
+  }
+  async function portfolioAccess(id) {
+    if (!canShow(id)) return;
+    const mine = permissions.seesEverything() ? Promise.resolve({ data: [1] }) : legacyDb().from("atribuciones").select("cuenta_id").eq("cuenta_id", id).eq("usuario_id", salesTeam.currentUserId()).is("hasta", null).limit(1);
+    const [{ data: withAccess }, { data: inPortfolio }, account] = await Promise.all([callRpc("cuentas_con_acceso", {}), mine, accountOf(id)]);
+    const user = (withAccess ?? []).find((item) => item.cuenta_id === id);
+    if (!user && !(inPortfolio ?? []).length || !canShow(id)) return;
+    const isCentre2 = account.tipo === CENTRE2;
+    document.getElementById("fbody")?.insertAdjacentHTML("beforeend", `<div class="blk" id="facceso"><h3>${t("accounts.access.title")}</h3>
+    ${user ? hasAccessHtml(user, isCentre2, false) : `<p class="sm">${canText(isCentre2)}</p>
+         <div class="g2"><div><label for="faccmail">${t("accounts.access.email")}</label><input id="faccmail" type="email" value="${escapeHtml(account.email ?? "")}" placeholder="${t("accounts.access.emailPlaceholder")}"></div>
+         <div style="align-self:end"><button class="btn sec" id="fdaracc">${t("accounts.access.give")}</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
+    const give = document.getElementById("fdaracc");
+    if (give) give.onclick = () => {
+      void giveAccess(id, account, give);
+    };
+  }
+  async function platformAccess(id) {
+    if (!cardSectionsLegacy.can("administrar") && cardSectionsLegacy.can("dar_acceso_cuentas")) {
+      await portfolioAccess(id);
+      return;
+    }
+    if (!cardSectionsLegacy.can("administrar") || !canShow(id)) return;
+    await adminAccess(id);
+  }
+
   // src/app/screens/accounts/card/sections-admin.ts
   var HISTORY_LIMIT = 100;
   var VALUE_LENGTH = 40;
@@ -1914,7 +2077,7 @@
   var NOT_ATTENDED = "No asistió";
   var AWARDED = "Adjudicado";
   var INSTALLED = "Instalado";
-  var CENTRE2 = "Centro";
+  var CENTRE3 = "Centro";
   var OPEN_TENDERS = ["En estudio", "Oferta enviada", AWARDED];
   var SHOWN_EVENTS = 5;
   var canAdd = (blockId, section) => Boolean(fieldsPlace()) && !document.getElementById(blockId) && (!section || accountCardLegacy.planIncludes(section));
@@ -1954,7 +2117,7 @@
   async function deposit(id) {
     if (!canAdd("fdeposito", "deposito")) return;
     const account = await accountKind(id);
-    if (account?.tipo !== CENTRE2) return;
+    if (account?.tipo !== CENTRE3) return;
     const { data: state } = await legacyDb().rpc("deposito_estado", { p_cuenta: id });
     if (!state || state.ok === false || !canAdd("fdeposito") || !stillShown(id)) return;
     addBeforeFields(id, "fdeposito", `<div class="blk" id="fdeposito"><h3>${t("accounts.card.depositTitle")}</h3>
@@ -2005,7 +2168,7 @@
     const { data } = await legacyDb().from("equipos").select("id,serie,ubicacion,estado,contrato,contrato_fin,garantia_hasta,proxima_revision,productos(nombre)").eq("cuenta_id", id).eq("estado", INSTALLED).order("instalado", { ascending: false }).limit(20);
     if (!canAdd("fequipos") || !stillShown(id)) return;
     const list = data ?? [], account = await accountKind(id);
-    if (!list.length && account?.tipo !== CENTRE2) return;
+    if (!list.length && account?.tipo !== CENTRE3) return;
     const block = addBeforeFields(id, "fequipos", equipmentHtml(list));
     if (block) bindEquipment(block, id, account?.nombre ?? "");
   }
@@ -2025,6 +2188,133 @@
       closeCardAnd(() => {
         relatedLegacy.newEquipment({ id, nombre: name });
       });
+    };
+  }
+
+  // src/app/screens/accounts/card/sections-portal.ts
+  var PENDING = "Pendiente";
+  var DELIVERED = "Entregado";
+  var CENTRE4 = "Centro";
+  var ACTIVE = "Activo";
+  var SERVICE = "servicio";
+  var SHOWN_REQUESTS = 10;
+  var MESSAGES_LIMIT = 200;
+  var canShow2 = (id, blockId) => !permissions.isProfessionalPortal() && portalLegacy.hasPortal() && stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById(blockId);
+  var shortDateTime = (value2) => new Date(value2).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  function requestRow(request) {
+    return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
+        <span class="sm">${t("accounts.portal.requested", { date: shortDateTime(request.creado_en) })}${request.nota ? ` · ${escapeHtml(request.nota)}` : ""}</span></span>${portalLegacy.materialPill(request.estado)}
+        ${request.estado === PENDING ? `<button type="button" class="btn chico" data-fpent="${request.id}">${t("accounts.portal.delivered")}</button>` : ""}</div>`;
+  }
+  function portalHtml(requests2, messages) {
+    const pending = requests2.filter((request) => request.estado === PENDING).length, unread = messages.filter((message) => message.del_portal && !message.leido_en).length;
+    return `<section class="blk" id="fportal"><h3>${t("accounts.portal.title")}${pending ? ` <span class="pill p-warn">${t("accounts.portal.toDeliver", { count: formatNumber(pending) })}</span>` : ""}${unread ? ` <span class="pill p-urg">${t("accounts.portal.unread", { count: formatNumber(unread) })}</span>` : ""}</h3>
+    ${requests2.length ? `<div class="lista">${requests2.map(requestRow).join("")}</div>` : ""}
+    <div class="fpmsg"><b class="sm">${t("accounts.portal.messages")}</b><div id="fphilo">${portalLegacy.messageThread(messages)}</div>
+      <div class="fpresp"><input id="fpmsgt" placeholder="${t("accounts.portal.reply")}" aria-label="${t("accounts.portal.reply")}"><button type="button" class="btn sec" id="fpmsgok">${t("accounts.portal.send")}</button></div></div></section>`;
+  }
+  function refreshPortal(id) {
+    document.getElementById("fportal")?.remove();
+    void portalActivity(id);
+  }
+  function bindPortal(id) {
+    document.querySelectorAll("#fportal [data-fpent]").forEach((button) => {
+      button.onclick = async () => {
+        const { data: result } = await legacyDb().rpc("cerrar_material", { p_id: button.dataset.fpent, p_estado: DELIVERED });
+        if (!result?.ok) {
+          notices.toast(portalLegacy.failureText(result), true);
+          return;
+        }
+        notices.toast(t("accounts.portal.deliveredDone"));
+        refreshPortal(id);
+      };
+    });
+    const send = document.getElementById("fpmsgok");
+    if (send) send.onclick = async () => {
+      const text = document.getElementById("fpmsgt")?.value.trim() ?? "";
+      if (!text) {
+        notices.toast(t("accounts.portal.writeMessage"), true);
+        return;
+      }
+      send.disabled = true;
+      const { data: result } = await legacyDb().rpc("enviar_mensaje_cuenta", { p_cuenta: id, p_texto: text });
+      send.disabled = false;
+      if (!result?.ok) {
+        notices.toast(portalLegacy.failureText(result), true);
+        return;
+      }
+      notices.toast(t("accounts.portal.sent"));
+      refreshPortal(id);
+    };
+  }
+  async function loadPortal(id) {
+    const db2 = legacyDb();
+    const [{ data: requests2 }, { data: messages }, { data: users }] = await Promise.all([
+      db2.from("solicitudes_material").select("id,material,cantidad,nota,estado,creado_en,cerrado_en").eq("cuenta_id", id).order("creado_en", { ascending: false }).limit(SHOWN_REQUESTS),
+      db2.from("mensajes_cuenta").select("id,texto,del_portal,creado_en,leido_en").eq("cuenta_id", id).order("creado_en", { ascending: true }).limit(MESSAGES_LIMIT),
+      db2.from("perfiles").select("id").eq("cuenta_id", id).eq("activo", true).limit(1)
+    ]);
+    return { requests: requests2 ?? [], messages: messages ?? [], hasUser: Boolean(users?.length) };
+  }
+  async function portalActivity(id) {
+    if (!canShow2(id, "fportal")) return;
+    const { requests: requestList, messages: messageList, hasUser } = await loadPortal(id);
+    const body2 = document.getElementById("fbody");
+    if (!stillShown(id) || !body2 || document.getElementById("fportal")) return;
+    if (!requestList.length && !messageList.length && !hasUser) return;
+    const html = portalHtml(requestList, messageList), visit = body2.querySelector("section.fvis");
+    if (visit) visit.insertAdjacentHTML("afterend", html);
+    else body2.insertAdjacentHTML("beforeend", html);
+    bindPortal(id);
+    if (messageList.some((message) => message.del_portal && !message.leido_en)) void callRpc("leer_mensajes_cuenta", { p_cuenta: id });
+  }
+  function productRow(product, chosen) {
+    const own = chosen.get(product.id), name = escapeHtml(product.nombre);
+    const tariff = product.precio !== null && product.precio !== void 0 ? portalLegacy.euros(product.precio) : "—";
+    return `<label class="item" style="cursor:default"><input type="checkbox" data-fpcp="${product.id}" ${own ? "checked" : ""}>
+        <span class="tx"><b>${name}</b><span class="sm">${t("accounts.portal.tariff", { price: tariff })}</span></span>
+        <input type="number" min="0" step="0.01" data-fpcx="${product.id}" value="${own?.precio !== null && own?.precio !== void 0 ? Number(own.precio) : ""}" placeholder="${t("accounts.portal.tariffPlaceholder")}" style="max-width:120px" aria-label="${t("accounts.portal.priceFor", { name })}"></label>`;
+  }
+  async function saveProducts(id, button) {
+    const block = document.getElementById("fprodc");
+    if (!block) return;
+    const items = [...block.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
+      const value2 = block.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
+      return { producto_id: box.dataset.fpcp, precio: value2 === "" ? null : Math.max(0, Number(value2)) };
+    });
+    button.disabled = true;
+    const { data: result } = await legacyDb().rpc("guardar_productos_cuenta", { p_cuenta: id, p_items: items });
+    button.disabled = false;
+    if (!result?.ok) {
+      notices.toast(portalLegacy.failureText(result), true);
+      return;
+    }
+    notices.toast(t("accounts.portal.productsSaved", { count: formatNumber(result.productos ?? 0) }));
+    document.getElementById("fprodc")?.remove();
+    void centreProducts(id);
+  }
+  function productsHtml(catalog, chosenRows) {
+    const chosen = new Map(chosenRows.map((row2) => [row2.producto_id, row2]));
+    const list = catalog.filter((product) => product.tipo !== SERVICE && (product.estado ?? ACTIVE) === ACTIVE);
+    return `<section class="blk" id="fprodc"><h3>${t("accounts.portal.productsTitle")} <span class="n">${formatNumber(chosenRows.length)}</span></h3>
+    <p class="sm">${t("accounts.portal.productsNote")}</p>
+    <div class="lista">${list.map((product) => productRow(product, chosen)).join("") || `<div class="sm">${t("accounts.portal.noProducts")}</div>`}</div>
+    <div class="acts" style="margin:8px 0 0;justify-content:flex-end"><button type="button" class="btn sec" id="fpcok">${t("accounts.portal.saveProducts")}</button></div></section>`;
+  }
+  var isCentre = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico?.tipo === CENTRE4;
+  async function centreProducts(id) {
+    if (!canShow2(id, "fprodc") || !await isCentre(id) || !canShow2(id, "fprodc")) return;
+    const catalog = await portalLegacy.products();
+    const { data: chosenRows } = await legacyDb().from("productos_cuenta").select("producto_id,precio").eq("cuenta_id", id);
+    const body2 = document.getElementById("fbody");
+    if (!body2 || !canShow2(id, "fprodc")) return;
+    const html = productsHtml(catalog, chosenRows ?? []);
+    const after = document.getElementById("fportal") ?? body2.querySelector("section.fvis");
+    if (after) after.insertAdjacentHTML("afterend", html);
+    else body2.insertAdjacentHTML("beforeend", html);
+    const save3 = document.getElementById("fpcok");
+    if (save3) save3.onclick = () => {
+      void saveProducts(id, save3);
     };
   }
 
@@ -2109,7 +2399,7 @@
     { name: "units", run: units },
     { name: "associatedClients", run: associatedClients }
   ];
-  var ACCESS = { name: "access", run: (id) => accountCardLegacy.base.access(id) };
+  var ACCESS = { name: "platformAccess", run: platformAccess };
   var CUSTOM_FIELDS = {
     name: "customFields",
     wait: false,
@@ -2117,8 +2407,8 @@
   };
   var SECTIONS = [
     { name: "changeHistory", run: changeHistory, wait: false },
-    { name: "portal", run: (id) => accountCardLegacy.portal(id), wait: false },
-    { name: "centreProducts", run: (id) => accountCardLegacy.centreProducts(id), wait: false },
+    { name: "portalActivity", run: portalActivity, wait: false },
+    { name: "centreProducts", run: centreProducts, wait: false },
     { name: "visitPhotos", run: visitPhotos },
     { name: "samples", run: samples },
     { name: "events", run: events },
@@ -5276,7 +5566,7 @@ function avisosEnVivo() {
       espera = setTimeout(() => {
         refrescarCampana();
         if (ES_MEDICO() && $('v-informe') && TAB === 'informe') { try { if (puede('portal_centro') && typeof centroPintar === 'function') centroPintar(); else portalMedico(); } catch (e) {} }
-        if (que !== 'notif' && typeof FICHA_ID !== 'undefined' && FICHA_ID && $('fportal')) { const b = $('fportal'); b.remove(); try { fichaPortal(FICHA_ID); } catch (e) {} }
+        if (que !== 'notif' && typeof FICHA_ID !== 'undefined' && FICHA_ID && $('fportal')) { try { window.delcos.screens.accounts.refreshPortal(FICHA_ID); } catch (e) {} }
       }, 400);
     };
     VIVO = db.channel('vivo-' + PERFIL.id)
@@ -16738,25 +17028,6 @@ async function cargarConfig(...a) {
 
 
 
-// Ficha · Acceso del médico a la plataforma (administración)
-async function fichaAcceso(id) {
-  // v2.109.0: quien tiene «Dar acceso a fichas de su cartera» lo hace desde la ficha, sin pasar por Usuarios
-  if (!puede('administrar') && puede('dar_acceso_cuentas')) return fichaAccesoCartera(id);
-  if (!puede('administrar') || FICHA_ID !== id || !$('fbody') || $('facceso')) return;
-  const [{ data: us }, rfm] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
-  const ya = (us || []).find(u => u.cuenta_id === id), m = (rfm && rfm.data && rfm.data.medico) || {};   // v2.128.0: m.tipo (centro o no)
-  $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su portal: cifras agregadas, sin importes ni datos de personas'}.</p><p class="sm facccon" data-facccon="${ya.id}"></p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
-      : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
-         <button class="btn sec" id="fdaracc">Dar acceso</button>`
-      : `<p class="sm">Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}) , pedir material y escribir a su comercial. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
-         <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
-  if (ya) facccon(ya.id);   // v2.335.0
-  if ($('fdaracc')) $('fdaracc').onclick = async () => {
-    const { data: f } = await db.rpc('ficha_cuenta', { p_id: id });
-    $('ficha').close(); nuevoUsuario({ medico: { id, nombre: f.medico.nombre }, nombre: f.medico.nombre, email: f.medico.email || '', centro: f.medico.tipo === 'Centro' });
-  };
-}
 
 
 /* v2.75.0 · Cómo se llama una ficha nueva: el vocabulario del cliente o, si no lo ha cambiado, «cuenta» */
@@ -17084,39 +17355,6 @@ async function centroDesdeUbicacion(box, i, lat, lon) {
     nombre ? 'Datos rellenados con tu ubicación: revísalos.' : 'Dirección rellenada con tu ubicación. El mapa no conoce el nombre del centro: escríbelo.');
 }
 
-async function fichaAccesoCartera(id) {
-  if (FICHA_ID !== id || !$('fbody') || $('facceso')) return;
-  const [{ data: acc }, { data: mia }, rf] = await Promise.all([
-    RPC_ORIG('cuentas_con_acceso', {}),
-    VE_TODO() ? Promise.resolve({ data: [1] }) : db.from('atribuciones').select('cuenta_id').eq('cuenta_id', id).eq('usuario_id', PERFIL.id).is('hasta', null).limit(1),
-    rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
-  const ya = (acc || []).find(x => x.cuenta_id === id), m = (rf && rf.data && rf.data.medico) || {};
-  // Solo en las fichas de su cartera (o en todas si ve todo)
-  if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
-  $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su portal: cifras agregadas, sin importes ni datos de personas'}.</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
-      : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}), pedir material y escribir a su comercial. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
-         <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
-         <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
-  if (!$('fdaracc')) return;
-  $('fdaracc').onclick = async ev => {
-    const email = $('faccmail').value.trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast('Escribe un correo válido', true); return; }
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('dar_acceso_cuenta', { p_cuenta: id, p_email: email });
-    const motivo = { permiso: 'Tu rol no puede dar acceso', cartera: `Solo puedes dar acceso a ${TT('medico', 'p', '', 'l', 'l')} de tu cartera`,
-      ya_tiene: 'Esta ficha ya tiene acceso', correo_en_uso: 'Ese correo ya es de otro usuario', email: 'El correo no es válido',
-      sin_rol_portal: 'No hay ningún rol con acceso al portal: créalo en Configuración → Roles' };
-    if (error || !r || !r.ok) { ev.target.disabled = false; toast(motivo[(r && r.error) || ''] || 'No se ha podido dar acceso', true); return; }
-    const pass = 'Tmp-' + Math.random().toString(36).slice(2, 8);
-    const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { error: e2 } = await tmp.auth.signUp({ email, password: pass, options: { data: { nombre: m.nombre || email.split('@')[0], usuario: email.split('@')[0] } } });
-    ev.target.disabled = false;
-    if (e2) { toast('No se ha podido crear el acceso: ' + e2.message, true); return; }
-    ev.target.remove(); $('faccmail').disabled = true; MED_ACCESO = null;
-    $('faccmsg').innerHTML = `<b style="color:var(--ok)">Acceso creado.</b> Contraseña temporal: <b>${esc(pass)}</b>. Pásasela y que la cambie al entrar.`;
-  };
-}
 
 // Ficha: historial de cambios (de la ficha y de sus consultas), plegado al final; solo administración
 
@@ -22061,39 +22299,6 @@ async function pedidoPago(id, ...a) {
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
 // ——— Lado de quien lleva la ficha ———
-async function fichaPortal(id) {
-  if (ES_MEDICO() || !hayExtra('portal') || FICHA_ID !== id || !$('fbody') || $('fportal')) return;
-  const [{ data: sols }, { data: msgs }, { data: acc }] = await Promise.all([
-    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').eq('cuenta_id', id).order('creado_en', { ascending: false }).limit(10),
-    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').eq('cuenta_id', id).order('creado_en', { ascending: true }).limit(200),
-    db.from('perfiles').select('id').eq('cuenta_id', id).eq('activo', true).limit(1)]);
-  if (FICHA_ID !== id || !$('fbody') || $('fportal')) return;
-  const ls = sols || [], lm = msgs || [], pend = ls.filter(x => x.estado === 'Pendiente'), sinLeer = lm.filter(x => x.del_portal && !x.leido_en).length;
-  if (!ls.length && !lm.length && !(acc || []).length) return;   // sin portal ni actividad: no se ocupa sitio
-  const html = `<section class="blk" id="fportal"><h3>Portal${pend.length ? ` <span class="pill p-warn">${num(pend.length)} material por entregar</span>` : ''}${sinLeer ? ` <span class="pill p-urg">${num(sinLeer)} sin leer</span>` : ''}</h3>
-    ${ls.length ? `<div class="lista">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
-        <span class="sm">Pedido el ${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
-        ${x.estado === 'Pendiente' ? `<button type="button" class="btn chico" data-fpent="${x.id}">Entregado</button>` : ''}</div>`).join('')}</div>` : ''}
-    <div class="fpmsg"><b class="sm">Mensajes</b><div id="fphilo">${hiloMensajes(lm, false)}</div>
-      <div class="fpresp"><input id="fpmsgt" placeholder="Contestar" aria-label="Contestar"><button type="button" class="btn sec" id="fpmsgok">Enviar</button></div></div></section>`;
-  const vis = $('fbody').querySelector('section.fvis');
-  if (vis) vis.insertAdjacentHTML('afterend', html); else $('fbody').insertAdjacentHTML('beforeend', html);
-  const rehacer = () => { const b = $('fportal'); if (b) b.remove(); fichaPortal(id); };
-  $('fportal').querySelectorAll('[data-fpent]').forEach(b => b.onclick = async () => {
-    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.fpent, p_estado: 'Entregado' });
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast('Material entregado: se le avisa'); rehacer();
-  });
-  $('fpmsgok').onclick = async ev => {
-    const t = $('fpmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: id, p_texto: t });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast('Mensaje enviado'); rehacer();
-  };
-  if (sinLeer) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: id });
-}
 
 // (v2.183.0: aquí iba la primera versión de elegirPago; se redefine entera más abajo)
 async function pagoPortal(boton) { const d = await pagoLlamar({ accion: 'portal' }, boton); if (d && d.url) location.href = d.url; }
@@ -23009,38 +23214,6 @@ async function impLotes(filas, modo, simular, imp, avance) {
 }
 
 // Ficha de un centro: qué productos puede pedir y a qué precio (sin IVA; vacío = tarifa)
-async function fichaProductosCentro(id) {
-  if (ES_MEDICO() || !hayExtra('portal') || FICHA_ID !== id || !$('fbody') || $('fprodc')) return;
-  const rf = await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id);
-  const m = (rf && rf.data && rf.data.medico) || {};
-  if (m.tipo !== 'Centro' || FICHA_ID !== id || $('fprodc')) return;
-  if (!PRODUCTOS.length) await cargarProductos();
-  const { data: act } = await db.from('productos_cuenta').select('producto_id,precio').eq('cuenta_id', id);
-  if (FICHA_ID !== id || $('fprodc')) return;
-  const sel = {}; (act || []).forEach(x => sel[x.producto_id] = x);
-  const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && (p.estado || 'Activo') === 'Activo');
-  const html = `<section class="blk" id="fprodc"><h3>Productos del centro <span class="n">${num((act || []).length)}</span></h3>
-    <p class="sm">Lo que puede pedir desde su portal. Precio sin IVA; si lo dejas vacío, el de tarifa.</p>
-    <div class="lista">${lista.map(p => `<label class="item" style="cursor:default"><input type="checkbox" data-fpcp="${p.id}" ${sel[p.id] ? 'checked' : ''}>
-        <span class="tx"><b>${esc(p.nombre)}</b><span class="sm">Tarifa ${p.precio != null ? eurI(p.precio) : '—'} sin IVA</span></span>
-        <input type="number" min="0" step="0.01" data-fpcx="${p.id}" value="${sel[p.id] && sel[p.id].precio != null ? +sel[p.id].precio : ''}" placeholder="Tarifa" style="max-width:120px" aria-label="Precio de ${esc(p.nombre)} para el centro"></label>`).join('')
-      || '<div class="sm">No hay productos activos.</div>'}</div>
-    <div class="acts" style="margin:8px 0 0;justify-content:flex-end"><button type="button" class="btn sec" id="fpcok">Guardar productos</button></div></section>`;
-  const tras = $('fportal') || $('fbody').querySelector('section.fvis');
-  if (tras) tras.insertAdjacentHTML('afterend', html); else $('fbody').insertAdjacentHTML('beforeend', html);
-  $('fpcok').onclick = async ev => {
-    const items = [...$('fprodc').querySelectorAll('[data-fpcp]')].filter(x => x.checked).map(x => {
-      const v = $('fprodc').querySelector(`[data-fpcx="${x.dataset.fpcp}"]`).value;
-      return { producto_id: x.dataset.fpcp, precio: v === '' ? null : Math.max(0, +v) };
-    });
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('guardar_productos_cuenta', { p_cuenta: id, p_items: items });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast(`Productos del centro guardados (${num(r.productos)})`);
-    const b = $('fprodc'); if (b) b.remove(); fichaProductosCentro(id);
-  };
-}
 
 async function verDeposito(cuenta, nombre, aviso) {
   const { data: e, error } = await db.rpc('deposito_estado', { p_cuenta: cuenta });

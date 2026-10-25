@@ -291,10 +291,7 @@ export const accountCardLegacy = {
   planIncludes: (section: string): boolean => planIncluyeSeccion(section),
   canEditType: (type: string | null | undefined): boolean => puedeEditarTipo(type),
   /** The base sections, in their legacy order (each one paints a block of the card). */
-  base: { access: fichaAcceso },
   customFields: (id: string, container: Element | null): Promise<void> => bloqueCampos('cuentas', id, container),
-  portal: (id: string): Promise<void> => fichaPortal(id),
-  centreProducts: (id: string): Promise<void> => fichaProductosCentro(id),
   cycle: (id: string): Promise<void> => cicFicha(id),
 };
 
@@ -347,4 +344,28 @@ export const cardSectionsLegacy = {
   valueText: (value: unknown): string => textoValor(value),
   detailSummary: (detail: unknown): string => resumenDetalle(detail),
   undo: (id: number, then: () => void): void => { void deshacerUno(id, then); },
+};
+
+/** Portal of the account (material requested, messages, products it can order) and platform access: legacy helpers. */
+export const portalLegacy = {
+  hasPortal: (): boolean => hayExtra('portal'),
+  materialPill: (state: string): string => pillMaterial(state),
+  messageThread: (list: PortalMessage[]): string => hiloMensajes(list, false),
+  failureText: (result: PortalResult | null): string => motivoPortal(result),
+  products: async (): Promise<readonly CatalogProduct[]> => { if (!PRODUCTOS.length) await cargarProductos(); return PRODUCTOS; },
+  euros: (value: number): string => eurI(value),
+};
+
+export const accessLegacy = {
+  connectionInfo: (userId: string): void => { void facccon(userId); },
+  canImpersonate: (user: PlatformUser): boolean => puedeVerComo(user),
+  newUser: (preset: Record<string, unknown>): void => { nuevoUsuario(preset); },
+  forgetAccessCache: (): void => { MED_ACCESO = null; },
+  /** A user is created with a separate client (no session kept), as the legacy sign-up did. */
+  signUp: async (email: string, password: string, name: string): Promise<{ message?: string } | null> => {
+    const client = (window as unknown as { supabase: { createClient: (url: string, key: string, options: object) => { auth: { signUp: (data: object) => Promise<{ error: { message?: string } | null }> } } } })
+      .supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { error } = await client.auth.signUp({ email, password, options: { data: { nombre: name, usuario: email.split('@')[0] } } });
+    return error;
+  },
 };

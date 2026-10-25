@@ -3,25 +3,6 @@
 
 
 
-// Ficha · Acceso del médico a la plataforma (administración)
-async function fichaAcceso(id) {
-  // v2.109.0: quien tiene «Dar acceso a fichas de su cartera» lo hace desde la ficha, sin pasar por Usuarios
-  if (!puede('administrar') && puede('dar_acceso_cuentas')) return fichaAccesoCartera(id);
-  if (!puede('administrar') || FICHA_ID !== id || !$('fbody') || $('facceso')) return;
-  const [{ data: us }, rfm] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
-  const ya = (us || []).find(u => u.cuenta_id === id), m = (rfm && rfm.data && rfm.data.medico) || {};   // v2.128.0: m.tipo (centro o no)
-  $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su portal: cifras agregadas, sin importes ni datos de personas'}.</p><p class="sm facccon" data-facccon="${ya.id}"></p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
-      : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
-         <button class="btn sec" id="fdaracc">Dar acceso</button>`
-      : `<p class="sm">Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}) , pedir material y escribir a su comercial. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
-         <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
-  if (ya) facccon(ya.id);   // v2.335.0
-  if ($('fdaracc')) $('fdaracc').onclick = async () => {
-    const { data: f } = await db.rpc('ficha_cuenta', { p_id: id });
-    $('ficha').close(); nuevoUsuario({ medico: { id, nombre: f.medico.nombre }, nombre: f.medico.nombre, email: f.medico.email || '', centro: f.medico.tipo === 'Centro' });
-  };
-}
 
 
 /* v2.75.0 · Cómo se llama una ficha nueva: el vocabulario del cliente o, si no lo ha cambiado, «cuenta» */
@@ -349,39 +330,6 @@ async function centroDesdeUbicacion(box, i, lat, lon) {
     nombre ? 'Datos rellenados con tu ubicación: revísalos.' : 'Dirección rellenada con tu ubicación. El mapa no conoce el nombre del centro: escríbelo.');
 }
 
-async function fichaAccesoCartera(id) {
-  if (FICHA_ID !== id || !$('fbody') || $('facceso')) return;
-  const [{ data: acc }, { data: mia }, rf] = await Promise.all([
-    RPC_ORIG('cuentas_con_acceso', {}),
-    VE_TODO() ? Promise.resolve({ data: [1] }) : db.from('atribuciones').select('cuenta_id').eq('cuenta_id', id).eq('usuario_id', PERFIL.id).is('hasta', null).limit(1),
-    rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
-  const ya = (acc || []).find(x => x.cuenta_id === id), m = (rf && rf.data && rf.data.medico) || {};
-  // Solo en las fichas de su cartera (o en todas si ve todo)
-  if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
-  $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su portal: cifras agregadas, sin importes ni datos de personas'}.</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
-      : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}), pedir material y escribir a su comercial. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
-         <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
-         <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
-  if (!$('fdaracc')) return;
-  $('fdaracc').onclick = async ev => {
-    const email = $('faccmail').value.trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast('Escribe un correo válido', true); return; }
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('dar_acceso_cuenta', { p_cuenta: id, p_email: email });
-    const motivo = { permiso: 'Tu rol no puede dar acceso', cartera: `Solo puedes dar acceso a ${TT('medico', 'p', '', 'l', 'l')} de tu cartera`,
-      ya_tiene: 'Esta ficha ya tiene acceso', correo_en_uso: 'Ese correo ya es de otro usuario', email: 'El correo no es válido',
-      sin_rol_portal: 'No hay ningún rol con acceso al portal: créalo en Configuración → Roles' };
-    if (error || !r || !r.ok) { ev.target.disabled = false; toast(motivo[(r && r.error) || ''] || 'No se ha podido dar acceso', true); return; }
-    const pass = 'Tmp-' + Math.random().toString(36).slice(2, 8);
-    const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { error: e2 } = await tmp.auth.signUp({ email, password: pass, options: { data: { nombre: m.nombre || email.split('@')[0], usuario: email.split('@')[0] } } });
-    ev.target.disabled = false;
-    if (e2) { toast('No se ha podido crear el acceso: ' + e2.message, true); return; }
-    ev.target.remove(); $('faccmail').disabled = true; MED_ACCESO = null;
-    $('faccmsg').innerHTML = `<b style="color:var(--ok)">Acceso creado.</b> Contraseña temporal: <b>${esc(pass)}</b>. Pásasela y que la cambie al entrar.`;
-  };
-}
 
 // Ficha: historial de cambios (de la ficha y de sus consultas), plegado al final; solo administración
 

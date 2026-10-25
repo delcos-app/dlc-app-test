@@ -15,6 +15,7 @@ interface LegacyQuery<T> extends PromiseLike<LegacyResult<T>> {
   or(filter: string): LegacyQuery<T>;
   order(column: string, options?: { ascending?: boolean }): LegacyQuery<T>;
   maybeSingle(): LegacyQuery<T>;
+  is(column: string, value: unknown): LegacyQuery<T>;
 }
 interface LegacyDb {
   rpc<T>(name: string, params?: Record<string, unknown>): PromiseLike<LegacyResult<T>>;
@@ -245,10 +246,7 @@ declare function guardarAvisoRevisita(value: { on: boolean; dias: number }): Pro
 declare let FICHA_ID: string | null;
 declare let FICHA_PAC: unknown;
 declare function puedeEditarTipo(type: string | null | undefined): boolean;
-declare function fichaAcceso(id: string): Promise<void>;
 declare function bloqueCampos(table: string, id: string, container: Element | null): Promise<void>;
-declare function fichaPortal(id: string): Promise<void>;
-declare function fichaProductosCentro(id: string): Promise<void>;
 declare function cicFicha(id: string): Promise<void>;
 declare function verFotosVisita(activityId: string, accountId: string): Promise<void>;
 declare function verEvento(id: string): Promise<void>;
@@ -290,3 +288,19 @@ declare function campoTxt(field: string): string;
 declare function textoValor(value: unknown): string;
 declare function resumenDetalle(detail: unknown): string;
 declare function deshacerUno(id: number, then: () => void): Promise<void>;
+interface PortalMessage { id: string; texto: string; del_portal: boolean; creado_en: string; leido_en?: string | null }
+interface PortalResult { ok?: boolean; motivo?: string; productos?: number }
+interface CatalogProduct { id: string; nombre: string; tipo?: string | null; estado?: string | null; precio?: number | null }
+interface PlatformUser { id: string; cuenta_id?: string | null; email?: string | null; activo?: boolean }
+declare let PRODUCTOS: CatalogProduct[];
+declare let MED_ACCESO: unknown;
+declare const CFG: { url: string; anon: string };
+declare function hayExtra(extra: string): boolean;
+declare function pillMaterial(state: string): string;
+declare function hiloMensajes(list: PortalMessage[], fromProfessional: boolean): string;
+declare function motivoPortal(result: PortalResult | null): string;
+declare function cargarProductos(): Promise<void>;
+declare function eurI(value: number): string;
+declare function facccon(userId: string): Promise<void>;
+declare function puedeVerComo(user: PlatformUser): boolean;
+declare function nuevoUsuario(preset: Record<string, unknown>): void;

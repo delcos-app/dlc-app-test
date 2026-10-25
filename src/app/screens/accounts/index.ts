@@ -3,3 +3,4 @@
  * the map, the editor and the centres are still legacy (src/pantallas/cuentas.js, clientes.js).
  */
 export { openAccountCard } from './card';
+export { refreshPortal } from './card/sections-portal';

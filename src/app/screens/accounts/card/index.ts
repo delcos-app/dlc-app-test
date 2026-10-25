@@ -8,10 +8,12 @@
 import { accountCardLegacy } from '../../../legacy/bridge';
 import { paintBase as paintBaseBlocks } from './base';
 import { archiveButtons, centreProfessionals, cycle } from './sections-account';
+import { platformAccess } from './sections-access';
 import { changeHistory, portalProposal } from './sections-admin';
 import { timetableNotice, units } from './sections-base';
 import { presentedProducts, visitMaterial, visitPhotos } from './sections-history';
 import { deposit, equipment, events, samples, surgeries, tenders } from './sections-related';
+import { centreProducts, portalActivity } from './sections-portal';
 import { associatedClients, salesRepAndPatients } from './sections-sales';
 
 /** A section: `wait` false runs it without waiting (it fills its block when its data arrives). */
@@ -30,7 +32,7 @@ const BASE: readonly Section[] = [
 ];
 
 /** Right after the base, while the centre of the appointment (if the card was opened from one) still counts. */
-const ACCESS: Section = { name: 'access', run: id => accountCardLegacy.base.access(id) };
+const ACCESS: Section = { name: 'platformAccess', run: platformAccess };
 const CUSTOM_FIELDS: Section = {
   name: 'customFields', wait: false,
   run: id => accountCardLegacy.customFields(id, document.getElementById('fzcampos') ?? document.querySelector('#ficha .fbody, #ficha #fbody') ?? document.getElementById('ficha')?.firstElementChild ?? null),
@@ -39,8 +41,8 @@ const CUSTOM_FIELDS: Section = {
 /** After that, in order. */
 const SECTIONS: readonly Section[] = [
   { name: 'changeHistory', run: changeHistory, wait: false },
-  { name: 'portal', run: id => accountCardLegacy.portal(id), wait: false },
-  { name: 'centreProducts', run: id => accountCardLegacy.centreProducts(id), wait: false },
+  { name: 'portalActivity', run: portalActivity, wait: false },
+  { name: 'centreProducts', run: centreProducts, wait: false },
   { name: 'visitPhotos', run: visitPhotos },
   { name: 'samples', run: samples },
   { name: 'events', run: events },
