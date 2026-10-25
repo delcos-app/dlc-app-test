@@ -36,8 +36,6 @@ function menuEventos() {
 
 const verTransparencia = () => puede('administrar') || VE_TODO();
 
-// Editar una visita: cómo fue y productos presentados (actualizar_actividad los guarda desde el SQL 128)
-let EV_EXTRA = null;
 
 // Eventos está en src/app/screens/events (v2.407.0). Estos nombres se quedan: las pestañas de la página (legado 079),
 // «‹ Volver» (envuelve las ventanas por su nombre) y las pruebas los usan.

@@ -8,6 +8,8 @@ import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
+import { visitBlock, visitConsultation } from '../../visit/card-block';
+import { editVisit } from '../../visit/edit';
 
 const WORKDAYS = ['L', 'M', 'X', 'J', 'V'], SHOWN_VISITS = 10;
 const SKELETON = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
@@ -82,11 +84,11 @@ function visitsHtml(visits: readonly CardVisit[]): string {
 
 function cardHtml(data: Required<Pick<CardData, 'medico'>> & CardData, cached: boolean): string {
   const account = data.medico, consultations = data.consultas ?? [], visits = data.visitas ?? [];
-  const forVisit = cardBaseLegacy.visitConsultation(consultations);
+  const forVisit = visitConsultation(consultations);
   return `${cached ? `<div class="cacheaviso">${t('accounts.base.cachedNotice')}</div>` : ''}
     ${headerHtml(account)}
     ${actionsHtml(account)}
-    ${cardBaseLegacy.visitBlock(account, consultations, visits)}
+    ${visitBlock(account, consultations, visits)}
     ${stateHtml(account, data.comerciales ?? [])}
     ${consultations.filter(consultation => consultation !== forVisit).map(consultationHtml).join('')}
     ${visitsHtml(visits)}
@@ -107,6 +109,6 @@ export async function paintBase(id: string): Promise<void> {
   box.innerHTML = cardHtml({ ...data, medico: account }, Boolean(result.cache));
   const close = document.getElementById('fx'); if (close) close.onclick = (): void => { card.close(); };
   box.querySelectorAll<HTMLElement>('[data-editv]').forEach(button => {
-    button.onclick = (): void => { cardBaseLegacy.editVisit(JSON.parse(button.dataset.editv ?? '{}') as CardVisit, id); };
+    button.onclick = (): void => { void editVisit(JSON.parse(button.dataset.editv ?? '{}') as CardVisit, id); };
   });
 }

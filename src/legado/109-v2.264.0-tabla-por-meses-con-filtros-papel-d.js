@@ -8,15 +8,6 @@
    - Panel delcos → Organizaciones: «Desactivar» y «Volver a activar» cada empresa (sus usuarios no pueden entrar mientras está
      desactivada; sus datos no se tocan). Desactivada, se puede borrar si no tiene facturas.
    ============================================================ */
-// La tabla por meses con los filtros de la pantalla
-db.rpc = (orig => function (fn, args, ...r) {
-  if (fn === 'analitica_tabla' && TAB === 'analitica' && args && !('p_producto' in args) && $('aprod')) {
-    args = Object.assign({}, args, {
-      p_medico: AN_MED ? AN_MED.id : null, p_comercial: ($('acom') && $('acom').value) || null,
-      p_producto: $('aprod').value || null, p_reporting: ($('arep') && $('arep').value) || null, p_reportado: ($('areprt') && $('areprt').value) || null });
-  }
-  return orig.call(this, fn, args, ...r);
-})(db.rpc);
 
 function arbolCfgUnicoBase4(...a) {
   const g = arbolCfgUnicoBase3.apply(this, a);

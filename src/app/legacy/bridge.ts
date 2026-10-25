@@ -313,13 +313,10 @@ export const relatedLegacy = {
 
 /** What the base of the account card uses from legacy: the «Para la visita» block (Visitas), permissions and the units chart. */
 export const cardBaseLegacy = {
-  visitBlock: (account: CardAccount, consultations: CardConsultation[], visits: CardVisit[]): string => fichaVisitaHTML(account, consultations, visits),
-  visitConsultation: (consultations: CardConsultation[]): CardConsultation | undefined => consultaDeLaVisita(consultations),
   states: (): string[] => estados(),
   canRecord: (): boolean => puedeRegistrar(),
   canEdit: (): boolean => puedeEditar(),
   directionsAttribute: (point: [number, number]): string => navAttr(point),
-  editVisit: (visit: CardVisit, accountId: string): void => { void editarVisita(visit, accountId); },
   unitsChart: (units: AccountUnits, series: string): string => sparkUnidades(units, series),
   unitsLegend: (series: string): string => leyendaUnidades(series),
   unitsSeries: (): readonly [string, string][] => UDS_SERIES,

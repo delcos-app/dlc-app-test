@@ -41,7 +41,7 @@ export default tseslint.config(
   {
     // Legacy names (TT, ES_MEDICO, KV_INI…) are declared as they are; they disappear when their piece is migrated.
     // Untyped legacy calls (rpcCache) are typed by the caller: the type parameter is only in the result
-    files: ['src/app/legacy/globals.d.ts'],
+    files: ['src/app/legacy/*globals.d.ts'],
     rules: { '@typescript-eslint/naming-convention': 'off', '@typescript-eslint/no-unnecessary-type-parameters': 'off', 'id-length': 'off' },
   },
 );

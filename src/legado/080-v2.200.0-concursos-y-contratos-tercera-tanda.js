@@ -73,13 +73,6 @@ async function cargarAdmin(...a) {
   return cargarAdminBase.apply(this, a);
 }
 
-db.rpc = (orig => function (fn, args, ...r) {
-  if (fn === 'actualizar_actividad' && EV_EXTRA && args && args.p && args.p.id === EV_EXTRA.id) {
-    args = Object.assign({}, args, { p: Object.assign({}, args.p, { modo: EV_EXTRA.modo }, $('evprods') ? { productos: EV_EXTRA.productos } : {}) });
-  }
-  return orig.call(this, fn, args, ...r);
-})(db.rpc);
-$('dlg').addEventListener('close', () => { setTimeout(() => { if (!$('dlg').open) EV_EXTRA = null; }, 0); });
 
 // El buscador de arriba, con el vocabulario de la empresa
 function aplicarPermisosMenu(...a) {

@@ -265,8 +265,6 @@ interface CardData { medico?: CardAccount; consultas?: CardConsultation[]; visit
 interface AccountUnits { hoy: number; semana: number; mes: number; trimestre: number; anio: number; total: number; pautas: number; ultima: string }
 declare let UDS_SERIE: string;
 declare const UDS_SERIES: [string, string][];
-declare function fichaVisitaHTML(account: CardAccount, consultations: CardConsultation[], visits: CardVisit[]): string;
-declare function consultaDeLaVisita(consultations: CardConsultation[]): CardConsultation | undefined;
 declare function estados(): string[];
 declare function puedeRegistrar(): boolean;
 declare function puedeEditar(): boolean;
