@@ -8,6 +8,7 @@ import { addDays, fromIsoDate, mondayOf, todayIso } from '../../services/dates';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml } from '../../services/format';
 import { orFallback, range } from '../../services/values';
+import { weekLoads, withData } from './preload';
 
 const SHOWN_PER_DAY = 3, WEEK_DAYS = 7;
 
@@ -80,5 +81,5 @@ async function paint(): Promise<void> {
 
 /** Paints «Tu semana» (in the day view, after the week data is preloaded so it appears in one go). */
 export function paintWeekSidebar(): Promise<void> {
-  return legacyAgenda.isDayView() ? legacyAgendaParts.withWeekData(legacyAgenda.selectedDate(), paint) : paint();
+  return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint) : paint();
 }

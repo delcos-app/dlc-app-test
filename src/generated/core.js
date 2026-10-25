@@ -687,6 +687,7 @@
   var agenda_exports = {};
   __export(agenda_exports, {
     closeMonth: () => closeMonth,
+    data: () => preload_exports,
     dueList: () => dueList,
     groupByAttendance: () => groupByAttendance,
     metricsHtml: () => metricsHtml,
@@ -822,9 +823,21 @@
     },
     shareWeek: () => {
       void agRepartirSemana();
-    },
-    /** Runs `paint` once the data of the week of `isoDate` is preloaded. */
-    withWeekData: (isoDate, paint2) => agConDatos(agSemCargas(isoDate), paint2)
+    }
+  };
+  var agendaSources = {
+    /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
+    ownerId: () => agUid(),
+    isOwnAgenda: () => agUid() === PERFIL.id,
+    stripStart: () => CINTA_INI,
+    /** «Tu día» of this date arrives already loaded (from Inicio). */
+    hasPresetDay: (isoDate) => TD_PRESET?.fecha === isoDate,
+    dayTasks: (isoDate) => tareasDelDia(isoDate),
+    blockedDays: (fromIsoDate2, toIsoDate2) => bloqueadosSemanaBase(fromIsoDate2, toIsoDate2),
+    setSuggestions: (isoDate, suggestions) => {
+      AG_PEND = suggestions.pend;
+      AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
+    }
   };
 
   // src/app/services/dates.ts
@@ -1200,9 +1213,91 @@
     });
   }
 
+  // src/app/screens/agenda/preload.ts
+  var preload_exports = {};
+  __export(preload_exports, {
+    applySuggestions: () => applySuggestions,
+    dayLoads: () => dayLoads,
+    loadSuggestions: () => loadSuggestions,
+    peekBlocked: () => peekBlocked,
+    peekRange: () => peekRange,
+    stripLoads: () => stripLoads,
+    weekLoads: () => weekLoads,
+    withData: () => withData
+  });
+  var STRIP_DAYS = 14;
+  var WEEK_DAYS = 7;
+  var DUE_LIMIT = 60;
+  var preloaded = /* @__PURE__ */ new Map();
+  var painting = 0;
+  var keyOf = (name, from, to, user) => [name, from, to, user ?? ""].join("|");
+  function peekRange(params) {
+    if (!preloaded.size || !params.p_desde || !params.p_hasta) return void 0;
+    return preloaded.get(keyOf("agenda_rango", params.p_desde, params.p_hasta, params.p_usuario));
+  }
+  function peekBlocked(from, to) {
+    return preloaded.get(keyOf("bloq", from, to, agendaSources.ownerId()));
+  }
+  function loadRange(from, to, user, cacheKey) {
+    const key = keyOf("agenda_rango", from, to, user);
+    if (preloaded.has(key)) return null;
+    return cachedRpc("agenda_rango", { p_desde: from, p_hasta: to, p_usuario: user }, cacheKey).then((result) => {
+      preloaded.set(key, result);
+    });
+  }
+  function loadBlocked(from, to) {
+    const key = keyOf("bloq", from, to, agendaSources.ownerId());
+    if (preloaded.has(key)) return null;
+    return agendaSources.blockedDays(from, to).catch(() => ({})).then((blocked) => {
+      preloaded.set(key, blocked);
+    });
+  }
+  function dayLoads(isoDate) {
+    return [
+      agendaSources.hasPresetDay(isoDate) ? null : loadRange(isoDate, isoDate, legacyAgenda.userFilter(), `agenda-${isoDate}`),
+      agendaSources.dayTasks(isoDate).catch(() => null)
+    ];
+  }
+  function stripLoads() {
+    const start = agendaSources.stripStart() ?? mondayOf(legacyAgenda.selectedDate() ?? todayIso()), owner = agendaSources.ownerId();
+    return [loadRange(start, addDays(start, STRIP_DAYS - 1), owner, `agenda-cinta-${owner}-${start}`), loadBlocked(start, addDays(start, STRIP_DAYS - 1))];
+  }
+  function weekLoads(isoDate) {
+    const monday = mondayOf(isoDate ?? legacyAgenda.selectedDate() ?? todayIso());
+    return [loadRange(monday, addDays(monday, WEEK_DAYS - 1), legacyAgenda.userFilter(), `agenda-${monday}`), loadBlocked(monday, addDays(monday, WEEK_DAYS - 1))];
+  }
+  var listOf = (request) => Promise.resolve(request).then((result) => result.data ?? [], () => []);
+  async function loadSuggestions(isoDate) {
+    const future = isoDate >= todayIso(), own = agendaSources.isOwnAgenda(), owner = agendaSources.ownerId();
+    const [pend, toca, centros] = await Promise.all([
+      listOf(callRpc("pendientes_ruta", {})),
+      future ? listOf(legacyDb().rpc("toca_actividad", { p_usuario: own && permissions.seesEverything() ? null : owner, lim: DUE_LIMIT })) : [],
+      future ? listOf(callRpc("sugerencias_centros", { p_fecha: isoDate, p_usuario: own ? null : owner })) : []
+    ]);
+    return { date: isoDate, pend, toca, centros };
+  }
+  function applySuggestions(isoDate, suggestions) {
+    if (suggestions?.date === isoDate) agendaSources.setSuggestions(isoDate, suggestions);
+  }
+  async function withData(loads, paint2) {
+    painting++;
+    try {
+      await Promise.all(loads.filter(Boolean).map((load2) => Promise.resolve(load2).catch(() => null)));
+      return await paint2();
+    } finally {
+      setTimeout(() => {
+        painting--;
+        if (painting <= 0) {
+          painting = 0;
+          preloaded.clear();
+        }
+      }, 0);
+    }
+  }
+
   // src/app/screens/agenda/week-sidebar.ts
   var SHOWN_PER_DAY = 3;
-  var WEEK_DAYS = 7;
+  var WEEK_DAYS2 = 7;
   var timeOf = (item) => String(item.hora ?? "");
   function byDay(list) {
     const days = /* @__PURE__ */ new Map();
@@ -1264,11 +1359,11 @@
     if (!box) return;
     const today = todayIso(), selected = legacyAgenda.selectedDate(), monday = mondayOf(selected ?? today);
     const [result, blocked] = await Promise.all([
-      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: addDays(monday, WEEK_DAYS - 1), p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
-      legacyAgendaParts.blockedDays(monday, WEEK_DAYS)
+      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: addDays(monday, WEEK_DAYS2 - 1), p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
+      legacyAgendaParts.blockedDays(monday, WEEK_DAYS2)
     ]);
     if (!document.getElementById("agsemlat")) return;
-    const days = range(WEEK_DAYS).map((index) => addDays(monday, index)), perDay = byDay(result.data ?? []);
+    const days = range(WEEK_DAYS2).map((index) => addDays(monday, index)), perDay = byDay(result.data ?? []);
     const context = { today, selected, blocked };
     box.innerHTML = `<h2>${t("agenda.week.title")}</h2><p class="sm agslnota">${t("agenda.week.hint")}</p>
     <div class="agsl">${days.map((day) => dayHtml(day, perDay.get(day) ?? [], context)).join("")}</div>
@@ -1276,7 +1371,7 @@
     bind(box, blocked);
   }
   function paintWeekSidebar() {
-    return legacyAgenda.isDayView() ? legacyAgendaParts.withWeekData(legacyAgenda.selectedDate(), paint) : paint();
+    return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint) : paint();
   }
 
   // src/app/screens/agenda/trays.ts

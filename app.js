@@ -687,6 +687,7 @@
   var agenda_exports = {};
   __export(agenda_exports, {
     closeMonth: () => closeMonth,
+    data: () => preload_exports,
     dueList: () => dueList,
     groupByAttendance: () => groupByAttendance,
     metricsHtml: () => metricsHtml,
@@ -822,9 +823,21 @@
     },
     shareWeek: () => {
       void agRepartirSemana();
-    },
-    /** Runs `paint` once the data of the week of `isoDate` is preloaded. */
-    withWeekData: (isoDate, paint2) => agConDatos(agSemCargas(isoDate), paint2)
+    }
+  };
+  var agendaSources = {
+    /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
+    ownerId: () => agUid(),
+    isOwnAgenda: () => agUid() === PERFIL.id,
+    stripStart: () => CINTA_INI,
+    /** «Tu día» of this date arrives already loaded (from Inicio). */
+    hasPresetDay: (isoDate) => TD_PRESET?.fecha === isoDate,
+    dayTasks: (isoDate) => tareasDelDia(isoDate),
+    blockedDays: (fromIsoDate2, toIsoDate2) => bloqueadosSemanaBase(fromIsoDate2, toIsoDate2),
+    setSuggestions: (isoDate, suggestions) => {
+      AG_PEND = suggestions.pend;
+      AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
+    }
   };
 
   // src/app/services/dates.ts
@@ -1200,9 +1213,91 @@
     });
   }
 
+  // src/app/screens/agenda/preload.ts
+  var preload_exports = {};
+  __export(preload_exports, {
+    applySuggestions: () => applySuggestions,
+    dayLoads: () => dayLoads,
+    loadSuggestions: () => loadSuggestions,
+    peekBlocked: () => peekBlocked,
+    peekRange: () => peekRange,
+    stripLoads: () => stripLoads,
+    weekLoads: () => weekLoads,
+    withData: () => withData
+  });
+  var STRIP_DAYS = 14;
+  var WEEK_DAYS = 7;
+  var DUE_LIMIT = 60;
+  var preloaded = /* @__PURE__ */ new Map();
+  var painting = 0;
+  var keyOf = (name, from, to, user) => [name, from, to, user ?? ""].join("|");
+  function peekRange(params) {
+    if (!preloaded.size || !params.p_desde || !params.p_hasta) return void 0;
+    return preloaded.get(keyOf("agenda_rango", params.p_desde, params.p_hasta, params.p_usuario));
+  }
+  function peekBlocked(from, to) {
+    return preloaded.get(keyOf("bloq", from, to, agendaSources.ownerId()));
+  }
+  function loadRange(from, to, user, cacheKey) {
+    const key = keyOf("agenda_rango", from, to, user);
+    if (preloaded.has(key)) return null;
+    return cachedRpc("agenda_rango", { p_desde: from, p_hasta: to, p_usuario: user }, cacheKey).then((result) => {
+      preloaded.set(key, result);
+    });
+  }
+  function loadBlocked(from, to) {
+    const key = keyOf("bloq", from, to, agendaSources.ownerId());
+    if (preloaded.has(key)) return null;
+    return agendaSources.blockedDays(from, to).catch(() => ({})).then((blocked) => {
+      preloaded.set(key, blocked);
+    });
+  }
+  function dayLoads(isoDate) {
+    return [
+      agendaSources.hasPresetDay(isoDate) ? null : loadRange(isoDate, isoDate, legacyAgenda.userFilter(), `agenda-${isoDate}`),
+      agendaSources.dayTasks(isoDate).catch(() => null)
+    ];
+  }
+  function stripLoads() {
+    const start = agendaSources.stripStart() ?? mondayOf(legacyAgenda.selectedDate() ?? todayIso()), owner = agendaSources.ownerId();
+    return [loadRange(start, addDays(start, STRIP_DAYS - 1), owner, `agenda-cinta-${owner}-${start}`), loadBlocked(start, addDays(start, STRIP_DAYS - 1))];
+  }
+  function weekLoads(isoDate) {
+    const monday = mondayOf(isoDate ?? legacyAgenda.selectedDate() ?? todayIso());
+    return [loadRange(monday, addDays(monday, WEEK_DAYS - 1), legacyAgenda.userFilter(), `agenda-${monday}`), loadBlocked(monday, addDays(monday, WEEK_DAYS - 1))];
+  }
+  var listOf = (request) => Promise.resolve(request).then((result) => result.data ?? [], () => []);
+  async function loadSuggestions(isoDate) {
+    const future = isoDate >= todayIso(), own = agendaSources.isOwnAgenda(), owner = agendaSources.ownerId();
+    const [pend, toca, centros] = await Promise.all([
+      listOf(callRpc("pendientes_ruta", {})),
+      future ? listOf(legacyDb().rpc("toca_actividad", { p_usuario: own && permissions.seesEverything() ? null : owner, lim: DUE_LIMIT })) : [],
+      future ? listOf(callRpc("sugerencias_centros", { p_fecha: isoDate, p_usuario: own ? null : owner })) : []
+    ]);
+    return { date: isoDate, pend, toca, centros };
+  }
+  function applySuggestions(isoDate, suggestions) {
+    if (suggestions?.date === isoDate) agendaSources.setSuggestions(isoDate, suggestions);
+  }
+  async function withData(loads, paint2) {
+    painting++;
+    try {
+      await Promise.all(loads.filter(Boolean).map((load2) => Promise.resolve(load2).catch(() => null)));
+      return await paint2();
+    } finally {
+      setTimeout(() => {
+        painting--;
+        if (painting <= 0) {
+          painting = 0;
+          preloaded.clear();
+        }
+      }, 0);
+    }
+  }
+
   // src/app/screens/agenda/week-sidebar.ts
   var SHOWN_PER_DAY = 3;
-  var WEEK_DAYS = 7;
+  var WEEK_DAYS2 = 7;
   var timeOf = (item) => String(item.hora ?? "");
   function byDay(list) {
     const days = /* @__PURE__ */ new Map();
@@ -1264,11 +1359,11 @@
     if (!box) return;
     const today = todayIso(), selected = legacyAgenda.selectedDate(), monday = mondayOf(selected ?? today);
     const [result, blocked] = await Promise.all([
-      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: addDays(monday, WEEK_DAYS - 1), p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
-      legacyAgendaParts.blockedDays(monday, WEEK_DAYS)
+      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: addDays(monday, WEEK_DAYS2 - 1), p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
+      legacyAgendaParts.blockedDays(monday, WEEK_DAYS2)
     ]);
     if (!document.getElementById("agsemlat")) return;
-    const days = range(WEEK_DAYS).map((index) => addDays(monday, index)), perDay = byDay(result.data ?? []);
+    const days = range(WEEK_DAYS2).map((index) => addDays(monday, index)), perDay = byDay(result.data ?? []);
     const context = { today, selected, blocked };
     box.innerHTML = `<h2>${t("agenda.week.title")}</h2><p class="sm agslnota">${t("agenda.week.hint")}</p>
     <div class="agsl">${days.map((day) => dayHtml(day, perDay.get(day) ?? [], context)).join("")}</div>
@@ -1276,7 +1371,7 @@
     bind(box, blocked);
   }
   function paintWeekSidebar() {
-    return legacyAgenda.isDayView() ? legacyAgendaParts.withWeekData(legacyAgenda.selectedDate(), paint) : paint();
+    return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint) : paint();
   }
 
   // src/app/screens/agenda/trays.ts
@@ -3665,7 +3760,8 @@ async function rpcCacheBase5(fn, params, clave) {
 }
 
 function rpcCache(fn, params, clave, ...x) {
-  if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
+  // Lo precargado por la Agenda (src/app/screens/agenda/preload.ts) se usa sin volver a la red
+  if (fn === 'agenda_rango' && params) { const pre = window.delcos.screens.agenda.data.peekRange(params); if (pre !== undefined) return Promise.resolve(pre); }
   return rpcCacheBase5.call(this, fn, params, clave, ...x);
 }
 // servicios/archivos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
@@ -7327,6 +7423,9 @@ function mostrarLogin(...a) { document.body.classList.add('sin-sesion'); return 
 // pantallas/agenda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
+// La precarga de datos de la Agenda está en src/app/screens/agenda/preload.ts (v2.393.0)
+const datosAgenda = window.delcos.screens.agenda.data;
+
 function jornadaActiva() {
   let j = null;
   try { j = JSON.parse(localStorage.getItem(JKEY()) || 'null'); } catch (e) {}
@@ -7865,49 +7964,6 @@ function tdAnimar(antes, id, dur = 300) {
 }
 
 // ---- Pastillas: las cifras de agenda_metricas
-function agCargaRango(d, h, u, clave) {
-  const k = agK('agenda_rango', d, h, u); if (AG_PRE.has(k)) return null;
-  return rpcCache('agenda_rango', { p_desde: d, p_hasta: h, p_usuario: u }, clave).then(r => { AG_PRE.set(k, r); });
-}
-
-function agCargaBloq(d, h) {
-  const k = agK('bloq', d, h, agUid()); if (AG_PRE.has(k)) return null;
-  return bloqueadosSemana(d, h).catch(() => ({})).then(b => { AG_PRE.set(k, b || {}); });
-}
-
-// Lo que necesita cada pieza (con los mismos parámetros con que la pieza los pide)
-function agDiaCargas(f) {
-  return [TD_PRESET && TD_PRESET.fecha === f ? null : agCargaRango(f, f, agUsuarioFiltro(), 'agenda-' + f), Promise.resolve(tareasDelDia(f)).catch(() => null)];
-}
-
-function agCintaCargas() {
-  const ini = CINTA_INI || lunesCinta(AG_FECHA || hoyISO());
-  return [agCargaRango(ini, diasMas(ini, 13), agUid(), 'agenda-cinta-' + agUid() + '-' + ini), agCargaBloq(ini, isoMas(ini, 13))];
-}
-
-function agSemCargas(f) { const d = lunesDe(f || AG_FECHA || hoyISO()); return [agCargaRango(d, isoMas(d, 6), agUsuarioFiltro(), 'agenda-' + d), agCargaBloq(d, isoMas(d, 6))]; }
-
-function agSugDatos(f) {
-  const hoy = hoyISO(), uid = agUid(), yo = uid === PERFIL.id, nada = { data: [] };
-  const seguro = p => Promise.resolve(p).catch(() => nada);
-  return Promise.all([
-    seguro(RPC_ORIG('pendientes_ruta', {})),
-    f >= hoy ? seguro(db.rpc('toca_actividad', { p_usuario: yo && VE_TODO() ? null : uid, lim: 60 })) : nada,
-    f >= hoy ? seguro(RPC_ORIG('sugerencias_centros', { p_fecha: f, p_usuario: yo ? null : uid })) : nada
-  ]).then(([rp, rt, rc]) => ({ f, pend: (rp && rp.data) || [], toca: (rt && rt.data) || [], centros: (rc && rc.data) || [] }));
-}
-
-function agPonerSug(f, s) { if (!s || s.f !== f) return; AG_PEND = s.pend; AG_SUG = { fecha: f, toca: s.toca, centros: s.centros }; }
-
-// Pide todo lo de «cargas» y después pinta sin esperar a la red (los datos quedan en AG_PRE hasta el final de ese pintado)
-async function agConDatos(cargas, pintar) {
-  AG_PRE_USO++;
-  try {
-    await Promise.all((cargas || []).filter(Boolean).map(p => Promise.resolve(p).catch(() => null)));
-    return await pintar();
-  } finally { setTimeout(() => { if (--AG_PRE_USO <= 0) { AG_PRE_USO = 0; AG_PRE.clear(); } }, 0); }
-}
-
 // ---- La Agenda: vista del día (con la semana o el mes abiertos si se piden) o Equipo
 async function cargarAgenda() {
   if (TAB !== 'agenda' || !$('v-agenda')) return;
@@ -7943,12 +7999,12 @@ async function agCargarDia() {
   const y = scrollY, mismo = v.classList.contains('agn') && $('agcuerpo');
   if (mismo) $('agcuerpo').classList.add('agcargando');
   let s = null, met = null;
-  await agConDatos([...agDiaCargas(f), agSugDatos(f).then(x => { s = x; }),
+  await datosAgenda.withData([...datosAgenda.dayLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; }),
     Promise.resolve(RPC_ORIG('agenda_metricas', { p_usuario: AG_VISTA ? AG_VISTA.id : null })).then(r => { met = r && r.data; }),
-    ...agCintaCargas(), ...agSemCargas(f), VE_TODO() && !COMS.length ? cargarComerciales() : null], async () => {
+    ...datosAgenda.stripLoads(), ...datosAgenda.weekLoads(f), VE_TODO() && !COMS.length ? cargarComerciales() : null], async () => {
     if (AG_FECHA !== f || TAB !== 'agenda' || AG_MODO !== 'dia') return;
     if (met) AG_MET = met;
-    agPonerSug(f, s);
+    datosAgenda.applySuggestions(f, s);
     v.classList.add('agunida', 'agcinta', 'agb', 'agn');
     v.innerHTML = `
       <div class="saludo"><div><h1>Agenda</h1><div class="fecha" id="agtit">${esc('Hoy · ' + fechaLarga(new Date(hoyISO() + 'T00:00:00')) + (AG_VISTA ? ' · agenda de ' + AG_VISTA.nombre : ''))}</div></div>
@@ -7994,9 +8050,9 @@ function agCifrasQuietas() {
   if (!agN()) return;
   const f = AG_FECHA; let s = null;
   void window.delcos.screens.agenda.reloadMetrics();
-  agConDatos([...agCintaCargas(), ...agSemCargas(f), agSugDatos(f).then(x => { s = x; })], async () => {
+  datosAgenda.withData([...datosAgenda.stripLoads(), ...datosAgenda.weekLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; })], async () => {
     if (AG_FECHA !== f || !agN()) return;
-    agPonerSug(f, s);
+    datosAgenda.applySuggestions(f, s);
     await Promise.all([agCinta(), window.delcos.screens.agenda.paintWeekSidebar()]);
     window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons();
   });
@@ -8219,7 +8275,6 @@ const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
 // se guarda lo último de cada día y se usa el del día que se ve
 const AG_DIAS_DATOS = {};
 
-const agK = (fn, d, h, u) => [fn, d, h, u || ''].join('|');
 
 const tdClaveXY = (a, b) => a && b && a[0] != null && b[0] != null ? `${(+a[0]).toFixed(5)},${(+a[1]).toFixed(5)}>${(+b[0]).toFixed(5)},${(+b[1]).toFixed(5)}` : '';
 
@@ -8407,16 +8462,16 @@ function agMarcarDia(...a) {
   return r;
 }
 
-function bloqueadosSemana(d, h, ...x) {
-  const k = agK('bloq', d, h, agUid()); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k));
-  return bloqueadosSemanaBase.call(this, d, h, ...x);
+function bloqueadosSemana(d, h) {
+  const pre = datosAgenda.peekBlocked(d, h); if (pre) return Promise.resolve(pre);
+  return bloqueadosSemanaBase(d, h);
 }
 
 // ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
 async function agCinta() {
   if (!agN()) return;
   if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoyISO());
-  return agConDatos([...agCintaCargas(), ...(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [])], async () => {
+  return datosAgenda.withData([...datosAgenda.stripLoads(), ...(AG_SEM_ABIERTA ? datosAgenda.weekLoads(AG_FECHA) : [])], async () => {
     await agCintaBase();
     if (!agN() || !$('agcinta')) return;
     await agMenusCinta();
@@ -8650,9 +8705,9 @@ async function pintarTuDiaBase() {
   if (!agConCinta()) return;
   const f = AG_FECHA;
   let s = null;
-  await agConDatos([...agDiaCargas(f), !AG_SUG || AG_SUG.fecha !== f ? agSugDatos(f).then(x => { s = x; }) : null], async () => {
+  await datosAgenda.withData([...datosAgenda.dayLoads(f), !AG_SUG || AG_SUG.fecha !== f ? datosAgenda.loadSuggestions(f).then(x => { s = x; }) : null], async () => {
     if (AG_FECHA !== f || !agConCinta()) return;
-    agPonerSug(f, s);
+    datosAgenda.applySuggestions(f, s);
     await tdPintar();
     if (agN()) { window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons(); }
   });
@@ -8660,7 +8715,7 @@ async function pintarTuDiaBase() {
 
 function agPintarSemanaExp(...a) {
   if (!agN()) return agPintarSemanaExpBase2.apply(this, a);
-  return agConDatos(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [], () => agPintarSemanaExpBase2.apply(this, a));
+  return datosAgenda.withData(AG_SEM_ABIERTA ? datosAgenda.weekLoads(AG_FECHA) : [], () => agPintarSemanaExpBase2.apply(this, a));
 }
 
 async function pintarTuDiaBase2(...a) {
@@ -8756,9 +8811,9 @@ async function agVerDia(f) {
   const otraSem = lunesDe(f) !== lunesDe(antes);
   let s = null;
   try {
-    await agConDatos([...agDiaCargas(f), agSugDatos(f).then(x => { s = x; }), ...(fuera ? agCintaCargas() : []), ...agSemCargas(f)], async () => {
+    await datosAgenda.withData([...datosAgenda.dayLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; }), ...(fuera ? datosAgenda.stripLoads() : []), ...datosAgenda.weekLoads(f)], async () => {
       if (AG_FECHA !== f || !agN()) return;
-      agPonerSug(f, s);
+      datosAgenda.applySuggestions(f, s);
       const piezas = [pintarTuDia(), window.delcos.screens.agenda.paintWeekSidebar()];
       if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
       await Promise.all(piezas);
@@ -31034,7 +31089,7 @@ let AG_MET = null, AG_SUG = null, AG_PEND = null;
    - Las bandejas «Les toca visita» y «Pendientes de días anteriores» vuelven a abrirse (desde la v2.245 no hacían nada).
    - «Ver la semana» cambia su texto cuando la semana ya está pintada; el mes se abre ya pintado.
    ============================================================ */
-const AG_PRE = new Map(); let AG_PRE_USO = 0;
+// AG_PRE y AG_PRE_USO están en src/app/screens/agenda/preload.ts desde la v2.393.0
 
 
 

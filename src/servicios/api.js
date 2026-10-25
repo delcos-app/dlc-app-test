@@ -263,6 +263,7 @@ async function rpcCacheBase5(fn, params, clave) {
 }
 
 function rpcCache(fn, params, clave, ...x) {
-  if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
+  // Lo precargado por la Agenda (src/app/screens/agenda/preload.ts) se usa sin volver a la red
+  if (fn === 'agenda_rango' && params) { const pre = window.delcos.screens.agenda.data.peekRange(params); if (pre !== undefined) return Promise.resolve(pre); }
   return rpcCacheBase5.call(this, fn, params, clave, ...x);
 }

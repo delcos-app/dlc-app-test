@@ -121,12 +121,25 @@ export const sidePanel = {
   setContext: (value: string): void => { HERR_CTX = value; },
 };
 
-/** Agenda pieces and data loading still in legacy (the preload of agConDatos keeps one paint without network waits). */
+/** Agenda pieces still in legacy. */
 export const legacyAgendaParts = {
   mode: (): string => AG_MODO,
   blockedDays: (fromIsoDate: string, days: number): Promise<Record<string, string>> => agBloqueos(fromIsoDate, days),
   dayMenu: (button: HTMLElement, isoDate: string, blocked: boolean): void => { void menuDiaSemana(button, isoDate, blocked); },
   shareWeek: (): void => { void agRepartirSemana(); },
-  /** Runs `paint` once the data of the week of `isoDate` is preloaded. */
-  withWeekData: <T>(isoDate: string | null, paint: () => Promise<T>): Promise<T> => agConDatos(agSemCargas(isoDate), paint),
+};
+
+/** What the Agenda data loader needs from legacy: whose agenda, the strip start and the day tasks. */
+export const agendaSources = {
+  /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
+  ownerId: (): string => agUid(),
+  isOwnAgenda: (): boolean => agUid() === (PERFIL as { id: string }).id,
+  stripStart: (): string | null => CINTA_INI,
+  /** «Tu día» of this date arrives already loaded (from Inicio). */
+  hasPresetDay: (isoDate: string): boolean => TD_PRESET?.fecha === isoDate,
+  dayTasks: (isoDate: string): Promise<unknown> => tareasDelDia(isoDate),
+  blockedDays: (fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>> => bloqueadosSemanaBase(fromIsoDate, toIsoDate),
+  setSuggestions: (isoDate: string, suggestions: { pend: PendingAppointment[]; toca: DueAccount[]; centros: SameCentreGroup[] }): void => {
+    AG_PEND = suggestions.pend; AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
+  },
 };

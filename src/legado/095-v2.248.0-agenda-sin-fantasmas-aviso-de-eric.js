@@ -10,7 +10,7 @@
    - Las bandejas «Les toca visita» y «Pendientes de días anteriores» vuelven a abrirse (desde la v2.245 no hacían nada).
    - «Ver la semana» cambia su texto cuando la semana ya está pintada; el mes se abre ya pintado.
    ============================================================ */
-const AG_PRE = new Map(); let AG_PRE_USO = 0;
+// AG_PRE y AG_PRE_USO están en src/app/screens/agenda/preload.ts desde la v2.393.0
 
 
 
