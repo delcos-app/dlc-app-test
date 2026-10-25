@@ -12,6 +12,7 @@ import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
 import { modeButtons, NEGATIVE } from '../model';
 import type { ResultGroup, ResultValue, SampleLeft, VisitData } from './data';
+import { privateConsultation } from '../../accounts/editor-form/model';
 
 /** Each result button by its key (classifier::value). */
 export type ButtonIndex = Map<string, { group: string; value: ResultValue }>;
@@ -84,7 +85,7 @@ function noticesHtml(data: VisitData): string {
 }
 
 function centreOptions(consultations: readonly CardConsultation[]): string {
-  return consultations.map(item => `<option value="${(item as { id?: string }).id ?? ''}">${escapeHtml(orFallback(item.centro_nombre, visitLegacy.privateConsultation()))}${item.municipio ? ` · ${escapeHtml(item.municipio)}` : ''}</option>`).join('');
+  return consultations.map(item => `<option value="${(item as { id?: string }).id ?? ''}">${escapeHtml(orFallback(item.centro_nombre, privateConsultation()))}${item.municipio ? ` · ${escapeHtml(item.municipio)}` : ''}</option>`).join('');
 }
 
 /** The whole window; `index` is filled with the result buttons. */

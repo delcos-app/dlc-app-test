@@ -7,6 +7,7 @@ import { alreadyCounted } from '../../../components/list/counted';
 import { formatNumber } from '../../../services/format';
 import { t } from '../../../i18n';
 import { filterCard, indicatorCard, type CardContext } from './cards';
+import { countFilter } from '../../accounts/filters/saved';
 
 const COUNT_DURATION_MS = 900;
 
@@ -43,7 +44,7 @@ function render(container: HTMLElement, settings: readonly KpiSetting[], kpis: R
 function countSavedFilters(settings: readonly KpiSetting[]): void {
   settings.forEach((setting, index) => {
     if (!setting.filtro) return;
-    indicatorCatalog.countFilter(setting.filtro).then(count => {
+    countFilter(setting.filtro).then(count => {
       const figure = document.querySelector(`#kpis [data-kfi="${index}"] .cont`);
       if (figure) figure.textContent = formatNumber(count);
     }).catch(() => undefined);

@@ -52,7 +52,6 @@ export const routes2Legacy = {
   weekdayName: (isoDate: string): string => DIAN[LETRA_DIA(isoDate)] ?? '',
   weekdayOf: (letter: string): string => DIAN[letter] ?? '',
   isDone: (state: string): boolean => citaHecha(state),
-  privateConsultation: (): string => consultaPrivada(),
   myPlannedAppointments: (): Promise<Record<string, string | undefined>> => citasPlanificadasMias(),
   recentContacts: (ids: string[], isoDate: string): Promise<Record<string, RecentContact[] | undefined>> => recientesDe(ids, isoDate),
   recentText: (list: RecentContact[]): string => txtReciente(list),

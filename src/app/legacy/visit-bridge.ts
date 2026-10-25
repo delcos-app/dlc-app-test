@@ -18,7 +18,6 @@ export const visitLegacy = {
   reloadProducts: async (): Promise<readonly CatalogProduct[]> => { await cargarProductos(); return PRODUCTOS; },
   readPhoto: (file: File): Promise<VisitPhoto | null> => leerJustificante(file),
   photosMax: (): number => FOTOS_VISITA_MAX,
-  privateConsultation: (): string => consultaPrivada(),
   normalise: (text: string): string => components.normalise(text),
   weekdayLetter: (): string => hoyLetra(),
   /** The write queue: without connection the call is kept and `data.encolada` is true. */

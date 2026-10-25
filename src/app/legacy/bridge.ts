@@ -65,8 +65,6 @@ export const indicatorCatalog = {
   help: (id: string): string | undefined => AYUDA_KPI[id],
   icon: (id: string): string | undefined => KPI_ICO[id],
   description: (id: string): string | undefined => KPI_TXT[id],
-  filterText: (filter: Record<string, unknown>): string => textoFiltro(filter),
-  countFilter: (filter: Record<string, unknown>): Promise<number> => contarFiltro(filter),
 };
 
 export const commercialStates = {
@@ -221,7 +219,6 @@ export const appointmentLegacy = {
   write: (name: string, payload: Record<string, unknown>): Promise<{ error?: unknown } | null> => escribir(name, payload),
   writeRpc: (name: string, payload: Record<string, unknown>): Promise<{ error?: { message?: string } | null }> => escribirRpc(name, payload),
   negativeResults: (): readonly { valor: string }[] => (CAT.resultado_visita ?? []).filter(item => item.extra === 'neg'),
-  nextAttendanceDay: (days: Record<string, string | null> | null | undefined, from: string): string => proximoDiaConsulta(days, from),
   navigateTo: (point: [number, number] | null): void => { void navegarA(point); },
   recordVisit: (accountId: string, isoDate: string): void => { VISITA_FECHA = isoDate; void abrirVisita(accountId); },
   openAccountFromCentre: (accountId: string, centre: string | null | undefined): void => { FICHA_CENTRO = centre ?? null; void abrirFicha(accountId); },
@@ -298,8 +295,6 @@ export const cardBaseLegacy = {
   unitsSeries: (): readonly [string, string][] => UDS_SERIES,
   unitsSeriesChosen: (): string => UDS_SERIE,
   chooseUnitsSeries: (series: string): void => { UDS_SERIE = series; try { localStorage.setItem('dlc-uds-serie', series); } catch { /* not remembered */ } },
-  missingTimetable: (id: string): Promise<boolean> => faltaHorario(id),
-  openEditor: (id: string): void => { void abrirEditor(id); },
 };
 
 /** What the sales, history and proposal sections of the card use from legacy. */
@@ -465,7 +460,6 @@ export const qualityLegacy = {
   setExport: (exporter: (format: string) => Promise<void>): void => { Reflect.set(window, '__dlSeg', exporter); },
   download: (rows: unknown[], name: string, format: string): void => { descargar(rows, name, format); },
   canUseModule: (module: string): boolean => puedeModulo(module),
-  arrangeAccountsHeader: (): void => { ordenarCabeceraCuentas(); },
 };
 
 /** Oportunidades: catalogs, products, clients, orders, the reference picker, the period selector, charts and the list page. */

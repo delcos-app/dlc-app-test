@@ -10,6 +10,7 @@ import { formatShortDate } from '../../services/date-format';
 import { todayIso } from '../../services/dates';
 import { escapeHtml } from '../../services/format';
 import { orFallback } from '../../services/values';
+import { privateConsultation } from '../accounts/editor-form/model';
 
 const WEEK = 'LMXJVSD', WORKDAYS = ['L', 'M', 'X', 'J', 'V'];
 const DAY_NAMES = new Map<string, MessageKey>([
@@ -37,7 +38,7 @@ function placeRow(consultation: BlockConsultation): string {
   const where = [consultation.planta, consultation.sala].map(part => String(part ?? '').trim()).filter(part => part && !/^[-–·.]+$/.test(part)).map(escapeHtml).join(' · ');
   const address = escapeHtml([consultation.direccion, [consultation.cp, consultation.municipio].filter(Boolean).join(' ')].filter(Boolean).join(', ')) || t('visit.block.noAddress');
   const directions = consultation.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${icon('map-pin')} ${t('visit.block.directions')}</button>` : '';
-  return row('building-2', `<b>${escapeHtml(orFallback(consultation.centro_nombre, visitLegacy.privateConsultation()))}</b>${where ? `<span class="fvdonde">${where}</span>` : ''}
+  return row('building-2', `<b>${escapeHtml(orFallback(consultation.centro_nombre, privateConsultation()))}</b>${where ? `<span class="fvdonde">${where}</span>` : ''}
       <div class="sm">${address}</div>
       ${directions}`);
 }

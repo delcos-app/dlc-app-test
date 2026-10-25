@@ -10,6 +10,7 @@ import type { AppointmentAction } from './appointment-options';
 import { isOpen, pointOf, STATES } from './appointment-state';
 import { refreshQuietly, repaintSmoothly, saveOrder } from './your-day/reorder';
 import { newDateAfterAbsent } from './absent';
+import { nextAttendanceDay } from '../accounts/timetable';
 
 
 const refresh = (item: SheetAppointment): void => { refreshQuietly(item.id); };
@@ -38,7 +39,7 @@ function postponedText(result: PostponeResult | null, day: string): string {
 }
 
 async function postpone(item: SheetAppointment): Promise<void> {
-  const day = await notices.askDate(t('agenda.actions.whichDay'), appointmentLegacy.nextAttendanceDay(item.dias, item.fecha), { titulo: t('agenda.actions.postponeTitle'), ok: t('agenda.actions.postpone') });
+  const day = await notices.askDate(t('agenda.actions.whichDay'), nextAttendanceDay(item.dias, item.fecha), { titulo: t('agenda.actions.postponeTitle'), ok: t('agenda.actions.postpone') });
   if (!day) return;
   const { data: result, error } = await legacyDb().rpc<PostponeResult>('aplazar_cita', { p_id: item.id, p_fecha: day, p_hora: null, p_origen: STATES.postponed });
   if (error || result?.ok === false) { notices.toast(t('agenda.actions.couldNotPostpone'), true); return; }

@@ -7,16 +7,18 @@ import { t, type MessageKey } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { formatNumber } from '../../../services/format';
 import { stillShown } from './card-tools';
+import { openEditor } from '../editor-form';
+import { missingTimetable } from '../timetable';
 
 /** Without a timetable, routes and the planner do not know when they attend: a notice under the header. */
 export async function timetableNotice(id: string): Promise<void> {
   const header = document.querySelector('#fbody .fh');
   if (!stillShown(id) || !header) return;
-  if (!await cardBaseLegacy.missingTimetable(id) || !stillShown(id) || document.getElementById('fhorario')) return;
+  if (!await missingTimetable(id) || !stillShown(id) || document.getElementById('fhorario')) return;
   document.querySelector('#fbody .fh')?.insertAdjacentHTML('afterend', `<div class="avisoh" id="fhorario">
     <span>${t('accounts.base.timetableMissing')}</span>
     ${cardBaseLegacy.canEdit() ? `<button class="btn sec" id="fhcompletar">${t('accounts.base.completeTimetable')}</button>` : ''}</div>`);
-  const complete = document.getElementById('fhcompletar'); if (complete) complete.onclick = (): void => { cardBaseLegacy.openEditor(id); };
+  const complete = document.getElementById('fhcompletar'); if (complete) complete.onclick = (): void => { void openEditor(id); };
 }
 
 const PERIODS: readonly [MessageKey, keyof AccountUnits][] = [

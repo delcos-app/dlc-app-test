@@ -15,6 +15,8 @@ import { editRoute } from '../editor';
 import { paintRouteBar } from '../page';
 import { currentHours, hoursOfRoute, planSettings, setHours, type PlanHours } from './settings';
 import { nowMinutes, nowRounded, scheduleVisits, type LeftOut, type Point, type ScheduledVisit, type Windows } from './visits';
+import { withTimetables } from '../../accounts/timetable';
+import { privateConsultation } from '../../accounts/editor-form/model';
 
 const SCROLL_WAIT_MS = 80;
 
@@ -78,7 +80,7 @@ function stopsOf(sequence: readonly ScheduledVisit<PlanMember>[]): PlanStop[] {
   for (const step of sequence) {
     const member: PlanMember = { ...step.it.ref, horaPlan: step.ini, ventanas: step.it.ventanas }, point = step.it.xy ?? [0, 0], last = stops[stops.length - 1];
     if (last && last.xy[0] === point[0] && last.xy[1] === point[1]) { last.medicos.push(member); last.fin = step.fin; continue; }
-    stops.push({ centro: orFallback(member.centro_nombre, routes2Legacy.privateConsultation()), municipio: member.municipio, dir: member.direccion, xy: point, medicos: [member], llegada: step.ini, fin: step.fin });
+    stops.push({ centro: orFallback(member.centro_nombre, privateConsultation()), municipio: member.municipio, dir: member.direccion, xy: point, medicos: [member], llegada: step.ini, fin: step.fin });
   }
   return stops;
 }
@@ -91,7 +93,7 @@ export async function buildPlan(list: readonly PlanMember[], routeId: string, bu
   const leave = routes2Legacy.minutesOf(settings.salida) ?? 0, limit = routes2Legacy.minutesOf(settings.tope) ?? Infinity;
   const start = options.manana ? leave : Math.max(leave, nowRounded());
   if (start >= limit) { await tooLate(list, routeId, button); return; }
-  const everyone = await restLegacy.timetables(list) as PlanMember[];
+  const everyone = await withTimetables(list);
   // Who already has a planned appointment (from today) is not proposed: they are shown apart as «ya citados»
   const planned = await routes2Legacy.myPlannedAppointments();
   const cited = everyone.filter(item => planned[item.id]).map(item => ({ m: item, fecha: planned[item.id] ?? '' }));

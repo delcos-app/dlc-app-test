@@ -74,25 +74,6 @@ $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true)
 
 /* ---------------- ficha del médico: comercial en «Editar ficha» ---------------- */
 
-async function abrirEditorBase2(id, tipo) {
-  await abrirEditorBase(id, tipo);
-  if (!id || !puede('administrar') || !$('eguardar')) return;
-  const acts = $('eguardar').closest('.acts');
-  acts.insertAdjacentHTML('beforebegin', `<label for="ecom">Comercial asignado</label>
-    <select id="ecom"><option>Cargando…</option></select>
-    <div class="sm" style="margin-top:4px">Las ventas nuevas se atribuyen al comercial asignado en ese momento.</div>`);
-  if (!COMS.length) await cargarComerciales();
-  const { data: act } = await RPC_ORIG('responsable_de_cuenta', { p_medico: id });
-  const antes = act ? act.id : '';
-  $('ecom').innerHTML = '<option value="">Sin comercial</option>' + COMS.filter(u => rolPuede(u.rol, 'cartera') || u.id === antes).map(u =>
-    `<option value="${u.id}" ${u.id === antes ? 'selected' : ''}>${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('');
-  $('eguardar').addEventListener('click', async () => {
-    const ahora = $('ecom') ? $('ecom').value : antes;
-    if (ahora === antes) return;
-    const { data: r } = await db.rpc('asignar_responsable_cuenta', { p_medico: id, p_usuario: ahora || null });
-    if (r && r.ok === false) toast('No se ha podido cambiar el comercial', true);
-  });
-}
 
 /* ---------------- administración: asignar cartera viendo la lista ---------------- */
 

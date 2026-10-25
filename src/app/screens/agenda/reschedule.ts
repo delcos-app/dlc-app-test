@@ -2,13 +2,15 @@
  * «Reprogramar»: proposes for each open appointment the next day its account attends, lets the user change the date or untick it,
  * and moves the ticked ones. Migrated from the legacy reprogramarCitas (v2.414.0); the name stays as an adapter.
  */
-import { appointmentLegacy, legacyDb, notices, reloadAgenda, term } from '../../legacy/bridge';
+import { legacyDb, notices, reloadAgenda, term } from '../../legacy/bridge';
 import { paintRouteBar } from '../routes/page';
 import { restLegacy } from '../../legacy/rest-bridge';
 import { t } from '../../i18n';
 import { todayIso } from '../../services/dates';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml } from '../../services/format';
+import { nextAttendanceDay } from '../accounts/timetable';
+import { withTimetables } from '../accounts/timetable';
 
 /** An open appointment (the legacy pending lists type it without its account, which it always carries). */
 export interface ReschedulableAppointment { id: string; cuenta_id?: string; fecha: string; nombre?: string | null; centro_nombre?: string | null; municipio?: string | null; dias?: AttendanceDays }
@@ -17,13 +19,13 @@ type AttendanceDays = Record<string, string | null> | null | undefined;
 interface Row { item: ReschedulableAppointment; day: string; attends: string }
 
 async function proposals(list: readonly ReschedulableAppointment[]): Promise<Row[]> {
-  const timetables = await restLegacy.timetables(list.map(item => ({ id: item.cuenta_id ?? '', ...('dias' in item ? { dias: item.dias } : {}) })));
+  const timetables = await withTimetables(list.map(item => ({ id: item.cuenta_id ?? '', ...('dias' in item ? { dias: item.dias } : {}) })));
   const days = new Map(timetables.map(entry => [entry.id, entry.dias ?? {}]));
   const today = todayIso();
   return list.map(item => {
     const attendance = days.get(item.cuenta_id ?? '') ?? {};
     return {
-      item, day: appointmentLegacy.nextAttendanceDay(attendance, item.fecha > today ? item.fecha : today),
+      item, day: nextAttendanceDay(attendance, item.fecha > today ? item.fecha : today),
       attends: Object.keys(attendance).filter(key => attendance[key]).join(' '),
     };
   });

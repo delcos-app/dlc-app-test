@@ -118,8 +118,6 @@ declare let ESTADOS_DEF: readonly { valor: string; papel: string }[];
 declare const EST_COL: Readonly<Record<string, string>>;
 declare function kpiConfig(): readonly KpiSetting[];
 declare function kpiPermitido(definition: KpiDefinition | undefined): boolean;
-declare function textoFiltro(filter: Record<string, unknown>): string;
-declare function contarFiltro(filter: Record<string, unknown>): Promise<number>;
 declare function rpcCache<T>(name: string, params: Record<string, unknown>, key: string): Promise<{ data: T | null; cache?: boolean; fecha?: string }>;
 declare function marca(step: string): void;
 declare function avisoCache(element: HTMLElement, date: string | undefined): void;
@@ -206,7 +204,6 @@ declare const CAT: Record<string, { valor: string; extra?: string | null }[]>;
 declare function escribir(name: string, payload: Record<string, unknown>): Promise<{ error?: unknown } | null>;
 declare function escribirRpc(name: string, payload: Record<string, unknown>): Promise<{ error?: { message?: string } | null }>;
 declare function pedirFecha(message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null>;
-declare function proximoDiaConsulta(days: Record<string, string | null> | null | undefined, fromIsoDate: string): string;
 declare function elegirOpcion(title: string, message: string, buttons: ChoiceButton[]): Promise<string | null>;
 declare function navegarA(point: [number, number] | null): Promise<void>;
 declare function abrirVisita(accountId: string): Promise<void>;
@@ -252,8 +249,6 @@ declare function navAttr(point: [number, number]): string;
 declare function editarVisita(visit: CardVisit, accountId: string): Promise<void>;
 declare function sparkUnidades(units: AccountUnits, series: string): string;
 declare function leyendaUnidades(series: string): string;
-declare function faltaHorario(id: string): Promise<boolean>;
-declare function abrirEditor(id: string): Promise<void>;
 interface HistoryEntry { id: number; accion: string; entidad?: string | null; usuario?: string | null; creado_en: string; detalle?: unknown; deshacible?: boolean | null }
 declare const PAC: { q: string; medico: string | null; medicoNombre: string; pagina: number; tipo?: string; pedidos?: string; municipio?: string; campos?: Record<string, unknown> };
 declare function rolPuede(role: string, capability: string): boolean;
@@ -380,7 +375,6 @@ declare function geocodificar(query: string, hints: GeocodeHints): Promise<Geoco
 
 declare function descargar(rows: unknown[], name: string, format: string): void;
 
-declare function ordenarCabeceraCuentas(): void;
 
 declare function productoPorDefecto(): string;
 

@@ -16,7 +16,6 @@ declare function campoDato(value: object, key: string): string;
 declare function padFirma(canvas: HTMLCanvasElement): SignaturePad;
 declare function productosPromocionados(): Promise<{ id: string; nombre: string }[]>;
 declare function leerJustificante(file: File): Promise<VisitPhoto | null>;
-declare function consultaPrivada(): string;
 declare function clasNorm(text: string): string;
 declare function hoyLetra(): string;
 declare function cargarInicio(): Promise<void>;

@@ -4,6 +4,7 @@
  */
 import { goTo, icon, qualityLegacy, term } from '../../legacy/bridge';
 import { t } from '../../i18n';
+import { arrangeHeader } from '../accounts/list/bar';
 
 export function paintAccountsHeader(): void {
   const view = document.getElementById('v-directorio');
@@ -13,5 +14,5 @@ export function paintAccountsHeader(): void {
     <div class="acts">${button}</div></div>`);
     const quality = document.getElementById('dircalidad'); if (quality) quality.onclick = (): void => { goTo('seguimiento'); };
   }
-  qualityLegacy.arrangeAccountsHeader();
+  arrangeHeader();
 }

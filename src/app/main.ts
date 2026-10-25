@@ -11,9 +11,12 @@ import * as agenda from './screens/agenda';
 import * as events from './screens/events';
 import * as portalHome from './screens/home/portal-home';
 import { listenToDuplicates } from './screens/accounts/duplicates';
+import { listenToDayPickers } from './screens/accounts/editor-form';
+import { listenToStateSelects } from './screens/accounts/status';
 import * as settingsExtra from './screens/settings/extra';
 import * as listComponents from './components/list';
 import * as filterComponents from './components/filters';
+import * as filtersPanel from './components/filters-panel';
 import * as settingsMore from './screens/settings/more';
 import * as settings from './screens/settings';
 import * as access from './screens/access';
@@ -54,7 +57,7 @@ export interface DelcosCore {
   readonly setLanguage: typeof setLanguage;
   readonly setVocabulary: typeof setVocabulary;
   /** Shared components (src/app/components), called by the legacy adapters in src/componentes. */
-  readonly components: typeof components & { readonly list: typeof listComponents; readonly filters: typeof filterComponents };
+  readonly components: typeof components & { readonly list: typeof listComponents; readonly filters: typeof filterComponents; readonly filtersPanel: typeof filtersPanel };
   /** Migrated screens, called by the legacy adapters (e.g. cargarInicio) until navigation moves to the router. */
   readonly screens: {
     readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators; readonly openIndicatorSettings: typeof openIndicatorSettings };
@@ -103,7 +106,7 @@ window.delcos = {
   t,
   setLanguage,
   setVocabulary,
-  components: { ...components, list: listComponents, filters: filterComponents },
+  components: { ...components, list: listComponents, filters: filterComponents, filtersPanel },
   screens: {
     home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators, openIndicatorSettings },
     agenda,
@@ -138,6 +141,8 @@ window.delcos = {
 
 listenToSameCentre();
 listenToDuplicates();
+listenToDayPickers();
+listenToStateSelects();
 listenToMapCards(id => { void accounts.openAccountCard(id); });
 listenToYourDay();
 listenToCards();

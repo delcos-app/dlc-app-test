@@ -2,10 +2,11 @@
  * After «No estaba»: proposes the next day the account attends (or another date) and creates the appointment. Migrated from the
  * legacy nuevaFechaTrasNoEstaba (v2.414.0).
  */
-import { appointmentLegacy, legacyDb, notices } from '../../legacy/bridge';
+import { legacyDb, notices } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { formatLongDate, formatShortDate } from '../../services/date-format';
 import { refreshQuietly } from './your-day/reorder';
+import { nextAttendanceDay } from '../accounts/timetable';
 
 interface AbsentAppointment { id: string; cuenta_id: string; fecha: string; nombre: string; centro_nombre?: string | null; dias?: Record<string, string | null> | null }
 
@@ -21,7 +22,7 @@ async function chooseDay(item: AbsentAppointment, proposed: string): Promise<str
 /** After «No estaba»: proposes the next day the account attends (or another date) and creates the appointment. */
 export async function newDateAfterAbsent(appointment: object): Promise<void> {
   const item = appointment as AbsentAppointment;
-  const day = await chooseDay(item, appointmentLegacy.nextAttendanceDay(item.dias, item.fecha));
+  const day = await chooseDay(item, nextAttendanceDay(item.dias, item.fecha));
   if (!day) return;
   const { data: result, error } = await legacyDb().rpc<{ ok?: boolean }>('guardar_cita', { p: {
     cuenta_id: item.cuenta_id, fecha: day, centro_nombre: item.centro_nombre, estado: 'Planificada',

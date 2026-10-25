@@ -9,7 +9,6 @@ export const restLegacy = {
   loadPlan: (): Promise<unknown> => pagoCargarEstado(),
   plan: (): { en_prueba?: boolean; periodo_fin?: string | null } => PLAN_ACTUAL as { en_prueba?: boolean; periodo_fin?: string | null },
   setAppVisible: (visible: boolean): void => { APP_VISIBLE = visible; },
-  timetables: (list: readonly { id: string; dias?: Record<string, string | null> | null | undefined }[]): Promise<{ id: string; dias?: Record<string, string | null> | null }[]> => conHorarios(list),
   reloadHome: (): void => { void cargarInicio(); },
   workingDayKey: (): string => JKEY(),
   reloadRoutes: (): void => { void cargarRutas(); },

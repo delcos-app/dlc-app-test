@@ -11,6 +11,7 @@ import { addDays, todayIso } from '../../../services/dates';
 import { escapeHtml } from '../../../services/format';
 import { activePreferences, visitTimes, withHours, type PlanHours } from './settings';
 import { splitWeek, type WeekCandidate, type WeekEntry, type WeekSplit } from './week-split';
+import { withTimetables } from '../../accounts/timetable';
 
 const LOOK_AHEAD_DAYS = 60, DUE_LIMIT = 300, PROPOSALS_LIMIT = 200, MAX_PER_DAY = 30, WEEKDAYS_SHOWN = 5;
 
@@ -63,7 +64,7 @@ async function candidates(source: string): Promise<WeekCandidate[]> {
 async function filtered(list: readonly WeekCandidate[]): Promise<{ list: WeekCandidate[]; recent: { m: WeekCandidate; motivo: string }[] }> {
   const { data: future } = await callRpc<RouteAppointment[]>('agenda_rango', { p_desde: todayIso(), p_hasta: addDays(todayIso(), LOOK_AHEAD_DAYS), p_usuario: routes2Legacy.agendaOwner() });
   const withAppointment = new Set((future ?? []).filter(item => appointments.isOpen(item.estado)).map(item => item.cuenta_id));
-  let rest = await restLegacy.timetables(list.filter(item => !withAppointment.has(item.id))) as WeekCandidate[];
+  let rest = await withTimetables(list.filter(item => !withAppointment.has(item.id)));
   const notice = routes2Legacy.revisitNotice();
   if (!notice.on || !rest.length) return { list: rest, recent: [] };
   const { data: seen } = await legacyDb().rpc<{ cuenta_id: string; tipo: string; fecha: string; usuario?: string | null }[]>('actividades_recientes', { p_ids: rest.map(item => item.id), p_desde: addDays(todayIso(), -notice.dias), p_hasta: todayIso() });

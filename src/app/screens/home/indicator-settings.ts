@@ -7,6 +7,7 @@ import { indicatorCatalog, legacyIcons, notices } from '../../legacy/bridge';
 import { indicatorSettingsLegacy } from '../../legacy/orders2-bridge';
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
+import { filterText } from '../accounts/filters/saved';
 
 interface Setting { id: string; on: boolean; t: string; filtro?: Record<string, unknown> }
 
@@ -21,8 +22,8 @@ function startingList(): Setting[] {
 
 /** What the card says under the name, and the name it has if none is written. */
 function texts(item: Setting, definition: KpiDefinition | undefined): { description: string; placeholder: string } {
-  const description = item.filtro ? t('ordersMore.indicators.savedFilter', { filter: indicatorCatalog.filterText(item.filtro) }) : indicatorCatalog.help(item.id) ?? '';
-  const placeholder = definition ? definition.t.charAt(0).toUpperCase() + definition.t.slice(1) : indicatorCatalog.filterText(item.filtro ?? {});
+  const description = item.filtro ? t('ordersMore.indicators.savedFilter', { filter: filterText(item.filtro) }) : indicatorCatalog.help(item.id) ?? '';
+  const placeholder = definition ? definition.t.charAt(0).toUpperCase() + definition.t.slice(1) : filterText(item.filtro ?? {});
   return { description, placeholder };
 }
 

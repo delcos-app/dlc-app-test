@@ -3,8 +3,9 @@
  * copy without connection), the account type and «sin reporting», the regulated samples left this year, the promoted products
  * and whether their timetable is missing.
  */
-import { accountCardLegacy, cachedRpc, cardBaseLegacy, legacyDb } from '../../../legacy/bridge';
+import { accountCardLegacy, cachedRpc, legacyDb } from '../../../legacy/bridge';
 import { visitLegacy } from '../../../legacy/visit-bridge';
+import { missingTimetable as lacksTimetable } from '../../accounts/timetable';
 
 export interface ResultValue { valor: string; extra?: string | null; oculto?: boolean; dato_tipo?: string | null }
 export interface ResultGroup { clave: string; papel?: string | null; nombre: string; descripcion?: string | null; valores: ResultValue[] }
@@ -49,7 +50,7 @@ async function samplesLeft(id: string, type: string | null | undefined): Promise
 export async function loadVisitData(id: string): Promise<VisitData | string> {
   const coverage = accountCardLegacy.planIncludes('cobertura');
   const [{ card, groups }, flags, products, missingTimetable] = await Promise.all([
-    cardAndResults(id), accountFlags(id), coverage ? visitLegacy.promotedProducts().catch(() => []) : Promise.resolve([]), cardBaseLegacy.missingTimetable(id).catch(() => false),
+    cardAndResults(id), accountFlags(id), coverage ? visitLegacy.promotedProducts().catch(() => []) : Promise.resolve([]), lacksTimetable(id).catch(() => false),
   ]);
   if (!card?.medico) return navigator.onLine ? 'online' : 'offline';
   const samples = await samplesLeft(id, flags?.tipo).catch(() => []);

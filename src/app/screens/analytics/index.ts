@@ -5,4 +5,5 @@
  */
 export { paintRanking, refreshExplore } from './explore';
 export { paintMonthlyTable } from './monthly-table';
+export { loadAnalytics, loadKpis, paintSummary } from './page';
 export { listenToVisitOrdersViews, showVisitOrders } from './visit-orders';

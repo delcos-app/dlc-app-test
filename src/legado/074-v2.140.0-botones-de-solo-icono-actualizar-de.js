@@ -48,7 +48,6 @@ new MutationObserver(() => {
 
 
 
-let AN_CFG = null, AN_DATOS = {};
 
 
 

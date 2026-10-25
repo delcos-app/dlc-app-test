@@ -7,6 +7,7 @@ import { t } from '../../../i18n';
 import { appointmentsChart, monthChart, unitsChart, urgentChart, weekChart } from './charts-activity';
 import { interestedChart, noRecentVisitChart, notContactedChart, portfolioChart, portfolioTotal } from './charts-portfolio';
 import { EMPTY_CHART, type ChartResult } from './chart-tools';
+import { filterText } from '../../accounts/filters/saved';
 
 type Kpis = Readonly<Record<string, number>>;
 
@@ -74,8 +75,8 @@ function liveBody(id: string, title: string, raw: unknown, context: CardContext)
 /** Card of a saved directory filter: its count arrives later (countFilter). */
 export function filterCard(setting: KpiSetting, index: number, live: boolean): string {
   const filter = setting.filtro ?? {};
-  const name = setting.t ? setting.t : indicatorCatalog.filterText(filter);
-  const help = `<button class="ai" data-ayuda-txt="${escapeHtml(t('home.indicators.filterHelp', { help: indicatorCatalog.help('filtro') ?? '', filter: indicatorCatalog.filterText(filter) }))}" data-ayuda-tit="${escapeHtml(setting.t ? setting.t : t('home.indicators.savedFilter'))}" aria-label="${t('home.indicators.whatIsIt')}">i</button>`;
+  const name = setting.t ? setting.t : filterText(filter);
+  const help = `<button class="ai" data-ayuda-txt="${escapeHtml(t('home.indicators.filterHelp', { help: indicatorCatalog.help('filtro') ?? '', filter: filterText(filter) }))}" data-ayuda-tit="${escapeHtml(setting.t ? setting.t : t('home.indicators.savedFilter'))}" aria-label="${t('home.indicators.whatIsIt')}">i</button>`;
   const count = '<b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b>';
   return live
     ? `<div class="kpi click kv" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">\n        ${help}\n        <span class="kvt">${escapeHtml(name)}</span><div class="kvn">${count}</div></div>`

@@ -15,6 +15,5 @@ interface Leaflet {
 }
 declare function pagoCargarEstado(): Promise<unknown>;
 declare let APP_VISIBLE: boolean;
-declare function conHorarios(list: readonly { id: string; dias?: Record<string, string | null> | null | undefined }[]): Promise<{ id: string; dias?: Record<string, string | null> | null }[]>;
 declare const JKEY: () => string;
 declare function colEstado(state: string): string;
