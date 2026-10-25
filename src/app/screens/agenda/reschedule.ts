@@ -2,7 +2,8 @@
  * «Reprogramar»: proposes for each open appointment the next day its account attends, lets the user change the date or untick it,
  * and moves the ticked ones. Migrated from the legacy reprogramarCitas (v2.414.0); the name stays as an adapter.
  */
-import { appointmentLegacy, legacyDb, notices, reloadAgenda, routeBar, term } from '../../legacy/bridge';
+import { appointmentLegacy, legacyDb, notices, reloadAgenda, term } from '../../legacy/bridge';
+import { paintRouteBar } from '../routes/page';
 import { restLegacy } from '../../legacy/rest-bridge';
 import { t } from '../../i18n';
 import { todayIso } from '../../services/dates';
@@ -83,7 +84,7 @@ export async function rescheduleAppointments(list: readonly ReschedulableAppoint
       const moved = await moveTicked(body, rows);
       notices.toast(movedText(moved));
       close(moved > 0);
-      reloadAgenda(); restLegacy.reloadHome(); routeBar.paint();
+      reloadAgenda(); restLegacy.reloadHome(); void paintRouteBar();
     };
     box.showModal();
   });

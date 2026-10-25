@@ -12,7 +12,6 @@ export const restLegacy = {
   timetables: (list: readonly { id: string; dias?: Record<string, string | null> | null | undefined }[]): Promise<{ id: string; dias?: Record<string, string | null> | null }[]> => conHorarios(list),
   reloadHome: (): void => { void cargarInicio(); },
   workingDayKey: (): string => JKEY(),
-  traffic: (silent: boolean): void => { void tdTrafico(silent); },
   reloadRoutes: (): void => { void cargarRutas(); },
   askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => components.askText(message, value, options),
   stateColour: (state: string): string => colEstado(state),

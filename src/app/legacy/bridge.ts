@@ -106,7 +106,6 @@ export const agendaSuggestions = {
 export const agendaActions = {
   openAccount: (id: string): void => { void abrirFicha(id); },
   newAppointment: (accountId: string, isoDate: string | null): void => { void nuevaCita(accountId, isoDate); },
-  planRoute: (list: readonly DueAccount[], button: HTMLElement): void => { void planDesdeLista(list, 'toca', button); },
 };
 
 /** The side panel (#tools) remembers what it shows so it can be painted again after a change. */
@@ -176,8 +175,6 @@ export const legacyAgendaPaint = {
 export const weekPlanner = {
   draft: (): WeekDraft | null => SEM_BORRADOR,
   discardDraft: (): void => { SEM_BORRADOR = null; },
-  plan: (from: string, days: readonly string[], blocked: Record<string, string>, perDay: Record<string, WeekAppointment[]>): void => { void planificarSemana(from, days, blocked, perDay); },
-  saveDraft: (button: HTMLElement): void => { void guardarBorradorSemana(button); },
   /** Estimated end of a day (minutes) and the latest return time. */
   estimateDay: (list: readonly object[], isoDate: string): { fin: number; tope: number } => estimarDia(list, isoDate),
   /** Opening windows of a person on a date: null when unknown, [] when they do not attend that day. */
@@ -207,9 +204,6 @@ export const yourDayLegacy = {
   explainWarning: (info: StopInfo): string => explicarAviso(info),
   windowsText: (windows: readonly [number, number][]): string => txtVentanas(windows),
   canRecordOn: (isoDate: string): boolean => puedeRegistrarEnDia(isoDate),
-  orderByDistance: (list: readonly object[]): { list: object[]; left: number } => { const ordered = ordenarPorCercania(list); return { list: ordered, left: ordenarPorCercania.fuera ?? 0 }; },
-  prepareRouteStops: (isoDate: string): void => { try { prepararParadas(isoDate); } catch { /* the route buttons are optional */ } },
-  markTraffic: (): void => { tdMarcaTrafico(); },
   queuedVisits: (): ReturnType<typeof colaLeer> => colaLeer(),
   showDialog: (title: string, message: string, ok: string): void => { void appVentana({ titulo: title, msg: message, ok, cancel: false }); },
 };
@@ -255,7 +249,6 @@ export const agendaCache = {
   setDayTasks: (isoDate: string, list: (DayTask & { orden?: number })[] | null): void => { TAREAS_DIA = list ? { f: isoDate, l: list } : null; },
 };
 
-export const routeBar = { paint: (): void => { void pintarRutaBarra(); } };
 
 /** What the appointment and task editors use from legacy: the account picker and the «seen recently» notice (Cuentas). */
 export const editorLegacy = {

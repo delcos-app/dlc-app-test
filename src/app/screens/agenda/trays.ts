@@ -9,6 +9,7 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml } from '../../services/format';
 import { isPresent } from '../../services/values';
 import { withAppointmentToday } from './same-centre';
+import { planFromList, type PlanMember } from '../routes/planner/plan';
 import { rescheduleAppointments } from './reschedule';
 
 type Tray = 'toca' | 'pend';
@@ -86,7 +87,7 @@ function bindTray(panel: HTMLElement, due: readonly DueAccount[], pending: reado
   panel.querySelectorAll<HTMLElement>('[data-agbf]').forEach(button => { button.onclick = (): void => { agendaActions.openAccount(button.dataset.agbf ?? ''); }; });
   panel.querySelectorAll<HTMLElement>('[data-agbc]').forEach(button => { button.onclick = (): void => { agendaActions.newAppointment(button.dataset.agbc ?? '', legacyAgenda.selectedDate()); }; });
   const route = document.getElementById('agbruta');
-  if (route) route.onclick = (): void => { close(); goTo('rutas'); setTimeout(() => { agendaActions.planRoute(due, route); }, ROUTES_MOUNT_MS); };
+  if (route) route.onclick = (): void => { close(); goTo('rutas'); setTimeout(() => { void planFromList(due as unknown as PlanMember[], 'toca', route); }, ROUTES_MOUNT_MS); };
   const reschedule = document.getElementById('agbrepro');
   if (reschedule) reschedule.onclick = (): void => { void rescheduleAppointments(pending, t('agenda.trays.pending'), t('agenda.trays.notVisited', { count: pending.length })); };
 }

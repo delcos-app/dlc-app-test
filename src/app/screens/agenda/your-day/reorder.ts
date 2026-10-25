@@ -4,12 +4,14 @@
  * Migrated from the legacy guardarOrden / moverCitaLocal(Base, Base2) / moverTarea / repintarDiaSuave(Base) / tdPosiciones /
  * tdAnimar / agRefrescoQuieto (v2.399.0). agRefrescoQuieto stays as an adapter (five legacy files call it).
  */
-import { agendaCache, appointmentLegacy, currentScreen, legacyAgenda, legacyDb, notices, routeBar, yourDayLegacy } from '../../../legacy/bridge';
+import { agendaCache, appointmentLegacy, currentScreen, legacyAgenda, legacyDb, notices } from '../../../legacy/bridge';
 import { positionsOf, slideIntoPlace } from '../../../components/slide';
 import { t } from '../../../i18n';
 import { load as loadHome } from '../../home';
 import { loadAgenda, refreshAfterChange } from '../day-view';
 import { paintYourDay } from './index';
+import { paintRouteBar } from '../../routes/page';
+import { orderByDistance as orderByNearness } from '../../routes/planner/visits';
 
 const CARDS = '#agcuerpo .tdu[data-tdu]', TASKS = '#tdtareas .tdtarea';
 const REPAINT_SLIDE_MS = 320, MOVE_SLIDE_MS = 260, QUIET_DELAY_MS = 40;
@@ -38,14 +40,14 @@ let quietTimer: ReturnType<typeof setTimeout> | null = null, quietId: string | n
 /** After a change: repaints the day quietly (and the figures, unless `figures` is false); outside the day view, reloads. */
 export function refreshQuietly(id?: string | null, figures = true): void {
   if (currentScreen() !== 'agenda' || !appointmentLegacy.isJoinedDayView() || !document.getElementById('agcuerpo')) {
-    void loadAgenda(); void loadHome(); routeBar.paint(); return;
+    void loadAgenda(); void loadHome(); void paintRouteBar(); return;
   }
   agendaCache.markDialogSeen();
   if (id) quietId = id;
   if (quietTimer) clearTimeout(quietTimer);
   quietTimer = setTimeout(() => {
     const touched = quietId; quietId = null;
-    void repaintSmoothly(touched).then(() => { if (figures) refreshAfterChange(); routeBar.paint(); });
+    void repaintSmoothly(touched).then(() => { if (figures) refreshAfterChange(); void paintRouteBar(); });
   }, QUIET_DELAY_MS);
 }
 
@@ -97,7 +99,7 @@ export async function moveTask(id: string, direction: number): Promise<void> {
 
 /** «Ordenar por cercanía»: the open appointments in the order with fewer kilometres (fixed times respected), saved. */
 export async function orderByDistance(): Promise<void> {
-  const { list, left } = yourDayLegacy.orderByDistance(legacyAgenda.dayAppointments());
+  const { list, left } = orderByNearness(legacyAgenda.dayAppointments() as unknown as RouteAppointment[]);
   if (!await saveOrder(list as { id: string }[])) return;
   notices.toast(left ? t('agenda.yourDay.orderedWithLeft', { count: left }) : t('agenda.yourDay.ordered'));
   await repaintSmoothly();

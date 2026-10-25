@@ -151,7 +151,6 @@ declare let AG_PEND: PendingAppointment[] | null;
 declare let HERR_CTX: string | null;
 declare function abrirFicha(id: string): Promise<void>;
 declare function nuevaCita(accountId: string, isoDate: string | null): Promise<void>;
-declare function planDesdeLista(list: readonly DueAccount[], name: string, button: HTMLElement): Promise<void>;
 interface RangeAppointment { fecha: string; estado: string; usuario_id?: string; hora?: string | null; medico?: string | null; nombre?: string | null }
 declare function agBloqueos(fromIsoDate: string, days: number): Promise<Record<string, string>>;
 declare let TD_PRESET: { fecha: string; data?: AgendaAppointment[] } | null;
@@ -174,8 +173,6 @@ interface WeekDraftItem { m: { nombre: string; municipio?: string | null }; ini?
 interface WeekDraft { semana: string; uid: string; total: number; dias: Record<string, WeekDraftItem[]>; sinDia: WeekDraftItem[]; horario?: Record<string, unknown> | null }
 declare let SEM_BORRADOR: WeekDraft | null;
 declare function estimarDia(appointments: readonly object[], isoDate: string): { fin: number; tope: number };
-declare function planificarSemana(fromIsoDate: string, days: readonly string[], blocked: Record<string, string>, perDay: Record<string, WeekAppointment[]>): Promise<void>;
-declare function guardarBorradorSemana(button: HTMLElement): Promise<void>;
 declare function ventanasDe(days: Record<string, string | null> | null | undefined, isoDate: string): unknown[] | null;
 declare function preguntar(message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean>;
 declare function toast(message: string, isError?: boolean): void;
@@ -196,9 +193,6 @@ declare function plIco(...names: string[]): string;
 declare function txtVentanas(windows: readonly [number, number][]): string;
 declare function explicarAviso(info: StopInfo): string;
 declare function puedeRegistrarEnDia(isoDate: string): boolean;
-declare const ordenarPorCercania: ((list: readonly object[]) => object[]) & { fuera?: number };
-declare function prepararParadas(isoDate: string): unknown;
-declare function tdMarcaTrafico(): void;
 declare function colaLeer(): { fn: string; payload?: { p?: { fecha?: string; cuenta_id?: string } } }[];
 declare function appVentana(options: { titulo: string; msg?: string; ok: string; cancel?: boolean; campo?: { valor: string; tipo: string } }): Promise<unknown>;
 interface SheetAppointment extends DayAppointmentFull {
@@ -222,7 +216,6 @@ declare const RC_VUELO: Map<string, unknown>;
 declare let RC_EPOCA: number;
 declare let DLG_EPOCA: number;
 declare const AG_DIAS_DATOS: Record<string, AgendaAppointment[] | undefined>;
-declare function pintarRutaBarra(): Promise<void>;
 interface PickedAccount { id: string; nombre?: string; centro_nombre?: string | null; centro?: string | null }
 interface Consultation { centro_nombre?: string | null; municipio?: string | null; principal?: boolean | null }
 interface RecentContact { tipo: string; fecha: string; usuario?: string | null }

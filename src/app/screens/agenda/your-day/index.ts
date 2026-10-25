@@ -21,6 +21,8 @@ import { applyTaskFolding, paintTasks } from './tasks';
 import { openDayMenu } from '../day-menu';
 import { rescheduleAppointments } from '../reschedule';
 import { activeWorkingDay, endWorkingDay, startWorkingDay } from '../working-day';
+import { prepareRouteStops } from '../route-buttons';
+import { markTraffic } from '../traffic';
 
 const COMPACT_KEY = 'delcos-tdcompacto', DEFAULT_LIMIT = 21 * 60, WARNINGS_FOR_BANNER = 3;
 
@@ -88,7 +90,7 @@ async function paintDay(): Promise<void> {
   bindHeader(data, context.open);
   refreshMetrics();
   // The route buttons of the day (Empezar ruta / Ruta completa), also when the day changes
-  yourDayLegacy.prepareRouteStops(day);
+  prepareRouteStops(day);
   if (!summary.own) return;
   const tasks = await agendaSources.dayTasks(day) as DayTask[] | null;
   const fresh = document.getElementById('agcuerpo');
@@ -122,7 +124,7 @@ export async function paintYourDay(): Promise<void> {
       await paintDay();
       if (legacyAgenda.isDayView()) { paintSameCentre(); paintTrayButtons(); }
     });
-    if (hasStrip()) yourDayLegacy.markTraffic();
+    if (hasStrip()) markTraffic();
     if (hasStrip()) markQueuedVisits();
   }
   applyTaskFolding();

@@ -3,7 +3,9 @@
  * proposed to another day. It is kept on this device for its own day. Migrated from the legacy jornadaActiva, empezarJornada and
  * terminarJornada (v2.414.0); the three names stay as adapters (Rutas and the tests use them).
  */
-import { agendaState, appLegacy, appointments, currentScreen, goTo, legacyAgenda, notices, reloadAgenda, routeBar } from '../../legacy/bridge';
+import { agendaState, appLegacy, appointments, currentScreen, goTo, legacyAgenda, notices, reloadAgenda } from '../../legacy/bridge';
+import { paintRouteBar } from '../routes/page';
+import { requestTraffic } from './traffic';
 import { restLegacy } from '../../legacy/rest-bridge';
 import { t } from '../../i18n';
 import { formatDuration, todayIso } from '../../services/dates';
@@ -28,11 +30,11 @@ export async function startWorkingDay(): Promise<void> {
   const list = await appointments.ofDay(todayIso()) as DayAppointment[];
   if (!list.some(item => isOpen(item.estado))) { notices.toast(t('agendaMore.workday.noOpen'), true); return; }
   localStorage.setItem(restLegacy.workingDayKey(), JSON.stringify({ fecha: todayIso(), inicio: Date.now() }));
-  routeBar.paint();
+  void paintRouteBar();
   notices.toast(t('agendaMore.workday.started'));
   agendaState.setMode('dia'); agendaState.setSelectedDate(todayIso());
   if (currentScreen() === 'agenda') reloadAgenda(); else goTo('agenda');
-  try { if (legacyAgenda.selectedDate() === todayIso()) restLegacy.traffic(true); } catch { /* the traffic is optional */ }
+  try { if (legacyAgenda.selectedDate() === todayIso()) void requestTraffic(true); } catch { /* the traffic is optional */ }
 }
 
 function endQuestion(day: WorkingDay, list: readonly DayAppointment[], open: number): string {
@@ -48,7 +50,7 @@ export async function endWorkingDay(): Promise<void> {
   const open = list.filter(item => isOpen(item.estado)), done = list.filter(item => item.estado === VISITED).length;
   if (!await notices.confirm(endQuestion(day, list, open.length), { titulo: t('agendaMore.workday.endTitle'), ok: t('agendaMore.workday.end') })) return;
   localStorage.removeItem(restLegacy.workingDayKey());
-  routeBar.paint();
+  void paintRouteBar();
   notices.toast(t('agendaMore.workday.ended', { count: done }));
   if (open.length) await rescheduleAppointments(open, t('agendaMore.workday.leftTitle'), t('agendaMore.workday.leftText', { count: open.length }));
   if (currentScreen() === 'agenda') reloadAgenda();

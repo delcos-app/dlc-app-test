@@ -39,19 +39,6 @@ async function citasPlanificadasMias() {
   } catch (e) { return {}; }
 }
 
-async function rpAgenda(i, btn) {
-  const p = rpPlanDe(i); if (!p) return;
-  btn.disabled = true;
-  try {
-    PLAN = null;
-    await construirPlan(p.sel, 'prop' + (i + 1), btn, { manana: RPROP.manana, horario: null });
-    if (!PLAN) return;
-    const r = await planAAgenda(PLAN);
-    if (!r) return;
-    toast(`${r.n} citas en tu agenda ${rpNombreDia(r.fecha) === 'hoy' ? 'de hoy' : 'del ' + fechaCorta(r.fecha)}`);
-    PLAN = null; AG_MODO = 'dia'; AG_FECHA = r.fecha; ir('agenda');
-  } finally { btn.disabled = false; }
-}
 
 /* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
    puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */
@@ -107,53 +94,13 @@ async function agBloqueos(desde, n) { try { return await bloqueadosSemana(desde,
 // Tras un cambio (mover, registrar, notas…): cifras, cinta, «Tu semana», bandejas y el mes si está abierto, de una vez
 
 
-// Con tiempos reales del día, cada tramo conocido usa su tiempo con tráfico; el resto, la estimación de siempre (minutosEntre es
-// una constante: estimarDiaBase llama a tdMinutos, cambiado en su sitio)
-function tdMinutos(a, b) {
-  if (tdRealVigente()) { const m = TD_REAL.mapa.get(tdClaveXY(a, b)); if (m != null) return m; }
-  return minutosEntre(a, b);
-}
 
 // La ruta de hoy con los mismos puntos y salida que «Tu día en el mapa»
-function tdRutaDia(citas, fecha) {
-  if (fecha !== hoyISO() || !Array.isArray(citas)) return null;
-  if (citas.filter(c => CITA_ABIERTA.includes(c.estado) && xyCita(c)).length < 2) return null;
-  let P0; TD_CALC = true; try { P0 = rmPlan(citas, fecha); } finally { TD_CALC = false; }
-  if (P0.puntos.length < 2 || P0.puntos.length > 30) return null;
-  const salida = P0.segs.length ? `${fecha}T${hm(Math.max(0, P0.segs[0].a))}:00` : null;
-  return { puntos: P0.puntos, salida, k: JSON.stringify([P0.puntos, salida]) };
-}
 
-function tdPonerReal(ruta, res) {
-  if (!ruta || !res || !res.ok || !res.tramos || res.tramos.length !== ruta.puntos.length - 1) return false;
-  const mapa = new Map(); res.tramos.forEach((tr, i) => mapa.set(tdClaveXY(ruta.puntos[i], ruta.puntos[i + 1]), Math.round(+tr.min || 0)));
-  TD_REAL = { k: ruta.k, mapa, t: Date.now() };
-  return true;
-}
 
 // Pedir los tiempos con tráfico (una consulta) y volver a pintar «Tu día»
-async function tdTrafico(mudo) {
-  const ruta = tdRutaDia(TD_CITAS, AG_FECHA); if (!ruta) return;
-  const b = $('tdtrafico'); if (b) { b.disabled = true; b.textContent = 'Calculando…'; }
-  const res = await rmRuta(ruta.puntos, ruta.salida);
-  if (tdPonerReal(ruta, res)) { if (agN()) window.delcos.screens.agenda.repaintSmoothly(); }
-  else {
-    if (!mudo) toast((RM_MOTIVO[res && res.motivo] || RM_MOTIVO.servicio) + ': las horas siguen siendo aproximadas', true);
-    const b2 = $('tdtrafico'); if (b2) { b2.disabled = false; b2.textContent = 'Calcular con tráfico'; }
-  }
-}
 
 // En la cabecera de «Tu día» (hoy): si las horas van con tráfico real o el botón para calcularlas
-function tdMarcaTrafico() {
-  const st = document.querySelector('#agcuerpo .tdhead .tdstats'); if (!st) return;
-  st.querySelectorAll('.tdtraf').forEach(x => x.remove());
-  const ruta = tdRutaDia(TD_CITAS, AG_FECHA); if (!ruta || AG_VISTA) return;
-  const real = tdRealVigente() && TD_REAL.k === ruta.k;
-  st.insertAdjacentHTML('beforeend', real
-    ? '<span class="tdtraf tdtrafok" title="Horas calculadas por las calles y con el tráfico de ahora (TomTom)">Con tráfico real</span>'
-    : '<span class="tdtraf"><button type="button" class="kcfg" id="tdtrafico" title="Una petición al servicio de rutas: horas por las calles y con el tráfico de ahora">Calcular con tráfico</button></span>');
-  const b = $('tdtrafico'); if (b) b.onclick = () => tdTrafico(false);
-}
 
 
 
@@ -346,3 +293,7 @@ function jornadaActiva() { return window.delcos.screens.agenda.activeWorkingDay(
 function empezarJornada() { return window.delcos.screens.agenda.startWorkingDay(); }
 function terminarJornada() { return window.delcos.screens.agenda.endWorkingDay(); }
 function textoOrigenCita(c) { return window.delcos.screens.agenda.originText(c); }
+// El tráfico de «Tu día» está en src/app/screens/agenda/traffic.ts (v2.418.0); la estimación del día (legado 024 y 103) usa estos nombres
+function tdMinutos(a, b) { return window.delcos.screens.agenda.legMinutes(a, b); }
+function tdRutaDia(citas, fecha) { return window.delcos.screens.agenda.dayRoute(citas, fecha); }
+function tdPonerReal(ruta, res) { return window.delcos.screens.agenda.setRealTimes(ruta, res); }

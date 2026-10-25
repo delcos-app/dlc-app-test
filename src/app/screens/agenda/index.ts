@@ -26,3 +26,5 @@ export { rescheduleAppointments } from './reschedule';
 export { activeWorkingDay, endWorkingDay, startWorkingDay } from './working-day';
 export { openDayMenu } from './day-menu';
 export { originText } from './appointment-origin';
+export { prepareRouteStops } from './route-buttons';
+export { dayRoute, legMinutes, markTraffic, requestTraffic, setRealTimes } from './traffic';

@@ -11,6 +11,7 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { range } from '../../services/values';
 import { weekLoads, withData } from './preload';
+import { planWeek, saveWeekDraft } from '../routes/planner/week';
 import { openDayMenu } from './day-menu';
 
 const WEEK_DAYS = 7, SHOWN_PER_DAY = 9, SHOWN_WITHOUT_DAY = 25;
@@ -132,11 +133,11 @@ function bindDay(column: HTMLElement, data: WeekData): void {
 
 function bind(box: HTMLElement, data: WeekData): void {
   const plan = box.querySelector<HTMLElement>('#semplan');
-  if (plan) plan.onclick = (): void => { weekPlanner.plan(data.monday, data.days, { ...data.blocked }, data.perDay); };
+  if (plan) plan.onclick = (): void => { void planWeek(data.monday, data.days, { ...data.blocked }, data.perDay as unknown as Record<string, RouteAppointment[]>); };
   const discard = box.querySelector<HTMLElement>('#semdescartar');
   if (discard) discard.onclick = (): void => { weekPlanner.discardDraft(); reloadAgenda(); };
   const save = box.querySelector<HTMLElement>('#semguardar');
-  if (save) save.onclick = (): void => { weekPlanner.saveDraft(save); };
+  if (save) save.onclick = (): void => { void saveWeekDraft(save); };
   box.querySelectorAll<HTMLElement>('[data-semdia]').forEach(column => { bindDay(column, data); });
   box.querySelectorAll<HTMLElement>('[data-semcid]').forEach(chip => {
     chip.ondragstart = (event): void => { event.dataTransfer?.setData('text/cita', chip.dataset.semcid ?? ''); if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'; chip.classList.add('arrastrando'); };
