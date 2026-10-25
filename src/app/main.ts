@@ -5,6 +5,7 @@
 import { createRouter, type Router } from './core/router';
 import { navigate } from './core/navigation';
 import { setLanguage, setVocabulary, t } from './i18n';
+import * as agenda from './screens/agenda';
 import * as home from './screens/home';
 import { paintIndicators } from './screens/home/indicators';
 
@@ -18,6 +19,7 @@ export interface DelcosCore {
   /** Migrated screens, called by the legacy adapters (e.g. cargarInicio) until navigation moves to the router. */
   readonly screens: {
     readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators };
+    readonly agenda: typeof agenda;
   };
 }
 
@@ -38,5 +40,6 @@ window.delcos = {
   setVocabulary,
   screens: {
     home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators },
+    agenda,
   },
 };

@@ -1,7 +1,9 @@
 /** Indicator cards of Inicio, painted complete at once (icon, help, title, figure, sentence, chart and description). */
 import { indicatorCatalog } from '../../../legacy/bridge';
 import { todayIso } from '../../../services/dates';
+import { capitalise } from '../../../services/date-format';
 import { escapeHtml, formatNumber } from '../../../services/format';
+import { t } from '../../../i18n';
 import { appointmentsChart, monthChart, unitsChart, urgentChart, weekChart } from './charts-activity';
 import { interestedChart, noRecentVisitChart, notContactedChart, portfolioChart, portfolioTotal } from './charts-portfolio';
 import { EMPTY_CHART, type ChartResult } from './chart-tools';
@@ -35,10 +37,8 @@ function chartFor(id: string, kpis: Kpis, panel: HomePanel | null, charts: HomeC
   return CHARTS.get(id)?.({ id, kpis, panel, charts, today: todayIso() }) ?? EMPTY_CHART;
 }
 
-const capitalise = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
-
 function helpButton(help: string | undefined, title: string): string {
-  return help ? `<button class="ai" data-ayuda-txt="${escapeHtml(help)}" data-ayuda-tit="${escapeHtml(title)}" aria-label="Qué es">i</button>` : '';
+  return help ? `<button class="ai" data-ayuda-txt="${escapeHtml(help)}" data-ayuda-tit="${escapeHtml(title)}" aria-label="${t('home.indicators.whatIsIt')}">i</button>` : '';
 }
 
 /** «8/12» counts up the first number; a plain number counts up; anything else is shown as it is. */
@@ -75,7 +75,7 @@ function liveBody(id: string, title: string, raw: unknown, context: CardContext)
 export function filterCard(setting: KpiSetting, index: number, live: boolean): string {
   const filter = setting.filtro ?? {};
   const name = setting.t ? setting.t : indicatorCatalog.filterText(filter);
-  const help = `<button class="ai" data-ayuda-txt="${escapeHtml(`${indicatorCatalog.help('filtro') ?? ''} Filtro: ${indicatorCatalog.filterText(filter)}.`)}" data-ayuda-tit="${escapeHtml(setting.t ? setting.t : 'Filtro guardado')}" aria-label="Qué es">i</button>`;
+  const help = `<button class="ai" data-ayuda-txt="${escapeHtml(t('home.indicators.filterHelp', { help: indicatorCatalog.help('filtro') ?? '', filter: indicatorCatalog.filterText(filter) }))}" data-ayuda-tit="${escapeHtml(setting.t ? setting.t : t('home.indicators.savedFilter'))}" aria-label="${t('home.indicators.whatIsIt')}">i</button>`;
   const count = '<b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b>';
   return live
     ? `<div class="kpi click kv" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">\n        ${help}\n        <span class="kvt">${escapeHtml(name)}</span><div class="kvn">${count}</div></div>`

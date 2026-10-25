@@ -257,63 +257,6 @@ function agDiaVacio() {
   if (AG_FECHA < hoyISO()) v.textContent = 'No tuviste citas este día.';
 }
 
-async function agPintarMes(mes) {
-  const caja = $('agmes'); if (!caja) return;
-  const hoy = hoyISO(), actual = hoy.slice(0, 7);
-  mes = mes || actual; AG_MES = mes;
-  const ini = mes + '-01', d1 = new Date(ini + 'T12:00:00');
-  const fin = isoMas(fechaLocal(new Date(d1.getFullYear(), d1.getMonth() + 1, 1)), -1);
-  let porDia = {};
-  if ((caja.dataset.mes || actual) !== mes) {
-    const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUsuarioFiltro() }, 'agenda-mes-' + mes);
-    (data || []).filter(x => !['Descartada', 'Aplazada'].includes(x.estado)).forEach(x => { porDia[x.fecha] = (porDia[x.fecha] || 0) + 1; });
-    if (AG_MES !== mes || !$('agmes')) return;
-    $('agmes').dataset.mes = mes;
-    const hueco = (d1.getDay() + 6) % 7, nd = +fin.slice(8);
-    const celdas = Array(hueco).fill('').concat(Array.from({ length: nd }, (_, i) => `${mes}-${String(i + 1).padStart(2, '0')}`));
-    $('agmes').querySelector('.agmesgrid').innerHTML = AG_DIAS_TXT.map(x => `<span class="agmd">${x}</span>`).join('') + celdas.map(f => {
-      if (!f) return '<span></span>';
-      const n = porDia[f] || 0;
-      return `<button type="button" class="agmc ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''} ${n ? 'con' : ''}" data-agdia="${f}" aria-label="${fechaCorta(f)}: ${n} citas">
-        <span>${+f.slice(8)}</span>${n ? `<i class="agpt">${n > 9 ? '9+' : n}</i>` : ''}</button>`; }).join('');
-  }
-  const fh = $('agmes').querySelector('.fh');
-  fh.classList.add('agmesh');
-  fh.innerHTML = `<button type="button" class="kmv agmnav" data-agm="-1" aria-label="Mes anterior">‹</button>
-    <button type="button" class="agmtit" id="agmtit" aria-label="Elegir mes y año">${esc(periodoTxt(mes).replace(/^./, c => c.toUpperCase()))}</button>
-    <button type="button" class="kmv agmnav" data-agm="1" aria-label="Mes siguiente">›</button>
-    ${mes !== actual ? '<button type="button" class="btn sec agmhoy" id="agmhoy">Hoy</button>' : ''}`;
-  const mover = n => { const d = new Date(ini + 'T12:00:00'); d.setMonth(d.getMonth() + n); agPintarMes(fechaLocal(d).slice(0, 7)); };
-  fh.querySelectorAll('[data-agm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); mover(+b.dataset.agm); });
-  if ($('agmhoy')) $('agmhoy').onclick = ev => { ev.stopPropagation(); agPintarMes(actual); };
-  $('agmtit').onclick = ev => { ev.stopPropagation(); agElegirMes(mes, ev.currentTarget); };
-  $('agmes').querySelectorAll('.agmc[data-agdia]').forEach(b => {
-    b.classList.toggle('sel', b.dataset.agdia === AG_FECHA && AG_FECHA !== hoy);
-    b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia); };
-  });
-}
-
-function agElegirMes(mes, ancla) {
-  document.querySelectorAll('.agmpop').forEach(x => x.remove());
-  let anio = +mes.slice(0, 4);
-  const p = document.createElement('div'); p.className = 'agmpop';
-  const nombres = Array.from({ length: 12 }, (_, i) => new Date(2026, i, 15).toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''));
-  const pinta = () => {
-    p.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="Año anterior">‹</button><b>${anio}</b>
-      <button type="button" class="kmv" data-an="1" aria-label="Año siguiente">›</button></div>
-      <div class="agmpopg">${nombres.map((n, i) => { const k = `${anio}-${String(i + 1).padStart(2, '0')}`;
-        return `<button type="button" data-mk="${k}" class="${k === mes ? 'on' : ''}">${n}</button>`; }).join('')}</div>`;
-    p.querySelectorAll('[data-an]').forEach(b => b.onclick = ev => { ev.stopPropagation(); anio += +b.dataset.an; pinta(); });
-    p.querySelectorAll('[data-mk]').forEach(b => b.onclick = ev => { ev.stopPropagation(); p.remove(); agPintarMes(b.dataset.mk); });
-  };
-  pinta();
-  document.body.appendChild(p);
-  const r = ancla.getBoundingClientRect(), w = Math.min(280, innerWidth - 20);
-  p.style.width = w + 'px';
-  p.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left + r.width / 2 - w / 2)) + 'px';
-  p.style.top = Math.min(innerHeight - p.offsetHeight - 10, r.bottom + 6) + 'px';
-}
-
 async function tareasDelDia(f) {
   if (AG_VISTA && AG_VISTA.id !== PERFIL.id) return null;   // las tareas son de cada uno: en la agenda de otra persona no se ven
   if (TAREAS_DIA && TAREAS_DIA.f === f) return TAREAS_DIA.l;
@@ -553,7 +496,7 @@ async function tdPintar() {
   on('tdnocord', () => $('tdordenar') && $('tdordenar').click());
   on('tdtarea', () => editarTarea(null, AG_FECHA));
   on('tddiamas', e => { e.stopPropagation(); const d = document.querySelector(`#agcinta [data-cf="${AG_FECHA}"]`); menuDiaSemana($('tddiamas'), AG_FECHA, !!(d && d.classList.contains('bloq'))); });
-  if (typeof agPastillas === 'function') agPastillas();
+  window.delcos.screens.agenda.refreshMetrics();
   // Botones de la ruta del día (Empezar ruta / Ruta completa): también al cambiar de día (antes solo al cargar la Agenda)
   try { if (typeof prepararParadas === 'function') prepararParadas(fecha); } catch (e) { }
   // Tareas propias del día (después de pintar: no retrasan las citas)
@@ -596,25 +539,6 @@ function tdAnimar(antes, id, dur = 300) {
 }
 
 // ---- Pastillas: las cifras de agenda_metricas
-function agPastillasHtml() {
-  const d = AG_MET; if (!d) return '';
-  const n1 = x => num(x == null ? 0 : x), dec = x => (x == null ? '0' : String(x).replace('.', ','));
-  const h = d.hoy || {}, s = d.semana || {}, c = d.cierres || {}, p = d.pendientes || {};
-  let hechas = n1(h.visitadas), total = n1(h.citas);
-  // «Hoy», con las mismas citas que Tu día cuando se ve hoy
-  if (AG_FECHA === hoyISO() && Array.isArray(TD_CITAS) && TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA) {
-    const act = TD_CITAS.filter(x => !citaAnulada(x.estado));
-    hechas = num(act.filter(x => !CITA_ABIERTA.includes(x.estado)).length); total = num(act.length);
-  }
-  const vp = TT('visita', 'p', '', 'l', 'l');
-  return [
-    ['Hoy', `${hechas}/${total}`, `${hechas} de ${total} citas · media ${dec(d.media_dia)} ${vp}/día`, ''],
-    ['Semana', n1(s.visitas), `${n1(s.visitas)} ${vp} · media ${dec(s.media)}/semana`, ''],
-    ['Cierres', n1(c.hoy), `${n1(c.hoy)} cierres con éxito hoy · media ${dec(c.media_dia)}/día`, ''],
-    ['Por visitar', n1((p.urgentes || 0) + (p.sin_visita || 0)), `${n1(p.urgentes)} urgentes · ${n1(p.sin_visita)} sin ${TT('visita', 's', '', 'l', 'l')} en 60 días`, 'agp-pend']
-  ].map(([t, b, tit, cl]) => `<span class="agp ${cl}" title="${esc(tit)}">${esc(t)} <b>${esc(b)}</b></span>`).join('');
-}
-
 // «En este centro también»: cada centro de sugerencias_centros va en la primera cita del día que está allí (a menos de 200 m)
 function agTamb() {
   const cuerpo = $('agcuerpo'); if (!cuerpo || !AG_SUG || AG_SUG.fecha !== AG_FECHA) return;
@@ -710,7 +634,7 @@ async function cargarAgenda() {
   if (AG_MODO === 'semana') AG_SEM_ABIERTA = true;
   AG_MODO = 'dia'; ABRIR_PLAN_SEMANA = false;
   await agCargarDia();
-  if (mes) agMesPop();
+  if (mes) void window.delcos.screens.agenda.toggleMonth();
   if (plan) agRepartirSemana();
 }
 
@@ -746,7 +670,7 @@ async function agCargarDia() {
     v.classList.add('agunida', 'agcinta', 'agb', 'agn');
     v.innerHTML = `
       <div class="saludo"><div><h1>Agenda</h1><div class="fecha" id="agtit">${esc('Hoy · ' + fechaLarga(new Date(hoyISO() + 'T00:00:00')) + (AG_VISTA ? ' · agenda de ' + AG_VISTA.nombre : ''))}</div></div>
-        <div class="aghud" id="aghud" aria-label="Tus números">${agPastillasHtml()}</div>
+        <div class="aghud" id="aghud" aria-label="Tus números">${window.delcos.screens.agenda.metricsHtml()}</div>
         <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">+ Nueva cita</button></div></div>
       <div class="card" id="agcuerpo"></div>
       <div class="card" id="agsemlat"></div>`;
@@ -782,45 +706,19 @@ async function agRepartirSemana() {
   const p = $('semplan'); if (p) { $('agsemexp').scrollIntoView({ behavior: 'smooth', block: 'start' }); p.click(); }
 }
 
-// El mes se abre ya pintado
-async function agMesPop() {
-  let m = $('agmes');
-  if (m && m.classList.contains('pop')) { cerrarMesCinta(); return; }
-  if (!m) { $('v-agenda').insertAdjacentHTML('beforeend', '<div class="card agmes" id="agmes"><div class="fh"></div><div class="agmesgrid"></div></div>'); m = $('agmes'); }
-  m.dataset.mes = '-';
-  await agPintarMes(AG_MES || (AG_FECHA || hoyISO()).slice(0, 7));
-  const b = $('cmesb'); if (!b || !$('agmes')) return;
-  m.classList.add('pop'); b.setAttribute('aria-expanded', 'true');
-  const r = b.getBoundingClientRect(), w = Math.min(380, innerWidth - 32);
-  Object.assign(m.style, { top: Math.round(r.bottom + 8) + 'px', left: Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px', bottom: 'auto', right: 'auto' });
-}
-
 // ---- Pastillas, cifras y bandejas
-function agPastillas() {
-  if (!agN()) return;
-  const h = $('aghud'); if (!h || !AG_MET) return;
-  const html = agPastillasHtml(); if (h.__html !== html) { h.innerHTML = html; h.__html = html; }   // solo si cambia alguna cifra
-}
-
-async function agMetricas() {
-  if (!agN()) return;
-  const { data } = await RPC_ORIG('agenda_metricas', { p_usuario: AG_VISTA ? AG_VISTA.id : null });
-  if (!data || !agN()) return;
-  AG_MET = data; agPastillas();
-}
-
 // Tras un cambio (mover, registrar, notas…): cifras, cinta, «Tu semana», bandejas y el mes si está abierto, de una vez
 function agCifrasQuietas() {
   if (!agN()) return;
   const f = AG_FECHA; let s = null;
-  agMetricas();
+  void window.delcos.screens.agenda.reloadMetrics();
   agConDatos([...agCintaCargas(), ...agSemCargas(f), agSugDatos(f).then(x => { s = x; })], async () => {
     if (AG_FECHA !== f || !agN()) return;
     agPonerSug(f, s);
     await Promise.all([agCinta(), agSemanaLateral()]);
     agTamb(); agBandejas();
   });
-  const m = $('agmes'); if (m && m.classList.contains('pop')) { m.dataset.mes = '-'; agPintarMes(AG_MES); }
+  window.delcos.screens.agenda.refreshOpenMonth();
 }
 
 function agBandeja(k) {
@@ -951,7 +849,8 @@ async function nuevaFechaTrasNoEstaba(c) {
   toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
 }
 
-function cerrarMesCinta() { const m = $('agmes'); if (m) m.classList.remove('pop'); if ($('cmesb')) $('cmesb').setAttribute('aria-expanded', 'false'); }
+// El mes está en src/app/screens/agenda (v2.390.0); este nombre se queda porque lo llaman el escuchador de Escape y las pruebas
+function cerrarMesCinta() { window.delcos.screens.agenda.closeMonth(); }
 
 function asegurarEquipo() {
   if (TAB !== 'agenda' || !VE_TODO()) return;
@@ -996,8 +895,6 @@ let TD_PARADAS = [];
    cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
    Al pulsar un día se ven sus citas ahí mismo (sin cambiar de pantalla). La semana detallada (arrastrar, planificar, bloquear días)
    sigue a un clic con «Planificar la semana», y vuelve con «Agenda de hoy». */
-const AG_DIAS_TXT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-
 const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia';   // v2.146.0: también con otro día elegido (antes solo hoy)
 
 const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ruta no dice otra cosa
@@ -1006,7 +903,6 @@ const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ru
 let TDM_BOTON = null;
 
 // ---- 2. El mes de la Agenda, en cualquier mes y año
-let AG_MES = null;
 
 // ---- 1. La franja de la semana, en cualquier semana
 let AG_SEMANA = null;
@@ -1301,7 +1197,7 @@ async function agCinta() {
     await agMenusCinta();
     if (AG_SEM_ABIERTA) await agPintarSemanaExp();
     agBotonSemana();
-    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); agMesPop(); };
+    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); window.delcos.screens.agenda.toggleMonth(); };
     const h = $('choy'); if (h) h.onclick = () => { CINTA_INI = null; agVerDia(hoyISO()); };
   });
 }
@@ -1657,7 +1553,7 @@ async function agVerDia(f) {
       if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
       await Promise.all(piezas);
       if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
-      agMarcarDia(); agDiaVacio(); agPastillas();
+      agMarcarDia(); agDiaVacio(); window.delcos.screens.agenda.refreshMetrics();
     });
   } finally { const cc = $('agcuerpo'); if (cc) cc.classList.remove('agcargando'); }
   if (AG_FECHA !== f) return;

@@ -10,11 +10,6 @@ export const STATE_COLORS: Readonly<Record<string, string>> = {
   inicial: '#C9D7E6', avance: '#3F82C0', interes: '#17457A', positivo: '#1E7A4C', negativo: '#94A3B8',
 };
 
-/** 0, 1, … length − 1. */
-export const range = (length: number): number[] => [...Array(length).keys()];
-
-export const sum = (values: readonly number[]): number => values.reduce((total, value) => total + value, 0);
-
 export function lineIcon(path: string, width = 2.4): string {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 }

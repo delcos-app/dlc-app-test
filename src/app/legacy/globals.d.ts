@@ -119,3 +119,19 @@ declare function marca(step: string): void;
 declare function avisoCache(element: HTMLElement, date: string | undefined): void;
 declare function ponerAyudas(): void;
 declare function ES_MOVIL(): boolean;
+
+interface AgendaMetrics {
+  hoy?: { visitadas?: number | null; citas?: number | null };
+  semana?: { visitas?: number | null; media?: number | null };
+  cierres?: { hoy?: number | null; media_dia?: number | null };
+  pendientes?: { urgentes?: number | null; sin_visita?: number | null };
+  media_dia?: number | null;
+}
+declare let AG_FECHA: string | null;
+declare let AG_MET: AgendaMetrics | null;
+declare let AG_VISTA: { id: string; nombre: string } | null;
+declare let TD_CITAS: { estado: string }[];
+declare let TD_ULTIMO: { fecha: string } | null;
+declare function agUsuarioFiltro(): string | null;
+declare function agVerDia(isoDate: string): Promise<void>;
+declare function agN(): boolean;

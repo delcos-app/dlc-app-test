@@ -9,3 +9,8 @@ export function orFallback(value: string | null | undefined, fallback: string): 
 export function nonZeroOr(value: number | null | undefined, fallback: number): number {
   return value === undefined || value === null || value === 0 || Number.isNaN(value) ? fallback : value;
 }
+
+/** 0, 1, … length − 1. */
+export const range = (length: number): number[] => [...Array(length).keys()];
+
+export const sum = (values: readonly number[]): number => values.reduce((total, value) => total + value, 0);

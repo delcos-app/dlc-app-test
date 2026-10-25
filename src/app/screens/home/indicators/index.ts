@@ -4,6 +4,7 @@
  */
 import { addHelpButtons, alreadyCounted, cachedRpc, currentScreen, homeCache, indicatorCatalog, showCacheNotice, timingMark } from '../../../legacy/bridge';
 import { formatNumber } from '../../../services/format';
+import { t } from '../../../i18n';
 import { filterCard, indicatorCard, type CardContext } from './cards';
 
 const COUNT_DURATION_MS = 900;
@@ -54,7 +55,7 @@ export interface PanelResult { readonly data: HomePanel | null; readonly cache?:
 export function paintIndicators(result: PanelResult): void {
   const container = document.getElementById('kpis');
   if (!container) return;
-  if (!result.data) { container.innerHTML = '<div class="vacio">Sin conexión y sin copia guardada todavía.</div>'; return; }
+  if (!result.data) { container.innerHTML = `<div class="vacio">${t('home.indicators.offline')}</div>`; return; }
   const settings = indicatorCatalog.settings().filter(setting => setting.on);
   const live = render(container, settings, result.data.kpis ?? {});
   if (result.cache) showCacheNotice(container, result.fecha);

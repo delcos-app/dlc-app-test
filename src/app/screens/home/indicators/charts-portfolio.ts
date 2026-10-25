@@ -1,7 +1,9 @@
 /** Indicator charts about the portfolio: commercial states, accounts not contacted and accounts without a recent visit. */
 import { commercialStates, isMobile, term } from '../../../legacy/bridge';
 import { escapeHtml } from '../../../services/format';
-import { EMPTY_CHART, range, STATE_COLORS, sum, type ChartResult } from './chart-tools';
+import { range, sum } from '../../../services/values';
+import { t } from '../../../i18n';
+import { EMPTY_CHART, STATE_COLORS, type ChartResult } from './chart-tools';
 
 type Kpis = Readonly<Record<string, number>>;
 interface StateCount { readonly state: { readonly valor: string; readonly papel: string }; readonly accounts: number }
@@ -29,7 +31,8 @@ export function interestedChart(charts: HomeCharts): ChartResult {
     return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on ? 'var(--navy)' : '#DCE6F1'}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on ? 'on' : ''}">${count.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on ? 'on' : ''}">${escapeHtml(name)}</text>`;
   }).join('');
   const positive = counts.find(count => count.state.papel === 'positivo');
-  const summary = positive ? (positive.accounts ? `<b>${positive.accounts}</b> ya en «${escapeHtml(positive.state.valor)}»` : `Siguiente paso: «${escapeHtml(positive.state.valor)}»`) : '';
+  const state = positive ? escapeHtml(positive.state.valor) : '';
+  const summary = positive ? (positive.accounts ? t('home.indicators.alreadyIn', { count: positive.accounts, state }) : t('home.indicators.nextStep', { state })) : '';
   return { summary, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
 }
 
@@ -53,14 +56,14 @@ export function notContactedChart(charts: HomeCharts, kpis: Kpis): ChartResult {
   const total = portfolioTotal(charts), notContacted = kpis.sin_contactar ?? 0;
   const squares = Math.min(total, isMobile() ? 64 : 96), filled = Math.round(notContacted / total * squares);
   const grid = range(squares).map(i => `<i class="${i >= squares - filled ? 'f' : ''}"></i>`).join('');
-  return { summary: `${Math.round(notContacted / total * 100)} % de tu cartera`, visual: `<div class="kvwaf" aria-hidden="true">${grid}</div>` };
+  return { summary: t('home.indicators.shareOfPortfolio', { percent: Math.round(notContacted / total * 100) }), visual: `<div class="kvwaf" aria-hidden="true">${grid}</div>` };
 }
 
 /** Share of the portfolio without a visit in 60 days. */
 export function noRecentVisitChart(kpis: Kpis): ChartResult {
   const percent = Math.round((kpis.sin_visita_60 ?? 0) / Math.max(1, kpis.medicos ?? 0) * 100);
   return {
-    summary: `${percent} % de tu cartera`,
-    visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>Sin ${term('visita')} en 60 días</span><span><i class="kvq b"></i>El resto</span></div></div>`,
+    summary: t('home.indicators.shareOfPortfolio', { percent }),
+    visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>${t('home.indicators.noVisitIn60Days', { visit: term('visita') })}</span><span><i class="kvq b"></i>${t('home.indicators.theRest')}</span></div></div>`,
   };
 }

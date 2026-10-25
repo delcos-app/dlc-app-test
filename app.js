@@ -1,4 +1,10 @@
 (() => {
+  var __defProp = Object.defineProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+
   // src/app/core/router.ts
   var MAX_REDIRECTS = 10;
   function createRouter(fallbackRoute) {
@@ -74,6 +80,8 @@
   function nonZeroOr(value, fallback) {
     return value === void 0 || value === null || value === 0 || Number.isNaN(value) ? fallback : value;
   }
+  var range = (length) => [...Array(length).keys()];
+  var sum = (values) => values.reduce((total, value) => total + value, 0);
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -477,11 +485,61 @@
     },
     dates: {
       monthsShort: "ene,feb,mar,abr,may,jun,jul,ago,sep,oct,nov,dic",
-      weekdaysShort: "dom,lun,mar,mié,jue,vie,sáb"
+      weekdaysShort: "dom,lun,mar,mié,jue,vie,sáb",
+      /** Locale for the browser date and number formats (Intl) */
+      locale: "es-ES",
+      monthsLong: "enero,febrero,marzo,abril,mayo,junio,julio,agosto,septiembre,octubre,noviembre,diciembre",
+      /** Weekday initials from Monday */
+      weekdayLetters: "L,M,X,J,V,S,D"
+    },
+    agenda: {
+      month: {
+        previous: "Mes anterior",
+        next: "Mes siguiente",
+        choose: "Elegir mes y año",
+        today: "Hoy",
+        previousYear: "Año anterior",
+        nextYear: "Año siguiente",
+        dayLabel: "{date}: {count} citas"
+      },
+      metrics: {
+        today: "Hoy",
+        week: "Semana",
+        closings: "Cierres",
+        toVisit: "Por visitar",
+        todayDetail: "{done} de {total} citas · media {average} {visits}/día",
+        weekDetail: "{count} {visits} · media {average}/semana",
+        closingsDetail: "{count} cierres con éxito hoy · media {average}/día",
+        toVisitDetail: "{urgent} urgentes · {noVisit} sin {visit} en 60 días"
+      }
     },
     home: {
       showIndicators: "Ver tus indicadores",
       hideIndicators: "Ocultar tus indicadores",
+      indicators: {
+        offline: "Sin conexión y sin copia guardada todavía.",
+        whatIsIt: "Qué es",
+        savedFilter: "Filtro guardado",
+        filterHelp: "{help} Filtro: {filter}.",
+        nextAppointment: "Siguiente <b>{time}</b> · {name}",
+        allClosed: "Todas cerradas",
+        noAppointmentsToday: "Sin citas hoy",
+        urgentPending: "{count} por atender",
+        noneUrgent: "Ninguno pendiente",
+        allUpToDate: "Todo al día",
+        busiestDay: "El {weekday}, el día más lleno (<b>{count}</b>)",
+        freeWeek: "Semana libre",
+        fourWeekAverage: "Media <b>{average}</b> al día las 4 semanas anteriores",
+        aboveLastMonth: "<b>+{difference}</b> sobre el mismo día del mes pasado",
+        belowLastMonth: "<b>{difference}</b> frente al mismo día del mes pasado",
+        unitsVersusLastMonth: "{sign}{percent} % frente al mismo día del mes pasado",
+        alreadyIn: "<b>{count}</b> ya en «{state}»",
+        nextStep: "Siguiente paso: «{state}»",
+        shareOfPortfolio: "{percent} % de tu cartera",
+        noVisitIn60Days: "Sin {visit} en 60 días",
+        theRest: "El resto",
+        today: "hoy"
+      },
       attention: {
         title: "Requiere tu atención",
         allClearTitle: "Todo al día",
@@ -584,6 +642,18 @@
     return fill(text, params);
   }
 
+  // src/app/screens/agenda/index.ts
+  var agenda_exports = {};
+  __export(agenda_exports, {
+    closeMonth: () => closeMonth,
+    metricsHtml: () => metricsHtml,
+    refreshMetrics: () => refreshMetrics,
+    refreshOpenMonth: () => refreshOpenMonth,
+    reloadMetrics: () => reloadMetrics,
+    renderMonth: () => renderMonth,
+    toggleMonth: () => toggleMonth
+  });
+
   // src/app/legacy/bridge.ts
   var legacyDb = () => db;
   var callRpc = (name, params = {}) => RPC_ORIG(name, params);
@@ -652,18 +722,23 @@
     ponerAyudas();
   };
   var isMobile = () => ES_MOVIL();
-
-  // src/app/services/format.ts
-  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
-  }
-  function formatNumber(value) {
-    return Number(value ?? 0).toLocaleString("es");
-  }
-  function formatEuros(value) {
-    return `${Math.round(Number(value) || 0).toLocaleString("es-ES")} €`;
-  }
+  var legacyAgenda = {
+    selectedDate: () => AG_FECHA,
+    /** The person whose agenda is shown (null: everybody the user sees, or the user). */
+    userFilter: () => agUsuarioFiltro(),
+    viewedUserId: () => AG_VISTA?.id ?? null,
+    showDay: (isoDate) => {
+      void agVerDia(isoDate);
+    },
+    isDayView: () => agN(),
+    metrics: () => AG_MET,
+    setMetrics: (value) => {
+      AG_MET = value;
+    },
+    /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
+    dayAppointments: () => TD_CITAS,
+    loadedDay: () => TD_ULTIMO?.fecha ?? null
+  };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -681,6 +756,246 @@
     return /* @__PURE__ */ new Date(`${isoDate}T12:00:00`);
   }
 
+  // src/app/services/date-format.ts
+  var locale = () => t("dates.locale");
+  function formatShortDate(isoDate) {
+    return (/* @__PURE__ */ new Date(`${isoDate}T00:00:00`)).toLocaleDateString(locale(), { day: "numeric", month: "short" });
+  }
+  function formatMonth(month) {
+    const [year = "", number = "1"] = month.split("-");
+    return `${t("dates.monthsLong").split(",")[Number(number) - 1] ?? ""} ${year}`;
+  }
+  function weekdayName(isoDate) {
+    return fromIsoDate(isoDate).toLocaleDateString(locale(), { weekday: "long" });
+  }
+  function shortMonthNames() {
+    return range(12).map((index) => new Date(2026, index, 15).toLocaleDateString(locale(), { month: "short" }).replace(".", ""));
+  }
+  var capitalise = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+  // src/app/services/format.ts
+  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  }
+  function formatNumber(value) {
+    return Number(value ?? 0).toLocaleString("es");
+  }
+  function formatEuros(value) {
+    return `${Math.round(Number(value) || 0).toLocaleString("es-ES")} €`;
+  }
+
+  // src/app/screens/agenda/month-calendar.ts
+  var NOT_COUNTED = ["Descartada", "Aplazada"];
+  var POPOVER_WIDTH = 380;
+  var PICKER_WIDTH = 280;
+  var shownMonth = null;
+  var calendar = () => document.getElementById("agmes");
+  var monthOf = (isoDate) => isoDate.slice(0, 7);
+  function lastDayOf(month) {
+    const first = /* @__PURE__ */ new Date(`${month}-01T12:00:00`);
+    return addDays(toIsoDate(new Date(first.getFullYear(), first.getMonth() + 1, 1)), -1);
+  }
+  function shiftMonth(month, months) {
+    const date = /* @__PURE__ */ new Date(`${month}-01T12:00:00`);
+    date.setMonth(date.getMonth() + months);
+    return monthOf(toIsoDate(date));
+  }
+  async function appointmentsPerDay(month) {
+    const result = await cachedRpc(
+      "agenda_rango",
+      { p_desde: `${month}-01`, p_hasta: lastDayOf(month), p_usuario: legacyAgenda.userFilter() },
+      `agenda-mes-${month}`
+    );
+    const perDay = /* @__PURE__ */ new Map();
+    (result.data ?? []).filter((item) => !NOT_COUNTED.includes(item.estado)).forEach((item) => {
+      perDay.set(item.fecha, (perDay.get(item.fecha) ?? 0) + 1);
+    });
+    return perDay;
+  }
+  function dayCell(isoDate, count2, today) {
+    const classes = ["agmc", isoDate === today ? "hoy" : "", isoDate < today ? "pasado" : "", count2 ? "con" : ""].filter(Boolean).join(" ");
+    const label = t("agenda.month.dayLabel", { date: formatShortDate(isoDate), count: count2 });
+    return `<button type="button" class="${classes}" data-agdia="${isoDate}" aria-label="${label}">
+        <span>${Number(isoDate.slice(8))}</span>${count2 ? `<i class="agpt">${count2 > 9 ? "9+" : count2}</i>` : ""}</button>`;
+  }
+  function gridHtml(month, perDay) {
+    const today = todayIso(), first = /* @__PURE__ */ new Date(`${month}-01T12:00:00`);
+    const blanks = (first.getDay() + 6) % 7, days = Number(lastDayOf(month).slice(8));
+    const header = t("dates.weekdayLetters").split(",").map((letter) => `<span class="agmd">${letter}</span>`).join("");
+    const cells = range(days).map((index) => `${month}-${String(index + 1).padStart(2, "0")}`);
+    return header + "<span></span>".repeat(blanks) + cells.map((day) => dayCell(day, perDay.get(day) ?? 0, today)).join("");
+  }
+  function headerHtml(month, current) {
+    return `<button type="button" class="kmv agmnav" data-agm="-1" aria-label="${t("agenda.month.previous")}">‹</button>
+    <button type="button" class="agmtit" id="agmtit" aria-label="${t("agenda.month.choose")}">${escapeHtml(capitalise(formatMonth(month)))}</button>
+    <button type="button" class="kmv agmnav" data-agm="1" aria-label="${t("agenda.month.next")}">›</button>
+    ${month !== current ? `<button type="button" class="btn sec agmhoy" id="agmhoy">${t("agenda.month.today")}</button>` : ""}`;
+  }
+  function onClick(element, action) {
+    if (element instanceof HTMLElement) element.onclick = (event) => {
+      event.stopPropagation();
+      action();
+    };
+  }
+  function bindHeader(box, month, current) {
+    box.querySelectorAll("[data-agm]").forEach((button) => {
+      onClick(button, () => {
+        void renderMonth(shiftMonth(month, Number(button.dataset.agm)));
+      });
+    });
+    onClick(document.getElementById("agmhoy"), () => {
+      void renderMonth(current);
+    });
+    const title = document.getElementById("agmtit");
+    onClick(title, () => {
+      if (title) openMonthPicker(month, title);
+    });
+  }
+  function bindDays(box) {
+    const selected = legacyAgenda.selectedDate(), today = todayIso();
+    box.querySelectorAll(".agmc[data-agdia]").forEach((button) => {
+      const day = button.dataset.agdia ?? "";
+      button.classList.toggle("sel", day === selected && selected !== today);
+      onClick(button, () => {
+        legacyAgenda.showDay(day);
+      });
+    });
+  }
+  async function renderMonth(month) {
+    const box = calendar();
+    if (!box) return;
+    const current = monthOf(todayIso()), target = month ?? current;
+    shownMonth = target;
+    if (orFallback(box.dataset.mes, current) !== target) {
+      const perDay = await appointmentsPerDay(target);
+      const fresh = calendar();
+      if (shownMonth !== target || !fresh) return;
+      fresh.dataset.mes = target;
+      const grid = fresh.querySelector(".agmesgrid");
+      if (grid) grid.innerHTML = gridHtml(target, perDay);
+    }
+    const box2 = calendar(), header = box2?.querySelector(".fh");
+    if (!box2 || !header) return;
+    header.classList.add("agmesh");
+    header.innerHTML = headerHtml(target, current);
+    bindHeader(header, target, current);
+    bindDays(box2);
+  }
+  function openMonthPicker(month, anchor) {
+    document.querySelectorAll(".agmpop").forEach((element) => {
+      element.remove();
+    });
+    let year = Number(month.slice(0, 4));
+    const picker = document.createElement("div");
+    picker.className = "agmpop";
+    const names = shortMonthNames();
+    const paint = () => {
+      picker.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="${t("agenda.month.previousYear")}">‹</button><b>${year}</b>
+      <button type="button" class="kmv" data-an="1" aria-label="${t("agenda.month.nextYear")}">›</button></div>
+      <div class="agmpopg">${names.map((name, index) => {
+        const key = `${year}-${String(index + 1).padStart(2, "0")}`;
+        return `<button type="button" data-mk="${key}" class="${key === month ? "on" : ""}">${name}</button>`;
+      }).join("")}</div>`;
+      picker.querySelectorAll("[data-an]").forEach((button) => {
+        onClick(button, () => {
+          year += Number(button.dataset.an);
+          paint();
+        });
+      });
+      picker.querySelectorAll("[data-mk]").forEach((button) => {
+        onClick(button, () => {
+          picker.remove();
+          void renderMonth(button.dataset.mk);
+        });
+      });
+    };
+    paint();
+    document.body.appendChild(picker);
+    const rect = anchor.getBoundingClientRect(), width = Math.min(PICKER_WIDTH, innerWidth - 20);
+    picker.style.width = `${width}px`;
+    picker.style.left = `${Math.max(10, Math.min(innerWidth - width - 10, rect.left + rect.width / 2 - width / 2))}px`;
+    picker.style.top = `${Math.min(innerHeight - picker.offsetHeight - 10, rect.bottom + 6)}px`;
+  }
+  function closeMonth() {
+    calendar()?.classList.remove("pop");
+    document.getElementById("cmesb")?.setAttribute("aria-expanded", "false");
+  }
+  async function toggleMonth() {
+    let box = calendar();
+    if (box?.classList.contains("pop")) {
+      closeMonth();
+      return;
+    }
+    if (!box) {
+      document.getElementById("v-agenda")?.insertAdjacentHTML("beforeend", '<div class="card agmes" id="agmes"><div class="fh"></div><div class="agmesgrid"></div></div>');
+      box = calendar();
+    }
+    if (!box) return;
+    box.dataset.mes = "-";
+    await renderMonth(shownMonth ?? monthOf(legacyAgenda.selectedDate() ?? todayIso()));
+    const button = document.getElementById("cmesb"), opened = calendar();
+    if (!button || !opened) return;
+    opened.classList.add("pop");
+    button.setAttribute("aria-expanded", "true");
+    const rect = button.getBoundingClientRect(), width = Math.min(POPOVER_WIDTH, innerWidth - 32);
+    Object.assign(opened.style, { top: `${Math.round(rect.bottom + 8)}px`, left: `${Math.round(Math.max(16, Math.min(rect.left, innerWidth - width - 16)))}px`, bottom: "auto", right: "auto" });
+  }
+  function refreshOpenMonth() {
+    const box = calendar();
+    if (!box?.classList.contains("pop")) return;
+    box.dataset.mes = "-";
+    void renderMonth(shownMonth);
+  }
+
+  // src/app/screens/agenda/metrics.ts
+  var count = (value) => formatNumber(value ?? 0);
+  var decimal = (value) => value === void 0 || value === null ? "0" : String(value).replace(".", ",");
+  function todayFigures(metrics) {
+    const day = legacyAgenda.selectedDate(), today = todayIso();
+    if (day === today && legacyAgenda.loadedDay() === day) {
+      const active = legacyAgenda.dayAppointments().filter((item) => !appointments.isCancelled(item.estado));
+      return { done: formatNumber(active.filter((item) => !appointments.isOpen(item.estado)).length), total: formatNumber(active.length) };
+    }
+    return { done: count(metrics.hoy?.visitadas), total: count(metrics.hoy?.citas) };
+  }
+  function pills(metrics) {
+    const { done, total } = todayFigures(metrics);
+    const visits = term("visita", { number: "p" }), week = metrics.semana ?? {}, closings = metrics.cierres ?? {}, pending = metrics.pendientes ?? {};
+    return [
+      ["agenda.metrics.today", `${done}/${total}`, t("agenda.metrics.todayDetail", { done, total, average: decimal(metrics.media_dia), visits }), ""],
+      ["agenda.metrics.week", count(week.visitas), t("agenda.metrics.weekDetail", { count: count(week.visitas), visits, average: decimal(week.media) }), ""],
+      ["agenda.metrics.closings", count(closings.hoy), t("agenda.metrics.closingsDetail", { count: count(closings.hoy), average: decimal(closings.media_dia) }), ""],
+      [
+        "agenda.metrics.toVisit",
+        count((pending.urgentes ?? 0) + (pending.sin_visita ?? 0)),
+        t("agenda.metrics.toVisitDetail", { urgent: count(pending.urgentes), noVisit: count(pending.sin_visita), visit: term("visita") }),
+        "agp-pend"
+      ]
+    ];
+  }
+  function metricsHtml() {
+    const metrics = legacyAgenda.metrics();
+    if (!metrics) return "";
+    return pills(metrics).map(([label, figure2, detail, className]) => `<span class="agp ${className}" title="${escapeHtml(detail)}">${escapeHtml(t(label))} <b>${escapeHtml(figure2)}</b></span>`).join("");
+  }
+  function refreshMetrics() {
+    const box = document.getElementById("aghud");
+    if (!legacyAgenda.isDayView() || !box || !legacyAgenda.metrics()) return;
+    const html = metricsHtml();
+    if (box.lastHtml !== html) {
+      box.innerHTML = html;
+      box.lastHtml = html;
+    }
+  }
+  async function reloadMetrics() {
+    if (!legacyAgenda.isDayView()) return;
+    const { data } = await callRpc("agenda_metricas", { p_usuario: legacyAgenda.viewedUserId() });
+    if (!data || !legacyAgenda.isDayView()) return;
+    legacyAgenda.setMetrics(data);
+    refreshMetrics();
+  }
+
   // src/app/screens/home/indicators/chart-tools.ts
   var EMPTY_CHART = { summary: "", visual: "" };
   var WEEKDAY_LETTERS = ["D", "L", "M", "X", "J", "V", "S"];
@@ -691,8 +1006,6 @@
     positivo: "#1E7A4C",
     negativo: "#94A3B8"
   };
-  var range = (length) => [...Array(length).keys()];
-  var sum = (values) => values.reduce((total, value) => total + value, 0);
   function lineIcon(path, width = 2.4) {
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
   }
@@ -719,7 +1032,7 @@
     const now = /* @__PURE__ */ new Date(), minutesNow = now.getHours() * 60 + now.getMinutes();
     const next = open.find((item) => (minutesOf(item.hora) ?? 9999) >= minutesNow - 15) ?? open[0];
     const time = (item, empty) => escapeHtml(String(item.hora ?? "").slice(0, 5) || empty);
-    const summary = next ? `Siguiente <b>${time(next, "—")}</b> · ${escapeHtml(next.nombre)}` : list.length ? "Todas cerradas" : "Sin citas hoy";
+    const summary = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
     const visible = isMobile() ? 3 : 5;
     const nextIndex = next ? list.indexOf(next) : 0;
     const start = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown = list.slice(start, start + visible);
@@ -728,18 +1041,18 @@
     return { summary, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
   }
   function urgentChart(kpis) {
-    if (kpis.urgentes) return { summary: `${formatNumber(kpis.urgentes)} por atender`, visual: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' };
-    return { summary: "Ninguno pendiente", visual: `<div class="kvcalma"><span>${lineIcon('<path d="M20 6 9 17l-5-5"/>')}</span>Todo al día</div>` };
+    if (kpis.urgentes) return { summary: t("home.indicators.urgentPending", { count: formatNumber(kpis.urgentes) }), visual: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' };
+    return { summary: t("home.indicators.noneUrgent"), visual: `<div class="kvcalma"><span>${lineIcon('<path d="M20 6 9 17l-5-5"/>')}</span>${t("home.indicators.allUpToDate")}</div>` };
   }
   function weekSummary(week, today) {
     const { upcoming, days, values, perDay } = week;
     if (upcoming) {
       const busiest = values.indexOf(Math.max(...values));
       const day = days[busiest];
-      return values[busiest] && day ? `El ${fromIsoDate(day).toLocaleDateString("es-ES", { weekday: "long" })}, el día más lleno (<b>${values[busiest]}</b>)` : "Semana libre";
+      return values[busiest] && day ? t("home.indicators.busiestDay", { weekday: weekdayName(day), count: values[busiest] ?? 0 }) : t("home.indicators.freeWeek");
     }
     const fourWeeks = sum(range(28).map((i) => perDay.get(addDays(mondayOf(today), -28 + i)) ?? 0)) / 20;
-    return `Media <b>${String(fourWeeks.toFixed(1)).replace(".", ",")}</b> al día las 4 semanas anteriores`;
+    return t("home.indicators.fourWeekAverage", { average: String(fourWeeks.toFixed(1)).replace(".", ",") });
   }
   function weekChart(id, charts, today) {
     const upcoming = id === "citas_7d";
@@ -772,17 +1085,17 @@
     const line = (values) => values.map((value, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value).toFixed(1)}`).join("");
     const end = current[current.length - 1] ?? 0, difference = end - (last[last.length - 1] ?? 0);
     return {
-      summary: difference >= 0 ? `<b>+${difference}</b> sobre el mismo día del mes pasado` : `<b>${difference}</b> frente al mismo día del mes pasado`,
+      summary: t(difference >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference }),
       visual: `<svg class="kvlin" viewBox="0 0 ${width} ${height + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${line(last)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
         <path class="l" d="${line(current)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="0" y="${height + 11}">1</text><text x="${width}" y="${height + 11}" text-anchor="end" class="hoy">hoy</text>
+        <text x="0" y="${height + 11}">1</text><text x="${width}" y="${height + 11}" text-anchor="end" class="hoy">${t("home.indicators.today")}</text>
         <circle class="fin" cx="${x(dayOfMonth - 1)}" cy="${y(end)}" r="4" fill="var(--sky)" stroke="var(--navy)" stroke-width="1.5"/></svg>`
     };
   }
   function unitsChart(kpis) {
     const now = kpis.uds_mes ?? 0, before = kpis.uds_mes_ant ?? 0, max = Math.max(1, now, before), width = 196;
     return {
-      summary: before ? `${now >= before ? "+" : ""}${Math.round((now - before) / before * 100)} % frente al mismo día del mes pasado` : "",
+      summary: before ? t("home.indicators.unitsVersusLastMonth", { sign: now >= before ? "+" : "", percent: Math.round((now - before) / before * 100) }) : "",
       visual: `<svg class="kvbar" viewBox="0 0 ${width} 44" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="4" width="${before / max * width}" height="12" rx="4" fill="#DCE6F1"/><rect x="0" y="24" width="${Math.max(3, now / max * width)}" height="12" rx="4" fill="var(--navy)"/></svg>`
     };
   }
@@ -797,42 +1110,43 @@
   }
   var color = (role) => STATE_COLORS[role] ?? "#C9D7E6";
   function interestedChart(charts) {
-    const counts = stateCounts(charts), steps = counts.filter((count) => count.state.papel !== "inicial");
+    const counts = stateCounts(charts), steps = counts.filter((count2) => count2.state.papel !== "inicial");
     if (!steps.length) return EMPTY_CHART;
-    const max = Math.max(1, ...steps.map((count) => count.accounts)), width = 196, barWidth = width / steps.length;
-    const columns = steps.map((count, i) => {
-      const on = count.state.papel === "interes", height = Math.max(4, count.accounts / max * 28);
-      const name = count.state.valor.length > 11 ? `${count.state.valor.slice(0, 10)}.` : count.state.valor;
-      return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on ? "var(--navy)" : "#DCE6F1"}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on ? "on" : ""}">${count.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on ? "on" : ""}">${escapeHtml(name)}</text>`;
+    const max = Math.max(1, ...steps.map((count2) => count2.accounts)), width = 196, barWidth = width / steps.length;
+    const columns = steps.map((count2, i) => {
+      const on = count2.state.papel === "interes", height = Math.max(4, count2.accounts / max * 28);
+      const name = count2.state.valor.length > 11 ? `${count2.state.valor.slice(0, 10)}.` : count2.state.valor;
+      return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on ? "var(--navy)" : "#DCE6F1"}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on ? "on" : ""}">${count2.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on ? "on" : ""}">${escapeHtml(name)}</text>`;
     }).join("");
-    const positive = counts.find((count) => count.state.papel === "positivo");
-    const summary = positive ? positive.accounts ? `<b>${positive.accounts}</b> ya en «${escapeHtml(positive.state.valor)}»` : `Siguiente paso: «${escapeHtml(positive.state.valor)}»` : "";
+    const positive = counts.find((count2) => count2.state.papel === "positivo");
+    const state = positive ? escapeHtml(positive.state.valor) : "";
+    const summary = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state }) : t("home.indicators.nextStep", { state }) : "";
     return { summary, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
   }
   function portfolioChart(charts) {
-    const total = portfolioTotal(charts), present = stateCounts(charts).filter((count) => count.accounts);
+    const total = portfolioTotal(charts), present = stateCounts(charts).filter((count2) => count2.accounts);
     const circumference = 2 * Math.PI * 22;
     let offset = 0;
-    const segments = present.map((count) => {
-      const length = count.accounts / total * circumference;
-      const segment = `<circle class="s" cx="29" cy="29" r="22" fill="none" stroke="${color(count.state.papel)}" stroke-width="9" stroke-dasharray="${Math.max(0, length - 1.5)} ${circumference}" stroke-dashoffset="${-offset}"/>`;
+    const segments = present.map((count2) => {
+      const length = count2.accounts / total * circumference;
+      const segment = `<circle class="s" cx="29" cy="29" r="22" fill="none" stroke="${color(count2.state.papel)}" stroke-width="9" stroke-dasharray="${Math.max(0, length - 1.5)} ${circumference}" stroke-dashoffset="${-offset}"/>`;
       offset += length;
       return segment;
     }).join("");
-    const legend = present.slice(0, 4).map((count) => `<span><i style="background:${color(count.state.papel)}"></i>${count.accounts} ${escapeHtml(count.state.valor)}</span>`).join("");
+    const legend = present.slice(0, 4).map((count2) => `<span><i style="background:${color(count2.state.papel)}"></i>${count2.accounts} ${escapeHtml(count2.state.valor)}</span>`).join("");
     return { summary: "", visual: `<div class="kvdona"><svg viewBox="0 0 58 58" aria-hidden="true">${segments}</svg><div class="kvley">${legend}</div></div>` };
   }
   function notContactedChart(charts, kpis) {
     const total = portfolioTotal(charts), notContacted = kpis.sin_contactar ?? 0;
     const squares = Math.min(total, isMobile() ? 64 : 96), filled = Math.round(notContacted / total * squares);
     const grid = range(squares).map((i) => `<i class="${i >= squares - filled ? "f" : ""}"></i>`).join("");
-    return { summary: `${Math.round(notContacted / total * 100)} % de tu cartera`, visual: `<div class="kvwaf" aria-hidden="true">${grid}</div>` };
+    return { summary: t("home.indicators.shareOfPortfolio", { percent: Math.round(notContacted / total * 100) }), visual: `<div class="kvwaf" aria-hidden="true">${grid}</div>` };
   }
   function noRecentVisitChart(kpis) {
     const percent = Math.round((kpis.sin_visita_60 ?? 0) / Math.max(1, kpis.medicos ?? 0) * 100);
     return {
-      summary: `${percent} % de tu cartera`,
-      visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>Sin ${term("visita")} en 60 días</span><span><i class="kvq b"></i>El resto</span></div></div>`
+      summary: t("home.indicators.shareOfPortfolio", { percent }),
+      visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>${t("home.indicators.noVisitIn60Days", { visit: term("visita") })}</span><span><i class="kvq b"></i>${t("home.indicators.theRest")}</span></div></div>`
     };
   }
 
@@ -854,9 +1168,8 @@
   function chartFor(id, kpis, panel, charts) {
     return CHARTS.get(id)?.({ id, kpis, panel, charts, today: todayIso() }) ?? EMPTY_CHART;
   }
-  var capitalise = (text) => text.charAt(0).toUpperCase() + text.slice(1);
   function helpButton(help, title) {
-    return help ? `<button class="ai" data-ayuda-txt="${escapeHtml(help)}" data-ayuda-tit="${escapeHtml(title)}" aria-label="Qué es">i</button>` : "";
+    return help ? `<button class="ai" data-ayuda-txt="${escapeHtml(help)}" data-ayuda-tit="${escapeHtml(title)}" aria-label="${t("home.indicators.whatIsIt")}">i</button>` : "";
   }
   function figure(raw) {
     const text = String(raw), fraction = /^(\d+)\/(\d+)$/.exec(text);
@@ -884,13 +1197,13 @@
   function filterCard(setting, index, live) {
     const filter = setting.filtro ?? {};
     const name = setting.t ? setting.t : indicatorCatalog.filterText(filter);
-    const help = `<button class="ai" data-ayuda-txt="${escapeHtml(`${indicatorCatalog.help("filtro") ?? ""} Filtro: ${indicatorCatalog.filterText(filter)}.`)}" data-ayuda-tit="${escapeHtml(setting.t ? setting.t : "Filtro guardado")}" aria-label="Qué es">i</button>`;
-    const count = '<b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b>';
+    const help = `<button class="ai" data-ayuda-txt="${escapeHtml(t("home.indicators.filterHelp", { help: indicatorCatalog.help("filtro") ?? "", filter: indicatorCatalog.filterText(filter) }))}" data-ayuda-tit="${escapeHtml(setting.t ? setting.t : t("home.indicators.savedFilter"))}" aria-label="${t("home.indicators.whatIsIt")}">i</button>`;
+    const count2 = '<b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b>';
     return live ? `<div class="kpi click kv" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">
         ${help}
-        <span class="kvt">${escapeHtml(name)}</span><div class="kvn">${count}</div></div>` : `<div class="kpi click" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">
+        <span class="kvt">${escapeHtml(name)}</span><div class="kvn">${count2}</div></div>` : `<div class="kpi click" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">
         ${help}
-        ${count}<span>${escapeHtml(name)}</span></div>`;
+        ${count2}<span>${escapeHtml(name)}</span></div>`;
   }
 
   // src/app/screens/home/indicators/index.ts
@@ -934,9 +1247,9 @@
   function countSavedFilters(settings) {
     settings.forEach((setting, index) => {
       if (!setting.filtro) return;
-      indicatorCatalog.countFilter(setting.filtro).then((count) => {
+      indicatorCatalog.countFilter(setting.filtro).then((count2) => {
         const figure2 = document.querySelector(`#kpis [data-kfi="${index}"] .cont`);
-        if (figure2) figure2.textContent = formatNumber(count);
+        if (figure2) figure2.textContent = formatNumber(count2);
       }).catch(() => void 0);
     });
   }
@@ -944,7 +1257,7 @@
     const container = document.getElementById("kpis");
     if (!container) return;
     if (!result.data) {
-      container.innerHTML = '<div class="vacio">Sin conexión y sin copia guardada todavía.</div>';
+      container.innerHTML = `<div class="vacio">${t("home.indicators.offline")}</div>`;
       return;
     }
     const settings = indicatorCatalog.settings().filter((setting) => setting.on);
@@ -1140,7 +1453,7 @@
   }
 
   // src/app/screens/home/tiles.ts
-  var plural = (count, one, other) => count === 1 ? one : other;
+  var plural = (count2, one, other) => count2 === 1 ? one : other;
   function attentionTile(items) {
     const total = items.reduce((sum2, item) => sum2 + item.count, 0);
     const rows = items.slice(0, 7).map((item, index) => `<button type="button" class="mti ${item.priority}" data-mat="${index}"><span class="mic">${icon(item.icon)}</span>
@@ -1374,7 +1687,8 @@
     setLanguage,
     setVocabulary,
     screens: {
-      home: { load, renderSkeleton, paintIndicators }
+      home: { load, renderSkeleton, paintIndicators },
+      agenda: agenda_exports
     }
   };
 })();
@@ -6889,63 +7203,6 @@ function agDiaVacio() {
   if (AG_FECHA < hoyISO()) v.textContent = 'No tuviste citas este día.';
 }
 
-async function agPintarMes(mes) {
-  const caja = $('agmes'); if (!caja) return;
-  const hoy = hoyISO(), actual = hoy.slice(0, 7);
-  mes = mes || actual; AG_MES = mes;
-  const ini = mes + '-01', d1 = new Date(ini + 'T12:00:00');
-  const fin = isoMas(fechaLocal(new Date(d1.getFullYear(), d1.getMonth() + 1, 1)), -1);
-  let porDia = {};
-  if ((caja.dataset.mes || actual) !== mes) {
-    const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUsuarioFiltro() }, 'agenda-mes-' + mes);
-    (data || []).filter(x => !['Descartada', 'Aplazada'].includes(x.estado)).forEach(x => { porDia[x.fecha] = (porDia[x.fecha] || 0) + 1; });
-    if (AG_MES !== mes || !$('agmes')) return;
-    $('agmes').dataset.mes = mes;
-    const hueco = (d1.getDay() + 6) % 7, nd = +fin.slice(8);
-    const celdas = Array(hueco).fill('').concat(Array.from({ length: nd }, (_, i) => `${mes}-${String(i + 1).padStart(2, '0')}`));
-    $('agmes').querySelector('.agmesgrid').innerHTML = AG_DIAS_TXT.map(x => `<span class="agmd">${x}</span>`).join('') + celdas.map(f => {
-      if (!f) return '<span></span>';
-      const n = porDia[f] || 0;
-      return `<button type="button" class="agmc ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''} ${n ? 'con' : ''}" data-agdia="${f}" aria-label="${fechaCorta(f)}: ${n} citas">
-        <span>${+f.slice(8)}</span>${n ? `<i class="agpt">${n > 9 ? '9+' : n}</i>` : ''}</button>`; }).join('');
-  }
-  const fh = $('agmes').querySelector('.fh');
-  fh.classList.add('agmesh');
-  fh.innerHTML = `<button type="button" class="kmv agmnav" data-agm="-1" aria-label="Mes anterior">‹</button>
-    <button type="button" class="agmtit" id="agmtit" aria-label="Elegir mes y año">${esc(periodoTxt(mes).replace(/^./, c => c.toUpperCase()))}</button>
-    <button type="button" class="kmv agmnav" data-agm="1" aria-label="Mes siguiente">›</button>
-    ${mes !== actual ? '<button type="button" class="btn sec agmhoy" id="agmhoy">Hoy</button>' : ''}`;
-  const mover = n => { const d = new Date(ini + 'T12:00:00'); d.setMonth(d.getMonth() + n); agPintarMes(fechaLocal(d).slice(0, 7)); };
-  fh.querySelectorAll('[data-agm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); mover(+b.dataset.agm); });
-  if ($('agmhoy')) $('agmhoy').onclick = ev => { ev.stopPropagation(); agPintarMes(actual); };
-  $('agmtit').onclick = ev => { ev.stopPropagation(); agElegirMes(mes, ev.currentTarget); };
-  $('agmes').querySelectorAll('.agmc[data-agdia]').forEach(b => {
-    b.classList.toggle('sel', b.dataset.agdia === AG_FECHA && AG_FECHA !== hoy);
-    b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia); };
-  });
-}
-
-function agElegirMes(mes, ancla) {
-  document.querySelectorAll('.agmpop').forEach(x => x.remove());
-  let anio = +mes.slice(0, 4);
-  const p = document.createElement('div'); p.className = 'agmpop';
-  const nombres = Array.from({ length: 12 }, (_, i) => new Date(2026, i, 15).toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''));
-  const pinta = () => {
-    p.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="Año anterior">‹</button><b>${anio}</b>
-      <button type="button" class="kmv" data-an="1" aria-label="Año siguiente">›</button></div>
-      <div class="agmpopg">${nombres.map((n, i) => { const k = `${anio}-${String(i + 1).padStart(2, '0')}`;
-        return `<button type="button" data-mk="${k}" class="${k === mes ? 'on' : ''}">${n}</button>`; }).join('')}</div>`;
-    p.querySelectorAll('[data-an]').forEach(b => b.onclick = ev => { ev.stopPropagation(); anio += +b.dataset.an; pinta(); });
-    p.querySelectorAll('[data-mk]').forEach(b => b.onclick = ev => { ev.stopPropagation(); p.remove(); agPintarMes(b.dataset.mk); });
-  };
-  pinta();
-  document.body.appendChild(p);
-  const r = ancla.getBoundingClientRect(), w = Math.min(280, innerWidth - 20);
-  p.style.width = w + 'px';
-  p.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left + r.width / 2 - w / 2)) + 'px';
-  p.style.top = Math.min(innerHeight - p.offsetHeight - 10, r.bottom + 6) + 'px';
-}
-
 async function tareasDelDia(f) {
   if (AG_VISTA && AG_VISTA.id !== PERFIL.id) return null;   // las tareas son de cada uno: en la agenda de otra persona no se ven
   if (TAREAS_DIA && TAREAS_DIA.f === f) return TAREAS_DIA.l;
@@ -7185,7 +7442,7 @@ async function tdPintar() {
   on('tdnocord', () => $('tdordenar') && $('tdordenar').click());
   on('tdtarea', () => editarTarea(null, AG_FECHA));
   on('tddiamas', e => { e.stopPropagation(); const d = document.querySelector(`#agcinta [data-cf="${AG_FECHA}"]`); menuDiaSemana($('tddiamas'), AG_FECHA, !!(d && d.classList.contains('bloq'))); });
-  if (typeof agPastillas === 'function') agPastillas();
+  window.delcos.screens.agenda.refreshMetrics();
   // Botones de la ruta del día (Empezar ruta / Ruta completa): también al cambiar de día (antes solo al cargar la Agenda)
   try { if (typeof prepararParadas === 'function') prepararParadas(fecha); } catch (e) { }
   // Tareas propias del día (después de pintar: no retrasan las citas)
@@ -7228,25 +7485,6 @@ function tdAnimar(antes, id, dur = 300) {
 }
 
 // ---- Pastillas: las cifras de agenda_metricas
-function agPastillasHtml() {
-  const d = AG_MET; if (!d) return '';
-  const n1 = x => num(x == null ? 0 : x), dec = x => (x == null ? '0' : String(x).replace('.', ','));
-  const h = d.hoy || {}, s = d.semana || {}, c = d.cierres || {}, p = d.pendientes || {};
-  let hechas = n1(h.visitadas), total = n1(h.citas);
-  // «Hoy», con las mismas citas que Tu día cuando se ve hoy
-  if (AG_FECHA === hoyISO() && Array.isArray(TD_CITAS) && TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA) {
-    const act = TD_CITAS.filter(x => !citaAnulada(x.estado));
-    hechas = num(act.filter(x => !CITA_ABIERTA.includes(x.estado)).length); total = num(act.length);
-  }
-  const vp = TT('visita', 'p', '', 'l', 'l');
-  return [
-    ['Hoy', `${hechas}/${total}`, `${hechas} de ${total} citas · media ${dec(d.media_dia)} ${vp}/día`, ''],
-    ['Semana', n1(s.visitas), `${n1(s.visitas)} ${vp} · media ${dec(s.media)}/semana`, ''],
-    ['Cierres', n1(c.hoy), `${n1(c.hoy)} cierres con éxito hoy · media ${dec(c.media_dia)}/día`, ''],
-    ['Por visitar', n1((p.urgentes || 0) + (p.sin_visita || 0)), `${n1(p.urgentes)} urgentes · ${n1(p.sin_visita)} sin ${TT('visita', 's', '', 'l', 'l')} en 60 días`, 'agp-pend']
-  ].map(([t, b, tit, cl]) => `<span class="agp ${cl}" title="${esc(tit)}">${esc(t)} <b>${esc(b)}</b></span>`).join('');
-}
-
 // «En este centro también»: cada centro de sugerencias_centros va en la primera cita del día que está allí (a menos de 200 m)
 function agTamb() {
   const cuerpo = $('agcuerpo'); if (!cuerpo || !AG_SUG || AG_SUG.fecha !== AG_FECHA) return;
@@ -7342,7 +7580,7 @@ async function cargarAgenda() {
   if (AG_MODO === 'semana') AG_SEM_ABIERTA = true;
   AG_MODO = 'dia'; ABRIR_PLAN_SEMANA = false;
   await agCargarDia();
-  if (mes) agMesPop();
+  if (mes) void window.delcos.screens.agenda.toggleMonth();
   if (plan) agRepartirSemana();
 }
 
@@ -7378,7 +7616,7 @@ async function agCargarDia() {
     v.classList.add('agunida', 'agcinta', 'agb', 'agn');
     v.innerHTML = `
       <div class="saludo"><div><h1>Agenda</h1><div class="fecha" id="agtit">${esc('Hoy · ' + fechaLarga(new Date(hoyISO() + 'T00:00:00')) + (AG_VISTA ? ' · agenda de ' + AG_VISTA.nombre : ''))}</div></div>
-        <div class="aghud" id="aghud" aria-label="Tus números">${agPastillasHtml()}</div>
+        <div class="aghud" id="aghud" aria-label="Tus números">${window.delcos.screens.agenda.metricsHtml()}</div>
         <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">+ Nueva cita</button></div></div>
       <div class="card" id="agcuerpo"></div>
       <div class="card" id="agsemlat"></div>`;
@@ -7414,45 +7652,19 @@ async function agRepartirSemana() {
   const p = $('semplan'); if (p) { $('agsemexp').scrollIntoView({ behavior: 'smooth', block: 'start' }); p.click(); }
 }
 
-// El mes se abre ya pintado
-async function agMesPop() {
-  let m = $('agmes');
-  if (m && m.classList.contains('pop')) { cerrarMesCinta(); return; }
-  if (!m) { $('v-agenda').insertAdjacentHTML('beforeend', '<div class="card agmes" id="agmes"><div class="fh"></div><div class="agmesgrid"></div></div>'); m = $('agmes'); }
-  m.dataset.mes = '-';
-  await agPintarMes(AG_MES || (AG_FECHA || hoyISO()).slice(0, 7));
-  const b = $('cmesb'); if (!b || !$('agmes')) return;
-  m.classList.add('pop'); b.setAttribute('aria-expanded', 'true');
-  const r = b.getBoundingClientRect(), w = Math.min(380, innerWidth - 32);
-  Object.assign(m.style, { top: Math.round(r.bottom + 8) + 'px', left: Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px', bottom: 'auto', right: 'auto' });
-}
-
 // ---- Pastillas, cifras y bandejas
-function agPastillas() {
-  if (!agN()) return;
-  const h = $('aghud'); if (!h || !AG_MET) return;
-  const html = agPastillasHtml(); if (h.__html !== html) { h.innerHTML = html; h.__html = html; }   // solo si cambia alguna cifra
-}
-
-async function agMetricas() {
-  if (!agN()) return;
-  const { data } = await RPC_ORIG('agenda_metricas', { p_usuario: AG_VISTA ? AG_VISTA.id : null });
-  if (!data || !agN()) return;
-  AG_MET = data; agPastillas();
-}
-
 // Tras un cambio (mover, registrar, notas…): cifras, cinta, «Tu semana», bandejas y el mes si está abierto, de una vez
 function agCifrasQuietas() {
   if (!agN()) return;
   const f = AG_FECHA; let s = null;
-  agMetricas();
+  void window.delcos.screens.agenda.reloadMetrics();
   agConDatos([...agCintaCargas(), ...agSemCargas(f), agSugDatos(f).then(x => { s = x; })], async () => {
     if (AG_FECHA !== f || !agN()) return;
     agPonerSug(f, s);
     await Promise.all([agCinta(), agSemanaLateral()]);
     agTamb(); agBandejas();
   });
-  const m = $('agmes'); if (m && m.classList.contains('pop')) { m.dataset.mes = '-'; agPintarMes(AG_MES); }
+  window.delcos.screens.agenda.refreshOpenMonth();
 }
 
 function agBandeja(k) {
@@ -7583,7 +7795,8 @@ async function nuevaFechaTrasNoEstaba(c) {
   toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
 }
 
-function cerrarMesCinta() { const m = $('agmes'); if (m) m.classList.remove('pop'); if ($('cmesb')) $('cmesb').setAttribute('aria-expanded', 'false'); }
+// El mes está en src/app/screens/agenda (v2.390.0); este nombre se queda porque lo llaman el escuchador de Escape y las pruebas
+function cerrarMesCinta() { window.delcos.screens.agenda.closeMonth(); }
 
 function asegurarEquipo() {
   if (TAB !== 'agenda' || !VE_TODO()) return;
@@ -7628,8 +7841,6 @@ let TD_PARADAS = [];
    cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
    Al pulsar un día se ven sus citas ahí mismo (sin cambiar de pantalla). La semana detallada (arrastrar, planificar, bloquear días)
    sigue a un clic con «Planificar la semana», y vuelve con «Agenda de hoy». */
-const AG_DIAS_TXT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-
 const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia';   // v2.146.0: también con otro día elegido (antes solo hoy)
 
 const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ruta no dice otra cosa
@@ -7638,7 +7849,6 @@ const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ru
 let TDM_BOTON = null;
 
 // ---- 2. El mes de la Agenda, en cualquier mes y año
-let AG_MES = null;
 
 // ---- 1. La franja de la semana, en cualquier semana
 let AG_SEMANA = null;
@@ -7933,7 +8143,7 @@ async function agCinta() {
     await agMenusCinta();
     if (AG_SEM_ABIERTA) await agPintarSemanaExp();
     agBotonSemana();
-    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); agMesPop(); };
+    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); window.delcos.screens.agenda.toggleMonth(); };
     const h = $('choy'); if (h) h.onclick = () => { CINTA_INI = null; agVerDia(hoyISO()); };
   });
 }
@@ -8289,7 +8499,7 @@ async function agVerDia(f) {
       if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
       await Promise.all(piezas);
       if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
-      agMarcarDia(); agDiaVacio(); agPastillas();
+      agMarcarDia(); agDiaVacio(); window.delcos.screens.agenda.refreshMetrics();
     });
   } finally { const cc = $('agcuerpo'); if (cc) cc.classList.remove('agcargando'); }
   if (AG_FECHA !== f) return;

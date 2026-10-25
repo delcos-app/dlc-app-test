@@ -84,3 +84,18 @@ export const timingMark = (step: string): void => { marca(step); };
 export const showCacheNotice = (element: HTMLElement, date: string | undefined): void => { avisoCache(element, date); };
 export const addHelpButtons = (): void => { ponerAyudas(); };
 export const isMobile = (): boolean => ES_MOVIL();
+
+/** Agenda state still kept by the legacy day view (selected day, whose agenda, today's appointments, the metrics). */
+export const legacyAgenda = {
+  selectedDate: (): string | null => AG_FECHA,
+  /** The person whose agenda is shown (null: everybody the user sees, or the user). */
+  userFilter: (): string | null => agUsuarioFiltro(),
+  viewedUserId: (): string | null => AG_VISTA?.id ?? null,
+  showDay: (isoDate: string): void => { void agVerDia(isoDate); },
+  isDayView: (): boolean => agN(),
+  metrics: (): AgendaMetrics | null => AG_MET,
+  setMetrics: (value: AgendaMetrics): void => { AG_MET = value; },
+  /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
+  dayAppointments: (): readonly { estado: string }[] => TD_CITAS,
+  loadedDay: (): string | null => TD_ULTIMO?.fecha ?? null,
+};

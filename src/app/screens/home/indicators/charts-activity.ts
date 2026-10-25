@@ -2,8 +2,10 @@
 import { appointments, commercialStates, isMobile } from '../../../legacy/bridge';
 import { addDays, fromIsoDate, toIsoDate } from '../../../services/dates';
 import { escapeHtml, formatNumber } from '../../../services/format';
-import { nonZeroOr } from '../../../services/values';
-import { countsByDate, EMPTY_CHART, lineIcon, minutesOf, mondayOf, range, sum, WEEKDAY_LETTERS, type ChartResult } from './chart-tools';
+import { weekdayName } from '../../../services/date-format';
+import { nonZeroOr, range, sum } from '../../../services/values';
+import { t } from '../../../i18n';
+import { countsByDate, EMPTY_CHART, lineIcon, minutesOf, mondayOf, WEEKDAY_LETTERS, type ChartResult } from './chart-tools';
 
 type Kpis = Readonly<Record<string, number>>;
 type DayAppointment = NonNullable<HomePanel['agenda_hoy']>[number];
@@ -20,7 +22,8 @@ export function appointmentsChart(panel: HomePanel, kpis: Kpis): ChartResult {
   const now = new Date(), minutesNow = now.getHours() * 60 + now.getMinutes();
   const next = open.find(item => (minutesOf(item.hora) ?? 9999) >= minutesNow - 15) ?? open[0];
   const time = (item: DayAppointment, empty: string): string => escapeHtml(String(item.hora ?? '').slice(0, 5) || empty);
-  const summary = next ? `Siguiente <b>${time(next, '—')}</b> · ${escapeHtml(next.nombre)}` : list.length ? 'Todas cerradas' : 'Sin citas hoy';
+  const summary = next ? t('home.indicators.nextAppointment', { time: time(next, '—'), name: escapeHtml(next.nombre) })
+    : t(list.length ? 'home.indicators.allClosed' : 'home.indicators.noAppointmentsToday');
   const visible = isMobile() ? 3 : 5;
   const nextIndex = next ? list.indexOf(next) : 0;
   const start = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown = list.slice(start, start + visible);
@@ -30,8 +33,8 @@ export function appointmentsChart(panel: HomePanel, kpis: Kpis): ChartResult {
 }
 
 export function urgentChart(kpis: Kpis): ChartResult {
-  if (kpis.urgentes) return { summary: `${formatNumber(kpis.urgentes)} por atender`, visual: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' };
-  return { summary: 'Ninguno pendiente', visual: `<div class="kvcalma"><span>${lineIcon('<path d="M20 6 9 17l-5-5"/>')}</span>Todo al día</div>` };
+  if (kpis.urgentes) return { summary: t('home.indicators.urgentPending', { count: formatNumber(kpis.urgentes) }), visual: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' };
+  return { summary: t('home.indicators.noneUrgent'), visual: `<div class="kvcalma"><span>${lineIcon('<path d="M20 6 9 17l-5-5"/>')}</span>${t('home.indicators.allUpToDate')}</div>` };
 }
 
 interface Week { readonly upcoming: boolean; readonly days: readonly string[]; readonly values: readonly number[]; readonly perDay: Map<string, number> }
@@ -41,10 +44,10 @@ function weekSummary(week: Week, today: string): string {
   if (upcoming) {
     const busiest = values.indexOf(Math.max(...values));
     const day = days[busiest];
-    return values[busiest] && day ? `El ${fromIsoDate(day).toLocaleDateString('es-ES', { weekday: 'long' })}, el día más lleno (<b>${values[busiest]}</b>)` : 'Semana libre';
+    return values[busiest] && day ? t('home.indicators.busiestDay', { weekday: weekdayName(day), count: values[busiest] ?? 0 }) : t('home.indicators.freeWeek');
   }
   const fourWeeks = sum(range(28).map(i => perDay.get(addDays(mondayOf(today), -28 + i)) ?? 0)) / 20;
-  return `Media <b>${String(fourWeeks.toFixed(1)).replace('.', ',')}</b> al día las 4 semanas anteriores`;
+  return t('home.indicators.fourWeekAverage', { average: String(fourWeeks.toFixed(1)).replace('.', ',') });
 }
 
 /** This week's visits (or the next 7 days' appointments) as day bars. */
@@ -74,10 +77,10 @@ export function monthChart(charts: HomeCharts, today: string): ChartResult {
   const line = (values: readonly number[]): string => values.map((value, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(value).toFixed(1)}`).join('');
   const end = current[current.length - 1] ?? 0, difference = end - (last[last.length - 1] ?? 0);
   return {
-    summary: difference >= 0 ? `<b>+${difference}</b> sobre el mismo día del mes pasado` : `<b>${difference}</b> frente al mismo día del mes pasado`,
+    summary: t(difference >= 0 ? 'home.indicators.aboveLastMonth' : 'home.indicators.belowLastMonth', { difference }),
     visual: `<svg class="kvlin" viewBox="0 0 ${width} ${height + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${line(last)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
         <path class="l" d="${line(current)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="0" y="${height + 11}">1</text><text x="${width}" y="${height + 11}" text-anchor="end" class="hoy">hoy</text>
+        <text x="0" y="${height + 11}">1</text><text x="${width}" y="${height + 11}" text-anchor="end" class="hoy">${t('home.indicators.today')}</text>
         <circle class="fin" cx="${x(dayOfMonth - 1)}" cy="${y(end)}" r="4" fill="var(--sky)" stroke="var(--navy)" stroke-width="1.5"/></svg>`,
   };
 }
@@ -86,7 +89,7 @@ export function monthChart(charts: HomeCharts, today: string): ChartResult {
 export function unitsChart(kpis: Kpis): ChartResult {
   const now = kpis.uds_mes ?? 0, before = kpis.uds_mes_ant ?? 0, max = Math.max(1, now, before), width = 196;
   return {
-    summary: before ? `${now >= before ? '+' : ''}${Math.round((now - before) / before * 100)} % frente al mismo día del mes pasado` : '',
+    summary: before ? t('home.indicators.unitsVersusLastMonth', { sign: now >= before ? '+' : '', percent: Math.round((now - before) / before * 100) }) : '',
     visual: `<svg class="kvbar" viewBox="0 0 ${width} 44" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="4" width="${before / max * width}" height="12" rx="4" fill="#DCE6F1"/><rect x="0" y="24" width="${Math.max(3, now / max * width)}" height="12" rx="4" fill="var(--navy)"/></svg>`,
   };
 }
