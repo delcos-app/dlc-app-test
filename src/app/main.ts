@@ -8,6 +8,8 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as commissions from './screens/commissions';
+import * as customers from './screens/customers';
 import * as opportunities from './screens/opportunities';
 import * as quality from './screens/quality';
 import * as manual from './screens/manual';
@@ -38,6 +40,8 @@ export interface DelcosCore {
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly commissions: typeof commissions;
+    readonly customers: typeof customers;
     readonly opportunities: typeof opportunities;
     readonly quality: typeof quality;
     readonly manual: typeof manual;
@@ -70,6 +74,8 @@ window.delcos = {
     agenda,
     accounts,
     events,
+    commissions,
+    customers,
     opportunities,
     quality,
     manual,

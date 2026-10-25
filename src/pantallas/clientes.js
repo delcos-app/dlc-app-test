@@ -5,113 +5,14 @@
 
 // v2.113.0 · Ficha · Cuántos clientes tiene (vinculados o que han comprado con ella). Solo números: también lo ve el comercial
 
-function selectorPaciente(el, o) {
-  let valor = o.valor || null;
-  const pinta = () => {
-    if (valor) {
-      el.innerHTML = tarjetaPaciente(valor);
-      el.querySelector('.sx').onclick = () => { valor = null; pinta(); o.alElegir && o.alElegir(null); };
-      return;
-    }
-    el.innerHTML = `<div style="display:flex;gap:8px"><div class="picker" style="flex:1">
-        <input type="search" autocomplete="off" placeholder="Nombre, teléfono o DNI"><div class="gsug hide"></div></div>
-      <button type="button" class="btn sec" data-pnuevo>+ Nuevo</button></div>`;
-    const caja = el.querySelector('.picker'), inp = caja.querySelector('input'), sug = caja.querySelector('.gsug');
-    let t, pide = 0;
-    inp.oninput = () => {
-      const q = inp.value.trim();
-      clearTimeout(t);
-      if (q.length < 2) { sug.classList.add('hide'); caja.classList.remove('buscando'); return; }
-      caja.classList.add('buscando');
-      sug.innerHTML = `<div class="gload"><span class="spin"></span>Buscando ${TT('paciente', 'p', '', 'l', 'l')}…</div>`; sug.classList.remove('hide');
-      const n = ++pide;
-      t = setTimeout(async () => {
-        const { data } = await db.rpc('contactos_lista', { q, lim: 8 });
-        if (n !== pide) return;
-        caja.classList.remove('buscando');
-        const l = data || [];
-        sug.innerHTML = `<div class="gsh">${TT('paciente', 'p', '', 'l', 'C')}</div>` + (l.map((x, i) => `<button type="button" data-pc="${i}"><span class="gic">🧑</span>
-          <span><b>${esc(x.nombre)}</b><span class="sm">${esc([x.telefono || x.movil, x.nif, x.municipio, x.medico].filter(Boolean).join(' · '))}</span></span></button>`).join('')
-          || `<div class="gload">Sin coincidencias. Créalo con «+ Nuevo».</div>`);
-        sug.querySelectorAll('[data-pc]').forEach(b => b.onclick = () => { valor = l[+b.dataset.pc]; pinta(); o.alElegir && o.alElegir(valor); });
-      }, 250);
-    };
-    el.querySelector('[data-pnuevo]').onclick = () => editorContacto({ nombre: inp.value.trim() }, c => {
-      valor = Object.assign({}, c); pinta(); o.alElegir && o.alElegir(valor);
-    });
-  };
-  pinta();
-}
 
-async function cargarPacientes() {
-  vaciarModulos('v-pacientes');
-  $('v-pacientes').innerHTML = `
-    <div class="saludo"><div><h1>Clientes</h1><div class="fecha">${TT('paciente', 'p', '', 'l', 'C')} y empresas que compran: con qué ${TT('medico', 's', '', 'l', 'l')} y su historial</div></div>
-      <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pacnuevo">+ Nuevo cliente</button>' : ''}</div></div>
-    <div id="vcuerpo"></div>`;
-  if ($('pacnuevo')) $('pacnuevo').onclick = () => editorContacto({}, c => fichaPaciente(c.id));
-  pintarPacientes();
-}
 
-async function listaPacientes() {
-  cargando($('paclista'), 'Buscando clientes…');
-  const { data, error } = await db.rpc('clientes_lista', { q: PAC.q || null, p_medico: PAC.medico,
-    lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
-    p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
-  if (error) { $('paccuenta').textContent = 'No se ha podido cargar: ' + error.message; $('paclista').innerHTML = ''; return; }
-  $('paccuenta').innerHTML = `<b>${num(data.total)}</b> ${data.total === 1 ? 'cliente' : 'clientes'}`;
-  const f = data.filas || [];
-  const v = x => x ? esc(x) : '<span class="vac">—</span>';
-  const cpCols = clasVisibles('cliente');
-  $('paclista').innerHTML = f.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
-    <div class="dh"><span>Cliente</span><span>Tipo</span><span>DNI / CIF</span><span>Teléfono</span><span>Email</span><span>Población</span>
-      <span>${TT('medico', 's', '', 'l', 'C')}</span><span>Comercial</span><span class="num">Pedidos</span><span class="num">Uds.</span><span>Último pedido</span>${clasCabeceras(cpCols)}</div>
-    ${f.map(x => `<button class="dr" data-pac="${x.id}">
-      <span><b>${esc(x.nombre)}</b></span>
-      <span><span class="pill ${x.tipo === 'Empresa' ? 'p-emp' : 'p-per'}">${x.tipo === 'Empresa' ? 'Empresa' : `${TT('paciente', 's', '', 'l', 'C')}`}</span></span>
-      <span>${v(x.nif)}</span><span>${v(x.telefono || x.movil)}</span><span class="corta">${v(x.email)}</span><span>${v(x.municipio)}</span>
-      <span class="corta">${x.medico ? esc(x.medico) : '<span class="vac">Sin asignar</span>'}</span><span>${v(x.comercial)}</span>
-      <span class="num">${num(x.pedidos)}</span><span class="num"><b>${num(x.unidades)}</b></span>
-      <span>${x.ultimo_pedido ? fechaCorta(x.ultimo_pedido) : '<span class="vac">—</span>'}</span>${cpCols.map(c => `<span>${v(campoTexto(c, (x.clasificadores || {})[c.clave]))}</span>`).join('')}
-    </button>`).join('')}</div></div>` : '<div class="vacio">Ningún cliente con estos filtros.</div>';
-  // Columnas de campos personalizados: se añaden a la rejilla
-  clasRejilla($('paclista').querySelector('.dgrid.pacs'), cpCols.length);
-  $('paclista').querySelectorAll('[data-pac]').forEach(b => b.onclick = () => fichaPaciente(b.dataset.pac));
-  paginador($('pacpag'), data.total, PAC.pagina, p => { PAC.pagina = p; listaPacientes(); }, () => { PAC.pagina = 0; listaPacientes(); });
-}
 
-async function buscarClientes(q) {
-  const t = q.trim().replace(/[,()]/g, ' ');
-  if (t.length < 2) return [];
-  const { data } = await db.from('contactos').select('id,nombre,telefono,movil,email,nif,cuenta_id')
-    .or(`nombre.ilike.%${t}%,telefono.ilike.%${t}%,movil.ilike.%${t}%,nif.ilike.%${t}%`).limit(8);
-  return data || [];
-}
 
-async function bajaCliente(id, baja) {
-  const { data: r, error } = await db.rpc('baja_cliente', { p_id: id, p_baja: baja });
-  if (error || !r || !r.ok) { toast('No se ha podido: ' + ((error && error.message) || (r && r.error) || ''), true); return false; }
-  try { invalidarCache(); DB_PRE.clear(); } catch (e) {}
-  toast(baja ? `${TT('paciente', 's', '', 'l', 'C')} dado de baja` : `${TT('paciente', 's', '', 'l', 'C')} dado de alta de nuevo`);
-  if (TAB === 'pacientes' && typeof listaPacientes === 'function') listaPacientes();
-  return true;
-}
 
 const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
 
-const tarjetaPaciente = c => `<div class="selcard"><span class="ic">🧑</span>
-  <span class="tx"><b>${esc(c.nombre)}</b>
-    ${[c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).length
-      ? `<span class="sm">📦 ${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', '))}</span>`
-      : '<span class="sm" style="color:var(--warn)">Sin dirección de entrega</span>'}
-    <span class="sm">${esc([c.nif ? (c.tipo === 'Empresa' ? 'CIF ' : 'DNI ') + c.nif : 'Sin DNI', c.email, c.telefono || c.movil].filter(Boolean).join(' · '))}</span>
-    ${c.medico ? `<span class="sm">${TT('medico', 's', '', 'l', 'C')}: ${esc(c.medico)}</span>` : ''}</span>
-  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
-// Los mismos parámetros con que listaPacientes pide la lista
-const pacParams = () => ({ q: PAC.q || null, p_medico: PAC.medico,
-  lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
-  p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
 
 /* ============================================================
    v2.311.0 · Dar de baja y eliminar fichas (decisión de Eric; SQL 159). Al pie de la ficha de un profesional o de un centro:
@@ -251,36 +152,6 @@ function editorContactoBase(c, alGuardar, op) {
   $('dlg2').showModal();
 }
 
-async function pintarPacientesBase() {
-  const { data: munis } = await db.rpc('municipios_clientes');
-  $('vcuerpo').innerHTML = `
-    <div class="panel">
-      <div class="filtros">
-        <div><label for="pacq">Buscar</label><input id="pacq" type="search" value="${esc(PAC.q)}" placeholder="Nombre, teléfono, email, DNI o CIF"></div>
-        <div><label for="pactipo">Tipo</label><select id="pactipo">
-          <option value="">Todos</option><option value="Persona" ${PAC.tipo === 'Persona' ? 'selected' : ''}>Personas (${TT('paciente', 'p', '', 'l', 'l')})</option>
-          <option value="Empresa" ${PAC.tipo === 'Empresa' ? 'selected' : ''}>Empresas</option></select></div>
-        <div><label for="pacped">Pedidos</label><select id="pacped">
-          <option value="">Todos</option><option value="con" ${PAC.pedidos === 'con' ? 'selected' : ''}>Con pedidos</option>
-          <option value="sin" ${PAC.pedidos === 'sin' ? 'selected' : ''}>Sin pedidos</option></select></div>
-        <div><label for="pacmun">Población</label><select id="pacmun"><option value="">Todas</option>
-          ${(munis || []).map(x => `<option value="${esc(x.v)}" ${PAC.municipio === x.v ? 'selected' : ''}>${esc(x.v)} (${x.n})</option>`).join('')}</select></div>
-        ${camposFiltros('cliente', PAC.campos = PAC.campos || {}, 'pfcp')}
-        ${PAC.medico ? `<div><label>${TT('medico', 's', '', 'l', 'C')}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${esc(PAC.medicoNombre)} ✕</button></div></div>` : ''}
-      </div>
-      <div class="cuenta" id="paccuenta">Cargando…</div>
-      <div id="paclista"></div>
-      <div id="pacpag"></div>
-    </div>`;
-  let tq;
-  $('pacq').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { PAC.q = e.target.value.trim(); PAC.pagina = 0; listaPacientes(); }, 300); };
-  $('pactipo').onchange = e => { PAC.tipo = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  $('pacped').onchange = e => { PAC.pedidos = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  $('pacmun').onchange = e => { PAC.municipio = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  camposFiltrosActivar($('vcuerpo'), PAC.campos, () => { PAC.pagina = 0; listaPacientes(); });
-  if ($('pacmedx')) $('pacmedx').onclick = () => { PAC.medico = null; PAC.medicoNombre = ''; PAC.pagina = 0; pintarPacientes(); };
-  listaPacientes();
-}
 
 /* v2.225.0 · Clientes sin duplicados (aviso de Eric: no se puede dar de alta otra vez a un cliente con el mismo NIF/CIF, correo o móvil).
    - La base no lo deja (disparador contactos_sin_duplicados, SQL 134); aquí se avisa mientras se escribe: clientes_coincidencias con lo que
@@ -334,85 +205,11 @@ function editorContacto(c, alGuardar, op) {
   return r;
 }
 
-async function pintarPacientes(...a) {
-  const p = pacParams();
-  const [m, l] = await Promise.all([db.rpc('municipios_clientes'), db.rpc('clientes_lista', p)]);
-  DB_PRE.set('municipios_clientes{}', m); DB_PRE.set('clientes_lista' + JSON.stringify(p), l);
-  return pintarPacientesBase.apply(this, a);
-}
-
-async function fichaPacienteBase(id) {
-  FICHA_PAC = id; FICHA_ID = null;
-  $('fbody').innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
-  if (!$('ficha').open) $('ficha').showModal();
-  const { data } = await RPC_ORIG('contacto_detalle', { p_id: id });
-  if (FICHA_PAC !== id) return;
-  if (!data || !data.contacto) { $('fbody').innerHTML = `<div class="vacio">No se ha encontrado ${TT('paciente', 's', 'el', 'l', 'l')}.</div>`; return; }
-  const c = data.contacto, m = data.medico, ped = data.pedidos || [];
-  const validos = ped.filter(p => p.estado !== 'Anulado' && p.estado !== 'Borrador');
-  const permitido = puedeVentas();
-
-  $('fbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(c.nombre)}</h2><div class="sm">${TT('paciente', 's', '', 'l', 'C')}${c.nif ? ' · NIF ' + esc(c.nif) : ''}</div></div>
-      <button class="x" id="fpx" aria-label="Cerrar">✕</button></div>
-    ${permitido ? `<div class="acts"><button class="btn" id="fpnped">+ Nuevo pedido</button>
-      <button class="btn sec" id="fpedit">Editar datos</button></div>` : ''}
-    <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,minmax(0,1fr))">
-      <div class="kpi"><b>${num(validos.length)}</b><span>pedidos</span></div>
-      <div class="kpi"><b>${num(data.total_unidades)}</b><span>unidades</span></div>
-      <div class="kpi"><b>${eurI(validos.reduce((n, p) => n + (+p.total || 0), 0))}</b><span>con IVA</span></div></div>
-    <div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')} que lo trata</h3>
-      ${m ? `<div><button class="kcfg" data-fpmed="${m.id}" style="font-size:15px">${esc(m.nombre)}</button>
-          <span class="sm"> · código ${esc(m.codigo)}${m.especialidad ? ' · ' + esc(m.especialidad) : ''}</span></div>
-        <div class="sm">${m.comercial ? 'Comercial: ' + esc(m.comercial) : 'Sin comercial asignado'}</div>`
-        : `<div class="sm">Sin ${TT('medico', 's', '', 'l', 'l', 'asignado')}. Las unidades de ${TT('paciente', 's', 'este', 'l', 'l')} no se atribuyen a nadie hasta que lo asignes.</div>`}
-      ${permitido ? `<label>${m ? `Cambiar de ${TT('medico', 's', '', 'l', 'l')}` : `Asignar ${TT('medico', 's', '', 'l', 'l')}`}</label><div id="fpsel"></div>
-        ${m ? `<div class="acts"><button class="btn sec" id="fpmedquitar">Quitar ${TT('medico', 's', '', 'l', 'l')}</button></div>` : ''}` : ''}
-    </div>
-    <div class="blk"><h3>Contacto</h3>
-      ${[['Teléfono', c.telefono], ['Móvil', c.movil], ['Email', c.email],
-         ['Dirección', [c.direccion, c.cp, c.municipio, c.provincia].filter(Boolean).join(', ')], ['Nota', c.nota]]
-        .filter(x => x[1]).map(([k, v]) => `<div class="sm"><b style="color:var(--ink)">${k}:</b> ${esc(v)}</div>`).join('')
-        || '<div class="sm">Sin datos de contacto.</div>'}</div>
-    <div class="blk"><h3>Pedidos</h3>
-      ${ped.map(p => `<button class="item" data-fpped="${p.id}" style="padding:8px 4px">
-        <span class="tx"><b>${fechaCorta(p.fecha)} · ${esc(p.productos || 'Sin productos')}</b>
-          <span class="sm">${num(p.unidades)} uds. · ${eurI(p.total)} con IVA${p.medico ? ' · ' + esc(p.medico) : ''}</span></span>
-        ${pillEstado(p.estado)}</button>`).join('') || '<div class="sm">Todavía no tiene pedidos.</div>'}</div>`;
-
-  $('fpx').onclick = () => { FICHA_PAC = null; $('ficha').close(); };
-  $('fbody').querySelectorAll('[data-fpped]').forEach(b => b.onclick = () => verPedido(b.dataset.fpped));
-  const bm = $('fbody').querySelector('[data-fpmed]');
-  if (bm) bm.onclick = () => { FICHA_PAC = null; abrirFicha(bm.dataset.fpmed); };
-  if ($('fpnped')) $('fpnped').onclick = () => nuevaVenta({ contacto: Object.assign({}, c, m ? { medico: m.nombre, medico_codigo: m.codigo } : {}), medico: m ? { id: m.id, nombre: m.nombre } : null });
-  if ($('fpedit')) $('fpedit').onclick = () => editorContacto(c, () => fichaPaciente(id));
-  const asignar = async medicoId => {
-    const { data: r, error } = await db.rpc('asignar_cuenta_cliente', { p_contacto: id, p_medico: medicoId });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    toast(medicoId ? `${TT('medico', 's', '', 'l', 'C', 'asignado')}` : `${TT('medico', 's', '', 'l', 'C', 'quitado')}`); fichaPaciente(id);
-    if (TAB === 'pacientes') listaPacientes();
-  };
-  if ($('fpmedquitar')) $('fpmedquitar').onclick = () => asignar(null);
-  if ($('fpsel')) selectorMedico($('fpsel'), { valor: null, placeholder: `Busca ${TT('medico', 's', 'el', 'l', 'l')} por nombre, centro o municipio`, alElegir: x => { if (x) asignar(x.id); } });
-}
-
-async function fichaPacienteBase2(id, ...a) { const r = await fichaPacienteBase.call(this, id, ...a); bloqueCampos('contactos', id, $('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild)); return r; }
-
-/* ============================================================
-   v2.313.0 · Dar de baja y eliminar clientes (decisión de Eric; SQL 160). Al pie de la ficha del cliente: «Dar de baja»
-   (deja de salir en Clientes y al buscar un cliente; conserva pedidos y facturas; se deshace desde Clientes → «⋯» →
-   «Clientes dados de baja») y «Eliminar» (administración o nivel completo en ventas; solo sin pedidos ni facturas).
-   ============================================================ */
-async function fichaPaciente(id, ...a) {
-  const r = await fichaPacienteBase2.call(this, id, ...a);
-  try {
-    const fb = $('fbody');
-    if (!fb || FICHA_PAC !== id || $('cbajablk') || !puedeVentas()) return r;
-    const { data: c } = await db.from('contactos').select('archivado_en').eq('id', id).maybeSingle();
-    if (!c || FICHA_PAC !== id) return r;
-    fb.insertAdjacentHTML('beforeend', `<div class="blk fbajablk" id="cbajablk"><div class="acts">
-      ${c.archivado_en ? `<button type="button" class="btn sec chico" data-calta="${id}">Volver a dar de alta</button>` : `<button type="button" class="btn sec chico" data-cbaja="${id}">Dar de baja</button>`}
-      ${nivelDe2('V') >= 3 ? `<button type="button" class="btn sec dang chico" data-celim="${id}">Eliminar ${esc(TT('paciente', 's', 'el', 'l', 'l'))}</button>` : ''}</div></div>`);
-  } catch (e) {}
-  return r;
-}
+// Clientes está en src/app/screens/customers (v2.411.0). Estos nombres se quedan: el menú, la barra de la lista, los filtros de
+// campos, Pedidos, Oportunidades, legado 137, «‹ Volver» y las pruebas los usan.
+function cargarPacientes() { return window.delcos.screens.customers.loadCustomers(); }
+function listaPacientes() { return window.delcos.screens.customers.listCustomers(); }
+function fichaPaciente(id) { return window.delcos.screens.customers.showCustomer(id); }
+function selectorPaciente(el, o) { return window.delcos.screens.customers.pickCustomer(el, o || {}); }
+function bajaCliente(id, baja) { return window.delcos.screens.customers.setCustomerOff(id, baja); }
+function buscarClientes(q) { return window.delcos.screens.customers.searchCustomers(q); }

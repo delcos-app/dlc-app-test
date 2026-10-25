@@ -5,6 +5,8 @@
  * (see i18n/index.ts), so each company sees its own words.
  */
 import { accounts } from './es/accounts';
+import { commissions } from './es/commissions';
+import { customers } from './es/customers';
 import { opportunities } from './es/opportunities';
 import { quality } from './es/quality';
 import { manual } from './es/manual';
@@ -25,6 +27,8 @@ export const es = {
   manual,
   quality,
   opportunities,
+  customers,
+  commissions,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',

@@ -277,7 +277,7 @@ declare function leyendaUnidades(series: string): string;
 declare function faltaHorario(id: string): Promise<boolean>;
 declare function abrirEditor(id: string): Promise<void>;
 interface HistoryEntry { id: number; accion: string; entidad?: string | null; usuario?: string | null; creado_en: string; detalle?: unknown; deshacible?: boolean | null }
-declare const PAC: { q: string; medico: string | null; medicoNombre: string; pagina: number };
+declare const PAC: { q: string; medico: string | null; medicoNombre: string; pagina: number; tipo?: string; pedidos?: string; municipio?: string; campos?: Record<string, unknown> };
 declare function rolPuede(role: string, capability: string): boolean;
 declare function fichaPaciente(id: string): Promise<void>;
 declare function detTxt(visit: object): string;
@@ -428,3 +428,20 @@ declare let LLPAG: number;
 declare function pintarLlamadas(): Promise<void>;
 
 interface LegacyQuery<T> { neq(column: string, value: unknown): LegacyQuery<T> }
+
+// ---- Clientes (src/app/screens/customers): the customer editor, the order pieces and the list helpers stay in legacy
+declare function puedeVentas(): unknown;
+declare function pillEstado(state: string): string;
+declare function nuevaVenta(preset: object): unknown;
+declare function clasVisibles(area: string): CustomField[];
+declare function clasCabeceras(fields: readonly CustomField[]): string;
+declare function clasRejilla(grid: Element | null, count: number): void;
+declare function camposFiltros(area: string, state: Record<string, unknown>, prefix: string): string;
+declare function camposFiltrosActivar(zone: Element, state: Record<string, unknown>, onChange: () => void): void;
+declare function cargando(element: HTMLElement | null, text?: string): void;
+declare function vaciarModulos(except: string): void;
+declare const DB_PRE: Map<string, unknown>;
+declare function listaPacientes(): Promise<void>;
+
+// ---- Comisiones (src/app/screens/commissions): the schemes are shared with the user editor of Configuración
+declare let ESQUEMAS: unknown[];

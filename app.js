@@ -1,9 +1,11 @@
 (() => {
   var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value8) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value: value8 }) : obj[key] = value8;
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
   };
+  var __publicField = (obj, key, value8) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value8);
 
   // src/app/core/router.ts
   var MAX_REDIRECTS = 10;
@@ -74,15 +76,15 @@
   }
 
   // src/app/services/values.ts
-  function orFallback(value7, fallback) {
-    return value7 === void 0 || value7 === null || value7 === "" ? fallback : value7;
+  function orFallback(value8, fallback) {
+    return value8 === void 0 || value8 === null || value8 === "" ? fallback : value8;
   }
-  function nonZeroOr(value7, fallback) {
-    return value7 === void 0 || value7 === null || value7 === 0 || Number.isNaN(value7) ? fallback : value7;
+  function nonZeroOr(value8, fallback) {
+    return value8 === void 0 || value8 === null || value8 === 0 || Number.isNaN(value8) ? fallback : value8;
   }
   var range = (length) => [...Array(length).keys()];
-  var sum = (values) => values.reduce((total, value7) => total + value7, 0);
-  var isPresent = (value7) => value7 !== null && value7 !== void 0;
+  var sum = (values) => values.reduce((total, value8) => total + value8, 0);
+  var isPresent = (value8) => value8 !== null && value8 !== void 0;
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -661,6 +663,219 @@
       reactivate: "Volver a dar de alta",
       archive: "Dar de baja",
       delete: "Eliminar la ficha"
+    }
+  };
+
+  // src/app/i18n/es/commissions.ts
+  var commissions = {
+    homeCard: {
+      yourCommission: "Tu comisión de {period}",
+      yourActivity: "Tu actividad de {period}",
+      units: "unidades atribuidas",
+      accrued: "comisión acumulada",
+      perUnit: "por unidad en tu tramo",
+      nextTier: "Te faltan <b>{missing}</b> unidades para el siguiente tramo",
+      nextTierAmount: ", que pasaría a <b>{amount}</b> por unidad, aplicado a todo el periodo",
+      noScheme: "No tienes comisión asignada: estas unidades solo cuentan para las métricas.",
+      topTier: "Estás en el tramo más alto."
+    },
+    page: {
+      schemes: "Esquemas de comisión",
+      schemesHint: "El tramo alcanzado se aplica a todas las unidades del periodo. Televenta suele ir con importe fijo por unidad.",
+      perSale: "Por venta cerrada",
+      perPortfolio: "Por cartera",
+      perUnit: "{amount} por unidad",
+      noTiers: "sin tramos",
+      unassigned: " · sin asignar",
+      edit: "Editar",
+      noSchemes: "Todavía no hay esquemas.",
+      newScheme: "+ Nuevo esquema",
+      settlements: "Liquidaciones",
+      calculate: "Calcular el periodo",
+      person: "Persona",
+      all: "Todas",
+      month: "Mes",
+      allMonths: "Todos",
+      settlementLine: "{period} · {units} unidades · {amount} · {state}",
+      approve: "Aprobar",
+      markPaid: "Marcar pagada",
+      noneFiltered: "Sin liquidaciones con estos filtros.",
+      none: "Sin liquidaciones todavía.",
+      oneSettlement: "1 liquidación",
+      settlementsCount: "{count} liquidaciones",
+      summary: "{settlements} · {units} unidades · {amount}",
+      unpaid: " · {amount} sin pagar",
+      approveText: "La liquidación quedará aprobada y congelada.",
+      payText: "La liquidación quedará marcada como pagada.",
+      approveTitle: "¿Aprobar?",
+      payTitle: "¿Marcar pagada?",
+      settled: "Liquidación {state}"
+    },
+    calculate: {
+      couldNotRead: "No se han podido leer las asignaciones: {error}",
+      nobody: "Nadie tuvo un esquema de comisión en {period}",
+      allClosed: "Las liquidaciones de {period} ya están aprobadas o pagadas: no se recalculan",
+      oneDone: "Calculada 1 liquidación",
+      done: "Calculadas {count} liquidaciones",
+      ofPeriod: " de {period}",
+      oneKept: " · 1 ya aprobada o pagada se deja como estaba",
+      kept: " · {count} ya aprobadas o pagadas se dejan como estaban",
+      failed: " · {count} sin calcular"
+    },
+    editor: {
+      editTitle: "Editar esquema",
+      newTitle: "Nuevo esquema",
+      subtitle: "Define cómo se calcula la comisión y a quién se aplica",
+      name: "Nombre",
+      namePlaceholder: "p. ej. Comercial zona norte",
+      countedBy: "Se cuenta por",
+      portfolio: "Cartera del comercial",
+      closes: "Ventas que cierra (televenta)",
+      calculation: "Cálculo",
+      tierReached: "Tramo alcanzado a todo el volumen",
+      marginal: "Por tramos (cada unidad a su tramo)",
+      fixed: "Importe fijo por unidad",
+      channel: "Canal",
+      allChannels: "Todos",
+      patientOnly: "Solo venta {toThePatient}",
+      centreOnly: "Solo venta a centro",
+      eurosPerUnit: "Euros por unidad",
+      tiers: "Tramos",
+      tiersHint: '· deja vacío el "hasta" del último',
+      from: "Desde (uds.)",
+      to: "Hasta (uds.)",
+      perUnit: "€ por unidad",
+      fromPlaceholder: "Desde",
+      toPlaceholder: "Hasta",
+      perUnitPlaceholder: "€/unidad",
+      addTier: "+ Añadir tramo",
+      cancel: "Cancelar",
+      save: "Guardar",
+      create: "Crear esquema",
+      giveName: "Ponle un nombre",
+      saving: "Guardando…",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Esquema guardado"
+    },
+    people: {
+      title: "Quién cobra con este esquema",
+      saveFirst: "Guarda el esquema y después podrás asignarlo a las personas.",
+      loading: "Cargando…",
+      current: "Vigente",
+      scheduled: "Programado",
+      ended: "Terminado",
+      locked: "Guardado: no se puede modificar",
+      allHistory: "Todo el histórico",
+      since: "Desde {date}",
+      until: " hasta {date}",
+      endToday: "Terminar hoy",
+      cancelIt: "Anular",
+      nobody: "Nadie cobra todavía con este esquema.",
+      addPerson: "Añadir persona…",
+      fromToday: "desde hoy",
+      wholeHistory: "todo su histórico",
+      fromDate: "desde una fecha…",
+      assign: "Asignar",
+      lockedHint: "Una vez guardada, la asignación queda bloqueada 🔒. Para cambiarla, asigna otro esquema: el anterior termina el día antes.",
+      choosePerson: "Elige la persona",
+      inAllHistory: "en todo su histórico",
+      sinceDate: "desde el {date}",
+      assignText: "{name} cobrará con este esquema {when}. Si tenía otro, termina el día antes. Una vez guardado no se puede modificar.",
+      assignTitle: "¿Asignar el esquema?",
+      couldNotAssign: "No se ha podido asignar",
+      assigned: "Asignado a {name}",
+      endText: "Dejará de cobrar con este esquema a partir de mañana.",
+      endTitle: "¿Terminar hoy?",
+      endOk: "Terminar",
+      cancelText: "Se anula la asignación programada.",
+      cancelTitle: "¿Anular?"
+    }
+  };
+
+  // src/app/i18n/es/customers.ts
+  var customers = {
+    person: "Persona",
+    company: "Empresa",
+    list: {
+      title: "Clientes",
+      subtitle: "{Patients} y empresas que compran: con qué {professional} y su historial",
+      newCustomer: "+ Nuevo cliente",
+      searching: "Buscando clientes…",
+      couldNotLoad: "No se ha podido cargar: {error}",
+      oneCustomer: "cliente",
+      customers: "clientes",
+      loading: "Cargando…",
+      search: "Buscar",
+      searchPlaceholder: "Nombre, teléfono, email, DNI o CIF",
+      type: "Tipo",
+      all: "Todos",
+      persons: "Personas ({patients})",
+      companies: "Empresas",
+      orders: "Pedidos",
+      withOrders: "Con pedidos",
+      withoutOrders: "Sin pedidos",
+      town: "Población",
+      allTowns: "Todas",
+      customer: "Cliente",
+      taxId: "DNI / CIF",
+      phone: "Teléfono",
+      email: "Email",
+      salesRep: "Comercial",
+      units: "Uds.",
+      lastOrder: "Último pedido",
+      unassigned: "Sin asignar",
+      none: "Ningún cliente con estos filtros."
+    },
+    picker: {
+      placeholder: "Nombre, teléfono o DNI",
+      newOne: "+ Nuevo",
+      searching: "Buscando {patients}…",
+      noMatches: "Sin coincidencias. Créalo con «+ Nuevo»."
+    },
+    card: {
+      noAddress: "Sin dirección de entrega",
+      taxIdCompany: "CIF {taxId}",
+      taxIdPerson: "DNI {taxId}",
+      noTaxId: "Sin DNI",
+      remove: "Quitar"
+    },
+    sheet: {
+      notFound: "No se ha encontrado {thePatient}.",
+      taxId: " · NIF {taxId}",
+      newOrder: "+ Nuevo pedido",
+      editData: "Editar datos",
+      orders: "pedidos",
+      units: "unidades",
+      withVat: "con IVA",
+      treatedBy: "{Professional} que lo trata",
+      code: " · código {code}",
+      salesRep: "Comercial: {name}",
+      noSalesRep: "Sin comercial asignado",
+      unassigned: "Sin {professionalAssigned}. Las unidades de {thisPatient} no se atribuyen a nadie hasta que lo asignes.",
+      change: "Cambiar de {professional}",
+      assign: "Asignar {professional}",
+      removeProfessional: "Quitar {professional}",
+      contact: "Contacto",
+      phone: "Teléfono",
+      mobile: "Móvil",
+      email: "Email",
+      address: "Dirección",
+      note: "Nota",
+      noContact: "Sin datos de contacto.",
+      ordersTitle: "Pedidos",
+      noProducts: "Sin productos",
+      orderLine: "{units} uds. · {total} con IVA",
+      noOrders: "Todavía no tiene pedidos.",
+      couldNotSave: "No se ha podido guardar",
+      pickPlaceholder: "Busca {theProfessional} por nombre, centro o municipio",
+      reactivate: "Volver a dar de alta",
+      deactivate: "Dar de baja",
+      delete: "Eliminar {thePatient}"
+    },
+    status: {
+      couldNot: "No se ha podido: {error}",
+      deactivated: "{Patient} dado de baja",
+      reactivated: "{Patient} dado de alta de nuevo"
     }
   };
 
@@ -2048,6 +2263,8 @@
     manual,
     quality,
     opportunities,
+    customers,
+    commissions,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -2187,8 +2404,8 @@
   function setLanguage(language) {
     currentLanguage = language;
   }
-  function setVocabulary(words4) {
-    vocabulary = { ...words4 };
+  function setVocabulary(words5) {
+    vocabulary = { ...words5 };
   }
   function lookup(catalog2, key) {
     let node = catalog2;
@@ -2200,8 +2417,8 @@
   }
   function fill(text2, params) {
     return text2.replace(/\{(\w+)\}/g, (whole, name) => {
-      const value7 = params[name] ?? vocabulary[name];
-      return value7 === void 0 ? whole : String(value7);
+      const value8 = params[name] ?? vocabulary[name];
+      return value8 === void 0 ? whole : String(value8);
     });
   }
   function t(key, params = {}) {
@@ -2249,8 +2466,8 @@
   };
   var homeCache = {
     panel: () => KV_INI,
-    setPanel: (value7) => {
-      KV_INI = value7;
+    setPanel: (value8) => {
+      KV_INI = value8;
     },
     charts: () => KV_GRAF
   };
@@ -2301,8 +2518,8 @@
     },
     isDayView: () => agN(),
     metrics: () => AG_MET,
-    setMetrics: (value7) => {
-      AG_MET = value7;
+    setMetrics: (value8) => {
+      AG_MET = value8;
     },
     /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
     dayAppointments: () => TD_CITAS,
@@ -2331,8 +2548,8 @@
   };
   var sidePanel = {
     context: () => HERR_CTX,
-    setContext: (value7) => {
-      HERR_CTX = value7;
+    setContext: (value8) => {
+      HERR_CTX = value8;
     }
   };
   var legacyAgendaParts = {
@@ -2426,8 +2643,8 @@
     },
     confirm: (message, options) => preguntar(message, options),
     choose: (title2, message, buttons) => elegirOpcion(title2, message, buttons),
-    askDate: (message, value7, options) => pedirFecha(message, value7, options),
-    askTime: async (title2, value7, ok) => await appVentana({ titulo: title2, ok, campo: { valor: value7, tipo: "time" } })
+    askDate: (message, value8, options) => pedirFecha(message, value8, options),
+    askTime: async (title2, value8, ok) => await appVentana({ titulo: title2, ok, campo: { valor: value8, tipo: "time" } })
   };
   var initialsOf = (name) => iniciales(name);
   var reloadAgenda = () => {
@@ -2535,8 +2752,8 @@
     void pintarRutaBarra();
   } };
   var editorLegacy = {
-    pickAccount: (element, value7, onPick, placeholder) => {
-      selectorMedico(element, { valor: value7, alElegir: onPick, ...placeholder ? { placeholder } : {} });
+    pickAccount: (element, value8, onPick, placeholder) => {
+      selectorMedico(element, { valor: value8, alElegir: onPick, ...placeholder ? { placeholder } : {} });
     },
     recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
     recentText: (list) => txtReciente(list),
@@ -2626,7 +2843,7 @@
     },
     visitDetails: (visit) => detTxt(visit),
     fieldName: (field4) => campoTxt(field4),
-    valueText: (value7) => textoValor(value7),
+    valueText: (value8) => textoValor(value8),
     detailSummary: (detail) => resumenDetalle(detail),
     undo: (id, then) => {
       void deshacerUno(id, then);
@@ -2641,7 +2858,7 @@
       if (!PRODUCTOS.length) await cargarProductos();
       return PRODUCTOS;
     },
-    euros: (value7) => eurI(value7)
+    euros: (value8) => eurI(value8)
   };
   var accessLegacy = {
     connectionInfo: (userId) => {
@@ -2679,7 +2896,7 @@
   };
   var accountColumnsLegacy = {
     customFields: () => CAMPOS.medico ?? [],
-    fieldText: (field4, value7) => campoTexto(field4, value7),
+    fieldText: (field4, value8) => campoTexto(field4, value8),
     firstName: (name) => nombrePila(name),
     /** Platform access by account (loaded once; null until it arrives). */
     accessOf: () => MED_ACCESO,
@@ -2704,8 +2921,8 @@
   var cycleLegacy = {
     loadSettings: () => cargarAjustes(),
     setting: (key) => AJUSTES[key],
-    setSetting: (key, value7) => {
-      AJUSTES[key] = value7;
+    setSetting: (key, value8) => {
+      AJUSTES[key] = value8;
     },
     openTab: (tab) => {
       PAG_TAB.ciclo = tab;
@@ -2909,20 +3126,20 @@
 
   // src/app/services/format.ts
   var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value7) {
-    return String(value7 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  function escapeHtml(value8) {
+    return String(value8 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
   }
-  function formatNumber(value7) {
-    return Number(value7 ?? 0).toLocaleString("es");
+  function formatNumber(value8) {
+    return Number(value8 ?? 0).toLocaleString("es");
   }
-  function formatEuros(value7) {
-    return `${Math.round(Number(value7) || 0).toLocaleString("es-ES")} €`;
+  function formatEuros(value8) {
+    return `${Math.round(Number(value8) || 0).toLocaleString("es-ES")} €`;
   }
   function looseText(text2) {
     return String(text2 ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   }
-  function formatCurrency(value7) {
-    return (Number(value7) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  function formatCurrency(value8) {
+    return (Number(value8) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
   }
 
   // src/app/screens/accounts/card/base.ts
@@ -2950,7 +3167,7 @@
     </div>`;
   }
   function stateHtml(account, salesReps) {
-    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value7) => `<option ${value7 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value7)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
+    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value8) => `<option ${value8 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value8)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
     return `<div class="blk"><h3>${t("accounts.card.stateTitle")}</h3>
       <div>${state}</div>
       ${salesReps.length ? `<div class="sm" style="margin-top:6px">${t("accounts.base.salesRep", { names: salesReps.map(escapeHtml).join(", ") })}</div>` : ""}
@@ -3037,8 +3254,8 @@
     document.getElementById("ficha")?.close();
     open();
   }
-  function onEach(block3, key, action) {
-    block3.querySelectorAll(`[data-${key}]`).forEach((button) => {
+  function onEach(block4, key, action) {
+    block4.querySelectorAll(`[data-${key}]`).forEach((button) => {
       button.onclick = () => {
         action(button.getAttribute(`data-${key}`) ?? "");
       };
@@ -3071,8 +3288,8 @@
     professionals: term("medico", { number: "p" }),
     speciality: term("especialidad")
   });
-  var classPill = (value7) => value7 ? `<span class="cicl c${value7}">${value7}</span>` : '<span class="cicl csin">—</span>';
-  var classButtons = (id, value7) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value7 ? "on" : ""}" aria-pressed="${String(letter === value7)}">${letter}</button>`).join("")}</span>`;
+  var classPill = (value8) => value8 ? `<span class="cicl c${value8}">${value8}</span>` : '<span class="cicl csin">—</span>';
+  var classButtons = (id, value8) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value8 ? "on" : ""}" aria-pressed="${String(letter === value8)}">${letter}</button>`).join("")}</span>`;
   var ownerParam = () => permissions.seesEverything() ? cycleState.owner || null : salesTeam.currentUserId();
   var goToTab = (tab) => {
     cycleLegacy.openTab(tab);
@@ -3232,8 +3449,8 @@
   function changeLines(entry) {
     const detail = entry.detalle;
     if (entry.accion !== EDIT || !detail || typeof detail !== "object") return `<span class="sm">${escapeHtml(cardSectionsLegacy.detailSummary(detail))}</span>`;
-    const value7 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
-    return Object.entries(detail).filter((pair) => Array.isArray(pair[1]) && pair[1].length === 2).map(([field4, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field4))}: ${value7(before)} → ${value7(after)}</span>`).join("");
+    const value8 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
+    return Object.entries(detail).filter((pair) => Array.isArray(pair[1]) && pair[1].length === 2).map(([field4, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field4))}: ${value8(before)} → ${value8(after)}</span>`).join("");
   }
   function historyRow(entry) {
     const when = new Date(entry.creado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -3335,13 +3552,13 @@
   ];
   function unitsHtml(units2, series) {
     const prescriptions = (count2) => term("pauta", { number: count2 === 1 ? "s" : "p" });
-    const summary2 = units2.total ? `${t("accounts.base.unitsSummary", { count: formatNumber(units2.pautas), prescriptions: prescriptions(units2.pautas), date: formatShortDate(units2.ultima) })}<span id="fusley">${cardBaseLegacy.unitsLegend(series)}</span>` : t("accounts.base.noPrescriptions", { prescriptions: term("pauta", { number: "p" }) });
+    const summary3 = units2.total ? `${t("accounts.base.unitsSummary", { count: formatNumber(units2.pautas), prescriptions: prescriptions(units2.pautas), date: formatShortDate(units2.ultima) })}<span id="fusley">${cardBaseLegacy.unitsLegend(series)}</span>` : t("accounts.base.noPrescriptions", { prescriptions: term("pauta", { number: "p" }) });
     const choices = units2.total ? `<div class="segs" id="fuserie" role="group" aria-label="${t("accounts.base.evolution")}">${cardBaseLegacy.unitsSeries().map(([key, label]) => `<button type="button" data-us="${key}" class="${key === series ? "on" : ""}">${label}</button>`).join("")}</div>` : "";
     return `<div class="blk" id="fundades"><h3>${t("accounts.base.unitsTitle")}</h3>
     <div class="uper">${PERIODS.map(([label, key]) => `<div><b>${formatNumber(units2[key])}</b><span>${t(label)}</span></div>`).join("")}</div>
     ${choices}
     <div class="spark" id="fuspark">${cardBaseLegacy.unitsChart(units2, series)}</div>
-    <div class="sm">${summary2}</div></div>`;
+    <div class="sm">${summary3}</div></div>`;
   }
   async function units(id) {
     const box = document.getElementById("fbody");
@@ -3529,9 +3746,9 @@
     const list = (data ?? []).filter((item) => item.eventos !== null).sort((first, second) => String(second.eventos.fecha).localeCompare(String(first.eventos.fecha))).slice(0, SHOWN_EVENTS);
     if (!list.length) return;
     const pillClass = (state) => state === ATTENDED ? "p-est" : state === NOT_ATTENDED ? "p-anu" : "p-per";
-    const block3 = addBeforeFields(id, "feventos", `<div class="blk" id="feventos"><h3>${t("accounts.card.eventsTitle")}</h3>
+    const block4 = addBeforeFields(id, "feventos", `<div class="blk" id="feventos"><h3>${t("accounts.card.eventsTitle")}</h3>
       ${list.map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fev="${item.eventos.id}">${escapeHtml(item.eventos.titulo)}</button><span class="sm"> · ${formatShortDate(item.eventos.fecha)}</span></span><span class="pill ${pillClass(item.estado)}">${escapeHtml(item.estado)}</span></div>`).join("")}</div>`);
-    if (block3) onEach(block3, "fev", (event) => {
+    if (block4) onEach(block4, "fev", (event) => {
       closeCardAnd(() => {
         relatedLegacy.openEvent(event);
       });
@@ -3565,9 +3782,9 @@
     if (permissions.isProfessionalPortal() || !canAdd("fcirugias", "cirugias")) return;
     const { data } = await legacyDb().from("cirugias").select("id,fecha,procedimiento,estado").or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order("fecha", { ascending: false }).limit(5);
     if (!(data ?? []).length) return;
-    const block3 = addBeforeFields(id, "fcirugias", `<div class="blk" id="fcirugias"><h3>${t("accounts.card.surgeriesTitle")}</h3>
+    const block4 = addBeforeFields(id, "fcirugias", `<div class="blk" id="fcirugias"><h3>${t("accounts.card.surgeriesTitle")}</h3>
       ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${item.id}">${escapeHtml(orFallback(item.procedimiento, t("accounts.card.surgery")))}</button><span class="sm"> · ${formatShortDate(item.fecha)}</span></span>${statePill(item)}</div>`).join("")}</div>`);
-    if (block3) onEach(block3, "fcir", (surgery) => {
+    if (block4) onEach(block4, "fcir", (surgery) => {
       closeCardAnd(() => {
         relatedLegacy.openSurgery(surgery);
       });
@@ -3582,9 +3799,9 @@
     if (permissions.isProfessionalPortal() || !canAdd("fconcursos", "concursos")) return;
     const { data } = await legacyDb().from("concursos").select("id,titulo,estado,fin,prorroga_hasta").eq("cuenta_id", id).in("estado", OPEN_TENDERS).order("creado_en", { ascending: false }).limit(6);
     if (!(data ?? []).length) return;
-    const block3 = addBeforeFields(id, "fconcursos", `<div class="blk" id="fconcursos"><h3>${t("accounts.card.tendersTitle")}</h3>
+    const block4 = addBeforeFields(id, "fconcursos", `<div class="blk" id="fconcursos"><h3>${t("accounts.card.tendersTitle")}</h3>
       ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${item.id}">${escapeHtml(item.titulo)}</button>${tenderEnd(item) ? `<span class="sm">${tenderEnd(item)}</span>` : ""}</span>${statePill2(item.estado)}</div>`).join("")}</div>`);
-    if (block3) onEach(block3, "fcon", (tender) => {
+    if (block4) onEach(block4, "fcon", (tender) => {
       closeCardAnd(() => {
         relatedLegacy.openTender(tender);
       });
@@ -3600,16 +3817,16 @@
     if (!canAdd("fequipos") || !stillShown(id)) return;
     const list = data ?? [], account = await accountKind(id);
     if (!list.length && account?.tipo !== CENTRE3) return;
-    const block3 = addBeforeFields(id, "fequipos", equipmentHtml(list));
-    if (block3) bindEquipment(block3, id, account?.nombre ?? "");
+    const block4 = addBeforeFields(id, "fequipos", equipmentHtml(list));
+    if (block4) bindEquipment(block4, id, account?.nombre ?? "");
   }
   function equipmentHtml(list) {
     return `<div class="blk" id="fequipos"><h3>${t("accounts.card.equipmentTitle")}${list.length ? ` <span class="n">${list.length}</span>` : ""}</h3>
       ${list.map(equipmentRow).join("") || `<p class="sm">${t("accounts.card.equipmentNone")}</p>`}
       <button type="button" class="btn sec" id="feqmas">${t("accounts.card.addEquipment")}</button></div>`;
   }
-  function bindEquipment(block3, id, name) {
-    onEach(block3, "feq", (item) => {
+  function bindEquipment(block4, id, name) {
+    onEach(block4, "feq", (item) => {
       closeCardAnd(() => {
         relatedLegacy.openEquipment(item);
       });
@@ -3631,7 +3848,7 @@
   var SHOWN_REQUESTS = 10;
   var MESSAGES_LIMIT = 200;
   var canShow2 = (id, blockId) => !permissions.isProfessionalPortal() && portalLegacy.hasPortal() && stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById(blockId);
-  var shortDateTime = (value7) => new Date(value7).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  var shortDateTime = (value8) => new Date(value8).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   function requestRow(request) {
     return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
         <span class="sm">${t("accounts.portal.requested", { date: shortDateTime(request.creado_en) })}${request.nota ? ` · ${escapeHtml(request.nota)}` : ""}</span></span>${portalLegacy.materialPill(request.estado)}
@@ -3707,11 +3924,11 @@
         <input type="number" min="0" step="0.01" data-fpcx="${product.id}" value="${own?.precio !== null && own?.precio !== void 0 ? Number(own.precio) : ""}" placeholder="${t("accounts.portal.tariffPlaceholder")}" style="max-width:120px" aria-label="${t("accounts.portal.priceFor", { name })}"></label>`;
   }
   async function saveProducts(id, button) {
-    const block3 = document.getElementById("fprodc");
-    if (!block3) return;
-    const items = [...block3.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
-      const value7 = block3.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
-      return { producto_id: box.dataset.fpcp, precio: value7 === "" ? null : Math.max(0, Number(value7)) };
+    const block4 = document.getElementById("fprodc");
+    if (!block4) return;
+    const items = [...block4.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
+      const value8 = block4.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
+      return { producto_id: box.dataset.fpcp, precio: value8 === "" ? null : Math.max(0, Number(value8)) };
     });
     button.disabled = true;
     const { data: result } = await legacyDb().rpc("guardar_productos_cuenta", { p_cuenta: id, p_items: items });
@@ -3812,12 +4029,12 @@
     const sales = document.getElementById("fventasc");
     if (!data?.ok || !stillShown(id) || !sales || document.getElementById("fclientes")) return;
     const figures = [[t("accounts.sales.associated"), data.total], [t("accounts.sales.withOrders"), data.con_pedido], [t("accounts.sales.withoutOrders"), data.sin_pedido]];
-    const block3 = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
-    <div class="uper">${figures.map(([label, value7]) => `<div><b>${formatNumber(value7)}</b><span>${label}</span></div>`).join("")}</div>
+    const block4 = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
+    <div class="uper">${figures.map(([label, value8]) => `<div><b>${formatNumber(value8)}</b><span>${label}</span></div>`).join("")}</div>
     ${data.total ? "" : `<div class="sm">${t("accounts.sales.noneAssociated", { patients: term("paciente", { number: "p" }) })}</div>`}</div>`;
     const units2 = document.getElementById("fundades");
-    if (units2) units2.insertAdjacentHTML("afterend", block3);
-    else sales.insertAdjacentHTML("afterbegin", block3);
+    if (units2) units2.insertAdjacentHTML("afterend", block4);
+    else sales.insertAdjacentHTML("afterbegin", block4);
   }
 
   // src/app/screens/accounts/card/index.ts
@@ -3929,8 +4146,8 @@
     if (key.startsWith(CUSTOM_PREFIX)) return customCell(row3, key.slice(CUSTOM_PREFIX.length));
     const special = CELLS.get(key);
     if (special) return special(row3);
-    const value7 = row3[key];
-    return `<span class="sm">${escapeHtml(value7 ? String(value7) : "")}</span>`;
+    const value8 = row3[key];
+    return `<span class="sm">${escapeHtml(value8 ? String(value8) : "")}</span>`;
   }
 
   // src/app/screens/accounts/list/columns.ts
@@ -4021,7 +4238,7 @@
     const filters = accountListLegacy.filters();
     const chips = [
       ...filters.q ? [["q", t("accounts.list.chipSearch", { text: filters.q })]] : [],
-      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value7]) => value7),
+      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value8]) => value8),
       ...filters.urg ? [["urg", t("accounts.list.chipUrgent")]] : [],
       ...filters.mios ? [["mios", t("accounts.list.chipMine")]] : [],
       ...filters.sin ? [["sin", t("accounts.list.chipNeverVisited")]] : []
@@ -4031,7 +4248,7 @@
 
   // src/app/screens/accounts/list/search.ts
   var lastSearch = 0;
-  var orNull = (value7) => value7 ? value7 : null;
+  var orNull = (value8) => value8 ? value8 : null;
   var loadingHtml = (text2) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text2)}</span></div>`;
   function searchParams() {
     const filters = accountListLegacy.filters(), size = accountListLegacy.pageSize();
@@ -4450,8 +4667,8 @@
   }
 
   // src/app/screens/agenda/metrics.ts
-  var count = (value7) => formatNumber(value7 ?? 0);
-  var decimal = (value7) => value7 === void 0 || value7 === null ? "0" : String(value7).replace(".", ",");
+  var count = (value8) => formatNumber(value8 ?? 0);
+  var decimal = (value8) => value8 === void 0 || value8 === null ? "0" : String(value8).replace(".", ",");
   function todayFigures(metrics) {
     const day = legacyAgenda.selectedDate(), today = todayIso();
     if (day === today && legacyAgenda.loadedDay() === day) {
@@ -4539,7 +4756,7 @@
       { title: t("agenda.sameCentre.noTimetable"), people: noTimetable }
     ].filter((group) => group.people.length);
   }
-  var toNumber = (value7) => Number(value7);
+  var toNumber = (value8) => Number(value8);
   function isSameCentre(group, appointment) {
     if (isPresent(group.lat) && isPresent(appointment.lat)) {
       return distanceKm([toNumber(group.lat), toNumber(group.lon)], [toNumber(appointment.lat), toNumber(appointment.lon)]) <= NEAR_KM;
@@ -4592,17 +4809,17 @@
         else agendaActions.openAccount(person.dataset.agti ?? "");
         return;
       }
-      const block3 = target?.closest("#agcuerpo .agtamb[data-agtc]");
-      if (block3) {
+      const block4 = target?.closest("#agcuerpo .agtamb[data-agtc]");
+      if (block4) {
         event.stopPropagation();
-        agendaActions.openCentre(block3.dataset.agtc ?? "");
+        agendaActions.openCentre(block4.dataset.agtc ?? "");
       }
     }, true);
     document.addEventListener("keydown", (event) => {
-      const block3 = event.target instanceof Element ? event.target.closest("#agcuerpo .agtamb[data-agtc]") : null;
-      if (block3 && event.target === block3 && (event.key === "Enter" || event.key === " ")) {
+      const block4 = event.target instanceof Element ? event.target.closest("#agcuerpo .agtamb[data-agtc]") : null;
+      if (block4 && event.target === block4 && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
-        agendaActions.openCentre(block3.dataset.agtc ?? "");
+        agendaActions.openCentre(block4.dataset.agtc ?? "");
       }
     });
   }
@@ -4731,9 +4948,9 @@
   }
   function draftHtml(draft) {
     const days = Object.keys(draft.dias).filter((day) => draft.dias[day]?.length).length;
-    const summary2 = t("agenda.openWeek.draftSummary", { count: formatNumber(draft.total), visits: term("visita", { number: "p", adjective: "nuevo" }), days }) + (draft.sinDia.length ? t("agenda.openWeek.draftWithoutDay", { count: draft.sinDia.length }) : "");
+    const summary3 = t("agenda.openWeek.draftSummary", { count: formatNumber(draft.total), visits: term("visita", { number: "p", adjective: "nuevo" }), days }) + (draft.sinDia.length ? t("agenda.openWeek.draftWithoutDay", { count: draft.sinDia.length }) : "");
     return `<div class="semborr">
-      <span><b>${t("agenda.openWeek.draft")}</b> · ${summary2}</span>
+      <span><b>${t("agenda.openWeek.draft")}</b> · ${summary3}</span>
       <span class="acts" style="margin:0"><button class="btn sec" id="semdescartar">${t("agenda.openWeek.discard")}</button><button class="btn" id="semguardar">${t("agenda.openWeek.save")}</button></span></div>`;
   }
   function withoutDayHtml(draft) {
@@ -5061,10 +5278,10 @@
   }
   function dayContent(items, blockedReason) {
     const blocked = blockedReason ? `<span class="agslb">${escapeHtml(blockedReason)}</span>` : "";
-    const shown2 = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf2(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
+    const shown3 = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf2(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
     const more = items.length > SHOWN_PER_DAY2 ? `<span class="agslv">${t("agenda.week.andMore", { count: items.length - SHOWN_PER_DAY2 })}</span>` : "";
     const free = !items.length && !blockedReason ? `<span class="agslv">${t("agenda.week.free")}</span>` : "";
-    return blocked + shown2 + more + free;
+    return blocked + shown3 + more + free;
   }
   function dayHtml(isoDate, items, context) {
     const date = fromIsoDate(isoDate), blockedReason = context.blocked[isoDate];
@@ -5286,12 +5503,12 @@
   function markEmptyDay() {
     const body2 = dayBody();
     if (!body2 || currentScreen() !== "agenda") return;
-    const empty = body2.querySelector(":scope > .vacio"), stats = body2.querySelector(".tdhead .tdstats");
-    stats?.classList.toggle("hide", Boolean(empty) && !body2.querySelector(".tdesc"));
-    if (!empty) return;
-    empty.classList.add("vlinea");
+    const empty2 = body2.querySelector(":scope > .vacio"), stats = body2.querySelector(".tdhead .tdstats");
+    stats?.classList.toggle("hide", Boolean(empty2) && !body2.querySelector(".tdesc"));
+    if (!empty2) return;
+    empty2.classList.add("vlinea");
     const selected = legacyAgenda.selectedDate();
-    if (selected && selected < todayIso()) empty.textContent = t("agenda.noAppointmentsThatDay");
+    if (selected && selected < todayIso()) empty2.textContent = t("agenda.noAppointmentsThatDay");
   }
   function markSelectedDay() {
     const view = agendaView();
@@ -5609,42 +5826,42 @@
     button.innerHTML = legacyIcons.list(compact2 ? "file-text" : "list");
     button.setAttribute("aria-pressed", String(compact2));
   }
-  function statsHtml(summary2) {
-    const end = summary2.open && !summary2.isPast ? `<span>${t("agenda.yourDay.estimatedEnd")} <b style="color:${summary2.overReturn ? "var(--warn)" : "var(--navy)"}">${formatMinutes(summary2.end)}</b>${summary2.overReturn ? t("agenda.yourDay.overReturn") : ""}${summary2.end >= DAY_MINUTES ? ` <span class="sm">${t("agenda.yourDay.nextDay")}</span>` : ""}</span>` : "";
+  function statsHtml(summary3) {
+    const end = summary3.open && !summary3.isPast ? `<span>${t("agenda.yourDay.estimatedEnd")} <b style="color:${summary3.overReturn ? "var(--warn)" : "var(--navy)"}">${formatMinutes(summary3.end)}</b>${summary3.overReturn ? t("agenda.yourDay.overReturn") : ""}${summary3.end >= DAY_MINUTES ? ` <span class="sm">${t("agenda.yourDay.nextDay")}</span>` : ""}</span>` : "";
     return `<div class="tdstats">
-          <span>${t("agenda.yourDay.appointments", { count: formatNumber(summary2.active) })}</span>
-          <span>${t("agenda.yourDay.visited", { count: formatNumber(summary2.done) })}</span>
-          ${summary2.absent ? `<span>${t("agenda.yourDay.absent", { count: formatNumber(summary2.absent) })}</span>` : ""}
-          <span>${t("agenda.yourDay.toDo", { count: summary2.open })}</span>
+          <span>${t("agenda.yourDay.appointments", { count: formatNumber(summary3.active) })}</span>
+          <span>${t("agenda.yourDay.visited", { count: formatNumber(summary3.done) })}</span>
+          ${summary3.absent ? `<span>${t("agenda.yourDay.absent", { count: formatNumber(summary3.absent) })}</span>` : ""}
+          <span>${t("agenda.yourDay.toDo", { count: summary3.open })}</span>
           ${end}
         </div>`;
   }
-  function workingDayButton(summary2) {
-    if (!summary2.isToday || !summary2.isOwner) return "";
-    if (summary2.workingDay) return `<button class="btn dang chico" id="tdterminar">${t("agenda.yourDay.endDay")}</button>`;
-    return summary2.open ? `<button class="btn chico" id="tdempezar">${t("agenda.yourDay.startDay")}</button>` : "";
+  function workingDayButton(summary3) {
+    if (!summary3.isToday || !summary3.isOwner) return "";
+    if (summary3.workingDay) return `<button class="btn dang chico" id="tdterminar">${t("agenda.yourDay.endDay")}</button>`;
+    return summary3.open ? `<button class="btn chico" id="tdempezar">${t("agenda.yourDay.startDay")}</button>` : "";
   }
-  function actionsHtml2(summary2) {
-    const { isPast, own, open, withPlace } = summary2;
+  function actionsHtml2(summary3) {
+    const { isPast, own, open, withPlace } = summary3;
     return `<div class="acts">
         ${own ? `<button type="button" class="btn sec chico" id="tdtarea">${t("agenda.yourDay.addTask")}</button>` : ""}
         ${!isPast && withPlace > 1 ? `<button class="btn sec chico" id="tdordenar" title="${t("agenda.yourDay.orderTitle")}">${t("agenda.yourDay.orderByDistance")}</button>` : ""}
-        ${workingDayButton(summary2)}
+        ${workingDayButton(summary3)}
         ${isPast && open ? `<button class="btn chico" id="tdrepro">${t("agenda.yourDay.reschedulePending")}</button>` : ""}
       </div>`;
   }
-  function headerHtml4(summary2) {
-    const title2 = t(summary2.isToday ? "agenda.yourDay.titleToday" : summary2.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
-    const dayMenu = summary2.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
+  function headerHtml4(summary3) {
+    const title2 = t(summary3.isToday ? "agenda.yourDay.titleToday" : summary3.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
+    const dayMenu = summary3.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
     return `
     <div class="tdhead">
-      <div class="${summary2.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title2}</h2>${summary2.mine > 1 ? compactButton(summary2.compact) : ""}${dayMenu}
-        ${statsHtml(summary2)}</div>
-      ${actionsHtml2(summary2)}
+      <div class="${summary3.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title2}</h2>${summary3.mine > 1 ? compactButton(summary3.compact) : ""}${dayMenu}
+        ${statsHtml(summary3)}</div>
+      ${actionsHtml2(summary3)}
     </div>`;
   }
-  function workingDayHtml(summary2, duration) {
-    return summary2.isToday && summary2.workingDay ? `<div class="tdjornada">${t("agenda.yourDay.workingDay", { time: duration, visit: summary2.visit })}</div>` : "";
+  function workingDayHtml(summary3, duration) {
+    return summary3.isToday && summary3.workingDay ? `<div class="tdjornada">${t("agenda.yourDay.workingDay", { time: duration, visit: summary3.visit })}</div>` : "";
   }
   function noFitHtml(noFit) {
     if (!noFit.shown) return "";
@@ -5691,8 +5908,8 @@
     box.closest(".tdtarea")?.classList.toggle("hecha", box.checked);
     agendaState.forgetDayTasks();
   }
-  function bind4(block3) {
-    block3.querySelectorAll("[data-tacheck]").forEach((box) => {
+  function bind4(block4) {
+    block4.querySelectorAll("[data-tacheck]").forEach((box) => {
       box.onchange = (event) => {
         event.stopPropagation();
         void markDone(box);
@@ -5706,13 +5923,13 @@
     const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t("agenda.tasks.title", { count: list.length })}</div>${list.map((task) => taskRow(task, list)).join("")}</div>`;
     if (place) place.insertAdjacentHTML("beforebegin", html);
     else body2.insertAdjacentHTML("beforeend", html);
-    const block3 = document.getElementById("tdtareas");
-    if (block3) bind4(block3);
+    const block4 = document.getElementById("tdtareas");
+    if (block4) bind4(block4);
   }
   function applyTaskFolding() {
-    const block3 = document.getElementById("tdtareas"), header = block3?.querySelector(".tdtcab");
-    if (!block3 || !header) return;
-    block3.classList.toggle("plegadas", folded());
+    const block4 = document.getElementById("tdtareas"), header = block4?.querySelector(".tdtcab");
+    if (!block4 || !header) return;
+    block4.classList.toggle("plegadas", folded());
     header.setAttribute("role", "button");
     header.tabIndex = 0;
     header.setAttribute("aria-expanded", String(!folded()));
@@ -5769,7 +5986,7 @@
       noFitBanner: banner,
       limit
     };
-    const summary2 = {
+    const summary3 = {
       isToday: day === today,
       isPast,
       isFutureOrToday: day >= today,
@@ -5788,7 +6005,7 @@
       visit
     };
     const outside = Object.values(info).filter((stop) => stop.llegada !== null && stop.llegada !== void 0 && stop.llegada >= limit).length;
-    return { context, summary: summary2, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
+    return { context, summary: summary3, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
   }
   function on(id, action) {
     const button = document.getElementById(id);
@@ -5818,17 +6035,17 @@
     const all = result.data ?? [], owner = agendaSources.ownerId();
     const data = { day, today, mine: all.filter((item) => item.usuario_id === owner), others: all.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
-    const { context, summary: summary2, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-    const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary2.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
-    body2.innerHTML = `${headerHtml4(summary2)}
-    ${workingDayHtml(summary2, summary2.workingDay ? formatDuration(Date.now() - summary2.workingDay.inicio) : "")}
+    const { context, summary: summary3, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
+    const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary3.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    body2.innerHTML = `${headerHtml4(summary3)}
+    ${workingDayHtml(summary3, summary3.workingDay ? formatDuration(Date.now() - summary3.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
     ${cards}
     ${othersHtml(data.others)}`;
     bindHeader2(data, context.open);
     refreshMetrics();
     yourDayLegacy.prepareRouteStops(day);
-    if (!summary2.own) return;
+    if (!summary3.own) return;
     const tasks = await agendaSources.dayTasks(day);
     const fresh = document.getElementById("agcuerpo");
     if (legacyAgenda.selectedDate() === day && fresh) paintTasks(fresh, tasks);
@@ -5875,13 +6092,13 @@
     document.addEventListener("click", (event) => {
       const button = event.target instanceof Element ? event.target.closest("#tdcompactar") : null;
       if (!button) return;
-      const value7 = !compact();
+      const value8 = !compact();
       try {
-        localStorage.setItem(COMPACT_KEY, value7 ? "1" : "0");
+        localStorage.setItem(COMPACT_KEY, value8 ? "1" : "0");
       } catch {
       }
       applyCompact();
-      setCompactButton(button, value7);
+      setCompactButton(button, value8);
     });
     document.addEventListener("click", (event) => {
       const button = event.target instanceof Element ? event.target.closest("[data-tdavi]") : null;
@@ -5955,14 +6172,14 @@
     const open = list.filter((item) => appointments.isOpen(item.estado));
     const now = /* @__PURE__ */ new Date(), minutesNow = now.getHours() * 60 + now.getMinutes();
     const next = open.find((item) => (minutesOf2(item.hora) ?? 9999) >= minutesNow - 15) ?? open[0];
-    const time = (item, empty) => escapeHtml(String(item.hora ?? "").slice(0, 5) || empty);
-    const summary2 = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
+    const time = (item, empty2) => escapeHtml(String(item.hora ?? "").slice(0, 5) || empty2);
+    const summary3 = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
     const visible = isMobile() ? 3 : 5;
     const nextIndex = next ? list.indexOf(next) : 0;
-    const start2 = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown2 = list.slice(start2, start2 + visible);
-    const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown2.length);
-    const dots = shown2.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
-    return { summary: summary2, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
+    const start2 = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown3 = list.slice(start2, start2 + visible);
+    const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown3.length);
+    const dots = shown3.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
+    return { summary: summary3, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
   }
   function urgentChart(kpis) {
     if (kpis.urgentes) return { summary: t("home.indicators.urgentPending", { count: formatNumber(kpis.urgentes) }), visual: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' };
@@ -5984,10 +6201,10 @@
     const perDay = countsByDate(charts.por_dia), nextDays = countsByDate(charts.proximos);
     const values = days.map((day) => (upcoming2 ? nextDays.get(day) : perDay.get(day)) ?? 0);
     const max = Math.max(1, ...values), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
-    const bars = values.map((value7, i) => {
-      const day = days[i] ?? today, height = Math.max(3, value7 / max * 40), x = i * (barWidth + gap), future = !upcoming2 && day > today, isToday = day === today;
+    const bars = values.map((value8, i) => {
+      const day = days[i] ?? today, height = Math.max(3, value8 / max * 40), x = i * (barWidth + gap), future = !upcoming2 && day > today, isToday = day === today;
       const fill2 = future ? "#E3EBF3" : isToday ? "var(--sky)" : "var(--navy)";
-      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value7 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
+      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value8 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
     }).join("");
     return { summary: weekSummary({ upcoming: upcoming2, days, values, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
   }
@@ -6005,8 +6222,8 @@
     const current = accumulate(monthStart), last = accumulate(toIsoDate(previous));
     if (dayOfMonth < 2) return EMPTY_CHART;
     const max = Math.max(1, ...last, ...current), width = 196, height = 46;
-    const x = (i) => i / (dayOfMonth - 1) * width, y = (value7) => height - value7 / max * height;
-    const line = (values) => values.map((value7, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value7).toFixed(1)}`).join("");
+    const x = (i) => i / (dayOfMonth - 1) * width, y = (value8) => height - value8 / max * height;
+    const line = (values) => values.map((value8, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value8).toFixed(1)}`).join("");
     const end = current[current.length - 1] ?? 0, difference2 = end - (last[last.length - 1] ?? 0);
     return {
       summary: t(difference2 >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference: difference2 }),
@@ -6044,8 +6261,8 @@
     }).join("");
     const positive = counts.find((count2) => count2.state.papel === "positivo");
     const state = positive ? escapeHtml(positive.state.valor) : "";
-    const summary2 = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state }) : t("home.indicators.nextStep", { state }) : "";
-    return { summary: summary2, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
+    const summary3 = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state }) : t("home.indicators.nextStep", { state }) : "";
+    return { summary: summary3, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
   }
   function portfolioChart(charts) {
     const total = portfolioTotal(charts), present = stateCounts(charts).filter((count2) => count2.accounts);
@@ -6113,10 +6330,10 @@
     return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon2 ? `<span class="kico" aria-hidden="true">${icon2}</span>` : ""}${context.panel ? help : ""}${body2}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
   }
   function liveBody(id, title2, raw, context) {
-    const { summary: summary2, visual } = chartFor(id, context.kpis, context.panel, context.charts);
+    const { summary: summary3, visual } = chartFor(id, context.kpis, context.panel, context.charts);
     return `<div class="kvt">${escapeHtml(title2)}</div>
       <div class="kvn">${figure(raw)}</div>
-      <div class="kvs">${summary2}</div>${visual ? `<div class="kvz">${visual}</div>` : ""}`;
+      <div class="kvs">${summary3}</div>${visual ? `<div class="kvz">${visual}</div>` : ""}`;
   }
   function filterCard(setting, index, live) {
     const filter = setting.filtro ?? {};
@@ -6436,9 +6653,9 @@
     <div class="mmini"><div><span>${t("home.collections.overdue")}</span><b class="${collections.vencido > 0 ? "mdown" : ""}">${formatEuros(collections.vencido)}</b></div><div><span>${t("home.collections.invoicedThisMonth")}</span><b>${formatEuros(collections.facturado_mes)}</b></div></div></div>`;
   }
   function cycleTile(data) {
-    const summary2 = data.cycle?.resumen ?? [];
-    if (!summary2.length) return "";
-    const done = summary2.reduce((sum2, row3) => sum2 + row3.hechas, 0), target = summary2.reduce((sum2, row3) => sum2 + row3.objetivo, 0);
+    const summary3 = data.cycle?.resumen ?? [];
+    if (!summary3.length) return "";
+    const done = summary3.reduce((sum2, row3) => sum2 + row3.hechas, 0), target = summary3.reduce((sum2, row3) => sum2 + row3.objetivo, 0);
     const percent = target ? Math.round(100 * done / target) : 0, circumference = 2 * Math.PI * 30;
     return `<div class="mt mtcic"><div class="mtt">${icon("target")} ${t("home.cycle.title", { visits: term("visita", { number: "p" }) })}</div>
       <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent / 100} ${circumference}"/></svg>
@@ -6489,9 +6706,9 @@
     const toggle = document.getElementById("inikpisver");
     if (toggle) {
       toggle.onclick = () => {
-        const shown2 = !section2.classList.contains("conkpis");
-        section2.classList.toggle("conkpis", shown2);
-        toggle.textContent = t(shown2 ? "home.hideIndicators" : "home.showIndicators");
+        const shown3 = !section2.classList.contains("conkpis");
+        section2.classList.toggle("conkpis", shown3);
+        toggle.textContent = t(shown3 ? "home.hideIndicators" : "home.showIndicators");
       };
     }
     return document.getElementById("inimos");
@@ -6880,7 +7097,7 @@
     if (!windows.length) return t("agenda.sheet.notAttending");
     return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
   }
-  var row = (label, value7) => `<div class="vcfila"><span>${label}</span><b>${value7}</b></div>`;
+  var row = (label, value8) => `<div class="vcfila"><span>${label}</span><b>${value8}</b></div>`;
   function dataHtml(item, info) {
     const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText2(item, info), origin = yourDayLegacy.originText(item);
     return `<div class="vcdatos">
@@ -6929,14 +7146,14 @@
   };
   async function saveNotes(item, notes, button) {
     button.disabled = true;
-    const value7 = notes.value.trim();
-    const { error } = await legacyDb().from("agenda").update({ nota: value7 || null }).eq("id", item.id);
+    const value8 = notes.value.trim();
+    const { error } = await legacyDb().from("agenda").update({ nota: value8 || null }).eq("id", item.id);
     if (error) {
       button.disabled = false;
       notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    item.nota = value7;
+    item.nota = value8;
     close();
     notices.toast(t("agenda.sheet.notesSaved"));
     refreshQuietly(item.id, false);
@@ -7143,10 +7360,10 @@
   async function newAppointment(accountId, day, options = {}) {
     const draft = { picked: null, consultations: [] };
     if (accountId) draft.picked = await loadAccount(accountId, draft);
-    const shown2 = legacyAgenda.selectedDate(), today = todayIso();
+    const shown3 = legacyAgenda.selectedDate(), today = todayIso();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown2 && shown2 >= today ? shown2 : today));
+    body2.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown3 && shown3 >= today ? shown3 : today));
     paintCentres(draft);
     editorLegacy.pickAccount(document.getElementById("ncsel"), draft.picked, async (account) => {
       draft.picked = account;
@@ -7369,7 +7586,7 @@
       <span class="sm">${eventSummary(event)} · ${count2}</span></span>
       ${total ? `<span class="evtot">${formatCurrency(total)}</span>` : ""}</button>`;
   }
-  var section = (title2, rows, empty) => `<section class="card evbloque"><h2>${title2}</h2>${rows.length ? `<div class="lista">${rows.map(eventRow).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
+  var section = (title2, rows, empty2) => `<section class="card evbloque"><h2>${title2}</h2>${rows.length ? `<div class="lista">${rows.map(eventRow).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section>`;
   async function paintEvents() {
     if (!document.getElementById("cfgcuerpo")) return;
     const { data, error } = await legacyDb().from("eventos").select("id,titulo,tipo,fecha,hora,lugar,en_linea,creado_por,eventos_asistentes(id,estado,inscripcion,viaje,comida,honorarios)").order("fecha", { ascending: false }).limit(LIMIT);
@@ -7406,7 +7623,7 @@
       <tfoot><tr><td>${t("events.report.total")}</td><td></td>${CONCEPTS.map((concept) => `<td>${total(concept)}</td>`).join("")}<td><b>${total("total")}</b></td></tr></tfoot></table></div>`;
   }
   function download(rows, year) {
-    const quote = (value7) => `"${String(value7 ?? "").replace(/"/g, '""')}"`, decimal2 = (value7) => String(Number(value7) || 0).replace(".", ",");
+    const quote = (value8) => `"${String(value8 ?? "").replace(/"/g, '""')}"`, decimal2 = (value8) => String(Number(value8) || 0).replace(".", ",");
     const header = [term("medico", { capital: "C" }), t("events.report.code"), term("especialidad", { capital: "C" }), t("events.report.events"), ...CONCEPTS.map(conceptLabel), t("events.report.total")].map(quote).join(";");
     const lines = rows.map((row3) => [quote(row3.nombre), quote(row3.codigo), quote(row3.especialidad), row3.eventos, ...CONCEPTS.map((concept) => decimal2(row3[concept])), decimal2(row3.total)].join(";"));
     const link = document.createElement("a");
@@ -7421,22 +7638,22 @@
   }
   async function paintExpenseReport(year) {
     if (!document.getElementById("cfgcuerpo")) return;
-    const current = Number(todayIso().slice(0, 4)), shown2 = year ?? current - 1;
-    const { data } = await legacyDb().rpc("transparencia_anual", { p_anio: shown2 });
+    const current = Number(todayIso().slice(0, 4)), shown3 = year ?? current - 1;
+    const { data } = await legacyDb().rpc("transparencia_anual", { p_anio: shown3 });
     const box = document.getElementById("cfgcuerpo");
     if (!box || currentScreen() !== "eventos") return;
     const rows = data?.filas ?? [];
-    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option2) => `<option ${option2 === shown2 ? "selected" : ""}>${option2}</option>`).join("")}</select>
+    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option4) => `<option ${option4 === shown3 ? "selected" : ""}>${option4}</option>`).join("")}</select>
       ${rows.length ? `<button type="button" class="btn sec" id="trcsv">${t("events.report.download")}</button>` : ""}</div>
     <p class="sm">${t("events.report.note", { professional: term("medico") })}</p>
-    ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown2 })}</div>`}</div>`;
+    ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown3 })}</div>`}</div>`;
     const select = box.querySelector("#trano");
     if (select) select.onchange = () => {
       void paintExpenseReport(Number(select.value));
     };
     const csv = box.querySelector("#trcsv");
     if (csv) csv.onclick = () => {
-      download(rows, shown2);
+      download(rows, shown3);
     };
   }
 
@@ -7478,19 +7695,19 @@
     });
     document.getElementById("evsel")?.querySelector("input")?.focus();
   }
-  async function saveCost(attendee, input2, attendees) {
-    const concept = input2.dataset.asimp, amount3 = Math.max(0, Math.round((Number(input2.value) || 0) * 100) / 100);
+  async function saveCost(attendee, input3, attendees) {
+    const concept = input3.dataset.asimp, amount3 = Math.max(0, Math.round((Number(input3.value) || 0) * 100) / 100);
     const { error } = await legacyDb().from("eventos_asistentes").update({ [concept]: amount3 }).eq("id", attendee.id);
     if (error) {
       notices.toast(t("events.sheet.couldNotSave"), true);
-      input2.value = String(Number(attendee[concept]) || "");
+      input3.value = String(Number(attendee[concept]) || "");
       return;
     }
     attendee[concept] = amount3;
     const total = document.getElementById("evtotal");
     if (total) total.textContent = formatCurrency(sum(attendees.map(attendeeTotal)));
     const overMeal = concept === "comida" && amount3 > MEAL_MAX;
-    input2.closest("label")?.classList.toggle("evaviso", overMeal);
+    input3.closest("label")?.classList.toggle("evaviso", overMeal);
     if (overMeal) notices.toast(t("events.sheet.mealOver", { max: MEAL_MAX }), true);
   }
   function bindAttendee(row3, attendee, attendees, id) {
@@ -7504,13 +7721,13 @@
       }
       attendee.estado = state.value;
     };
-    row3.querySelectorAll("[data-asimp]").forEach((input2) => {
-      input2.onchange = () => {
-        void saveCost(attendee, input2, attendees);
+    row3.querySelectorAll("[data-asimp]").forEach((input3) => {
+      input3.onchange = () => {
+        void saveCost(attendee, input3, attendees);
       };
     });
-    const remove5 = row3.querySelector("[data-asq]");
-    if (remove5) remove5.onclick = async () => {
+    const remove6 = row3.querySelector("[data-asq]");
+    if (remove6) remove6.onclick = async () => {
       if (!await notices.confirm(t("events.sheet.removeText", { name: attendee.cuentas?.nombre ?? "" }), { titulo: t("events.sheet.removeTitle"), ok: t("events.sheet.remove"), peligro: true })) return;
       const { error } = await legacyDb().from("eventos_asistentes").delete().eq("id", attendee.id);
       if (error) {
@@ -7547,6 +7764,956 @@
       const attendee = attendees.find((item) => item.id === row3.dataset.as);
       if (attendee) bindAttendee(row3, attendee, attendees, id);
     });
+  }
+
+  // src/app/screens/commissions/index.ts
+  var commissions_exports = {};
+  __export(commissions_exports, {
+    editScheme: () => editScheme,
+    paintCommissionCard: () => paintCommissionCard,
+    paintCommissions: () => paintCommissions
+  });
+
+  // src/app/legacy/commissions-bridge.ts
+  var commissionsLegacy = {
+    schemes: () => ESQUEMAS,
+    setSchemes: (list) => {
+      ESQUEMAS = list;
+    },
+    team: () => COMS,
+    whatUserSees: () => PERFIL?.comision_ver
+  };
+
+  // src/app/screens/commissions/home-card.ts
+  var NOTHING = "nada";
+  var AMOUNT = "importe";
+  function nextHtml(period, withAmount) {
+    const next = period.siguiente;
+    if (!next) return `<p class="sm" style="padding:0 16px 14px">${t(period.sin_esquema ? "commissions.homeCard.noScheme" : "commissions.homeCard.topTier")}</p>`;
+    return `<p class="sm" style="padding:0 16px 14px">
+      ${t("commissions.homeCard.nextTier", { missing: formatNumber(next.faltan) })}${withAmount ? t("commissions.homeCard.nextTierAmount", { amount: formatCurrency(next.valor) }) : ""}.</p>`;
+  }
+  function cardHtml2(period, withAmount) {
+    const title2 = t(withAmount ? "commissions.homeCard.yourCommission" : "commissions.homeCard.yourActivity", { period: formatMonth(period.periodo) });
+    return `<h2>${title2}</h2>
+    <div class="kpis" style="padding:10px 16px 4px;margin:0">
+      <div class="kpi"><b>${formatNumber(period.unidades)}</b><span>${t("commissions.homeCard.units")}</span></div>
+      ${withAmount ? `<div class="kpi ok"><b>${formatCurrency(period.importe)}</b><span>${t("commissions.homeCard.accrued")}</span></div>` : ""}
+      ${withAmount && period.valor_unidad ? `<div class="kpi"><b>${formatCurrency(period.valor_unidad)}</b><span>${t("commissions.homeCard.perUnit")}</span></div>` : ""}
+    </div>
+    ${nextHtml(period, withAmount)}`;
+  }
+  async function paintCommissionCard() {
+    const box = document.getElementById("c-comision");
+    if (!box) return;
+    const sees = commissionsLegacy.whatUserSees();
+    if (!sees || sees === NOTHING) {
+      box.innerHTML = "";
+      return;
+    }
+    const { data, error } = await legacyDb().rpc("comision_periodo", {});
+    if (error || !data || data.ok === false || data.sin_esquema && !data.unidades) {
+      box.innerHTML = "";
+      return;
+    }
+    box.innerHTML = cardHtml2(data, sees === AMOUNT && !data.sin_esquema);
+  }
+
+  // src/app/screens/commissions/model.ts
+  var SETTLEMENT = { draft: "Borrador", approved: "Aprobada", paid: "Pagada" };
+  var ALL_HISTORY = "2000-01-01";
+  var schemes = () => commissionsLegacy.schemes();
+  var forgetSchemes = () => {
+    commissionsLegacy.setSchemes([]);
+  };
+  function assignmentState(assignment) {
+    if (assignment.vigente) return { text: t("commissions.people.current"), pill: "p-est" };
+    return assignment.desde > todayIso() ? { text: t("commissions.people.scheduled"), pill: "p-per" } : { text: t("commissions.people.ended"), pill: "p-anu" };
+  }
+  function monthEnd(period) {
+    const [year = 0, month = 0] = period.split("-").map(Number);
+    return `${period}-${String(new Date(year, month, 0).getDate()).padStart(2, "0")}`;
+  }
+
+  // src/app/screens/commissions/scheme-people.ts
+  var block = (inner) => `<div class="blk" id="esqpers"><h3>${t("commissions.people.title")}</h3>${inner}</div>`;
+  function rowHtml2(item, admin) {
+    const state = assignmentState(item), today = todayIso();
+    const since = item.desde <= ALL_HISTORY ? t("commissions.people.allHistory") : t("commissions.people.since", { date: formatShortDate(item.desde) });
+    return `<div class="esqfila"><span class="candado" title="${t("commissions.people.locked")}">🔒</span>
+        <span class="ef1"><b>${escapeHtml(item.persona)}</b><span class="sm">${since}${item.hasta ? t("commissions.people.until", { date: formatShortDate(item.hasta) }) : ""}</span></span>
+        <span class="pill ${state.pill}">${state.text}</span>
+        ${admin && item.vigente ? `<button type="button" class="kcfg" data-efin="${item.usuario_id}">${t("commissions.people.endToday")}</button>` : ""}
+        ${admin && item.desde > today ? `<button type="button" class="kcfg" data-equi="${item.usuario_id}" data-edesde="${item.desde}">${t("commissions.people.cancelIt")}</button>` : ""}</div>`;
+  }
+  function addHtml() {
+    const people = commissionsLegacy.team().filter((member) => cardSectionsLegacy.roleCan(member.rol, "cobrar_comision"));
+    return `<div class="esqadd"><select id="eap"><option value="">${t("commissions.people.addPerson")}</option>${people.map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select>
+      <select id="eadm"><option value="hoy">${t("commissions.people.fromToday")}</option><option value="todo">${t("commissions.people.wholeHistory")}</option><option value="fecha">${t("commissions.people.fromDate")}</option></select>
+      <span id="eadfw" class="hide"><input id="eadf" type="date" value="${todayIso()}"></span>
+      <button type="button" class="btn sec" id="eaok">${t("commissions.people.assign")}</button></div>
+      <p class="sm" style="margin-top:6px">${t("commissions.people.lockedHint")}</p>`;
+  }
+  var value3 = (id) => document.getElementById(id)?.value ?? "";
+  async function assign(schemeId, repaint2) {
+    const user = value3("eap");
+    if (!user) {
+      notices.toast(t("commissions.people.choosePerson"), true);
+      return;
+    }
+    const mode = value3("eadm"), since = mode === "todo" ? ALL_HISTORY : mode === "fecha" ? value3("eadf") : todayIso();
+    const name = commissionsLegacy.team().find((member) => member.id === user)?.nombre ?? "";
+    const when = mode === "todo" ? t("commissions.people.inAllHistory") : t("commissions.people.sinceDate", { date: formatShortDate(since) });
+    if (!await notices.confirm(t("commissions.people.assignText", { name, when }), { titulo: t("commissions.people.assignTitle"), ok: t("commissions.people.assign") })) return;
+    const { data: result, error } = await legacyDb().rpc("asignar_esquema", { p_usuario: user, p_esquema: schemeId, p_quitar: false, p_desde: since });
+    if (error || result?.ok === false) {
+      notices.toast(t("commissions.people.couldNotAssign"), true);
+      return;
+    }
+    notices.toast(t("commissions.people.assigned", { name }));
+    forgetSchemes();
+    repaint2();
+  }
+  async function remove4(user, since, ending) {
+    const asked = ending ? { text: "commissions.people.endText", titulo: "commissions.people.endTitle", ok: "commissions.people.endOk" } : { text: "commissions.people.cancelText", titulo: "commissions.people.cancelTitle", ok: "commissions.people.cancelIt" };
+    if (!await notices.confirm(t(asked.text), { titulo: t(asked.titulo), ok: t(asked.ok), peligro: true })) return;
+    await legacyDb().rpc("asignar_esquema", { p_usuario: user, p_esquema: null, p_quitar: true, p_desde: since });
+  }
+  function bind6(schemeId, list, repaint2) {
+    const mode = document.getElementById("eadm");
+    if (mode) mode.onchange = () => {
+      document.getElementById("eadfw")?.classList.toggle("hide", mode.value !== "fecha");
+    };
+    const ok = document.getElementById("eaok");
+    if (ok) ok.onclick = () => {
+      void assign(schemeId, repaint2);
+    };
+    list.querySelectorAll("[data-efin]").forEach((button) => {
+      button.onclick = async () => {
+        await remove4(button.dataset.efin ?? "", addDays(todayIso(), 1), true);
+        repaint2();
+      };
+    });
+    list.querySelectorAll("[data-equi]").forEach((button) => {
+      button.onclick = async () => {
+        await remove4(button.dataset.equi ?? "", button.dataset.edesde ?? "", false);
+        repaint2();
+      };
+    });
+  }
+  async function paintList(schemeId) {
+    const { data } = await legacyDb().rpc("asignaciones_esquema_lista");
+    const list = document.getElementById("esqlista");
+    if (!list) return;
+    const assignments = (data ?? []).filter((item) => item.esquema_id === schemeId), admin = cardSectionsLegacy.can("administrar");
+    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml2(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
+    ${admin ? addHtml() : ""}`;
+    if (admin) bind6(schemeId, list, () => {
+      void paintList(schemeId);
+    });
+  }
+  async function paintSchemePeople(schemeId) {
+    const buttons = document.getElementById("eguardaresq")?.closest(".acts");
+    if (!buttons || document.getElementById("esqpers")) return;
+    if (!schemeId) {
+      buttons.insertAdjacentHTML("beforebegin", block(`<p class="sm">${t("commissions.people.saveFirst")}</p>`));
+      return;
+    }
+    buttons.insertAdjacentHTML("beforebegin", block(`<div id="esqlista" class="sm">${t("commissions.people.loading")}</div>`));
+    if (!salesTeam.members().length) await salesTeam.load();
+    await paintList(schemeId);
+  }
+
+  // src/app/screens/commissions/scheme-editor.ts
+  var FIXED = "fijo";
+  var DEFAULT_CALCULATION = "tramo_alcanzado";
+  var option2 = (value8, label, chosen2) => `<option value="${value8}" ${chosen2 === value8 ? "selected" : ""}>${label}</option>`;
+  var input = (id) => document.getElementById(id);
+  var SchemeEditor = class {
+    constructor(id, scheme, onSaved) {
+      this.id = id;
+      this.scheme = scheme;
+      this.onSaved = onSaved;
+      __publicField(this, "tiers");
+      __publicField(this, "calculation");
+      __publicField(this, "fixedValue");
+      this.tiers = scheme?.tramos?.length ? scheme.tramos.slice() : [{ desde_u: 0, hasta_u: 100, valor: 1 }];
+      this.calculation = scheme?.calculo ?? DEFAULT_CALCULATION;
+      this.fixedValue = nonZeroOr(scheme?.valor_fijo, 1);
+    }
+    get fixed() {
+      return this.calculation === FIXED;
+    }
+    tiersHtml() {
+      if (this.fixed) return "";
+      return `<label>${t("commissions.editor.tiers")} <span class="sm">${t("commissions.editor.tiersHint")}</span></label>
+      <div class="trcab" aria-hidden="true"><span>${t("commissions.editor.from")}</span><span>${t("commissions.editor.to")}</span><span>${t("commissions.editor.perUnit")}</span></div>
+      <div id="etramos">${this.tiers.map((tier, index) => `<div class="g2" style="margin-bottom:8px">
+        <input data-td="${index}" type="number" min="0" value="${tier.desde_u}" placeholder="${t("commissions.editor.fromPlaceholder")}">
+        <input data-th="${index}" type="number" min="0" value="${tier.hasta_u ?? ""}" placeholder="${t("commissions.editor.toPlaceholder")}">
+        <input data-tv="${index}" type="number" step="0.01" min="0" value="${tier.valor}" placeholder="${t("commissions.editor.perUnitPlaceholder")}">
+        ${this.tiers.length > 1 ? `<button type="button" class="btn sec" data-tx="${index}">✕</button>` : ""}</div>`).join("")}</div>
+      <div class="acts"><button type="button" class="btn sec" id="etmas">${t("commissions.editor.addTier")}</button></div>`;
+    }
+    html() {
+      const scheme = this.scheme;
+      return `
+      <div class="fh"><div><h2>${t(this.id ? "commissions.editor.editTitle" : "commissions.editor.newTitle")}</h2>
+        <div class="sm">${t("commissions.editor.subtitle")}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+      <label for="enom">${t("commissions.editor.name")}</label><input id="enom" value="${escapeHtml(scheme ? scheme.nombre : "")}" placeholder="${t("commissions.editor.namePlaceholder")}">
+      <div class="g2">
+        <div><label for="eatr">${t("commissions.editor.countedBy")}</label><select id="eatr">
+          ${option2("comercial", t("commissions.editor.portfolio"), scheme?.atribucion)}
+          ${option2("cierra", t("commissions.editor.closes"), scheme?.atribucion)}</select></div>
+        <div><label for="ecalc">${t("commissions.editor.calculation")}</label><select id="ecalc">
+          ${option2(DEFAULT_CALCULATION, t("commissions.editor.tierReached"), this.calculation)}
+          ${option2("marginal", t("commissions.editor.marginal"), this.calculation)}
+          ${option2(FIXED, t("commissions.editor.fixed"), this.calculation)}</select></div>
+      </div>
+      <div class="g2">
+        <div><label for="ecan">${t("commissions.editor.channel")}</label><select id="ecan">
+          <option value="">${t("commissions.editor.allChannels")}</option>
+          ${option2("paciente", t("commissions.editor.patientOnly", { toThePatient: term("paciente", { article: "al" }) }), scheme?.canal)}
+          ${option2("centro", t("commissions.editor.centreOnly"), scheme?.canal)}</select></div>
+        ${this.fixed ? `<div><label for="efijo">${t("commissions.editor.eurosPerUnit")}</label><input id="efijo" type="number" step="0.01" min="0" value="${this.fixedValue}"></div>` : "<div></div>"}
+      </div>
+      ${this.tiersHtml()}
+      <div class="acts" style="justify-content:flex-end">
+        <button class="btn sec" data-cerrar>${t("commissions.editor.cancel")}</button>
+        <button class="btn" id="eguardaresq">${t(this.id ? "commissions.editor.save" : "commissions.editor.create")}</button></div>`;
+    }
+    /** Reads the tiers as they are written. */
+    read() {
+      const box = document.getElementById("etramos");
+      if (this.fixed || !box) return;
+      this.tiers = [...box.children].map((row3, index) => {
+        const value8 = (attribute) => row3.querySelector(`[data-${attribute}="${index}"]`)?.value ?? "";
+        return { desde_u: Number(value8("td")) || 0, hasta_u: value8("th") === "" ? null : Number(value8("th")), valor: Number(value8("tv")) || 0 };
+      });
+    }
+    paint() {
+      const body2 = document.getElementById("dbody");
+      if (!body2) return;
+      body2.innerHTML = this.html();
+      const calculation = document.getElementById("ecalc");
+      if (calculation) calculation.onchange = () => {
+        this.read();
+        const fixed = input("efijo");
+        if (fixed) this.fixedValue = fixed.value;
+        this.calculation = calculation.value;
+        this.paint();
+      };
+      const add2 = document.getElementById("etmas");
+      if (add2) add2.onclick = () => {
+        this.read();
+        this.addTier();
+        this.paint();
+      };
+      body2.querySelectorAll("[data-tx]").forEach((button) => {
+        button.onclick = () => {
+          this.read();
+          this.tiers.splice(Number(button.dataset.tx), 1);
+          this.paint();
+        };
+      });
+      void paintSchemePeople(this.id);
+      const save12 = document.getElementById("eguardaresq");
+      if (save12) save12.onclick = () => {
+        void this.save(save12);
+      };
+    }
+    addTier() {
+      const last = this.tiers[this.tiers.length - 1] ?? { desde_u: 0, hasta_u: null, valor: 0 };
+      this.tiers.push({ desde_u: nonZeroOr(last.hasta_u, last.desde_u) + 1, hasta_u: null, valor: last.valor });
+    }
+    /** What guardar_esquema receives. */
+    payload(name) {
+      const select = (id) => document.getElementById(id)?.value ?? "";
+      return {
+        id: this.id,
+        nombre: name,
+        atribucion: select("eatr"),
+        calculo: this.calculation,
+        canal: select("ecan") || null,
+        valor_fijo: this.fixed ? input("efijo")?.value : null,
+        ...this.fixed ? {} : { tramos: this.tiers }
+      };
+    }
+    async save(button) {
+      this.read();
+      const name = input("enom")?.value.trim() ?? "";
+      if (!name) {
+        notices.toast(t("commissions.editor.giveName"), true);
+        return;
+      }
+      button.disabled = true;
+      button.textContent = t("commissions.editor.saving");
+      const { data: result, error } = await legacyDb().rpc("guardar_esquema", { p: this.payload(name) });
+      button.disabled = false;
+      button.textContent = t(this.id ? "commissions.editor.save" : "commissions.editor.create");
+      if (error || result?.ok === false) {
+        notices.toast(t("commissions.editor.couldNotSave"), true);
+        return;
+      }
+      document.getElementById("dlg")?.close();
+      notices.toast(t("commissions.editor.saved"));
+      this.onSaved();
+    }
+  };
+  function editScheme(id, onSaved) {
+    const scheme = id ? schemes().find((item) => item.id === id) ?? null : null;
+    new SchemeEditor(id, scheme, onSaved).paint();
+    document.getElementById("dlg")?.showModal();
+  }
+
+  // src/app/screens/commissions/settlements.ts
+  var settlementFilters = { person: "", month: "" };
+  var rowHtml3 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
+      <span class="ic ${item.estado === SETTLEMENT.paid ? "o" : ""}">${item.estado === SETTLEMENT.draft ? "○" : "✓"}</span>
+      <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${t("commissions.page.settlementLine", { period: formatMonth(item.periodo), units: formatNumber(item.unidades), amount: formatCurrency(item.importe), state: escapeHtml(item.estado) })}</span></span>
+      <span class="acts" style="margin:0">
+        ${item.estado === SETTLEMENT.draft ? `<button class="btn sec" data-liq="${item.usuario_id}|${item.periodo}|${SETTLEMENT.approved}">${t("commissions.page.approve")}</button>` : ""}
+        ${item.estado === SETTLEMENT.approved ? `<button class="btn sec" data-liq="${item.usuario_id}|${item.periodo}|${SETTLEMENT.paid}">${t("commissions.page.markPaid")}</button>` : ""}
+      </span></div>`;
+  function filtersHtml(all) {
+    const people = [...new Map(all.map((item) => [item.usuario_id, item.nombre])).entries()].sort((first, second) => String(first[1]).localeCompare(String(second[1]), "es"));
+    const months = [...new Set(all.map((item) => item.periodo))].sort().reverse();
+    if (settlementFilters.person && !people.some(([id]) => id === settlementFilters.person)) settlementFilters.person = "";
+    if (settlementFilters.month && !months.includes(settlementFilters.month)) settlementFilters.month = "";
+    return `<div class="liqfil" id="liqfil">
+      <div><label for="liqfu">${t("commissions.page.person")}</label><select id="liqfu"><option value="">${t("commissions.page.all")}</option>${people.map(([id, name]) => `<option value="${id}" ${id === settlementFilters.person ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}</select></div>
+      <div><label for="liqfp">${t("commissions.page.month")}</label><select id="liqfp"><option value="">${t("commissions.page.allMonths")}</option>${months.map((month) => `<option value="${month}" ${month === settlementFilters.month ? "selected" : ""}>${escapeHtml(formatMonth(month))}</option>`).join("")}</select></div>
+      <p class="sm" id="liqres"></p></div>`;
+  }
+  function summary2(shown3) {
+    if (!shown3.length) return "";
+    const total = sum(shown3.map((item) => Number(item.importe) || 0)), units2 = sum(shown3.map((item) => Number(item.unidades) || 0));
+    const unpaid = sum(shown3.filter((item) => item.estado !== SETTLEMENT.paid).map((item) => Number(item.importe) || 0));
+    const count2 = shown3.length === 1 ? t("commissions.page.oneSettlement") : t("commissions.page.settlementsCount", { count: formatNumber(shown3.length) });
+    return t("commissions.page.summary", { settlements: count2, units: formatNumber(units2), amount: formatCurrency(total) }) + (unpaid && unpaid !== total ? t("commissions.page.unpaid", { amount: formatCurrency(unpaid) }) : "");
+  }
+  async function settle(button, repaint2) {
+    const [user = "", period = "", state = ""] = (button.dataset.liq ?? "").split("|"), approve = state === SETTLEMENT.approved;
+    if (!await notices.confirm(
+      t(approve ? "commissions.page.approveText" : "commissions.page.payText"),
+      { titulo: t(approve ? "commissions.page.approveTitle" : "commissions.page.payTitle"), ok: t(approve ? "commissions.page.approve" : "commissions.page.markPaid") }
+    )) return;
+    await legacyDb().rpc("liquidar", { p_usuario: user, p_periodo: period, p_estado: state });
+    notices.toast(t("commissions.page.settled", { state: state.toLowerCase() }));
+    repaint2();
+  }
+  function paintSettlements(list, all, repaint2) {
+    const paint5 = () => {
+      const shown3 = all.filter((item) => (!settlementFilters.person || item.usuario_id === settlementFilters.person) && (!settlementFilters.month || item.periodo === settlementFilters.month));
+      const result = document.getElementById("liqres");
+      if (result) result.textContent = summary2(shown3);
+      list.innerHTML = shown3.map(rowHtml3).join("") || `<div class="vacio">${t(all.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
+      list.querySelectorAll("[data-liq]").forEach((button) => {
+        button.onclick = () => {
+          void settle(button, repaint2);
+        };
+      });
+    };
+    const person = document.getElementById("liqfu"), month = document.getElementById("liqfp");
+    if (person) person.onchange = () => {
+      settlementFilters.person = person.value;
+      paint5();
+    };
+    if (month) month.onchange = () => {
+      settlementFilters.month = month.value;
+      paint5();
+    };
+    paint5();
+  }
+  function resultText(period, done, closed, failed) {
+    const doneText = done === 1 ? t("commissions.calculate.oneDone") : t("commissions.calculate.done", { count: done });
+    const kept = closed ? closed === 1 ? t("commissions.calculate.oneKept") : t("commissions.calculate.kept", { count: closed }) : "";
+    return doneText + t("commissions.calculate.ofPeriod", { period: formatMonth(period) }) + kept + (failed ? t("commissions.calculate.failed", { count: failed }) : "");
+  }
+  async function toCalculate(period) {
+    const start2 = `${period}-01`, end = monthEnd(period), ids = new Set(schemes().map((scheme) => scheme.id));
+    const [{ data: assignments, error }, { data: existing }] = await Promise.all([
+      legacyDb().from("asignaciones_comision").select("usuario_id,esquema_id,desde,hasta"),
+      callRpc("liquidaciones_lista", { p_periodo: period })
+    ]);
+    if (error) {
+      notices.toast(t("commissions.calculate.couldNotRead", { error: error.message ?? "" }), true);
+      return null;
+    }
+    const closed = new Set((existing ?? []).filter((item) => item.estado !== SETTLEMENT.draft).map((item) => item.usuario_id));
+    const users = [...new Set((assignments ?? []).filter((item) => ids.has(item.esquema_id) && (!item.desde || item.desde <= end) && (!item.hasta || item.hasta >= start2)).map((item) => item.usuario_id))];
+    if (!users.length) {
+      notices.toast(t("commissions.calculate.nobody", { period: formatMonth(period) }), true);
+      return null;
+    }
+    return { users, closed };
+  }
+  async function calculateSettlements(repaint2) {
+    const period = document.getElementById("liqper")?.value;
+    if (!period) return;
+    const found = await toCalculate(period);
+    if (!found) return;
+    const pending = found.users.filter((user) => !found.closed.has(user));
+    if (!pending.length) {
+      notices.toast(t("commissions.calculate.allClosed", { period: formatMonth(period) }));
+      return;
+    }
+    const button = document.getElementById("liqcalc");
+    if (button) button.disabled = true;
+    let failed = 0;
+    for (const user of pending) {
+      const { data: result, error } = await legacyDb().rpc("liquidar", { p_usuario: user, p_periodo: period, p_estado: SETTLEMENT.draft });
+      if (error || result?.ok === false) failed++;
+    }
+    if (button) button.disabled = false;
+    notices.toast(resultText(period, pending.length - failed, found.closed.size, failed), Boolean(failed));
+    settlementFilters.month = period;
+    repaint2();
+  }
+
+  // src/app/screens/commissions/page.ts
+  var FIXED2 = "fijo";
+  var CLOSES = "cierra";
+  function howItCounts(scheme) {
+    if (scheme.calculo === FIXED2) return t("commissions.page.perUnit", { amount: formatCurrency(scheme.valor_fijo) });
+    return (scheme.tramos ?? []).map((tier) => `${tier.desde_u}${tier.hasta_u ? `-${tier.hasta_u}` : "+"}: ${formatCurrency(tier.valor)}`).join(" · ") || t("commissions.page.noTiers");
+  }
+  function schemeRow(scheme) {
+    const people = scheme.personas ?? [];
+    return `<div class="item" style="cursor:default">
+      <span class="ic">${scheme.calculo === FIXED2 ? "€" : "▤"}</span>
+      <span class="tx"><b>${escapeHtml(scheme.nombre)}</b><span class="sm">
+        ${t(scheme.atribucion === CLOSES ? "commissions.page.perSale" : "commissions.page.perPortfolio")} ·
+        ${howItCounts(scheme)}
+        ${people.length ? ` · ${people.map(escapeHtml).join(", ")}` : t("commissions.page.unassigned")}</span></span>
+      <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${scheme.id}">${t("commissions.page.edit")}</button></span></div>`;
+  }
+  function pageHtml(all) {
+    const list = schemes();
+    return `
+    <h2>${t("commissions.page.schemes")}<span class="n">${list.length}</span></h2>
+    <p class="sm">${t("commissions.page.schemesHint")}</p>
+    <div class="lista">${list.map(schemeRow).join("") || `<div class="vacio">${t("commissions.page.noSchemes")}</div>`}</div>
+    <div class="acts" style="padding:0 16px 14px"><button class="btn" id="esqnuevo">${t("commissions.page.newScheme")}</button></div>
+
+    <h2>${t("commissions.page.settlements")}</h2>
+    <div class="acts" style="padding:0 16px">
+      <input id="liqper" type="month" value="${todayIso().slice(0, 7)}" style="max-width:190px">
+      <button class="btn sec" id="liqcalc">${t("commissions.page.calculate")}</button></div>
+    ${filtersHtml(all)}
+    <div class="lista"></div>`;
+  }
+  var repaint = () => {
+    void paintCommissions();
+  };
+  async function paintCommissions() {
+    const loading2 = document.getElementById("admcuerpo");
+    if (loading2) loading2.innerHTML = '<div class="skel"></div><div class="skel" style="width:60%"></div>';
+    const [{ data: found }, { data: settlements }] = await Promise.all([
+      legacyDb().rpc("esquemas_lista"),
+      legacyDb().rpc("liquidaciones_lista", { p_periodo: null })
+    ]);
+    commissionsLegacy.setSchemes(found ?? []);
+    const body2 = document.getElementById("admcuerpo");
+    if (!body2) return;
+    body2.innerHTML = pageHtml(settlements ?? []);
+    const add2 = document.getElementById("esqnuevo");
+    if (add2) add2.onclick = () => {
+      editScheme(null, repaint);
+    };
+    body2.querySelectorAll("[data-esq]").forEach((button) => {
+      button.onclick = () => {
+        editScheme(button.dataset.esq ?? null, repaint);
+      };
+    });
+    const calculate = document.getElementById("liqcalc");
+    if (calculate) calculate.onclick = () => {
+      void calculateSettlements(repaint);
+    };
+    const list = document.getElementById("liqfil")?.nextElementSibling;
+    if (list instanceof HTMLElement) paintSettlements(list, settlements ?? [], repaint);
+  }
+
+  // src/app/screens/customers/index.ts
+  var customers_exports = {};
+  __export(customers_exports, {
+    listCustomers: () => listCustomers,
+    loadCustomers: () => loadCustomers,
+    paintCustomers: () => paintCustomers,
+    pickCustomer: () => pickCustomer,
+    searchCustomers: () => searchCustomers,
+    setCustomerOff: () => setCustomerOff,
+    showCustomer: () => showCustomer
+  });
+
+  // src/app/legacy/customers-bridge.ts
+  var customersLegacy = {
+    filters: () => PAC,
+    canSell: () => Boolean(puedeVentas()),
+    editCustomer: (customer, onSave) => {
+      editorContacto(customer, (saved2) => {
+        onSave(saved2);
+      });
+    },
+    orderPill: (state) => pillEstado(state),
+    newSale: (preset) => {
+      void nuevaVenta(preset);
+    },
+    shownCustomer: () => FICHA_PAC,
+    setShownCustomer: (id) => {
+      FICHA_PAC = id;
+    },
+    forgetShownAccount: () => {
+      FICHA_ID = null;
+    },
+    visibleFieldColumns: () => clasVisibles("cliente"),
+    fieldHeaders: (fields) => clasCabeceras(fields),
+    widenGrid: (grid, count2) => {
+      clasRejilla(grid, count2);
+    },
+    fieldFilters: (state) => camposFiltros("cliente", state, "pfcp"),
+    bindFieldFilters: (zone, state, onChange) => {
+      camposFiltrosActivar(zone, state, onChange);
+    },
+    showLoading: (element, text2) => {
+      cargando(element, text2);
+    },
+    clearModules: (except) => {
+      vaciarModulos(except);
+    },
+    customFields: (id, container) => bloqueCampos("contactos", id, container),
+    forgetPreloads: () => {
+      DB_PRE.clear();
+    },
+    /** Through the global name (the list bar and Pedidos call it too). */
+    repaintList: () => {
+      void listaPacientes();
+    }
+  };
+
+  // src/app/screens/customers/model.ts
+  var TYPES = { person: "Persona", company: "Empresa" };
+  var words2 = () => ({
+    patient: term("paciente"),
+    patients: term("paciente", { number: "p" }),
+    Patient: term("paciente", { capital: "C" }),
+    Patients: term("paciente", { number: "p", capital: "C" }),
+    professional: term("medico"),
+    Professional: term("medico", { capital: "C" })
+  });
+  var phoneOf = (customer) => orFallback(customer.telefono, customer.movil ?? "");
+  var textOrNull = (value8) => orFallback(value8, "") || null;
+  var deliveryAddress = (customer) => [customer.direccion, [customer.cp, customer.municipio].filter(Boolean).join(" "), customer.provincia].filter(Boolean).join(", ");
+  function taxIdText(customer) {
+    if (!customer.nif) return t("customers.card.noTaxId");
+    return t(customer.tipo === TYPES.company ? "customers.card.taxIdCompany" : "customers.card.taxIdPerson", { taxId: customer.nif });
+  }
+  function customerCard(customer) {
+    const address = deliveryAddress(customer);
+    const contact = [taxIdText(customer), customer.email, phoneOf(customer)].filter(Boolean).join(" · ");
+    return `<div class="selcard"><span class="ic">🧑</span>
+  <span class="tx"><b>${escapeHtml(customer.nombre)}</b>
+    ${address ? `<span class="sm">📦 ${escapeHtml(address)}</span>` : `<span class="sm" style="color:var(--warn)">${t("customers.card.noAddress")}</span>`}
+    <span class="sm">${escapeHtml(contact)}</span>
+    ${customer.medico ? `<span class="sm">${term("medico", { capital: "C" })}: ${escapeHtml(customer.medico)}</span>` : ""}</span>
+  <button type="button" class="sx" aria-label="${t("customers.card.remove")}">✕</button></div>`;
+  }
+  function listParams() {
+    const filters = customersLegacy.filters(), size = accountListLegacy.pageSize(), fields = filters.campos ?? {};
+    return {
+      q: textOrNull(filters.q),
+      p_medico: filters.medico,
+      lim: size,
+      desplaz: filters.pagina * size,
+      p_tipo: textOrNull(filters.tipo),
+      p_pedidos: textOrNull(filters.pedidos),
+      p_municipio: textOrNull(filters.municipio),
+      ...Object.keys(fields).length ? { f_campos: fields } : {}
+    };
+  }
+
+  // src/app/screens/customers/sheet.ts
+  var NOT_COUNTED2 = ["Anulado", "Borrador"];
+  var FULL_SALES_LEVEL = 3;
+  var sheetBody = () => document.getElementById("fbody");
+  var sheetBox = () => document.getElementById("ficha");
+  function professionalHtml(professional, canSell) {
+    const shown3 = professional ? `<div><button class="kcfg" data-fpmed="${professional.id}" style="font-size:15px">${escapeHtml(professional.nombre)}</button>
+          <span class="sm">${t("customers.sheet.code", { code: escapeHtml(professional.codigo ?? "") })}${professional.especialidad ? ` · ${escapeHtml(professional.especialidad)}` : ""}</span></div>
+        <div class="sm">${professional.comercial ? t("customers.sheet.salesRep", { name: escapeHtml(professional.comercial) }) : t("customers.sheet.noSalesRep")}</div>` : `<div class="sm">${t("customers.sheet.unassigned", { professionalAssigned: term("medico", { adjective: "asignado" }), thisPatient: term("paciente", { article: "este" }) })}</div>`;
+    const change = canSell ? `<label>${t(professional ? "customers.sheet.change" : "customers.sheet.assign", words2())}</label><div id="fpsel"></div>
+        ${professional ? `<div class="acts"><button class="btn sec" id="fpmedquitar">${t("customers.sheet.removeProfessional", words2())}</button></div>` : ""}` : "";
+    return `<div class="blk"><h3>${t("customers.sheet.treatedBy", words2())}</h3>
+      ${shown3}
+      ${change}
+    </div>`;
+  }
+  function contactHtml(customer) {
+    const lines = [
+      [t("customers.sheet.phone"), customer.telefono],
+      [t("customers.sheet.mobile"), customer.movil],
+      [t("customers.sheet.email"), customer.email],
+      [t("customers.sheet.address"), [customer.direccion, customer.cp, customer.municipio, customer.provincia].filter(Boolean).join(", ")],
+      [t("customers.sheet.note"), customer.nota]
+    ];
+    return `<div class="blk"><h3>${t("customers.sheet.contact")}</h3>
+      ${lines.filter((line) => line[1]).map(([label, value8]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value8)}</div>`).join("") || `<div class="sm">${t("customers.sheet.noContact")}</div>`}</div>`;
+  }
+  var orderHtml = (order) => `<button class="item" data-fpped="${order.id}" style="padding:8px 4px">
+        <span class="tx"><b>${formatShortDate(order.fecha)} · ${escapeHtml(orFallback(order.productos, t("customers.sheet.noProducts")))}</b>
+          <span class="sm">${t("customers.sheet.orderLine", { units: formatNumber(order.unidades), total: portalLegacy.euros(Number(order.total)) })}${order.medico ? ` · ${escapeHtml(order.medico)}` : ""}</span></span>
+        ${customersLegacy.orderPill(order.estado)}</button>`;
+  function sheetHtml3(detail, customer, canSell) {
+    const orders = detail.pedidos ?? [], counted = orders.filter((order) => !NOT_COUNTED2.includes(order.estado));
+    return `
+    <div class="fh"><div><h2>${escapeHtml(customer.nombre)}</h2><div class="sm">${words2().Patient}${customer.nif ? t("customers.sheet.taxId", { taxId: escapeHtml(customer.nif) }) : ""}</div></div>
+      <button class="x" id="fpx" aria-label="${t("common.close")}">✕</button></div>
+    ${canSell ? `<div class="acts"><button class="btn" id="fpnped">${t("customers.sheet.newOrder")}</button>
+      <button class="btn sec" id="fpedit">${t("customers.sheet.editData")}</button></div>` : ""}
+    <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="kpi"><b>${formatNumber(counted.length)}</b><span>${t("customers.sheet.orders")}</span></div>
+      <div class="kpi"><b>${formatNumber(detail.total_unidades)}</b><span>${t("customers.sheet.units")}</span></div>
+      <div class="kpi"><b>${portalLegacy.euros(sum(counted.map((order) => Number(order.total) || 0)))}</b><span>${t("customers.sheet.withVat")}</span></div></div>
+    ${professionalHtml(detail.medico, canSell)}
+    ${contactHtml(customer)}
+    <div class="blk"><h3>${t("customers.sheet.ordersTitle")}</h3>
+      ${orders.map(orderHtml).join("") || `<div class="sm">${t("customers.sheet.noOrders")}</div>`}</div>`;
+  }
+  async function assign2(id, professionalId) {
+    const { data: result, error } = await legacyDb().rpc("asignar_cuenta_cliente", { p_contacto: id, p_medico: professionalId });
+    if (error || result?.ok === false) {
+      notices.toast(t("customers.sheet.couldNotSave"), true);
+      return;
+    }
+    notices.toast(term("medico", { capital: "C", adjective: professionalId ? "asignado" : "quitado" }));
+    void showCustomer(id);
+    if (currentScreen() === "pacientes") customersLegacy.repaintList();
+  }
+  function bind7(id, customer, professional) {
+    const body2 = sheetBody(), on2 = (elementId, action) => {
+      const button = document.getElementById(elementId);
+      if (button) button.onclick = action;
+    };
+    on2("fpx", () => {
+      customersLegacy.setShownCustomer(null);
+      sheetBox()?.close();
+    });
+    body2?.querySelectorAll("[data-fpped]").forEach((button) => {
+      button.onclick = () => {
+        appLegacy.openOrder(button.dataset.fpped ?? "");
+      };
+    });
+    const shownProfessional = body2?.querySelector("[data-fpmed]");
+    if (shownProfessional) shownProfessional.onclick = () => {
+      customersLegacy.setShownCustomer(null);
+      agendaActions.openAccount(shownProfessional.dataset.fpmed ?? "");
+    };
+    on2("fpnped", () => {
+      customersLegacy.newSale({
+        contacto: { ...customer, ...professional ? { medico: professional.nombre, medico_codigo: professional.codigo } : {} },
+        medico: professional ? { id: professional.id, nombre: professional.nombre } : null
+      });
+    });
+    on2("fpedit", () => {
+      customersLegacy.editCustomer(customer, () => {
+        void showCustomer(id);
+      });
+    });
+    on2("fpmedquitar", () => {
+      void assign2(id, null);
+    });
+    const picker = document.getElementById("fpsel");
+    if (picker) editorLegacy.pickAccount(picker, null, (picked) => {
+      void assign2(id, picked.id);
+    }, t("customers.sheet.pickPlaceholder", { theProfessional: term("medico", { article: "el" }) }));
+  }
+  async function paintSheet(id) {
+    customersLegacy.setShownCustomer(id);
+    customersLegacy.forgetShownAccount();
+    const body2 = sheetBody(), box = sheetBox();
+    if (!body2 || !box) return;
+    body2.innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
+    if (!box.open) box.showModal();
+    const { data } = await callRpc("contacto_detalle", { p_id: id });
+    if (customersLegacy.shownCustomer() !== id) return;
+    if (!data?.contacto) {
+      body2.innerHTML = `<div class="vacio">${t("customers.sheet.notFound", { thePatient: term("paciente", { article: "el" }) })}</div>`;
+      return;
+    }
+    const canSell = customersLegacy.canSell();
+    body2.innerHTML = sheetHtml3(data, data.contacto, canSell);
+    bind7(id, data.contacto, data.medico);
+  }
+  async function addStatusButtons(id) {
+    const body2 = sheetBody();
+    if (!body2 || customersLegacy.shownCustomer() !== id || document.getElementById("cbajablk") || !customersLegacy.canSell()) return;
+    const { data: customer } = await legacyDb().from("contactos").select("archivado_en").eq("id", id).maybeSingle();
+    if (!customer || customersLegacy.shownCustomer() !== id) return;
+    const toggle = customer.archivado_en ? `<button type="button" class="btn sec chico" data-calta="${id}">${t("customers.sheet.reactivate")}</button>` : `<button type="button" class="btn sec chico" data-cbaja="${id}">${t("customers.sheet.deactivate")}</button>`;
+    body2.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="cbajablk"><div class="acts">
+      ${toggle}
+      ${permissions.salesLevel() >= FULL_SALES_LEVEL ? `<button type="button" class="btn sec dang chico" data-celim="${id}">${t("customers.sheet.delete", { thePatient: escapeHtml(term("paciente", { article: "el" })) })}</button>` : ""}</div></div>`);
+  }
+  async function showCustomer(id) {
+    await paintSheet(id);
+    const box = sheetBox();
+    void customersLegacy.customFields(id, box ? box.querySelector(".fbody, #fbody") ?? box.firstElementChild : null);
+    try {
+      await addStatusButtons(id);
+    } catch {
+    }
+  }
+
+  // src/app/screens/customers/list.ts
+  var SEARCH_WAIT_MS = 300;
+  var empty = '<span class="vac">—</span>';
+  var shown = (value8) => value8 ? escapeHtml(value8) : empty;
+  function headerHtml5(fields) {
+    const titles = [t("customers.list.customer"), t("customers.list.type"), t("customers.list.taxId"), t("customers.list.phone"), t("customers.list.email"), t("customers.list.town")];
+    return `<div class="dh">${titles.map((title2) => `<span>${title2}</span>`).join("")}
+      <span>${words2().Professional}</span><span>${t("customers.list.salesRep")}</span><span class="num">${t("customers.list.orders")}</span><span class="num">${t("customers.list.units")}</span><span>${t("customers.list.lastOrder")}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
+  }
+  function rowHtml4(row3, fields) {
+    const company = row3.tipo === TYPES.company, values = row3.clasificadores ?? {};
+    return `<button class="dr" data-pac="${row3.id}">
+      <span><b>${escapeHtml(row3.nombre)}</b></span>
+      <span><span class="pill ${company ? "p-emp" : "p-per"}">${company ? t("customers.company") : words2().Patient}</span></span>
+      <span>${shown(row3.nif)}</span><span>${shown(phoneOf(row3))}</span><span class="corta">${shown(row3.email)}</span><span>${shown(row3.municipio)}</span>
+      <span class="corta">${row3.medico ? escapeHtml(row3.medico) : `<span class="vac">${t("customers.list.unassigned")}</span>`}</span><span>${shown(row3.comercial)}</span>
+      <span class="num">${formatNumber(row3.pedidos)}</span><span class="num"><b>${formatNumber(row3.unidades)}</b></span>
+      <span>${row3.ultimo_pedido ? formatShortDate(row3.ultimo_pedido) : empty}</span>${fields.map((field4) => `<span>${shown(accountColumnsLegacy.fieldText(field4, values[field4.clave]))}</span>`).join("")}
+    </button>`;
+  }
+  function paintRows(page) {
+    const count2 = document.getElementById("paccuenta"), list = document.getElementById("paclista");
+    if (!count2 || !list) return;
+    count2.innerHTML = `<b>${formatNumber(page.total)}</b> ${page.total === 1 ? t("customers.list.oneCustomer") : t("customers.list.customers")}`;
+    const rows = page.filas ?? [], fields = customersLegacy.visibleFieldColumns();
+    list.innerHTML = rows.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
+    ${headerHtml5(fields)}
+    ${rows.map((row3) => rowHtml4(row3, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
+    customersLegacy.widenGrid(list.querySelector(".dgrid.pacs"), fields.length);
+    list.querySelectorAll("[data-pac]").forEach((button) => {
+      button.onclick = () => {
+        void showCustomer(button.dataset.pac ?? "");
+      };
+    });
+    const filters = customersLegacy.filters();
+    accountListLegacy.paginate({
+      element: document.getElementById("pacpag"),
+      total: page.total,
+      page: filters.pagina,
+      onPage: (pageNumber) => {
+        filters.pagina = pageNumber;
+        void listCustomers();
+      },
+      onSize: () => {
+        filters.pagina = 0;
+        void listCustomers();
+      }
+    });
+  }
+  async function listCustomers(answer) {
+    customersLegacy.showLoading(document.getElementById("paclista"), t("customers.list.searching"));
+    const { data, error } = await (answer ?? legacyDb().rpc("clientes_lista", listParams()));
+    if (error || !data) {
+      const count2 = document.getElementById("paccuenta"), list = document.getElementById("paclista");
+      if (count2) count2.textContent = t("customers.list.couldNotLoad", { error: error?.message ?? "" });
+      if (list) list.innerHTML = "";
+      return;
+    }
+    paintRows(data);
+  }
+  var option3 = (value8, label, chosen2) => `<option value="${escapeHtml(value8)}" ${chosen2 === value8 ? "selected" : ""}>${label}</option>`;
+  function filtersHtml2(towns) {
+    const filters = customersLegacy.filters();
+    filters.campos ?? (filters.campos = {});
+    return `<div class="filtros">
+        <div><label for="pacq">${t("customers.list.search")}</label><input id="pacq" type="search" value="${escapeHtml(filters.q)}" placeholder="${t("customers.list.searchPlaceholder")}"></div>
+        <div><label for="pactipo">${t("customers.list.type")}</label><select id="pactipo">
+          <option value="">${t("customers.list.all")}</option>${option3(TYPES.person, t("customers.list.persons", words2()), filters.tipo)}
+          ${option3(TYPES.company, t("customers.list.companies"), filters.tipo)}</select></div>
+        <div><label for="pacped">${t("customers.list.orders")}</label><select id="pacped">
+          <option value="">${t("customers.list.all")}</option>${option3("con", t("customers.list.withOrders"), filters.pedidos)}
+          ${option3("sin", t("customers.list.withoutOrders"), filters.pedidos)}</select></div>
+        <div><label for="pacmun">${t("customers.list.town")}</label><select id="pacmun"><option value="">${t("customers.list.allTowns")}</option>
+          ${towns.map((town) => option3(town.v, `${escapeHtml(town.v)} (${town.n})`, filters.municipio)).join("")}</select></div>
+        ${customersLegacy.fieldFilters(filters.campos)}
+        ${filters.medico ? `<div><label>${words2().Professional}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${escapeHtml(filters.medicoNombre)} ✕</button></div></div>` : ""}
+      </div>`;
+  }
+  var searchTimer;
+  function bindFilters(body2) {
+    const filters = customersLegacy.filters(), again = () => {
+      filters.pagina = 0;
+      void listCustomers();
+    };
+    const search3 = document.getElementById("pacq");
+    if (search3) search3.oninput = () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        filters.q = search3.value.trim();
+        again();
+      }, SEARCH_WAIT_MS);
+    };
+    const onSelect = (id, set) => {
+      const select = document.getElementById(id);
+      if (select) select.onchange = () => {
+        set(select.value);
+        again();
+      };
+    };
+    onSelect("pactipo", (value8) => {
+      filters.tipo = value8;
+    });
+    onSelect("pacped", (value8) => {
+      filters.pedidos = value8;
+    });
+    onSelect("pacmun", (value8) => {
+      filters.municipio = value8;
+    });
+    customersLegacy.bindFieldFilters(body2, filters.campos ?? {}, again);
+    const professional = document.getElementById("pacmedx");
+    if (professional) professional.onclick = () => {
+      filters.medico = null;
+      filters.medicoNombre = "";
+      filters.pagina = 0;
+      void paintCustomers();
+    };
+  }
+  async function paintCustomers() {
+    const [{ data: towns }, list] = await Promise.all([legacyDb().rpc("municipios_clientes"), legacyDb().rpc("clientes_lista", listParams())]);
+    const body2 = document.getElementById("vcuerpo");
+    if (!body2) return;
+    body2.innerHTML = `
+    <div class="panel">
+      ${filtersHtml2(towns ?? [])}
+      <div class="cuenta" id="paccuenta">${t("customers.list.loading")}</div>
+      <div id="paclista"></div>
+      <div id="pacpag"></div>
+    </div>`;
+    bindFilters(body2);
+    await listCustomers(Promise.resolve(list));
+  }
+  function loadCustomers() {
+    customersLegacy.clearModules("v-pacientes");
+    const page = document.getElementById("v-pacientes");
+    if (!page) return;
+    page.innerHTML = `
+    <div class="saludo"><div><h1>${t("customers.list.title")}</h1><div class="fecha">${t("customers.list.subtitle", words2())}</div></div>
+      <div class="acts" style="margin:0">${customersLegacy.canSell() ? `<button class="btn" id="pacnuevo">${t("customers.list.newCustomer")}</button>` : ""}</div></div>
+    <div id="vcuerpo"></div>`;
+    const add2 = document.getElementById("pacnuevo");
+    if (add2) add2.onclick = () => {
+      customersLegacy.editCustomer({}, (customer) => {
+        void showCustomer(customer.id);
+      });
+    };
+    void paintCustomers();
+  }
+
+  // src/app/screens/customers/picker.ts
+  var MIN_LETTERS = 2;
+  var WAIT_MS = 250;
+  var SHOWN = 8;
+  var foundRow = (item, index) => `<button type="button" data-pc="${index}"><span class="gic">🧑</span>
+          <span><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml([phoneOf(item), item.nif, item.municipio, item.medico].filter(Boolean).join(" · "))}</span></span></button>`;
+  var CustomerPicker = class {
+    constructor(element, options) {
+      this.element = element;
+      this.options = options;
+      __publicField(this, "value");
+      __publicField(this, "timer");
+      __publicField(this, "asked", 0);
+      this.value = options.valor ?? null;
+    }
+    choose(customer) {
+      this.value = customer;
+      this.paint();
+      this.options.alElegir?.(customer);
+    }
+    paint() {
+      if (this.value) {
+        this.element.innerHTML = customerCard(this.value);
+        const remove6 = this.element.querySelector(".sx");
+        if (remove6) remove6.onclick = () => {
+          this.choose(null);
+        };
+        return;
+      }
+      this.element.innerHTML = `<div style="display:flex;gap:8px"><div class="picker" style="flex:1">
+        <input type="search" autocomplete="off" placeholder="${t("customers.picker.placeholder")}"><div class="gsug hide"></div></div>
+      <button type="button" class="btn sec" data-pnuevo>${t("customers.picker.newOne")}</button></div>`;
+      const input3 = this.element.querySelector("input");
+      if (input3) input3.oninput = () => {
+        this.search(input3.value.trim());
+      };
+      const add2 = this.element.querySelector("[data-pnuevo]");
+      if (add2) add2.onclick = () => {
+        customersLegacy.editCustomer({ nombre: input3?.value.trim() ?? "" }, (customer) => {
+          this.choose({ ...customer });
+        });
+      };
+    }
+    search(text2) {
+      const box = this.element.querySelector(".picker"), list = box?.querySelector(".gsug");
+      if (!box || !list) return;
+      clearTimeout(this.timer);
+      if (text2.length < MIN_LETTERS) {
+        list.classList.add("hide");
+        box.classList.remove("buscando");
+        return;
+      }
+      box.classList.add("buscando");
+      list.innerHTML = `<div class="gload"><span class="spin"></span>${t("customers.picker.searching", words2())}</div>`;
+      list.classList.remove("hide");
+      const turn = ++this.asked;
+      this.timer = setTimeout(() => {
+        void this.showFound(text2, turn, box, list);
+      }, WAIT_MS);
+    }
+    async showFound(text2, turn, box, list) {
+      const { data } = await legacyDb().rpc("contactos_lista", { q: text2, lim: SHOWN });
+      if (turn !== this.asked) return;
+      box.classList.remove("buscando");
+      const found = data ?? [];
+      list.innerHTML = `<div class="gsh">${words2().Patients}</div>${found.map(foundRow).join("") || `<div class="gload">${t("customers.picker.noMatches")}</div>`}`;
+      list.querySelectorAll("[data-pc]").forEach((button) => {
+        button.onclick = () => {
+          this.choose(found[Number(button.dataset.pc)] ?? null);
+        };
+      });
+    }
+  };
+  function pickCustomer(element, options) {
+    new CustomerPicker(element, options).paint();
+  }
+
+  // src/app/screens/customers/status.ts
+  var MIN_LETTERS2 = 2;
+  var SHOWN2 = 8;
+  async function setCustomerOff(id, off) {
+    const { data: result, error } = await legacyDb().rpc("baja_cliente", { p_id: id, p_baja: off });
+    if (error || !result?.ok) {
+      const reason = error?.message ?? result?.error ?? "";
+      notices.toast(t("customers.status.couldNot", { error: reason }), true);
+      return false;
+    }
+    try {
+      appLegacy.forgetCache();
+      customersLegacy.forgetPreloads();
+    } catch {
+    }
+    notices.toast(t(off ? "customers.status.deactivated" : "customers.status.reactivated", words2()));
+    if (currentScreen() === "pacientes") customersLegacy.repaintList();
+    return true;
+  }
+  async function searchCustomers(text2) {
+    const clean = text2.trim().replace(/[,()]/g, " ");
+    if (clean.length < MIN_LETTERS2) return [];
+    const { data } = await legacyDb().from("contactos").select("id,nombre,telefono,movil,email,nif,cuenta_id").or(`nombre.ilike.%${clean}%,telefono.ilike.%${clean}%,movil.ilike.%${clean}%,nif.ilike.%${clean}%`).limit(SHOWN2);
+    return data ?? [];
   }
 
   // src/app/screens/opportunities/index.ts
@@ -7600,7 +8767,7 @@
     });
     return chosen2;
   }
-  var round2 = (value7) => Math.round((Number(value7) || 0) * 100) / 100;
+  var round2 = (value8) => Math.round((Number(value8) || 0) * 100) / 100;
   function lineAmount(productId, units2) {
     const product = opportunitiesLegacy.products().find((item) => item.id === productId);
     if (product?.precio === null || product?.precio === void 0) return 0;
@@ -7614,7 +8781,7 @@
 
   // src/app/screens/opportunities/call-record.ts
   var chosen = { motivo: "", resultado: "" };
-  var value3 = (id) => document.getElementById(id)?.value ?? "";
+  var value4 = (id) => document.getElementById(id)?.value ?? "";
   var needsFollowUp = (result) => Boolean(result) && result !== ORDER_DONE;
   function callRecordHtml(state) {
     const call = state ?? {}, outgoing = call.direccion === OUTGOING;
@@ -7658,12 +8825,12 @@
       reasons.innerHTML = chipsHtml(catalog("motivo_llamada"), chosen.motivo, "data-kom");
       results.innerHTML = chipsHtml(catalog("resultado_llamada"), chosen.resultado, "data-kor");
     });
-    const block3 = document.getElementById("kollam");
-    if (block3) block3.onclick = onClick2;
+    const block4 = document.getElementById("kollam");
+    if (block4) block4.onclick = onClick2;
   }
   function readCallRecord() {
     if (!document.getElementById("kollam")) return null;
-    return { motivo: chosen.motivo, resultado: chosen.resultado, direccion: value3("kold"), nota: value3("kolno").trim(), proxima_fecha: value3("kolpf"), proxima_accion: value3("kolpa").trim() };
+    return { motivo: chosen.motivo, resultado: chosen.resultado, direccion: value4("kold"), nota: value4("kolno").trim(), proxima_fecha: value4("kolpf"), proxima_accion: value4("kolpa").trim() };
   }
   function caller(subject, state) {
     return {
@@ -7727,10 +8894,10 @@
   function bindLine(draft, row3) {
     const index = Number(row3.dataset.nvi), line = draft.lines[index];
     if (!line) return;
-    row3.querySelectorAll("[data-nvf]").forEach((input2) => {
-      input2.oninput = input2.onchange = () => {
-        if (input2.dataset.nvf === "unidades") line.unidades = Math.max(0, Number(input2.value) || 0);
-        else line.producto_id = input2.value;
+    row3.querySelectorAll("[data-nvf]").forEach((input3) => {
+      input3.oninput = input3.onchange = () => {
+        if (input3.dataset.nvf === "unidades") line.unidades = Math.max(0, Number(input3.value) || 0);
+        else line.producto_id = input3.value;
         const amount3 = row3.querySelector(".nvimp");
         if (amount3) amount3.textContent = portalLegacy.euros(lineAmount(line.producto_id, line.unidades));
         const total = document.getElementById("nvtotv");
@@ -7776,10 +8943,10 @@
   }
 
   // src/app/screens/opportunities/editor/client.ts
-  var SEARCH_WAIT_MS = 250;
+  var SEARCH_WAIT_MS2 = 250;
   var ORDERS_SHOWN = 20;
   var CALLS_SHOWN = 5;
-  var phoneOf = (client) => orFallback(client.movil, orFallback(client.telefono, orFallback(client.tel, "")));
+  var phoneOf2 = (client) => orFallback(client.movil, orFallback(client.telefono, orFallback(client.tel, "")));
   var orderTotal = (order) => sum(order.lineas_pedido.map((line) => (Number(line.importe) || 0) * (1 + (Number(line.iva) || 0) / 100)));
   var productName = (id) => opportunitiesLegacy.products().find((product) => product.id === id)?.nombre ?? t("opportunities.editor.defaultProduct");
   async function pastOrders(clientId) {
@@ -7841,7 +9008,7 @@
     paintClient(draft);
   }
   var resultHtml = (client) => `<button type="button" class="item" data-nvc="${client.id}"><span class="tx"><b>${escapeHtml(orFallback(client.nombre, ""))}</b><span class="sm">${escapeHtml([orFallback(client.movil, orFallback(client.telefono, "")), client.nif].filter(Boolean).join(" · "))}</span></span></button>`;
-  var searchTimer;
+  var searchTimer2;
   async function search(draft) {
     const found = await opportunitiesLegacy.searchClients(typedQuery()), box = document.getElementById("nvres1");
     if (!box) return;
@@ -7853,7 +9020,7 @@
     });
   }
   function chosenHtml(draft, client) {
-    return `<div class="clisel"><span><b>${escapeHtml(orFallback(client.nombre, ""))}</b><span class="sm">${escapeHtml([phoneOf(client), client.nif].filter(Boolean).join(" · "))}</span></span>
+    return `<div class="clisel"><span><b>${escapeHtml(orFallback(client.nombre, ""))}</b><span class="sm">${escapeHtml([phoneOf2(client), client.nif].filter(Boolean).join(" · "))}</span></span>
         ${draft.closed ? "" : `<button type="button" class="btn sec" id="nvcamb">${t("opportunities.editor.change")}</button>`}</div>`;
   }
   function searchHtml(draft) {
@@ -7864,12 +9031,12 @@
       ${draft.recording ? `<div class="sm" style="margin-top:4px">${t("opportunities.editor.nameIsEnough")}</div>` : ""}`;
   }
   function bindSearch(draft) {
-    const input2 = document.getElementById("nvq");
-    if (input2) input2.oninput = () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => {
+    const input3 = document.getElementById("nvq");
+    if (input3) input3.oninput = () => {
+      clearTimeout(searchTimer2);
+      searchTimer2 = setTimeout(() => {
         void search(draft);
-      }, SEARCH_WAIT_MS);
+      }, SEARCH_WAIT_MS2);
     };
     const add2 = document.getElementById("nvalta");
     if (add2) add2.onclick = () => {
@@ -8185,16 +9352,16 @@
   }
 
   // src/app/screens/opportunities/charts.ts
-  function indicatorsHtml(summary2) {
-    const total = summary2.total ?? 0, orders = summary2.con_pedido ?? 0, closed = total - (summary2.sin_cerrar ?? 0);
-    const kpi = (value7, key) => `<div class="kpi"><b>${value7}</b><span>${t(key)}</span></div>`;
+  function indicatorsHtml(summary3) {
+    const total = summary3.total ?? 0, orders = summary3.con_pedido ?? 0, closed = total - (summary3.sin_cerrar ?? 0);
+    const kpi = (value8, key) => `<div class="kpi"><b>${value8}</b><span>${t(key)}</span></div>`;
     return [
       kpi(formatNumber(total), "opportunities.list.kpiOpportunities"),
       kpi(formatNumber(orders), "opportunities.list.kpiOrders"),
       kpi(closed ? `${Math.round(orders / closed * 100)}%` : "—", "opportunities.list.kpiConversion"),
-      kpi(portalLegacy.euros(summary2.importe_ganado ?? 0), "opportunities.list.kpiSold"),
-      kpi(portalLegacy.euros(summary2.importe_perdido ?? 0), "opportunities.list.kpiUnsold"),
-      kpi(formatNumber(summary2.sin_cerrar ?? 0), "opportunities.list.kpiNotClosed")
+      kpi(portalLegacy.euros(summary3.importe_ganado ?? 0), "opportunities.list.kpiSold"),
+      kpi(portalLegacy.euros(summary3.importe_perdido ?? 0), "opportunities.list.kpiUnsold"),
+      kpi(formatNumber(summary3.sin_cerrar ?? 0), "opportunities.list.kpiNotClosed")
     ].join("\n      ");
   }
   function ratioRow(item, max) {
@@ -8205,8 +9372,8 @@
     return `<div class="barrash">${items.map((item) => ratioRow(item, max)).join("")}</div>`;
   };
   var card = (id, title2, body2, read) => `<div class="card ancard" id="${id}"><h2>${title2}</h2>${body2}<p class="leer">${read}</p></div>`;
-  var ratiosOr = (list, toRatio, empty) => (list ?? []).length ? ratioBars((list ?? []).map(toRatio)) : opportunitiesLegacy.emptyChart(empty);
-  var words2 = () => ({
+  var ratiosOr = (list, toRatio, empty2) => (list ?? []).length ? ratioBars((list ?? []).map(toRatio)) : opportunitiesLegacy.emptyChart(empty2);
+  var words3 = () => ({
     professional: term("medico"),
     professionals: term("medico", { number: "p" }),
     aProfessional: term("medico", { article: "un", articleCapital: "C" }),
@@ -8214,14 +9381,14 @@
   });
   var HOW = "opportunities.list.howToRead";
   var FOR = "opportunities.list.whatFor";
-  function chartsHtml(summary2) {
-    const weekdays = t("opportunities.weekdays").split(","), read = (lead, key) => t(lead) + t(key, words2());
-    const results = (summary2.por_resultado ?? []).length ? opportunitiesLegacy.barChart((summary2.por_resultado ?? []).map((item) => ({ n: item.resultado, v: item.n })), formatNumber) : opportunitiesLegacy.emptyChart(t("opportunities.list.resultsEmpty"));
-    return card("llgprod", t("opportunities.list.productsTitle"), ratiosOr(summary2.por_producto, (item) => ({ n: item.producto, p: Number(item.unidades_ganadas) || 0, t: Number(item.unidades) || 0 }), t("opportunities.list.productsEmpty")), read(HOW, "opportunities.list.productsRead")) + card("llgres", t("opportunities.list.resultsTitle"), results, read(HOW, "opportunities.list.resultsRead")) + card("llghora", t("opportunities.list.hoursTitle"), ratiosOr(summary2.por_hora, (item) => ({ n: `${String(item.hora).padStart(2, "0")}:00`, p: item.pedidos, t: item.n }), t("opportunities.list.hoursEmpty")), read(FOR, "opportunities.list.hoursRead")) + card("llgdia", t("opportunities.list.daysTitle"), ratiosOr(summary2.por_dia, (item) => ({ n: weekdays[item.dia] ?? "", p: item.pedidos, t: item.n }), t("opportunities.list.daysEmpty")), read(HOW, "opportunities.list.daysRead")) + card("llgori", t("opportunities.list.originsTitle"), ratiosOr(summary2.por_origen, (item) => ({ n: item.origen, p: item.pedidos, t: item.n }), t("opportunities.list.originsEmpty")), read(HOW, "opportunities.list.originsRead")) + card("llgmed", t("opportunities.list.referencesTitle", words2()), ratiosOr(summary2.por_medico, (item) => ({ n: item.medico, p: item.pedidos, t: item.n }), t("opportunities.list.referencesEmpty", words2())), read(HOW, "opportunities.list.referencesRead")) + card("llcom", t("opportunities.list.salesTitle", words2()), ratiosOr(summary2.por_comercial, (item) => ({ n: item.comercial, p: item.pedidos, t: item.n }), t("opportunities.list.salesEmpty", words2())), read(HOW, "opportunities.list.salesRead"));
+  function chartsHtml(summary3) {
+    const weekdays = t("opportunities.weekdays").split(","), read = (lead, key) => t(lead) + t(key, words3());
+    const results = (summary3.por_resultado ?? []).length ? opportunitiesLegacy.barChart((summary3.por_resultado ?? []).map((item) => ({ n: item.resultado, v: item.n })), formatNumber) : opportunitiesLegacy.emptyChart(t("opportunities.list.resultsEmpty"));
+    return card("llgprod", t("opportunities.list.productsTitle"), ratiosOr(summary3.por_producto, (item) => ({ n: item.producto, p: Number(item.unidades_ganadas) || 0, t: Number(item.unidades) || 0 }), t("opportunities.list.productsEmpty")), read(HOW, "opportunities.list.productsRead")) + card("llgres", t("opportunities.list.resultsTitle"), results, read(HOW, "opportunities.list.resultsRead")) + card("llghora", t("opportunities.list.hoursTitle"), ratiosOr(summary3.por_hora, (item) => ({ n: `${String(item.hora).padStart(2, "0")}:00`, p: item.pedidos, t: item.n }), t("opportunities.list.hoursEmpty")), read(FOR, "opportunities.list.hoursRead")) + card("llgdia", t("opportunities.list.daysTitle"), ratiosOr(summary3.por_dia, (item) => ({ n: weekdays[item.dia] ?? "", p: item.pedidos, t: item.n }), t("opportunities.list.daysEmpty")), read(HOW, "opportunities.list.daysRead")) + card("llgori", t("opportunities.list.originsTitle"), ratiosOr(summary3.por_origen, (item) => ({ n: item.origen, p: item.pedidos, t: item.n }), t("opportunities.list.originsEmpty")), read(HOW, "opportunities.list.originsRead")) + card("llgmed", t("opportunities.list.referencesTitle", words3()), ratiosOr(summary3.por_medico, (item) => ({ n: item.medico, p: item.pedidos, t: item.n }), t("opportunities.list.referencesEmpty", words3())), read(HOW, "opportunities.list.referencesRead")) + card("llcom", t("opportunities.list.salesTitle", words3()), ratiosOr(summary3.por_comercial, (item) => ({ n: item.comercial, p: item.pedidos, t: item.n }), t("opportunities.list.salesEmpty", words3())), read(HOW, "opportunities.list.salesRead"));
   }
 
   // src/app/screens/opportunities/follow-ups.ts
-  var SHOWN = 20;
+  var SHOWN3 = 20;
   function whenHtml(call, today) {
     if (call.proxima_fecha < today) return `<b style="color:var(--dang)">${t("opportunities.list.late")}</b>`;
     return call.proxima_fecha === today ? `<b style="color:var(--warn)">${t("opportunities.list.today")}</b>` : `${formatShortDate(call.proxima_fecha)} · `;
@@ -8230,7 +9397,7 @@
     if (call.proxima_fecha < today) return "background:#FDECEC;color:var(--dang)";
     return call.proxima_fecha === today ? "background:#FFF4E5;color:var(--warn)" : "";
   }
-  function rowHtml2(call, today) {
+  function rowHtml5(call, today) {
     const phone = orFallback(call.tel_cliente, orFallback(call.telefono, ""));
     const details = `${whenHtml(call, today)}${escapeHtml(orFallback(call.resultado, ""))}${call.proxima_accion ? ` · ${escapeHtml(call.proxima_accion)}` : ""}${call.medico ? t("opportunities.list.fromReference", { name: escapeHtml(call.medico) }) : ""}`;
     return `<div class="item" style="cursor:default">
@@ -8246,7 +9413,7 @@
     if (!box) return;
     box.innerHTML = !list.length ? "" : `<div class="card" id="llsegs"><h2>${t("opportunities.list.callAgainTitle")}<span class="n">${list.length}</span></h2>
       <p class="sm" style="padding:0 16px">${t("opportunities.list.callAgainHint")}</p>
-      <div class="lista">${list.slice(0, SHOWN).map((call) => rowHtml2(call, today)).join("")}</div></div>`;
+      <div class="lista">${list.slice(0, SHOWN3).map((call) => rowHtml5(call, today)).join("")}</div></div>`;
     box.querySelectorAll("[data-llseg]").forEach((button) => {
       button.onclick = () => {
         const call = list.find((item) => item.id === button.dataset.llseg);
@@ -8263,8 +9430,8 @@
   }
 
   // src/app/screens/opportunities/list.ts
-  var SEARCH_WAIT_MS2 = 300;
-  function pageHtml() {
+  var SEARCH_WAIT_MS3 = 300;
+  function pageHtml2() {
     const results = catalog("resultado_llamada").map((entry) => `<option>${escapeHtml(entry.valor)}</option>`).join("");
     return `<div class="panel">
     <div id="llsegz"></div>
@@ -8280,7 +9447,7 @@
     const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, ORDER_DONE)) : `<span class="pill p-warn">${t("opportunities.list.notClosed")}</span>`;
     return `${ends}${item.pedido ? `<span class="sm">${t("opportunities.list.order", { number: escapeHtml(item.pedido) })}</span>` : ""}`;
   }
-  function rowHtml3(item) {
+  function rowHtml6(item) {
     const when = new Date(item.fecha).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
     const reference2 = typeof item.medico === "string" ? item.medico : "";
     return `<button class="dr" data-ll="${item.id}"><span>${when}<span class="sm">${escapeHtml(orFallback(item.origen, orFallback(item.direccion, "")))}</span></span>
@@ -8290,13 +9457,13 @@
         <span>${endsHtml2(item)}</span>
         <span class="sm">${item.proxima_fecha ? `${formatShortDate(item.proxima_fecha)} · ` : ""}${escapeHtml(orFallback(item.proxima_accion, ""))}</span><span class="sm">${escapeHtml(orFallback(item.usuario, ""))}</span></button>`;
   }
-  function tableHtml2(shown2) {
+  function tableHtml2(shown3) {
     const heads = [t("opportunities.list.date"), t("opportunities.list.client"), t("opportunities.list.wants"), term("medico", { capital: "C" }), t("opportunities.list.ends"), t("opportunities.list.next"), t("opportunities.list.attended")];
     return `<div class="dgrid-wrap"><div class="dgrid llam opor">
       <div class="dh">${heads.map((head) => `<span>${head}</span>`).join("")}</div>
-      ${shown2.map(rowHtml3).join("")}</div></div>`;
+      ${shown3.map(rowHtml6).join("")}</div></div>`;
   }
-  function paintList(list, rows) {
+  function paintList2(list, rows) {
     const size = accountListLegacy.pageSize();
     opportunitiesLegacy.setPage(Math.min(opportunitiesLegacy.page(), Math.max(0, Math.ceil(rows.length / size) - 1)));
     const start2 = opportunitiesLegacy.page() * size;
@@ -8324,31 +9491,31 @@
   var fieldValue2 = (id) => document.getElementById(id)?.value ?? "";
   async function paintPeriod() {
     const period = opportunitiesLegacy.periodOf(document.getElementById("llper"));
-    const [{ data: rows }, { data: summary2 }] = await Promise.all([
+    const [{ data: rows }, { data: summary3 }] = await Promise.all([
       legacyDb().rpc("llamadas_lista", { p_desde: period.desde, p_hasta: period.hasta, q: fieldValue2("llq").trim() || null, p_resultado: fieldValue2("llfres") || null }),
       legacyDb().rpc("llamadas_resumen", { p_desde: period.desde, p_hasta: period.hasta })
     ]);
     const list = document.getElementById("lllista"), totals = document.getElementById("lltot"), charts = document.getElementById("llres2");
     if (!list || !totals || !charts) return;
-    totals.innerHTML = indicatorsHtml(summary2 ?? {});
-    charts.innerHTML = chartsHtml(summary2 ?? {});
-    paintList(list, rows ?? []);
+    totals.innerHTML = indicatorsHtml(summary3 ?? {});
+    charts.innerHTML = chartsHtml(summary3 ?? {});
+    paintList2(list, rows ?? []);
   }
-  var searchTimer2;
+  var searchTimer3;
   async function paintOpportunities() {
     await loadOpportunityCatalogs();
     const box = document.getElementById("vcuerpo");
     if (!box) return;
-    box.innerHTML = pageHtml();
+    box.innerHTML = pageHtml2();
     const search3 = document.getElementById("llq"), result = document.getElementById("llfres");
     opportunitiesLegacy.mountPeriod(document.getElementById("llper"), { id: "llamadas", valor: "mes", alCambiar: () => {
       void paintPeriod();
     } });
     if (search3) search3.oninput = () => {
-      clearTimeout(searchTimer2);
-      searchTimer2 = setTimeout(() => {
+      clearTimeout(searchTimer3);
+      searchTimer3 = setTimeout(() => {
         void paintPeriod();
-      }, SEARCH_WAIT_MS2);
+      }, SEARCH_WAIT_MS3);
     };
     if (result) result.onchange = () => {
       void paintPeriod();
@@ -8381,7 +9548,7 @@
 
   // src/app/screens/quality/data-quality.ts
   var percentOf2 = (done, total) => total ? Math.round(done / total * 100) : 0;
-  var words3 = () => ({
+  var words4 = () => ({
     professional: term("medico"),
     professionals: term("medico", { number: "p" }),
     Professionals: term("medico", { number: "p", capital: "C" }),
@@ -8404,12 +9571,12 @@
   function summaryHtml(quality2) {
     const percent = percentOf2(quality2.completas, quality2.total);
     return `<div class="card" id="calidad" style="padding-bottom:6px">
-    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">${t("quality.summary.complete", { percent })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words3(), done: formatNumber(quality2.completas), total: formatNumber(quality2.total) })}</span></div>
+    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">${t("quality.summary.complete", { percent })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words4(), done: formatNumber(quality2.completas), total: formatNumber(quality2.total) })}</span></div>
     <div class="barra" style="margin:8px 16px 10px"><i style="width:${percent}%"></i></div>
     <div class="kpis" style="padding:0 16px 10px">
-      ${INDICATORS.map(([key, title2, help]) => indicator(quality2[key], t(title2, words3()), t(help, words3()))).join("")}
+      ${INDICATORS.map(([key, title2, help]) => indicator(quality2[key], t(title2, words4()), t(help, words4()))).join("")}
     </div>
-    <p class="sm" style="padding:0 16px 10px">${t("quality.summary.completeHint", words3())}</p></div>`;
+    <p class="sm" style="padding:0 16px 10px">${t("quality.summary.completeHint", words4())}</p></div>`;
   }
   async function paintSummary() {
     const { data: quality2 } = await callRpc("calidad_datos", {});
@@ -8505,7 +9672,7 @@
            <br><span class="acts" style="margin:4px 0 0"><button class="btn sec chico" data-acc="hecha|${row3.id}">${t("quality.followUp.done")}</button>
            <button class="btn sec chico" data-acc="aplazar|${row3.id}">${t("quality.followUp.postpone")}</button></span>`;
   }
-  function rowHtml4(row3) {
+  function rowHtml7(row3) {
     const last = row3.ultima_visita ? t("quality.followUp.last", { date: formatShortDate(row3.ultima_visita), result: escapeHtml(orFallback(row3.ultimo_resultado, "")) }) : t("quality.followUp.notVisited");
     return `
     <button class="fila" data-id="${row3.id}">
@@ -8533,7 +9700,7 @@
     void paintFollowUp(true);
     void load();
   }
-  function bind6(list) {
+  function bind8(list) {
     list.onclick = (event) => {
       const target = event.target, action = target.closest("[data-acc]");
       if (action) {
@@ -8545,13 +9712,13 @@
       if (row3) agendaActions.openAccount(row3.dataset.id ?? "");
     };
   }
-  function paintRows(list, rows) {
+  function paintRows2(list, rows) {
     if (!rows.length) {
       list.innerHTML = `<div class="vacio">${t("quality.followUp.nothing")}</div>`;
       return;
     }
     list.innerHTML = "";
-    list.insertAdjacentHTML("beforeend", rows.map(rowHtml4).join(""));
+    list.insertAdjacentHTML("beforeend", rows.map(rowHtml7).join(""));
   }
   async function paintFollowUp(restart) {
     const list = document.getElementById("slista"), count2 = document.getElementById("scuenta");
@@ -8566,7 +9733,7 @@
       return;
     }
     count2.innerHTML = `<b>${formatNumber(data.total)}</b> ${term("medico", { number: "p" })}`;
-    paintRows(list, data.filas ?? []);
+    paintRows2(list, data.filas ?? []);
     accountListLegacy.paginate({
       element: document.getElementById("spag"),
       total: data.total,
@@ -8580,21 +9747,21 @@
         void paintFollowUp(true);
       }
     });
-    bind6(list);
+    bind8(list);
   }
 
   // src/app/screens/quality/page.ts
   var MODES = [["todos", "quality.page.showAll"], ["visitados", "quality.page.showVisited"], ["sin_visitar", "quality.page.showNotVisited"], ["con_accion", "quality.page.showWithAction"], ["atrasados", "quality.page.showLate"]];
   var canSeeDuplicates = () => cardSectionsLegacy.can("administrar") || permissions.canReviewDuplicates();
-  function headerHtml5() {
+  function headerHtml6() {
     const duplicates = canSeeDuplicates() ? `<button class="btn sec" id="caldup">${icon("copy")} ${t("quality.page.duplicates")}</button>` : "";
     return `<button class="cfgvolver visible" id="calvolver" type="button">‹ ${escapeHtml(accountListLegacy.contactsLabel())}</button>
     <div class="saludo"><div><h1>${t("quality.page.title")}</h1><div class="fecha">${t("quality.page.subtitle", { professional: term("medico") })}</div></div>
       <div class="acts" style="margin:0">${duplicates}</div></div>`;
   }
-  function pageHtml2() {
-    const modes = MODES.map(([value7, key]) => `<option value="${value7}">${t(key)}</option>`).join("");
-    return `${headerHtml5()}
+  function pageHtml3() {
+    const modes = MODES.map(([value8, key]) => `<option value="${value8}">${t(key)}</option>`).join("");
+    return `${headerHtml6()}
     <div class="kpis" id="segkpis"><div class="skel"></div></div>
     <div class="panel">
       <div class="filtros">
@@ -8612,7 +9779,7 @@
   function fillFilters(options) {
     const fill2 = (id, list, all) => {
       const select = document.getElementById(id);
-      if (select) select.innerHTML = `<option value="">${all}</option>${(list ?? []).map((option2) => `<option>${escapeHtml(option2.v)}</option>`).join("")}`;
+      if (select) select.innerHTML = `<option value="">${all}</option>${(list ?? []).map((option4) => `<option>${escapeHtml(option4.v)}</option>`).join("")}`;
     };
     fill2("sest", options?.estados, t("quality.page.allStates"));
     fill2("sprov", options?.provincias, t("quality.page.allProvinces"));
@@ -8626,15 +9793,15 @@
     }
   }
   var percentText = (part, total) => `${total ? Math.round(part / total * 100) : 0}%`;
-  function paintIndicators3(summary2) {
+  function paintIndicators3(summary3) {
     const box = document.getElementById("segkpis");
-    if (!summary2 || !box) return;
-    const funnel = (summary2.embudo ?? []).map((step) => `<div class="kpi"><b>${formatNumber(step.n)}</b><span>${escapeHtml(step.estado)}</span></div>`).join("");
-    box.innerHTML = `${funnel}<div class="kpi ok"><b>${formatNumber(summary2.visitados)}</b><span>${term("medico", { number: "p", adjective: "visitado" })}</span></div>
-       <div class="kpi"><b>${formatNumber(summary2.visitas_total)}</b><span>${term("visita", { number: "p", adjective: "registrado" })}</span></div>
-       <div class="kpi"><b>${formatNumber(summary2.muestras_total)}</b><span>${t("quality.page.samplesGiven")}</span></div>
-       <div class="kpi"><b>${percentText(summary2.con_direccion, summary2.total)}</b><span>${t("quality.page.withAddress")}</span></div>
-       <div class="kpi"><b>${percentText(summary2.con_dias, summary2.total)}</b><span>${t("quality.page.withDays")}</span></div>`;
+    if (!summary3 || !box) return;
+    const funnel = (summary3.embudo ?? []).map((step) => `<div class="kpi"><b>${formatNumber(step.n)}</b><span>${escapeHtml(step.estado)}</span></div>`).join("");
+    box.innerHTML = `${funnel}<div class="kpi ok"><b>${formatNumber(summary3.visitados)}</b><span>${term("medico", { number: "p", adjective: "visitado" })}</span></div>
+       <div class="kpi"><b>${formatNumber(summary3.visitas_total)}</b><span>${term("visita", { number: "p", adjective: "registrado" })}</span></div>
+       <div class="kpi"><b>${formatNumber(summary3.muestras_total)}</b><span>${t("quality.page.samplesGiven")}</span></div>
+       <div class="kpi"><b>${percentText(summary3.con_direccion, summary3.total)}</b><span>${t("quality.page.withAddress")}</span></div>
+       <div class="kpi"><b>${percentText(summary3.con_dias, summary3.total)}</b><span>${t("quality.page.withDays")}</span></div>`;
   }
   function bindHeader3() {
     const back = document.getElementById("calvolver");
@@ -8657,12 +9824,12 @@
     const view = document.getElementById("v-seguimiento");
     if (!view) return;
     Object.assign(followUpState, { estado: "", prov: "", muni: "", modo: "todos", pagina: 0 });
-    view.innerHTML = pageHtml2();
+    view.innerHTML = pageHtml3();
     bindHeader3();
     const { data: options } = await legacyDb().rpc("opciones_filtros", {});
     fillFilters(options);
-    const { data: summary2 } = await legacyDb().rpc("resumen_seguimiento");
-    paintIndicators3(summary2);
+    const { data: summary3 } = await legacyDb().rpc("resumen_seguimiento");
+    paintIndicators3(summary3);
     void paintFollowUp(true);
     await paintSummary();
     try {
@@ -8780,15 +9947,15 @@
     });
     return entries;
   }
-  function hitHtml(entry, words4) {
+  function hitHtml(entry, words5) {
     let text2 = escapeHtml(stripTags(entry.text));
-    words4.forEach((word) => {
+    words5.forEach((word) => {
       text2 = text2.replace(new RegExp(`(${escapeRegExp(word)})`, "ig"), "<mark>$1</mark>");
     });
     return `<button class="manhit" ${entry.section ? `data-mansec2="${entry.section}"` : ""}><span class="mhm">${escapeHtml(entry.module)}</span><span>${text2}</span></button>`;
   }
-  function search2(input2, results, entries) {
-    const query = normalise(input2.value.trim());
+  function search2(input3, results, entries) {
+    const query = normalise(input3.value.trim());
     document.querySelectorAll(".mancard").forEach((card2) => {
       card2.classList.remove("hide");
     });
@@ -8796,19 +9963,19 @@
       results.classList.add("hide");
       return;
     }
-    const words4 = query.split(/\s+/);
-    const hits = entries.filter((entry) => words4.every((word) => normalise(`${entry.text} ${entry.module}`).includes(word))).slice(0, MAX_HITS);
+    const words5 = query.split(/\s+/);
+    const hits = entries.filter((entry) => words5.every((word) => normalise(`${entry.text} ${entry.module}`).includes(word))).slice(0, MAX_HITS);
     results.classList.remove("hide");
-    results.innerHTML = hits.length ? hits.map((entry) => hitHtml(entry, words4)).join("") : `<div class="manhit">${t("manual.portal.noResults", { query: escapeHtml(input2.value) })}</div>`;
+    results.innerHTML = hits.length ? hits.map((entry) => hitHtml(entry, words5)).join("") : `<div class="manhit">${t("manual.portal.noResults", { query: escapeHtml(input3.value) })}</div>`;
   }
   function listenToSearch() {
-    const input2 = document.getElementById("manq");
-    if (!input2) return;
-    input2.insertAdjacentHTML("afterend", '<div class="manres hide" id="manres"></div>');
+    const input3 = document.getElementById("manq");
+    if (!input3) return;
+    input3.insertAdjacentHTML("afterend", '<div class="manres hide" id="manres"></div>');
     const results = document.getElementById("manres"), entries = searchIndex();
     if (!results) return;
-    input2.oninput = () => {
-      search2(input2, results, entries);
+    input3.oninput = () => {
+      search2(input3, results, entries);
     };
     results.addEventListener("click", (event) => {
       const hit = event.target?.closest("[data-mansec2]");
@@ -8827,18 +9994,18 @@
       <div class="manbusca"><input id="manq" type="search" placeholder="${t("manual.portal.search")}" aria-label="${t("manual.portal.searchLabel")}"></div>
     </div>`;
   }
-  function cardHtml2(section2) {
+  function cardHtml3(section2) {
     const level = cardLevel(section2), pill = level >= 2 ? "p-est" : level === 1 ? "p-per" : "p-anu";
     return `<button class="mancard ${level ? "" : "bloq"}" data-mansec="${section2.id}"><span class="mci">${sectionIcon(section2.id)}</span>
         <b>${escapeHtml(section2.t)}</b><span class="mcd">${escapeHtml(section2.para)}</span><span class="pill ${pill}">${level ? t("manual.portal.yourAccess", { level: accessText(section2) }) : t("manual.portal.noAccess")}</span></button>`;
   }
-  function pageHtml3() {
+  function pageHtml4() {
     const steps2 = firstSteps().map(([stepIcon, title2, text2, screen2], index) => `<button class="manpaso" data-mira="${screen2}"><span class="mpn">${index + 1}</span><span class="mpi">${stepIcon}</span><b>${escapeHtml(title2)}</b><span>${escapeHtml(text2)}</span></button>`).join("");
     return `${heroHtml()}
     <h2 class="mantit">${t("manual.portal.firstSteps")}</h2>
     <div class="manpasos">${steps2}</div>
     <h2 class="mantit">${t("manual.portal.byModule")}</h2>
-    <div class="mangrid">${manualLegacy.sections().map(cardHtml2).join("")}</div>
+    <div class="mangrid">${manualLegacy.sections().map(cardHtml3).join("")}</div>
     <h2 class="mantit">${t("manual.portal.faq")}</h2>
     <div class="card manfaqs">${manualLegacy.faq().map(([question, answer]) => `<details class="manfaq"><summary>${escapeHtml(question)}</summary><p>${escapeHtml(answer)}</p></details>`).join("")}</div>`;
   }
@@ -8857,7 +10024,7 @@
       };
     });
   }
-  function bind7(page) {
+  function bind9(page) {
     page.onclick = (event) => {
       const step = event.target?.closest("[data-mira]");
       if (!step) return;
@@ -8873,8 +10040,8 @@
   function paintPortalManual() {
     const page = document.getElementById("v-manual");
     if (!page) return;
-    page.innerHTML = pageHtml3();
-    bind7(page);
+    page.innerHTML = pageHtml4();
+    bind9(page);
     listenToSearch();
     markOutOfPlan(page);
   }
@@ -9113,7 +10280,7 @@
         <optgroup label="${t("importing.columns.platformFields")}">${options}</optgroup>
         <option value="extra" ${chosen2 === "extra" ? "selected" : ""}>${t("importing.columns.custom", { name: escapeHtml(header) })}</option></select></div>`;
   }
-  function pageHtml4() {
+  function pageHtml5() {
     const intro = t("importing.columns.summary", { rows: formatNumber(wizard.rows.length), columns: wizard.headers.length }) + (wizard.remembered ? t("importing.columns.remembered") : t("importing.columns.proposed")) + t("importing.columns.customHint", { type: escapeHtml(entityName(wizard.entity)) });
     return `<div class="card cfgpanel impcaja">${stepsHtml(3)}
     <h2 style="padding:0 0 4px">${t("importing.columns.title", { name: escapeHtml(wizard.fileName) })}</h2>
@@ -9123,7 +10290,7 @@
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button><button class="btn" type="button" id="impsig">${t("importing.columns.next")}</button></div></div>`;
   }
   function problems() {
-    const entity = wizard.entity, assigned = wizard.mapping.filter((value7) => value7.startsWith("std:")).map((value7) => value7.slice(4));
+    const entity = wizard.entity, assigned = wizard.mapping.filter((value8) => value8.startsWith("std:")).map((value8) => value8.slice(4));
     const missing = FIELDS[entity].filter(([key, required]) => required && !assigned.includes(key) && !(entity === "ventas" && key === "producto" && assigned.includes("referencia"))).map(([key]) => fieldLabel(entity, key));
     const repeated = [...new Set(assigned.filter((key, index) => assigned.indexOf(key) !== index))].map((key) => fieldLabel(entity, key));
     return { missing, repeated };
@@ -9137,7 +10304,7 @@
     if (next) next.disabled = Boolean(missing.length || repeated.length);
   }
   function paintColumnsStep() {
-    const box = paint3(pageHtml4());
+    const box = paint3(pageHtml5());
     box?.querySelectorAll("[data-impc]").forEach((select) => {
       select.onchange = () => {
         wizard.mapping[Number(select.dataset.impc)] = select.value;
@@ -9165,11 +10332,11 @@
     for (const char of text2) hash = (hash << 5) + hash + char.charCodeAt(0) | 0;
     return (hash >>> 0).toString(36);
   }
-  var pad = (value7) => String(value7).padStart(2, "0");
-  function cellValue(value7) {
-    if (value7 === null || value7 === void 0) return "";
-    if (value7 instanceof Date) return Number.isNaN(value7.getTime()) ? "" : `${value7.getFullYear()}-${pad(value7.getMonth() + 1)}-${pad(value7.getDate())}`;
-    return String(value7).trim();
+  var pad = (value8) => String(value8).padStart(2, "0");
+  function cellValue(value8) {
+    if (value8 === null || value8 === void 0) return "";
+    if (value8 instanceof Date) return Number.isNaN(value8.getTime()) ? "" : `${value8.getFullYear()}-${pad(value8.getMonth() + 1)}-${pad(value8.getDate())}`;
+    return String(value8).trim();
   }
   function detectHeaderRow(rows) {
     const scores = rows.slice(0, TITLE_ROWS).map((row3) => row3.filter((cell2) => cell2.trim() && Number.isNaN(Number(cell2.replace(",", ".")))).length);
@@ -9232,8 +10399,8 @@
     <div id="imphojas"></div>
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button></div></div>`);
     onClick3("impvolver", steps.start);
-    const zone = document.getElementById("impzona"), input2 = document.getElementById("impfile");
-    if (!zone || !input2) return;
+    const zone = document.getElementById("impzona"), input3 = document.getElementById("impfile");
+    if (!zone || !input3) return;
     zone.ondragover = (event) => {
       event.preventDefault();
       zone.classList.add("sobre");
@@ -9247,8 +10414,8 @@
       const file = event.dataTransfer?.files[0];
       if (file) void readFile(zone, file);
     };
-    input2.onchange = () => {
-      const file = input2.files?.[0];
+    input3.onchange = () => {
+      const file = input3.files?.[0];
       if (file) void readFile(zone, file);
     };
   }
@@ -9328,9 +10495,9 @@
   var BATCH = 200;
   function columnsOf() {
     const standard = /* @__PURE__ */ new Map(), custom = /* @__PURE__ */ new Map();
-    wizard.mapping.forEach((value7, index) => {
-      if (value7.startsWith("std:")) standard.set(value7.slice(4), index);
-      else if (value7 === "extra") custom.set(customFieldKey(wizard.headers[index] ?? ""), index);
+    wizard.mapping.forEach((value8, index) => {
+      if (value8.startsWith("std:")) standard.set(value8.slice(4), index);
+      else if (value8 === "extra") custom.set(customFieldKey(wizard.headers[index] ?? ""), index);
     });
     return { standard, custom };
   }
@@ -9340,13 +10507,13 @@
       result[key] = row3.v[index] ?? "";
     });
     columns.custom.forEach((index, key) => {
-      const value7 = row3.v[index];
-      if (value7 !== void 0 && value7 !== "") extra[key] = value7;
+      const value8 = row3.v[index];
+      if (value8 !== void 0 && value8 !== "") extra[key] = value8;
     });
     result.extra = extra;
     return result;
   }
-  var text = (value7) => typeof value7 === "string" ? value7 : "";
+  var text = (value8) => typeof value8 === "string" ? value8 : "";
   function newOrder(row3) {
     return {
       _fila: row3._fila,
@@ -9404,7 +10571,7 @@
   var MAX_CLASSIFIER_VALUES = 30;
   var DESTINATIONS = { clientes: "pacientes", productos: "productos", prescriptores: "directorio", ventas: "ventas" };
   function customFields() {
-    return wizard.mapping.map((value7, index) => value7 === "extra" ? index : null).filter(isPresent).map((index) => {
+    return wizard.mapping.map((value8, index) => value8 === "extra" ? index : null).filter(isPresent).map((index) => {
       const values = [...new Set(wizard.rows.map((row3) => row3.v[index] ?? "").filter(Boolean))], name = wizard.headers[index] ?? "";
       return { clave: customFieldKey(name), nombre: name, valores: values.length <= MAX_CLASSIFIER_VALUES ? values : [] };
     });
@@ -9418,7 +10585,7 @@
     return data?.ok ? data.id : null;
   }
   function finishedHtml(result) {
-    const errors = result.errores, figure2 = (value7, label, extraClass = "") => `<div class="${extraClass}"><b>${formatNumber(value7)}</b><span>${label}</span></div>`;
+    const errors = result.errores, figure2 = (value8, label, extraClass = "") => `<div class="${extraClass}"><b>${formatNumber(value8)}</b><span>${label}</span></div>`;
     return `<div class="card cfgpanel impcaja"><div class="impfin">${icon("check")}</div>
     <h2 style="padding:0 0 4px;text-align:center">${t("importing.run.finished")}</h2>
     <div class="impres">${figure2(result.creados, t("importing.run.created"), "ok")}${figure2(result.actualizados, t("importing.run.updated"))}
@@ -9477,7 +10644,7 @@
 
   // src/app/screens/import/history.ts
   var UNDONE = "Deshecha";
-  function rowHtml5(item, names) {
+  function rowHtml8(item, names) {
     const date = new Date(item.creado_en).toLocaleString(t("dates.locale"), { dateStyle: "short", timeStyle: "short" });
     const line = t("importing.history.line", {
       date,
@@ -9497,7 +10664,7 @@
     const names = new Map(entityTypes().map((type) => [type.key, type.name]));
     const box = paint3(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
     <p class="sm">${t("importing.history.text")}</p>
-    <div class="errlista">${(data ?? []).map((item) => rowHtml5(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
+    <div class="errlista">${(data ?? []).map((item) => rowHtml8(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
     box?.querySelectorAll("[data-impdes]").forEach((button) => {
       button.onclick = () => {
         void undoImport(button.dataset.impdes ?? "");
@@ -9522,8 +10689,8 @@
     return `<label>${t("importing.review.existingLabel")}</label><div class="segs" id="impmodo"><button type="button" data-v="actualizar" class="on">${t("importing.review.update")}</button><button type="button" data-v="omitir">${t("importing.review.keep")}</button></div>
       <p class="sm">${t("importing.review.matchedBy", { keys: t(MATCHED_BY.get(wizard.entity) ?? "importing.review.byName") })}</p>`;
   }
-  function pageHtml5(check2, counts) {
-    const custom = wizard.mapping.map((value7, index) => value7 === "extra" ? wizard.headers[index] ?? "" : "").filter(Boolean);
+  function pageHtml6(check2, counts) {
+    const custom = wizard.mapping.map((value8, index) => value8 === "extra" ? wizard.headers[index] ?? "" : "").filter(Boolean);
     const errors = check2.errores;
     return `<div class="card cfgpanel impcaja">${stepsHtml(4)}
     <h2 style="padding:0 0 4px">${t("importing.review.title", { name: escapeHtml(wizard.fileName) })}</h2>
@@ -9534,7 +10701,7 @@
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.review.backToColumns")}</button>
       <button class="btn" type="button" id="impok" ${counts.created + counts.existing ? "" : "disabled"}>${t("importing.review.run", { count: formatNumber(counts.created + counts.existing), unit: counts.unit })}</button></div></div>`;
   }
-  function bind8(rows, counts) {
+  function bind10(rows, counts) {
     let mode = "actualizar";
     const modes = document.getElementById("impmodo"), run = document.getElementById("impok");
     modes?.querySelectorAll("button").forEach((button) => {
@@ -9563,8 +10730,8 @@
       return;
     }
     const counts = countsOf(check2);
-    paint3(pageHtml5(check2, counts));
-    bind8(rows, counts);
+    paint3(pageHtml6(check2, counts));
+    bind10(rows, counts);
   }
 
   // src/app/screens/import/index.ts
@@ -9603,7 +10770,7 @@
   var CLOSED_STATES = [STATES5.received, STATES5.cancelled];
   var DEFAULT_LEAD_DAYS = 90;
   var errorText2 = (error, result) => error?.message ?? result?.error ?? "";
-  var euros = (value7) => formatCurrency(Math.round((Number(value7) || 0) * 100) / 100);
+  var euros = (value8) => formatCurrency(Math.round((Number(value8) || 0) * 100) / 100);
   function purchasePill(state) {
     const kind = state === STATES5.received ? "p-est" : state === STATES5.cancelled ? "p-anu" : state === STATES5.draft ? "p-bor" : "p-per";
     return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
@@ -9611,7 +10778,7 @@
 
   // src/app/screens/purchases/editor-view.ts
   var disabled = (editor) => editor.editable ? "" : "disabled";
-  function headerHtml6(editor) {
+  function headerHtml7(editor) {
     const { id, purchase } = editor;
     const title2 = id ? t("purchases.editor.title", { number: escapeHtml(purchase.numero) }) : t("purchases.editor.newTitle");
     return `<div class="fh"><div><h2>${title2} ${id ? purchasePill(purchase.estado) : ""}</h2>
@@ -9633,13 +10800,13 @@
     const off = disabled(editor);
     const products2 = purchasesLegacy.products().map((product) => `<option value="${product.id}" ${product.id === line.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("");
     const received = editor.id ? `<label>${t("purchases.editor.received")}</label><div class="cprec">${t("purchases.editor.receivedOf", { received: formatNumber(line.recibidas ?? 0), units: formatNumber(line.unidades) })}</div>` : "";
-    const remove5 = editor.editable && editor.lines.length > 1 ? `<button type="button" class="btn sec" data-clx="${index}" aria-label="${t("purchases.editor.remove")}">✕</button>` : "";
+    const remove6 = editor.editable && editor.lines.length > 1 ? `<button type="button" class="btn sec" data-clx="${index}" aria-label="${t("purchases.editor.remove")}">✕</button>` : "";
     return `<div class="lin"><div class="lrow cprow">
         <div><label>${t("purchases.editor.product")}</label><select data-cl="${index}|producto_id" ${off}>${products2}</select></div>
         <div><label>${t("purchases.editor.units")}</label><input type="number" min="1" data-cl="${index}|unidades" value="${line.unidades}" ${off}></div>
         <div><label>${t("purchases.editor.unitCost")}</label><input type="number" step="0.0001" min="0" data-cl="${index}|coste_unitario" value="${line.coste_unitario ?? ""}" ${off}></div>
         <div>${received}</div>
-        <div>${remove5}</div></div></div>`;
+        <div>${remove6}</div></div></div>`;
   }
   function batchesHtml(editor) {
     const batches = editor.detail?.lotes ?? [];
@@ -9670,7 +10837,7 @@
   function editorHtml3(editor) {
     const { purchase } = editor, off = disabled(editor);
     return `
-      ${headerHtml6(editor)}
+      ${headerHtml7(editor)}
       ${supplierHtml(editor)}
       <label>${t("purchases.editor.products")}</label>
       <div id="cplin">${editor.lines.map((line, index) => lineHtml2(editor, line, index)).join("")}</div>
@@ -9759,8 +10926,8 @@
   }
 
   // src/app/screens/purchases/editor.ts
-  var input = (id) => document.getElementById(id);
-  var value4 = (id) => input(id)?.value ?? "";
+  var input2 = (id) => document.getElementById(id);
+  var value5 = (id) => input2(id)?.value ?? "";
   var closeWindow2 = () => {
     document.getElementById("dlg")?.close();
   };
@@ -9770,7 +10937,7 @@
   }
   function paintTotals(editor) {
     const box = document.getElementById("cptot");
-    if (box) box.innerHTML = totalsHtml(editor.lines, Number(value4("cpport")) || 0);
+    if (box) box.innerHTML = totalsHtml(editor.lines, Number(value5("cpport")) || 0);
   }
   function onLineChange(editor, target) {
     const [index = "", field4 = ""] = (target.dataset.cl ?? "").split("|"), line = editor.lines[Number(index)];
@@ -9788,16 +10955,16 @@
     paintTotals(editor);
   }
   function suggestExpected() {
-    const supplier = document.getElementById("cpprov"), expected = input("cpprev");
+    const supplier = document.getElementById("cpprov"), expected = input2("cpprev");
     if (!supplier || !expected || expected.value) return;
-    expected.value = addDays(value4("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
+    expected.value = addDays(value5("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
   }
   function bindLines(editor) {
     const lines = document.getElementById("cplin");
     if (lines) lines.oninput = lines.onchange = (event) => {
       onLineChange(editor, event.target);
     };
-    const shipping = input("cpport");
+    const shipping = input2("cpport");
     if (shipping) shipping.oninput = () => {
       paintTotals(editor);
     };
@@ -9814,23 +10981,23 @@
     });
     const supplier = document.getElementById("cpprov");
     if (supplier) supplier.onchange = suggestExpected;
-    if (!value4("cpprev") && supplier?.value) suggestExpected();
+    if (!value5("cpprev") && supplier?.value) suggestExpected();
   }
   function payload3(editor, state) {
     const lines = editor.lines.filter((line) => line.producto_id && Number(line.unidades) > 0).map((line) => ({ producto_id: line.producto_id, unidades: Number(line.unidades), coste_unitario: line.coste_unitario }));
     return {
       id: editor.id ?? null,
-      proveedor_id: value4("cpprov"),
-      fecha: value4("cpfecha"),
-      fecha_prevista: value4("cpprev"),
+      proveedor_id: value5("cpprov"),
+      fecha: value5("cpfecha"),
+      fecha_prevista: value5("cpprev"),
       estado: state ?? editor.purchase.estado,
-      portes: value4("cpport"),
-      nota: value4("cpnota").trim(),
+      portes: value5("cpport"),
+      nota: value5("cpnota").trim(),
       lineas: lines
     };
   }
   async function save5(editor, state) {
-    if (!value4("cpprov")) {
+    if (!value5("cpprov")) {
       notices.toast(t("purchases.editor.chooseSupplier"), true);
       return;
     }
@@ -9927,7 +11094,7 @@
       <div class="kpi"><b>${euros(bought)}</b><span>${t("purchases.list.boughtThisYear")}</span></div>
     </div>`;
   }
-  function rowHtml6(row3) {
+  function rowHtml9(row3) {
     const expected = row3.fecha_prevista ? formatShortDate(row3.fecha_prevista) + (row3.retrasada ? t("purchases.list.lateTag") : "") : "—";
     const received = row3.recibidas && row3.recibidas < row3.unidades ? `${formatNumber(row3.recibidas)}/` : "";
     return `<button class="dr" data-comp="${row3.id}">
@@ -9942,7 +11109,7 @@
     const head = [["", "number"], ["", "supplier"], ["", "products"], ["", "date"], ["", "expected"], ["num", "units"], ["num", "amount"], ["", "state"]];
     return `<div class="dgrid-wrap"><div class="dgrid comps">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.list.${key}`)}</span>`).join("")}</div>
-      ${rows.map(rowHtml6).join("")}
+      ${rows.map(rowHtml9).join("")}
     </div></div>`;
   }
   async function paintPurchases() {
@@ -9969,7 +11136,7 @@
 
   // src/app/screens/purchases/suppliers.ts
   var joined = (values) => values.filter(Boolean).join(" · ");
-  function rowHtml7(supplier) {
+  function rowHtml10(supplier) {
     return `<button class="dr" data-prov="${supplier.id ?? ""}" style="${supplier.activo ? "" : "opacity:.55"}">
       <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined([supplier.municipio, supplier.pais]))}</span></span>
       <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
@@ -9982,7 +11149,7 @@
     const head = [["", "supplier"], ["", "taxId"], ["", "contact"], ["num", "leadTime"], ["num", "purchases"], ["", "lastPurchase"], ["", "state"]];
     return `<div class="dgrid-wrap"><div class="dgrid provs">
     <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.suppliers.${key}`)}</span>`).join("")}</div>
-    ${suppliers.map(rowHtml7).join("")}
+    ${suppliers.map(rowHtml10).join("")}
   </div></div>`;
   }
   async function paintSuppliers() {
@@ -10077,25 +11244,25 @@
 
   // src/app/screens/tenders/editor.ts
   var field2 = (id) => document.getElementById(id)?.value ?? "";
-  var textOrNull = (id) => field2(id).trim() || null;
+  var textOrNull2 = (id) => field2(id).trim() || null;
   async function team() {
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     const me = salesTeam.currentUserId(), members = salesTeam.members();
     return members.some((member) => member.id === me) ? members : [{ id: me, nombre: appLegacy.currentUserName() }, ...members];
   }
   function editorHtml5(tender, existing, people) {
-    const value7 = (text2) => escapeHtml(text2 ?? "");
+    const value8 = (text2) => escapeHtml(text2 ?? "");
     return `<div class="fh"><div><h2>${t(existing ? "tenders.editor.changeTitle" : "tenders.editor.newTitle")}</h2><div class="sm">${t("tenders.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <label for="cont">${t("tenders.editor.title")}</label><input id="cont" value="${value7(tender.titulo)}" placeholder="${t("tenders.editor.titlePlaceholder")}">
+    <label for="cont">${t("tenders.editor.title")}</label><input id="cont" value="${value8(tender.titulo)}" placeholder="${t("tenders.editor.titlePlaceholder")}">
     <label>${t("tenders.editor.soldTo")}</label><div id="concta"></div>
-    <div class="g2"><div><label for="conexp">${t("tenders.editor.file")}</label><input id="conexp" value="${value7(tender.expediente)}"></div>
-      <div><label for="conorg">${t("tenders.editor.body")}</label><input id="conorg" value="${value7(tender.organismo)}" placeholder="${t("tenders.editor.bodyPlaceholder")}"></div></div>
-    <div class="g2"><div><label for="conpub">${t("tenders.editor.published")}</label><input id="conpub" type="date" value="${value7(tender.publicado)}"></div>
-      <div><label for="conlim">${t("tenders.editor.submitBy")}</label><input id="conlim" type="date" value="${value7(tender.limite)}"></div></div>
+    <div class="g2"><div><label for="conexp">${t("tenders.editor.file")}</label><input id="conexp" value="${value8(tender.expediente)}"></div>
+      <div><label for="conorg">${t("tenders.editor.body")}</label><input id="conorg" value="${value8(tender.organismo)}" placeholder="${t("tenders.editor.bodyPlaceholder")}"></div></div>
+    <div class="g2"><div><label for="conpub">${t("tenders.editor.published")}</label><input id="conpub" type="date" value="${value8(tender.publicado)}"></div>
+      <div><label for="conlim">${t("tenders.editor.submitBy")}</label><input id="conlim" type="date" value="${value8(tender.limite)}"></div></div>
     <div class="g2"><div><label for="conimp">${t("tenders.editor.amount")}</label><input id="conimp" type="number" min="0" step="0.01" value="${isPresent(tender.importe_licitacion) ? Number(tender.importe_licitacion) : ""}"></div>
       <div><label for="conres">${t("tenders.editor.responsible")}</label><select id="conres">${people.map((person) => `<option value="${person.id}" ${person.id === tender.responsable_id ? "selected" : ""}>${escapeHtml(person.nombre)}</option>`).join("")}</select></div></div>
-    <label for="conn">${t("tenders.editor.note")}</label><textarea id="conn" rows="2">${value7(tender.nota)}</textarea>
+    <label for="conn">${t("tenders.editor.note")}</label><textarea id="conn" rows="2">${value8(tender.nota)}</textarea>
     <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="conborrar">${t("tenders.editor.delete")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("tenders.editor.cancel")}</button><button type="button" class="btn" id="conok">${t(existing ? "tenders.editor.save" : "tenders.editor.create")}</button></div>`;
   }
@@ -10104,13 +11271,13 @@
     return {
       titulo: title2,
       cuenta_id: account.id,
-      expediente: textOrNull("conexp"),
-      organismo: textOrNull("conorg"),
+      expediente: textOrNull2("conexp"),
+      organismo: textOrNull2("conorg"),
       publicado: field2("conpub") || null,
       limite: field2("conlim") || null,
       importe_licitacion: amount3 === "" ? null : Math.max(0, Number(amount3)),
       responsable_id: field2("conres") || null,
-      nota: textOrNull("conn")
+      nota: textOrNull2("conn")
     };
   }
   async function save7(existing, account, button) {
@@ -10130,7 +11297,7 @@
     notices.toast(t(existing ? "tenders.editor.saved" : "tenders.editor.created"));
     relatedLegacy.openTender(result.data?.id ?? "");
   }
-  async function remove4(existing) {
+  async function remove5(existing) {
     if (!await notices.confirm(t("tenders.editor.deleteText"), { titulo: t("tenders.editor.deleteTitle"), ok: t("tenders.editor.delete"), peligro: true })) return;
     const { error } = await legacyDb().from("concursos").delete().eq("id", existing.id);
     if (error) {
@@ -10157,7 +11324,7 @@
     };
     const erase = document.getElementById("conborrar");
     if (erase && existing) erase.onclick = () => {
-      void remove4(existing);
+      void remove5(existing);
     };
   }
 
@@ -10199,7 +11366,7 @@
   var URGENT_DAYS = 7;
   var NO_DATE = "9999";
   var byDate = (date) => (first, second) => orFallback(date(first), NO_DATE).localeCompare(orFallback(date(second), NO_DATE));
-  function shown(list, view) {
+  function shown2(list, view) {
     if (view === "contratos") return list.filter((item) => item.estado === STATES3.awarded).sort(byDate(contractEnd));
     if (view === "cerrados") return list.filter((item) => isClosed(item.estado));
     return list.filter((item) => item.estado === STATES3.studying || item.estado === STATES3.offerSent).sort(byDate((item) => item.limite));
@@ -10223,7 +11390,7 @@
     const wonText = won ? won === 1 ? t("tenders.list.oneWon") : t("tenders.list.won", { count: won }) : "";
     return ` · ${lots.length === 1 ? t("tenders.list.oneLot") : t("tenders.list.lots", { count: lots.length })}${wonText}`;
   }
-  function rowHtml8(tender, view, warnDays) {
+  function rowHtml11(tender, view, warnDays) {
     const extra = view === "contratos" ? contractPill(tender, warnDays) : view === "marcha" ? deadlinePill(tender) : "";
     return `<button type="button" class="item conrow" data-con="${tender.id}"><span class="tx"><b>${escapeHtml(tender.titulo)}</b>
       <span class="sm">${escapeHtml(tenderLine(tender))}${lotsText(tender)}${tender.importe_licitacion ? ` · ${formatCurrency(tender.importe_licitacion)}` : ""}</span></span>
@@ -10233,13 +11400,13 @@
     const when = days.length ? t("tenders.list.warnDays", { days: [...days].sort((first, second) => second - first).join(t("tenders.list.and")) }) : t("tenders.list.warnNever");
     return `<p class="sm">${t("tenders.list.contractsHint", { when })}</p>`;
   }
-  function pageHtml6(list, view) {
+  function pageHtml7(list, view) {
     const days = tendersLegacy.warningDays(), warnDays = Math.max(...days, 0);
-    const empty = t(view === "contratos" ? "tenders.list.noContracts" : view === "cerrados" ? "tenders.list.noClosed" : "tenders.list.noOpen");
+    const empty2 = t(view === "contratos" ? "tenders.list.noContracts" : view === "cerrados" ? "tenders.list.noClosed" : "tenders.list.noOpen");
     return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="connuevo">${t("tenders.list.newTender")}</button>
       ${cardSectionsLegacy.can("administrar") ? `<button type="button" class="btn sec" id="conavisos">${t("tenders.list.warnings")}</button>` : ""}</div>
     ${view === "contratos" ? contractsHint(days) : ""}
-    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml8(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section></div>`;
+    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml11(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
   async function paintTenders(view) {
     if (!document.getElementById("cfgcuerpo")) return;
@@ -10255,7 +11422,7 @@
     }
     const days = setting?.valor?.dias;
     if (Array.isArray(days)) tendersLegacy.setWarningDays(days.map(Number).filter((day) => day > 0));
-    box.innerHTML = pageHtml6(shown(data ?? [], view), view);
+    box.innerHTML = pageHtml7(shown2(data ?? [], view), view);
     const add2 = document.getElementById("connuevo");
     if (add2) add2.onclick = () => {
       void editTender(null);
@@ -10273,7 +11440,7 @@
 
   // src/app/screens/tenders/lots.ts
   var DISCONTINUED = "Descatalogado";
-  var amount2 = (value7) => isPresent(value7) ? String(Number(value7)) : "";
+  var amount2 = (value8) => isPresent(value8) ? String(Number(value8)) : "";
   function priceHtml(price, products2) {
     const name = orFallback(products2.find((product) => product.id === price.producto_id)?.nombre, t("tenders.lot.product"));
     return `<div class="conpf" data-cp="${price.id}"><span>${escapeHtml(name)}</span>
@@ -10299,10 +11466,10 @@
       <div class="conprecios">${(lot.concurso_precios ?? []).map((price) => priceHtml(price, products2)).join("")}
         ${addProductHtml(lot, products2)}</div></div>`;
   }
-  function lotValue(input2) {
-    if (input2.dataset.lf === "estado") return input2.value;
-    if (input2.type === "number") return input2.value === "" ? null : Math.max(0, Number(input2.value));
-    return input2.value.trim() || null;
+  function lotValue(input3) {
+    if (input3.dataset.lf === "estado") return input3.value;
+    if (input3.type === "number") return input3.value === "" ? null : Math.max(0, Number(input3.value));
+    return input3.value.trim() || null;
   }
   async function removeLot(lotId, context) {
     if (!await notices.confirm(t("tenders.lot.removeText"), { titulo: t("tenders.lot.removeTitle"), ok: t("tenders.lot.removeOk"), peligro: true })) return;
@@ -10323,14 +11490,14 @@
     }
     context.reopen();
   }
-  async function savePrice(row3, input2, context) {
-    const key = input2.dataset.cpf ?? "";
-    const value7 = input2.value === "" ? null : Math.max(0, key === "unidades" ? Math.floor(Number(input2.value)) : Number(input2.value));
-    if (key === "precio" && value7 === null) {
+  async function savePrice(row3, input3, context) {
+    const key = input3.dataset.cpf ?? "";
+    const value8 = input3.value === "" ? null : Math.max(0, key === "unidades" ? Math.floor(Number(input3.value)) : Number(input3.value));
+    if (key === "precio" && value8 === null) {
       notices.toast(t("tenders.lot.writePrice"), true);
       return;
     }
-    const { error } = await legacyDb().from("concurso_precios").update({ [key]: value7 }).eq("id", row3.dataset.cp);
+    const { error } = await legacyDb().from("concurso_precios").update({ [key]: value8 }).eq("id", row3.dataset.cp);
     if (error) context.fail(error);
   }
   async function removePrice(row3, context) {
@@ -10343,20 +11510,20 @@
   }
   function bindPrices(box, context) {
     box.querySelectorAll("[data-cp]").forEach((row3) => {
-      row3.querySelectorAll("[data-cpf]").forEach((input2) => {
-        input2.onchange = () => {
-          void savePrice(row3, input2, context);
+      row3.querySelectorAll("[data-cpf]").forEach((input3) => {
+        input3.onchange = () => {
+          void savePrice(row3, input3, context);
         };
       });
-      const remove5 = row3.querySelector("[data-cpq]");
-      if (remove5) remove5.onclick = () => {
+      const remove6 = row3.querySelector("[data-cpq]");
+      if (remove6) remove6.onclick = () => {
         void removePrice(row3, context);
       };
     });
   }
-  async function saveLotField(lotId, input2, context) {
-    const key = input2.dataset.lf ?? "";
-    const { error } = await legacyDb().from("concurso_lotes").update({ [key]: lotValue(input2) }).eq("id", lotId);
+  async function saveLotField(lotId, input3, context) {
+    const key = input3.dataset.lf ?? "";
+    const { error } = await legacyDb().from("concurso_lotes").update({ [key]: lotValue(input3) }).eq("id", lotId);
     if (error) {
       context.fail(error);
       return;
@@ -10366,13 +11533,13 @@
   function bindLots(list, context) {
     list.querySelectorAll("[data-lote]").forEach((box) => {
       const lotId = box.dataset.lote ?? "";
-      box.querySelectorAll("[data-lf]").forEach((input2) => {
-        input2.onchange = () => {
-          void saveLotField(lotId, input2, context);
+      box.querySelectorAll("[data-lf]").forEach((input3) => {
+        input3.onchange = () => {
+          void saveLotField(lotId, input3, context);
         };
       });
-      const remove5 = box.querySelector("[data-lq]");
-      if (remove5) remove5.onclick = () => {
+      const remove6 = box.querySelector("[data-lq]");
+      if (remove6) remove6.onclick = () => {
         void removeLot(lotId, context);
       };
       const add2 = box.querySelector("[data-cpnuevo]");
@@ -10407,7 +11574,7 @@
     const account = escapeHtml(orFallback(tender.cuentas?.nombre, t("tenders.sheet.thisAccount")));
     return `<div class="banda-ok conok">${t("tenders.sheet.pricesApplied", { account, left: leftText(daysLeft(tender)) })}</div>`;
   }
-  function sheetHtml3(tender, lots, products2) {
+  function sheetHtml4(tender, lots, products2) {
     return `<div class="fh"><div><h2>${escapeHtml(tender.titulo)}</h2><div class="sm">${escapeHtml(tenderLine(tender))}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     ${dataHtml2(tender)}
@@ -10422,10 +11589,10 @@
   };
   function bindDates(id) {
     CONTRACT_DATES.forEach(([elementId, column]) => {
-      const input2 = document.getElementById(elementId);
-      if (!input2) return;
-      input2.onchange = async () => {
-        const { error } = await legacyDb().from("concursos").update({ [column]: input2.value || null }).eq("id", id);
+      const input3 = document.getElementById(elementId);
+      if (!input3) return;
+      input3.onchange = async () => {
+        const { error } = await legacyDb().from("concursos").update({ [column]: input3.value || null }).eq("id", id);
         if (error) {
           fail(error);
           return;
@@ -10434,7 +11601,7 @@
       };
     });
   }
-  function bind9(tender, lots, context) {
+  function bind11(tender, lots, context) {
     const id = tender.id;
     const change = document.getElementById("coneditar");
     if (change) change.onclick = () => {
@@ -10472,9 +11639,9 @@
     const products2 = await portalLegacy.products(), lots = sortedLots(tender);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml3(tender, lots, products2);
+    body2.innerHTML = sheetHtml4(tender, lots, products2);
     if (!box.open) box.showModal();
-    bind9(tender, lots, { tenderId: id, products: products2, reopen: () => {
+    bind11(tender, lots, { tenderId: id, products: products2, reopen: () => {
       void showTender(id);
     }, fail });
   }
@@ -10492,8 +11659,8 @@
   // src/app/screens/equipment/editor.ts
   var MAX_REVIEW_MONTHS = 120;
   var field3 = (id) => document.getElementById(id);
-  var value5 = (id) => field3(id)?.value ?? "";
-  var trimmedOrNull = (id) => value5(id).trim() || null;
+  var value6 = (id) => field3(id)?.value ?? "";
+  var trimmedOrNull = (id) => value6(id).trim() || null;
   async function products() {
     const { data } = await legacyDb().from("productos").select("id,nombre,es_equipo,revision_meses").order("nombre");
     return (data ?? []).sort((first, second) => Number(second.es_equipo) - Number(first.es_equipo) || String(first.nombre).localeCompare(String(second.nombre)));
@@ -10519,22 +11686,22 @@
       <button type="button" class="btn sec" data-cerrar>${t("equipment.editor.cancel")}</button><button type="button" class="btn" id="eqok">${t(existing ? "equipment.editor.save" : "equipment.editor.create")}</button></div>`;
   }
   function rowOf(account) {
-    const contract = value5("eqc");
+    const contract = value6("eqc");
     return {
       cuenta_id: account.id,
-      producto_id: value5("eqp"),
+      producto_id: value6("eqp"),
       serie: trimmedOrNull("eqs"),
       ubicacion: trimmedOrNull("equ"),
-      instalado: value5("eqi") || todayIso(),
+      instalado: value6("eqi") || todayIso(),
       contrato: contract,
-      contrato_fin: contract === SALE ? null : value5("eqcf") || null,
-      garantia_hasta: value5("eqg") || null,
-      revision_meses: Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(value5("eqr")) || 0))),
+      contrato_fin: contract === SALE ? null : value6("eqcf") || null,
+      garantia_hasta: value6("eqg") || null,
+      revision_meses: Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(value6("eqr")) || 0))),
       nota: trimmedOrNull("eqn")
     };
   }
   async function save9(existing, account, button) {
-    if (!account || !value5("eqp")) {
+    if (!account || !value6("eqp")) {
       notices.toast(t("equipment.editor.missing"), true);
       return;
     }
@@ -10560,7 +11727,7 @@
     notices.toast(t("equipment.editor.retired"));
     relatedLegacy.openEquipment(existing.id);
   }
-  function bind10(existing, chosen2) {
+  function bind12(existing, chosen2) {
     editorLegacy.pickAccount(field3("eqcta"), chosen2.account, (account) => {
       chosen2.account = account;
     }, t("equipment.editor.wherePlaceholder"));
@@ -10594,22 +11761,22 @@
     if (!body2 || !box) return;
     body2.innerHTML = editorHtml6(item, existing, list);
     if (!box.open) box.showModal();
-    bind10(existing, { account: existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : account ?? null });
+    bind12(existing, { account: existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : account ?? null });
   }
 
   // src/app/screens/equipment/list.ts
   var LIMIT3 = 500;
   var SOON_DAYS2 = 30;
-  var SEARCH_WAIT_MS3 = 300;
+  var SEARCH_WAIT_MS4 = 300;
   var listState = { query: "" };
   var plain = (text2) => String(text2 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  function rowHtml9(item) {
+  function rowHtml12(item) {
     const details = [item.serie ? t("equipment.list.serial", { serial: item.serie }) : "", item.cuentas?.nombre, item.ubicacion, item.contrato].filter(Boolean).join(" · ");
     return `<button type="button" class="item conrow" data-eq="${item.id}"><span class="tx"><b>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</b>
       <span class="sm">${escapeHtml(details)}${t("equipment.list.since", { date: formatShortDate(item.instalado ?? "") })}</span></span>
     <span class="cirest">${reviewPill(item)}${expiryPill(item)}</span></button>`;
   }
-  var block = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml9).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
+  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml12).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
   function upcoming(list) {
     const installed = list.filter((item) => item.estado === STATES.installed), limit = addDays(todayIso(), SOON_DAYS2), warning = warningLimit();
     const reviews = installed.filter((item) => item.proxima_revision && item.proxima_revision <= limit).sort((first, second) => String(first.proxima_revision).localeCompare(String(second.proxima_revision)));
@@ -10619,18 +11786,18 @@
     }).sort((first, second) => String(expiryOf(first)).localeCompare(String(expiryOf(second))));
     return { reviews, expiring };
   }
-  function pageHtml7(list) {
+  function pageHtml8(list) {
     const { reviews, expiring } = upcoming(list), query = plain(listState.query);
     const found = list.filter((item) => !listState.query || plain([item.serie, item.productos?.nombre, item.cuentas?.nombre, item.ubicacion].join(" ")).includes(query));
-    const empty = list.length ? t("equipment.list.noneFound") : t("equipment.list.noneYet");
+    const empty2 = list.length ? t("equipment.list.noneFound") : t("equipment.list.noneYet");
     return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="eqnuevo">${t("equipment.list.newEquipment")}</button></div>
-    ${reviews.length ? block(t("equipment.list.reviewsSoon"), reviews) : ""}
-    ${expiring.length ? block(t("equipment.list.expiring"), expiring) : ""}
+    ${reviews.length ? block2(t("equipment.list.reviewsSoon"), reviews) : ""}
+    ${expiring.length ? block2(t("equipment.list.expiring"), expiring) : ""}
     <section class="card cirbloque"><div class="cicbcab"><h2>${t("equipment.list.all", { count: formatNumber(list.length) })}</h2><input id="eqq" type="search" placeholder="${t("equipment.list.searchPlaceholder")}" value="${escapeHtml(listState.query)}" aria-label="${t("equipment.list.searchLabel")}"></div>
-      ${found.length ? `<div class="lista">${found.map(rowHtml9).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section></div>`;
+      ${found.length ? `<div class="lista">${found.map(rowHtml12).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
-  var searchTimer3;
-  function bind11(box, wasSearching) {
+  var searchTimer4;
+  function bind13(box, wasSearching) {
     const add2 = document.getElementById("eqnuevo");
     if (add2) add2.onclick = () => {
       void editEquipment(null);
@@ -10638,11 +11805,11 @@
     const search3 = document.getElementById("eqq");
     if (search3) {
       search3.oninput = () => {
-        clearTimeout(searchTimer3);
-        searchTimer3 = setTimeout(() => {
+        clearTimeout(searchTimer4);
+        searchTimer4 = setTimeout(() => {
           listState.query = search3.value.trim();
           void paintEquipment();
-        }, SEARCH_WAIT_MS3);
+        }, SEARCH_WAIT_MS4);
       };
       if (wasSearching) {
         search3.focus();
@@ -10673,8 +11840,8 @@
     }
     rememberWarningDays(setting);
     const search3 = document.getElementById("eqq"), wasSearching = Boolean(search3) && document.activeElement === search3;
-    box.innerHTML = pageHtml7(data ?? []);
-    bind11(box, wasSearching);
+    box.innerHTML = pageHtml8(data ?? []);
+    bind13(box, wasSearching);
   }
 
   // src/app/screens/equipment/sheet.ts
@@ -10698,7 +11865,7 @@
     if (!reviews.length) return `<div class="vacio vlinea">${t("equipment.sheet.noReviewsYet")}</div>`;
     return `<div class="lista">${reviews.map((review) => `<div class="fmrow"><span><b>${formatShortDate(review.fecha)}</b> · ${escapeHtml(review.tipo)}${review.nota ? `<span class="sm"> · ${escapeHtml(review.nota)}</span>` : ""}</span><button type="button" class="x" data-rvq="${review.id}" aria-label="${t("equipment.sheet.deleteReviewLabel")}">✕</button></div>`).join("")}</div>`;
   }
-  function sheetHtml4(item, reviews) {
+  function sheetHtml5(item, reviews) {
     const installed = item.estado === STATES.installed;
     return `<div class="fh"><div><h2>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</h2><div class="sm">${item.serie ? t("equipment.sheet.serial", { serial: escapeHtml(item.serie) }) : ""}${escapeHtml(orFallback(item.cuentas?.nombre, ""))}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -10748,7 +11915,7 @@
     }
     relatedLegacy.openEquipment(id);
   }
-  function bind12(id, item) {
+  function bind14(id, item) {
     const body2 = document.getElementById("dbody");
     if (!body2) return;
     const on2 = (elementId, action) => {
@@ -10788,9 +11955,9 @@
     }
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml4(item, reviews ?? []);
+    body2.innerHTML = sheetHtml5(item, reviews ?? []);
     if (!box.open) box.showModal();
-    bind12(id, item);
+    bind14(id, item);
   }
 
   // src/app/screens/surgeries/index.ts
@@ -10802,7 +11969,7 @@
   });
 
   // src/app/screens/surgeries/editor.ts
-  var value6 = (id) => document.getElementById(id)?.value ?? "";
+  var value7 = (id) => document.getElementById(id)?.value ?? "";
   async function team2() {
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     const me = salesTeam.currentUserId(), members = salesTeam.members();
@@ -10829,22 +11996,22 @@
   function payload4(existing, centre, responsible, state) {
     return {
       id: existing?.id ?? null,
-      fecha: value6("cirf"),
-      hora: value6("cirh") || null,
+      fecha: value7("cirf"),
+      hora: value7("cirh") || null,
       hospital_id: centre.id,
       cirujano_id: responsible.id,
-      procedimiento: value6("cirp"),
-      quirofano: value6("cirq"),
-      asistente_id: value6("cira"),
+      procedimiento: value7("cirp"),
+      quirofano: value7("cirq"),
+      asistente_id: value7("cira"),
       origen: document.querySelector("#cirori .on")?.dataset.o,
-      referencia_caso: value6("cirref"),
-      nota: value6("cirn"),
+      referencia_caso: value7("cirref"),
+      nota: value7("cirn"),
       estado: state
     };
   }
   var failureText2 = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
   async function save10(existing, choice, state, button) {
-    if (!value6("cirf") || !choice.hos || !choice.cir) {
+    if (!value7("cirf") || !choice.hos || !choice.cir) {
       notices.toast(t("surgeries.editor.missing"), true);
       return;
     }
@@ -10860,7 +12027,7 @@
     if (state === STATES2.cancelled) document.getElementById("dlg")?.close();
     else relatedLegacy.openSurgery(result.id ?? "");
   }
-  function bind13(existing, choice) {
+  function bind15(existing, choice) {
     editorLegacy.pickAccount(document.getElementById("cirhos"), choice.hos, (account) => {
       choice.hos = account;
     }, t("surgeries.editor.centrePlaceholder"));
@@ -10897,7 +12064,7 @@
       hos: existing ? { id: existing.hospital_id ?? "", nombre: existing.hospital ?? "" } : null,
       cir: existing ? { id: existing.cirujano_id ?? "", nombre: existing.cirujano ?? "", ...existing.especialidad ? { especialidad: existing.especialidad } : {} } : null
     };
-    bind13(existing, choice);
+    bind15(existing, choice);
   }
 
   // src/app/screens/surgeries/list.ts
@@ -10910,7 +12077,7 @@
     <span class="tx"><b>${escapeHtml(orFallback(surgery.procedimiento, t("surgeries.surgery")))}</b><span class="sm">${escapeHtml(people)}${surgery.asistente ? escapeHtml(t("surgeries.list.assists", { name: surgery.asistente })) : ""}</span></span>
     <span class="cirest">${statePill(surgery)}${noOrder}${replenishmentPill(surgery)}</span></button>`;
   }
-  var block2 = (title2, list, empty) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(surgeryRow).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
+  var block3 = (title2, list, empty2) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(surgeryRow).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section>`;
   async function paintSurgeries() {
     if (!document.getElementById("cfgcuerpo")) return;
     const today = todayIso();
@@ -10927,10 +12094,10 @@
     const behind = scheduled.filter((item) => item.fecha < today), upcoming2 = scheduled.filter((item) => item.fecha >= today);
     const done = list.filter((item) => item.estado !== STATES2.scheduled && item.fecha <= today).reverse();
     box.innerHTML = `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="cirnueva">${t("surgeries.list.newSurgery")}</button></div>
-    ${pending.length ? block2(t("surgeries.list.replenishmentsPending"), pending, "") : ""}
-    ${behind.length ? block2(t("surgeries.list.usedNotRecorded"), behind, "") : ""}
-    ${block2(t("surgeries.list.upcoming"), upcoming2, t("surgeries.list.noUpcoming"))}
-    ${block2(t("surgeries.list.doneLast30"), done, t("surgeries.list.noneDone"))}</div>`;
+    ${pending.length ? block3(t("surgeries.list.replenishmentsPending"), pending, "") : ""}
+    ${behind.length ? block3(t("surgeries.list.usedNotRecorded"), behind, "") : ""}
+    ${block3(t("surgeries.list.upcoming"), upcoming2, t("surgeries.list.noUpcoming"))}
+    ${block3(t("surgeries.list.doneLast30"), done, t("surgeries.list.noneDone"))}</div>`;
     const add2 = document.getElementById("cirnueva");
     if (add2) add2.onclick = () => {
       void editSurgery(null);
@@ -10949,8 +12116,8 @@
     return `<div class="cirl" data-ci="${index}"><label><span>${escapeHtml(line.nombre)} <span class="sm">· ${details}</span></span>
       <input type="number" min="0" max="${line.unidades}" step="1" data-cu="${index}" placeholder="0" aria-label="${t("surgeries.use.usedOf", { name: escapeHtml(line.nombre) })}"></label><div class="cirser" data-cs="${index}"></div></div>`;
   }
-  function paintSerials(box, input2) {
-    const key = input2.dataset.cu ?? "", units2 = Math.min(Number(input2.max), Math.max(0, Math.floor(Number(input2.value) || 0)));
+  function paintSerials(box, input3) {
+    const key = input3.dataset.cu ?? "", units2 = Math.min(Number(input3.max), Math.max(0, Math.floor(Number(input3.value) || 0)));
     const place = box.querySelector(`[data-cs="${key}"]`);
     if (!place) return;
     const written = [...place.querySelectorAll("input")].map((field4) => field4.value);
@@ -11000,9 +12167,9 @@
     <div class="cirlin">${stock.map(lineHtml4).join("")}</div>
     <label for="cirref2">${t("surgeries.editor.caseReference", { patient: term("paciente", { article: "del" }) })}</label><input id="cirref2" maxlength="60" value="${escapeHtml(surgery.referencia_caso ?? "")}" placeholder="${t("surgeries.editor.caseReferencePlaceholder")}">
     <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">${t("surgeries.use.save")}</button></div></div></details>`;
-    box.querySelectorAll("[data-cu]").forEach((input2) => {
-      input2.oninput = () => {
-        paintSerials(box, input2);
+    box.querySelectorAll("[data-cu]").forEach((input3) => {
+      input3.oninput = () => {
+        paintSerials(box, input3);
       };
     });
     const save12 = document.getElementById("cirusok");
@@ -11031,7 +12198,7 @@
     return `<h3>${t("surgeries.sheet.used")}</h3><div class="deptab"><div class="deph cirh"><span>${t("surgeries.sheet.product")}</span><span>${t("surgeries.sheet.batch")}</span><span>${t("surgeries.sheet.serial")}</span><span>${t("surgeries.sheet.units")}</span></div>
       ${used.map((line) => `<div class="depf cirh"><span>${escapeHtml(line.producto)}</span><span>${escapeHtml(orFallback(line.numero_lote, t("surgeries.sheet.noBatch")))}</span><span>${escapeHtml(orFallback(line.serie, "—"))}</span><b>${formatNumber(line.unidades)}</b></div>`).join("")}</div>`;
   }
-  function sheetHtml5(detail, notice) {
+  function sheetHtml6(detail, notice) {
     const surgery = detail.cirugia, scheduled = surgery.estado === STATES2.scheduled, replenishment = replenishmentOf(surgery), can = Boolean(detail.puede);
     return `<div class="fh"><div><h2>${escapeHtml(orFallback(surgery.procedimiento, t("surgeries.surgery")))}</h2>
       <div class="sm">${escapeHtml(formatLongDate(surgery.fecha))}${surgery.hora ? ` · ${escapeHtml(timeOf(surgery))}` : ""} · ${escapeHtml(detail.hospital)}${surgery.quirofano ? ` · ${escapeHtml(surgery.quirofano)}` : ""}</div></div>
@@ -11072,7 +12239,7 @@
     notices.toast(t(result.a_tiempo === false ? "surgeries.sheet.replenishedLate" : "surgeries.sheet.replenished"));
     relatedLegacy.openSurgery(id);
   }
-  function bind14(id, detail) {
+  function bind16(id, detail) {
     const surgery = detail.cirugia, on2 = (elementId, action) => {
       const button = document.getElementById(elementId);
       if (button) button.onclick = () => {
@@ -11106,9 +12273,9 @@
     }
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml5(detail, notice);
+    body2.innerHTML = sheetHtml6(detail, notice);
     if (!box.open) box.showModal();
-    bind14(id, detail);
+    bind16(id, detail);
     if (document.getElementById("cirusar")) paintUse(detail.cirugia, detail.stock ?? []);
   }
 
@@ -11136,9 +12303,9 @@
     [6, "cycle.editor.half"],
     [12, "cycle.editor.year"]
   ];
-  var visits = (value7) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value7) || 0)));
+  var visits = (value8) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value8) || 0)));
   function editorHtml8(current) {
-    const months = LENGTHS.map(([value7, key]) => `<option value="${value7}" ${Number(current.meses) === value7 ? "selected" : ""}>${t(key)}</option>`).join("");
+    const months = LENGTHS.map(([value8, key]) => `<option value="${value8}" ${Number(current.meses) === value8 ? "selected" : ""}>${t(key)}</option>`).join("");
     const goals = CLASSES.map((letter) => `<label>${classPill(letter)}<span>${t("cycle.editor.perCycle", words())}</span><input type="number" min="0" max="${MAX_VISITS}" step="1" data-cobj="${letter}" value="${Math.max(0, Number(current[letter]) || 0)}" aria-label="${t("cycle.editor.ofClass", { ...words(), class: letter })}"></label>`).join("");
     return `<div class="fh"><div><h2>${t("cycle.editor.title", words())}</h2>
       <div class="sm">${t("cycle.editor.subtitle", words())}</div></div>
@@ -11149,16 +12316,16 @@
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
   }
   async function save11(body2, box) {
-    const value7 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
-    body2.querySelectorAll("[data-cobj]").forEach((input2) => {
-      value7[input2.dataset.cobj ?? ""] = visits(input2.value);
+    const value8 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
+    body2.querySelectorAll("[data-cobj]").forEach((input3) => {
+      value8[input3.dataset.cobj ?? ""] = visits(input3.value);
     });
-    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value7 });
+    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value8 });
     if (error || result?.ok === false) {
       notices.toast(t("cycle.editor.couldNotSave"), true);
       return;
     }
-    cycleLegacy.setSetting("ciclo_visitas", value7);
+    cycleLegacy.setSetting("ciclo_visitas", value8);
     box.close();
     notices.toast(t("cycle.editor.saved"));
     appLegacy.forgetCache();
@@ -11179,11 +12346,11 @@
   // src/app/screens/cycle/current.ts
   var EMPTY = { clase: "", cuentas: 0, al_dia: 0, hechas: 0, objetivo: 0 };
   function classCard(letter, data) {
-    const summary2 = (data.resumen ?? []).find((item) => item.clase === letter) ?? EMPTY, percent = percentOf(summary2.hechas, summary2.objetivo);
-    const head = summary2.cuentas ? t("cycle.current.upToDate", { done: formatNumber(summary2.al_dia), total: formatNumber(summary2.cuentas) }) : t("cycle.current.noneIn", { class: letter });
+    const summary3 = (data.resumen ?? []).find((item) => item.clase === letter) ?? EMPTY, percent = percentOf(summary3.hechas, summary3.objetivo);
+    const head = summary3.cuentas ? t("cycle.current.upToDate", { done: formatNumber(summary3.al_dia), total: formatNumber(summary3.cuentas) }) : t("cycle.current.noneIn", { class: letter });
     return `<div class="card cicc">${classPill(letter)}<div class="cicct"><b>${head}</b>
       <span class="sm">${t("cycle.current.every", { visits: visitsText(data.objetivo?.[letter] ?? 0), cycle: cycleName(data.meses) })}</span></div>
-      ${summary2.cuentas ? `${progressBar(percent, "div")}<span class="sm">${t("cycle.current.doneOf", { done: formatNumber(summary2.hechas), goal: visitsText(summary2.objetivo), percent })}</span>` : ""}</div>`;
+      ${summary3.cuentas ? `${progressBar(percent, "div")}<span class="sm">${t("cycle.current.doneOf", { done: formatNumber(summary3.hechas), goal: visitsText(summary3.objetivo), percent })}</span>` : ""}</div>`;
   }
   function pendingRow2(item) {
     const place = escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "));
@@ -11194,7 +12361,7 @@
         <span class="cicfal"><b>${t("cycle.current.progress", { done: item.hechas, goal: item.objetivo })}</b><span class="sm">${item.faltan === 1 ? t("cycle.current.oneMissing") : t("cycle.current.missing", { count: item.faltan })}</span></span>
         ${item.proxima_cita ? `<span class="pill p-per">${t("cycle.current.appointmentOn", { date: formatShortDate(item.proxima_cita) })}</span>` : `<button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button>`}</div>`;
   }
-  function headerHtml7(data, selector) {
+  function headerHtml8(data, selector) {
     const left = data.quedan_dias === 1 ? t("cycle.current.oneDayLeft") : t("cycle.current.daysLeft", { count: formatNumber(data.quedan_dias) });
     return `<div class="ciccab"><div><b>${escapeHtml(rangeText(data))}</b>
       <span class="sm">${left} · ${t("cycle.current.allCount", words())}</span></div>
@@ -11208,15 +12375,15 @@
   }
   function missingHtml(data) {
     const filter = cycleState.classFilter, pending = (data.pendientes ?? []).filter((item) => !filter || item.clase === filter), cycle3 = cycleName(data.meses);
-    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value7 = "", label = ""]) => `<button type="button" data-cf="${value7}" class="${value7 === filter ? "on" : ""}" aria-pressed="${String(value7 === filter)}">${label}</button>`).join("");
-    const empty = filter ? t("cycle.current.noneMissingIn", { ...words(), class: filter }) : t("cycle.current.allUpToDate", { cycle: cycle3 });
+    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value8 = "", label = ""]) => `<button type="button" data-cf="${value8}" class="${value8 === filter ? "on" : ""}" aria-pressed="${String(value8 === filter)}">${label}</button>`).join("");
+    const empty2 = filter ? t("cycle.current.noneMissingIn", { ...words(), class: filter }) : t("cycle.current.allUpToDate", { cycle: cycle3 });
     return `<section class="card cicbloque"><div class="cicbcab"><h2>${t("cycle.current.missingTitle", { ...words(), cycle: cycle3 })}</h2>
         <span class="segs" id="cicfil" role="group" aria-label="${t("cycle.classLabel")}">${buttons}</span></div>
-      ${pending.length ? `<div class="lista">${pending.map(pendingRow2).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
+      ${pending.length ? `<div class="lista">${pending.map(pendingRow2).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section>`;
   }
-  function pageHtml8(data, selector) {
+  function pageHtml9(data, selector) {
     const classified = sum((data.resumen ?? []).map((item) => item.cuentas));
-    return `<div class="cicpag">${headerHtml7(data, selector)}
+    return `<div class="cicpag">${headerHtml8(data, selector)}
     ${unclassifiedHtml(data.sin_clase ?? 0)}
     ${classified ? `<div class="cicres">${CLASSES.map((letter) => classCard(letter, data)).join("")}</div>
     ${missingHtml(data)}` : `<div class="vacio">${t("cycle.current.nobodyClassified", words())}</div>`}</div>`;
@@ -11240,7 +12407,7 @@
       goToTab("clasificar");
     };
   }
-  function bind15(box) {
+  function bind17(box) {
     bindOwner(paintCycle);
     const adjust = document.getElementById("cicajustar");
     if (adjust) adjust.onclick = () => {
@@ -11264,14 +12431,14 @@
       box.innerHTML = `<div class="vacio">${t("cycle.current.couldNotLoad")}</div>`;
       return;
     }
-    box.innerHTML = pageHtml8(data, selector);
-    bind15(box);
+    box.innerHTML = pageHtml9(data, selector);
+    bind17(box);
   }
 
   // src/app/screens/cycle/classify.ts
-  var SHOWN2 = 300;
-  var SEARCH_WAIT_MS4 = 350;
-  function rowHtml10(item) {
+  var SHOWN4 = 300;
+  var SEARCH_WAIT_MS5 = 350;
+  function rowHtml13(item) {
     return `<div class="item cicrow" data-cfila="${item.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
           <span class="sm">${escapeHtml([item.especialidad, item.municipio, item.estado_comercial].filter(Boolean).join(" · "))}</span></span>
@@ -11280,17 +12447,17 @@
   }
   function listHtml2(rows) {
     if (!rows.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
-    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml10).join("")}</div></section>${rows.length >= SHOWN2 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
+    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml13).join("")}</div></section>${rows.length >= SHOWN4 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
   }
-  function pageHtml9(rows, selector) {
-    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value7 = "", label = ""]) => `<button type="button" data-cl="${value7}" class="${value7 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value7 === cycleState.classifyFilter)}">${label}</button>`).join("");
+  function pageHtml10(rows, selector) {
+    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value8 = "", label = ""]) => `<button type="button" data-cl="${value8}" class="${value8 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value8 === cycleState.classifyFilter)}">${label}</button>`).join("");
     return `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="${t("cycle.classifyPage.show")}">${filters}</span>
       <span class="cicacc"><input id="cicq" type="search" placeholder="${t("cycle.classifyPage.search", words())}" value="${escapeHtml(cycleState.query)}" aria-label="${t("cycle.classifyPage.searchLabel")}">${selector}</span></div>
     <p class="sm">${t("cycle.classifyPage.hint", words())}</p>
     ${listHtml2(rows)}</div>`;
   }
-  var searchTimer4;
-  function bind16(box, wasSearching) {
+  var searchTimer5;
+  function bind18(box, wasSearching) {
     box.querySelectorAll("#cicclf [data-cl]").forEach((button) => {
       button.onclick = () => {
         cycleState.classifyFilter = button.dataset.cl ?? "sin";
@@ -11300,11 +12467,11 @@
     const search3 = document.getElementById("cicq");
     if (search3) {
       search3.oninput = () => {
-        clearTimeout(searchTimer4);
-        searchTimer4 = setTimeout(() => {
+        clearTimeout(searchTimer5);
+        searchTimer5 = setTimeout(() => {
           cycleState.query = search3.value.trim();
           void paintClassify();
-        }, SEARCH_WAIT_MS4);
+        }, SEARCH_WAIT_MS5);
       };
       if (wasSearching) {
         search3.focus();
@@ -11327,8 +12494,8 @@
       return;
     }
     const search3 = document.getElementById("cicq"), wasSearching = Boolean(search3) && document.activeElement === search3;
-    box.innerHTML = pageHtml9(data ?? [], selector);
-    bind16(box, wasSearching);
+    box.innerHTML = pageHtml10(data ?? [], selector);
+    bind18(box, wasSearching);
   }
   async function classify(button, onCard) {
     const [id = "", letter = ""] = (button.dataset.ccl ?? "").split("|"), group = button.closest(".cicsegs");
@@ -11407,7 +12574,7 @@
 
   // src/app/screens/cycle/team.ts
   var ofText = (done, goal) => t("cycle.current.progress", { done: formatNumber(done), goal: formatNumber(goal) });
-  function rowHtml11(member) {
+  function rowHtml14(member) {
     const classified = member.a + member.b + member.c, percent = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
     const progress = percent === null ? "—" : `<span class="cicbarc">${progressBar(percent)}${ofText(member.hechas, member.objetivo)} · ${percent}%</span>`;
     return `<tr><td><button type="button" class="lnk" data-cde="${member.id}"><b>${escapeHtml(member.nombre)}</b></button><span class="sm"> · ${escapeHtml(member.rol)}</span></td><td>${formatNumber(member.cartera)}</td><td>${formatNumber(member.a)}</td><td>${formatNumber(member.b)}</td><td>${formatNumber(member.c)}</td>
@@ -11418,7 +12585,7 @@
     if (!members.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
     const head = [t("cycle.team.person"), t("cycle.team.portfolio"), "A", "B", "C", t("cycle.team.noClass"), t("cycle.team.upToDate"), t("cycle.team.cycleVisits", words())];
     return `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr>${head.map((title2) => `<th>${title2}</th>`).join("")}</tr></thead>
-      <tbody>${members.map(rowHtml11).join("")}</tbody></table></div></div>
+      <tbody>${members.map(rowHtml14).join("")}</tbody></table></div></div>
       <p class="sm">${t("cycle.team.countHint", words())}</p>`;
   }
   async function paintCycleTeam() {
@@ -11511,6 +12678,8 @@
       agenda: agenda_exports,
       accounts: accounts_exports,
       events: events_exports,
+      commissions: commissions_exports,
+      customers: customers_exports,
       opportunities: opportunities_exports,
       quality: quality_exports,
       manual: manual_exports,
@@ -18146,113 +19315,14 @@ function verCirugia(id, aviso) { return window.delcos.screens.surgeries.showSurg
 
 // v2.113.0 · Ficha · Cuántos clientes tiene (vinculados o que han comprado con ella). Solo números: también lo ve el comercial
 
-function selectorPaciente(el, o) {
-  let valor = o.valor || null;
-  const pinta = () => {
-    if (valor) {
-      el.innerHTML = tarjetaPaciente(valor);
-      el.querySelector('.sx').onclick = () => { valor = null; pinta(); o.alElegir && o.alElegir(null); };
-      return;
-    }
-    el.innerHTML = `<div style="display:flex;gap:8px"><div class="picker" style="flex:1">
-        <input type="search" autocomplete="off" placeholder="Nombre, teléfono o DNI"><div class="gsug hide"></div></div>
-      <button type="button" class="btn sec" data-pnuevo>+ Nuevo</button></div>`;
-    const caja = el.querySelector('.picker'), inp = caja.querySelector('input'), sug = caja.querySelector('.gsug');
-    let t, pide = 0;
-    inp.oninput = () => {
-      const q = inp.value.trim();
-      clearTimeout(t);
-      if (q.length < 2) { sug.classList.add('hide'); caja.classList.remove('buscando'); return; }
-      caja.classList.add('buscando');
-      sug.innerHTML = `<div class="gload"><span class="spin"></span>Buscando ${TT('paciente', 'p', '', 'l', 'l')}…</div>`; sug.classList.remove('hide');
-      const n = ++pide;
-      t = setTimeout(async () => {
-        const { data } = await db.rpc('contactos_lista', { q, lim: 8 });
-        if (n !== pide) return;
-        caja.classList.remove('buscando');
-        const l = data || [];
-        sug.innerHTML = `<div class="gsh">${TT('paciente', 'p', '', 'l', 'C')}</div>` + (l.map((x, i) => `<button type="button" data-pc="${i}"><span class="gic">🧑</span>
-          <span><b>${esc(x.nombre)}</b><span class="sm">${esc([x.telefono || x.movil, x.nif, x.municipio, x.medico].filter(Boolean).join(' · '))}</span></span></button>`).join('')
-          || `<div class="gload">Sin coincidencias. Créalo con «+ Nuevo».</div>`);
-        sug.querySelectorAll('[data-pc]').forEach(b => b.onclick = () => { valor = l[+b.dataset.pc]; pinta(); o.alElegir && o.alElegir(valor); });
-      }, 250);
-    };
-    el.querySelector('[data-pnuevo]').onclick = () => editorContacto({ nombre: inp.value.trim() }, c => {
-      valor = Object.assign({}, c); pinta(); o.alElegir && o.alElegir(valor);
-    });
-  };
-  pinta();
-}
 
-async function cargarPacientes() {
-  vaciarModulos('v-pacientes');
-  $('v-pacientes').innerHTML = `
-    <div class="saludo"><div><h1>Clientes</h1><div class="fecha">${TT('paciente', 'p', '', 'l', 'C')} y empresas que compran: con qué ${TT('medico', 's', '', 'l', 'l')} y su historial</div></div>
-      <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pacnuevo">+ Nuevo cliente</button>' : ''}</div></div>
-    <div id="vcuerpo"></div>`;
-  if ($('pacnuevo')) $('pacnuevo').onclick = () => editorContacto({}, c => fichaPaciente(c.id));
-  pintarPacientes();
-}
 
-async function listaPacientes() {
-  cargando($('paclista'), 'Buscando clientes…');
-  const { data, error } = await db.rpc('clientes_lista', { q: PAC.q || null, p_medico: PAC.medico,
-    lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
-    p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
-  if (error) { $('paccuenta').textContent = 'No se ha podido cargar: ' + error.message; $('paclista').innerHTML = ''; return; }
-  $('paccuenta').innerHTML = `<b>${num(data.total)}</b> ${data.total === 1 ? 'cliente' : 'clientes'}`;
-  const f = data.filas || [];
-  const v = x => x ? esc(x) : '<span class="vac">—</span>';
-  const cpCols = clasVisibles('cliente');
-  $('paclista').innerHTML = f.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
-    <div class="dh"><span>Cliente</span><span>Tipo</span><span>DNI / CIF</span><span>Teléfono</span><span>Email</span><span>Población</span>
-      <span>${TT('medico', 's', '', 'l', 'C')}</span><span>Comercial</span><span class="num">Pedidos</span><span class="num">Uds.</span><span>Último pedido</span>${clasCabeceras(cpCols)}</div>
-    ${f.map(x => `<button class="dr" data-pac="${x.id}">
-      <span><b>${esc(x.nombre)}</b></span>
-      <span><span class="pill ${x.tipo === 'Empresa' ? 'p-emp' : 'p-per'}">${x.tipo === 'Empresa' ? 'Empresa' : `${TT('paciente', 's', '', 'l', 'C')}`}</span></span>
-      <span>${v(x.nif)}</span><span>${v(x.telefono || x.movil)}</span><span class="corta">${v(x.email)}</span><span>${v(x.municipio)}</span>
-      <span class="corta">${x.medico ? esc(x.medico) : '<span class="vac">Sin asignar</span>'}</span><span>${v(x.comercial)}</span>
-      <span class="num">${num(x.pedidos)}</span><span class="num"><b>${num(x.unidades)}</b></span>
-      <span>${x.ultimo_pedido ? fechaCorta(x.ultimo_pedido) : '<span class="vac">—</span>'}</span>${cpCols.map(c => `<span>${v(campoTexto(c, (x.clasificadores || {})[c.clave]))}</span>`).join('')}
-    </button>`).join('')}</div></div>` : '<div class="vacio">Ningún cliente con estos filtros.</div>';
-  // Columnas de campos personalizados: se añaden a la rejilla
-  clasRejilla($('paclista').querySelector('.dgrid.pacs'), cpCols.length);
-  $('paclista').querySelectorAll('[data-pac]').forEach(b => b.onclick = () => fichaPaciente(b.dataset.pac));
-  paginador($('pacpag'), data.total, PAC.pagina, p => { PAC.pagina = p; listaPacientes(); }, () => { PAC.pagina = 0; listaPacientes(); });
-}
 
-async function buscarClientes(q) {
-  const t = q.trim().replace(/[,()]/g, ' ');
-  if (t.length < 2) return [];
-  const { data } = await db.from('contactos').select('id,nombre,telefono,movil,email,nif,cuenta_id')
-    .or(`nombre.ilike.%${t}%,telefono.ilike.%${t}%,movil.ilike.%${t}%,nif.ilike.%${t}%`).limit(8);
-  return data || [];
-}
 
-async function bajaCliente(id, baja) {
-  const { data: r, error } = await db.rpc('baja_cliente', { p_id: id, p_baja: baja });
-  if (error || !r || !r.ok) { toast('No se ha podido: ' + ((error && error.message) || (r && r.error) || ''), true); return false; }
-  try { invalidarCache(); DB_PRE.clear(); } catch (e) {}
-  toast(baja ? `${TT('paciente', 's', '', 'l', 'C')} dado de baja` : `${TT('paciente', 's', '', 'l', 'C')} dado de alta de nuevo`);
-  if (TAB === 'pacientes' && typeof listaPacientes === 'function') listaPacientes();
-  return true;
-}
 
 const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
 
-const tarjetaPaciente = c => `<div class="selcard"><span class="ic">🧑</span>
-  <span class="tx"><b>${esc(c.nombre)}</b>
-    ${[c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).length
-      ? `<span class="sm">📦 ${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', '))}</span>`
-      : '<span class="sm" style="color:var(--warn)">Sin dirección de entrega</span>'}
-    <span class="sm">${esc([c.nif ? (c.tipo === 'Empresa' ? 'CIF ' : 'DNI ') + c.nif : 'Sin DNI', c.email, c.telefono || c.movil].filter(Boolean).join(' · '))}</span>
-    ${c.medico ? `<span class="sm">${TT('medico', 's', '', 'l', 'C')}: ${esc(c.medico)}</span>` : ''}</span>
-  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
-// Los mismos parámetros con que listaPacientes pide la lista
-const pacParams = () => ({ q: PAC.q || null, p_medico: PAC.medico,
-  lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
-  p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
 
 /* ============================================================
    v2.311.0 · Dar de baja y eliminar fichas (decisión de Eric; SQL 159). Al pie de la ficha de un profesional o de un centro:
@@ -18392,36 +19462,6 @@ function editorContactoBase(c, alGuardar, op) {
   $('dlg2').showModal();
 }
 
-async function pintarPacientesBase() {
-  const { data: munis } = await db.rpc('municipios_clientes');
-  $('vcuerpo').innerHTML = `
-    <div class="panel">
-      <div class="filtros">
-        <div><label for="pacq">Buscar</label><input id="pacq" type="search" value="${esc(PAC.q)}" placeholder="Nombre, teléfono, email, DNI o CIF"></div>
-        <div><label for="pactipo">Tipo</label><select id="pactipo">
-          <option value="">Todos</option><option value="Persona" ${PAC.tipo === 'Persona' ? 'selected' : ''}>Personas (${TT('paciente', 'p', '', 'l', 'l')})</option>
-          <option value="Empresa" ${PAC.tipo === 'Empresa' ? 'selected' : ''}>Empresas</option></select></div>
-        <div><label for="pacped">Pedidos</label><select id="pacped">
-          <option value="">Todos</option><option value="con" ${PAC.pedidos === 'con' ? 'selected' : ''}>Con pedidos</option>
-          <option value="sin" ${PAC.pedidos === 'sin' ? 'selected' : ''}>Sin pedidos</option></select></div>
-        <div><label for="pacmun">Población</label><select id="pacmun"><option value="">Todas</option>
-          ${(munis || []).map(x => `<option value="${esc(x.v)}" ${PAC.municipio === x.v ? 'selected' : ''}>${esc(x.v)} (${x.n})</option>`).join('')}</select></div>
-        ${camposFiltros('cliente', PAC.campos = PAC.campos || {}, 'pfcp')}
-        ${PAC.medico ? `<div><label>${TT('medico', 's', '', 'l', 'C')}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${esc(PAC.medicoNombre)} ✕</button></div></div>` : ''}
-      </div>
-      <div class="cuenta" id="paccuenta">Cargando…</div>
-      <div id="paclista"></div>
-      <div id="pacpag"></div>
-    </div>`;
-  let tq;
-  $('pacq').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { PAC.q = e.target.value.trim(); PAC.pagina = 0; listaPacientes(); }, 300); };
-  $('pactipo').onchange = e => { PAC.tipo = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  $('pacped').onchange = e => { PAC.pedidos = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  $('pacmun').onchange = e => { PAC.municipio = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  camposFiltrosActivar($('vcuerpo'), PAC.campos, () => { PAC.pagina = 0; listaPacientes(); });
-  if ($('pacmedx')) $('pacmedx').onclick = () => { PAC.medico = null; PAC.medicoNombre = ''; PAC.pagina = 0; pintarPacientes(); };
-  listaPacientes();
-}
 
 /* v2.225.0 · Clientes sin duplicados (aviso de Eric: no se puede dar de alta otra vez a un cliente con el mismo NIF/CIF, correo o móvil).
    - La base no lo deja (disparador contactos_sin_duplicados, SQL 134); aquí se avisa mientras se escribe: clientes_coincidencias con lo que
@@ -18475,88 +19515,14 @@ function editorContacto(c, alGuardar, op) {
   return r;
 }
 
-async function pintarPacientes(...a) {
-  const p = pacParams();
-  const [m, l] = await Promise.all([db.rpc('municipios_clientes'), db.rpc('clientes_lista', p)]);
-  DB_PRE.set('municipios_clientes{}', m); DB_PRE.set('clientes_lista' + JSON.stringify(p), l);
-  return pintarPacientesBase.apply(this, a);
-}
-
-async function fichaPacienteBase(id) {
-  FICHA_PAC = id; FICHA_ID = null;
-  $('fbody').innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
-  if (!$('ficha').open) $('ficha').showModal();
-  const { data } = await RPC_ORIG('contacto_detalle', { p_id: id });
-  if (FICHA_PAC !== id) return;
-  if (!data || !data.contacto) { $('fbody').innerHTML = `<div class="vacio">No se ha encontrado ${TT('paciente', 's', 'el', 'l', 'l')}.</div>`; return; }
-  const c = data.contacto, m = data.medico, ped = data.pedidos || [];
-  const validos = ped.filter(p => p.estado !== 'Anulado' && p.estado !== 'Borrador');
-  const permitido = puedeVentas();
-
-  $('fbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(c.nombre)}</h2><div class="sm">${TT('paciente', 's', '', 'l', 'C')}${c.nif ? ' · NIF ' + esc(c.nif) : ''}</div></div>
-      <button class="x" id="fpx" aria-label="Cerrar">✕</button></div>
-    ${permitido ? `<div class="acts"><button class="btn" id="fpnped">+ Nuevo pedido</button>
-      <button class="btn sec" id="fpedit">Editar datos</button></div>` : ''}
-    <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,minmax(0,1fr))">
-      <div class="kpi"><b>${num(validos.length)}</b><span>pedidos</span></div>
-      <div class="kpi"><b>${num(data.total_unidades)}</b><span>unidades</span></div>
-      <div class="kpi"><b>${eurI(validos.reduce((n, p) => n + (+p.total || 0), 0))}</b><span>con IVA</span></div></div>
-    <div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')} que lo trata</h3>
-      ${m ? `<div><button class="kcfg" data-fpmed="${m.id}" style="font-size:15px">${esc(m.nombre)}</button>
-          <span class="sm"> · código ${esc(m.codigo)}${m.especialidad ? ' · ' + esc(m.especialidad) : ''}</span></div>
-        <div class="sm">${m.comercial ? 'Comercial: ' + esc(m.comercial) : 'Sin comercial asignado'}</div>`
-        : `<div class="sm">Sin ${TT('medico', 's', '', 'l', 'l', 'asignado')}. Las unidades de ${TT('paciente', 's', 'este', 'l', 'l')} no se atribuyen a nadie hasta que lo asignes.</div>`}
-      ${permitido ? `<label>${m ? `Cambiar de ${TT('medico', 's', '', 'l', 'l')}` : `Asignar ${TT('medico', 's', '', 'l', 'l')}`}</label><div id="fpsel"></div>
-        ${m ? `<div class="acts"><button class="btn sec" id="fpmedquitar">Quitar ${TT('medico', 's', '', 'l', 'l')}</button></div>` : ''}` : ''}
-    </div>
-    <div class="blk"><h3>Contacto</h3>
-      ${[['Teléfono', c.telefono], ['Móvil', c.movil], ['Email', c.email],
-         ['Dirección', [c.direccion, c.cp, c.municipio, c.provincia].filter(Boolean).join(', ')], ['Nota', c.nota]]
-        .filter(x => x[1]).map(([k, v]) => `<div class="sm"><b style="color:var(--ink)">${k}:</b> ${esc(v)}</div>`).join('')
-        || '<div class="sm">Sin datos de contacto.</div>'}</div>
-    <div class="blk"><h3>Pedidos</h3>
-      ${ped.map(p => `<button class="item" data-fpped="${p.id}" style="padding:8px 4px">
-        <span class="tx"><b>${fechaCorta(p.fecha)} · ${esc(p.productos || 'Sin productos')}</b>
-          <span class="sm">${num(p.unidades)} uds. · ${eurI(p.total)} con IVA${p.medico ? ' · ' + esc(p.medico) : ''}</span></span>
-        ${pillEstado(p.estado)}</button>`).join('') || '<div class="sm">Todavía no tiene pedidos.</div>'}</div>`;
-
-  $('fpx').onclick = () => { FICHA_PAC = null; $('ficha').close(); };
-  $('fbody').querySelectorAll('[data-fpped]').forEach(b => b.onclick = () => verPedido(b.dataset.fpped));
-  const bm = $('fbody').querySelector('[data-fpmed]');
-  if (bm) bm.onclick = () => { FICHA_PAC = null; abrirFicha(bm.dataset.fpmed); };
-  if ($('fpnped')) $('fpnped').onclick = () => nuevaVenta({ contacto: Object.assign({}, c, m ? { medico: m.nombre, medico_codigo: m.codigo } : {}), medico: m ? { id: m.id, nombre: m.nombre } : null });
-  if ($('fpedit')) $('fpedit').onclick = () => editorContacto(c, () => fichaPaciente(id));
-  const asignar = async medicoId => {
-    const { data: r, error } = await db.rpc('asignar_cuenta_cliente', { p_contacto: id, p_medico: medicoId });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    toast(medicoId ? `${TT('medico', 's', '', 'l', 'C', 'asignado')}` : `${TT('medico', 's', '', 'l', 'C', 'quitado')}`); fichaPaciente(id);
-    if (TAB === 'pacientes') listaPacientes();
-  };
-  if ($('fpmedquitar')) $('fpmedquitar').onclick = () => asignar(null);
-  if ($('fpsel')) selectorMedico($('fpsel'), { valor: null, placeholder: `Busca ${TT('medico', 's', 'el', 'l', 'l')} por nombre, centro o municipio`, alElegir: x => { if (x) asignar(x.id); } });
-}
-
-async function fichaPacienteBase2(id, ...a) { const r = await fichaPacienteBase.call(this, id, ...a); bloqueCampos('contactos', id, $('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild)); return r; }
-
-/* ============================================================
-   v2.313.0 · Dar de baja y eliminar clientes (decisión de Eric; SQL 160). Al pie de la ficha del cliente: «Dar de baja»
-   (deja de salir en Clientes y al buscar un cliente; conserva pedidos y facturas; se deshace desde Clientes → «⋯» →
-   «Clientes dados de baja») y «Eliminar» (administración o nivel completo en ventas; solo sin pedidos ni facturas).
-   ============================================================ */
-async function fichaPaciente(id, ...a) {
-  const r = await fichaPacienteBase2.call(this, id, ...a);
-  try {
-    const fb = $('fbody');
-    if (!fb || FICHA_PAC !== id || $('cbajablk') || !puedeVentas()) return r;
-    const { data: c } = await db.from('contactos').select('archivado_en').eq('id', id).maybeSingle();
-    if (!c || FICHA_PAC !== id) return r;
-    fb.insertAdjacentHTML('beforeend', `<div class="blk fbajablk" id="cbajablk"><div class="acts">
-      ${c.archivado_en ? `<button type="button" class="btn sec chico" data-calta="${id}">Volver a dar de alta</button>` : `<button type="button" class="btn sec chico" data-cbaja="${id}">Dar de baja</button>`}
-      ${nivelDe2('V') >= 3 ? `<button type="button" class="btn sec dang chico" data-celim="${id}">Eliminar ${esc(TT('paciente', 's', 'el', 'l', 'l'))}</button>` : ''}</div></div>`);
-  } catch (e) {}
-  return r;
-}
+// Clientes está en src/app/screens/customers (v2.411.0). Estos nombres se quedan: el menú, la barra de la lista, los filtros de
+// campos, Pedidos, Oportunidades, legado 137, «‹ Volver» y las pruebas los usan.
+function cargarPacientes() { return window.delcos.screens.customers.loadCustomers(); }
+function listaPacientes() { return window.delcos.screens.customers.listCustomers(); }
+function fichaPaciente(id) { return window.delcos.screens.customers.showCustomer(id); }
+function selectorPaciente(el, o) { return window.delcos.screens.customers.pickCustomer(el, o || {}); }
+function bajaCliente(id, baja) { return window.delcos.screens.customers.setCustomerOff(id, baja); }
+function buscarClientes(q) { return window.delcos.screens.customers.searchCustomers(q); }
 // pantallas/comisiones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -18602,108 +19568,10 @@ async function usuarioComisionYZona(id) {
   }
 }
 
-async function tarjetaComision() {
-  const caja = $('c-comision');
-  if (!caja) return;
-  if (PERFIL.comision_ver === 'nada' || !PERFIL.comision_ver) { caja.innerHTML = ''; return; }
 
-  const { data, error } = await db.rpc('comision_periodo', {});
-  if (error || !data || data.ok === false) { caja.innerHTML = ''; return; }
-  if (data.sin_esquema && !data.unidades) { caja.innerHTML = ''; return; }
 
-  const verImporte = PERFIL.comision_ver === 'importe' && !data.sin_esquema;
-  const sig = data.siguiente;
-  caja.innerHTML = `<h2>Tu ${verImporte ? 'comisión' : 'actividad'} de ${periodoTxt(data.periodo)}</h2>
-    <div class="kpis" style="padding:10px 16px 4px;margin:0">
-      <div class="kpi"><b>${num(data.unidades)}</b><span>unidades atribuidas</span></div>
-      ${verImporte ? `<div class="kpi ok"><b>${eur(data.importe)}</b><span>comisión acumulada</span></div>` : ''}
-      ${verImporte && data.valor_unidad ? `<div class="kpi"><b>${eur(data.valor_unidad)}</b><span>por unidad en tu tramo</span></div>` : ''}
-    </div>
-    ${sig ? `<p class="sm" style="padding:0 16px 14px">
-      Te faltan <b>${num(sig.faltan)}</b> unidades para el siguiente tramo${verImporte ? `, que pasaría a <b>${eur(sig.valor)}</b> por unidad, aplicado a todo el periodo` : ''}.</p>`
-      : `<p class="sm" style="padding:0 16px 14px">${data.sin_esquema ? 'No tienes comisión asignada: estas unidades solo cuentan para las métricas.' : 'Estás en el tramo más alto.'}</p>`}`;
-}
 
-/* pintarComisiones: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
-async function pintarComisiones() {
-  await pintarComisionesBase();
-  await pintarComisionesPaso1();
-  await pintarComisionesPaso2();
-}
 
-async function pintarComisionesPaso1() {
-  const c = $('admcuerpo'); if (!c || $('asigesq')) return;
-  const { data } = await RPC_ORIG('asignaciones_esquema_lista', {});
-  const l = data || [];
-  c.insertAdjacentHTML('afterbegin', `<div class="card" id="asigesq" style="padding:16px 18px">
-    <div class="manh"><h2 style="padding:0">Quién cobra con cada esquema</h2><button class="btn" id="asignueva">+ Asignar esquema</button></div>
-    <p class="sm">Al asignar eliges desde cuándo se aplica: a partir de hoy, a todo el histórico de esa persona o desde una fecha concreta, pasada o futura. Cada liquidación usa el esquema vigente en ese mes.</p>
-    ${l.length ? `<div class="dgrid-wrap"><div class="dgrid asigs"><div class="dh"><span>Persona</span><span>Esquema</span><span>Desde</span><span>Hasta</span><span>Estado</span></div>
-      ${l.map(x => `<div class="dr" style="cursor:default"><span><b>${esc(x.persona)}</b><span class="sm">${esc(x.rol)}</span></span><span>${esc(x.esquema)}</span>
-        <span>${x.desde <= '2000-01-01' ? 'Todo el histórico' : fechaCorta(x.desde)}</span><span>${x.hasta ? fechaCorta(x.hasta) : '—'}</span>
-        <span><span class="pill ${x.vigente ? 'p-est' : x.desde > hoyISO() ? 'p-per' : 'p-anu'}">${x.vigente ? 'Vigente' : x.desde > hoyISO() ? 'Programado' : 'Terminado'}</span></span></div>`).join('')}</div></div>`
-      : '<div class="vacio">Nadie tiene todavía un esquema asignado.</div>'}</div>`);
-  $('asignueva').onclick = async () => {
-    if (!COMS.length) await cargarComerciales();
-    if (!ESQUEMAS.length) { const { data: e } = await db.rpc('esquemas_lista'); ESQUEMAS = e || []; }
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Asignar esquema de comisión</h2><div class="sm">Sustituye al que tuviera esa persona desde la fecha elegida</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="g2"><div><label for="aep">Persona</label><select id="aep">${COMS.map(u => `<option value="${u.id}">${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('')}</select></div>
-        <div><label for="aee">Esquema</label><select id="aee"><option value="">Sin comisión</option>${ESQUEMAS.map(e => `<option value="${e.id}">${esc(e.nombre)}</option>`).join('')}</select></div></div>
-      <label>Se aplica</label>
-      <div class="opciones" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-        <label class="opt"><input type="radio" name="aem" value="hoy" checked> A partir de hoy</label>
-        <label class="opt"><input type="radio" name="aem" value="todo"> A todo el histórico</label>
-        <label class="opt"><input type="radio" name="aem" value="fecha"> Desde una fecha</label></div>
-      <div id="aefw" class="hide"><label for="aef">Fecha (puede ser pasada o futura)</label><input id="aef" type="date" value="${hoyISO()}"></div>
-      <div class="avisoh" id="aeinfo"><span>Las ventas desde hoy se liquidarán con este esquema.</span></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="aeok">Asignar</button></div>`;
-    $('dlg').showModal();
-    const info = () => {
-      const m = $('dbody').querySelector('[name=aem]:checked').value;
-      $('aefw').classList.toggle('hide', m !== 'fecha');
-      $('aeinfo').querySelector('span').textContent = m === 'todo' ? 'Todas sus ventas, también las pasadas, se liquidarán con este esquema. Las liquidaciones ya cerradas no cambian.'
-        : m === 'fecha' ? ($('aef').value < hoyISO() ? 'Las ventas desde esa fecha (pasada) se recalcularán con este esquema en las liquidaciones abiertas.' : 'Se aplicará automáticamente a partir de esa fecha; hasta entonces sigue el esquema actual.')
-        : 'Las ventas desde hoy se liquidarán con este esquema.';
-    };
-    $('dbody').querySelectorAll('[name=aem]').forEach(r => r.onchange = info); $('aef').onchange = info;
-    $('aeok').onclick = async () => {
-      const m = $('dbody').querySelector('[name=aem]:checked').value;
-      const desde = m === 'todo' ? '2000-01-01' : m === 'fecha' ? $('aef').value : hoyISO();
-      const { data: r, error } = await db.rpc('asignar_esquema', { p_usuario: $('aep').value, p_esquema: $('aee').value || null, p_quitar: !$('aee').value, p_desde: desde });
-      if (error || (r && r.ok === false)) { toast('No se ha podido asignar', true); return; }
-      $('dlg').close(); toast('Esquema asignado'); ESQUEMAS = []; pintarComisiones();
-    };
-  };
-}
-
-async function pintarComisionesPaso2() {
-  const a = $('asigesq'); if (a) a.remove();      // ya no va fuera: se gestiona dentro de cada esquema
-}
-
-async function calcularLiquidaciones() {
-  const per = $('liqper') && $('liqper').value; if (!per) return;
-  const ini = per + '-01', fin = liqMesFin(per), esq = new Set(ESQUEMAS.map(e => e.id));
-  const [{ data: asg, error }, { data: ya }] = await Promise.all([
-    db.from('asignaciones_comision').select('usuario_id,esquema_id,desde,hasta'),
-    RPC_ORIG('liquidaciones_lista', { p_periodo: per })]);
-  if (error) { toast('No se han podido leer las asignaciones: ' + error.message, true); return; }
-  const cerradas = new Set((ya || []).filter(l => l.estado !== 'Borrador').map(l => l.usuario_id));
-  const ids = [...new Set((asg || []).filter(a => esq.has(a.esquema_id) && (!a.desde || a.desde <= fin) && (!a.hasta || a.hasta >= ini)).map(a => a.usuario_id))];
-  if (!ids.length) { toast('Nadie tuvo un esquema de comisión en ' + periodoTxt(per), true); return; }
-  const calc = ids.filter(u => !cerradas.has(u));
-  if (!calc.length) { toast(`Las liquidaciones de ${periodoTxt(per)} ya están aprobadas o pagadas: no se recalculan`); return; }
-  const b = $('liqcalc'); if (b) b.disabled = true;
-  let mal = 0;
-  for (const u of calc) { const { data: r, error: e } = await db.rpc('liquidar', { p_usuario: u, p_periodo: per, p_estado: 'Borrador' }); if (e || (r && r.ok === false)) mal++; }
-  if (b) b.disabled = false;
-  const n = calc.length - mal;
-  toast(`${n === 1 ? 'Calculada 1 liquidación' : 'Calculadas ' + n + ' liquidaciones'} de ${periodoTxt(per)}` +
-    (cerradas.size ? ` · ${cerradas.size === 1 ? '1 ya aprobada o pagada se deja' : cerradas.size + ' ya aprobadas o pagadas se dejan'} como estaba${cerradas.size === 1 ? '' : 'n'}` : '') +
-    (mal ? ` · ${mal} sin calcular` : ''), !!mal);
-  LIQ_FIL.p = per;
-  pintarComisiones();
-}
 
 async function panelComisionUsuario(u) {
   if (!ESQUEMAS.length) { const { data } = await db.rpc('esquemas_lista'); ESQUEMAS = data || []; }
@@ -18725,132 +19593,8 @@ async function panelComisionUsuario(u) {
     </div>`;
 }
 
-async function personasEsquema(id) {
-  const ref = $('eguardaresq') && $('eguardaresq').closest('.acts');
-  if (!ref || $('esqpers')) return;
-  if (!id) { ref.insertAdjacentHTML('beforebegin', '<div class="blk" id="esqpers"><h3>Quién cobra con este esquema</h3><p class="sm">Guarda el esquema y después podrás asignarlo a las personas.</p></div>'); return; }
-  ref.insertAdjacentHTML('beforebegin', '<div class="blk" id="esqpers"><h3>Quién cobra con este esquema</h3><div id="esqlista" class="sm">Cargando…</div></div>');
-  if (!COMS.length) await cargarComerciales();
-  const pinta = async () => {
-    const { data } = await db.rpc('asignaciones_esquema_lista');
-    const l = (data || []).filter(x => x.esquema_id === id), hoy = hoyISO(), admin = puede('administrar');
-    if (!$('esqlista')) return;
-    $('esqlista').innerHTML = `${l.length ? `<div class="esqfilas">${l.map(x => {
-      const est = x.vigente ? ['Vigente', 'p-est'] : x.desde > hoy ? ['Programado', 'p-per'] : ['Terminado', 'p-anu'];
-      return `<div class="esqfila"><span class="candado" title="Guardado: no se puede modificar">🔒</span>
-        <span class="ef1"><b>${esc(x.persona)}</b><span class="sm">${x.desde <= '2000-01-01' ? 'Todo el histórico' : 'Desde ' + fechaCorta(x.desde)}${x.hasta ? ' hasta ' + fechaCorta(x.hasta) : ''}</span></span>
-        <span class="pill ${est[1]}">${est[0]}</span>
-        ${admin && x.vigente ? `<button type="button" class="kcfg" data-efin="${x.usuario_id}">Terminar hoy</button>` : ''}
-        ${admin && x.desde > hoy ? `<button type="button" class="kcfg" data-equi="${x.usuario_id}" data-edesde="${x.desde}">Anular</button>` : ''}</div>`;
-    }).join('')}</div>` : '<p class="sm">Nadie cobra todavía con este esquema.</p>'}
-    ${admin ? `<div class="esqadd"><select id="eap"><option value="">Añadir persona…</option>${COMS.filter(u => rolPuede(u.rol, 'cobrar_comision')).map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
-      <select id="eadm"><option value="hoy">desde hoy</option><option value="todo">todo su histórico</option><option value="fecha">desde una fecha…</option></select>
-      <span id="eadfw" class="hide"><input id="eadf" type="date" value="${hoy}"></span>
-      <button type="button" class="btn sec" id="eaok">Asignar</button></div>
-      <p class="sm" style="margin-top:6px">Una vez guardada, la asignación queda bloqueada 🔒. Para cambiarla, asigna otro esquema: el anterior termina el día antes.</p>` : ''}`;
-    if (!admin) return;
-    $('eadm').onchange = () => $('eadfw').classList.toggle('hide', $('eadm').value !== 'fecha');
-    $('eaok').onclick = async () => {
-      if (!$('eap').value) { toast('Elige la persona', true); return; }
-      const m = $('eadm').value, desde = m === 'todo' ? '2000-01-01' : m === 'fecha' ? $('eadf').value : hoy;
-      const quien = COMS.find(u => u.id === $('eap').value).nombre;
-      if (!await preguntar(`${quien} cobrará con este esquema ${m === 'todo' ? 'en todo su histórico' : 'desde el ' + fechaCorta(desde)}. Si tenía otro, termina el día antes. Una vez guardado no se puede modificar.`, { titulo: '¿Asignar el esquema?', ok: 'Asignar' })) return;
-      const { data: r, error } = await db.rpc('asignar_esquema', { p_usuario: $('eap').value, p_esquema: id, p_quitar: false, p_desde: desde });
-      if (error || (r && r.ok === false)) { toast('No se ha podido asignar', true); return; }
-      toast('Asignado a ' + quien); ESQUEMAS = []; pinta();
-    };
-    $('esqlista').querySelectorAll('[data-efin]').forEach(b => b.onclick = async () => {
-      if (!await preguntar('Dejará de cobrar con este esquema a partir de mañana.', { titulo: '¿Terminar hoy?', ok: 'Terminar', peligro: true })) return;
-      const d = new Date(); d.setDate(d.getDate() + 1);
-      await db.rpc('asignar_esquema', { p_usuario: b.dataset.efin, p_esquema: null, p_quitar: true, p_desde: fechaLocal(d) }); pinta();
-    });
-    $('esqlista').querySelectorAll('[data-equi]').forEach(b => b.onclick = async () => {
-      if (!await preguntar('Se anula la asignación programada.', { titulo: '¿Anular?', ok: 'Anular', peligro: true })) return;
-      await db.rpc('asignar_esquema', { p_usuario: b.dataset.equi, p_esquema: null, p_quitar: true, p_desde: b.dataset.edesde }); pinta();
-    });
-  };
-  pinta();
-}
 
-function liqMesFin(per) { const [a, m] = per.split('-').map(Number); return `${per}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`; }
 
-function editorEsquema(id) {
-  const e = id ? ESQUEMAS.find(x => x.id === id) : null;
-  let tramos = e && e.tramos && e.tramos.length ? e.tramos.slice() : [{ desde_u: 0, hasta_u: 100, valor: 1 }];
-  let calc = e ? e.calculo : 'tramo_alcanzado';
-  let fijoVal = e && e.valor_fijo ? e.valor_fijo : 1;
-
-  const pinta = () => {
-    const fijo = calc === 'fijo';
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${id ? 'Editar esquema' : 'Nuevo esquema'}</h2>
-        <div class="sm">Define cómo se calcula la comisión y a quién se aplica</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <label for="enom">Nombre</label><input id="enom" value="${esc(e ? e.nombre : '')}" placeholder="p. ej. Comercial zona norte">
-      <div class="g2">
-        <div><label for="eatr">Se cuenta por</label><select id="eatr">
-          <option value="comercial" ${e && e.atribucion === 'comercial' ? 'selected' : ''}>Cartera del comercial</option>
-          <option value="cierra" ${e && e.atribucion === 'cierra' ? 'selected' : ''}>Ventas que cierra (televenta)</option></select></div>
-        <div><label for="ecalc">Cálculo</label><select id="ecalc">
-          <option value="tramo_alcanzado" ${calc === 'tramo_alcanzado' ? 'selected' : ''}>Tramo alcanzado a todo el volumen</option>
-          <option value="marginal" ${calc === 'marginal' ? 'selected' : ''}>Por tramos (cada unidad a su tramo)</option>
-          <option value="fijo" ${calc === 'fijo' ? 'selected' : ''}>Importe fijo por unidad</option></select></div>
-      </div>
-      <div class="g2">
-        <div><label for="ecan">Canal</label><select id="ecan">
-          <option value="">Todos</option>
-          <option value="paciente" ${e && e.canal === 'paciente' ? 'selected' : ''}>Solo venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
-          <option value="centro" ${e && e.canal === 'centro' ? 'selected' : ''}>Solo venta a centro</option></select></div>
-        ${fijo ? `<div><label for="efijo">Euros por unidad</label><input id="efijo" type="number" step="0.01" min="0" value="${fijoVal}"></div>` : '<div></div>'}
-      </div>
-      ${fijo ? '' : `<label>Tramos <span class="sm">· deja vacío el "hasta" del último</span></label>
-      <div class="trcab" aria-hidden="true"><span>Desde (uds.)</span><span>Hasta (uds.)</span><span>€ por unidad</span></div>
-      <div id="etramos">${tramos.map((t, i) => `<div class="g2" style="margin-bottom:8px">
-        <input data-td="${i}" type="number" min="0" value="${t.desde_u}" placeholder="Desde">
-        <input data-th="${i}" type="number" min="0" value="${t.hasta_u == null ? '' : t.hasta_u}" placeholder="Hasta">
-        <input data-tv="${i}" type="number" step="0.01" min="0" value="${t.valor}" placeholder="€/unidad">
-        ${tramos.length > 1 ? `<button type="button" class="btn sec" data-tx="${i}">✕</button>` : ''}</div>`).join('')}</div>
-      <div class="acts"><button type="button" class="btn sec" id="etmas">+ Añadir tramo</button></div>`}
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn" id="eguardaresq">${id ? 'Guardar' : 'Crear esquema'}</button></div>`;
-
-    const leer = () => {
-      if (fijo) return;
-      tramos = [...$('etramos').children].map((d, i) => ({
-        desde_u: +d.querySelector(`[data-td="${i}"]`).value || 0,
-        hasta_u: d.querySelector(`[data-th="${i}"]`).value === '' ? null : +d.querySelector(`[data-th="${i}"]`).value,
-        valor: +d.querySelector(`[data-tv="${i}"]`).value || 0
-      }));
-    };
-    $('ecalc').onchange = () => { leer(); if ($('efijo')) fijoVal = $('efijo').value; calc = $('ecalc').value; pinta(); };
-    if ($('etmas')) $('etmas').onclick = () => {
-      leer();
-      const ult = tramos[tramos.length - 1];
-      tramos.push({ desde_u: (ult.hasta_u || ult.desde_u) + 1, hasta_u: null, valor: ult.valor });
-      pinta();
-    };
-    $('dbody').querySelectorAll('[data-tx]').forEach(b => b.onclick = () => { leer(); tramos.splice(+b.dataset.tx, 1); pinta(); });
-    personasEsquema(id);
-
-    $('eguardaresq').onclick = async ev => {
-      leer();
-      if (!$('enom').value.trim()) { toast('Ponle un nombre', true); return; }
-      ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-      const { data: r, error } = await db.rpc('guardar_esquema', { p: {
-        id: id || null, nombre: $('enom').value.trim(), atribucion: $('eatr').value,
-        calculo: calc, canal: $('ecan').value || null,
-        valor_fijo: fijo ? $('efijo').value : null,
-        ...(fijo ? {} : { tramos })
-      }});
-      ev.target.disabled = false; ev.target.textContent = id ? 'Guardar' : 'Crear esquema';
-      if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-      $('dlg').close(); toast('Esquema guardado'); pintarComisiones();
-    };
-  };
-  pinta();
-  $('dlg').showModal();
-}
 
 async function cargarComerciales() {
   const { data } = await db.from('perfiles').select('id,nombre,rol,activo').order('nombre');
@@ -18864,16 +19608,6 @@ let ESQUEMAS = [];
 
 let COMS = [];
 
-/* ============================================================
-   v2.263.0 · Liquidaciones por persona (punto 4 del plan del 11/10/2026; auditoría del manual).
-   - «Calcular el periodo» buscaba a quién liquidar por el NOMBRE (dos personas con el mismo nombre se confundían) y solo a quien
-     tenía el esquema abierto hoy. Ahora va por la persona (su id) y liquida a todos los que tuvieron un esquema vigente algún día
-     de ese mes (también a quien dejó de cobrar a mitad de mes).
-   - Además, volver a calcular un mes devolvía a «Borrador» las liquidaciones ya aprobadas o pagadas (y las descongelaba). Ahora
-     solo se recalculan las que siguen en borrador; las aprobadas y pagadas no se tocan.
-   - La lista de liquidaciones se puede ver por persona y por mes, con el total de lo que se ve.
-   ============================================================ */
-let LIQ_FIL = { u: '', p: '' };
 
 // Editar usuario · La comisión se muestra como información: se asigna dentro de cada esquema
 async function usuarioComisionInfoBase(id) {
@@ -18885,50 +19619,6 @@ async function usuarioComisionInfoBase(id) {
   g.insertAdjacentHTML('afterend', `<div class="avisoh" id="ucominfo"><span>Comisión: <b>${esc(txt)}</b>. Se asigna dentro de cada esquema en Configuración → Equipo → Comisiones.</span></div>`);
 }
 
-async function pintarComisionesBaseBase() {
-  ($('admcuerpo') || document.createElement('div')).innerHTML = '<div class="skel"></div><div class="skel" style="width:60%"></div>';
-  const [{ data: esq }, { data: liq }] = await Promise.all([
-    db.rpc('esquemas_lista'), db.rpc('liquidaciones_lista', { p_periodo: null })
-  ]);
-  ESQUEMAS = esq || [];
-
-  ($('admcuerpo') || document.createElement('div')).innerHTML = `
-    <h2>Esquemas de comisión<span class="n">${ESQUEMAS.length}</span></h2>
-    <p class="sm">El tramo alcanzado se aplica a todas las unidades del periodo. Televenta suele ir con importe fijo por unidad.</p>
-    <div class="lista">${ESQUEMAS.map(e => `<div class="item" style="cursor:default">
-      <span class="ic">${e.calculo === 'fijo' ? '€' : '▤'}</span>
-      <span class="tx"><b>${esc(e.nombre)}</b><span class="sm">
-        ${e.atribucion === 'cierra' ? 'Por venta cerrada' : 'Por cartera'} ·
-        ${e.calculo === 'fijo' ? eur(e.valor_fijo) + ' por unidad'
-          : (e.tramos || []).map(t => `${t.desde_u}${t.hasta_u ? '-' + t.hasta_u : '+'}: ${eur(t.valor)}`).join(' · ') || 'sin tramos'}
-        ${(e.personas || []).length ? ' · ' + e.personas.map(esc).join(', ') : ' · sin asignar'}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${e.id}">Editar</button></span></div>`).join('')
-      || '<div class="vacio">Todavía no hay esquemas.</div>'}</div>
-    <div class="acts" style="padding:0 16px 14px"><button class="btn" id="esqnuevo">+ Nuevo esquema</button></div>
-
-    <h2>Liquidaciones</h2>
-    <div class="acts" style="padding:0 16px">
-      <input id="liqper" type="month" value="${periodoActual()}" style="max-width:190px">
-      <button class="btn sec" id="liqcalc">Calcular el periodo</button></div>
-    <div class="lista">${(liq || []).map(l => `<div class="item" style="cursor:default">
-      <span class="ic ${l.estado === 'Pagada' ? 'o' : ''}">${l.estado === 'Borrador' ? '○' : '✓'}</span>
-      <span class="tx"><b>${esc(l.nombre)}</b><span class="sm">${periodoTxt(l.periodo)} · ${num(l.unidades)} unidades · ${eur(l.importe)} · ${esc(l.estado)}</span></span>
-      <span class="acts" style="margin:0">
-        ${l.estado === 'Borrador' ? `<button class="btn sec" data-liq="${l.usuario_id}|${l.periodo}|Aprobada">Aprobar</button>` : ''}
-        ${l.estado === 'Aprobada' ? `<button class="btn sec" data-liq="${l.usuario_id}|${l.periodo}|Pagada">Marcar pagada</button>` : ''}
-      </span></div>`).join('') || '<div class="vacio">Sin liquidaciones todavía.</div>'}</div>`;
-
-  $('esqnuevo').onclick = () => editorEsquema(null);
-  ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-esq]').forEach(b => b.onclick = () => editorEsquema(b.dataset.esq));
-  $('liqcalc').onclick = calcularLiquidaciones;
-  ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-liq]').forEach(b => b.onclick = async () => {
-    const [u, p, estado] = b.dataset.liq.split('|');
-    if (!await preguntar(`La liquidación quedará ${estado === 'Aprobada' ? 'aprobada y congelada' : 'marcada como pagada'}.`,
-      { titulo: '¿' + (estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada') + '?', ok: estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada' })) return;
-    await db.rpc('liquidar', { p_usuario: u, p_periodo: p, p_estado: estado });
-    toast('Liquidación ' + estado.toLowerCase()); pintarComisiones();
-  });
-}
 
 async function usuarioComisionInfo(...a) {
   const r = await usuarioComisionInfoBase.apply(this, a);
@@ -18942,50 +19632,11 @@ async function usuarioComisionInfo(...a) {
   return r;
 }
 
-// (R-12: calcularLiquidaciones se definía aquí otra vez; ahora está en su sitio, más arriba)
-// La lista, con filtros de persona y mes y el total de lo que se ve
-async function pintarComisionesBase(...a) {
-  const r = await pintarComisionesBaseBase.apply(this, a);
-  const c = $('admcuerpo'), boton = $('liqcalc'); if (!c || !boton) return r;
-  const lista = boton.closest('.acts') && boton.closest('.acts').nextElementSibling;
-  if (!lista || !lista.classList.contains('lista') || $('liqfil')) return r;
-  const { data } = await db.rpc('liquidaciones_lista', { p_periodo: null });   // la misma de la pantalla (en memoria): se pinta en el mismo momento
-  if (!$('admcuerpo') || !lista.isConnected) return r;
-  const l = data || [];
-  const personas = [...new Map(l.map(x => [x.usuario_id, x.nombre])).entries()].sort((x, y) => String(x[1]).localeCompare(String(y[1]), 'es'));
-  const meses = [...new Set(l.map(x => x.periodo))].sort().reverse();
-  if (LIQ_FIL.u && !personas.some(p => p[0] === LIQ_FIL.u)) LIQ_FIL.u = '';
-  if (LIQ_FIL.p && !meses.includes(LIQ_FIL.p)) LIQ_FIL.p = '';
-  const fila = x => `<div class="item" style="cursor:default" data-liqu="${x.usuario_id}" data-liqp="${x.periodo}">
-      <span class="ic ${x.estado === 'Pagada' ? 'o' : ''}">${x.estado === 'Borrador' ? '○' : '✓'}</span>
-      <span class="tx"><b>${esc(x.nombre)}</b><span class="sm">${periodoTxt(x.periodo)} · ${num(x.unidades)} unidades · ${eur(x.importe)} · ${esc(x.estado)}</span></span>
-      <span class="acts" style="margin:0">
-        ${x.estado === 'Borrador' ? `<button class="btn sec" data-liq="${x.usuario_id}|${x.periodo}|Aprobada">Aprobar</button>` : ''}
-        ${x.estado === 'Aprobada' ? `<button class="btn sec" data-liq="${x.usuario_id}|${x.periodo}|Pagada">Marcar pagada</button>` : ''}
-      </span></div>`;
-  const pinta = () => {
-    const v = l.filter(x => (!LIQ_FIL.u || x.usuario_id === LIQ_FIL.u) && (!LIQ_FIL.p || x.periodo === LIQ_FIL.p));
-    const tot = v.reduce((n, x) => n + (+x.importe || 0), 0), uds = v.reduce((n, x) => n + (+x.unidades || 0), 0);
-    const pend = v.filter(x => x.estado !== 'Pagada').reduce((n, x) => n + (+x.importe || 0), 0);
-    $('liqres').textContent = v.length ? `${num(v.length)} ${v.length === 1 ? 'liquidación' : 'liquidaciones'} · ${num(uds)} unidades · ${eur(tot)}${pend && pend !== tot ? ' · ' + eur(pend) + ' sin pagar' : ''}` : '';
-    lista.innerHTML = v.map(fila).join('') || `<div class="vacio">${l.length ? 'Sin liquidaciones con estos filtros.' : 'Sin liquidaciones todavía.'}</div>`;
-    lista.querySelectorAll('[data-liq]').forEach(b => b.onclick = async () => {
-      const [u, p, estado] = b.dataset.liq.split('|');
-      if (!await preguntar(`La liquidación quedará ${estado === 'Aprobada' ? 'aprobada y congelada' : 'marcada como pagada'}.`,
-        { titulo: '¿' + (estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada') + '?', ok: estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada' })) return;
-      await db.rpc('liquidar', { p_usuario: u, p_periodo: p, p_estado: estado });
-      toast('Liquidación ' + estado.toLowerCase()); pintarComisiones();
-    });
-  };
-  lista.insertAdjacentHTML('beforebegin', `<div class="liqfil" id="liqfil">
-      <div><label for="liqfu">Persona</label><select id="liqfu"><option value="">Todas</option>${personas.map(([id, n]) => `<option value="${id}" ${id === LIQ_FIL.u ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
-      <div><label for="liqfp">Mes</label><select id="liqfp"><option value="">Todos</option>${meses.map(m => `<option value="${m}" ${m === LIQ_FIL.p ? 'selected' : ''}>${esc(periodoTxt(m))}</option>`).join('')}</select></div>
-      <p class="sm" id="liqres"></p></div>`);
-  $('liqfu').onchange = e => { LIQ_FIL.u = e.target.value; pinta(); };
-  $('liqfp').onchange = e => { LIQ_FIL.p = e.target.value; pinta(); };
-  pinta();
-  return r;
-}
+// Comisiones está en src/app/screens/commissions (v2.411.0). Estos nombres se quedan: Configuración (legado 004), Inicio y las
+// pruebas los usan.
+function pintarComisiones() { return window.delcos.screens.commissions.paintCommissions(); }
+function tarjetaComision() { return window.delcos.screens.commissions.paintCommissionCard(); }
+function editorEsquema(id) { return window.delcos.screens.commissions.editScheme(id || null, () => { pintarComisiones(); }); }
 // pantallas/compras.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
