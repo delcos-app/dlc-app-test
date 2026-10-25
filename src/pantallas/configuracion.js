@@ -78,132 +78,9 @@ function pintarPlanBase() {
   };
 }
 
-/* pintarPrefs: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
-async function pintarPrefs() {
-  pintarPrefsBase();
-  pintarPrefsPaso1();
-  await pintarPrefsPaso2();
-}
 
-function pintarPrefsPaso1() {
-  const acts = $('pfguardar') && $('pfguardar').closest('.acts');
-  if (!acts || $('pfaviso')) return;
-  const a = avisoRevisita();
-  acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pfaviso"><h3>Avisos</h3>
-    <label class="opt"><input type="checkbox" id="pfrev" ${a.on ? 'checked' : ''}>
-      <span><b>Avisarme si ${TT('medico', 's', 'un', 'l', 'l')} ya se ha visitado hace poco</b><br><span class="sm">Al añadir una cita, al planificar una ruta o la semana. Cuenta ${TT('visita', 'p', '', 'l', 'l')} y citas de cualquier persona.</span></span></label>
-    <div class="g2"><div><label for="pfrevd">Cuántos días cuentan como «hace poco»</label><input id="pfrevd" type="number" min="1" max="60" value="${a.dias}"></div></div></div>`);
-  const guardar = () => guardarAvisoRevisita({ on: $('pfrev').checked, dias: Math.max(1, +$('pfrevd').value || 7) }).then(ok => ok && toast('Aviso guardado'));
-  $('pfrev').onchange = guardar; $('pfrevd').onchange = guardar;
-}
 
-async function pintarPrefsPaso2() {
-  if (!$('cfgcuerpo') || $('miperfil')) return;
-  const mods = Object.keys(MODULO_AREA).filter(puedeModulo);
-  const nombres = { inicio: 'Inicio', agenda: 'Agenda', rutas: 'Rutas', directorio: 'Directorio', pacientes: 'Clientes', productos: 'Productos', seguimiento: 'Calidad del dato',
-    ventas: 'Pedidos', analitica: 'Analítica', facturacion: 'Facturación' };
-  $('cfgcuerpo').insertAdjacentHTML('afterbegin', `<div class="card miperfil" id="miperfil">
-    <div class="mpcab"><span class="mpav">${esc(iniciales(PERFIL.nombre))}</span>
-      <div><h2 style="padding:0 0 4px;margin:0">${esc(PERFIL.nombre)}</h2><div class="sm">${esc(PERFIL.email || '')}</div>
-        <div class="mpchips"><span class="pill p-est">${esc(PERFIL.rol)}</span></div></div></div>
-    <div class="mpgrid">
-      <div><b>Tus módulos</b><div class="mpmods">${mods.map(m => `<span>${ICO_MOD[m] || '•'} ${esc(nombres[m] || m)}</span>`).join('')}</div></div>
-      <div id="mpextra"><b>Tu actividad</b><div class="sm">Cargando…</div></div>
-    </div>
-    <p class="sm" style="margin:10px 0 0">Tus permisos los gestiona administración. Debajo, las preferencias que puedes cambiar tú.</p></div>`);
-  const seguro = x => Promise.resolve(x).then(r => r || {}, () => ({}));
-  const [{ data: k }, { data: h }, { data: yo }] = await Promise.all([seguro(RPC_ORIG('panel_inicio', {})),
-    seguro(RPC_ORIG('historial_esquemas', { p_usuario: PERFIL.id })), seguro(db.from('perfiles').select('zonas').eq('id', PERFIL.id).single())]);
-  if (!$('mpextra')) return;
-  const kk = (k && (k.kpis || k)) || {}, esq = (h || []).find(x => !x.hasta);
-  $('mpextra').innerHTML = `<b>Tu actividad</b><ul class="mplist">
-    ${kk.medicos != null ? `<li>🩺 <b>${num(kk.medicos)}</b> ${TT('medico', 'p', '', 'l', 'l')} en tu cartera</li>` : ''}
-    ${kk.visitas_mes != null ? `<li>📝 <b>${num(kk.visitas_mes)}</b> ${TT('visita', 'p', '', 'l', 'l')} este mes</li>` : ''}
-    ${yo && yo.zonas && yo.zonas.length ? `<li>📍 Zona: ${esc(yo.zonas.map(z => z.charAt(0) + z.slice(1).toLowerCase()).join(', '))}</li>` : ''}
-    ${esq ? `<li>€ Comisión: ${esc(esq.esquema)}</li>` : ''}</ul>`;
-}
 
-function pintarPrefsBase() {
-  const s = punto('salida') || { nombre: '', dir: '' };
-  const l = punto('llegada');
-  const caja = (k, x, titulo, sub) => `<div class="card" style="padding-top:16px;padding-bottom:16px">
-    <h2 style="padding:0">${titulo}</h2><p class="sm" style="padding:0">${sub}</p>
-    <div class="g2" style="margin-top:10px">
-      <div><label>Nombre</label><input data-pn="${k}" value="${esc(x ? x.nombre || '' : '')}" placeholder="Casa, Oficina…"></div>
-      <div><label>Dirección</label><input data-pd="${k}" value="${esc(x ? x.dir || '' : '')}" placeholder="Calle, número y población"></div>
-    </div>
-    <div class="sm" style="margin-top:8px" data-pe="${k}">${x && x.lat
-      ? `<b style="color:var(--ok)">✓ Ubicado</b> ${esc(x.dir || '')}`
-      : '<span style="color:var(--warn)">Sin ubicar: pulsa Buscar dirección</span>'}</div>
-    <div class="acts"><button class="btn sec" data-pg="${k}">Buscar dirección</button>
-      <button class="btn sec" data-pgps="${k}">Usar mi ubicación</button></div></div>`;
-
-  $('cfgcuerpo').innerHTML = `
-    <p class="sm">El punto de salida y el de llegada se usan para calcular el plan del día y los recorridos.</p>
-    <div class="cols">
-      ${caja('salida', s, 'Punto de salida', 'Dónde empiezas el día')}
-      ${caja('llegada', l, 'Punto de llegada', 'Déjalo vacío para volver al punto de salida')}
-    </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfguardar">Guardar preferencias</button></div>`;
-  if ($('navsel')) $('navsel').onchange = e => cambiarNavegador(e.target.value);
-
-  $('cfgcuerpo').querySelectorAll('[data-pg]').forEach(b => b.onclick = async () => {
-    const k = b.dataset.pg, dir = $('cfgcuerpo').querySelector(`[data-pd="${k}"]`).value.trim();
-    if (!dir) { toast('Escribe la dirección', true); return; }
-    b.disabled = true; b.textContent = 'Buscando…';
-    try {
-      const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=es&q=' + encodeURIComponent(dir));
-      const j = await r.json();
-      b.disabled = false; b.textContent = 'Buscar dirección';
-      if (!j.length) { toast('No se ha encontrado esa dirección', true); return; }
-      b.dataset.lat = j[0].lat; b.dataset.lon = j[0].lon;
-      $('cfgcuerpo').querySelector(`[data-pe="${k}"]`).innerHTML =
-        `<b style="color:var(--ok)">✓ Ubicado</b> ${esc(j[0].display_name.split(',').slice(0, 3).join(','))}`;
-      toast('Dirección encontrada');
-    } catch (err) {
-      b.disabled = false; b.textContent = 'Buscar dirección';
-      toast('No se ha podido buscar la dirección', true);
-    }
-  });
-
-  $('cfgcuerpo').querySelectorAll('[data-pgps]').forEach(b => b.onclick = () => {
-    const k = b.dataset.pgps;
-    if (!navigator.geolocation) { toast('Este dispositivo no tiene ubicación', true); return; }
-    b.disabled = true; b.textContent = 'Localizando…';
-    navigator.geolocation.getCurrentPosition(p => {
-      b.disabled = false; b.textContent = 'Usar mi ubicación';
-      const g = $('cfgcuerpo').querySelector(`[data-pg="${k}"]`);
-      g.dataset.lat = p.coords.latitude.toFixed(6); g.dataset.lon = p.coords.longitude.toFixed(6);
-      $('cfgcuerpo').querySelector(`[data-pd="${k}"]`).value = 'Mi ubicación';
-      $('cfgcuerpo').querySelector(`[data-pe="${k}"]`).innerHTML = '<b style="color:var(--ok)">✓ Ubicado</b> desde el GPS';
-      toast('Ubicación tomada');
-    }, () => { b.disabled = false; b.textContent = 'Usar mi ubicación'; toast('No se ha podido obtener la ubicación', true); },
-      { enableHighAccuracy: true, timeout: 15000 });
-  });
-
-  $('pfguardar').onclick = async ev => {
-    const leer = k => {
-      const n = $('cfgcuerpo').querySelector(`[data-pn="${k}"]`).value.trim();
-      const d = $('cfgcuerpo').querySelector(`[data-pd="${k}"]`).value.trim();
-      const g = $('cfgcuerpo').querySelector(`[data-pg="${k}"]`);
-      const ant = punto(k) || (k === 'salida' ? s : null);
-      const lat = g.dataset.lat ? +g.dataset.lat : (ant && ant.dir === d ? ant.lat : null);
-      const lon = g.dataset.lon ? +g.dataset.lon : (ant && ant.dir === d ? ant.lon : null);
-      return d ? { nombre: n || d, dir: d, lat, lon } : null;
-    };
-    const salida = leer('salida'), llegada = leer('llegada');
-    if (!salida || !salida.lat) { toast('Ubica el punto de salida antes de guardar', true); return; }
-    if (llegada && !llegada.lat) { toast('Ubica el punto de llegada o déjalo vacío', true); return; }
-    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { salida, llegada });
-    const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-    ev.target.disabled = false; ev.target.textContent = 'Guardar preferencias';
-    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
-    PERFIL.preferencias = data || prefs;
-    toast(`Guardado · sales de ${salida.nombre} y terminas en ${(llegada || salida).nombre}`);
-    pintarPrefs();
-  };
-}
 
 /* Editar usuario: la ventana base y, en orden, cada bloque que se le añade (antes eran 5 capas separadas). */
 async function editarUsuario(id, ...r) {
@@ -434,146 +311,9 @@ async function guardarKpis(lista) {
   return true;
 }
 
-async function pintarCatalogos() {
-  cargando($('cfgcuerpo'), 'Cargando los clasificadores…');
-  const { data } = await db.rpc('catalogos_todos');
-  CATS = data || [];
-  const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
-  const completo = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 3;
 
-  const grupos = {};
-  CATS.forEach(c => (grupos[c.grupo || 'General'] = grupos[c.grupo || 'General'] || []).push(c));
 
-  $('cfgcuerpo').innerHTML = `
-    <div class="dayhead2"><p class="sm">Listas que usan todos los usuarios en fichas, ${TT('visita', 'p', '', 'l', 'l')}, pedidos y filtros.
-      ${puedeEditar ? '' : '<b>Tienes permiso de solo lectura.</b>'}</p>
-      ${completo ? '<button class="btn" id="cnuevo">+ Nuevo clasificador</button>' : ''}</div>
-    ${Object.entries(grupos).map(([g, lista]) => `
-      <div class="grupo">
-        <button class="grupoh" data-grupo="${esc(g)}">
-          <span>${CATS_ABIERTOS[g] === false ? '▸' : '▾'} <b>${esc(g)}</b>
-            <span class="sm">${lista.length} ${lista.length === 1 ? 'clasificador' : 'clasificadores'}</span></span></button>
-        <div class="grupoc ${CATS_ABIERTOS[g] === false ? 'hide' : ''}">
-          ${lista.map(c => `<button class="cat-card" data-cat="${c.id}">
-            <span class="cat-h"><b>${esc(c.nombre)}</b>
-              ${c.sistema ? '<span class="tagsis">del sistema</span>' : ''}
-              ${puedeEditar ? '' : '<span class="tagro" title="Solo lectura">🔒</span>'}</span>
-            <span class="sm">${c.n_activos} ${c.n_activos === 1 ? 'valor activo' : 'valores activos'}${c.descripcion ? ' · ' + esc(c.descripcion) : ''}</span>
-            <span class="cat-v">${(c.valores || []).filter(v => v.activo).slice(0, 5).map(v => `<span class="chip">${esc(v.valor)}</span>`).join('')}
-              ${c.n_activos > 5 ? `<span class="sm">+${c.n_activos - 5}</span>` : ''}</span>
-          </button>`).join('')}
-        </div></div>`).join('')}`;
 
-  $('cfgcuerpo').querySelectorAll('[data-grupo]').forEach(b => b.onclick = () => {
-    const g = b.dataset.grupo;
-    CATS_ABIERTOS[g] = CATS_ABIERTOS[g] === false;
-    pintarCatalogos();
-  });
-  $('cfgcuerpo').querySelectorAll('[data-cat]').forEach(b => b.onclick = () => abrirClasificador(b.dataset.cat));
-  if ($('cnuevo')) $('cnuevo').onclick = () => nuevoClasificador();
-}
-
-function nuevoClasificador() {
-  let valores = [''];
-  const grupos = [...new Set(CATS.map(c => c.grupo || 'General').concat([`${TT('medico', 'p', '', 'l', 'C')}`, `${TT('visita', 'p', '', 'l', 'C')}`, 'Ventas', 'General']))];
-
-  const pinta = () => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>Nuevo clasificador</h2>
-        <div class="sm">Una lista propia que podrás usar en fichas, ${TT('visita', 'p', '', 'l', 'l')} o pedidos</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="g2">
-        <div><label for="ncn2">Nombre</label><input id="ncn2" placeholder="p. ej. Tipo de centro"></div>
-        <div><label for="ncg">Grupo</label><select id="ncg">${grupos.map(g => `<option>${esc(g)}</option>`).join('')}</select></div>
-      </div>
-      <div class="g2">
-        <div><label for="nca">¿Dónde se usa?</label><select id="nca">
-          <option value="medico">En la ficha ${TT('medico', 's', 'del', 'l', 'l')}</option>
-          <option value="visita">Al registrar ${TT('visita', 's', 'un', 'l', 'l')}</option>
-          <option value="pedido">En los pedidos</option>
-          <option value="cliente">En la ficha ${TT('paciente', 's', 'del', 'l', 'l')}</option>
-          <option value="producto">En la ficha del producto</option></select></div>
-        <div><label for="ncd">Descripción</label><input id="ncd" placeholder="Para qué sirve"></div>
-      </div>
-      <label>Valores</label>
-      <div id="ncv">${valores.map((v, i) => `<div class="g2" style="grid-template-columns:minmax(0,1fr) auto;margin-bottom:6px">
-        <input data-ncv="${i}" value="${esc(v)}" placeholder="Valor ${i + 1}">
-        ${valores.length > 1 ? `<button type="button" class="btn sec" data-ncx="${i}">✕</button>` : ''}</div>`).join('')}</div>
-      <div class="acts"><button type="button" class="btn sec" id="ncmas">+ Añadir valor</button></div>
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn" id="ncok2">Crear clasificador</button></div>`;
-
-    const leer = () => valores = [...$('ncv').querySelectorAll('[data-ncv]')].map(i => i.value);
-    $('ncmas').onclick = () => { leer(); valores.push(''); pinta(); };
-    $('dbody').querySelectorAll('[data-ncx]').forEach(b => b.onclick = () => { leer(); valores.splice(+b.dataset.ncx, 1); pinta(); });
-    $('ncok2').onclick = async ev => {
-      leer();
-      const nombre = $('ncn2').value.trim();
-      if (!nombre) { toast('Ponle un nombre', true); return; }
-      ev.target.disabled = true;
-      const { data: r } = await db.rpc('crear_clasificador', { p: {
-        nombre, grupo: $('ncg').value, ambito: $('nca').value, descripcion: $('ncd').value.trim(),
-        valores: valores.map(v => v.trim()).filter(Boolean)
-      }});
-      ev.target.disabled = false;
-      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
-      $('dlg').close(); toast('Clasificador creado'); pintarCatalogos(); cargarCatalogos();
-    };
-  };
-  pinta();
-  $('dlg').showModal();
-}
-
-async function pintarAuditoria() {
-  cargando($('admcuerpo'), 'Cargando la auditoría…');
-  const nombreEnt = { cuentas: `${TT('medico', 's', '', 'l', 'C')}`, ubicaciones: TT('consulta', 's', '', 'l', 'C'), actividades: `${TT('visita', 's', '', 'l', 'C')}`, atribuciones: 'Cartera', agenda: 'Cita', rutas: 'Ruta',
-    pedidos: 'Pedido', perfiles: 'Usuario', productos: 'Producto', contactos: `${TT('paciente', 's', '', 'l', 'C')}` };
-  const { data: us } = await db.rpc('usuarios_lista');
-  const usuarios = (us || []).slice().sort((x, y) => String(x.nombre).localeCompare(String(y.nombre), 'es'));
-  ($('admcuerpo') || document.createElement('div')).innerHTML = `<h2>Auditoría<span class="n" id="audn">…</span></h2>
-    <p class="sm">Quién ha cambiado qué y cuándo. Se guarda automáticamente.</p>
-    <div class="filtros" style="border:0;padding:10px 16px">
-      <div id="audper"></div>
-      <div><label for="ausr">Usuario</label><select id="ausr"><option value="">Todos</option>
-        ${usuarios.map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></div>
-      <div><label for="aent">Entidad</label><select id="aent"><option value="">Todas</option>
-        ${Object.entries(nombreEnt).map(([k, t]) => `<option value="${k}">${t}</option>`).join('')}</select></div></div>
-    <div id="auddes"></div>
-    <div class="lista" id="audlista"></div>`;
-  const pinta = async () => {
-    cargando($('audlista'), 'Filtrando…');
-    const r = $('audper').__rango();
-    const { data } = await RPC_ORIG('auditoria_lista', { p_entidad: $('aent').value || null, p_usuario: $('ausr').value || null,
-      p_desde: r.desde, lim: 500 });
-    if (!$('audn') || !$('audlista')) return;   // v2.160.0: se cambió de pestaña mientras cargaba (error del registro de pruebas)
-    const l = (data || []).filter(a => !r.hasta || String(a.creado_en).slice(0, 10) <= r.hasta);
-    $('audn').textContent = num(l.length) + (l.length === 500 ? '+' : '');
-    $('audlista').innerHTML = l.map(a => `<div class="item" style="cursor:default">
-      <span class="ic ${a.accion === 'Baja' ? 'w' : a.accion === 'Alta' ? 'o' : ''}">${a.accion === 'Alta' ? '+' : a.accion === 'Baja' ? '−' : '✎'}</span>
-      <span class="tx"><b>${esc(a.accion)} · ${esc(nombreEnt[a.entidad] || a.entidad)}</b>
-        <span class="sm">${esc(a.usuario)} · ${new Date(a.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-        <span class="sm">${esc(resumenDetalle(a.detalle))}</span></span>${deshacible(a) ? `<button type="button" class="btn sec" data-audx="${a.id}">Deshacer</button>` : ''}</div>`).join('')
-      || '<div class="vacio">Sin movimientos con estos filtros.</div>';
-    // v2.123.0: deshacer un cambio, o todo lo de la persona elegida desde el inicio del periodo
-    $('audlista').querySelectorAll('[data-audx]').forEach(b => b.onclick = () => deshacerUno(+b.dataset.audx, pinta));
-    cajaDeshacerPersona($('auddes'), $('ausr').value, r.desde, ($('ausr').selectedOptions[0] || {}).textContent || '', pinta);
-  };
-  montarPeriodo($('audper'), { id: 'auditoria', valor: '7d', alCambiar: pinta });
-  ['ausr', 'aent'].forEach(id => $(id).onchange = pinta);
-  pinta();
-}
-
-async function pintarRegistro() {
-  cargando($('fcuerpo'), 'Cargando el registro…');
-  const { data } = await RPC_ORIG('eventos_facturacion_lista', { lim: 200 });
-  const l = data || [];
-  $('fcuerpo').innerHTML = `<div class="panel"><div class="cuenta">Todo lo que ocurre en la facturación queda anotado: emisiones, rectificaciones, cobros y cambios de configuración.</div>
-    <div class="dgrid-wrap"><div class="dgrid evs"><div class="dh"><span>Fecha y hora</span><span>Evento</span><span>Factura</span><span>Persona</span><span>Detalle</span></div>
-    ${l.map(e => `<div class="dr" style="cursor:default"><span>${new Date(e.fecha).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</span><span><b>${esc(e.tipo)}</b></span>
-      <span>${esc(e.numero || '—')}</span><span>${esc(e.usuario || '—')}</span><span class="sm corta">${esc(detalleEvento(e.detalle))}</span></div>`).join('') || '<div class="vacio">Sin eventos.</div>'}
-    </div></div></div>`;
-}
 
 async function pintarUsuarios2() {
   const [{ data }, rAcc] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), RPC_ORIG('invitados_accesos', {})]);   // v2.270.0: cuándo entró cada uno
@@ -915,140 +655,18 @@ function nombreEnTextos(raiz) {
   ns.forEach(n => { n.nodeValue = n.nodeValue.replace(/\bDirectorio\b/g, et).replace(/\bdirectorio\b/g, et.toLowerCase()); });
 }
 
-async function cargarCampos() {
-  const ambs = Object.keys(CAMPOS);
-  const r = await Promise.all(ambs.map(a => db.rpc('campos_de', { p_ambito: a })));
-  ambs.forEach((a, i) => { if (!r[i].error) CAMPOS[a] = r[i].data || []; });
-}
 
-function camposHTML(amb, valores) {
-  const l = (CAMPOS[amb] || []).filter(c => c.en_ficha);
-  if (!l.length) return '';
-  return `<div class="cpersform" data-cpamb="${amb}"><h3>Campos personalizados</h3><div class="g2">${l.map(c =>
-    `<div><label>${esc(c.nombre)}${c.obligatorio ? ' <span class="cpob">*</span>' : ''}</label>${campoInput(c, (valores || {})[c.clave])}</div>`).join('')}</div></div>`;
-}
 
-// Lee los campos del formulario. Devuelve null si no hay campos; { falta } si falta un obligatorio.
-function camposLeer(raiz) {
-  const b = raiz && raiz.querySelector('.cpersform'); if (!b) return null;
-  const amb = b.dataset.cpamb, v = {}, falta = [];
-  b.querySelectorAll('[data-cpk]:not([disabled])').forEach(i => {
-    const c = (CAMPOS[amb] || []).find(x => x.clave === i.dataset.cpk); v[i.dataset.cpk] = i.value.trim();
-    if (c && c.obligatorio && !i.value.trim()) falta.push(c.nombre);
-  });
-  return { amb, valores: v, falta };
-}
 
-async function camposGuardar(leido, id) {
-  if (!leido || !id || !Object.keys(leido.valores).length) return true;
-  const { data, error } = await db.rpc('guardar_campos', { p_ambito: leido.amb, p_id: id, p_valores: leido.valores });
-  if (!error && data && data.ok) return true;
-  const e = (data && data.errores || [])[0];
-  const c = e && (CAMPOS[leido.amb] || []).find(x => x.clave === e.campo);
-  toast(e ? `Revisa «${c ? c.nombre : e.campo}»: ${{ obligatorio: 'es obligatorio', numero: 'tiene que ser un número', fecha: 'no es una fecha válida', lista: 'no es un valor de la lista', si_no: 'tiene que ser sí o no', solo_lectura: 'no se puede cambiar', desconocido: 'ya no existe' }[e.error] || e.error}`
-    : 'No se han podido guardar los campos personalizados', true);
-  return false;
-}
 
-// Inserta el bloque en un formulario ya pintado, con los valores actuales de la ficha
-async function camposInsertar(raiz, amb, id, antesDe) {
-  if (!raiz || !(CAMPOS[amb] || []).some(c => c.en_ficha) || raiz.querySelector('.cpersform')) return;
-  let v = {};
-  if (id) { const { data } = await db.from(CAMPO_TABLA[amb]).select('clasificadores').eq('id', id).maybeSingle(); v = (data && data.clasificadores) || {}; }
-  if (raiz.querySelector('.cpersform') || !raiz.isConnected) return;
-  const ref = antesDe && antesDe.isConnected ? antesDe : null;
-  if (ref) ref.insertAdjacentHTML('beforebegin', camposHTML(amb, v)); else raiz.insertAdjacentHTML('beforeend', camposHTML(amb, v));
-}
 
-function camposFiltrosActivar(zona, estado, alCambiar) {
-  zona.querySelectorAll('[data-fcp]').forEach(sel => sel.onchange = () => {
-    const k = sel.dataset.fcp;
-    if (!sel.value) delete estado[k]; else estado[k] = sel.dataset.fcpt === 'si_no' ? sel.value === 'true' : sel.value;
-    alCambiar();
-  });
-}
 
-/* ---------- campos personalizados en las fichas ---------- */
-async function bloqueCampos(tabla, id, cont) {
-  if (!cont || !id || cont.querySelector('.campospers')) return;
-  const { data } = await db.from(tabla).select('clasificadores').eq('id', id).maybeSingle();
-  const c = (data && data.clasificadores) || {}; const ks = Object.keys(c).filter(k => c[k] !== '' && c[k] != null);
-  const amb = Object.keys(CAMPO_TABLA).find(a => CAMPO_TABLA[a] === tabla), defs = CAMPOS[amb] || [];
-  if (defs.length && ks.length) {
-    if (cont.querySelector('.campospers')) return;
-    const orden = defs.filter(d => ks.includes(d.clave)).concat(ks.filter(k => !defs.some(d => d.clave === k)).map(k => ({ clave: k, nombre: k.replace(/_/g, ' ').toLowerCase().replace(/^./, x => x.toUpperCase()) })));
-    cont.insertAdjacentHTML('beforeend', `<div class="campospers"><h3>Campos personalizados</h3><div class="cpgrid">${orden.map(d =>
-      `<div><span class="sm">${esc(d.nombre)}</span><b>${esc(campoTexto(d, c[d.clave]))}</b></div>`).join('')}</div></div>`);
-    return;
-  }
-  if (!ks.length || cont.querySelector('.campospers')) return;
-  cont.insertAdjacentHTML('beforeend', `<div class="campospers"><h3>Campos personalizados</h3><div class="cpgrid">${ks.map(k => `<div><span class="sm">${esc(k.replace(/_/g, ' ').toLowerCase().replace(/^./, x => x.toUpperCase()))}</span><b>${esc(typeof c[k] === 'object' ? JSON.stringify(c[k]) : c[k])}</b></div>`).join('')}</div></div>`);
-}
 
-async function estadoRefresco(recargarAlAcabar) {
-  const { data: e } = await RPC_ORIG_FROM('entorno_pruebas').select('*').eq('id', 1).single();
-  const el = $('prrefresco'); if (!el || !e) return null;
-  const fmt = x => new Date(x).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-  const enMarcha = ['pedido', 'copiando'].includes(e.refresco_estado);
-  el.textContent = enMarcha ? `· Copiando los datos de producción (${e.refresco_estado === 'pedido' ? 'empezando' : 'en marcha'}): tarda unos minutos`
-    : e.refresco_estado === 'error' ? '· La última copia de producción falló' + (e.refresco_error ? ': ' + e.refresco_error : '')
-    : e.refresco_error ? '· ' + e.refresco_error : '';
-  el.classList.toggle('falta', e.refresco_estado === 'error');
-  if ($('prtraer')) $('prtraer').disabled = enMarcha;
-  if (enMarcha && !REFRESCO_VIGILA) REFRESCO_VIGILA = setInterval(async () => {
-    const x = await estadoRefresco(true);
-    if (x && !['pedido', 'copiando'].includes(x.refresco_estado)) {
-      clearInterval(REFRESCO_VIGILA); REFRESCO_VIGILA = null;
-      if (x.refresco_estado === 'ok') { toast('Datos de producción copiados'); limpiarDatosLocales(); setTimeout(() => location.reload(), 800); }
-      else toast('La copia de producción ha fallado', true);
-    }
-  }, 20000);
-  return e;
-}
 
 // v2.135.0 · Menú lateral: «Configuración» (pie del menú) se marca como sección activa cuando se está en Configuración
 function menuMarcarPie() { const b = $('mlcfg'); if (b) b.classList.toggle('activo', TAB === 'config'); }
 
-async function traerProduccion(ev) {
-  if (!await preguntar('Se copiarán aquí los datos actuales de producción (producción no se toca) y pasarán a ser los nuevos datos de partida. Todo lo hecho en pruebas se perderá. Tarda unos minutos; puedes seguir usando la app mientras tanto.',
-    { titulo: '¿Traer los datos de producción?', ok: 'Sí, traerlos', peligro: true })) return;
-  if (ev && ev.target) ev.target.disabled = true;
-  const { data: r, error } = await db.functions.invoke('refrescar-pruebas', { body: {} });
-  let res = r;
-  if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
-  if (!res || !res.ok) {
-    if (ev && ev.target) ev.target.disabled = false;
-    toast((res && MOTIVO_REFRESCO[res.motivo]) || 'No se ha podido lanzar la copia' + (error && !res ? ': falta la función «refrescar-pruebas» en Supabase' : ''), true);
-    return;
-  }
-  toast('Copia de producción en marcha: tarda unos minutos');
-  estadoRefresco();
-}
 
-async function pintarCfgPruebas() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = `<div class="card">${skelCard('Cargando…')}</div>`;
-  const [{ data: e }, { data: puedeR, error: eR }] = await Promise.all([
-    RPC_ORIG_FROM('entorno_pruebas').select('*').eq('id', 1).maybeSingle(), RPC_ORIG('pruebas_puede_restablecer', {})]);
-  if (!$('cfgcuerpo')) return;
-  const fmt = x => x ? new Date(x).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
-  const permitido = puede('administrar') && (eR ? true : puedeR === true);
-  c.innerHTML = `<div class="card" id="cfpruebas"><div class="fh"><div><h2>Entorno de pruebas</h2>
-      <div class="sm">Una copia completa de la plataforma con su propia base de datos: nada de lo que hagas aquí afecta a los datos reales.</div></div></div>
-    <div class="minis">
-      <div><b>${fmt(e && e.maestro_guardado_en)}</b><span>Datos de partida (copia de producción)</span></div>
-      <div><b>${fmt(e && e.ultimo_reset)}</b><span>Última vuelta a los datos de partida</span></div></div>
-    <div class="sm" id="prrefresco" style="padding:0 16px"></div>
-    ${permitido ? `<div class="acts" style="justify-content:flex-start;flex-wrap:wrap">
-        <button type="button" class="btn" id="prtraer">⇣ Traer los datos de producción</button>
-        <button type="button" class="btn sec" id="prreset">↺ Volver a los datos de partida</button></div>
-      <p class="leer"><b>Traer los datos de producción</b> copia aquí los datos de hoy (producción solo se lee) y pasan a ser los nuevos datos de partida.
-        <b>Volver a los datos de partida</b> deshace todo lo hecho en pruebas desde la última copia. En los dos casos se pierde lo hecho en pruebas.</p>`
-      : '<p class="sm" style="padding:0 16px">Solo la persona responsable del entorno de pruebas puede traer los datos de producción o volver a los datos de partida.</p>'}</div>`;
-  if ($('prtraer')) $('prtraer').onclick = traerProduccion;
-  if ($('prreset')) $('prreset').onclick = volverDatosPartida;
-  estadoRefresco();
-}
 
 // v2.138.0 · Pastilla «Pruebas» en el menú lateral: junto a la marca (desplegado) o como punto sobre el logo (plegado); sin menú
 // lateral vuelve a la cabecera, detrás del logo
@@ -1523,23 +1141,6 @@ function cfgClonarEstilos() {
 
 function pagMarcarSucio() { const n = PAG_SUCIO.size; ['cfuguardar', 'cfudescartar'].forEach(id => { const b = $(id); if (b) b.disabled = !n; }); }
 
-async function editorReglasCartera() {
-  await cargarAjustes();
-  const excl = !AJUSTES.cartera || AJUSTES.cartera.exclusiva !== false;
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Reglas de cartera</h2><div class="sm">Cómo se reparten ${TT('medico', 'p', 'el', 'l', 'l')} entre el equipo</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="rcexcl" ${excl ? 'checked' : ''}>
-      <span><b>Cartera exclusiva</b><br><span class="sm">${TT('medico', 's', 'un', 'C', 'l')} solo puede estar en la cartera de una persona. Al asignarlo a alguien, sale de la cartera de quien lo tuviera.</span></span></label>
-    <p class="sm">Si la desactivas, ${TT('medico', 's', 'un', 'l', 'l')} podrá estar en varias carteras y administración verá una alerta «${TT('medico', 'p', '', 'l', 'C')} en más de una cartera» en Inicio.</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rcok">Guardar</button></div>`;
-  $('dlg').showModal();
-  $('rcok').onclick = async () => {
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'cartera', p_valor: { exclusiva: $('rcexcl').checked } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.cartera = { exclusiva: $('rcexcl').checked }; $('dlg').close(); toast('Reglas guardadas');
-  };
-}
 
 async function bloqueZonas(u) {
   if (!PROV_CCAA) {
@@ -1564,65 +1165,8 @@ async function bloqueZonas(u) {
 
 // En la factura solo va el logo si la empresa ha subido el suyo
 async function logoData() { if (MARCA.logo && (AJUSTES.marca || {}).logo_factura !== false) { LOGO_DATA = MARCA.logo; LOGO_CIRC = true; return MARCA.logo; } return null; }
-async function pintarCopias() {
-  const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
-  const ultima = au && au[0] ? new Date(au[0].creado_en) : null, dias = ultima ? Math.floor((Date.now() - ultima) / 864e5) : null;
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Copias de seguridad</h2>
-    <p class="sm">Descarga en un único archivo todos los datos de la empresa: ${TT('medico', 'p', '', 'l', 'l')}, ${TT('visita', 'p', '', 'l', 'l')}, agenda, clientes, pedidos, facturas, stock y configuración. Las contraseñas no se incluyen.</p>
-    <div class="copiaest ${dias == null || dias > 7 ? 'mal' : 'bien'}"><b>${ultima ? 'Última copia: ' + ultima.toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' }) : 'Todavía no se ha hecho ninguna copia'}</b>
-      <span>${dias == null ? 'Haz la primera ahora.' : dias > 7 ? `Hace ${dias} días: conviene hacer una nueva.` : 'Al día.'}</span></div>
-    <div class="acts" style="margin:12px 0 0"><button class="btn" id="copok">⬇ Descargar copia completa</button></div>
-    <h3 class="mansub">Consejos</h3><ul class="manlist">
-      <li><span>📅</span><span>Haz una copia cada semana y guárdala fuera del ordenador (unidad externa o nube de la empresa).</span></li>
-      <li><span>🔐</span><span>El archivo contiene datos personales: guárdalo en un sitio con acceso restringido.</span></li>
-      <li><span>🤖</span><span>Si quieres que se haga sola cada día, hay una copia automática gratuita con GitHub (pídela a quien te da soporte técnico).</span></li></ul></div>`;
-  $('copok').onclick = async ev => {
-    ev.target.disabled = true; ev.target.textContent = 'Preparando la copia…';
-    const { data, error } = await RPC_ORIG('exportar_datos', {});
-    ev.target.disabled = false; ev.target.textContent = '⬇ Descargar copia completa';
-    if (error || !data) { toast('No se ha podido hacer la copia', true); return; }
-    const b = new Blob([JSON.stringify(data)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `copia_${nombreApp().replace(/[^\p{L}\p{N}]+/gu, '_')}_${hoyISO()}.json`; a.click();
-    const n = Object.values(data.tablas || {}).reduce((s, t) => s + t.length, 0);
-    toast(`Copia descargada · ${num(n)} registros`); setTimeout(pintarCopias, 800);
-  };
-}
 
-async function deshacerUno(id, despues) {
-  const { data: s } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: true });
-  if (!s || !s.ok) { toast(MOTIVO_DESHACER[(s && s.motivo) || ''] || (s && s.motivo) || 'No se puede deshacer', true); return; }
-  if (!(s.campos || []).length) { toast('No hay nada que deshacer: esos datos se han vuelto a cambiar después', true); return; }
-  if (!await preguntar(`Volverán a su valor de antes: ${s.campos.map(campoTxt).join(', ')}. Lo que se haya cambiado después no se toca.`, { titulo: 'Deshacer el cambio', ok: 'Deshacer' })) return;
-  const { data: r, error } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: false });
-  if (error || !r || !r.ok) { toast('No se ha podido deshacer: ' + ((r && (MOTIVO_DESHACER[r.motivo] || r.motivo)) || (error && error.message) || ''), true); return; }
-  toast('Cambio deshecho'); if (despues) despues();
-}
 
-function cajaDeshacerPersona(caja, usuario, desde, nombre, despues) {
-  if (!caja) return;
-  if (!usuario || !desde) { caja.innerHTML = ''; return; }
-  caja.innerHTML = `<div class="card" id="audpersona" style="margin:0 16px 10px"><h3>Deshacer los cambios de ${esc(nombre.trim())}</h3>
-    <p class="sm">Todo lo que cambió o borró en fichas, ${TT('consulta', 'p', '', 'l', 'l')}, clientes, productos y rutas desde el ${fechaCorta(desde)}. Lo que otra persona haya cambiado después no se toca.</p>
-    <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" id="audsim">Ver qué se desharía</button></div><div id="audres" class="sm"></div></div>`;
-  $('audsim').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: s } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: true });
-    ev.target.disabled = false;
-    if (!s || !s.ok) { toast('No se ha podido calcular', true); return; }
-    const nom = { cuentas: 'fichas', ubicaciones: TT('consulta', 'p', '', 'l', 'l'), contactos: 'clientes', productos: 'productos', rutas: 'rutas' };
-    if (!s.cambios) { $('audres').textContent = 'No hay nada que deshacer en ese periodo (o ya se ha vuelto a cambiar).'; return; }
-    $('audres').innerHTML = `Se desharían <b>${num(s.cambios)}</b> cambios (${num(s.campos)} datos): ${Object.entries(s.por_entidad || {}).map(([k, n]) => `${num(n)} en ${nom[k] || k}`).join(', ')}.
-      ${s.sin_deshacer ? ` ${num(s.sin_deshacer)} no se pueden deshacer porque se han vuelto a cambiar después.` : ''}
-      <div class="acts" style="margin:8px 0 0"><button type="button" class="btn" id="audok">Deshacer ${num(s.cambios)} cambios</button></div>`;
-    $('audok').onclick = async ev2 => {
-      if (!await preguntar(`Se desharán ${num(s.cambios)} cambios de ${nombre.trim()} desde el ${fechaCorta(desde)}. Queda registrado y cada uno se puede volver a cambiar a mano.`, { titulo: 'Deshacer sus cambios', ok: 'Deshacer' })) return;
-      ev2.target.disabled = true;
-      const { data: r } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: false });
-      if (!r || !r.ok) { ev2.target.disabled = false; toast('No se ha podido deshacer', true); return; }
-      toast(`Deshechos ${num(r.cambios)} cambios`); if (despues) despues();
-    };
-  };
-}
 
 // Lo que se deja de tener al pasar de un plan a otro (para avisar antes)
 function perdidasPlan(de, a, datos) {
@@ -1649,40 +1193,7 @@ function reciboCalculado(pl) {
   return { primero: cuota + puesta + ivaDe(cuota + puesta), despues: cuota + ivaDe(cuota), puesta, anual };
 }
 
-// Configuración → el catálogo de resultados: en qué estados aparece cada uno
-function enEstadosTxt(l) { return l && l.length ? 'Solo en: ' + l.join(', ') : 'En todos los estados'; }
 
-function decorarResultados() {
-  const caja = $('dbody'); if (!caja) return;
-  caja.querySelectorAll('[data-vdest]').forEach(sel => {
-    const item = sel.closest('.item'); if (!item || item.querySelector('[data-ven]')) return;
-    const vid = sel.dataset.vdest;
-    const v = (CATS || []).flatMap(c => c.valores || []).find(x => x.id === vid); if (!v) return;
-    sel.insertAdjacentHTML('afterend', `<button type="button" class="btn sec" data-ven="${vid}" title="En qué estados de la ficha aparece este resultado">${esc(enEstadosTxt(v.en_estados))}</button>`);
-    item.querySelector('[data-ven]').onclick = () => {
-      const abierta = item.nextElementSibling && item.nextElementSibling.classList.contains('venbox');
-      caja.querySelectorAll('.venbox').forEach(x => x.remove());
-      if (abierta) return;
-      const marcados = new Set(v.en_estados || []);
-      item.insertAdjacentHTML('afterend', `<div class="venbox"><span class="sm">«${esc(v.valor)}» aparece al registrar ${TT('visita', 's', 'el', 'l', 'l')} de las fichas en estos estados (sin marcar ninguno, en todos):</span>
-        <div class="chips">${estados().map(e => `<button type="button" class="chip ${marcados.has(e) ? 'on' : ''}" data-vene="${esc(e)}" aria-pressed="${marcados.has(e)}">${esc(e)}</button>`).join('')}</div>
-        <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>Cancelar</button><button type="button" class="btn" data-venok>Guardar</button></div></div>`);
-      const box = item.nextElementSibling;
-      box.querySelectorAll('[data-vene]').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
-      box.querySelector('[data-vencerrar]').onclick = () => box.remove();
-      box.querySelector('[data-venok]').onclick = async ev => {
-        const l = [...box.querySelectorAll('[data-vene][aria-pressed="true"]')].map(b => b.dataset.vene);
-        ev.target.disabled = true;
-        const { data: r, error } = await db.rpc('guardar_valor', { p: { id: vid, en_estados: l.length === estados().length ? [] : l } });
-        ev.target.disabled = false;
-        if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-        v.en_estados = l.length && l.length < estados().length ? l : null;
-        item.querySelector('[data-ven]').textContent = enEstadosTxt(v.en_estados);
-        box.remove(); toast(v.en_estados ? `«${v.valor}» solo sale en: ${l.join(', ')}` : `«${v.valor}» sale en todos los estados`);
-      };
-    };
-  });
-}
 
 async function pendientesCfg() {
   if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
@@ -1700,41 +1211,6 @@ async function pendientesCfg() {
   return l;
 }
 
-async function pintarEstadosPapel() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  cargando(c, 'Cargando los estados…');
-  const { data: ce } = await db.from('clasificadores').select('id').eq('papel', 'estado_comercial').limit(1);
-  const { data: est, error } = ce && ce[0] ? await db.from('valores_clasificador').select('id,valor,orden,activo,papel').eq('clasificador_id', ce[0].id).order('orden')
-    : { data: [], error: null };
-  if (!$('cfgcuerpo') || CFG_KEY !== 'estados') return;
-  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los estados: ${esc(error.message)}</p></div>`; return; }
-  const l = (est || []).filter(v => v.activo !== false);
-  const opc = v => PAPELES_ESTADO.map(([k, t]) => `<option value="${k}" ${v.papel === k ? 'selected' : ''}>${t}</option>`).join('');
-  c.innerHTML = `<div class="card estw">
-      <p class="sm">Cada estado tiene un papel. Con él, la plataforma sabe qué ficha es nueva, cuál avanza, cuál ya es cliente y cuál se ha perdido:
-        de ahí salen los avisos, los indicadores de Inicio y qué resultados se ofrecen al registrar ${esc(TT('visita', 's', 'una', 'l', 'l'))}. El nombre de cada estado se cambia en «Textos personalizados».</p>
-      ${l.length ? l.map(v => `<div class="ajfila estfila" data-estid="${v.id}"><div><b>${esc(v.valor)}</b>
-          <span class="sm">${esc((PAPELES_ESTADO.find(p => p[0] === v.papel) || [, , 'Sin papel: no cuenta en avisos ni indicadores'])[2])}</span></div>
-        <div class="ajctl"><select data-estpapel="${v.id}" aria-label="Papel de ${esc(v.valor)}" ${v.papel === 'inicial' ? 'title="Para cambiarlo, marca otro estado como Inicial"' : ''}>${v.papel ? '' : '<option value="" selected>Sin papel</option>'}${opc(v)}</select></div></div>`).join('')
-        : '<p class="vacio">Todavía no hay estados comerciales.</p>'}</div>`;
-  c.querySelectorAll('[data-estpapel]').forEach(s => s.onchange = async () => {
-    const v = l.find(x => x.id === s.dataset.estpapel), nuevo = s.value;
-    if (!v || !nuevo || nuevo === v.papel) return;
-    if (v.papel === 'inicial') { s.value = v.papel; toast('Para cambiar el estado inicial, marca otro estado como «Inicial»', true); return; }
-    const ant = l.find(x => x.papel === 'inicial' && x.id !== v.id);
-    if (nuevo === 'inicial' && ant && !await preguntar(`Las fichas nuevas empezarán en «${v.valor}». «${ant.valor}» pasará a «En avance».`, { titulo: '¿Cambiar el estado inicial?', ok: 'Cambiar' })) { s.value = v.papel || ''; return; }
-    s.disabled = true;
-    const { data: r, error } = await db.rpc('guardar_papel_estado', { p_id: v.id, p_papel: nuevo });
-    if (error || !r || !r.ok) {
-      s.disabled = false; s.value = v.papel || '';
-      toast(({ permiso: 'No tienes permiso para cambiarlo', sin_inicial: 'Para cambiar el estado inicial, marca otro estado como «Inicial»', papel: 'Ese papel no existe' })[(r && r.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true);
-      return;
-    }
-    toast('Papel cambiado');
-    invalidarCache(); try { await cargarCatalogos(); } catch (e) {}
-    pintarEstadosPapel();
-  });
-}
 
 // Grupo «Invitados» de Usuarios
 function pintarInvitados(lista, acc) {
@@ -1757,154 +1233,11 @@ function pintarInvitados(lista, acc) {
   box.querySelectorAll('[data-uinvd]').forEach(b => b.onclick = () => detalleUsuario((USUARIOS || []).find(x => x.id === b.dataset.uinvd)));
 }
 
-async function matMejorar() {
-  const lista = document.querySelector('#cfgcuerpo .matlista'); if (!lista) return;
-  const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
-  if (!cid) return;
-  const conPortal = typeof hayExtra === 'function' && hayExtra('portal');
-  const [{ data: vals }, rp, ra] = await Promise.all([
-    db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden'),
-    conPortal ? RPC_ORIG('portal_material_permitido', {}) : Promise.resolve({ data: [] }),
-    conPortal ? db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle() : Promise.resolve({ data: null })]);
-  if (!document.querySelector('#cfgcuerpo .matlista')) return;
-  const perm = Array.isArray(rp && rp.data) ? rp.data : [], conAjuste = !!(ra && ra.data && ra.data.valor && ra.data.valor.material);
-  const de = v => perm.find(p => p.valor === v);
-  const vis = TT('visita', 's', 'la', 'l', 'l');
-  lista.classList.add('matlista2');
-  lista.innerHTML = (vals || []).map(v => { const p = de(v.valor); return `<div class="matfila2 ${v.activo ? '' : 'off'}" data-mv="${v.id}" data-mvv="${esc(v.valor)}" data-mdt0="${v.dato_tipo === 'numero' ? 'numero' : ''}">
-      <b class="mtnom">${esc(v.valor)}</b>
-      <label class="mtcampo"><span class="sm">Al registrar ${vis}</span><select class="chico" data-mdt>
-        <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Anotar cuántas se entregan</option>
-        <option value="" ${v.dato_tipo === 'numero' ? '' : 'selected'}>Solo marcar que se entregó</option></select></label>
-      ${conPortal ? `<label class="opt mtpor"><input type="checkbox" data-mpp ${p ? 'checked' : ''}> Se puede pedir desde el portal</label>
-      <label class="mtcampo mtmax"><span class="sm">Máximo por petición</span><input type="number" step="1" data-mpx value="${p ? p.max : 20}" ${p ? '' : 'disabled'}></label>` : ''}
-      <label class="vfswitch mini"><input type="checkbox" data-mact2="${v.id}" ${v.activo ? 'checked' : ''}><span class="sw"></span><span class="sm">${v.activo ? 'Activo' : 'Oculto'}</span></label>
-      <span class="mterr sm" hidden></span></div>`; }).join('') || '<div class="sm">Todavía no hay material.</div>';
-  if (vals && vals.length) lista.insertAdjacentHTML('afterend', `<div class="acts mtacts" style="justify-content:space-between;align-items:center">
-      <span class="sm">${conPortal && !conAjuste ? 'Ahora el portal permite pedir todo el material, hasta 20 de cada uno. Guarda para decidirlo tú.' : ''}</span>
-      <button class="btn" id="matguardar">Guardar cambios</button></div>`);
-  lista.querySelectorAll('[data-mpp]').forEach(c => c.onchange = () => { const i = c.closest('.matfila2').querySelector('[data-mpx]'); if (i) i.disabled = !c.checked; });
-  lista.querySelectorAll('[data-mact2]').forEach(c => c.onchange = async () => {
-    await db.rpc('guardar_valor', { p: { id: c.dataset.mact2, activo: c.checked } });
-    c.closest('.matfila2').classList.toggle('off', !c.checked); c.parentElement.querySelector('.sm').textContent = c.checked ? 'Activo' : 'Oculto';
-    toast(c.checked ? 'Visible al registrar' : 'Oculto al registrar'); cargarCatalogos();
-  });
-  if ($('matguardar')) $('matguardar').onclick = async ev => {
-    const filas = [...lista.querySelectorAll('.matfila2')];
-    let mal = false; const material = [];
-    filas.forEach(f => {
-      const e = f.querySelector('.mterr'); e.hidden = true; e.textContent = '';
-      const c = f.querySelector('[data-mpp]'), i = f.querySelector('[data-mpx]');
-      if (!c || !c.checked) return;
-      const n = Number(i.value);
-      if (!i.value || !Number.isInteger(n) || n < 1 || n > 1000) { e.hidden = false; e.textContent = 'El máximo por petición tiene que ser un número entero de 1 a 1.000'; mal = true; return; }
-      material.push({ valor: f.dataset.mvv, max: n });
-    });
-    if (mal) { toast('Revisa los máximos marcados en rojo', true); return; }
-    ev.target.disabled = true;
-    try {
-      for (const f of filas) {
-        const s = f.querySelector('[data-mdt]');
-        if (s.value !== f.dataset.mdt0) {
-          const { error } = await db.rpc('guardar_valor', { p: { id: f.dataset.mv, dato_tipo: s.value, dato_etiqueta: s.value ? 'Unidades' : '' } });
-          if (error) { toast('No se ha podido guardar ' + f.dataset.mvv + ': ' + error.message, true); return; }
-          f.dataset.mdt0 = s.value;
-        }
-      }
-      if (conPortal) {
-        const { error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (ra && ra.data && ra.data.valor) || {}, { material }) });
-        if (error) { toast('No se ha podido guardar el portal: ' + error.message, true); return; }
-      }
-      toast('Guardado'); cargarCatalogos();
-    } finally { ev.target.disabled = false; }
-  };
-}
 
-function conexionTxt(a, largo) {
-  const t = a && (a.ultima_conexion || a.ultimo_acceso), d = t ? new Date(t) : null;
-  if (!d || isNaN(d)) return a ? 'Nunca se ha conectado' : (largo ? 'Última conexión: sin datos' : '');
-  const min = Math.round((Date.now() - d) / 60000), hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const ayer = new Date(hoy - 864e5);
-  let x;
-  if (min < 5) x = 'ahora mismo';
-  else if (min < 60) x = 'hace ' + min + ' min';
-  else if (d >= hoy) x = 'hoy a las ' + hora;
-  else if (d >= ayer) x = 'ayer a las ' + hora;
-  else x = 'el ' + d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: d.getFullYear() === hoy.getFullYear() ? undefined : 'numeric' }) + (largo ? ' a las ' + hora : '');
-  return (largo ? 'Última conexión: ' : 'Conectado ') + x;
-}
 
-async function pintarAccesos() {
-  cargando($('admcuerpo'), 'Cargando los accesos…');
-  const { data } = await db.rpc('accesos_lista', { p_usuario: null, lim: 200 });
-  const l = data || [];
-  ($('admcuerpo') || document.createElement('div')).innerHTML = `<h2>Accesos<span class="n">${l.length}</span></h2>
-    <p class="sm">Últimas entradas y salidas de la plataforma.</p>
-    <div class="lista">${l.map(a => `<div class="item" style="cursor:default">
-      <span class="ic ${a.evento === 'Entrada' ? 'o' : ''}">${a.evento === 'Entrada' ? '→' : '←'}</span>
-      <span class="tx"><b>${esc(a.usuario)}</b><span class="sm">${esc(a.evento)} ·
-        ${new Date(a.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-        ${a.agente ? ' · ' + esc(String(a.agente).slice(0, 60)) : ''}</span></span></div>`).join('')
-      || '<div class="vacio">Todavía no hay accesos registrados.</div>'}</div>`;
-}
 
-function editorDato(v, alGuardar) {
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>Dato de «${esc(v.valor)}»</h2>
-      <div class="sm">Al marcar este valor en ${TT('visita', 's', 'un', 'l', 'l')}, se pedirá además este dato</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="dtt">Qué dato pide</label>
-    <select id="dtt"><option value="">Ninguno (solo se marca)</option>
-      <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Un número (p. ej. cantidad)</option>
-      <option value="texto" ${v.dato_tipo === 'texto' ? 'selected' : ''}>Un texto libre</option>
-      <option value="lista" ${v.dato_tipo === 'lista' ? 'selected' : ''}>Una opción de una lista</option></select>
-    <div id="dtcfg">
-      <label for="dte">Cómo se llama el dato</label><input id="dte" value="${esc(v.dato_etiqueta || '')}" placeholder="p. ej. Cantidad, A quién, Producto">
-      <div id="dtlw"><label for="dtl">Opciones de la lista <span class="sm">· una por línea</span></label>
-        <textarea id="dtl" rows="4">${esc((v.dato_opciones || []).join('\n'))}</textarea></div>
-    </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="dtok">Guardar</button></div>`;
-  const vis = () => { $('dtcfg').classList.toggle('hide', !$('dtt').value); $('dtlw').classList.toggle('hide', $('dtt').value !== 'lista'); };
-  $('dtt').onchange = vis; vis();
-  $('dtok').onclick = async () => {
-    const tipo = $('dtt').value;
-    const ops = $('dtl').value.split('\n').map(x => x.trim()).filter(Boolean);
-    if (tipo === 'lista' && !ops.length) { toast('Escribe al menos una opción', true); return; }
-    const { data: r, error } = await db.rpc('guardar_valor', { p: { id: v.id, dato_tipo: tipo, dato_etiqueta: tipo ? $('dte').value.trim() : '',
-      dato_opciones: tipo === 'lista' ? ops : [] } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    $('dlg2').close(); toast('Dato guardado'); alGuardar();
-  };
-  $('dlg2').showModal();
-}
 
-// Auditoría: los cambios se leen como texto (antes salía «[object Object]» con valores complejos)
-function textoValor(v) {
-  if (v == null || v === '') return '—';
-  if (typeof v === 'boolean') return v ? 'sí' : 'no';
-  if (Array.isArray(v)) return v.length ? v.slice(0, 3).map(textoValor).join(', ') + (v.length > 3 ? '…' : '') : '—';
-  if (typeof v === 'object') {
-    if (v.nombre) return String(v.nombre);
-    const k = Object.keys(v); return k.length ? k.slice(0, 3).map(x => `${x}: ${textoValor(v[x])}`).join(', ') + (k.length > 3 ? '…' : '') : '—';
-  }
-  return String(v);
-}
 
-function resumenDetalle(d) {
-  if (!d) return '';
-  if (typeof d !== 'object') return String(d).slice(0, 120);
-  if (d.nombre && typeof d.nombre !== 'object') return String(d.nombre);
-  const cambios = Object.keys(d).filter(k => Array.isArray(d[k]) && d[k].length === 2).slice(0, 4);
-  if (cambios.length) return cambios.map(k => `${k}: ${textoValor(d[k][0]).slice(0, 24)} → ${textoValor(d[k][1]).slice(0, 24)}`).join(' · ');
-  return Object.keys(d).slice(0, 4).map(k => `${k}: ${textoValor(d[k]).slice(0, 30)}`).join(' · ');
-}
-async function facccon(uid) {
-  if (!puede('administrar')) return;   // la información de sesión, solo para la administración (Eric)
-  const { data } = await RPC_ORIG('ultimas_conexiones', { p_ids: [uid] });
-  const el = document.querySelector(`[data-facccon="${uid}"]`); if (!el) return;
-  const a = (data || []).find(x => x.id === uid);
-  el.textContent = a ? conexionTxt(a, true) : '';
-}
 
 /* v2.69.0 · Permisos por capacidad. El código pregunta qué puede hacer una persona (puede('administrar')),
    nunca cómo se llama su rol: los roles y sus capacidades son datos de cada cliente (tablas roles y roles_capacidades). */
@@ -1922,7 +1255,6 @@ const rolCon = c => (ROLES_DEF.find(x => (x.capacidades || []).includes(c)) || {
 
 const rolPorDefecto = () => (ROLES_DEF.find(x => x.por_defecto) || ROLES_DEF.find(x => !(x.capacidades || []).includes('administrar')) || {}).nombre || '';
 
-let CATS_ABIERTOS = {};
 
 const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
 
@@ -1985,8 +1317,6 @@ const DESHACIBLES = ['cuentas', 'ubicaciones', 'contactos', 'productos', 'rutas'
 
 const deshacible = a => DESHACIBLES.includes(a.entidad) && ['Edición', 'Baja'].includes(a.accion);
 
-const MOTIVO_DESHACER = { permiso: 'No tienes permiso', no_existe: 'Ese cambio ya no está en el registro', no_deshacible: 'Ese tipo de cambio no se puede deshacer',
-  ya_no_existe: 'El registro ya no existe', ya_existe: 'Ya estaba recuperado' };
 
 /* v2.133.0 · Entorno de pruebas: «Traer los datos de producción». Junto a «Volver a los datos de partida» (y para quien puede
    usarlo), pide a la función «refrescar-pruebas» de Supabase que lance el proceso de GitHub que copia los datos actuales de
@@ -1994,7 +1324,6 @@ const MOTIVO_DESHACER = { permiso: 'No tienes permiso', no_existe: 'Ese cambio y
 const MOTIVO_REFRESCO = { permiso: 'Solo la administración puede traer los datos de producción', responsable: 'Solo la persona responsable del entorno de pruebas puede hacerlo',
   en_marcha: 'Ya se están copiando los datos de producción', github: 'No se ha podido lanzar la copia en GitHub', no_es_pruebas: 'Esto solo funciona en el entorno de pruebas' };
 
-let REFRESCO_VIGILA = null;
 
 const NOTIF_AREAS = [
   ['ventas', 'Ventas', ['reponer', 'caida_ventas', 'pedido_portal', 'venta_cartera', 'pauta', 'pedido_validado', 'pago_recibido', 'borrador_nuevo', 'cliente_nuevo']],
@@ -2162,150 +1491,9 @@ function abrirHorarioPlanBase() {
   $('dlg').showModal();
 }
 
-function abrirClasificadorBase(id) {
-  const c = CATS.find(x => x.id === id); if (!c) return;
-  const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
-  const completo = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 3;
-
-  const pinta = () => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${esc(c.nombre)}</h2>
-        <div class="sm">Grupo ${esc(c.grupo || 'General')} · se usa en ${esc(c.ambito === 'pedido' ? 'pedidos' : c.ambito === 'visita' ? 'visitas' : `fichas de ${TT('medico', 's', '', 'l', 'l')}`)}
-        ${puedeEditar ? '' : ' · <b>solo lectura</b>'}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      ${cajaCampo(c, completo)}
-      <div class="lista ${!c.papel && CAMPO_TABLA[c.ambito] && (c.tipo_campo || 'lista') !== 'lista' ? 'hide' : ''}">${(c.valores || []).map(v => `<div class="item ${v.padre ? 'vsub' : ''}" style="cursor:default">
-        <span class="ic">${v.activo ? '●' : '○'}</span>
-        <span class="tx"><b style="${v.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${esc(v.valor)}</b>
-          ${v.extra ? `<span class="sm">${v.extra === 'neg' ? `sin ${TT('visita', 's', '', 'l', 'l')}` : `${TT('visita', 's', '', 'l', 'l', 'realizado')}`}${v.destino ? ' · pasa a ' + esc(v.destino) : ''}</span>` : ''}</span>
-        ${puedeEditar ? `<span class="acts" style="margin:0">
-          <button class="btn sec" data-vren="${v.id}|${esc(v.valor)}">Renombrar</button>
-          ${c.papel === 'resultado_visita' ? `<select data-vdest="${v.id}" title="Estado al que pasa la ficha con este resultado" style="max-width:170px"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}" ${v.destino === x ? 'selected' : ''}>Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
-          <button class="btn sec" data-vtog="${v.id}|${v.activo ? 0 : 1}">${v.activo ? 'Desactivar' : 'Activar'}</button>
-          ${completo ? `<button class="btn sec dang" data-vdel="${v.id}">Eliminar</button>` : ''}</span>` : ''}
-      </div>`).join('') || '<div class="vacio">Sin valores todavía.</div>'}</div>
-      ${puedeEditar ? `<div class="acts"><input id="cvnew" placeholder="Nuevo valor" style="flex:1;min-width:160px">
-        ${c.papel === 'resultado_visita' ? `<select id="cvextra" style="max-width:170px"><option value="pos">${TT('visita', 's', '', 'l', 'C', 'realizado')}</option><option value="neg">Sin ${TT('visita', 's', '', 'l', 'l')}</option></select>
-          <select id="cvdest" style="max-width:190px" title="Estado al que pasa la ficha con este resultado"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}">Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
-        ${(c.valores || []).some(v => v.padre) ? `<select id="cvpadre" style="max-width:210px" title="Categoría del valor"><option value="">Sin categoría (es una categoría)</option>${(c.valores || []).filter(v => !v.padre).map(v => `<option value="${esc(v.valor)}">Dentro de ${esc(v.valor)}</option>`).join('')}</select>` : ''}
-        <button class="btn" id="cvadd">Añadir</button></div>` : ''}
-      ${completo && !c.sistema ? `<div class="acts" style="justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
-        <button class="btn sec dang" id="cdel">Eliminar clasificador</button></div>` : ''}`;
-
-    if ($('cfcok')) $('cfcok').onclick = async () => {
-      const v = { tipo: $('cfctipo').value };
-      ['obligatorio', 'solo_lectura', 'en_ficha', 'en_tabla', 'en_filtro'].forEach(k => { v[k] = $('cfc_' + k).checked; });
-      const { data: r, error } = await db.rpc('configurar_campo', { p_id: id, p: v });
-      if (error || !r || !r.ok) { toast('No se ha podido guardar el campo', true); return; }
-      toast('Campo guardado'); recarga(); cargarCampos().catch(() => {});
-    };
-    const recarga = async () => {
-      const { data } = await db.rpc('catalogos_todos');
-      CATS = data || [];
-      Object.assign(c, CATS.find(x => x.id === id) || c);
-      pinta(); cargarCatalogos();
-    };
-
-    if ($('cvadd')) $('cvadd').onclick = async () => {
-      const v = $('cvnew').value.trim(); if (!v) return;
-      const { error } = await db.rpc('guardar_valor', { p: { clasificador_id: id, valor: v,
-        extra: $('cvextra') ? $('cvextra').value : null, destino: $('cvdest') ? $('cvdest').value : null,
-        ...($('cvpadre') && $('cvpadre').value ? { padre: $('cvpadre').value, valor: v.startsWith($('cvpadre').value + ' · ') ? v : $('cvpadre').value + ' · ' + v } : {}) } });
-      if (error) { toast('No se ha podido añadir', true); return; }
-      toast('Valor añadido'); recarga();
-    };
-    $('dbody').querySelectorAll('[data-vtog]').forEach(b => b.onclick = async () => {
-      const [vid, activo] = b.dataset.vtog.split('|');
-      await db.rpc('guardar_valor', { p: { id: vid, activo: activo === '1' } });
-      recarga();
-    });
-    $('dbody').querySelectorAll('[data-vren]').forEach(b => b.onclick = async () => {
-      const [vid, actual] = b.dataset.vren.split('|');
-      const nuevo = await pedirTexto('Nuevo nombre', actual, { titulo: 'Renombrar valor', ok: 'Guardar' });
-      if (!nuevo) return;
-      await db.rpc('guardar_valor', { p: { id: vid, valor: nuevo } });
-      toast('Renombrado'); recarga();
-    });
-    // v2.87.0: el estado al que lleva cada resultado se puede cambiar en cualquier momento
-    $('dbody').querySelectorAll('[data-vdest]').forEach(sel => sel.onchange = async () => {
-      const { data: r, error } = await db.rpc('guardar_valor', { p: { id: sel.dataset.vdest, destino: sel.value } });
-      if (error || (r && r.ok === false)) { toast('No se ha podido cambiar', true); return; }
-      toast(sel.value ? `Ahora pasa a ${sel.value}` : 'Ya no cambia el estado');
-    });
-    $('dbody').querySelectorAll('[data-vdel]').forEach(b => b.onclick = async () => {
-      if (!await preguntar(`Las fichas y ${TT('visita', 'p', '', 'l', 'l')} que ya lo usan lo conservan, pero dejará de aparecer.`,
-        { titulo: '¿Eliminar el valor?', ok: 'Eliminar', peligro: true })) return;
-      const { data: r } = await db.rpc('borrar_valor', { p_id: b.dataset.vdel });
-      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
-      toast('Eliminado'); recarga();
-    });
-    if ($('cdel')) $('cdel').onclick = async () => {
-      if (!await preguntar(`Se elimina "${c.nombre}" y todos sus valores.`,
-        { titulo: '¿Eliminar el clasificador?', ok: 'Eliminar', peligro: true })) return;
-      const { data: r } = await db.rpc('borrar_clasificador', { p_id: id });
-      if (r && r.ok === false) { toast(r.error === 'sistema' ? 'Los del sistema no se pueden eliminar' : 'Sin permiso', true); return; }
-      $('dlg').close(); toast('Clasificador eliminado'); pintarCatalogos(); cargarCatalogos();
-    };
-  };
-  pinta();
-  $('dlg').showModal();
-}
 
 
-function abrirClasificador(id) {
-  abrirClasificadorBase(id);
-  const c = CATS.find(x => x.id === id);
-  const permitido = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
-  if (!c || !permitido || !['visita'].includes(c.ambito) && c.papel !== 'resultado_visita') return;
-  // Cada vez que se repinta la ventana, se añaden los botones de dato
-  const decorar = () => {
-    const items = $('dbody').querySelectorAll('.lista > .item');
-    (c.valores || []).forEach((v, i) => {
-      const it = items[i]; if (!it || it.querySelector('[data-vdato]')) return;
-      const tx = it.querySelector('.tx');
-      if (v.dato_tipo) tx.insertAdjacentHTML('beforeend', `<span class="sm">Pide: ${esc(v.dato_etiqueta || v.dato_tipo)}${v.dato_tipo === 'lista' ? ' (' + (v.dato_opciones || []).length + ' opciones)' : ''}</span>`);
-      const acts = it.querySelector('.acts');
-      if (acts) acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" data-vdato="${v.id}">${v.dato_tipo ? 'Cambiar dato' : '+ Dato'}</button>`);
-    });
-    $('dbody').querySelectorAll('[data-vdato]').forEach(b => b.onclick = () => {
-      const v = (c.valores || []).find(x => x.id === b.dataset.vdato);
-      editorDato(v, async () => {
-        const { data } = await db.rpc('catalogos_todos'); CATS = data || [];
-        cargarCatalogos(); abrirClasificador(id);
-      });
-    });
-    if (!$('dbody').querySelector('.datoinfo')) $('dbody').querySelector('.fh').insertAdjacentHTML('afterend',
-      `<p class="sm datoinfo">Con <b>+ Dato</b>, al marcar ese valor en ${TT('visita', 's', 'un', 'l', 'l')} se pedirá también una cantidad, un texto o una opción de una lista.</p>`);
-  };
-  decorar();
-  new MutationObserver((_, obs) => { if (!$('dlg').open) { obs.disconnect(); return; } decorar(); })
-    .observe($('dbody'), { childList: true });
-}
 
-async function pintarRolesBase() {
-  await cargarAjustes();
-  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Roles y permisos</h2>
-    <p class="sm">Cada rol tiene una plantilla de permisos que se aplica al dar de alta a una persona o al cambiarle el rol. Después se puede ajustar persona a persona en Usuarios. ${TT('medico', 'p', 'el', 'C', 'l')} con acceso solo ven su informe.</p>
-    <div class="nivleg">${NIVEL_TXT.map((t, i) => `<span class="nv${i}"><b>${esc(t)}</b>${['No ve el módulo ni aparece en el menú', 'Lo ve, pero no cambia nada', 'Crea y edita lo suyo', 'Todo, incluido borrar y configurar'][i]}</span>`).join('')}</div>
-    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
-      <tbody>${AREAS.map(([k, n]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(QUE_ABRE[k] || '')}</span></td>
-        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel chico" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores de partida</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
-  const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel chico nv' + s.value);
-  $('cfgcuerpo').addEventListener('change', colorea); colorea();
-  const leer = () => { const o = {}; $('cfgcuerpo').querySelectorAll('[data-rol]:not([disabled])').forEach(s => { (o[s.dataset.rol] = o[s.dataset.rol] || {})[s.dataset.ar] = +s.value; }); return o; };
-  $('rolrest').onclick = async () => { await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: {} }); AJUSTES.roles = {}; toast('Valores de partida'); pintarRoles(); };
-  $('rolok').onclick = async () => {
-    const v = leer(); const { error } = await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: v });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.roles = v;
-    if (await preguntar('Las plantillas se usan en las altas y cambios de rol. ¿Quieres aplicarlas también ahora a todas las personas que ya tienen esos roles? Se sustituirán sus permisos actuales.', { titulo: '¿Aplicar a las personas actuales?', ok: 'Aplicar a todos' })) {
-      let n = 0; for (const [r, a] of Object.entries(v)) { const { data: x } = await db.rpc('aplicar_plantilla_rol', { p_rol: r, p_areas: a }); n += (x && x.personas) || 0; }
-      toast(`Plantillas guardadas y aplicadas a ${n} personas`);
-    } else toast('Plantillas guardadas');
-  };
-}
 
 async function pintarPrefsPerfilBase() {
   // v2.340.0: la tarjeta de la persona se pinta directamente en su sitio (antes, en un contenedor escondido esperando a pintarPrefs:
@@ -2319,37 +1507,6 @@ async function pintarPrefsPerfilBase() {
 }
 
 
-/* v2.109.0 · Permisos propios en los roles: importar, clasificadores y dar acceso.
-   Configuración → Usuarios y roles → Roles tiene debajo de las plantillas la tabla «Permisos» (las capacidades del grupo
-   «Permisos»; el resto de capacidades no se cambian desde aquí). Quien tiene «Dar acceso a fichas de su cartera» da acceso
-   al portal desde la ficha, sin pasar por Usuarios: se crea la invitación ligada a la ficha y después el usuario. */
-async function pintarRoles(...a) {
-  await pintarRolesBase(...a);
-  if (!puede('administrar') || !$('cfgcuerpo')) return;
-  const { data: caps } = await db.from('capacidades').select('clave,nombre,descripcion,orden').eq('grupo', 'Permisos').order('orden');
-  if (!(caps || []).length || !$('cfgcuerpo') || $('rolperm')) return;
-  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
-  $('cfgcuerpo').insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="rolperm"><h2>Permisos</h2>
-    <p class="sm">Lo que puede hacer cada rol además de sus módulos. Se aplica a todas las personas del rol al guardar.</p>
-    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
-      <tbody>${caps.map(c => `<tr><td><b>${esc(c.nombre)}</b><span class="sm">${esc(c.descripcion || '')}</span></td>
-        ${roles.map(r => `<td><input type="checkbox" data-prol="${esc(r)}" data-pcap="${esc(c.clave)}" aria-label="${esc(c.nombre)} · ${esc(r)}" ${rolPuede(r, c.clave) ? 'checked' : ''}></td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="rolpermok">Guardar permisos</button></div></div>`);
-  $('rolpermok').onclick = async ev => {
-    ev.target.disabled = true;
-    let fallo = false;
-    for (const r of roles) {
-      const lista = [...$('rolperm').querySelectorAll(`[data-prol="${CSS.escape(r)}"]:checked`)].map(x => x.dataset.pcap);
-      const { data: x, error } = await db.rpc('guardar_permisos_rol', { p_rol: r, p_permisos: lista });
-      if (error || (x && x.ok === false)) fallo = true;
-    }
-    ev.target.disabled = false;
-    await cargarRoles();
-    const { data: yo } = await db.from('perfiles').select('capacidades').eq('id', PERFIL.id).single();
-    if (yo && Array.isArray(yo.capacidades)) PERFIL.capacidades = yo.capacidades;
-    toast(fallo ? 'No se han podido guardar todos los permisos' : 'Permisos guardados', fallo);
-  };
-}
 
 // pintarPrefsPerfil pone la tarjeta de la persona después: va a su sitio dentro de la tarjeta única
 async function pintarPrefsPerfil(...a) {
@@ -2365,36 +1522,6 @@ async function cargarAjustesBase() {
   AJUSTES = data || {};
 }
 
-async function pintarMarcaBase() {
-  await cargarAjustes();
-  const m = Object.assign({ nombre: nombreApp(), logo: null, logo_factura: true }, AJUSTES.marca || {});
-  let logo = m.logo;
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Marca de la empresa</h2>
-    <p class="sm">Así se ve la plataforma para todo tu equipo: en la pantalla de acceso, arriba en cada pantalla, en la app del móvil y en las facturas.</p>
-    <div class="marcaed"><div class="marcaprev"><img id="mklogo" src="${esc(logo || 'logo-app.png')}" alt=""><b id="mknomp">${esc(m.nombre)}</b></div>
-      <div><label for="mknom">Nombre de la plataforma</label><input id="mknom" value="${esc(m.nombre)}" placeholder="p. ej. Acme Comercial">
-        <label>Logo o imagen de perfil ${pmAyu('Logo', 'Se adapta a un círculo. Mejor una imagen cuadrada, con el logo centrado.')}</label>
-        <div class="acts" style="margin:0"><label class="btn sec" for="mkfile" style="margin:0">Subir imagen</label><input id="mkfile" type="file" accept="image/*" class="hide">
-          ${logo ? '<button class="btn sec" id="mkquitar">Quitar</button>' : ''}</div>
-        <label class="opt" style="margin-top:10px"><input type="checkbox" id="mkfac" ${m.logo_factura !== false ? 'checked' : ''}> Usar también en las facturas</label></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="mkok">Guardar</button></div></div>`;
-  $('mknom').oninput = () => $('mknomp').textContent = $('mknom').value || 'Mi empresa';
-  $('mkfile').onchange = async e => {
-    const f = e.target.files[0]; if (!f) return;
-    const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
-    const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
-    const lado = Math.min(img.width, img.height); x.drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, 256, 256);
-    logo = c.toDataURL('image/png'); $('mklogo').src = logo;
-  };
-  if ($('mkquitar')) $('mkquitar').onclick = () => { logo = null; $('mklogo').src = 'logo-app.png'; };
-  $('mkok').onclick = async () => {
-    const v = { nombre: $('mknom').value.trim() || 'Mi empresa', logo, logo_factura: $('mkfac').checked };
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.marca = v; MARCA = { nombre: v.nombre, logo: v.logo }; localStorage.setItem('app-marca', JSON.stringify(MARCA)); LOGO_DATA = null;
-    aplicarMarca(); toast('Marca guardada');
-  };
-}
 
 /* pintarPerfil: la parte base y, en orden, cada paso que se le añade (antes eran 4 capas separadas). */
 function pintarPerfilBase2() {
@@ -2455,40 +1582,6 @@ function arbolConfigBase3() {
   return g;
 }
 
-async function pintarMarcaBase2() {
-  await pintarMarcaBase();
-  const ok = $('mkok'); if (!ok || $('mketq')) return;
-  const actual = etiquetaContactos(), otra = !ETIQUETAS.includes(actual);
-  ok.closest('.acts').insertAdjacentHTML('beforebegin', `<div class="mketqbox"><label for="mketq">Cómo llamáis a quienes visitáis</label>
-    <div class="g2"><select id="mketq">${ETIQUETAS.map(e => `<option ${e === actual ? 'selected' : ''}>${e}</option>`).join('')}<option value="__otra" ${otra ? 'selected' : ''}>Otro nombre…</option></select>
-      <input id="mketqo" class="${otra ? '' : 'hide'}" value="${otra ? esc(actual) : ''}" placeholder="Escribe el nombre"></div>
-    <div class="sm">Es el nombre del módulo donde están ${TT('medico', 'p', '', 'l', 'l')}, centros y cualquier otro contacto al que visitáis.</div></div>`);
-  const ETQ_TERM = { medico: 'Profesional al que visitáis', paciente: 'Cliente final', visita: 'Cada encuentro con el profesional' };
-  ok.closest('.acts').insertAdjacentHTML('beforebegin', `<div class="mkvoc"><label>Vocabulario de la plataforma</label>
-    <div class="sm">Cómo se llaman en todos los textos. En blanco, se usa el nombre de siempre.</div>
-    ${Object.keys(TERM_DEF).map(k => { const d = TERM_DEF[k], t = TERMINOS[k] || {}; return `<div class="g3 mkvocf" data-term="${k}">
-      <div><label class="sm">${esc(ETQ_TERM[k])} · singular</label><input data-tf="s" value="${esc(t.s || '')}" placeholder="${esc(d.s)}"></div>
-      <div><label class="sm">Plural</label><input data-tf="p" value="${esc(t.p || '')}" placeholder="${esc(d.p)}"></div>
-      <div><label class="sm">Género</label><select data-tf="g"><option value="">${d.g === 'f' ? 'Femenino' : 'Masculino'} (el de siempre)</option>
-        <option value="m" ${t.g === 'm' ? 'selected' : ''}>Masculino</option><option value="f" ${t.g === 'f' ? 'selected' : ''}>Femenino</option></select></div></div>`; }).join('')}</div>`);
-  $('mketq').onchange = () => $('mketqo').classList.toggle('hide', $('mketq').value !== '__otra');
-  const guardar = ok.onclick;
-  ok.onclick = async () => {
-    const etq = $('mketq').value === '__otra' ? ($('mketqo').value.trim() || TT('medico', 'p', '', 'l', 'C')) : $('mketq').value;
-    await guardar();
-    const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: etq });
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
-    if (!error) { AJUSTES.marca = v; aplicarEtiqueta(); }
-    const voc = {};
-    document.querySelectorAll('.mkvocf').forEach(f => { const o = {}; f.querySelectorAll('[data-tf]').forEach(i => { if (i.value.trim()) o[i.dataset.tf] = i.value.trim(); }); if (Object.keys(o).length) voc[f.dataset.term] = o; });
-    if (JSON.stringify(voc) !== JSON.stringify(TERMINOS || {})) {
-      const { error: e3 } = await db.rpc('guardar_ajuste', { p_clave: 'terminos', p_valor: voc });
-      if (e3) { toast('No se ha podido guardar el vocabulario', true); return; }
-      try { localStorage.setItem(TERMKEY, JSON.stringify(voc)); } catch (e) {}
-      toast('Vocabulario guardado: se recarga la plataforma'); setTimeout(() => location.reload(), 900);
-    }
-  };
-}
 
 function arbolConfigBase4() {
   const g = arbolConfigBase3();
@@ -2499,21 +1592,6 @@ function arbolConfigBase4() {
 // Configuración ya no repite Mi perfil ni Notificaciones: están en su propia página
 function arbolConfigBase5() { return arbolConfigBase4().map(([g, l]) => [g, l.filter(x => !['perfil', 'notif'].includes(x.k))]).filter(g => g[1].length); }
 
-async function pintarMarca(...a) {
-  await pintarMarcaBase2(...a);
-  const card = $('cfgcuerpo') && $('cfgcuerpo').querySelector('.card'); if (!card || $('mkprev2')) return;
-  const w = document.createElement('div'); w.className = 'conprevia';
-  card.parentNode.insertBefore(w, card); w.appendChild(card);
-  w.insertAdjacentHTML('beforeend', `<div class="previa"><div class="sm previat">Así lo verá tu equipo</div><div id="mkprev2"></div></div>`);
-  const pinta = () => {
-    const n = ($('mknom') || {}).value || nombreApp(), lg = ($('mklogo') || {}).src || 'logo-app.png';
-    $('mkprev2').innerHTML = `<div class="mkcab"><img src="${esc(lg)}" alt=""><span class="mkbus">Buscar…</span><span class="mkav">${esc(iniciales(PERFIL ? PERFIL.nombre : ''))}</span></div>
-      <div class="mklogin"><img src="${esc(lg)}" alt=""><b>${esc(n)}</b><span>Entra con tu correo y contraseña.</span><i></i><i></i><em>Entrar</em></div>`;
-  };
-  card.addEventListener('input', pinta); card.addEventListener('change', () => setTimeout(pinta, 300));
-  new MutationObserver(pinta).observe($('mklogo'), { attributes: true, attributeFilter: ['src'] });
-  pinta();
-}
 
 function pintarPerfilBase3() {
   pintarPerfilBase2();
@@ -3040,3 +2118,39 @@ async function cargarConfig(...a) {
   }
   return cargarConfigBase2.apply(this, a);
 }
+
+// Preferencias, Clasificadores, Auditoría, Registro, campos personalizados y entorno de pruebas están en src/app/screens/settings
+// (v2.415.0). Estos nombres se quedan: las secciones de Configuración, Facturación, Pedidos, Productos, Clientes, la ficha, el Panel
+// delcos, legado 002, 004, 014, 073 y 148 y las pruebas los usan.
+function pintarPrefs() { return window.delcos.screens.settings.paintPreferences(); }
+function pintarPrefsPaso2() { return window.delcos.screens.settings.paintProfile(); }
+function pintarCatalogos() { return window.delcos.screens.settings.paintClassifiers(); }
+function pintarAuditoria() { return window.delcos.screens.settings.paintAudit(); }
+function pintarRegistro() { return window.delcos.screens.settings.paintBillingLog(); }
+function cargarCampos() { return window.delcos.screens.settings.loadCustomFields(); }
+function camposHTML(amb, valores) { return window.delcos.screens.settings.customFieldsHtml(amb, valores); }
+function camposLeer(raiz) { return window.delcos.screens.settings.readCustomFields(raiz); }
+function camposGuardar(leido, id) { return window.delcos.screens.settings.saveCustomFields(leido, id); }
+function camposInsertar(raiz, amb, id, antesDe) { return window.delcos.screens.settings.insertCustomFields(raiz, amb, id, antesDe); }
+function camposFiltrosActivar(zona, estado, alCambiar) { return window.delcos.screens.settings.bindCustomFieldFilters(zona, estado, alCambiar); }
+function bloqueCampos(tabla, id, cont) { return window.delcos.screens.settings.paintCustomFieldsBlock(tabla, id, cont); }
+function estadoRefresco() { return window.delcos.screens.settings.refreshStatus(); }
+function pintarCfgPruebas() { return window.delcos.screens.settings.paintTestEnvironment(); }
+
+// Configuración, segunda parte: está en src/app/screens/settings/more (v2.415.0). Estos nombres se quedan: el resto de
+// Configuración, las pestañas de las páginas, los puentes, Productos, Eventos y las pruebas los usan.
+function editorReglasCartera() { return window.delcos.screens.settingsMore.editPortfolioRules(); }
+function pintarCopias() { return window.delcos.screens.settingsMore.paintBackups(); }
+function deshacerUno(id, despues) { return window.delcos.screens.settingsMore.undoChange(id, despues); }
+function cajaDeshacerPersona(caja, usuario, desde, nombre, despues) { if (caja) window.delcos.screens.settingsMore.paintPersonUndo({ box: caja, user: usuario, from: desde, name: nombre, then: despues }); }
+function pintarEstadosPapel() { return window.delcos.screens.settingsMore.paintCommercialStates(); }
+function matMejorar() { return window.delcos.screens.settingsMore.improveMaterial(); }
+function conexionTxt(a, largo) { return window.delcos.screens.settingsMore.connectionText(a, !!largo); }
+function pintarAccesos() { return window.delcos.screens.settingsMore.paintAccesses(); }
+function facccon(uid) { return window.delcos.screens.settingsMore.fillConnection(uid); }
+function textoValor(v) { return window.delcos.screens.settingsMore.valueText(v); }
+function resumenDetalle(d) { return window.delcos.screens.settingsMore.detailSummary(d); }
+function abrirClasificador(id) { return window.delcos.screens.settingsMore.openClassifier(id); }
+function decorarResultados() { return window.delcos.screens.settingsMore.decorateResults(); }
+function pintarRoles() { return window.delcos.screens.settingsMore.paintRoles(); }
+function pintarMarca() { return window.delcos.screens.settingsMore.paintBrand(); }

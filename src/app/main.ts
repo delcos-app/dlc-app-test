@@ -8,6 +8,8 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as settingsMore from './screens/settings/more';
+import * as settings from './screens/settings';
 import * as access from './screens/access';
 import { listenToMapCards } from './screens/accounts/map';
 import * as routes from './screens/routes';
@@ -50,6 +52,8 @@ export interface DelcosCore {
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly settingsMore: typeof settingsMore;
+    readonly settings: typeof settings;
     readonly access: typeof access;
     readonly routes: typeof routes;
     readonly orders: typeof orders;
@@ -93,6 +97,8 @@ window.delcos = {
     agenda,
     accounts,
     events,
+    settingsMore,
+    settings,
     access,
     routes,
     orders,
