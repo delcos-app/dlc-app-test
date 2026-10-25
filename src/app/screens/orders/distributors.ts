@@ -5,12 +5,13 @@
  */
 import { appLegacy, legacyDb, notices } from '../../legacy/bridge';
 import { customersLegacy } from '../../legacy/customers-bridge';
-import { orderSheetLegacy, ordersLegacy, type Distributor } from '../../legacy/orders-bridge';
+import { ordersLegacy, type Distributor } from '../../legacy/orders-bridge';
 import { t } from '../../i18n';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 import { euros, transferPill } from './model';
+import { loadDistributors } from './editor/distributor';
 
 const SETTINGS_KEY = 'distribuidores', EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -45,7 +46,7 @@ async function save(existing: Distributor | null, button: HTMLButtonElement): Pr
   const { error } = existing ? await legacyDb().from('distribuidores').update(row).eq('id', existing.id) : await legacyDb().from('distribuidores').insert(row);
   if (error) { button.disabled = false; notices.toast(t(existing ? 'orders.distributors.couldNotSave' : 'orders.distributors.couldNotAdd', { error: (error as { message?: string }).message ?? '' }), true); return; }
   secondWindow()?.close(); notices.toast(t(existing ? 'orders.distributors.saved' : 'orders.distributors.added'));
-  await orderSheetLegacy.distributors(true).catch(() => []);
+  await loadDistributors(true).catch(() => []);
   if (stillShown()) void paintDistributors();
 }
 
@@ -106,7 +107,7 @@ async function toggleUse(item: Distributor, button: HTMLButtonElement): Promise<
   const { error } = await legacyDb().from('distribuidores').update({ activo: !item.activo }).eq('id', item.id);
   if (error) { button.disabled = false; notices.toast(t('orders.distributors.couldNotChange', { error: (error as { message?: string }).message ?? '' }), true); return; }
   notices.toast(t(item.activo ? 'orders.distributors.notUsedNow' : 'orders.distributors.usedAgain'));
-  await orderSheetLegacy.distributors(true).catch(() => []);
+  await loadDistributors(true).catch(() => []);
   void paintDistributors();
 }
 

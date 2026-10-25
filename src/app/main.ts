@@ -9,6 +9,9 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as portalHome from './screens/home/portal-home';
+import { listenToDuplicates } from './screens/accounts/duplicates';
+import * as settingsExtra from './screens/settings/extra';
 import * as listComponents from './components/list';
 import * as filterComponents from './components/filters';
 import * as settingsMore from './screens/settings/more';
@@ -41,6 +44,7 @@ import { listenToColumnResize } from './screens/accounts/list/column-panel';
 import { paintHeader as paintAccountsHeader } from './screens/accounts/list/table';
 import * as home from './screens/home';
 import { paintIndicators } from './screens/home/indicators';
+import { openIndicatorSettings } from './screens/home/indicator-settings';
 
 export interface DelcosCore {
   readonly router: Router;
@@ -53,10 +57,12 @@ export interface DelcosCore {
   readonly components: typeof components & { readonly list: typeof listComponents; readonly filters: typeof filterComponents };
   /** Migrated screens, called by the legacy adapters (e.g. cargarInicio) until navigation moves to the router. */
   readonly screens: {
-    readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators };
+    readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators; readonly openIndicatorSettings: typeof openIndicatorSettings };
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly portalHome: typeof portalHome;
+    readonly settingsExtra: typeof settingsExtra;
     readonly settingsMore: typeof settingsMore;
     readonly settings: typeof settings;
     readonly access: typeof access;
@@ -99,10 +105,12 @@ window.delcos = {
   setVocabulary,
   components: { ...components, list: listComponents, filters: filterComponents },
   screens: {
-    home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators },
+    home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators, openIndicatorSettings },
     agenda,
     accounts,
     events,
+    portalHome,
+    settingsExtra,
     settingsMore,
     settings,
     access,
@@ -129,6 +137,7 @@ window.delcos = {
 };
 
 listenToSameCentre();
+listenToDuplicates();
 listenToMapCards(id => { void accounts.openAccountCard(id); });
 listenToYourDay();
 listenToCards();

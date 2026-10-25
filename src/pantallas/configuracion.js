@@ -463,106 +463,6 @@ async function pintarPrefsParte(parte) {
   }
 }
 
-async function pintarCorreo() {
-  const [{ data: c }] = await Promise.all([RPC_ORIG('correo_config', {}), cargarAjustes()]);
-  const cfg = Object.assign({ proveedor: '', host: '', puerto: 465, seguridad: 'ssl', usuario: '', remitente_nombre: '', remitente_email: '', color: '#15528F', firma: {} }, c || {});
-  const f = Object.assign({ nombre: PERFIL.nombre, cargo: '', empresa: (AJUSTES.empresa || {}).razon_social || nombreApp(), telefono: (AJUSTES.empresa || {}).telefono || '',
-    telefono2: '', web: (AJUSTES.empresa || {}).web || '', direccion: [(AJUSTES.empresa || {}).direccion, (AJUSTES.empresa || {}).municipio].filter(Boolean).join(', '), aviso: '', logo: 'si' }, cfg.firma || {});
-  const campo = (id, et, v, extra = '') => `<div><label for="${id}">${et}</label><input id="${id}" value="${esc(v || '')}" ${extra}></div>`;
-  $('cfgcuerpo').innerHTML = `
-    <div class="card cfgpanel"><h2>Correo de la empresa</h2>
-      <p class="sm">Desde esta cuenta salen las facturas, los datos de pago y los resúmenes. Cada empresa usa su propio correo: los clientes ven vuestro remitente y vuestra firma.</p>
-      <div class="g2"><div><label for="coprov">Proveedor</label><select id="coprov"><option value="">Elige tu proveedor…</option>${Object.entries(PROVEEDORES_CORREO).map(([k, p]) => `<option value="${k}" ${cfg.proveedor === k ? 'selected' : ''}>${p.n}</option>`).join('')}</select></div><div></div></div>
-      <div class="avisoh ${cfg.proveedor ? '' : 'hide'}" id="coayuda"><span>${esc((PROVEEDORES_CORREO[cfg.proveedor] || {}).ayuda || '')}</span></div>
-      <div class="g2">${campo('cohost', 'Servidor de salida (SMTP)', cfg.host, 'placeholder="smtp.tuproveedor.com"')}
-        <div class="g2 copuerg"><div><label for="copuer">Puerto</label><input id="copuer" type="number" value="${esc(cfg.puerto)}"></div>
-          <div><label for="coseg">Seguridad</label><select id="coseg"><option value="ssl" ${cfg.seguridad === 'ssl' ? 'selected' : ''}>SSL</option><option value="starttls" ${cfg.seguridad === 'starttls' ? 'selected' : ''}>STARTTLS</option></select></div></div></div>
-      <div class="g2">${campo('cousu', 'Identificador de acceso', cfg.usuario, 'autocomplete="off"')}
-        <div><label for="copass">Clave de acceso</label><input id="copass" type="password" autocomplete="new-password" placeholder="${cfg.hay_clave ? '•••••••• guardada · escribe solo para cambiarla' : ''}"></div></div>
-      <div class="g2">${campo('conom', 'Nombre del remitente', cfg.remitente_nombre, `placeholder="${esc(nombreApp())}"`)}${campo('coemail', 'Email del remitente', cfg.remitente_email || (AJUSTES.empresa || {}).email || PERFIL.email || '', 'type="email" placeholder="nombre@tuempresa.com"')}</div>
-      <p class="sm">🔒 La clave de acceso se guarda aparte y nadie puede verla desde la plataforma, ni siquiera administración.</p></div>
-    <div class="card cfgpanel"><h2>Firma</h2>
-      <p class="sm">Se añade al final de cada email, con el logo de la empresa si lo tienes en Marca y logo.</p>
-      <div class="firmaed"><div>
-        <div class="g2">${campo('fnom', 'Nombre', f.nombre)}${campo('fcar', 'Cargo', f.cargo, 'placeholder="p. ej. Atención al cliente"')}</div>
-        <div class="g2">${campo('femp', 'Empresa', f.empresa)}${campo('fweb', 'Web', f.web, 'placeholder="www.tuempresa.com"')}</div>
-        <div class="g2">${campo('ftel', 'Teléfono', f.telefono)}${campo('ftel2', 'Otro teléfono', f.telefono2)}</div>
-        ${campo('fdir', 'Dirección', f.direccion)}
-        <label for="faviso">Aviso legal o de confidencialidad</label><textarea id="faviso" rows="3" placeholder="Texto que aparece en pequeño al final del correo">${esc(f.aviso || '')}</textarea>
-        <div class="g2"><div><label for="fcolor">Color</label><input id="fcolor" type="color" value="${esc(cfg.color || '#15528F')}" style="height:44px"></div>
-          <div><label class="vfswitch"><input type="checkbox" id="flogo" ${f.logo !== 'no' ? 'checked' : ''}><span class="sw"></span><span>Incluir el logo</span></label></div></div>
-      </div><div><div class="sm" style="margin-bottom:6px">Vista previa</div><div class="firmaprev" id="fprev"></div></div></div></div>
-    <div class="card cfgpanel"><div class="acts" style="justify-content:flex-end;flex-wrap:wrap;margin:0">
-      <button class="btn sec" id="coprueba">Enviarme un correo de prueba</button><button class="btn" id="cook">Guardar</button></div>
-      <p class="sm" id="comsg"></p></div>`;
-  const prev = () => {
-    const v = id => $(id).value.trim(), color = $('fcolor').value, logo = $('flogo').checked && MARCA.logo;
-    $('fprev').innerHTML = `<div style="height:4px;background:${color};border-radius:4px;margin-bottom:12px"></div><p style="margin:0 0 12px">Hola:<br><br>Te adjuntamos la factura de tu pedido.<br><br>Un saludo,</p>
-      <div class="fprevfirma">${logo ? `<img src="${esc(MARCA.logo)}" alt="">` : ''}<div>${v('fnom') ? `<b style="color:${color}">${esc(v('fnom'))}</b><br>` : ''}${v('fcar') ? esc(v('fcar')) + '<br>' : ''}${v('femp') ? `<b>${esc(v('femp'))}</b><br>` : ''}
-        ${[v('ftel'), v('ftel2')].filter(Boolean).map(esc).join(' · ')}${v('ftel') || v('ftel2') ? '<br>' : ''}${v('fweb') ? `<span style="color:${color}">${esc(v('fweb'))}</span><br>` : ''}${v('fdir') ? esc(v('fdir')) : ''}</div></div>
-      ${v('faviso') ? `<p class="fprevaviso">${esc(v('faviso'))}</p>` : ''}`;
-  };
-  ['fnom', 'fcar', 'femp', 'fweb', 'ftel', 'ftel2', 'fdir', 'faviso', 'fcolor', 'flogo'].forEach(id => $(id).addEventListener('input', prev)); $('flogo').onchange = prev; prev();
-  // Qué pide cada proveedor como identificador y como clave
-  const PISTAS = { google: ['Dirección de correo de la cuenta', 'Contraseña de aplicación'], microsoft: ['Dirección de correo de la cuenta', 'Contraseña de la cuenta'],
-    mailjet: ['API Key', 'Secret Key'], ionos: ['Dirección de correo completa', 'Contraseña del buzón'], ovh: ['Dirección de correo completa', 'Contraseña del buzón'], otro: ['Lo indica tu proveedor', 'Lo indica tu proveedor'] };
-  const pistas = () => { const k = PISTAS[$('coprov').value] || ['', '']; $('cousu').placeholder = k[0]; if (!cfg.hay_clave) $('copass').placeholder = k[1]; };
-  pistas();
-  $('coprov').onchange = () => {
-    pistas();
-    const p = PROVEEDORES_CORREO[$('coprov').value]; if (!p) return;
-    if (p.host) $('cohost').value = p.host; $('copuer').value = p.puerto; $('coseg').value = p.seg;
-    $('coayuda').classList.remove('hide'); $('coayuda').querySelector('span').textContent = p.ayuda;
-  };
-  const guardar = async () => {
-    const v = id => $(id).value.trim();
-    const p = { proveedor: $('coprov').value, host: v('cohost'), puerto: +$('copuer').value || 465, seguridad: $('coseg').value, usuario: v('cousu'),
-      remitente_nombre: v('conom'), remitente_email: v('coemail') || (/@/.test(v('cousu')) ? v('cousu') : ''), color: $('fcolor').value,
-      firma: { nombre: v('fnom'), cargo: v('fcar'), empresa: v('femp'), web: v('fweb'), telefono: v('ftel'), telefono2: v('ftel2'), direccion: v('fdir'), aviso: $('faviso').value.trim(), logo: $('flogo').checked ? 'si' : 'no' } };
-    // Cada dato que falta se marca en su campo
-    document.querySelectorAll('#cfgcuerpo .campoerr').forEach(x => x.remove());
-    document.querySelectorAll('#cfgcuerpo .conerr').forEach(x => x.classList.remove('conerr'));
-    const falta = (id, t) => { const el = $(id); el.classList.add('conerr'); (el.closest('.selw, .numw') || el).insertAdjacentHTML('afterend', `<span class="campoerr">${t}</span>`); };
-    const errores = [];
-    if (!p.host) errores.push(['cohost', 'Indica el servidor de salida']);
-    if (!p.usuario) errores.push(['cousu', 'Indica el identificador de acceso']);
-    if (!cfg.hay_clave && !$('copass').value) errores.push(['copass', 'Escribe la clave de acceso']);
-    if (!p.remitente_email) errores.push(['coemail', 'Indica el email del remitente']);
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.remitente_email)) errores.push(['coemail', 'Ese email no es válido']);
-    if (errores.length) {
-      errores.forEach(([id, t]) => falta(id, t));
-      $('comsg').innerHTML = `<b style="color:var(--dang)">${errores.length === 1 ? 'Falta un dato' : 'Faltan ' + errores.length + ' datos'}:</b> revisa los campos marcados en rojo.`;
-      $(errores[0][0]).focus(); return false;
-    }
-    const { data: r, error } = await db.rpc('guardar_correo', { p, p_clave: $('copass').value || null });
-    if (error || (r && r.ok === false)) {
-      const motivo = error ? (error.message || error.code || '') : r.error;
-      const txt = /Could not find the function|PGRST202/i.test(motivo) ? 'La base de datos no encuentra la función del correo (SQL 48).'
-        : motivo === 'permiso' ? 'Solo el propietario de la empresa puede configurar el correo.' : 'No se ha podido guardar: ' + motivo;
-      $('comsg').innerHTML = `<b style="color:var(--dang)">${esc(txt)}</b>${motivo && txt.indexOf(motivo) < 0 ? `<span class="errtec">Detalle técnico: ${esc(motivo)}</span>` : ''}`; toast(txt, true); return false;
-    }
-    if ($('copass').value) cfg.hay_clave = true;
-    $('comsg').innerHTML = '<b style="color:var(--ok)">✓ Guardado.</b>';
-    $('copass').value = ''; $('copass').placeholder = '•••••••• guardada · escribe solo para cambiarla'; toast('Correo guardado'); return true;
-  };
-  $('cook').onclick = () => conCarga($('cook'), 'Guardando…', guardar);
-  $('coprueba').onclick = ev => conCarga($('coprueba'), 'Enviando…', async () => {
-    if (!await guardar()) return;
-    $('comsg').textContent = 'Enviando el correo de prueba…';
-    let { data, error } = await db.functions.invoke('enviar_email', { body: { prueba: true } });
-    if (error && error.context && typeof error.context.json === 'function') { try { data = await error.context.json(); } catch (x) {} }
-    const e = data && data.error;
-    $('comsg').innerHTML = data && data.ok ? '<b style="color:var(--ok)">✓ Enviado.</b> Revisa tu bandeja de entrada (y la de correo no deseado).'
-      : e === 'credenciales' ? '<b style="color:var(--dang)">El servidor ha rechazado el identificador o la clave de acceso.</b> Revisa los datos que te da tu proveedor.'
-      : e === 'conexion' ? '<b style="color:var(--dang)">No se ha podido conectar con el servidor.</b> Revisa el servidor, el puerto y la seguridad.'
-      : e === 'sin_smtp' ? '<b style="color:var(--dang)">Falta el servidor, el usuario o la contraseña.</b>'
-      // v2.280.0: el motivo en palabras (antes salía «permiso» suelto)
-      : e === 'permiso' ? '<b style="color:var(--dang)">No tienes permiso para enviar el correo de prueba.</b> Lo envía quien administra la empresa.'
-      : e === 'sesion' ? '<b style="color:var(--dang)">Tu sesión ha caducado.</b> Vuelve a entrar y prueba otra vez.'
-      : `<b style="color:var(--dang)">No se ha podido enviar.</b> ${error && !data ? 'La función de envío no está instalada en el servidor.' : esc(String(e || ''))}`;
-  });
-  validarEmailEnVivo($('coemail'));
-}
 
 function cfgMovil() {
   const hub = document.querySelector('.cfghub'); if (!hub) return;
@@ -685,12 +585,6 @@ function marcarPedsec() {
   document.querySelectorAll('nav.main [data-t], #bnav [data-t]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.t === alias)));
 }
 
-async function guardarPrefsAvisos(avisos) {
-  const prefs = Object.assign({}, (PERFIL && PERFIL.preferencias) || {}, { avisos_pedidos: avisos });
-  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-  if (error) { toast('No se ha podido guardar', true); return false; }
-  PERFIL.preferencias = data || prefs; return true;
-}
 
 function rpPlanDe(i) {
   const p = RPROP.lista[i]; if (!p) return null;
@@ -699,42 +593,9 @@ function rpPlanDe(i) {
   return p;
 }
 
-// Acciones de cada aviso: [texto, función, principal]
-function notifAcciones(x) {
-  const d = x.datos || {}, [t, id] = String(x.enlace || '').split(':'), out = [];
-  if (x.tipo === 'reponer') {
-    if (d.telefono) out.push(['Llamar', () => { location.href = 'tel:' + String(d.telefono).replace(/\s+/g, ''); }, true]);
-    out.push(['Nueva venta', () => nuevaVenta({ contacto_id: d.contacto_id || id, cliente: d.nombre, telefono: d.telefono }), !d.telefono]);
-  } else if (x.tipo === 'caida_ventas') {
-    out.push(['Ver ficha', () => abrirFicha(d.cuenta_id || id), true], ['Citar', () => nuevaCita(d.cuenta_id || id)]);
-  } else if (x.tipo === 'visita_sin_registrar') {
-    out.push([`Registrar ${TT('visita', 's', '', 'l', 'l')}`, () => abrirVisita(d.cuenta_id), true], ['Ver ficha', () => abrirFicha(d.cuenta_id)]);
-  } else if (t === 'pedido' && id) out.push(['Ver pedido', () => verPedido(id), true]);
-  else if (t === 'ficha' && id) out.push(['Ver ficha', () => abrirFicha(id), true]);
-  else if (x.enlace) out.push(['Abrir', () => irEnlace(x.enlace), true]);
-  return out;
-}
 
-function notifDia(f) {
-  const d = new Date(f), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-  const dif = Math.round((hoy - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
-  return dif <= 0 ? 'Hoy' : dif === 1 ? 'Ayer' : dif < 7 ? 'Esta semana' : 'Antes';
-}
 
-// Ajustes: tabla compacta (al momento / en el resumen del día) y silencio
-async function notifGuardarPrefs(cambio, ok) {
-  const prefs = Object.assign({}, PERFIL.preferencias || {}, cambio);
-  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-  if (error) { toast('No se ha podido guardar', true); return false; }
-  PERFIL.preferencias = data || prefs; if (ok) toast(ok); return true;
-}
 
-function notifModo(k) {
-  const v = ((PERFIL.preferencias || {}).notif || {})[k], diario = NOTIF_DIARIOS.includes(k);
-  if (v === false) return 'no';
-  if (v && typeof v === 'object') { if (v.m === false && v.r) return 'r'; if (v.m === false) return 'no'; }
-  return diario ? 'r' : 'm';
-}
 
 function marcarFacPlan() {
   document.body.classList.toggle('facsolo', facSinPlan());
@@ -821,11 +682,6 @@ function cfuAjustarIndice() {
   n.style.setProperty('--cfuidxh', Math.max(240, innerHeight - top - 12) + 'px');
 }
 
-async function notifBorrar(ids, leidas) {
-  const { data, error } = await db.rpc('borrar_notificaciones', { p_ids: ids || null, p_leidas: !!leidas });
-  if (error || !data || !data.ok) { toast('No se han podido borrar', true); return false; }
-  return true;
-}
 
 // ---------- nombres del menú ----------
 function txTexto(b) {
@@ -834,120 +690,9 @@ function txTexto(b) {
   return tn ? { get: () => tn.nodeValue.trim(), set: v => { tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), v); if (b.dataset.tip) b.dataset.tip = v; } } : null;
 }
 
-async function pintarTextos() {
-  await cargarAjustes();
-  const mn = menuNombres(), etqDef = TT('medico', 'p', '', 'l', 'C');
-  const vistos = new Set();
-  const filas = [...document.querySelectorAll('nav.main [data-t]')].filter(b => {
-    const t = b.dataset.t; if (vistos.has(t) || MENU_FUERA.includes(t) || ['config', 'delcos', 'manual'].includes(t) || b.classList.contains('hide')) return false;
-    vistos.add(t); return true;
-  }).map(b => {
-    const t = b.dataset.t, x = txTexto(b), def = t === 'directorio' ? etqDef : (b.dataset.txdef || (x && x.get()) || t);
-    const val = t === 'directorio' ? (((AJUSTES.marca || {}).etiqueta || '') !== etqDef ? ((AJUSTES.marca || {}).etiqueta || '') : '') : (mn[t] || '');
-    return { t, def, val };
-  });
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel txmenu"><h2>Menús ${pmAyu('Menús', 'Cómo se llama cada módulo en el menú y en el título de su pantalla. Escribe el nombre que usa tu empresa; en blanco, se usa el de siempre.')}</h2>
-    <div class="txmtab" role="table"><div class="txmf txmcab" role="row"><span></span><span role="columnheader">Módulo</span><span role="columnheader">Nombre en tu empresa</span></div>
-    ${filas.map(f => `<div class="txmf" role="row"><span class="txmico" role="cell">${ICO_MOD[f.t] || '•'}</span><span role="cell" class="txmdef">${esc(f.def)}</span>
-      <span role="cell"><input data-txm="${f.t}" value="${esc(f.val)}" placeholder="${esc(f.def)}" maxlength="30" aria-label="Nombre de ${esc(f.def)} en tu empresa"></span></div>`).join('')}</div>
-    <div class="acts"><button type="button" class="btn" id="txmok">Guardar</button></div></div>`;
-  $('txmok').onclick = () => conCarga($('txmok'), 'Guardando…', async () => {
-    const nuevo = {}; let dir = null;
-    $('cfgcuerpo').querySelectorAll('[data-txm]').forEach(i => { const v = i.value.trim(); if (i.dataset.txm === 'directorio') dir = v; else if (v) nuevo[i.dataset.txm] = v; });
-    const { data, error } = await db.rpc('guardar_ajuste', { p_clave: 'menu_nombres', p_valor: nuevo });
-    if (error || (data && data.ok === false)) { toast('No se han podido guardar los nombres', true); return; }
-    AJUSTES.menu_nombres = nuevo;
-    if (dir !== null && dir !== (((AJUSTES.marca || {}).etiqueta || '') === etqDef ? '' : (AJUSTES.marca || {}).etiqueta || '')) {
-      const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: dir || etqDef });
-      const r2 = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
-      if (!r2.error && !(r2.data && r2.data.ok === false)) { AJUSTES.marca = v; aplicarEtiqueta(); }
-    }
-    aplicarNombresMenu(); MENU_FIRMA = ''; try { montarMenuLateral(); pintarBnav(); } catch (e) {}
-    toast('Nombres guardados');
-  });
-}
 
-function txPintar() {
-  const c = $('cfgcuerpo'); if (!c || !TX) return;
-  const q = impNorm(TX.q || ''), F = TX.filtro;
-  const ver = f => (!F || (F === 'cambios' ? (txPersonal(f) || txCambiada(f)) : f.g === F)) && (!q || impNorm([f.donde, f.siempre, f.v, f.s, f.p].join(' ')).includes(q));
-  const nCamb = TX.filas.filter(f => txPersonal(f) || txCambiada(f)).length, pend = TX.filas.filter(txCambiada).length;
-  const fila = (f, i) => {
-    const marca = txCambiada(f) ? '<span class="txtag txpend">Sin guardar</span>' : txPersonal(f) ? '<span class="txtag">Cambiado</span>' : '';
-    const vuelve = f.g === 'voc' ? (f.s || f.p) : f.v;
-    return `<div class="txrow ${txPersonal(f) || txCambiada(f) ? 'cambio' : ''}" data-txi="${i}"><span class="donde">${esc(f.donde)}</span>
-      <span class="siempre">${esc(f.siempre)}${marca}</span>
-      ${f.g === 'voc' ? `<span class="dos"><input class="chico" data-txs value="${esc(f.s)}" placeholder="${esc(f.ds)}" aria-label="Singular"><input class="chico" data-txp value="${esc(f.p)}" placeholder="${esc(f.dp)}" aria-label="Plural"></span>`
-        : `<input class="chico" data-txv value="${esc(f.v)}" placeholder="${esc(f.ahora ? 'Nuevo nombre' : f.siempre)}" aria-label="Nuevo nombre de ${esc(f.siempre)}">`}
-      ${vuelve ? `<button type="button" class="rv" data-txrv="${i}" title="${f.ahora ? 'Dejarlo como está' : 'Volver al de siempre'}" aria-label="${f.ahora ? 'Dejarlo como está' : 'Volver al de siempre'}">${txSV(TX_IC.rv)}</button>` : '<span></span>'}</div>`;
-  };
-  c.innerHTML = `<div class="txp">
-    <div class="txbar"><div class="txq">${txSV(TX_IC.lupa)}<input id="txq" placeholder="Busca un texto: estado, menú, rol…" value="${esc(TX.q || '')}" autocomplete="off"></div>
-      <div class="txchips" role="group" aria-label="Filtrar">${[['', 'Todos'], ['cambios', 'Cambiados', nCamb]].concat(TX_G.filter(([g]) => TX.filas.some(f => f.g === g)).map(([g, t]) => [g, t]))
-        .map(([k, t, n]) => `<button type="button" data-txf="${k}" class="${F === k ? 'on' : ''}" aria-pressed="${F === k}">${esc(t)}${n ? `<b>${n}</b>` : ''}</button>`).join('')}</div></div>
-    ${TX_G.map(([g, t, s]) => { const fs = TX.filas.map((f, i) => [f, i]).filter(([f]) => f.g === g && ver(f)); if (!fs.length) return '';
-      return `<section class="txg"><h3>${esc(t)}<span class="sm">${esc(s)}</span></h3>
-        <div class="txhead"><span>Dónde sale</span><span>${g === 'voc' || g === 'menu' ? 'El de siempre' : 'Ahora se llama'}</span><span>${g === 'voc' || g === 'menu' ? 'Vuestro texto' : 'Nuevo nombre'}</span><span></span></div>
-        ${fs.map(([f, i]) => fila(f, i)).join('')}</section>`; }).join('') || '<div class="vacio">Ningún texto coincide.</div>'}
-    <div class="txpie"><span class="sm">${pend ? `${pend} ${pend === 1 ? 'cambio' : 'cambios'} sin guardar` : 'Todo guardado'}</span>
-      <span class="acts" style="margin:0"><button type="button" class="btn sec" id="txdes" ${pend ? '' : 'disabled'}>Deshacer</button><button type="button" class="btn" id="txok" ${pend ? '' : 'disabled'}>Guardar</button></span></div></div>`;
-  const q2 = $('txq'); let tq = null;
-  q2.oninput = () => { TX.q = q2.value; clearTimeout(tq); tq = setTimeout(() => { const pos = q2.selectionStart; txPintar(); const n = $('txq'); n.focus(); n.setSelectionRange(pos, pos); }, 200); };
-  c.querySelectorAll('[data-txf]').forEach(b => b.onclick = () => { TX.filtro = b.dataset.txf; txPintar(); });
-  c.querySelectorAll('.txrow').forEach(r => {
-    const f = TX.filas[+r.dataset.txi];
-    const upd = () => { const ant = txCambiada(f); r.classList.toggle('cambio', txPersonal(f) || txCambiada(f)); if (ant !== txCambiada(f) || true) txPie(); };
-    r.querySelectorAll('[data-txv]').forEach(i => i.oninput = () => { f.v = i.value; upd(); });
-    r.querySelectorAll('[data-txs]').forEach(i => i.oninput = () => { f.s = i.value; upd(); });
-    r.querySelectorAll('[data-txp]').forEach(i => i.oninput = () => { f.p = i.value; upd(); });
-  });
-  c.querySelectorAll('[data-txrv]').forEach(b => b.onclick = () => { const f = TX.filas[+b.dataset.txrv]; if (f.g === 'voc') { f.s = ''; f.p = ''; } else f.v = ''; txPintar(); });
-  $('txdes').onclick = () => { TX.filas.forEach(f => { if (f.g === 'voc') { f.s = f.s0; f.p = f.p0; } else f.v = f.v0; }); txPintar(); };
-  $('txok').onclick = txGuardar;
-}
 
-function txPie() {
-  const pend = TX.filas.filter(txCambiada).length, p = document.querySelector('.txpie .sm');
-  if (p) p.textContent = pend ? `${pend} ${pend === 1 ? 'cambio' : 'cambios'} sin guardar` : 'Todo guardado';
-  if ($('txok')) $('txok').disabled = !pend; if ($('txdes')) $('txdes').disabled = !pend;
-}
 
-async function txGuardar() {
-  const camb = TX.filas.filter(txCambiada); if (!camb.length) return;
-  const b = $('txok'); b.disabled = true;
-  const err = [];
-  let recargar = false;
-  // Vocabulario
-  if (camb.some(f => f.g === 'voc')) {
-    const voc = {};
-    TX.filas.filter(f => f.g === 'voc').forEach(f => { const o = {}; if (f.s.trim()) o.s = f.s.trim(); if (f.p.trim()) o.p = f.p.trim(); const g0 = ((TERMINOS || {})[f.k] || {}).g; if (g0 && Object.keys(o).length) o.g = g0; if (Object.keys(o).length) voc[f.k] = o; });
-    const { data, error } = await db.rpc('guardar_ajuste', { p_clave: 'terminos', p_valor: voc });
-    if (error || (data && data.ok === false)) err.push('el vocabulario'); else { try { localStorage.setItem(TERMKEY, JSON.stringify(voc)); } catch (e) {} recargar = true; }
-  }
-  // Menú (el de las fichas es la etiqueta de la marca)
-  if (camb.some(f => f.g === 'menu')) {
-    const mn = {}; TX.filas.filter(f => f.g === 'menu' && f.t !== 'directorio' && f.v.trim()).forEach(f => { mn[f.t] = f.v.trim(); });
-    const { data, error } = await db.rpc('guardar_ajuste', { p_clave: 'menu_nombres', p_valor: mn });
-    if (error || (data && data.ok === false)) err.push('los nombres del menú'); else { AJUSTES.menu_nombres = mn; recargar = true; }
-    const dir = TX.filas.find(f => f.g === 'menu' && f.t === 'directorio');
-    if (dir && txCambiada(dir)) {
-      const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: dir.v.trim() || TT('medico', 'p', '', 'l', 'C') });
-      const r2 = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
-      if (r2.error || (r2.data && r2.data.ok === false)) err.push(`el nombre de ${TT('medico', 'p', '', 'l', 'l')}`); else { AJUSTES.marca = v; aplicarEtiqueta(); }
-    }
-  }
-  // Estados, resultados, roles y campos: uno a uno, en la base (también en las fichas y visitas que los tienen)
-  for (const f of camb.filter(x => ['est', 'rol', 'campo'].includes(x.g) && x.v.trim())) {
-    const p = f.g === 'rol' ? { tipo: 'rol', antes: f.antes, nuevo: f.v.trim() } : { tipo: f.g === 'campo' ? 'campo' : 'valor', id: f.id, nuevo: f.v.trim() };
-    const { data, error } = await db.rpc('renombrar_texto', { p });
-    if (error || !data || !data.ok) err.push(`«${f.siempre}»${data && data.error === 'existe' ? ' (ya hay otro con ese nombre)' : ''}`);
-    else recargar = true;
-  }
-  invalidarCache();
-  if (err.length) { toast('No se ha podido cambiar ' + err.join(', '), true); b.disabled = false; return; }
-  toast('Textos guardados: se recarga la plataforma');
-  setTimeout(() => location.reload(), 900);
-}
 
 /* ============================================================
    v2.279.0 · Datos de acceso a mano, «Mi ficha» con lo necesario y ver la contraseña (peticiones de Eric, 12/10/2026; SQL 148).
@@ -981,103 +726,17 @@ async function verAccesoTemporal(u) {
   $('acccop').onclick = async () => { try { await navigator.clipboard.writeText(texto); toast('Copiado: pégalo en un mensaje'); } catch (e) { toast('No se ha podido copiar', true); } };
 }
 
-function varsCorreo(o) {
-  const e = AJUSTES.empresa || {}, emp = e.razon_social || nombreApp(), doc = o.documento || 'pedido';
-  return { nombre: o.nombre || '', nombre_pila: o.nombre ? nombrePila(o.nombre) : '', empresa: emp, documento: doc, Documento: doc.charAt(0).toUpperCase() + doc.slice(1),
-    numero: o.numero || '', importe: eurI(o.importe || 0), beneficiario: emp, iban: e.iban || '' };
-}
 
-function plantillaCorreo(k, campo, v) {
-  const l = plantillasCorreo(k), p = l.find(x => x.id === PLANT_ELEGIDA[k]) || l.find(x => x.defecto) || l[0] || {};
-  const t = (p[campo] || '').trim() || PLANT_CORREO[k][campo];
-  return t.replace(/\[(\w+)\]/g, (m, n) => n in v ? v[n] : m).replace(/ {2,}/g, ' ').trim();
-}
 
 // Configuración → Correo y firma: «Textos de los correos»
 // Configuración → Correo y firma → «Plantillas de correo»
-function pintarPlantillasCorreo() {
-  const c = $('cfgcuerpo'); if (!c || $('plcorreo') || !$('cook')) return;
-  const fin = $('cook').closest('.card'); if (!fin) return;
-  fin.insertAdjacentHTML('beforebegin', `<div class="card cfgpanel" id="plcorreo"><div class="fh"><h2 class="plch">Plantillas de correo ${pmAyu('Plantillas de correo', 'Los correos que reciben tus clientes. Crea las que quieras, con el nombre que quieras; para cada uso, una es la de por defecto y, si hay más, se elige al enviar. Los huecos entre corchetes ([nombre], [iban]…) se rellenan al enviar. La despedida y los teléfonos ya van en la firma.')}</h2>
-    <button type="button" class="btn sec chico" id="plcnueva">+ Nueva plantilla</button></div><div id="plclista" class="plclista"></div></div>`);
-  const pinta = () => {
-    const l = listaCorreos();
-    $('plclista').innerHTML = Object.keys(USOS_CORREO).map(u => {
-      const g = l.filter(x => x.uso === u);
-      return `<div class="plcuso"><div class="sm plcusot">${esc(USOS_CORREO[u])}</div>${g.map(x => `<div class="plcfila"><span class="plcn"><b>${esc(x.nombre)}</b>${x.defecto ? ' <span class="pill p-ok">Por defecto</span>' : ''}<span class="sm">${esc(x.asunto)}</span></span>
-        <span class="plcb"><button type="button" class="btn sec chico" data-plce="${x.id}">Editar</button><button type="button" class="btn sec chico" data-plcd="${x.id}">Duplicar</button>
-          ${g.length > 1 ? `<button type="button" class="btn sec chico dang" data-plcx="${x.id}">Eliminar</button>` : ''}</span></div>`).join('') || '<div class="sm">Sin plantillas.</div>'}</div>`;
-    }).join('');
-  };
-  pinta();
-  $('plcorreo').onclick = async e => {
-    const ed = e.target.closest('[data-plce]'), du = e.target.closest('[data-plcd]'), x = e.target.closest('[data-plcx]');
-    const l = listaCorreos().map(p => Object.assign({}, p));
-    if (e.target.closest('#plcnueva')) { editarPlantillaCorreo({ id: idPlant(), nombre: '', uso: 'pago', asunto: PLANT_CORREO.pago.asunto, texto: PLANT_CORREO.pago.texto, defecto: false }, true, pinta); return; }
-    if (ed) { editarPlantillaCorreo(l.find(p => p.id === ed.dataset.plce), false, pinta); return; }
-    if (du) { const o = l.find(p => p.id === du.dataset.plcd); editarPlantillaCorreo(Object.assign({}, o, { id: idPlant(), nombre: o.nombre + ' (copia)', defecto: false }), true, pinta); return; }
-    if (x) {
-      const o = l.find(p => p.id === x.dataset.plcx); if (!o) return;
-      if (!await preguntar(`Se elimina la plantilla «${o.nombre}».`, { titulo: '¿Eliminar la plantilla?', ok: 'Eliminar' })) return;
-      let n = l.filter(p => p !== o);
-      if (o.defecto) { const otra = n.find(p => p.uso === o.uso); if (otra) otra.defecto = true; }
-      if (await guardarCorreos(n)) { toast('Plantilla eliminada'); pinta(); }
-    }
-  };
-}
 
-function listaCorreos() {
-  const a = AJUSTES.plantillas_correo || {};
-  if (Array.isArray(a.lista) && a.lista.length) return a.lista;
-  return Object.keys(USOS_CORREO).map(u => ({ id: u, nombre: PLANT_CORREO[u].titulo, uso: u, asunto: (a[u] || {}).asunto || PLANT_CORREO[u].asunto, texto: (a[u] || {}).texto || PLANT_CORREO[u].texto, defecto: true }));
-}
 
 // (R-12: plantillaCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
-async function guardarCorreos(lista) {
-  const v = Object.assign({}, AJUSTES.plantillas_correo || {}, { lista });
-  const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'plantillas_correo', p_valor: v });
-  if (error || (r && r.ok === false)) { toast('No se han podido guardar las plantillas', true); return false; }
-  AJUSTES.plantillas_correo = v; return true;
-}
 
 // Elegir plantilla al enviar (solo si hay más de una para ese uso). Devuelve false si se cancela.
-async function elegirPlantillaCorreo(uso) {
-  const l = plantillasCorreo(uso); PLANT_ELEGIDA[uso] = null;
-  if (l.length < 2) return true;
-  const def = l.find(x => x.defecto) || l[0];
-  const k = await elegirOpcion('¿Con qué plantilla?', `Hay ${l.length} plantillas para «${USOS_CORREO[uso]}». La de por defecto es «${def.nombre}».`,
-    [{ k: '', t: 'Cancelar', cls: 'sec' }, ...[def, ...l.filter(x => x !== def)].map((x, i) => ({ k: x.id, t: x.nombre, cls: i ? 'sec' : '' }))]);
-  if (!k) return false;
-  PLANT_ELEGIDA[uso] = k; return true;
-}
 
 // (R-12: pintarPlantillasCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
-function editarPlantillaCorreo(p, nueva, alGuardar) {
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>${nueva ? 'Nueva plantilla de correo' : 'Editar la plantilla'}</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <div class="g2"><div><label for="pcen">Nombre</label><input id="pcen" value="${esc(p.nombre)}" maxlength="60" placeholder="Por ejemplo: Datos de pago · clínicas"></div>
-      <div><label for="pceu">Se usa para</label><select id="pceu">${Object.entries(USOS_CORREO).map(([k, t]) => `<option value="${k}" ${p.uso === k ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div></div>
-    <label for="pcea">Asunto</label><input id="pcea" value="${esc(p.asunto)}">
-    <label for="pcet">Texto</label><textarea id="pcet" rows="12">${esc(p.texto)}</textarea>
-    <div class="sm plchue">Huecos (pulsa para añadirlo donde está el cursor):</div>
-    <div class="plcvars">${VARS_CORREO.map(([n, t]) => `<button type="button" class="btn sec chico" data-plv="${n}" title="${esc(t)}">[${n}]</button>`).join('')}</div>
-    <label class="chk"><input type="checkbox" id="pced" ${p.defecto ? 'checked' : ''}> <span>Usarla por defecto para este uso</span></label>
-    <div class="acts"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="pceok">Guardar</button></div>`;
-  $('dlg2').showModal();
-  let ult = $('pcet'); ['pcea', 'pcet'].forEach(id => $(id).addEventListener('focus', () => { ult = $(id); }));
-  $('dlg2body').querySelectorAll('[data-plv]').forEach(b => b.onclick = () => {
-    const t = ult, v = '[' + b.dataset.plv + ']', i = t.selectionStart == null ? t.value.length : t.selectionStart, j = t.selectionEnd == null ? i : t.selectionEnd;
-    t.value = t.value.slice(0, i) + v + t.value.slice(j); t.focus(); t.selectionStart = t.selectionEnd = i + v.length;
-  });
-  $('pceok').onclick = () => conCarga($('pceok'), 'Guardando…', async () => {
-    const nombre = $('pcen').value.trim(); if (!nombre) { toast('Pon un nombre a la plantilla', true); return; }
-    const n = Object.assign({}, p, { nombre, uso: $('pceu').value, asunto: $('pcea').value.trim(), texto: $('pcet').value.replace(/\s+$/, ''), defecto: $('pced').checked });
-    let l = listaCorreos().map(x => Object.assign({}, x)).filter(x => x.id !== n.id);
-    if (n.defecto) l.forEach(x => { if (x.uso === n.uso) x.defecto = false; });
-    l.push(n);
-    Object.keys(USOS_CORREO).forEach(u => { const g = l.filter(x => x.uso === u); if (g.length && !g.some(x => x.defecto)) g[0].defecto = true; });
-    if (await guardarCorreos(l)) { $('dlg2').close(); toast('Plantilla guardada'); alGuardar && alGuardar(); }
-  });
-}
 
 function cfgSecDormir(sec) {
   sec.querySelectorAll(IDS_SEC.map(i => '#' + i).join(',')).forEach(e => { e.dataset.idd = e.id; e.removeAttribute('id'); });
@@ -1391,23 +1050,13 @@ const notifIco = t => (TIPOS_NOTIF.find(x => x[0] === t) || [])[1] || '🔔';
      su manera: vocabulario (ajuste terminos), nombres del menú (ajuste menu_nombres; el de las fichas es marca.etiqueta), estados
      comerciales y resultados de visita (renombrar_texto: también en las fichas y en las visitas ya registradas), roles y campos.
    - Los nombres del menú se aplican en el menú lateral, la barra del móvil, «Más» y el título de cada pantalla. */
-const TX_IC = { rv: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>' };
 
-const txSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
 
 let TX_OBS = 0;
 
-let TX = null;   // {filas, filtro, q}
 
-const TX_G = [['voc', 'Vocabulario', 'Las palabras que salen en todos los textos. En blanco, la de siempre.'],
-  ['menu', 'Menú', 'El nombre de cada apartado del menú y de su pantalla. En blanco, el de siempre.'],
-  ['est', 'Estados y resultados', 'Al cambiar un nombre, se cambia también en las fichas y en las visitas que ya lo tienen.'],
-  ['rol', 'Roles', 'El nombre de cada rol. Sus usuarios y permisos siguen igual.'],
-  ['campo', 'Campos de la ficha', 'El nombre de cada campo personalizado.']];
 
-const txCambiada = f => f.g === 'voc' ? (f.s !== f.s0 || f.p !== f.p0) : (f.v || '') !== (f.v0 || '');
 
-const txPersonal = f => f.g === 'voc' ? !!(f.s || f.p) : f.g === 'menu' ? !!f.v : false;
 
 /* ============================================================
    v2.306.0 · Textos de los correos a los clientes (revisión de Eric con un correo real: al cliente le llegó «IBAN: (añade el
@@ -1415,15 +1064,7 @@ const txPersonal = f => f.g === 'voc' ? !!(f.s || f.p) : f.g === 'menu' ? !!f.v 
    Configuración → Correo y firma → «Textos de los correos», con huecos como [nombre] o [iban] que se rellenan al enviar.
    Se guardan en el ajuste plantillas_correo. Sin IBAN no se envían los datos de pago. La despedida y los teléfonos van solo en la firma.
    ============================================================ */
-const PLANT_CORREO = {
-  pago: { titulo: 'Datos de pago por transferencia', asunto: '[Documento] [numero] de [empresa] para [nombre]',
-    texto: 'Hola [nombre_pila]:\n\nGracias por tu pedido [numero], por un importe de [importe].\n\nPara completarlo, haz una transferencia bancaria con estos datos:\n\nBeneficiario: [beneficiario]\nIBAN: [iban]\nImporte: [importe]\nConcepto: [nombre]\n\nIndica el concepto tal como aparece arriba: así identificamos el pago enseguida y no se retrasa la preparación del pedido.\n\nEn cuanto recibamos el pago preparamos el envío.' },
-  factura: { titulo: 'Envío de la factura', asunto: '[Documento] [numero] de [empresa] para [nombre]',
-    texto: 'Hola [nombre_pila]:\n\nTe adjuntamos la [documento] [numero] de tu pedido, por un importe de [importe].\n\nGracias por tu confianza. Si tienes cualquier duda, estaremos encantados de ayudarte.' }
-};
 
-const VARS_CORREO = [['nombre', 'Nombre completo del cliente'], ['nombre_pila', 'Solo el nombre de pila'], ['empresa', 'Vuestra razón social'], ['documento', 'pedido o factura'],
-  ['Documento', 'Pedido o Factura'], ['numero', 'Número del pedido o la factura'], ['importe', 'Importe total'], ['beneficiario', 'Titular de la cuenta (razón social)'], ['iban', 'IBAN de los datos fiscales']];
 
 /* ============================================================
    v2.342.0 · Plantillas de correo y de PDF (Eric, 20/10/2026: «que el usuario vaya creando las que quiera, con el nombre que quiera»;
@@ -1435,11 +1076,8 @@ const VARS_CORREO = [['nombre', 'Nombre completo del cliente'], ['nombre_pila', 
      también la base, en la proforma del portal). En «Diseño del PDF», una barra para elegir la plantilla, crear, renombrar, eliminar
      y hacerla la de por defecto. Al descargar o enviar una factura, si hay más de una, se elige.
    ============================================================ */
-const USOS_CORREO = { pago: 'Datos de pago', factura: 'Envío de la factura' };
 
-const idPlant = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 
-const plantillasCorreo = uso => listaCorreos().filter(x => x.uso === uso);
 
 const cfgDePlantilla = id => { const p = listaPDF().lista.find(x => x.id === id); const c = (p && p.cfg) || {};
   return Object.assign({}, PDF_DEF, c, { cols: Object.assign({}, PDF_DEF.cols, c.cols || {}) }); };
@@ -1674,82 +1312,7 @@ function camposFiltros() { return ''; }
 /* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
 // Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
 
-// v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
-function panelNotificaciones(l) {
-  NOTIF_LISTA = l || [];
-  notifPintar();
-  if (!$('dlg').open) $('dlg').showModal();
-}
 
-function notifPintar() {
-  const l = NOTIF_LISTA;
-  const areas = NOTIF_AREAS.filter(a => l.some(x => notifArea(x.tipo) === a[0]));
-  if (NOTIF_FILTRO && !areas.some(a => a[0] === NOTIF_FILTRO)) NOTIF_FILTRO = '';
-  const vis = l.filter(x => !NOTIF_FILTRO || notifArea(x.tipo) === NOTIF_FILTRO);
-  const nuevas = vis.filter(x => !x.leida_en), viejas = vis.filter(x => x.leida_en);
-  const fila = x => {
-    const acc = notifAcciones(x), cuando = new Date(x.visible_desde || x.creado_en), g = notifDia(x.visible_desde || x.creado_en);
-    return `<div class="notit2 ${x.leida_en ? '' : 'nuevo'}" data-nidx="${l.indexOf(x)}">
-      <span class="ic" aria-hidden="true">${notifIco(x.tipo)}</span>
-      <div class="tx"><b>${esc(x.titulo)}</b>${x.cuerpo ? `<span class="sm">${esc(x.cuerpo)}</span>` : ''}
-        <span class="sm notcuando">${g === 'Hoy' ? cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : g === 'Ayer' ? 'Ayer' : cuando.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}${x.resumen ? ' · del resumen del día' : ''}</span>
-        <div class="notacts">${acc.map(([t, , p], j) => `<button type="button" class="btn chico ${p ? '' : 'sec'}" data-nacc="${j}">${esc(t)}</button>`).join('')}
-          ${x.leida_en ? '' : '<button type="button" class="btn sec chico" data-npos>Posponer a mañana</button>'}
-          <button type="button" class="notbor" data-nbor aria-label="Borrar esta notificación" title="Borrar">${svgIco(ICON_NOM['trash-2'])}</button></div></div></div>`;
-  };
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Notificaciones</h2><div class="sm">${NOTIF_N ? `${NOTIF_N} sin leer` : 'Estás al día'} · últimos 7 días</div></div>
-      <span class="acts" style="margin:0"><button type="button" class="icobtn notcfgb" id="notcfg" title="Elegir qué recibo y cuándo" aria-label="Elegir qué recibo y cuándo">${svgIco(ICON_NOM.settings)}</button>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></span></div>
-    ${areas.length > 1 ? `<div class="segs notfil" role="group" aria-label="Filtrar">${[['', 'Todas']].concat(areas.map(a => [a[0], a[1]])).map(([k, t]) =>
-      `<button type="button" data-nfil="${k}" class="${NOTIF_FILTRO === k ? 'on' : ''}" aria-pressed="${NOTIF_FILTRO === k}">${esc(t)}</button>`).join('')}</div>` : ''}
-    <div class="notlista2">
-      ${nuevas.length ? `<h3 class="notdia">Nuevas · ${nuevas.length}</h3>${nuevas.map(fila).join('')}` : ''}
-      ${viejas.length ? `<h3 class="notdia">Anteriores</h3>${viejas.map(fila).join('')}` : ''}
-      ${vis.length ? '' : `<div class="vacio">${NOTIF_FILTRO ? 'No hay avisos de esta área.' : 'No tienes notificaciones de los últimos 7 días.'}</div>`}</div>
-    <p class="sm notpie">Se guardan las de los últimos 7 días. Las que borras no vuelven a salir.</p>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
-      ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}
-      ${l.some(x => x.leida_en) ? '<button class="btn sec" id="notlimpiar">Borrar las leídas</button>' : ''}
-      ${l.length ? '<button class="btn sec dang" id="notvaciar">Borrar todas</button>' : ''}</div>`;
-  const cerrarYRefrescar = () => { $('dlg').close(); refrescarCampana(); };
-  const quitar = xs => { NOTIF_LISTA = NOTIF_LISTA.filter(y => !xs.includes(y)); NOTIF_N = Math.max(0, NOTIF_N - xs.filter(y => !y.leida_en).length); notifPintar(); refrescarCampana(); };
-  $('dbody').querySelectorAll('[data-nfil]').forEach(b => b.onclick = () => { NOTIF_FILTRO = b.dataset.nfil; notifPintar(); });
-  $('dbody').querySelectorAll('.notit2').forEach(el => {
-    const x = l[+el.dataset.nidx], acc = notifAcciones(x);
-    el.querySelectorAll('[data-nacc]').forEach(b => b.onclick = async e => {
-      e.stopPropagation();
-      await db.rpc('leer_notificacion', { p_id: x.id });
-      cerrarYRefrescar(); acc[+b.dataset.nacc][1]();
-    });
-    const pos = el.querySelector('[data-npos]');
-    if (pos) pos.onclick = async e => {
-      e.stopPropagation();
-      const { data } = await db.rpc('posponer_notificacion', { p_id: x.id });
-      if (!data || !data.ok) { toast('No se ha podido posponer', true); return; }
-      toast('Te lo volvemos a enseñar mañana'); quitar([x]);
-    };
-    el.querySelector('[data-nbor]').onclick = async e => {
-      e.stopPropagation();
-      if (!await notifBorrar([x.id])) return;
-      el.classList.add('notsale'); setTimeout(() => quitar([x]), 220);
-    };
-    el.onclick = async () => {
-      await db.rpc('leer_notificacion', { p_id: x.id });
-      if (acc.length) { cerrarYRefrescar(); (acc.find(a => a[2]) || acc[0])[1](); }
-      else if (!x.leida_en) { x.leida_en = new Date().toISOString(); NOTIF_N = Math.max(0, NOTIF_N - 1); notifPintar(); refrescarCampana(); }
-    };
-  });
-  if ($('notleer')) $('notleer').onclick = async () => {
-    await db.rpc('leer_notificaciones'); const ahora = new Date().toISOString();
-    NOTIF_LISTA.forEach(x => { if (!x.leida_en) x.leida_en = ahora; }); NOTIF_N = 0; notifPintar(); refrescarCampana();
-  };
-  if ($('notlimpiar')) $('notlimpiar').onclick = async () => { if (await notifBorrar(null, true)) { toast('Notificaciones leídas borradas'); quitar(NOTIF_LISTA.filter(x => x.leida_en)); } };
-  if ($('notvaciar')) $('notvaciar').onclick = async () => {
-    const op = await elegirOpcion('Borrar todas las notificaciones', 'Se borran todas, también las que no has leído, y no vuelven a salir.', [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'si', t: 'Borrar todas' }]);
-    if (op === 'si' && await notifBorrar(null, false)) { toast('Notificaciones borradas'); cerrarYRefrescar(); }
-  };
-  $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
-}
 
 async function cargarCatalogosBase() {
   const claves = Object.keys(CAT);
@@ -2054,40 +1617,6 @@ async function cargarConfigBase() {
   } else Promise.resolve().then(r);
 }
 
-// Notificaciones: cada aviso con «Al momento · En el resumen · No»
-function pintarNotif() {
-  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
-  const filas = NOTIF_AREAS.map(([, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
-  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(ar => ar[2].includes(x[0])));
-  if (sueltos.length) filas.push(['Otros', sueltos]);
-  const modo = k => { const m = notifModo(k); return m === 'm' || m === 'r' ? m : 'n'; };
-  const resumen = () => { const c = { m: 0, r: 0, n: 0 }; tipos.forEach(([k]) => c[modo(k)]++);
-    return `<span><b>${c.m}</b> al momento</span><span><b>${c.r}</b> en el resumen de la mañana</span><span><b>${c.n}</b> desactivados</span>`; };
-  $('cfgcuerpo').innerHTML = tipos.length ? `<div class="card cfgpanel ntf">
-    <div class="ntfres" id="ntfres">${resumen()}</div>
-    <div class="ajfila ntfsil"><div><div class="ntfsilt"><label class="vfswitch mini" title="Activar las horas de silencio"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Activar las horas de silencio"><span class="sw"></span></label><b>Horas de silencio</b></div><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
-      <div class="ajctl">
-        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
-        <label class="ntffin"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> Fines de semana</label></div></div>
-    ${filas.map(([t, l]) => `<h3 class="ntfarea">${esc(t)}</h3>${l.map(([k, ic, tt, d]) => {
-      const m = modo(k), diario = NOTIF_DIARIOS.includes(k);
-      return `<div class="ntfrow"><span class="ntfic">${ic}</span><div><b>${esc(tt)}</b><span class="sm">${esc(d)}</span></div>
-        <div class="segs ntfseg" role="group" aria-label="${esc(tt)}" data-nk="${k}">${diario ? '' : `<button type="button" data-v="m" class="${m === 'm' ? 'on' : ''}" aria-pressed="${m === 'm'}">Al momento</button>`}<button type="button" data-v="r" class="${m === 'r' ? 'on' : ''}" aria-pressed="${m === 'r'}">En el resumen</button><button type="button" data-v="n" class="${m === 'n' ? 'on' : ''}" aria-pressed="${m === 'n'}">No</button></div></div>`; }).join('')}`).join('')}
-  </div>` : '<div class="card cfgpanel"><div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div></div>';
-  $('cfgcuerpo').querySelectorAll('.ntfseg button').forEach(b => b.onclick = async () => {
-    const g = b.closest('.ntfseg'), k = g.dataset.nk, v = b.dataset.v;
-    if (b.classList.contains('on')) return;
-    g.querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
-    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
-    const diario = NOTIF_DIARIOS.includes(k), om = v === 'm', or = v === 'r';
-    if (diario ? or : (om && !or)) delete notif[k]; else notif[k] = { m: om, r: or };
-    await notifGuardarPrefs({ notif }, v === 'n' ? 'No lo recibirás' : v === 'm' ? 'Te llegará al momento' : 'Irá en el resumen de la mañana');
-    if ($('ntfres')) $('ntfres').innerHTML = resumen();
-  });
-  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
-    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
-  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
-}
 
 // Configuración: botón de volver
 async function cargarConfigBase2(...a) {
@@ -2154,3 +1683,19 @@ function abrirClasificador(id) { return window.delcos.screens.settingsMore.openC
 function decorarResultados() { return window.delcos.screens.settingsMore.decorateResults(); }
 function pintarRoles() { return window.delcos.screens.settingsMore.paintRoles(); }
 function pintarMarca() { return window.delcos.screens.settingsMore.paintBrand(); }
+
+// Correo y firma, notificaciones y textos personalizados están en src/app/screens/settings (v2.417.0). Estos nombres se quedan:
+// el árbol de Configuración, la campana, Pedidos, Facturación, servicios/pdf.js, el menú y las pruebas los usan.
+function pintarCorreo() { return window.delcos.screens.settingsExtra.paintEmail(); }
+function varsCorreo(o) { return window.delcos.screens.settingsExtra.emailVariables(o || {}); }
+function plantillaCorreo(k, campo, v) { return window.delcos.screens.settingsExtra.fillTemplate(k, campo, v); }
+function listaCorreos() { return window.delcos.screens.settingsExtra.templateList(); }
+function plantillasCorreo(uso) { return window.delcos.screens.settingsExtra.templatesFor(uso); }
+function guardarCorreos(lista) { return window.delcos.screens.settingsExtra.saveTemplates(lista); }
+function elegirPlantillaCorreo(uso) { return window.delcos.screens.settingsExtra.chooseTemplate(uso); }
+function idPlant() { return window.delcos.screens.settingsExtra.newTemplateId(); }
+function panelNotificaciones(l) { return window.delcos.screens.settingsExtra.showNotifications(l); }
+function pintarNotif() { return window.delcos.screens.settingsExtra.paintNotificationSettings(); }
+function notifModo(k) { return window.delcos.screens.settingsExtra.notificationMode(k); }
+function guardarPrefsAvisos(avisos) { return window.delcos.screens.settingsExtra.saveOrderAlerts(avisos); }
+function pintarTextos() { return window.delcos.screens.settingsExtra.paintMenuNames(); }

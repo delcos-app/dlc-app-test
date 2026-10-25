@@ -2,7 +2,6 @@
    DLC OS 2.0 · Entrega 6: seguimiento, duplicados, exportar y contraseñas
    ============================================================ */
 
-let DUPS = null, PARES = null;
 
 /* ---------------- seguimiento ---------------- */
 
@@ -19,9 +18,6 @@ let DUPS = null, PARES = null;
 
 
 
-const CAMPOS_UNI = [['nombre', 'Nombre'], ['especialidad', TT('especialidad', 's', '', 'l', 'C')], ['area', 'Área'],
-  ['telefono', 'Teléfono'], ['email', 'Email'], ['contacto', 'Contacto'], ['nota', 'Nota'],
-  ['estado_comercial', 'Estado comercial']];
 
 
 /* ---------------- contraseñas ---------------- */

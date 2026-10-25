@@ -12,3 +12,13 @@ export { isBankTransfer, isFree, lineBreakdown, orderStep, orderTotals, statePil
 export { loadSales } from './page';
 export { paymentSubject, paymentText, sendPaymentDetails } from './payment-email';
 export { showOrder } from './sheet';
+// v2.417.0: the order editor, the card payment, the subscription, the order cards and the menu entries
+export { addOrderMenuEntries } from './menu';
+export { countUp, dayHtml, isDayOff, isHoliday, markChosenCard } from './cards';
+export { editOrder, openEditorDistributor } from './editor';
+export { isVatPercentField } from './editor/vat-field';
+export { ago, billingSkeleton, companyPaymentState, kpiTiles, monthlyAmount } from './subscription/company-billing';
+export { choosePlan } from './subscription/choose-plan';
+export { paintPaymentNotices } from './subscription/notices';
+export { callPayments, loadPaymentState, waitUntilActive, waitUntilCancelled } from './subscription/payments';
+export { paintTpvSettings } from './tpv/settings';

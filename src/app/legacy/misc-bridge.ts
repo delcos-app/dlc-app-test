@@ -1,0 +1,31 @@
+/**
+ * Bridge of Duplicados, the centre sheet, «Cerca de mí» and the professional portal home to the legacy code (kept apart from
+ * bridge.ts, which is at its size limit). What stays in legacy: the week days, the previous screen, the nearby result that
+ * legado 096 clears, the duplicates summary of Inicio, the hidden alerts that legado 040 clears, and the cards of Rutas and
+ * Comisiones.
+ */
+export type NearbyAccount = LegacyNearbyAccount;
+export type NearbyResult = LegacyNearbyResult;
+export type HiddenAlert = LegacyHiddenAlert;
+
+export const miscLegacy = {
+  canUnify: (): boolean => puede('administrar') || ((PERFIL as { areas?: Record<string, number> } | null)?.areas?.M ?? 0) >= 3,
+  previousScreen: (): string | null => TAB_ANTERIOR,
+  weekDays: (): readonly (readonly [string, string])[] => DIAS_SEM,
+  setCardCentre: (name: string): void => { FICHA_CENTRO = name; },
+  nearby: (): NearbyResult | null => CERCA,
+  setNearby: (value: NearbyResult | null): void => { CERCA = value; },
+  duplicatesSummary: (): { pendientes?: number; parecidos?: number } | null => DUP_RES,
+  setDuplicatesSummary: (value: { pendientes?: number; parecidos?: number } | null): void => { DUP_RES = value; },
+  hiddenAlerts: (): HiddenAlert[] | null => ALERTAS_OCULTAS,
+  setHiddenAlerts: (value: HiddenAlert[] | null): void => { ALERTAS_OCULTAS = value; },
+  alertKey: (title: string, item: Element): string => claveAlerta(title, item),
+  commissionCard: (): Promise<unknown> => tarjetaComision(),
+  routeCards: (): Promise<unknown> => tarjetasRuta(),
+  item: (id: string, look: { icon: string; kind: string }, name: string, detail: string): string => itemHTML(id, look.icon, look.kind, name, detail),
+  paintUpdated: (): void => { pintarActualizado(); },
+  canBuy: (): boolean => Boolean(puedeCompras()),
+  openStock: (): void => { PSEC = 'stock'; ir('productos'); },
+  openPurchase: (id: string): void => { void editorCompra(id); },
+  reloadHome: (): void => { void cargarInicio(); },
+};

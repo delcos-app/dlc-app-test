@@ -57,13 +57,6 @@ export const appointments = {
 export const icon = (name: string): string => svgIco(ICON_NOM[name] ?? ICON_NOM.info ?? '');
 /** True when these figures were already shown counting on this screen (they are not animated twice). */
 
-/** Home pieces not migrated yet: the header actions and the professional portal. */
-export const legacyHome = {
-  removeOldBlocks: inicioQuitarAntiguo,
-  header: inicioCabecera,
-  professionalPortal: pintarInicioBase2,
-};
-
 /** Indicator catalog and settings: shared with Configuración, which is not migrated yet. */
 export const indicatorCatalog = {
   definitions: (): readonly KpiDefinition[] => KPI_CAT,
@@ -112,7 +105,6 @@ export const agendaSuggestions = {
 /** Other screens reached from Agenda. */
 export const agendaActions = {
   openAccount: (id: string): void => { void abrirFicha(id); },
-  openCentre: (id: string): void => { void fichaCentro(id); },
   newAppointment: (accountId: string, isoDate: string | null): void => { void nuevaCita(accountId, isoDate); },
   planRoute: (list: readonly DueAccount[], button: HTMLElement): void => { void planDesdeLista(list, 'toca', button); },
 };

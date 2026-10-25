@@ -11,56 +11,6 @@ function fichaNueva() {
   return { nombre: 'Cuenta', nueva: 'Nueva cuenta' };
 }
 
-async function compararFichas(idA, idB) {
-  const [{ data: A }, { data: B }] = await Promise.all([
-    db.rpc('ficha_cuenta', { p_id: idA }), db.rpc('ficha_cuenta', { p_id: idB })
-  ]);
-  const a = A.medico, b = B.medico;
-  if (a.id === b.id) { toast('Es la misma ficha', true); return; }
-  let queda = b.id;
-  const eleccion = {};
-  CAMPOS_UNI.forEach(([k]) => eleccion[k] = b[k] ? 'queda' : (a[k] ? 'va' : 'queda'));
-
-  const pinta = () => {
-    const va = queda === a.id ? b : a, qu = queda === a.id ? a : b;
-    const dif = CAMPOS_UNI.filter(([k]) => (a[k] || '') !== (b[k] || ''));
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>Unificar fichas</h2>
-        <div class="sm">Elige cuál se conserva y con qué datos. ${TT('consulta', 'p', '', 'l', 'C')}, ${TT('visita', 'p', '', 'l', 'l')}, citas y cartera se juntan en la que quede.</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="opciones">
-        ${[a, b].map(m => `<button class="opt" data-queda="${m.id}" aria-pressed="${queda === m.id}">
-          <span class="mk"></span><span><b>${esc(m.nombre)}</b><br><span class="sm">Código ${esc(m.codigo)} · se conserva esta</span></span></button>`).join('')}
-      </div>
-      ${dif.length ? `<div style="margin-top:12px">${dif.map(([k, t]) => `
-        <label>${t}</label>
-        <div class="opciones">
-          <button class="opt" data-campo="${k}|queda" aria-pressed="${eleccion[k] === 'queda'}"><span class="mk"></span>${esc(qu[k] || '(vacío)')}</button>
-          <button class="opt" data-campo="${k}|va" aria-pressed="${eleccion[k] === 'va'}"><span class="mk"></span>${esc(va[k] || '(vacío)')}</button>
-        </div>`).join('')}</div>` : '<p class="sm" style="margin-top:12px">Los datos principales coinciden.</p>'}
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn dang" id="uniok">Unificar</button></div>`;
-
-    $('dbody').querySelectorAll('[data-queda]').forEach(x => x.onclick = () => { queda = x.dataset.queda; pinta(); });
-    $('dbody').querySelectorAll('[data-campo]').forEach(x => x.onclick = () => {
-      const [k, v] = x.dataset.campo.split('|'); eleccion[k] = v; pinta();
-    });
-    $('uniok').onclick = async ev => {
-      const desaparece = queda === a.id ? b.id : a.id;
-      if (!await preguntar(`Desaparece la ficha de ${queda === a.id ? b.nombre : a.nombre}.\nNo se puede deshacer desde la app.`, { titulo: '¿Unificar fichas?', ok: 'Unificar', peligro: true })) return;
-      ev.target.disabled = true; ev.target.textContent = 'Unificando…';
-      const { data: r, error } = await db.rpc('unificar_cuentas', { p: { queda, va: desaparece, campos: eleccion } });
-      ev.target.disabled = false; ev.target.textContent = 'Unificar';
-      if (error || (r && r.ok === false)) { toast('No se ha podido unificar', true); return; }
-      toast('Fichas unificadas');
-      DUPS = null; PARES = (PARES || []).filter(p => p.a_id !== desaparece && p.b_id !== desaparece);
-      abrirDuplicados();
-      buscar(true); cargarInicio();
-    };
-  };
-  pinta();
-}
 
 /** Cuenta los médicos de un filtro guardado. */
 async function contarFiltro(f) {
@@ -72,22 +22,6 @@ async function contarFiltro(f) {
   return data ? data.total : 0;
 }
 
-async function cercaDeMi(btn) {
-  if (!navigator.geolocation) { toast('Este dispositivo no tiene ubicación', true); return; }
-  btn.disabled = true; btn.textContent = 'Localizando…';
-  navigator.geolocation.getCurrentPosition(async p => {
-    const { data, error } = await db.rpc('cuentas_cerca', {
-      p_lat: p.coords.latitude, p_lon: p.coords.longitude, p_km: 10, lim: 100
-    });
-    btn.disabled = false; btn.textContent = 'Cerca de mí';
-    if (error) { toast('No se ha podido buscar: ' + error.message, true); return; }
-    CERCA = { lista: data || [], pos: [p.coords.latitude, p.coords.longitude] };
-    pintarCerca();
-  }, () => {
-    btn.disabled = false; btn.textContent = 'Cerca de mí';
-    toast('No se ha podido obtener tu ubicación. Revisa los permisos del navegador.', true);
-  }, { enableHighAccuracy: true, timeout: 15000 });
-}
 
 /**
  * Pinta en `el` un buscador de médicos. Al elegir, el campo se cambia por una tarjeta con ✕.
@@ -213,24 +147,6 @@ async function faltaHorario(id) {
   return data && data.medico && data.medico.tipo !== 'Centro' && !cons.some(c => c.dias && Object.keys(c.dias).some(k => c.dias[k]));
 }
 
-function pintarCerca() {
-  const l = CERCA.lista, tam = tamPagina(), pag = CERCA.pagina || 0;
-  const vista = l.slice(pag * tam, pag * tam + tam);
-  $('thead').innerHTML = '';
-  $('cuenta').innerHTML = `<b>${num(l.length)}</b> ${TT('medico', l.length === 1 ? 's' : 'p', '', 'l', 'l')} a menos de 10 km de ti
-    <button class="kcfg" id="cercacerrar" style="margin-left:10px">Volver a la búsqueda</button>`;
-  $('lista').innerHTML = vista.length ? vista.map(m => `<button class="trow" data-id="${m.id}" style="padding:10px 14px;gap:12px">
-      <span class="tcell cercakm"><b style="color:var(--navy)">${String(m.km).replace('.', ',')} km</b></span>
-      <span class="tcell" style="flex:1;width:auto">
-        <span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
-        <span class="sm">${esc(m.especialidad || '')} · ${esc(m.centro_nombre || '')} ${esc(m.municipio || '')}</span></span>
-      <span class="tcell cercaest"><span class="pill p-est">${esc(m.estado_comercial)}</span></span>
-    </button>`).join('') : `<div class="vacio">No hay ${TT('medico', 'p', '', 'l', 'l')} con ubicación a menos de 10 km.</div>`;
-  $('dirpag').classList.remove('hide');
-  paginador($('dirpag'), l.length, pag, p => { CERCA.pagina = p; pintarCerca(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
-    () => { CERCA.pagina = 0; pintarCerca(); });
-  $('cercacerrar').onclick = () => { CERCA = null; buscar(true); };
-}
 
 function marcarUbicado(box, i, lat, lon, texto) {
   const set = (f, v) => { let el = box.querySelector(`[data-cf="${i}|${f}"]`); if (!el) { el = document.createElement('input'); el.type = 'hidden'; el.dataset.cf = `${i}|${f}`; box.appendChild(el); } el.value = v; };
@@ -342,109 +258,7 @@ function centroConConsulta(c, fecha) {
   return (c.otros_dias || []).find(o => o && o.lugar !== c.centro_nombre && (w => w && w.length)(ventanasDe(o.dias, fecha))) || null;
 }
 
-async function fichaCentro(id) {
-  const dlg = $('dlg');
-  dlg.classList.remove('pequena');
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Centro</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>`;
-  if (!dlg.open) dlg.showModal();
-  // v2.310.0: con la ficha se pide su cuenta de tipo Centro (un solo centro), para abrirla desde aquí
-  const [{ data, error }, { data: cta }] = await Promise.all([db.rpc('ficha_centro', { p_id: id }), db.from('cuentas').select('id').eq('centro_id', id).maybeSingle().then(r => r, () => ({ data: null }))]);
-  if (!dlg.open) return;
-  if (error || !data || !data.datos) {
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Centro</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="banda-peligro">No se ha podido abrir el centro${error ? ': ' + esc(error.message) : ''}.</div>`;
-    return;
-  }
-  const c = data.datos, l = data.profesionales || [];
-  const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', ');
-  const hor = HOR_TXT(c.horario);
-  const quien = TT('medico', 'p', '', 'l', 'C');
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(c.nombre)}</h2><div class="sm">${esc(dir || 'Sin dirección')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="fcacts">
-      ${c.telefono ? `<a class="btn sec" href="tel:${esc(c.telefono)}">Llamar · ${esc(c.telefono)}</a>` : ''}
-      ${c.lat != null ? '<button type="button" class="btn sec" id="fcllegar">Cómo llegar</button>' : ''}
-      ${data.puede_editar ? '<button type="button" class="btn sec" id="fceditar">Editar centro</button>' : ''}
-      ${cta && cta.id ? `<button type="button" class="btn sec" id="fccuenta" data-fccta="${cta.id}">Ficha comercial</button>` : ''}
-    </div>
-    ${hor ? `<div class="vcdatos"><div class="vcfila"><span>Horario</span><b>${esc(hor)}</b></div></div>` : ''}
-    <div class="fcprocab"><h3>${esc(quien)} · ${num(l.length)}</h3>${data.puede_fichas ? '<button type="button" class="btn" id="fcanadir">+ Añadir</button>' : ''}</div>
-    <div id="fcsel"></div>
-    ${l.length ? `<div class="lista fclista">${l.map(m => {
-      const donde = [m.planta ? 'Planta ' + m.planta : '', m.sala ? 'Sala ' + m.sala : ''].filter(Boolean).join(' · ');
-      const dias = HOR_TXT(m.dias);
-      return `<div class="item fcpro">
-        <span class="tx"><b>${m.urgente ? '❗ ' : ''}${esc(m.nombre)}</b>
-          <span class="sm">${esc([m.especialidad, donde].filter(Boolean).join(' · ') || '—')}</span>
-          ${dias ? `<span class="sm">Atiende: ${esc(dias)}</span>` : ''}</span>
-        <span class="acts" style="margin:0">
-          <button type="button" class="btn sec" data-fcf="${m.id}">Ficha</button>
-          <button type="button" class="btn sec" data-fcc="${m.id}">+ Cita</button>
-          ${data.puede_fichas ? `<button type="button" class="btn sec fcquitar" data-fcq="${m.id}" aria-label="Quitar a ${esc(m.nombre)} del centro">Quitar</button>` : ''}
-        </span></div>`; }).join('')}</div>`
-      : `<div class="vacio">Todavía no hay ${esc(quien.toLowerCase())} en este centro.${data.puede_fichas ? ' Añádelos con «+ Añadir».' : ''}</div>`}`;
-  if ($('fcllegar')) $('fcllegar').onclick = () => navegarA([+c.lat, +c.lon]);
-  if ($('fceditar')) $('fceditar').onclick = () => editarCentroFicha(c);
-  if ($('fcanadir')) $('fcanadir').onclick = () => {
-    $('fcanadir').disabled = true;
-    selectorMedico($('fcsel'), { alElegir: async m => {
-      if (!m) return;
-      const { data: r, error: e } = await db.rpc('centro_anadir_profesional', { p_centro: c.id, p_cuenta: m.id });
-      if (e || !r || !r.ok) { toast(r && r.error === 'permiso' ? `No puedes cambiar la ficha de ${m.nombre}` : 'No se ha podido añadir', true); fichaCentro(c.id); return; }
-      toast(r.ya ? `${m.nombre} ya estaba en el centro: queda enlazado` : `${m.nombre} añadido a ${c.nombre}`);
-      fichaCentro(c.id);
-    } });
-    const i = $('fcsel').querySelector('input'); if (i) i.focus();
-  };
-  $('dbody').querySelectorAll('[data-fcf]').forEach(b => b.onclick = () => { dlg.close(); FICHA_CENTRO = c.nombre; abrirFicha(b.dataset.fcf); });
-  $('dbody').querySelectorAll('[data-fcc]').forEach(b => b.onclick = () => { FICHA_CENTRO = c.nombre; nuevaCita(b.dataset.fcc); });
-  $('dbody').querySelectorAll('[data-fcq]').forEach(b => b.onclick = async () => {
-    const m = l.find(x => x.id === b.dataset.fcq); if (!m) return;
-    const unica = +m.consultas <= 1;
-    if (!await preguntar(`Se quita a ${m.nombre} de ${c.nombre}: ${TT('consulta', 's', 'este', 'l', 'l')} desaparece de su ficha.${unica ? ` Era su única ${TT('consulta', 's', '', 'l', 'l')}: su ficha se queda sin centro.` : ''}`,
-      { titulo: '¿Quitar del centro?', ok: 'Quitar', peligro: true })) return;
-    const { data: r, error: e } = await db.rpc('centro_quitar_profesional', { p_centro: c.id, p_cuenta: m.id });
-    if (e || !r || !r.ok) { toast(r && r.error === 'permiso' ? `No puedes cambiar la ficha de ${m.nombre}` : 'No se ha podido quitar', true); return; }
-    toast(`${m.nombre} ya no está en ${c.nombre}`);
-    fichaCentro(c.id);
-  });
-}
 
-function editarCentroFicha(c) {
-  const h = c.horario || {};
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Editar centro</h2><div class="sm">Los cambios se pasan a ${TT('consulta', 'p', 'el', 'l', 'l')} enlazadas a este centro</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2"><div><label for="ecn">Nombre del centro</label><input id="ecn" value="${esc(c.nombre || '')}"></div>
-      <div><label for="ect">Teléfono</label><input id="ect" value="${esc(c.telefono || '')}" inputmode="tel"></div></div>
-    <div class="g2"><div><label for="ecd">Dirección</label><input id="ecd" value="${esc(c.direccion || '')}"></div>
-      <div><label for="ecc">Código postal</label><input id="ecc" value="${esc(c.cp || '')}" inputmode="numeric"></div></div>
-    <div class="g2"><div><label for="ecm">Población</label><input id="ecm" value="${esc(c.municipio || '')}"></div>
-      <div><label for="ecp">Provincia</label><input id="ecp" value="${esc(c.provincia || '')}"></div></div>
-    <label>Horario de apertura</label>
-    <div class="cphor">${DIAS_SEM.map(([d, n]) => `<div><span>${n}</span><input data-ech="${d}" value="${esc(h[d] || '')}" placeholder="${d === 'D' ? 'Cerrado' : '8:00-20:00'}"></div>`).join('')}</div>
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="ecvolver">Volver</button><button type="button" class="btn" id="ecok">Guardar cambios</button></div>`;
-  $('ecvolver').onclick = () => fichaCentro(c.id);
-  $('ecok').onclick = async ev => {
-    const v = k => $(k).value.trim();
-    if (!v('ecn')) { toast('Escribe el nombre del centro', true); return; }
-    const horario = {}; $('dbody').querySelectorAll('[data-ech]').forEach(x => { if (x.value.trim()) horario[x.dataset.ech] = x.value.trim(); });
-    const cambioDir = v('ecd') !== (c.direccion || '') || v('ecm') !== (c.municipio || '') || v('ecc') !== (c.cp || '');
-    ev.target.disabled = true;
-    let lat = c.lat, lon = c.lon;
-    if (cambioDir && (v('ecd') || v('ecm'))) {
-      const g = await geocodificar([v('ecd'), v('ecc'), v('ecm'), v('ecp'), 'España'].filter(Boolean).join(', '), { direccion: v('ecd'), municipio: v('ecm'), cp: v('ecc') }).catch(() => null);
-      if (g && !g.fuera) { lat = +g.lat; lon = +g.lon; } else if (g && g.fuera) toast(`La dirección sale en ${g.fuera}, no en ${v('ecm')}: se guarda sin mover el punto del mapa`, true);
-    }
-    const { data: r, error } = await RPC_ORIG('guardar_centro', { p: { id: c.id, nombre: v('ecn'), telefono: v('ect'), direccion: v('ecd'), cp: v('ecc'),
-      municipio: v('ecm'), provincia: v('ecp'), lat, lon, horario } });
-    ev.target.disabled = false;
-    if (error || !r || !r.ok) { toast((r && r.error) || 'No se ha podido guardar', true); return; }
-    toast('Centro guardado'); fichaCentro(c.id);
-  };
-}
 
 function formPrivada(box, i) {
   const cont = box.querySelector(`[data-cp="${i}"]`); if (!cont) return;
@@ -740,7 +554,6 @@ const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: '
    pulsarlos se abre su ficha: dirección, teléfono, cómo llegar, horario y la lista de profesionales que atienden allí (ficha_centro), con
    «+ Añadir» (centro_anadir_profesional: enlaza o crea su consulta en el centro), y en cada uno Ficha, «+ Cita» en ese centro y «Quitar»
    (centro_quitar_profesional: quita esa consulta de su ficha). «Editar centro» corrige sus datos y su horario (guardar_centro). */
-const HOR_TXT = h => DIAS_SEM.filter(([d]) => h && h[d]).map(([d, n]) => `${n} ${h[d]}`).join(' · ');
 
 /* v2.189.0 · La consulta privada tiene su propia ficha (aviso de Eric: al elegir «Consulta privada (sin centro)» no se podía poner ni la dirección:
    esos datos de la consulta solo los rellenaba un centro). Ahora una consulta sin centro cuyo nombre empieza por «Consulta privada» se ve como tal
@@ -917,3 +730,8 @@ function barraCuentas() { barraCuentasBase3(); const b = document.querySelector(
 // La ficha está en src/app/screens/accounts/card (v2.401.0): una lista de secciones con nombre en vez de 18 capas. El nombre
 // global se queda: lo llaman muchas pantallas y «‹ Volver» (legado 126) envuelve las ventanas por su nombre.
 function abrirFicha(id) { return window.delcos.screens.accounts.openAccountCard(id); }
+
+// La ficha del centro y «Cerca de mí» están en src/app/screens/accounts (v2.417.0). Estos nombres se quedan: «‹ Volver» (legado 089),
+// Agenda (legado 077 y 134), el botón de la lista (legado 008) y las pruebas los usan. CERCA se queda: legado 096 lo vacía.
+function fichaCentro(id) { return window.delcos.screens.accounts.showCentre(id); }
+function cercaDeMi(btn) { return window.delcos.screens.accounts.searchNearby(btn); }

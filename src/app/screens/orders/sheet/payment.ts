@@ -1,13 +1,13 @@
 /**
  * «Pago» of an order: web origin, payment reference and the receipts (read only: they change with «Editar»), then the card or Bizum
- * payment, which stays in legacy. Migrated from the legacy pedidoPagoBase, pedidoPago and verJustificante (v2.414.0).
+ * payment (tpv/block.ts). Migrated from the legacy pedidoPagoBase, pedidoPago and verJustificante (v2.414.0).
  */
 import { legacyDb, notices } from '../../../legacy/bridge';
-import { orderSheetLegacy } from '../../../legacy/orders-bridge';
 import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import type { OrderDetail } from '../model';
+import { tpvBlock } from '../tpv/block';
 
 const KILOBYTE = 1024, REVOKE_AFTER_MS = 60000;
 
@@ -47,5 +47,5 @@ async function paintBlock(detail: OrderDetail): Promise<void> {
 
 export async function paintPayment(detail: OrderDetail): Promise<void> {
   await paintBlock(detail);
-  await orderSheetLegacy.cardPayment(detail.pedido.id);
+  await tpvBlock(detail.pedido.id);
 }

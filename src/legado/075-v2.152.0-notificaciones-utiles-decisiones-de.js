@@ -8,7 +8,6 @@ TIPOS_NOTIF.push(
   ['visita_sin_registrar', '📝', 'Citas sin registrar', `Citas de los últimos 3 días sin ${TT('visita', 's', '', 'l', 'l')} registrada`],
   ['pedido_portal', '🏥', 'Pedidos del portal', 'Cuando un centro pide desde el portal']
 );
-let NOTIF_LISTA = [], NOTIF_FILTRO = '';
 
 
 

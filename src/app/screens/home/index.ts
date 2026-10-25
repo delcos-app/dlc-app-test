@@ -1,10 +1,11 @@
 /**
  * Home screen (Inicio). Migrated from the legacy cargarInicio/pintarMosaico chain (v2.385.0).
- * Still legacy, reached through the bridge: the header actions and the professional portal.
+ * The header actions and the professional portal home are in ./portal-home (v2.417.0).
  */
-import { currentScreen, legacyHome, permissions } from '../../legacy/bridge';
+import { currentScreen, permissions } from '../../legacy/bridge';
 import type { Route } from '../../core/router';
 import { loadIndicators } from './indicators';
+import { paintProfessionalHome, placeHeader, removeOldBlocks } from './portal-home';
 import { loadHomeData } from './service';
 import { renderMosaic, renderSkeleton } from './view';
 
@@ -25,9 +26,9 @@ async function paintMosaic(): Promise<void> {
 }
 
 async function paintIndicators(): Promise<void> {
-  if (permissions.isProfessionalPortal()) { await legacyHome.professionalPortal(); return; }
+  if (permissions.isProfessionalPortal()) { await paintProfessionalHome(); return; }
   document.getElementById('v-inicio')?.classList.remove('ini-cargando');
-  legacyHome.removeOldBlocks();
+  removeOldBlocks();
   await loadIndicators();
 }
 
@@ -45,7 +46,7 @@ function loadIndicatorsOnce(): Promise<void> {
 
 /** Shows Inicio: skeleton first, then the indicators and the mosaic. */
 export function load(): Promise<void> {
-  if (isHome()) { renderSkeleton(); legacyHome.header(); }
+  if (isHome()) { renderSkeleton(); placeHeader(); }
   const done = loadIndicatorsOnce();
   void done.then(() => paintMosaic()).catch(() => undefined);
   return done;

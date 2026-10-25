@@ -1,0 +1,61 @@
+/**
+ * Bridge of Configuración (third part: company email and its templates, notifications and menu names) to the legacy code, kept
+ * apart from bridge.ts (at its size limit). The settings, the profile, the notification catalog, the unread count and the menu stay
+ * in legacy state: the start-up, the bell and the menu read them.
+ */
+export interface EmailProvider { n: string; host: string; puerto: number; seg: string; ayuda: string }
+export type NotificationType = readonly [string, string, string, string];
+export type NotificationArea = readonly [string, string, readonly string[]];
+
+export interface FunctionResult<T> { data: T | null; error: unknown }
+interface Functions { invoke<T>(name: string, options: { body: unknown }): Promise<FunctionResult<T>> }
+
+interface Profile { id: string; nombre?: string; email?: string; preferencias?: Record<string, unknown> | null }
+const profile = (): Profile => PERFIL as Profile;
+
+export const settingsExtraLegacy = {
+  // Settings and profile
+  loadSettings: (): Promise<void> => cargarAjustes(),
+  setting: (key: string): unknown => AJUSTES[key],
+  setSetting: (key: string, value: unknown): void => { AJUSTES[key] = value; },
+  profileName: (): string => profile().nombre ?? '',
+  profileEmail: (): string => profile().email ?? '',
+  preferences: (): Record<string, unknown> => profile().preferencias ?? {},
+  setPreferences: (value: Record<string, unknown>): void => { profile().preferencias = value; },
+  appName: (): string => nombreApp(),
+  firstName: (name: string): string => nombrePila(name),
+  /** Whole euros, as the legacy eurI writes them in the emails. */
+  euros: (value: number): string => eurI(value),
+  brandLogo: (): string | null => MARCA.logo ?? null,
+  // Email page
+  emailProviders: (): Readonly<Record<string, EmailProvider>> => PROVEEDORES_CORREO,
+  withButtonLoading: <T>(button: HTMLElement | null, text: string, work: () => Promise<T>): Promise<T> => conCarga(button, text, work),
+  validateEmailLive: (input: HTMLElement | null): void => { if (input) validarEmailEnVivo(input); },
+  helpButton: (title: string, text: string): string => pmAyu(title, text),
+  sendTestEmail: (): Promise<FunctionResult<{ ok?: boolean; error?: string }>> =>
+    (db as unknown as { functions: Functions }).functions.invoke('enviar_email', { body: { prueba: true } }),
+  /** Template chosen when sending (shared with Pedidos and Facturación). */
+  chosenTemplate: (use: string): string | null => (PLANT_ELEGIDA[use] as string | null | undefined) ?? null,
+  chooseTemplate: (use: string, id: string | null): void => { PLANT_ELEGIDA[use] = id; },
+  // Notifications
+  notificationAreas: (): readonly NotificationArea[] => NOTIF_AREAS,
+  dailyNotifications: (): readonly string[] => NOTIF_DIARIOS,
+  areaOf: (type: string): string => notifArea(type),
+  iconOf: (type: string): string => notifIco(type),
+  typesForMyRole: (): readonly NotificationType[] => tiposDeMiRol(),
+  unread: (): number => NOTIF_N,
+  setUnread: (count: number): void => { NOTIF_N = count; },
+  refreshBell: (): void => { void refrescarCampana(); },
+  icon: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
+  followLink: (link: string): void => { void irEnlace(link); },
+  newSale: (preset: Record<string, unknown>): void => { void nuevaVenta(preset); },
+  recordVisit: (accountId: string): void => { void abrirVisita(accountId); },
+  openNotificationSettings: (): void => { CFG_SEC = 'notif'; (window as unknown as { __CFG_DIRECTO?: boolean }).__CFG_DIRECTO = true; void ir('config'); },
+  // Menu names
+  menuNames: (): Record<string, string> => menuNombres(),
+  menuExcluded: (): readonly string[] => MENU_FUERA,
+  moduleIcon: (module: string): string | undefined => ICO_MOD[module],
+  menuText: (button: Element): { get: () => string } | null => txTexto(button),
+  applyMenuNames: (): void => { aplicarNombresMenu(); MENU_FIRMA = ''; try { montarMenuLateral(); pintarBnav(); } catch { /* the menu repaints later */ } },
+  applyLabel: (): void => { aplicarEtiqueta(); },
+};

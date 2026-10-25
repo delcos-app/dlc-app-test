@@ -2,7 +2,7 @@ import * as components from '../components';
 /**
  * Bridge of Pedidos to the legacy code (kept apart from bridge.ts, which is at its size limit). The section, page, field filters
  * and the loaded rows stay in the legacy PEDSEC, PEDPAG, PEDF and PEDIDOS (the list bar, legado 034/082/139 and the tests read
- * them). The order editor, the card payment (TPV), the invoices of an order and the custom fields stay in legacy.
+ * them). The invoices of an order and the custom fields stay in legacy (the editor and the card payment are in src/app since v2.417.0).
  */
 export interface PickedService { id: string; nombre: string }
 export interface OrderFieldsRead { falta: string[] }
@@ -36,16 +36,14 @@ export const ordersLegacy = {
   fieldCells: (fields: readonly CustomField[], values: Record<string, unknown> | null | undefined): string => components.columnCells(fields, values),
 };
 
-/** The order window: the pieces that stay in legacy (invoices, card payment, custom fields, editor). */
+/** The order window: the pieces that stay in legacy (invoices, custom fields) and the editor through its global name (legado 058 opens it wide). */
 export const orderSheetLegacy = {
   whileLoading: <T>(work: () => Promise<T>): Promise<T> => ventanaCargando(work),
   whenSteady: (element: Element | null, maxMs: number): Promise<void> => estable(element, maxMs),
   invoices: (id: string): Promise<void> => pedidoFacturas(id),
-  cardPayment: (id: string): Promise<void> => tpvBloque(id),
   customFields: (id: string, container: Element | null): Promise<void> => bloqueCampos('pedidos', id, container),
   edit: (detail: object): void => { void editorPedido(detail as Record<string, unknown>); },
   openCustomer: (id: string): void => { void fichaPaciente(id); },
-  distributors: (force = false): Promise<readonly Distributor[]> => cargarDistribuidores(force),
   fieldsForm: (values: Record<string, unknown>): string => camposHTML('pedido', values),
   readFields: (root: Element | null): OrderFieldsRead | null => camposLeer(root),
   saveFields: (read: OrderFieldsRead | null, id: string): Promise<boolean> => camposGuardar(read, id),

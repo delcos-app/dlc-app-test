@@ -48,18 +48,9 @@ document.addEventListener('click', e => {
      distribuidor». La administración añade distribuidores desde ahí mismo («+ Nuevo distribuidor»).
    - Ver pedido: bloque «Distribuidor» con «Preparar correo al distribuidor» (el correo de la persona, con las líneas y el código del
      cliente, como los de factura y pago) que deja apuntado que se ha enviado; si lo factura el distribuidor, no se ofrece «Emitir factura». */
-let DISTRIBUIDORES = null, PED_DIST = null;
-new MutationObserver(() => { if ($('porig') && !$('pdist')) pintarBloqueDistribuidor(); }).observe($('dbody'), { childList: true, subtree: true });
+let DISTRIBUIDORES = null;   // v2.417.0: el bloque «Lo sirve» lo pinta y lo guarda el editor (src/app/screens/orders/editor/distributor.ts)
 
 
-// Al guardar el pedido desde su editor, va también quién lo sirve
-db.rpc = (orig => function (fn, params, ...a) {
-  if (fn === 'guardar_pedido' && params && params.p && $('pdist') && PED_DIST) {
-    const on = PED_DIST.on && !!PED_DIST.id;
-    Object.assign(params.p, { distribuidor_id: on ? PED_DIST.id : '', distribuidor_codigo: on ? PED_DIST.codigo : '', factura_distribuidor: on && PED_DIST.factura });
-  }
-  return orig.call(this, fn, params, ...a);
-})(db.rpc);
 
 
 /* v2.194.0 · Sin «recomendación» en los textos (decisión de Eric, 6/10/2026: puede leerse como una contrapartida con los profesionales).

@@ -13,11 +13,12 @@ import { orFallback } from '../../../services/values';
 import { STATES, TRANSFER_ISSUE, TRANSFER_STATES, type Order, type OrderDetail } from '../model';
 import { mailtoLink } from '../payment-email';
 import { downloadTransfer } from './transfer-pdf';
+import { loadDistributors } from '../editor/distributor';
 
 const SENT = 'Enviado';
 
 async function distributorOf(id: string): Promise<Distributor> {
-  const found = (await orderSheetLegacy.distributors()).find(item => item.id === id) ?? (await orderSheetLegacy.distributors(true)).find(item => item.id === id);
+  const found = (await loadDistributors()).find(item => item.id === id) ?? (await loadDistributors(true)).find(item => item.id === id);
   return found ?? { id, nombre: t('orders.distributor.fallbackName') };
 }
 

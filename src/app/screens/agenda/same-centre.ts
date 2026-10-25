@@ -4,6 +4,7 @@
  * Migrated from the legacy agTamb / agTambGrupos and the click handlers of legado 092 (v2.391.0).
  */
 import { agendaActions, agendaSuggestions, appointments, icon, legacyAgenda } from '../../legacy/bridge';
+import { showCentre } from '../accounts/centre';
 import { t } from '../../i18n';
 import { fromIsoDate } from '../../services/dates';
 import { escapeHtml, looseText } from '../../services/format';
@@ -107,10 +108,10 @@ export function listenToSameCentre(): void {
       return;
     }
     const block = target?.closest<HTMLElement>('#agcuerpo .agtamb[data-agtc]');
-    if (block) { event.stopPropagation(); agendaActions.openCentre(block.dataset.agtc ?? ''); }
+    if (block) { event.stopPropagation(); void showCentre(block.dataset.agtc ?? ''); }
   }, true);
   document.addEventListener('keydown', event => {
     const block = event.target instanceof Element ? event.target.closest<HTMLElement>('#agcuerpo .agtamb[data-agtc]') : null;
-    if (block && event.target === block && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); agendaActions.openCentre(block.dataset.agtc ?? ''); }
+    if (block && event.target === block && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); void showCentre(block.dataset.agtc ?? ''); }
   });
 }

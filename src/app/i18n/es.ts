@@ -5,6 +5,10 @@
  * (see i18n/index.ts), so each company sees its own words.
  */
 import { accounts } from './es/accounts';
+import { accountsMore } from './es/accounts-more';
+import { homeMore } from './es/home-more';
+import { settingsExtra } from './es/settings-extra';
+import { ordersMore } from './es/orders-more';
 import { listComponents } from './es/list-components';
 import { components } from './es/components';
 import { settingsMore } from './es/settings-more';
@@ -59,6 +63,10 @@ export const es = {
   settingsMore,
   components,
   listComponents,
+  ordersMore,
+  settingsExtra,
+  accountsMore,
+  homeMore,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',

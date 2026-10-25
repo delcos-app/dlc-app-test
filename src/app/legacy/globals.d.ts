@@ -43,9 +43,6 @@ declare function citasDelDia(date: string): Promise<{ estado: string; hora?: str
 declare function svgIco(inner: string): string;
 declare function hayOportunidades(): boolean;
 declare function puedeDuplicados(): boolean;
-declare function inicioQuitarAntiguo(): void;
-declare function inicioCabecera(): void;
-declare function pintarInicioBase2(): Promise<void>;
 
 // ---- Navigation (src/app/core/navigation): state and helpers the navigation steps still read or change
 type PageTab = Record<string, string | undefined>;
@@ -153,7 +150,6 @@ declare let AG_SUG: { fecha: string; toca: DueAccount[]; centros: SameCentreGrou
 declare let AG_PEND: PendingAppointment[] | null;
 declare let HERR_CTX: string | null;
 declare function abrirFicha(id: string): Promise<void>;
-declare function fichaCentro(id: string): Promise<void>;
 declare function nuevaCita(accountId: string, isoDate: string | null): Promise<void>;
 declare function planDesdeLista(list: readonly DueAccount[], name: string, button: HTMLElement): Promise<void>;
 interface RangeAppointment { fecha: string; estado: string; usuario_id?: string; hora?: string | null; medico?: string | null; nombre?: string | null }
