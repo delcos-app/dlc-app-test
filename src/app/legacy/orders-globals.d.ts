@@ -14,7 +14,6 @@ declare function cargarDistribuidores(force?: boolean): Promise<{ id: string; no
 declare function pintarOperativa(): Promise<void>;
 declare function pintarSinAtribuir(): Promise<void>;
 declare function puedeAtribuir(): boolean;
-declare function filtrosRestaurar(root: Element | null): void;
 declare const PLANT_ELEGIDA: Record<string, unknown>;
 declare function elegirPlantillaCorreo(kind: string): Promise<boolean>;
 declare function plantillaCorreo(kind: string, field: string, values: Record<string, unknown>): string;

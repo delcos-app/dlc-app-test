@@ -7,465 +7,670 @@
   };
   var __publicField = (obj, key, value19) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value19);
 
-  // src/app/core/router.ts
-  var MAX_REDIRECTS = 10;
-  function createRouter(fallbackRoute) {
-    const routes2 = /* @__PURE__ */ new Map();
-    const redirects = [];
-    const hooks = [];
-    let current = null;
-    function resolve(target, context) {
-      let resolved = target;
-      for (let hops = 0; hops < MAX_REDIRECTS; hops++) {
-        const next = redirects.map((redirect) => redirect(resolved, context)).find((id) => id !== void 0 && id !== resolved);
-        if (next === void 0) break;
-        resolved = next;
-      }
-      const route = routes2.get(resolved);
-      return route && (route.canEnter?.() ?? true) ? resolved : fallbackRoute;
-    }
-    async function navigate2(target, ...params2) {
-      const context = { from: current, params: params2 };
-      const routeId = resolve(target, context);
-      const route = routes2.get(routeId);
-      if (!route) throw new Error(`Unknown route: ${routeId}`);
-      current = routeId;
-      await route.enter(context);
-      hooks.forEach((hook) => {
-        hook(routeId, context);
-      });
-      return routeId;
-    }
-    return {
-      register: (route) => {
-        routes2.set(route.id, route);
-      },
-      addRedirect: (redirect) => {
-        redirects.push(redirect);
-      },
-      onNavigate: (hook) => {
-        hooks.push(hook);
-      },
-      navigate: navigate2,
-      get current() {
-        return current;
-      }
-    };
-  }
+  // src/app/components/index.ts
+  var components_exports = {};
+  __export(components_exports, {
+    activateItem: () => activateItem,
+    addHelpButtons: () => addHelpButtons2,
+    askField: () => askField,
+    askText: () => askText,
+    attendanceWindows: () => attendanceWindows,
+    cacheNotice: () => cacheNotice,
+    cardSkeleton: () => cardSkeleton,
+    channelChart: () => channelChart,
+    chooseOption: () => chooseOption,
+    closePicker: () => closePicker,
+    closePickers: () => closePickers,
+    columnCells: () => columnCells,
+    columnHeaders: () => columnHeaders,
+    confirmAction: () => confirmAction,
+    donut: () => donut,
+    emptyChart: () => emptyChart,
+    enhanceFields: () => enhanceFields,
+    enhanceNewFieldKinds: () => enhanceNewKinds,
+    fieldText: () => fieldText,
+    filterChips: () => filterChips,
+    filterText: () => filterText,
+    glueHelp: () => glueHelp,
+    hasSaveButton: () => hasSaveButton,
+    helpAnchor: () => helpAnchor,
+    hideFullLoading: () => hideFullLoading,
+    highlightSearch: () => highlightSearch,
+    isSaveButton: () => isSaveButton,
+    isSearchBox: () => isSearchBox,
+    kindOf: () => kindOf,
+    listItems: () => listItems,
+    matchesFilters: () => matchesFilters,
+    mediumDate: () => mediumDate,
+    monthBars: () => monthBars,
+    noStartNotice: () => noStartNotice,
+    normalise: () => normalise,
+    openCalendar: () => openCalendar,
+    openClock: () => openClock,
+    paintClassifiers: () => paintClassifiers,
+    paintSidePanelClassifiers: () => paintSidePanelClassifiers,
+    raiseNotice: () => raiseNotice,
+    rankingBars: () => rankingBars,
+    resultsOf: () => resultsOf,
+    screenOf: () => screenOf,
+    setColumn: () => setColumn,
+    shareBars: () => shareBars,
+    showDialog: () => showDialog,
+    showFullLoading: () => showFullLoading,
+    showLoading: () => showLoading,
+    showsColumn: () => showsColumn,
+    signaturePad: () => signaturePad,
+    sixMonthLine: () => sixMonthLine,
+    toast: () => toast2,
+    tryClose: () => tryClose,
+    unitsSparkline: () => unitsSparkline,
+    visibleFields: () => visibleFields,
+    widenGrid: () => widenGrid,
+    withoutSystemPicker: () => withoutSystemPicker
+  });
 
-  // src/app/core/navigation/pipeline.ts
-  function runBefores(steps3, navigation) {
-    const passed = [];
-    for (const step of steps3) {
-      step.before?.(navigation);
-      passed.push({ step, target: navigation.target });
-      if (navigation.blocked) break;
-    }
-    return passed;
+  // src/app/legacy/bridge.ts
+  var legacyDb = () => db;
+  var callRpc = (name, params2 = {}) => RPC_ORIG(name, params2);
+  var currentScreen = () => TAB;
+  var goTo = (screen2) => {
+    ir(screen2);
+  };
+  var goToOrders = (section2) => {
+    PEDSEC = section2;
+    ir("ventas");
+  };
+  function term(word, options3 = {}) {
+    const { number = "s", article = "", capital = "l", adjective, articleCapital = "l" } = options3;
+    return adjective === void 0 ? TT(word, number, article, articleCapital, capital) : TT(word, number, article, articleCapital, capital, adjective);
   }
-  function runNavigation(steps3, switchScreen, target, args) {
-    const navigation = { target, args, blocked: false };
-    let passed = [];
-    try {
-      passed = runBefores(steps3, navigation);
-      if (!navigation.blocked) switchScreen(navigation.target, args);
-      for (const { step, target: seen } of [...passed].reverse()) step.after?.(seen, args);
-    } finally {
-      for (const { step, target: seen } of [...passed].reverse()) step.cleanup?.(seen);
-    }
-  }
-
-  // src/app/services/values.ts
-  function orFallback(value19, fallback) {
-    return value19 === void 0 || value19 === null || value19 === "" ? fallback : value19;
-  }
-  function nonZeroOr(value19, fallback) {
-    return value19 === void 0 || value19 === null || value19 === 0 || Number.isNaN(value19) ? fallback : value19;
-  }
-  var range = (length) => [...Array(length).keys()];
-  var sum = (values2) => values2.reduce((total2, value19) => total2 + value19, 0);
-  var isPresent = (value19) => value19 !== null && value19 !== void 0;
-
-  // src/app/core/navigation/steps-outer.ts
-  var PORTAL_SCREENS = ["informe", "config", "perfil"];
-  var PLATFORM_SCREENS = ["delcos", "config", "perfil", "manual"];
-  var safely = (action) => {
-    try {
-      action();
-    } catch {
-    }
+  var permissions = {
+    canSeeArea: (area) => verArea(area),
+    canSeeAmounts: () => verImportes(),
+    seesEverything: () => VE_TODO(),
+    salesLevel: () => nivelDe2("V"),
+    /** Level (0–3) in an area by its letter (M: accounts, V: sales…). */
+    levelOf: (letter) => nivelDe2(letter),
+    isProfessionalPortal: () => ES_MEDICO(),
+    hasOpportunities: () => typeof hayOportunidades === "function" && hayOportunidades(),
+    canReviewDuplicates: () => typeof puedeDuplicados === "function" && puedeDuplicados()
   };
-  var later = (delays, action) => {
-    delays.forEach((delay2) => {
-      setTimeout(() => {
-        safely(action);
-      }, delay2);
-    });
-  };
-  var resetBackStack = {
-    name: "v2.300 · a new navigation empties the «Volver» stack",
-    before: () => {
-      VUELTA.length = 0;
-      VISTA = null;
-    }
-  };
-  var professionalPortalOnly = {
-    name: "v2.271 · the professional (and centre) portal only opens its own screens",
-    before: (nav) => {
-      if (ES_MEDICO() && !PORTAL_SCREENS.includes(nav.target)) nav.target = "informe";
-    }
-  };
-  var loadingComet = {
-    name: "v2.267 · the loading line at the top when the screen changes",
-    before: (nav) => {
-      if (nav.target && nav.target !== TAB) safely(cometa);
-    }
-  };
-  var watchListPage = {
-    name: "v2.239 · list pages (PL) keep their layout in sync",
-    after: (target) => {
-      if (PL[target]) {
-        plVigilar(target);
-        setTimeout(() => {
-          plVigilar(target);
-        }, 0);
-      }
-    }
-  };
-  var customMenuNames = {
-    name: "v2.231 · menu names chosen by the company",
-    after: () => {
-      setTimeout(() => {
-        safely(aplicarNombresMenu);
-      }, 0);
-      queueMicrotask(() => {
-        safely(aplicarNombresMenu);
-      });
-    }
-  };
-  var rememberManualReturn = {
-    name: "v2.224 · entering the manual remembers where to come back to",
-    before: (nav) => {
-      if (nav.target === "manual" && TAB !== "manual") MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
-    }
-  };
-  var NAVIGATION_START_EVENT = "delcos:navigation-start";
-  var announceNavigation = {
-    name: "v2.221 · tell listeners a navigation starts (the mobile «+» comes back into view)",
-    before: (nav) => {
-      document.dispatchEvent(new CustomEvent(NAVIGATION_START_EVENT, { detail: { target: nav.target } }));
-    }
-  };
-  function configKey(target) {
-    if (target === "config") return claveCfgVieja(CFG_SEC, CFG_SUB);
-    if (target === "perfil") return PAG_TAB.perfil === "notif" ? "notif" : "datos";
-    if (target === "organizacion" || target === "empresa") return `o.${orFallback(PAG_TAB[target], "marca")}`;
-    if (target === "plan") return "o.plan";
-    if (target === "usuarios") return PAG_TAB.usuarios === "roles" ? "roles" : "usuarios";
-    return null;
-  }
-  var singleConfiguration = {
-    name: "v2.215/v2.340 · profile, company, plan and users are parts of the single Configuración page",
-    before: (nav) => {
-      if (nav.target === "config" && ["seguridad", "orgs"].includes(CFG_SEC ?? "")) return;
-      const key = configKey(nav.target);
-      if (key === null) return;
-      if (key) {
-        CFG_KEY = key;
-        CFG_DETALLE = true;
-      } else if (IR_DESDE_MENU_CFG) {
-        CFG_DETALLE = false;
-        CFG_KEY = "datos";
-      }
-      if (nav.target !== "config") {
-        PAG_TAB.perfil = void 0;
-        PAG_TAB.organizacion = void 0;
-        PAG_TAB.empresa = void 0;
-        PAG_TAB.usuarios = void 0;
-      }
-      CFG_SEC = "__cfg";
-      CFG_SUB = null;
-      IR_DESDE_MENU_CFG = false;
-      nav.target = "config";
-    }
-  };
-  var directoryLabel = {
-    name: "v2.210 · the directory title with the company word for its accounts",
-    after: (target) => {
-      if (target === "directorio") later([0, 300, 1200], aplicarEtiqueta);
-    }
-  };
-  var manualHelpButton = {
-    name: "v2.226 · the «i» help next to each screen title",
-    after: () => {
-      later([400, 1200, 2500], ponerAyudaManual);
-    }
-  };
-  var platformPanel = {
-    name: "v2.166 · Panel delcos sections, and platform mode only shows the panel",
-    before: (nav) => {
-      const section2 = PANEL_SECCIONES.find((entry) => entry[0] === nav.target);
-      if (section2) {
-        PAG_TAB.delcos = section2[1];
-        nav.target = "delcos";
-        return;
-      }
-      if (MODO_PLATAFORMA && !PLATFORM_SCREENS.includes(nav.target)) nav.target = "delcos";
+  var homeCache = {
+    panel: () => KV_INI,
+    setPanel: (value19) => {
+      KV_INI = value19;
     },
-    after: (target) => {
-      if (target === "delcos") marcarPanel();
-    }
+    charts: () => KV_GRAF
   };
-  var stripeReturnToPlan = {
-    name: "v2.167 · coming back from Stripe opens «Plan y suscripción»",
-    before: (nav) => {
-      if (!PAGO_IR_PLAN || !PERFIL) return;
-      pagoAlPlan();
-      if (!ES_MEDICO() && puedeOrganizacion()) nav.target = "plan";
-    }
+  var appointments = {
+    ofDay: citasDelDia,
+    isOpen: (state) => CITA_ABIERTA.includes(state),
+    isCancelled: (state) => citaAnulada(state)
   };
-  var planSections = {
-    name: "v2.152 · sections outside the contracted plan show the plan notice instead",
-    before: (nav) => {
-      if (nav.target in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) {
-        avisoPlan(nav.target);
-        nav.blocked = true;
-      }
-    }
+  var icon = (name) => svgIco(ICON_NOM[name] ?? ICON_NOM.info ?? "");
+  var legacyHome = {
+    removeOldBlocks: inicioQuitarAntiguo,
+    header: inicioCabecera,
+    professionalPortal: pintarInicioBase2
   };
-  var agendaFromMenuIsToday = {
-    name: "v2.140 · Agenda from the menu always opens today",
-    before: (nav) => {
-      if (nav.target === "agenda" && IR_DESDE_MENU) {
-        AG_MODO = "dia";
-        AG_FECHA = hoyISO();
-      }
-    }
+  var indicatorCatalog = {
+    definitions: () => KPI_CAT,
+    settings: () => kpiConfig(),
+    allowed: (definition) => kpiPermitido(definition),
+    help: (id) => AYUDA_KPI[id],
+    icon: (id) => KPI_ICO[id],
+    description: (id) => KPI_TXT[id],
+    filterText: (filter) => textoFiltro(filter),
+    countFilter: (filter) => contarFiltro(filter)
   };
-  var ordersSections = {
-    name: "v2.128 · Oportunidades, Compras… are sections of Pedidos",
-    before: (nav) => {
-      const section2 = ALIAS_PEDIDOS[nav.target];
-      if (section2 !== void 0) {
-        PEDSEC = section2;
-        nav.target = "ventas";
-        return;
-      }
-      if (nav.target === "ventas" && IR_DESDE_MENU) PEDSEC = "ventas";
+  var commercialStates = {
+    all: () => ESTADOS_DEF,
+    color: (state) => EST_COL[state]
+  };
+  var cachedRpc = (name, params2, key) => rpcCache(name, params2, key);
+  var timingMark = (step) => {
+    marca(step);
+  };
+  var showCacheNotice = (element2, date) => {
+    avisoCache(element2, date);
+  };
+  var addHelpButtons = () => {
+    ponerAyudas();
+  };
+  var isMobile = () => ES_MOVIL();
+  var legacyAgenda = {
+    selectedDate: () => AG_FECHA,
+    /** The person whose agenda is shown (null: everybody the user sees, or the user). */
+    userFilter: () => agUsuarioFiltro(),
+    viewedUserId: () => AG_VISTA?.id ?? null,
+    showDay: (isoDate) => {
+      void agVerDia(isoDate);
     },
-    after: (target) => {
-      if (target === "ventas") marcarPedsec();
-    }
-  };
-  var closePageDialog = {
-    name: "v2.128 · a window that belongs to the page closes when leaving it",
-    before: () => {
-      const dialog6 = document.getElementById("dlg");
-      if (dialog6?.open && (Boolean(dialog6.dataset.fija) || Boolean(dialog6.dataset.depagina))) dialog6.close();
-    }
-  };
-  var footerMenuMark = {
-    name: "v2.128 · mark the current screen in the footer menu",
-    after: () => {
-      menuMarcarPie();
-      setTimeout(menuMarcarPie, 0);
-    }
-  };
-
-  // src/app/core/navigation/steps-inner.ts
-  var COMPANY_SECTIONS = ["__empresa", "empresa", "marca", "correo", "copias"];
-  var MAIL_SECTIONS = ["correo", "copias"];
-  var screenSection = () => document.getElementById(`v-${TAB}`);
-  var configToOwnPages = {
-    name: "v2.128 · team, security and organizations open their own pages",
-    before: (nav) => {
-      if (nav.target === "config" && CFG_SEC === "equipo") {
-        PAG_TAB.usuarios = CFG_SUB === "roles" ? "roles" : "usuarios";
-        CFG_SEC = "inicio";
-        CFG_SUB = null;
-        nav.target = "usuarios";
-      }
-      if (nav.target === "config" && CFG_SEC === "seguridad" && puede("gestionar_plataforma")) {
-        PAG_TAB.delcos = CFG_SUB === "accesos" ? "accesos" : "auditoria";
-        CFG_SEC = "inicio";
-        CFG_SUB = null;
-        nav.target = "delcos";
-      }
-      if (nav.target === "config" && CFG_SEC === "orgs" && puede("gestionar_plataforma")) {
-        PAG_TAB.delcos = "orgs";
-        CFG_SEC = "inicio";
-        nav.target = "delcos";
-      }
-    }
-  };
-  var closeEmbeddedWindows = {
-    name: "v2.117 · windows embedded in a page close when leaving it",
-    before: () => {
-      cerrarEncajadas();
-    }
-  };
-  var organizationPage = {
-    name: "v2.121 · company and plan are parts of the Organización page (only for who may configure it)",
-    before: (nav) => {
-      const fromConfig = nav.target === "config" && CFG_SEC !== null ? ORG_DESDE[CFG_SEC] : void 0;
-      if (nav.target === "empresa") {
-        PAG_TAB.organizacion = orFallback(PAG_TAB.empresa, "marca");
-        nav.target = "organizacion";
-      } else if (nav.target === "plan") {
-        PAG_TAB.organizacion = "plan";
-        nav.target = "organizacion";
-      } else if (fromConfig) {
-        PAG_TAB.organizacion = orFallback(CFG_SUB !== null ? ORG_DESDE[CFG_SUB] : void 0, fromConfig);
-        CFG_SEC = "rutas";
-        nav.target = "organizacion";
-      }
-      if (nav.target === "organizacion" && !puedeOrganizacion()) nav.target = "inicio";
-    }
-  };
-  var clearPagesWhenLeaving = {
-    name: "v2.117 · going to a non-page screen empties the pages, so no old page shows up",
-    before: (nav) => {
-      if (nav.target in PAGINAS) return;
-      Object.keys(PAGINAS).forEach((page) => {
-        const section2 = document.getElementById(`v-${page}`);
-        if (section2) section2.innerHTML = "";
-      });
-    }
-  };
-  var revealSince = [];
-  var atomicReveal = {
-    name: "v2.60 · the screen is revealed at once when its data is ready (no screen «ghosts»)",
-    before: () => {
-      revealSince.push(Date.now() - 2);
+    isDayView: () => agN(),
+    metrics: () => AG_MET,
+    setMetrics: (value19) => {
+      AG_MET = value19;
     },
-    after: () => {
-      const section2 = screenSection();
-      if (section2) {
-        section2.classList.remove("cargando", "cargando-pend");
-        revelar(section2, 4e3, revealSince[revealSince.length - 1] ?? Date.now());
-      }
-      document.querySelectorAll("main > section.preparando").forEach((other) => {
-        if (other !== section2) other.classList.remove("preparando");
-      });
+    /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
+    dayAppointments: () => TD_CITAS,
+    loadedDay: () => TD_ULTIMO?.fecha ?? null
+  };
+  var agendaSuggestions = {
+    forDay: () => AG_SUG,
+    pending: () => AG_PEND ?? []
+  };
+  var agendaActions = {
+    openAccount: (id) => {
+      void abrirFicha(id);
     },
-    cleanup: () => {
-      revealSince.pop();
-    }
-  };
-  function billingSection() {
-    const map2 = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(FAC_ULTIMA, "empresa") };
-    const section2 = CFG_SEC ?? "";
-    if (!(map2[section2] ?? (section2 === "fact" ? map2[CFG_SUB ?? ""] : void 0))) return void 0;
-    return orFallback(map2[section2 === "fact" ? orFallback(CFG_SUB, "fact") : section2], "empresa");
-  }
-  var billingSettings = {
-    name: "v2.57 · fiscal data, series and VeriFactu open in Facturación",
-    before: (nav) => {
-      if (nav.target !== "config") return;
-      const section2 = billingSection();
-      if (section2 !== void 0) {
-        FSEC = section2;
-        CFG_SEC = "rutas";
-        nav.target = "facturacion";
-      }
-    }
-  };
-  var loadingIndicatorAfterDelay = {
-    name: "v2.56 · the loading indicator only shows while the screen is still requesting data",
-    after: () => {
-      const section2 = screenSection();
-      if (section2?.classList.contains("cargando-pend")) {
-        section2.classList.remove("cargando-pend");
-        if (PEND > 0) section2.classList.add("cargando");
-      }
-    }
-  };
-  var markNavigationInProgress = {
-    name: "v2.56 · VIA_IR tells the screens they are being opened by a navigation",
-    before: (nav) => {
-      VIA_IR = nav.target;
+    openCentre: (id) => {
+      void fichaCentro(id);
     },
-    cleanup: () => {
-      setTimeout(() => {
-        VIA_IR = null;
-      }, 0);
+    newAppointment: (accountId, isoDate) => {
+      void nuevaCita(accountId, isoDate);
+    },
+    planRoute: (list, button2) => {
+      void planDesdeLista(list, "toca", button2);
     }
   };
-  function companyTab() {
-    if (CFG_SUB !== null && MAIL_SECTIONS.includes(CFG_SUB)) return CFG_SUB;
-    if (CFG_SEC !== null && MAIL_SECTIONS.includes(CFG_SEC)) return CFG_SEC;
-    return "marca";
-  }
-  var legacyConfigPages = {
-    name: "v2.53 · notifications, company and plan have their own page; pages are loaded after switching",
-    before: (nav) => {
-      if (nav.target === "config" && CFG_SEC === "notif") {
-        PAG_TAB.perfil = "notif";
-        CFG_SEC = "rutas";
-        nav.target = "perfil";
-      }
-      if (nav.target === "config" && ["perfil", "prefs"].includes(CFG_SEC ?? "")) CFG_SEC = "rutas";
-      if (nav.target === "config" && COMPANY_SECTIONS.includes(CFG_SEC ?? "")) {
-        PAG_TAB.empresa = companyTab();
-        CFG_SEC = "rutas";
-        nav.target = "empresa";
-      }
-      if (nav.target === "config" && CFG_SEC === "plan") {
-        CFG_SEC = "rutas";
-        nav.target = "plan";
+  var sidePanel = {
+    context: () => HERR_CTX,
+    setContext: (value19) => {
+      HERR_CTX = value19;
+    }
+  };
+  var legacyAgendaParts = {
+    mode: () => AG_MODO,
+    blockedDays: (fromIsoDate2, days) => agBloqueos(fromIsoDate2, days)
+  };
+  var agendaSources = {
+    /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
+    ownerId: () => agUid(),
+    isOwnAgenda: () => agUid() === PERFIL.id,
+    stripStart: () => CINTA_INI,
+    /** «Tu día» of this date arrives already loaded (from Inicio). */
+    hasPresetDay: (isoDate) => TD_PRESET?.fecha === isoDate,
+    dayTasks: (isoDate) => tareasDelDia(isoDate),
+    blockedDays: (fromIsoDate2, toIsoDate2) => bloqueadosSemanaBase(fromIsoDate2, toIsoDate2),
+    setSuggestions: (isoDate, suggestions) => {
+      AG_PEND = suggestions.pend;
+      AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
+    }
+  };
+  var stripState = {
+    start: () => CINTA_INI,
+    setStart: (isoDate) => {
+      CINTA_INI = isoDate;
+    },
+    weekOpen: () => AG_SEM_ABIERTA,
+    setWeekOpen: (open2) => {
+      AG_SEM_ABIERTA = open2;
+    }
+  };
+  var agendaState = {
+    setMode: (mode) => {
+      AG_MODO = mode;
+    },
+    setSelectedDate: (isoDate) => {
+      AG_FECHA = isoDate;
+    },
+    /** The last day the agenda was opened on «today» (to jump to the new today after midnight). */
+    lastTodaySeen: () => AG_HOY_VISTO,
+    setLastTodaySeen: (isoDate) => {
+      AG_HOY_VISTO = isoDate;
+    },
+    forgetDayTasks: () => {
+      TAREAS_DIA = null;
+    },
+    /** Someone asked to open Agenda straight on «Repartir la semana». */
+    takeWeekPlanRequest: () => {
+      const asked = ABRIR_PLAN_SEMANA;
+      ABRIR_PLAN_SEMANA = false;
+      return asked;
+    },
+    viewed: () => AG_VISTA
+  };
+  var salesTeam = {
+    members: () => COMS,
+    load: () => cargarComerciales(),
+    currentUserId: () => PERFIL.id,
+    showAgendaOf: (userId) => {
+      void verAgendaDe(userId);
+    }
+  };
+  var legacyAgendaPaint = {
+    yourDay: () => pintarTuDia(),
+    team: () => pintarEquipo(),
+    noStartWarning: (element2) => {
+      avisoSinSalida(element2);
+    }
+  };
+  var weekPlanner = {
+    draft: () => SEM_BORRADOR,
+    discardDraft: () => {
+      SEM_BORRADOR = null;
+    },
+    plan: (from, days, blocked, perDay) => {
+      void planificarSemana(from, days, blocked, perDay);
+    },
+    saveDraft: (button2) => {
+      void guardarBorradorSemana(button2);
+    },
+    /** Estimated end of a day (minutes) and the latest return time. */
+    estimateDay: (list, isoDate) => estimarDia(list, isoDate),
+    /** Opening windows of a person on a date: null when unknown, [] when they do not attend that day. */
+    attendanceWindows: (days, isoDate) => ventanasDe(days, isoDate)
+  };
+  var notices = {
+    toast: (message, isError = false) => {
+      toast(message, isError);
+    },
+    confirm: (message, options3) => preguntar(message, options3),
+    choose: (title2, message, buttons) => elegirOpcion(title2, message, buttons),
+    askDate: (message, value19, options3) => pedirFecha(message, value19, options3),
+    askTime: async (title2, value19, ok) => await appVentana({ titulo: title2, ok, campo: { valor: value19, tipo: "time" } })
+  };
+  var initialsOf = (name) => iniciales(name);
+  var reloadAgenda = () => {
+    void cargarAgenda();
+  };
+  var yourDayLegacy = {
+    setDayAppointments: (list) => {
+      TD_CITAS = list;
+    },
+    estimateDay: (list, isoDate) => estimarDia(list, isoDate),
+    stopInfo: () => TD_INFO,
+    explainWarning: (info) => explicarAviso(info),
+    windowsText: (windows) => txtVentanas(windows),
+    canRecordOn: (isoDate) => puedeRegistrarEnDia(isoDate),
+    orderByDistance: (list) => {
+      const ordered = ordenarPorCercania(list);
+      return { list: ordered, left: ordenarPorCercania.fuera ?? 0 };
+    },
+    prepareRouteStops: (isoDate) => {
+      try {
+        prepararParadas(isoDate);
+      } catch {
       }
     },
-    after: (target) => {
-      if (PAGINAS[target]) cargarPagina(target);
+    markTraffic: () => {
+      tdMarcaTrafico();
+    },
+    queuedVisits: () => colaLeer(),
+    showDialog: (title2, message, ok) => {
+      void appVentana({ titulo: title2, msg: message, ok, cancel: false });
     }
   };
-  var noFlashOnFastLoad = {
-    name: "v2.52 · fast screens go straight from the old content to the new one, without a flash of the loader",
-    after: () => {
-      const section2 = screenSection();
-      if (!section2?.classList.contains("cargando")) return;
-      section2.classList.remove("cargando");
-      section2.classList.add("cargando-pend");
-      if (PEND > 0) section2.classList.add("cargando");
-      section2.classList.remove("cargando-pend");
+  var legacyIcons = {
+    line: (name) => SVA(ICU[name] ?? ""),
+    arrow: (name) => ICO[name] ?? "",
+    list: (name) => plIco(name)
+  };
+  var appointmentLegacy = {
+    /** Writes through the offline queue (the change is kept if there is no connection). */
+    write: (name, payload9) => escribir(name, payload9),
+    writeRpc: (name, payload9) => escribirRpc(name, payload9),
+    negativeResults: () => (CAT.resultado_visita ?? []).filter((item) => item.extra === "neg"),
+    nextAttendanceDay: (days, from) => proximoDiaConsulta(days, from),
+    navigateTo: (point) => {
+      void navegarA(point);
+    },
+    recordVisit: (accountId, isoDate) => {
+      VISITA_FECHA = isoDate;
+      void abrirVisita(accountId);
+    },
+    openAccountFromCentre: (accountId, centre) => {
+      FICHA_CENTRO = centre ?? null;
+      void abrirFicha(accountId);
+    },
+    lastDayData: () => TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data ?? null : null,
+    isJoinedDayView: () => agUnida(),
+    /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
+    openSheet: (item) => {
+      void window.verCita(item);
     }
   };
-
-  // src/app/core/navigation/index.ts
-  var NAVIGATION_STEPS = [
-    resetBackStack,
-    professionalPortalOnly,
-    loadingComet,
-    watchListPage,
-    customMenuNames,
-    rememberManualReturn,
-    announceNavigation,
-    singleConfiguration,
-    directoryLabel,
-    manualHelpButton,
-    platformPanel,
-    stripeReturnToPlan,
-    planSections,
-    agendaFromMenuIsToday,
-    ordersSections,
-    closePageDialog,
-    footerMenuMark,
-    configToOwnPages,
-    closeEmbeddedWindows,
-    organizationPage,
-    clearPagesWhenLeaving,
-    atomicReveal,
-    billingSettings,
-    loadingIndicatorAfterDelay,
-    markNavigationInProgress,
-    legacyConfigPages,
-    noFlashOnFastLoad
-  ];
-  function navigate(target, ...args) {
-    runNavigation(NAVIGATION_STEPS, (screen2) => {
-      irBase(screen2);
-    }, target, args);
-  }
+  var agendaCache = {
+    /** Forgets the cached agenda reads, so the next paint asks the database. */
+    forget: () => {
+      for (const key of [...RC.keys()]) if (key.startsWith("agenda_")) {
+        RC.delete(key);
+        RC_VUELO.delete(key);
+      }
+    },
+    /** Forgets the cached read of one day (its key in rpcCache). */
+    forgetDay: (isoDate) => {
+      RC.delete(`agenda-${isoDate}`);
+    },
+    /** The next «Tu día» paint of `isoDate` uses this data (no network), and it becomes the last painted day. */
+    preset: (isoDate, data) => {
+      TD_PRESET = { fecha: isoDate, data };
+      TD_ULTIMO = { fecha: isoDate, data };
+    },
+    lastPainted: (isoDate) => TD_ULTIMO?.fecha === isoDate ? TD_ULTIMO.data ?? null : null,
+    setLastPainted: (isoDate, data) => {
+      TD_ULTIMO = { fecha: isoDate, data };
+    },
+    /** Every day read alone (agenda_rango of one day), as it arrived. */
+    dayData: (isoDate) => AG_DIAS_DATOS[isoDate],
+    /** What is saved from now on is already shown: closing a dialog will not refresh again. */
+    markDialogSeen: () => {
+      DLG_EPOCA = RC_EPOCA;
+    },
+    dayTasks: (isoDate) => TAREAS_DIA?.f === isoDate ? TAREAS_DIA.l : null,
+    setDayTasks: (isoDate, list) => {
+      TAREAS_DIA = list ? { f: isoDate, l: list } : null;
+    }
+  };
+  var routeBar = { paint: () => {
+    void pintarRutaBarra();
+  } };
+  var editorLegacy = {
+    pickAccount: (element2, value19, onPick, placeholder) => {
+      selectorMedico(element2, { valor: value19, alElegir: onPick, ...placeholder ? { placeholder } : {} });
+    },
+    recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
+    recentText: (list) => txtReciente(list),
+    turnOffRecentNotice: () => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
+    centreFromCard: () => FICHA_CENTRO,
+    viewedUserId: () => currentScreen() === "agenda" && AG_VISTA ? AG_VISTA.id : null
+  };
+  var accountCardLegacy = {
+    shownId: () => FICHA_ID,
+    setShownId: (id) => {
+      FICHA_ID = id;
+    },
+    forgetPatients: () => {
+      FICHA_PAC = null;
+    },
+    forgetCentreFromAppointment: () => {
+      FICHA_CENTRO = null;
+    },
+    planIncludes: (section2) => planIncluyeSeccion(section2),
+    canEditType: (type) => puedeEditarTipo(type),
+    /** The base sections, in their legacy order (each one paints a block of the card). */
+    customFields: (id, container) => bloqueCampos("cuentas", id, container)
+  };
+  var relatedLegacy = {
+    openVisitPhotos: (activityId, accountId) => {
+      void verFotosVisita(activityId, accountId);
+    },
+    openEvent: (id) => {
+      void verEvento(id);
+    },
+    openDeposit: (accountId, name) => {
+      void verDeposito(accountId, name);
+    },
+    expiresSoon: (isoDate) => depCaducaPronto(isoDate),
+    /** Opens a surgery through its global name (so «‹ Volver» sees it), optionally with a notice on top. */
+    openSurgery: (id, notice) => {
+      void verCirugia(id, notice);
+    },
+    openTender: (id) => {
+      void verConcurso(id);
+    },
+    openEquipment: (id) => {
+      void verEquipo(id);
+    },
+    newEquipment: (account) => {
+      void editarEquipo(null, account);
+    }
+  };
+  var cardBaseLegacy = {
+    states: () => estados(),
+    canRecord: () => puedeRegistrar(),
+    canEdit: () => puedeEditar(),
+    directionsAttribute: (point) => navAttr(point),
+    unitsChart: (units2, series) => sparkUnidades(units2, series),
+    unitsLegend: (series) => leyendaUnidades(series),
+    unitsSeries: () => UDS_SERIES,
+    unitsSeriesChosen: () => UDS_SERIE,
+    chooseUnitsSeries: (series) => {
+      UDS_SERIE = series;
+      try {
+        localStorage.setItem("dlc-uds-serie", series);
+      } catch {
+      }
+    },
+    missingTimetable: (id) => faltaHorario(id),
+    openEditor: (id) => {
+      void abrirEditor(id);
+    }
+  };
+  var cardSectionsLegacy = {
+    can: (capability) => puede(capability),
+    /** Sales level of the user (area V). */
+    salesArea: () => PERFIL.areas?.V ?? 0,
+    roleCan: (role, capability) => rolPuede(role, capability),
+    openPatient: (id) => {
+      void fichaPaciente(id);
+    },
+    /** Opens Pacientes filtered by this account. */
+    patientsOf: (accountId, name) => {
+      Object.assign(PAC, { q: "", medico: accountId, medicoNombre: name, pagina: 0 });
+      goTo("pacientes");
+    },
+    visitDetails: (visit2) => detTxt(visit2),
+    fieldName: (field10) => campoTxt(field10),
+    valueText: (value19) => textoValor(value19),
+    detailSummary: (detail) => resumenDetalle(detail),
+    undo: (id, then) => {
+      void deshacerUno(id, then);
+    }
+  };
+  var portalLegacy = {
+    hasPortal: () => hayExtra("portal"),
+    materialPill: (state) => pillMaterial(state),
+    products: async () => {
+      if (!PRODUCTOS.length) await cargarProductos();
+      return PRODUCTOS;
+    },
+    euros: (value19) => eurI(value19)
+  };
+  var accessLegacy = {
+    connectionInfo: (userId) => {
+      void facccon(userId);
+    },
+    canImpersonate: (user) => puedeVerComo(user),
+    newUser: (preset) => {
+      nuevoUsuario(preset);
+    },
+    forgetAccessCache: () => {
+      MED_ACCESO = null;
+    },
+    /** A user is created with a separate client (no session kept), as the legacy sign-up did. */
+    signUp: async (email, password, name) => {
+      const client = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
+      const { error } = await client.auth.signUp({ email, password, options: { data: { nombre: name, usuario: email.split("@")[0] } } });
+      return error;
+    }
+  };
+  var accountListLegacy = {
+    // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
+    filters: () => F,
+    mapMode: () => MODO_MAPA,
+    /** The database order key of a column (only the sortable ones). */
+    sortKey: (column) => ORD_DIR[column],
+    fieldChips: (state) => clasChips("medico", state),
+    contactsLabel: () => etiquetaContactos(),
+    pageSize: () => tamPagina(),
+    paginate: (options3) => {
+      paginador(options3.element, options3.total, options3.page, options3.onPage, options3.onSize);
+    }
+  };
+  var accountColumnsLegacy = {
+    customFields: () => CAMPOS.medico ?? [],
+    fieldText: (field10, value19) => campoTexto(field10, value19),
+    firstName: (name) => nombrePila(name),
+    /** Platform access by account (loaded once; null until it arrives). */
+    accessOf: () => MED_ACCESO,
+    loadAccess: () => cargarAccesoMedicos(),
+    storageKey: () => `dlc-cols-${PERFIL?.id ?? ""}`
+  };
+  var eventsLegacy = {
+    repaintList: () => {
+      void pintarEventos();
+    }
+  };
+  var appLegacy = {
+    /** Forgets every cached read (after a change other screens show). */
+    forgetCache: () => {
+      invalidarCache();
+    },
+    openOrder: (id) => {
+      void verPedido(id);
+    },
+    currentUserName: () => PERFIL.nombre ?? ""
+  };
+  var cycleLegacy = {
+    loadSettings: () => cargarAjustes(),
+    setting: (key) => AJUSTES[key],
+    setSetting: (key, value19) => {
+      AJUSTES[key] = value19;
+    },
+    openTab: (tab) => {
+      PAG_TAB.ciclo = tab;
+      cargarPagina("ciclo");
+    }
+  };
+  var equipmentLegacy = {
+    warningDays: () => CON_AVISOS,
+    setWarningDays: (days) => {
+      CON_AVISOS = days;
+    },
+    contracts: () => EQ_CONTRATOS,
+    loadProducts: async () => {
+      if (!PRODUCTOS.length) await cargarProductos();
+    }
+  };
+  var tendersLegacy = {
+    warningDays: () => CON_AVISOS,
+    setWarningDays: (days) => {
+      CON_AVISOS = days;
+    }
+  };
+  var purchasesLegacy = {
+    section: () => PEDSEC,
+    canBuy: () => Boolean(puedeCompras()),
+    loadSuppliers: () => cargarProveedores(),
+    suppliers: () => PROVEEDORES,
+    loadStores: () => cargarAlmacenes(),
+    stores: () => ALMACENES,
+    loadProducts: () => cargarProductos(),
+    products: () => PRODUCTOS,
+    /** The batch fields of «Recibir mercancía» (shared with the stock entries of Productos). */
+    batchFields: (line3, units2, storeId) => loteRecepcion(line3, units2, storeId),
+    reloadSales: () => {
+      void cargarVentas();
+    },
+    /** Through the global name: legado 058 wraps it to open the wide window. */
+    openPurchase: (id) => {
+      void editorCompra(id);
+    }
+  };
+  var importLegacy = {
+    excelReader: () => cargarLectorExcel(),
+    reportError: (message) => {
+      registrarError("error", message);
+    },
+    countWrite: () => {
+      ESCRITURAS++;
+    },
+    showHistory: () => {
+      CFG_SUB = "historial";
+    }
+  };
+  var manualLegacy = {
+    sections: () => MANUAL,
+    help: (id) => AYUDA[id],
+    faq: () => FAQ,
+    firstSteps: () => PRIMEROS_PASOS,
+    icon: (id) => ICONOS_MANUAL[id],
+    levelText: (level2) => NIVEL_TXT[level2] ?? "",
+    can: (capability) => puede(capability),
+    isModule: (id) => Boolean(MODULO_AREA[id]),
+    canOpenModule: (id) => puedeModulo(id),
+    moduleCount: () => Object.keys(MODULO_AREA).filter(puedeModulo).length,
+    settingsOf: (id) => CFG_DE_MODULO[id],
+    profile: () => PERFIL,
+    planIncludes: (module) => planIncluye(module),
+    cheapestPlan: (module) => planMinimo(module)?.nombre,
+    showPlanNotice: (module) => {
+      avisoPlan(module);
+    },
+    go: (screen2, configSection) => {
+      if (configSection !== void 0) CFG_SEC = configSection;
+      ir(screen2);
+    },
+    vocabulary: () => ({ empresa: nombreApp(), terminos: Object.fromEntries(Object.keys(TERM_DEF).map((key) => [key, terminoDe(key)])) }),
+    isIos: () => ES_IOS,
+    back: () => MANUAL_VUELTA,
+    takeBack: () => {
+      const back = MANUAL_VUELTA;
+      MANUAL_VUELTA = null;
+      return back;
+    },
+    screenName: (screen2) => nombrePantalla(screen2),
+    pageInfo: (screen2) => PAGINAS[screen2] ?? {},
+    attachHelp: (title2, html) => {
+      pegarAyuda(title2, html);
+    }
+  };
+  var qualityLegacy = {
+    geocode: (query, hints) => geocodificar(query, hints),
+    /** The «Descargar» entry of the tools menu calls window.__dlSeg (legado 014). */
+    setExport: (exporter) => {
+      Reflect.set(window, "__dlSeg", exporter);
+    },
+    download: (rows, name, format) => {
+      descargar(rows, name, format);
+    },
+    canUseModule: (module) => puedeModulo(module),
+    arrangeAccountsHeader: () => {
+      ordenarCabeceraCuentas();
+    }
+  };
+  var opportunitiesLegacy = {
+    catalog: (key) => CAT[key] ?? [],
+    setCatalog: (key, list) => {
+      CAT[key] = list;
+    },
+    products: () => PRODUCTOS,
+    loadProducts: async () => {
+      if (!PRODUCTOS.length) await cargarProductos();
+    },
+    defaultProduct: () => productoPorDefecto(),
+    searchClients: (query) => buscarClientes(query),
+    editContact: (preset, onSave) => {
+      editorContacto(preset, onSave);
+    },
+    editOrder: (preset) => {
+      void editorPedido(preset);
+    },
+    /** The order saved next is linked to this opportunity (legado 038). */
+    setPendingCall: (id) => {
+      LLAMADA_PEND = id;
+    },
+    /** The account picker; what is typed without choosing is kept in element.__texto. */
+    pickReference: (options3) => {
+      Reflect.set(options3.element, "__texto", options3.freeText);
+      selectorMedico(options3.element, { valor: options3.value, alElegir: options3.onPick, placeholder: options3.placeholder });
+    },
+    mountPeriod: (element2, options3) => {
+      montarPeriodo(element2, options3);
+    },
+    periodOf: (element2) => Reflect.get(element2 ?? {}, "__rango")?.() ?? { desde: null, hasta: null },
+    barChart: (items, format) => barrasH(items, format),
+    emptyChart: (text2) => vacioGrafico(text2),
+    page: () => LLPAG,
+    setPage: (page) => {
+      LLPAG = page;
+    },
+    ordersSection: () => PEDSEC,
+    repaintList: () => {
+      void pintarLlamadas();
+    }
+  };
 
   // src/app/i18n/es/accounts.ts
   var accounts = {
@@ -663,6 +868,111 @@
       reactivate: "Volver a dar de alta",
       archive: "Dar de baja",
       delete: "Eliminar la ficha"
+    }
+  };
+
+  // src/app/i18n/es/list-components.ts
+  var listComponents = {
+    pagination: {
+      range: "{from}–{to} de {total}",
+      previous: "Página anterior",
+      next: "Página siguiente",
+      show: "Mostrar"
+    },
+    popover: {
+      searchPlaceholder: "Buscar…",
+      search: "Buscar"
+    },
+    sort: {
+      byColumn: "Ordenar por esta columna"
+    }
+  };
+
+  // src/app/i18n/es/components.ts
+  var components = {
+    dialogs: {
+      confirm: "Confirmar",
+      cancel: "Cancelar",
+      accept: "Aceptar",
+      save: "Guardar",
+      leaveText: "Si sales ahora perderás los cambios que has hecho.",
+      leaveTitle: "¿Salir sin guardar?",
+      leaveOk: "Salir sin guardar"
+    },
+    notices: {
+      readOnly: "Tu empresa está en solo lectura hasta que se actualice el pago (Plan y suscripción)",
+      offline: "Sin conexión · datos guardados",
+      savedOn: "el {date}",
+      noStartTitle: "Aún no has configurado tu punto de salida.",
+      noStartText: "Las horas se calculan desde la {firstVisit}, sin el desplazamiento inicial.",
+      noStartButton: "Configurarlo"
+    },
+    help: {
+      label: "Ayuda"
+    },
+    loading: {
+      default: "Cargando…",
+      everything: "Un momento: se está cargando todo de nuevo"
+    },
+    datePicker: {
+      weekdays: "domingo,lunes,martes,miércoles,jueves,viernes,sábado",
+      longDate: "{weekday}, {day} de {month} de {year}",
+      chooseDate: "Elegir fecha",
+      chooseMonth: "Elegir mes",
+      chooseTime: "Elegir hora",
+      previousMonth: "Mes anterior",
+      nextMonth: "Mes siguiente",
+      chooseMonthYear: "Elegir mes y año",
+      previousYear: "Año anterior",
+      nextYear: "Año siguiente",
+      chooseYear: "Elegir año",
+      previousYears: "Años anteriores",
+      nextYears: "Años siguientes",
+      monthOf: "{month} de {year}",
+      today: "Hoy",
+      tomorrow: "Mañana",
+      thisMonth: "Este mes",
+      clear: "Borrar",
+      changeDay: "Cambiar día",
+      hour: "Hora",
+      minutes: "Minutos",
+      now: "Ahora",
+      accept: "Aceptar",
+      less: "Menos",
+      more: "Más"
+    },
+    charts: {
+      perMonth: "{label} por mes",
+      others: "Otros ({count})",
+      unitsOneProduct: "unidades · {count} producto",
+      unitsProducts: "unidades · {count} productos",
+      weekOf: "Semana del {date}",
+      shareByProduct: "Reparto por producto",
+      units: "unidades",
+      noData: "Aún no hay datos para este gráfico",
+      channelTitle: "Ventas por canal",
+      howToRead: "Cómo leerlo:",
+      channelHint: "qué parte de las unidades llega con {aProfessional} de referencia y qué parte por venta directa a un centro.",
+      channelEmpty: "Verás qué parte de las ventas llega por cada canal."
+    },
+    classifiers: {
+      title: "Clasificadores",
+      none: "Esta pantalla aún no tiene campos propios. Se crean en Configuración → Clasificadores.",
+      column: "Columna",
+      asColumn: "Ver «{name}» como columna de la tabla",
+      all: "Todos",
+      yes: "Sí",
+      no: "No",
+      fromPlaceholder: "Desde",
+      toPlaceholder: "Hasta",
+      fromLabel: "{name}: desde",
+      toLabel: "{name}: hasta",
+      typeToSearch: "Escribe para buscar",
+      mustBeNumber: "«{name}» tiene que ser un número",
+      contains: "{name} contiene «{text}»",
+      fromTo: "{name}: de {from} a {to}",
+      from: "{name}: desde {from}",
+      to: "{name}: hasta {to}"
     }
   };
 
@@ -4481,6 +4791,8 @@
     accountsMap,
     settings,
     settingsMore,
+    components,
+    listComponents,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -4642,622 +4954,34 @@
     return fill(text2, params2);
   }
 
-  // src/app/screens/accounts/index.ts
-  var accounts_exports = {};
-  __export(accounts_exports, {
-    columnSettings: () => columnSettings,
-    openAccountCard: () => openAccountCard,
-    openColumnsPanel: () => openColumnsPanel,
-    paintAccountsHeader: () => paintHeader,
-    paintMap: () => paintMap,
-    refreshPortal: () => refreshPortal,
-    saveColumns: () => saveColumns,
-    searchAccounts: () => searchAccounts
-  });
-
-  // src/app/legacy/bridge.ts
-  var legacyDb = () => db;
-  var callRpc = (name, params2 = {}) => RPC_ORIG(name, params2);
-  var currentScreen = () => TAB;
-  var goTo = (screen2) => {
-    ir(screen2);
-  };
-  var goToOrders = (section2) => {
-    PEDSEC = section2;
-    ir("ventas");
-  };
-  function term(word, options3 = {}) {
-    const { number = "s", article = "", capital = "l", adjective, articleCapital = "l" } = options3;
-    return adjective === void 0 ? TT(word, number, article, articleCapital, capital) : TT(word, number, article, articleCapital, capital, adjective);
+  // src/app/services/format.ts
+  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  function escapeHtml(value19) {
+    return String(value19 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
   }
-  var permissions = {
-    canSeeArea: (area) => verArea(area),
-    canSeeAmounts: () => verImportes(),
-    seesEverything: () => VE_TODO(),
-    salesLevel: () => nivelDe2("V"),
-    /** Level (0–3) in an area by its letter (M: accounts, V: sales…). */
-    levelOf: (letter) => nivelDe2(letter),
-    isProfessionalPortal: () => ES_MEDICO(),
-    hasOpportunities: () => typeof hayOportunidades === "function" && hayOportunidades(),
-    canReviewDuplicates: () => typeof puedeDuplicados === "function" && puedeDuplicados()
-  };
-  var homeCache = {
-    panel: () => KV_INI,
-    setPanel: (value19) => {
-      KV_INI = value19;
-    },
-    charts: () => KV_GRAF
-  };
-  var appointments = {
-    ofDay: citasDelDia,
-    isOpen: (state) => CITA_ABIERTA.includes(state),
-    isCancelled: (state) => citaAnulada(state)
-  };
-  var icon = (name) => svgIco(ICON_NOM[name] ?? ICON_NOM.info ?? "");
-  var alreadyCounted = (key, values2) => plYaContado(key, values2);
-  var legacyHome = {
-    removeOldBlocks: inicioQuitarAntiguo,
-    header: inicioCabecera,
-    professionalPortal: pintarInicioBase2
-  };
-  var indicatorCatalog = {
-    definitions: () => KPI_CAT,
-    settings: () => kpiConfig(),
-    allowed: (definition) => kpiPermitido(definition),
-    help: (id) => AYUDA_KPI[id],
-    icon: (id) => KPI_ICO[id],
-    description: (id) => KPI_TXT[id],
-    filterText: (filter) => textoFiltro(filter),
-    countFilter: (filter) => contarFiltro(filter)
-  };
-  var commercialStates = {
-    all: () => ESTADOS_DEF,
-    color: (state) => EST_COL[state]
-  };
-  var cachedRpc = (name, params2, key) => rpcCache(name, params2, key);
-  var timingMark = (step) => {
-    marca(step);
-  };
-  var showCacheNotice = (element2, date) => {
-    avisoCache(element2, date);
-  };
-  var addHelpButtons = () => {
-    ponerAyudas();
-  };
-  var isMobile = () => ES_MOVIL();
-  var legacyAgenda = {
-    selectedDate: () => AG_FECHA,
-    /** The person whose agenda is shown (null: everybody the user sees, or the user). */
-    userFilter: () => agUsuarioFiltro(),
-    viewedUserId: () => AG_VISTA?.id ?? null,
-    showDay: (isoDate) => {
-      void agVerDia(isoDate);
-    },
-    isDayView: () => agN(),
-    metrics: () => AG_MET,
-    setMetrics: (value19) => {
-      AG_MET = value19;
-    },
-    /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
-    dayAppointments: () => TD_CITAS,
-    loadedDay: () => TD_ULTIMO?.fecha ?? null
-  };
-  var agendaSuggestions = {
-    forDay: () => AG_SUG,
-    pending: () => AG_PEND ?? []
-  };
-  var agendaActions = {
-    openAccount: (id) => {
-      void abrirFicha(id);
-    },
-    openCentre: (id) => {
-      void fichaCentro(id);
-    },
-    newAppointment: (accountId, isoDate) => {
-      void nuevaCita(accountId, isoDate);
-    },
-    planRoute: (list, button2) => {
-      void planDesdeLista(list, "toca", button2);
-    }
-  };
-  var sidePanel = {
-    context: () => HERR_CTX,
-    setContext: (value19) => {
-      HERR_CTX = value19;
-    }
-  };
-  var legacyAgendaParts = {
-    mode: () => AG_MODO,
-    blockedDays: (fromIsoDate2, days) => agBloqueos(fromIsoDate2, days)
-  };
-  var agendaSources = {
-    /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
-    ownerId: () => agUid(),
-    isOwnAgenda: () => agUid() === PERFIL.id,
-    stripStart: () => CINTA_INI,
-    /** «Tu día» of this date arrives already loaded (from Inicio). */
-    hasPresetDay: (isoDate) => TD_PRESET?.fecha === isoDate,
-    dayTasks: (isoDate) => tareasDelDia(isoDate),
-    blockedDays: (fromIsoDate2, toIsoDate2) => bloqueadosSemanaBase(fromIsoDate2, toIsoDate2),
-    setSuggestions: (isoDate, suggestions) => {
-      AG_PEND = suggestions.pend;
-      AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
-    }
-  };
-  var stripState = {
-    start: () => CINTA_INI,
-    setStart: (isoDate) => {
-      CINTA_INI = isoDate;
-    },
-    weekOpen: () => AG_SEM_ABIERTA,
-    setWeekOpen: (open2) => {
-      AG_SEM_ABIERTA = open2;
-    }
-  };
-  var agendaState = {
-    setMode: (mode) => {
-      AG_MODO = mode;
-    },
-    setSelectedDate: (isoDate) => {
-      AG_FECHA = isoDate;
-    },
-    /** The last day the agenda was opened on «today» (to jump to the new today after midnight). */
-    lastTodaySeen: () => AG_HOY_VISTO,
-    setLastTodaySeen: (isoDate) => {
-      AG_HOY_VISTO = isoDate;
-    },
-    forgetDayTasks: () => {
-      TAREAS_DIA = null;
-    },
-    /** Someone asked to open Agenda straight on «Repartir la semana». */
-    takeWeekPlanRequest: () => {
-      const asked = ABRIR_PLAN_SEMANA;
-      ABRIR_PLAN_SEMANA = false;
-      return asked;
-    },
-    viewed: () => AG_VISTA
-  };
-  var salesTeam = {
-    members: () => COMS,
-    load: () => cargarComerciales(),
-    currentUserId: () => PERFIL.id,
-    showAgendaOf: (userId) => {
-      void verAgendaDe(userId);
-    }
-  };
-  var legacyAgendaPaint = {
-    yourDay: () => pintarTuDia(),
-    team: () => pintarEquipo(),
-    noStartWarning: (element2) => {
-      avisoSinSalida(element2);
-    }
-  };
-  var weekPlanner = {
-    draft: () => SEM_BORRADOR,
-    discardDraft: () => {
-      SEM_BORRADOR = null;
-    },
-    plan: (from, days, blocked, perDay) => {
-      void planificarSemana(from, days, blocked, perDay);
-    },
-    saveDraft: (button2) => {
-      void guardarBorradorSemana(button2);
-    },
-    /** Estimated end of a day (minutes) and the latest return time. */
-    estimateDay: (list, isoDate) => estimarDia(list, isoDate),
-    /** Opening windows of a person on a date: null when unknown, [] when they do not attend that day. */
-    attendanceWindows: (days, isoDate) => ventanasDe(days, isoDate)
-  };
-  var notices = {
-    toast: (message, isError = false) => {
-      toast(message, isError);
-    },
-    confirm: (message, options3) => preguntar(message, options3),
-    choose: (title2, message, buttons) => elegirOpcion(title2, message, buttons),
-    askDate: (message, value19, options3) => pedirFecha(message, value19, options3),
-    askTime: async (title2, value19, ok) => await appVentana({ titulo: title2, ok, campo: { valor: value19, tipo: "time" } })
-  };
-  var initialsOf = (name) => iniciales(name);
-  var reloadAgenda = () => {
-    void cargarAgenda();
-  };
-  var yourDayLegacy = {
-    setDayAppointments: (list) => {
-      TD_CITAS = list;
-    },
-    estimateDay: (list, isoDate) => estimarDia(list, isoDate),
-    stopInfo: () => TD_INFO,
-    explainWarning: (info) => explicarAviso(info),
-    windowsText: (windows) => txtVentanas(windows),
-    canRecordOn: (isoDate) => puedeRegistrarEnDia(isoDate),
-    orderByDistance: (list) => {
-      const ordered = ordenarPorCercania(list);
-      return { list: ordered, left: ordenarPorCercania.fuera ?? 0 };
-    },
-    prepareRouteStops: (isoDate) => {
-      try {
-        prepararParadas(isoDate);
-      } catch {
-      }
-    },
-    markTraffic: () => {
-      tdMarcaTrafico();
-    },
-    queuedVisits: () => colaLeer(),
-    showDialog: (title2, message, ok) => {
-      void appVentana({ titulo: title2, msg: message, ok, cancel: false });
-    }
-  };
-  var legacyIcons = {
-    line: (name) => SVA(ICU[name] ?? ""),
-    arrow: (name) => ICO[name] ?? "",
-    list: (name) => plIco(name)
-  };
-  var appointmentLegacy = {
-    /** Writes through the offline queue (the change is kept if there is no connection). */
-    write: (name, payload9) => escribir(name, payload9),
-    writeRpc: (name, payload9) => escribirRpc(name, payload9),
-    negativeResults: () => (CAT.resultado_visita ?? []).filter((item) => item.extra === "neg"),
-    nextAttendanceDay: (days, from) => proximoDiaConsulta(days, from),
-    navigateTo: (point) => {
-      void navegarA(point);
-    },
-    recordVisit: (accountId, isoDate) => {
-      VISITA_FECHA = isoDate;
-      void abrirVisita(accountId);
-    },
-    openAccountFromCentre: (accountId, centre) => {
-      FICHA_CENTRO = centre ?? null;
-      void abrirFicha(accountId);
-    },
-    lastDayData: () => TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data ?? null : null,
-    isJoinedDayView: () => agUnida(),
-    /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
-    openSheet: (item) => {
-      void window.verCita(item);
-    }
-  };
-  var agendaCache = {
-    /** Forgets the cached agenda reads, so the next paint asks the database. */
-    forget: () => {
-      for (const key of [...RC.keys()]) if (key.startsWith("agenda_")) {
-        RC.delete(key);
-        RC_VUELO.delete(key);
-      }
-    },
-    /** Forgets the cached read of one day (its key in rpcCache). */
-    forgetDay: (isoDate) => {
-      RC.delete(`agenda-${isoDate}`);
-    },
-    /** The next «Tu día» paint of `isoDate` uses this data (no network), and it becomes the last painted day. */
-    preset: (isoDate, data) => {
-      TD_PRESET = { fecha: isoDate, data };
-      TD_ULTIMO = { fecha: isoDate, data };
-    },
-    lastPainted: (isoDate) => TD_ULTIMO?.fecha === isoDate ? TD_ULTIMO.data ?? null : null,
-    setLastPainted: (isoDate, data) => {
-      TD_ULTIMO = { fecha: isoDate, data };
-    },
-    /** Every day read alone (agenda_rango of one day), as it arrived. */
-    dayData: (isoDate) => AG_DIAS_DATOS[isoDate],
-    /** What is saved from now on is already shown: closing a dialog will not refresh again. */
-    markDialogSeen: () => {
-      DLG_EPOCA = RC_EPOCA;
-    },
-    dayTasks: (isoDate) => TAREAS_DIA?.f === isoDate ? TAREAS_DIA.l : null,
-    setDayTasks: (isoDate, list) => {
-      TAREAS_DIA = list ? { f: isoDate, l: list } : null;
-    }
-  };
-  var routeBar = { paint: () => {
-    void pintarRutaBarra();
-  } };
-  var editorLegacy = {
-    pickAccount: (element2, value19, onPick, placeholder) => {
-      selectorMedico(element2, { valor: value19, alElegir: onPick, ...placeholder ? { placeholder } : {} });
-    },
-    recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
-    recentText: (list) => txtReciente(list),
-    turnOffRecentNotice: () => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
-    centreFromCard: () => FICHA_CENTRO,
-    viewedUserId: () => currentScreen() === "agenda" && AG_VISTA ? AG_VISTA.id : null
-  };
-  var accountCardLegacy = {
-    shownId: () => FICHA_ID,
-    setShownId: (id) => {
-      FICHA_ID = id;
-    },
-    forgetPatients: () => {
-      FICHA_PAC = null;
-    },
-    forgetCentreFromAppointment: () => {
-      FICHA_CENTRO = null;
-    },
-    planIncludes: (section2) => planIncluyeSeccion(section2),
-    canEditType: (type) => puedeEditarTipo(type),
-    /** The base sections, in their legacy order (each one paints a block of the card). */
-    customFields: (id, container) => bloqueCampos("cuentas", id, container)
-  };
-  var relatedLegacy = {
-    openVisitPhotos: (activityId, accountId) => {
-      void verFotosVisita(activityId, accountId);
-    },
-    openEvent: (id) => {
-      void verEvento(id);
-    },
-    openDeposit: (accountId, name) => {
-      void verDeposito(accountId, name);
-    },
-    expiresSoon: (isoDate) => depCaducaPronto(isoDate),
-    /** Opens a surgery through its global name (so «‹ Volver» sees it), optionally with a notice on top. */
-    openSurgery: (id, notice) => {
-      void verCirugia(id, notice);
-    },
-    openTender: (id) => {
-      void verConcurso(id);
-    },
-    openEquipment: (id) => {
-      void verEquipo(id);
-    },
-    newEquipment: (account) => {
-      void editarEquipo(null, account);
-    }
-  };
-  var cardBaseLegacy = {
-    states: () => estados(),
-    canRecord: () => puedeRegistrar(),
-    canEdit: () => puedeEditar(),
-    directionsAttribute: (point) => navAttr(point),
-    unitsChart: (units2, series) => sparkUnidades(units2, series),
-    unitsLegend: (series) => leyendaUnidades(series),
-    unitsSeries: () => UDS_SERIES,
-    unitsSeriesChosen: () => UDS_SERIE,
-    chooseUnitsSeries: (series) => {
-      UDS_SERIE = series;
-      try {
-        localStorage.setItem("dlc-uds-serie", series);
-      } catch {
-      }
-    },
-    missingTimetable: (id) => faltaHorario(id),
-    openEditor: (id) => {
-      void abrirEditor(id);
-    }
-  };
-  var cardSectionsLegacy = {
-    can: (capability) => puede(capability),
-    /** Sales level of the user (area V). */
-    salesArea: () => PERFIL.areas?.V ?? 0,
-    roleCan: (role, capability) => rolPuede(role, capability),
-    openPatient: (id) => {
-      void fichaPaciente(id);
-    },
-    /** Opens Pacientes filtered by this account. */
-    patientsOf: (accountId, name) => {
-      Object.assign(PAC, { q: "", medico: accountId, medicoNombre: name, pagina: 0 });
-      goTo("pacientes");
-    },
-    visitDetails: (visit2) => detTxt(visit2),
-    fieldName: (field10) => campoTxt(field10),
-    valueText: (value19) => textoValor(value19),
-    detailSummary: (detail) => resumenDetalle(detail),
-    undo: (id, then) => {
-      void deshacerUno(id, then);
-    }
-  };
-  var portalLegacy = {
-    hasPortal: () => hayExtra("portal"),
-    materialPill: (state) => pillMaterial(state),
-    products: async () => {
-      if (!PRODUCTOS.length) await cargarProductos();
-      return PRODUCTOS;
-    },
-    euros: (value19) => eurI(value19)
-  };
-  var accessLegacy = {
-    connectionInfo: (userId) => {
-      void facccon(userId);
-    },
-    canImpersonate: (user) => puedeVerComo(user),
-    newUser: (preset) => {
-      nuevoUsuario(preset);
-    },
-    forgetAccessCache: () => {
-      MED_ACCESO = null;
-    },
-    /** A user is created with a separate client (no session kept), as the legacy sign-up did. */
-    signUp: async (email, password, name) => {
-      const client = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
-      const { error } = await client.auth.signUp({ email, password, options: { data: { nombre: name, usuario: email.split("@")[0] } } });
-      return error;
-    }
-  };
-  var accountListLegacy = {
-    // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
-    filters: () => F,
-    mapMode: () => MODO_MAPA,
-    /** The database order key of a column (only the sortable ones). */
-    sortKey: (column) => ORD_DIR[column],
-    fieldChips: (state) => clasChips("medico", state),
-    contactsLabel: () => etiquetaContactos(),
-    pageSize: () => tamPagina(),
-    paginate: (options3) => {
-      paginador(options3.element, options3.total, options3.page, options3.onPage, options3.onSize);
-    }
-  };
-  var accountColumnsLegacy = {
-    customFields: () => CAMPOS.medico ?? [],
-    fieldText: (field10, value19) => campoTexto(field10, value19),
-    firstName: (name) => nombrePila(name),
-    /** Platform access by account (loaded once; null until it arrives). */
-    accessOf: () => MED_ACCESO,
-    loadAccess: () => cargarAccesoMedicos(),
-    storageKey: () => `dlc-cols-${PERFIL?.id ?? ""}`
-  };
-  var eventsLegacy = {
-    repaintList: () => {
-      void pintarEventos();
-    }
-  };
-  var appLegacy = {
-    /** Forgets every cached read (after a change other screens show). */
-    forgetCache: () => {
-      invalidarCache();
-    },
-    openOrder: (id) => {
-      void verPedido(id);
-    },
-    currentUserName: () => PERFIL.nombre ?? ""
-  };
-  var cycleLegacy = {
-    loadSettings: () => cargarAjustes(),
-    setting: (key) => AJUSTES[key],
-    setSetting: (key, value19) => {
-      AJUSTES[key] = value19;
-    },
-    openTab: (tab) => {
-      PAG_TAB.ciclo = tab;
-      cargarPagina("ciclo");
-    }
-  };
-  var equipmentLegacy = {
-    warningDays: () => CON_AVISOS,
-    setWarningDays: (days) => {
-      CON_AVISOS = days;
-    },
-    contracts: () => EQ_CONTRATOS,
-    loadProducts: async () => {
-      if (!PRODUCTOS.length) await cargarProductos();
-    }
-  };
-  var tendersLegacy = {
-    warningDays: () => CON_AVISOS,
-    setWarningDays: (days) => {
-      CON_AVISOS = days;
-    }
-  };
-  var purchasesLegacy = {
-    section: () => PEDSEC,
-    canBuy: () => Boolean(puedeCompras()),
-    loadSuppliers: () => cargarProveedores(),
-    suppliers: () => PROVEEDORES,
-    loadStores: () => cargarAlmacenes(),
-    stores: () => ALMACENES,
-    loadProducts: () => cargarProductos(),
-    products: () => PRODUCTOS,
-    /** The batch fields of «Recibir mercancía» (shared with the stock entries of Productos). */
-    batchFields: (line2, units2, storeId) => loteRecepcion(line2, units2, storeId),
-    reloadSales: () => {
-      void cargarVentas();
-    },
-    /** Through the global name: legado 058 wraps it to open the wide window. */
-    openPurchase: (id) => {
-      void editorCompra(id);
-    }
-  };
-  var importLegacy = {
-    excelReader: () => cargarLectorExcel(),
-    reportError: (message) => {
-      registrarError("error", message);
-    },
-    countWrite: () => {
-      ESCRITURAS++;
-    },
-    showHistory: () => {
-      CFG_SUB = "historial";
-    }
-  };
-  var manualLegacy = {
-    sections: () => MANUAL,
-    help: (id) => AYUDA[id],
-    faq: () => FAQ,
-    firstSteps: () => PRIMEROS_PASOS,
-    icon: (id) => ICONOS_MANUAL[id],
-    levelText: (level2) => NIVEL_TXT[level2] ?? "",
-    can: (capability) => puede(capability),
-    isModule: (id) => Boolean(MODULO_AREA[id]),
-    canOpenModule: (id) => puedeModulo(id),
-    moduleCount: () => Object.keys(MODULO_AREA).filter(puedeModulo).length,
-    settingsOf: (id) => CFG_DE_MODULO[id],
-    profile: () => PERFIL,
-    planIncludes: (module) => planIncluye(module),
-    cheapestPlan: (module) => planMinimo(module)?.nombre,
-    showPlanNotice: (module) => {
-      avisoPlan(module);
-    },
-    go: (screen2, configSection) => {
-      if (configSection !== void 0) CFG_SEC = configSection;
-      ir(screen2);
-    },
-    vocabulary: () => ({ empresa: nombreApp(), terminos: Object.fromEntries(Object.keys(TERM_DEF).map((key) => [key, terminoDe(key)])) }),
-    isIos: () => ES_IOS,
-    back: () => MANUAL_VUELTA,
-    takeBack: () => {
-      const back = MANUAL_VUELTA;
-      MANUAL_VUELTA = null;
-      return back;
-    },
-    screenName: (screen2) => nombrePantalla(screen2),
-    pageInfo: (screen2) => PAGINAS[screen2] ?? {},
-    attachHelp: (title2, html) => {
-      pegarAyuda(title2, html);
-    }
-  };
-  var qualityLegacy = {
-    geocode: (query, hints) => geocodificar(query, hints),
-    /** The «Descargar» entry of the tools menu calls window.__dlSeg (legado 014). */
-    setExport: (exporter) => {
-      Reflect.set(window, "__dlSeg", exporter);
-    },
-    download: (rows, name, format) => {
-      descargar(rows, name, format);
-    },
-    canUseModule: (module) => puedeModulo(module),
-    arrangeAccountsHeader: () => {
-      ordenarCabeceraCuentas();
-    }
-  };
-  var opportunitiesLegacy = {
-    catalog: (key) => CAT[key] ?? [],
-    setCatalog: (key, list) => {
-      CAT[key] = list;
-    },
-    products: () => PRODUCTOS,
-    loadProducts: async () => {
-      if (!PRODUCTOS.length) await cargarProductos();
-    },
-    defaultProduct: () => productoPorDefecto(),
-    searchClients: (query) => buscarClientes(query),
-    editContact: (preset, onSave) => {
-      editorContacto(preset, onSave);
-    },
-    editOrder: (preset) => {
-      void editorPedido(preset);
-    },
-    /** The order saved next is linked to this opportunity (legado 038). */
-    setPendingCall: (id) => {
-      LLAMADA_PEND = id;
-    },
-    /** The account picker; what is typed without choosing is kept in element.__texto. */
-    pickReference: (options3) => {
-      Reflect.set(options3.element, "__texto", options3.freeText);
-      selectorMedico(options3.element, { valor: options3.value, alElegir: options3.onPick, placeholder: options3.placeholder });
-    },
-    mountPeriod: (element2, options3) => {
-      montarPeriodo(element2, options3);
-    },
-    periodOf: (element2) => Reflect.get(element2 ?? {}, "__rango")?.() ?? { desde: null, hasta: null },
-    barChart: (items, format) => barrasH(items, format),
-    emptyChart: (text2) => vacioGrafico(text2),
-    page: () => LLPAG,
-    setPage: (page) => {
-      LLPAG = page;
-    },
-    ordersSection: () => PEDSEC,
-    repaintList: () => {
-      void pintarLlamadas();
-    }
-  };
+  function formatNumber(value19) {
+    return Number(value19 ?? 0).toLocaleString("es");
+  }
+  function formatEuros(value19) {
+    return `${Math.round(Number(value19) || 0).toLocaleString("es-ES")} €`;
+  }
+  function looseText(text2) {
+    return String(text2 ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+  function formatCurrency(value19) {
+    return (Number(value19) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  }
+
+  // src/app/services/values.ts
+  function orFallback(value19, fallback) {
+    return value19 === void 0 || value19 === null || value19 === "" ? fallback : value19;
+  }
+  function nonZeroOr(value19, fallback) {
+    return value19 === void 0 || value19 === null || value19 === 0 || Number.isNaN(value19) ? fallback : value19;
+  }
+  var range = (length) => [...Array(length).keys()];
+  var sum = (values2) => values2.reduce((total2, value19) => total2 + value19, 0);
+  var isPresent = (value19) => value19 !== null && value19 !== void 0;
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -5278,12 +5002,12 @@
     const date = fromIsoDate(isoDate);
     return addDays(isoDate, -((date.getDay() + 6) % 7));
   }
-  function formatMinutes(minutes) {
-    return `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(Math.round(minutes) % 60).padStart(2, "0")}`;
+  function formatMinutes(minutes2) {
+    return `${String(Math.floor(minutes2 / 60) % 24).padStart(2, "0")}:${String(Math.round(minutes2) % 60).padStart(2, "0")}`;
   }
   function formatDuration(milliseconds) {
-    const minutes = Math.floor(milliseconds / 6e4);
-    return `${minutes >= 60 ? `${Math.floor(minutes / 60)} h ` : ""}${minutes % 60} min`;
+    const minutes2 = Math.floor(milliseconds / 6e4);
+    return `${minutes2 >= 60 ? `${Math.floor(minutes2 / 60)} h ` : ""}${minutes2 % 60} min`;
   }
 
   // src/app/services/date-format.ts
@@ -5315,23 +5039,1717 @@
     return fromIsoDate(isoDate.slice(0, 10)).toLocaleDateString(locale(), { day: "numeric", month: "long" });
   }
 
-  // src/app/services/format.ts
-  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value19) {
-    return String(value19 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  // src/app/components/charts/labels.ts
+  var shortMonths = () => t("dates.monthsShort").split(",");
+  var monthLabel = (month) => `${shortMonths()[Number(month.slice(5, 7)) - 1] ?? ""} ${month.slice(2, 4)}`;
+  var shortMonthOf = (month) => shortMonths()[Number(month.slice(5, 7)) - 1] ?? "";
+  function periodLabel(month) {
+    const [year = "", number = ""] = month.split("-");
+    return `${t("dates.monthsLong").split(",")[Number(number) - 1] ?? ""} ${year}`;
   }
-  function formatNumber(value19) {
-    return Number(value19 ?? 0).toLocaleString("es");
+
+  // src/app/components/charts/small-charts.ts
+  var CHART_COLOURS = ["#3F82C0", "#E0762B", "#1BAF7A", "#6E5BC4", "#E0A400", "#D9618C", "#94A3B8"];
+  var MAX_PRODUCTS = 10;
+  var SPARK_POINTS = 5;
+  var SPARK_WIDTH = 200;
+  var SPARK_HEIGHT = 40;
+  var DONUT_RADIUS = 70;
+  function rankingBars(items, format) {
+    const max = Math.max(1, ...items.map((item) => item.v));
+    return `<div class="barrash">${items.map((item, index) => `<div class="bh"><span class="bhn">${index + 1}. ${escapeHtml(item.n)}</span>
+    <span class="bhb"><i style="width:${Math.max(2, item.v / max * 100)}%"></i></span><b>${format(item.v)}</b></div>`).join("")}</div>`;
   }
-  function formatEuros(value19) {
-    return `${Math.round(Number(value19) || 0).toLocaleString("es-ES")} €`;
+  var percentText = (value19, total2) => {
+    const percent3 = value19 / total2 * 100;
+    return `${percent3 > 0 && percent3 < 1 ? "<1" : Math.round(percent3)} %`;
+  };
+  function shareBars(items) {
+    const sorted = [...items].sort((first, second) => second.v - first.v), total2 = sum(sorted.map((item) => item.v)) || 1;
+    const shown5 = sorted.length > MAX_PRODUCTS ? [...sorted.slice(0, MAX_PRODUCTS - 1), { n: t("components.charts.others", { count: sorted.length - MAX_PRODUCTS + 1 }), v: sum(sorted.slice(MAX_PRODUCTS - 1).map((item) => item.v)) }] : sorted;
+    return `<div class="reptot"><b>${formatNumber(total2)}</b> ${t(sorted.length === 1 ? "components.charts.unitsOneProduct" : "components.charts.unitsProducts", { count: formatNumber(sorted.length) })}</div>
+    <div class="barrash reparto">${shown5.map((item) => `<div class="bh"><span class="bhn" title="${escapeHtml(item.n)}">${escapeHtml(item.n)}</span>
+      <svg class="bhsvg" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><rect class="f" width="100" height="12" rx="6"/><rect class="v" width="${Math.max(2, item.v / total2 * 100).toFixed(1)}" height="12" rx="6"/></svg><b>${formatNumber(item.v)}</b><span class="sm bhp">${percentText(item.v, total2)}</span></div>`).join("")}</div>`;
   }
-  function looseText(text2) {
-    return String(text2 ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  function barsOf(units2, series) {
+    if (series === "semana") return (units2.semanas ?? []).map((item) => [item.unidades, t("components.charts.weekOf", { date: formatShortDate(item.semana) }), formatShortDate(item.semana)]);
+    if (series === "anio") return (units2.anios ?? []).map((item) => [item.unidades, String(item.anio), String(item.anio)]);
+    return (units2.meses ?? []).map((item) => [item.unidades, periodLabel(item.mes), periodLabel(item.mes)]);
   }
-  function formatCurrency(value19) {
-    return (Number(value19) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  function unitsSparkline(units2, series) {
+    const bars3 = barsOf(units2, series), max = Math.max(1, ...bars3.map((bar2) => bar2[0]));
+    return bars3.map(([count2, title2, label], index) => `<i class="${count2 ? "" : "cero"}${index === bars3.length - 1 ? " actual" : ""}" style="height:${Math.round(count2 / max * 100)}%" title="${escapeHtml(title2)}: ${formatNumber(count2)}"${index === 0 ? ` data-ini="${escapeHtml(label)}"` : ""}${index === bars3.length - 1 ? ` data-fin="${escapeHtml(label)}"` : ""}></i>`).join("");
   }
+  function sixMonthLine(values2, months2) {
+    const max = Math.max(...values2), min = Math.min(...values2, 0), spread = max - min || 1;
+    const points = values2.map((value19, index) => [index * SPARK_WIDTH / SPARK_POINTS, SPARK_HEIGHT - 4 - (SPARK_HEIGHT - 8) * (value19 - min) / spread]);
+    const path = points.map((point, index) => `${index ? "L" : "M"}${point[0].toFixed(1)} ${point[1].toFixed(1)}`).join(" ");
+    const [lastX = 0, lastY = 0] = points[SPARK_POINTS] ?? [];
+    return `<svg class="avsp" viewBox="0 0 200 46" preserveAspectRatio="none" aria-hidden="true"><path class="a" d="${path} L200 46 L0 46 Z"/><path class="l" pathLength="100" d="${path}"/></svg>
+    <span class="avpt" style="left:${(lastX / 2).toFixed(1)}%;top:${(lastY / 46 * 100).toFixed(1)}%"></span>
+    <div class="avm">${months2.map(([month]) => `<span>${shortMonthOf(month)}</span>`).join("")}</div>`;
+  }
+  function donut(items) {
+    const total2 = sum(items.map((item) => item.v)) || 1, circumference = 2 * Math.PI * DONUT_RADIUS, colour = (index) => CHART_COLOURS[index % CHART_COLOURS.length] ?? "";
+    let offset = 0;
+    const arcs = items.map((item, index) => {
+      const length = circumference * item.v / total2;
+      const arc = `<circle cx="100" cy="100" r="${DONUT_RADIUS}" stroke="${colour(index)}" stroke-dasharray="${length} ${circumference - length}" stroke-dashoffset="${-offset}" class="arco"><title>${escapeHtml(item.n)}: ${formatNumber(item.v)} (${Math.round(item.v / total2 * 100)}%)</title></circle>`;
+      offset += length;
+      return arc;
+    }).join("");
+    return `<div class="donutw"><svg viewBox="0 0 200 200" class="donut" role="img" aria-label="${t("components.charts.shareByProduct")}">
+    <circle cx="100" cy="100" r="${DONUT_RADIUS}" class="fondo"/>
+    ${arcs}
+    <text x="100" y="96" class="dn1">${formatNumber(total2)}</text><text x="100" y="116" class="dn2">${t("components.charts.units")}</text></svg>
+    <div class="donutley">${items.map((item, index) => `<span><i style="background:${colour(index)}"></i>${escapeHtml(item.n)} <b>${Math.round(item.v / total2 * 100)}%</b></span>`).join("")}</div></div>`;
+  }
+  var emptyChart = (text2) => `<div class="gvacio"><span>📊</span><b>${t("components.charts.noData")}</b><span class="sm">${escapeHtml(text2)}</span></div>`;
+
+  // src/app/components/charts/channel.ts
+  var CENTRE = 80;
+  var RADIUS = 60;
+  var COLOURS = 4;
+  function slices(rows, total2) {
+    let angle = 0;
+    return rows.map((row4, index) => {
+      const share = (Number(row4.total) || 0) / (total2 || 1), from = angle, to = angle + share * 2 * Math.PI;
+      angle = to;
+      const point = (at) => [CENTRE + RADIUS * Math.sin(at), CENTRE - RADIUS * Math.cos(at)];
+      const [x0, y0] = point(from), [x1, y1] = point(to - 1e-4);
+      return `<path d="M80 80 L${x0} ${y0} A60 60 0 ${to - from > Math.PI ? 1 : 0} 1 ${x1} ${y1} Z" fill="${CHART_COLOURS[index % COLOURS] ?? ""}"/>`;
+    }).join("");
+  }
+  function chartHtml(rows, total2) {
+    if (!total2) return emptyChart(t("components.charts.channelEmpty"));
+    return `<div class="donut"><svg viewBox="0 0 160 160" width="160" height="160">${slices(rows, total2)}<circle cx="80" cy="80" r="36" fill="#fff"/><text x="80" y="86" text-anchor="middle" font-size="18" font-weight="700" fill="#0B3A66">${formatNumber(total2)}</text></svg>
+      <div class="donutley">${rows.map((row4, index) => `<div><i style="background:${CHART_COLOURS[index % COLOURS] ?? ""}"></i><span>${escapeHtml(row4.nombre)}</span><b>${formatNumber(row4.total)}</b><span class="sm">${Math.round((Number(row4.total) || 0) / total2 * 100)}%</span></div>`).join("")}</div></div>`;
+  }
+  async function channelChart() {
+    const funnel2 = [...document.querySelectorAll("#v-analitica .ancard")].find((card2) => (card2.querySelector("h2")?.textContent ?? "").includes("Embudo comercial"));
+    if (!funnel2 || document.getElementById("ancanal")) return;
+    funnel2.insertAdjacentHTML("afterend", `<div class="card ancard" id="ancanal"><h2>${t("components.charts.channelTitle")}</h2><div class="cargandolocal" style="min-height:160px"></div>
+    <p class="leer"><b>${t("components.charts.howToRead")}</b> ${t("components.charts.channelHint", { aProfessional: term("medico", { article: "un" }) })}</p></div>`);
+    const { data } = await callRpc("analitica_tabla", { p_dim: "canal", p_medida: "unidades" });
+    const rows = data?.filas ?? [], total2 = sum(rows.map((row4) => Number(row4.total) || 0));
+    const place3 = document.getElementById("ancanal")?.querySelector(".cargandolocal");
+    if (place3) place3.outerHTML = chartHtml(rows, total2);
+  }
+
+  // src/app/legacy/components-bridge.ts
+  var componentsLegacy = {
+    popup: () => SELPOP,
+    setPopup: (popup) => {
+      SELPOP = popup;
+    },
+    showValue: (input5) => {
+      valorVisible(input5);
+    },
+    placePopup: (popup, anchor) => {
+      colocarPop(popup, anchor);
+    },
+    emitChange: (input5) => {
+      emitir(input5);
+    },
+    pending: () => MEJ_PEND,
+    flushScheduled: () => Boolean(MEJ_RAF),
+    setFlushScheduled: (scheduled) => {
+      MEJ_RAF = scheduled ? 1 : 0;
+    },
+    isVatField: (input5) => Boolean(ES_IVA(input5)),
+    vatSelector: (input5) => {
+      ivaSelector(input5);
+    },
+    touchScreen: () => PANTALLA_TACTIL,
+    weekdayLetter: (isoDate) => LETRA_DIA(isoDate),
+    readOnlyCompany: () => Boolean(PAGO_ESTADO?.solo_lectura),
+    hasStartPoint: () => Boolean(prefsActivas().salida),
+    helpAnchors: () => ANCLAS_AYUDA,
+    manualAnchors: () => MANUAL_ANCLA,
+    euros: (value19) => eurI(value19),
+    customFields: (scope) => CAMPOS[scope] ?? [],
+    sortedFields: (scope) => clasCampos(scope),
+    canEditCatalogs: () => Boolean(puedeCatalogos()),
+    sidePanelOpen: () => htLateralAbierto(),
+    customerFilters: () => PAC.campos = PAC.campos ?? {},
+    reloadCustomers: () => {
+      PAC.pagina = 0;
+      void listaPacientes();
+    },
+    orderFilters: () => PEDF,
+    reloadOrders: () => {
+      PEDPAG = 0;
+      void listaPedidos();
+    },
+    productFilters: () => PRODF,
+    reloadProducts: () => {
+      void pintarProductos();
+    },
+    productsSection: () => PSEC
+  };
+
+  // src/app/components/charts/month-bars.ts
+  var PAD = 34;
+  var MIN_WIDTH = 420;
+  var MAX_WIDTH = 1400;
+  var DEFAULT_WIDTH = 700;
+  var BOX_MARGIN = 40;
+  var MANY_MONTHS = 6;
+  var SINGLE_HEIGHT = 230;
+  var BARS_HEIGHT = 150;
+  var LINE_HEIGHT = 170;
+  var isEuros = (label) => /importe|euros|€/i.test(label || "");
+  var valueText = (value19, label) => isEuros(label) ? componentsLegacy.euros(value19) : formatNumber(value19);
+  var xOf = (frame, index) => PAD + (frame.width - PAD * 2) * (index + 0.5) / frame.count;
+  var showsLabel = (frame, index) => !frame.skip || (frame.count - 1 - index) % 2 === 0;
+  var ariaLabel = (label) => t("components.charts.perMonth", { label: escapeHtml(label) });
+  function bars(frame, series, label, options3) {
+    const { height, withMonths } = options3, max = Math.max(1, ...series), base = height - (withMonths ? 26 : 10);
+    const yOf = (value19) => base - (base - 22) * value19 / max, barWidth = Math.max(6, (frame.width - PAD * 2) / frame.count * 0.62);
+    const unit = isEuros(label) ? "" : escapeHtml(label.toLowerCase());
+    return `<svg viewBox="0 0 ${frame.width} ${height}" class="grafico" role="img" aria-label="${ariaLabel(label)}">
+      <line x1="${PAD}" y1="${base}" x2="${frame.width - PAD}" y2="${base}" class="eje"/>
+      ${series.map((value19, index) => `<g><rect x="${xOf(frame, index) - barWidth / 2}" y="${yOf(value19)}" width="${barWidth}" height="${base - yOf(value19)}" rx="4" class="barra1"><title>${monthLabel(frame.months[index] ?? "")}: ${valueText(value19, label)} ${unit}</title></rect>
+        ${value19 ? `<text x="${xOf(frame, index)}" y="${yOf(value19) - 5}" class="val">${valueText(value19, label)}</text>` : ""}
+        ${withMonths && showsLabel(frame, index) ? `<text x="${xOf(frame, index)}" y="${height - 8}" class="lab">${monthLabel(frame.months[index] ?? "")}</text>` : ""}</g>`).join("")}
+    </svg>`;
+  }
+  function line(frame, series, label, height) {
+    const max = Math.max(1, ...series), base = height - 26, yOf = (value19) => base - (base - 22) * value19 / max;
+    const last = series.reduce((found, value19, index) => value19 ? index : found, -1), highest = series.indexOf(Math.max(...series));
+    return `<svg viewBox="0 0 ${frame.width} ${height}" class="grafico" role="img" aria-label="${ariaLabel(label)}">
+      <line x1="${PAD}" y1="${base}" x2="${frame.width - PAD}" y2="${base}" class="eje"/>
+      <polyline points="${series.map((value19, index) => `${xOf(frame, index)},${yOf(value19)}`).join(" ")}" class="linea2"/>
+      ${series.map((value19, index) => `<circle cx="${xOf(frame, index)}" cy="${yOf(value19)}" r="4" class="punto2"><title>${monthLabel(frame.months[index] ?? "")}: ${valueText(value19, label)}</title></circle>
+        ${value19 && (index === highest || index === last) ? `<text x="${xOf(frame, index)}" y="${yOf(value19) - 9}" class="val">${valueText(value19, label)}</text>` : ""}
+        ${showsLabel(frame, index) ? `<text x="${xOf(frame, index)}" y="${height - 8}" class="lab">${monthLabel(frame.months[index] ?? "")}</text>` : ""}`).join("")}
+    </svg>`;
+  }
+  function monthBars(months2, first, second, labels) {
+    const box = document.getElementById("angraf"), count2 = months2.length || 1;
+    const frame = { width: Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, nonZeroOr(box?.clientWidth, DEFAULT_WIDTH) - BOX_MARGIN)), count: count2, months: months2, skip: isMobile() && count2 > MANY_MONTHS };
+    const [firstLabel = "", secondLabel = ""] = labels;
+    if (!second) return bars(frame, first, firstLabel, { height: SINGLE_HEIGHT, withMonths: true });
+    return `<div class="grafdos">
+    <div class="grafuno"><div class="graftit"><i class="c1"></i>${escapeHtml(firstLabel)}</div>${bars(frame, first, firstLabel, { height: BARS_HEIGHT, withMonths: false })}</div>
+    <div class="grafuno"><div class="graftit"><i class="c2"></i>${escapeHtml(secondLabel)}</div>${line(frame, second, secondLabel, LINE_HEIGHT)}</div>
+  </div>`;
+  }
+
+  // src/app/screens/accounts/list/columns.ts
+  var SALES_REPS = "comerciales";
+  var CUSTOM_PREFIX = "cp:";
+  var CUSTOM_WIDTH = 150;
+  var DEFAULT_ON = ["nombre", "especialidad", "centro_nombre", "municipio", "dias", "estado_comercial"];
+  function columnDefinitions() {
+    return [
+      { k: "nombre", t: term("medico", { capital: "C" }), w: 250, fixed: true },
+      { k: "especialidad", t: term("especialidad", { capital: "C" }), w: 170 },
+      { k: "centro_nombre", t: t("accounts.columns.centre"), w: 200 },
+      { k: "municipio", t: t("accounts.columns.town"), w: 140 },
+      { k: "direccion", t: t("accounts.columns.address"), w: 200 },
+      { k: "telefono", t: t("accounts.columns.phone"), w: 130 },
+      { k: "dias", t: t("accounts.columns.days"), w: 150 },
+      { k: "ultima_visita", t: term("visita", { article: "ultimo", articleCapital: "C" }), w: 130 },
+      { k: "estado_comercial", t: t("accounts.columns.state"), w: 150 },
+      { k: SALES_REPS, t: t("accounts.columns.salesReps"), w: 190 },
+      { k: "acceso", t: t("accounts.columns.access"), w: 170 },
+      ...accountColumnsLegacy.customFields().map((field10) => ({ k: CUSTOM_PREFIX + field10.clave, t: field10.nombre, w: CUSTOM_WIDTH }))
+    ];
+  }
+  var columnTitle = (key) => columnDefinitions().find((column) => column.k === key)?.t ?? key;
+  function saved() {
+    try {
+      return JSON.parse(localStorage.getItem(accountColumnsLegacy.storageKey()) ?? "null");
+    } catch {
+      return null;
+    }
+  }
+  function saveColumns(settings2) {
+    try {
+      localStorage.setItem(accountColumnsLegacy.storageKey(), JSON.stringify(settings2));
+    } catch {
+    }
+  }
+  function resetColumns() {
+    try {
+      localStorage.removeItem(accountColumnsLegacy.storageKey());
+    } catch {
+    }
+  }
+  function columnSettings() {
+    const all2 = columnDefinitions(), everything = permissions.seesEverything(), chosen4 = saved();
+    const settings2 = chosen4?.length ? [...chosen4] : all2.map((column) => ({ k: column.k, on: DEFAULT_ON.includes(column.k) || column.k === SALES_REPS && everything, w: column.w }));
+    all2.forEach((column) => {
+      if (!settings2.some((setting) => setting.k === column.k)) settings2.push({ k: column.k, on: column.k === SALES_REPS && everything, w: column.w });
+    });
+    const fields = accountColumnsLegacy.customFields();
+    return settings2.filter((setting) => setting.k !== SALES_REPS || everything).map((setting) => setting.k.startsWith(CUSTOM_PREFIX) && !(chosen4 ?? []).some((item) => item.k === setting.k) ? { ...setting, on: Boolean(fields.find((field10) => CUSTOM_PREFIX + field10.clave === setting.k)?.en_tabla) } : setting);
+  }
+  var visibleColumns = () => columnSettings().filter((setting) => setting.on);
+
+  // src/app/components/classifiers/columns.ts
+  var ACCOUNTS = "medico";
+  var CUSTOM_PREFIX2 = "cp:";
+  var NEW_COLUMN_WIDTH = 150;
+  var GRID_COLUMN = 130;
+  var GRID_EXTRA_WIDTH = 140;
+  var GRID_MIN_WIDTH = 900;
+  var storageKey = (scope) => `clas-cols-${scope}`;
+  function savedChoice(scope) {
+    try {
+      return JSON.parse(localStorage.getItem(storageKey(scope)) ?? "null") ?? {};
+    } catch {
+      return {};
+    }
+  }
+  function visibleFields(scope) {
+    const chosen4 = savedChoice(scope);
+    return componentsLegacy.customFields(scope).filter((field10) => field10.clave in chosen4 ? chosen4[field10.clave] : field10.en_tabla);
+  }
+  function showsColumn(scope, key) {
+    if (scope === ACCOUNTS) return Boolean(columnSettings().find((column) => column.k === CUSTOM_PREFIX2 + key)?.on);
+    return visibleFields(scope).some((field10) => field10.clave === key);
+  }
+  function setColumn(scope, key, on5) {
+    if (scope === ACCOUNTS) {
+      const settings2 = columnSettings(), found = settings2.find((column) => column.k === CUSTOM_PREFIX2 + key);
+      if (found) found.on = on5;
+      else settings2.push({ k: CUSTOM_PREFIX2 + key, on: on5, w: NEW_COLUMN_WIDTH });
+      saveColumns(settings2);
+      return;
+    }
+    const chosen4 = savedChoice(scope);
+    chosen4[key] = on5;
+    try {
+      localStorage.setItem(storageKey(scope), JSON.stringify(chosen4));
+    } catch {
+    }
+  }
+  function widenGrid(grid, count2) {
+    if (!(grid instanceof HTMLElement) || !count2) return;
+    const style = getComputedStyle(grid);
+    grid.style.setProperty("--cols", style.getPropertyValue("--cols").trim() + ` ${GRID_COLUMN}px`.repeat(count2));
+    grid.style.minWidth = `${(parseInt(style.minWidth) || GRID_MIN_WIDTH) + GRID_EXTRA_WIDTH * count2}px`;
+  }
+
+  // src/app/components/toast.ts
+  var SHOWN_MS = 3200;
+  var LEAVE_MS = 260;
+  var timer;
+  function onTop(notice) {
+    if (typeof notice.showPopover !== "function") return;
+    try {
+      if (!notice.hasAttribute("popover")) notice.setAttribute("popover", "manual");
+      if (notice.matches(":popover-open")) notice.hidePopover();
+      notice.showPopover();
+    } catch {
+    }
+  }
+  function toast2(message, isError = false) {
+    const text2 = isError && componentsLegacy.readOnlyCompany() ? t("components.notices.readOnly") : message;
+    const current = document.getElementById("toast");
+    if (!current) return;
+    const notice = current.cloneNode(true);
+    current.replaceWith(notice);
+    notice.textContent = text2;
+    notice.className = `toast${isError ? " err" : ""}`;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      notice.classList.add("sale");
+      timer = setTimeout(() => {
+        notice.classList.add("hide");
+        notice.classList.remove("sale");
+      }, LEAVE_MS);
+    }, SHOWN_MS);
+    onTop(notice);
+  }
+  function raiseNotice() {
+    const notice = document.getElementById("toast");
+    if (!notice || notice.classList.contains("hide") || typeof notice.showPopover !== "function" || !notice.hasAttribute("popover")) return;
+    try {
+      if (notice.matches(":popover-open")) notice.hidePopover();
+      notice.showPopover();
+    } catch {
+    }
+  }
+  function cacheNotice(element2, date) {
+    if (!element2) return;
+    const when4 = date ? t("components.notices.savedOn", { date: new Date(date).toLocaleString("es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) }) : "";
+    element2.insertAdjacentHTML("afterbegin", `<div class="cacheaviso">${t("components.notices.offline")}
+    ${when4}</div>`);
+  }
+  function noStartNotice(element2) {
+    if (componentsLegacy.hasStartPoint() || !element2 || element2.querySelector(".sinsalida")) return;
+    element2.insertAdjacentHTML("afterbegin", `<div class="avisoh sinsalida"><span>📍 <b>${t("components.notices.noStartTitle")}</b> ${t("components.notices.noStartText", { firstVisit: term("visita", { article: "primer" }) })}</span>
+    <button class="btn sec chico" data-irprefs>${t("components.notices.noStartButton")}</button></div>`);
+  }
+
+  // src/app/components/classifiers/filters.ts
+  var MAX_DROPDOWN = 15;
+  var SEARCH_WAIT_MS = 400;
+  var knownValues = {};
+  var SCREENS = {
+    pacientes: { amb: "cliente", estado: () => componentsLegacy.customerFilters(), recargar: () => {
+      componentsLegacy.reloadCustomers();
+    } },
+    ventas: { amb: "pedido", estado: () => componentsLegacy.orderFilters(), recargar: () => {
+      componentsLegacy.reloadOrders();
+    }, activo: () => Boolean(document.getElementById("pedlista")) },
+    productos: { amb: "producto", estado: () => componentsLegacy.productFilters(), recargar: () => {
+      componentsLegacy.reloadProducts();
+    }, activo: () => componentsLegacy.productsSection() === "productos" }
+  };
+  function screenOf(section2) {
+    const screen2 = section2 ? SCREENS[section2.id.replace("v-", "")] : void 0;
+    return screen2 && (!screen2.activo || screen2.activo()) ? screen2 : null;
+  }
+  async function loadValues(scope) {
+    const { data } = await legacyDb().rpc("valores_campos", { p_ambito: scope });
+    if (data) knownValues[scope] = data;
+    return knownValues[scope] ?? {};
+  }
+  function rangeControl(field10, active, id) {
+    const range2 = active && typeof active === "object" ? active : {}, type = field10.tipo === "fecha" ? 'type="date"' : 'type="text" inputmode="decimal"';
+    const shown5 = (value19) => value19 === null || value19 === void 0 ? "" : escapeHtml(field10.tipo === "numero" ? String(value19).replace(".", ",") : String(value19));
+    return `<div class="clasrango"><input id="${id}" ${type} data-clr="desde" value="${shown5(range2.desde)}" placeholder="${t("components.classifiers.fromPlaceholder")}" aria-label="${t("components.classifiers.fromLabel", { name: escapeHtml(field10.nombre) })}">
+      <input ${type} data-clr="hasta" value="${shown5(range2.hasta)}" placeholder="${t("components.classifiers.toPlaceholder")}" aria-label="${t("components.classifiers.toLabel", { name: escapeHtml(field10.nombre) })}"></div>`;
+  }
+  function listControl(list, active, id) {
+    if (list.length <= MAX_DROPDOWN) {
+      const options3 = typeof active === "string" && active && !list.includes(active) ? [...list, active] : list;
+      return `<select id="${id}" data-clv><option value="">${t("components.classifiers.all")}</option>${options3.map((value19) => `<option ${active === value19 ? "selected" : ""}>${escapeHtml(value19)}</option>`).join("")}</select>`;
+    }
+    const text2 = active && typeof active === "object" ? active.contiene ?? "" : typeof active === "string" ? active : "";
+    return `<input id="${id}" type="search" data-clbus list="${id}_l" value="${escapeHtml(text2)}" placeholder="${t("components.classifiers.typeToSearch")}" autocomplete="off">
+    <datalist id="${id}_l">${list.map((value19) => `<option value="${escapeHtml(value19)}">`).join("")}</datalist>`;
+  }
+  function control(field10, active, values2, id) {
+    if (field10.tipo === "si_no") return `<select id="${id}" data-clv><option value="">${t("components.classifiers.all")}</option>${[["true", t("components.classifiers.yes")], ["false", t("components.classifiers.no")]].map(([value19 = "", label = ""]) => `<option value="${value19}" ${active === (value19 === "true") ? "selected" : ""}>${label}</option>`).join("")}</select>`;
+    if (field10.tipo === "numero" || field10.tipo === "fecha") return rangeControl(field10, active, id);
+    return listControl(field10.tipo === "lista" ? field10.valores ?? [] : values2[field10.clave] ?? [], active, id);
+  }
+  function readRange(field10, inputs) {
+    const range2 = {};
+    for (const input5 of inputs) {
+      const value19 = input5.value.trim();
+      if (!value19) continue;
+      const parsed = field10.tipo === "numero" ? Number(value19.replace(",", ".")) : value19;
+      if (typeof parsed === "number" && isNaN(parsed)) {
+        toast2(t("components.classifiers.mustBeNumber", { name: field10.nombre }), true);
+        return false;
+      }
+      range2[input5.dataset.clr ?? ""] = parsed;
+    }
+    return Object.keys(range2).length ? range2 : null;
+  }
+  function bindSelect(block4, { field: field10, state, onChange }) {
+    const select3 = block4.querySelector("select[data-clv]");
+    if (select3) select3.onchange = () => {
+      if (!select3.value) Reflect.deleteProperty(state, field10.clave);
+      else state[field10.clave] = field10.tipo === "si_no" ? select3.value === "true" : select3.value;
+      onChange();
+    };
+  }
+  function bindSearch(block4, { field: field10, state, onChange }) {
+    const search4 = block4.querySelector("input[data-clbus]");
+    if (!search4) return;
+    let timer2;
+    search4.oninput = () => {
+      clearTimeout(timer2);
+      timer2 = setTimeout(() => {
+        const text2 = search4.value.trim();
+        if (text2) state[field10.clave] = { contiene: text2 };
+        else Reflect.deleteProperty(state, field10.clave);
+        onChange();
+      }, SEARCH_WAIT_MS);
+    };
+  }
+  function bindRange(block4, { field: field10, state, onChange }) {
+    const inputs = [...block4.querySelectorAll("input[data-clr]")];
+    inputs.forEach((input5) => {
+      input5.onchange = () => {
+        const range2 = readRange(field10, inputs);
+        if (range2 === false) return;
+        if (range2) state[field10.clave] = range2;
+        else Reflect.deleteProperty(state, field10.clave);
+        onChange();
+      };
+    });
+  }
+  function blockHtml(scope, fields, state, values2) {
+    const prefix = `clas_${scope}_`;
+    return fields.map((field10, index) => `<div class="clascampo" data-clk="${escapeHtml(field10.clave)}">
+      <div class="clascab"><label for="${prefix}${index}">${escapeHtml(field10.nombre)}</label>
+        <label class="clascol" title="${t("components.classifiers.asColumn", { name: escapeHtml(field10.nombre) })}"><input type="checkbox" data-clcol ${showsColumn(scope, field10.clave) ? "checked" : ""}> ${t("components.classifiers.column")}</label></div>
+      ${control(field10, state[field10.clave], values2, prefix + String(index))}</div>`).join("");
+  }
+  async function paintClassifiers(container, scope, options3) {
+    const { state, onChange, onColumn, heading } = options3;
+    if (!container) return;
+    const fields = componentsLegacy.sortedFields(scope);
+    const title2 = heading === "h3" ? `<h3 style="margin-top:18px">${t("components.classifiers.title")}</h3>` : `<h4>${t("components.classifiers.title")}</h4>`;
+    if (!fields.length) {
+      container.innerHTML = componentsLegacy.canEditCatalogs() ? `<div class="htbloque clasif">${title2}<p class="sm">${t("components.classifiers.none")}</p></div>` : "";
+      return;
+    }
+    const needsValues = fields.some((field10) => field10.tipo === "texto" || field10.tipo === "lista" && (field10.valores ?? []).length > MAX_DROPDOWN);
+    const values2 = needsValues ? await loadValues(scope) : {};
+    if (!container.isConnected) return;
+    container.innerHTML = `<div class="htbloque clasif">${title2}${blockHtml(scope, fields, state, values2)}</div>`;
+    container.querySelectorAll("[data-clk]").forEach((block4) => {
+      const field10 = fields.find((item) => item.clave === block4.dataset.clk);
+      if (!field10) return;
+      const binding = { field: field10, state, onChange };
+      bindSelect(block4, binding);
+      bindSearch(block4, binding);
+      bindRange(block4, binding);
+      const column = block4.querySelector("[data-clcol]");
+      if (column) column.onchange = () => {
+        setColumn(scope, field10.clave, column.checked);
+        onColumn();
+      };
+    });
+  }
+  function paintSidePanelClassifiers(section2) {
+    const screen2 = screenOf(section2), container = document.getElementById("tools")?.querySelector(".htclas");
+    if (screen2 && container && componentsLegacy.sidePanelOpen() && sidePanel.context() === `ht-${section2.id.replace("v-", "")}`)
+      void paintClassifiers(container, screen2.amb, { state: screen2.estado(), onChange: screen2.recargar, onColumn: screen2.recargar });
+  }
+
+  // src/app/components/classifiers/model.ts
+  var normalise = (text2) => String(text2 ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  function fieldText(field10, value19) {
+    if (value19 === null || value19 === void 0 || value19 === "") return "";
+    if (field10?.tipo === "si_no") return t(value19 === true || value19 === "true" ? "components.classifiers.yes" : "components.classifiers.no");
+    if (field10?.tipo === "fecha") return formatShortDate(String(value19));
+    if (field10?.tipo === "numero") return String(value19).replace(".", ",");
+    return String(value19);
+  }
+  function passesLimit(value19, operator, limit) {
+    if (value19 === null || value19 === void 0 || value19 === "") return false;
+    if (typeof limit === "number") {
+      const number = Number(value19);
+      return !isNaN(number) && (operator === "desde" ? number >= limit : number <= limit);
+    }
+    if (limit === void 0) return true;
+    const text2 = String(value19);
+    return operator === "desde" ? text2 >= limit : text2 <= limit;
+  }
+  function passesRange(value19, filter) {
+    if ("contiene" in filter && !normalise(value19).includes(normalise(filter.contiene))) return false;
+    return ["desde", "hasta"].every((operator) => !(operator in filter) || passesLimit(value19, operator, filter[operator]));
+  }
+  function matchesFilters(values2, filters) {
+    const own = values2 ?? {};
+    return Object.entries(filters ?? {}).every(([key, filter]) => !filter || typeof filter !== "object" ? own[key] === filter : passesRange(own[key], filter));
+  }
+  function filterText(field10, filter) {
+    if (filter && typeof filter === "object") {
+      const text2 = (value19) => fieldText(field10, value19), name = field10.nombre;
+      if ("contiene" in filter) return t("components.classifiers.contains", { name, text: filter.contiene ?? "" });
+      if ("desde" in filter && "hasta" in filter) return t("components.classifiers.fromTo", { name, from: text2(filter.desde), to: text2(filter.hasta) });
+      return "desde" in filter ? t("components.classifiers.from", { name, from: text2(filter.desde) }) : t("components.classifiers.to", { name, to: text2(filter.hasta) });
+    }
+    return `${field10.nombre}: ${fieldText(field10, filter)}`;
+  }
+  var filterChips = (scope, state) => Object.keys(state ?? {}).map((key) => {
+    const field10 = componentsLegacy.customFields(scope).find((item) => item.clave === key) ?? { clave: key, nombre: key };
+    return { k: key, t: filterText(field10, state?.[key]) };
+  });
+  var columnHeaders = (fields) => fields.map((field10) => `<span class="cpcol">${escapeHtml(field10.nombre)}</span>`).join("");
+  var columnCells = (fields, values2) => fields.map((field10) => {
+    const text2 = fieldText(field10, values2?.[field10.clave]);
+    return `<span class="sm">${text2 ? escapeHtml(text2) : '<span class="vac">—</span>'}</span>`;
+  }).join("");
+
+  // src/app/components/consultation-hours.ts
+  var MORNING = [9 * 60, 14 * 60];
+  var AFTERNOON = [15 * 60, 20 * 60];
+  var WHOLE_DAY = [0, 24 * 60];
+  var RANGE = /(\d{1,2})(?:[:.h](\d{2}))?\s*[-–a]\s*(\d{1,2})(?:[:.h](\d{2}))?/;
+  var minutes = (hours, rest) => Number(hours) * 60 + (Number(rest) || 0);
+  function windowOf(part) {
+    const found = RANGE.exec(part);
+    if (found) return [minutes(found[1], found[2]), minutes(found[3], found[4])];
+    if (/mañana/i.test(part)) return MORNING;
+    if (/tarde/i.test(part)) return AFTERNOON;
+    return null;
+  }
+  function attendanceWindows(days, isoDate) {
+    const timetable = days ?? {};
+    if (!Object.keys(timetable).some((key) => timetable[key])) return null;
+    const text2 = timetable[componentsLegacy.weekdayLetter(isoDate)];
+    if (!text2) return [];
+    const windows = String(text2).split(/[;,/]| y /i).map(windowOf).filter((window2) => window2 !== null);
+    return windows.length ? windows.sort((first, second) => first[0] - second[0]) : [WHOLE_DAY];
+  }
+
+  // src/app/components/date-picker/enhance.ts
+  var SMALL_ROW_INPUT = 70;
+  var NEW_KINDS = "input[type=month]:not([data-sel]), input[type=datetime-local]:not([data-sel])";
+  var DECIMAL_TEXT = /€|precio|importe|coste|portes|env[ií]o|descuento|pvp|cobro|total|base/;
+  var valueProperty = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  function wrapPicked(input5, className, icon2) {
+    const wrapper = document.createElement("span");
+    wrapper.className = className;
+    input5.parentNode?.insertBefore(wrapper, input5);
+    wrapper.appendChild(input5);
+    wrapper.insertAdjacentHTML("beforeend", `<span class="selico" aria-hidden="true">${icon2}</span>`);
+    input5.dataset.ro = input5.readOnly ? "1" : "";
+    input5.readOnly = true;
+    input5.setAttribute("inputmode", "none");
+    wrapper.insertAdjacentHTML("afterbegin", '<span class="selval"></span>');
+    Object.defineProperty(input5, "value", {
+      configurable: true,
+      get() {
+        return valueProperty?.get?.call(this);
+      },
+      set(value19) {
+        valueProperty?.set?.call(this, value19);
+        componentsLegacy.showValue(this);
+      }
+    });
+    input5.addEventListener("change", () => {
+      componentsLegacy.showValue(input5);
+    });
+    input5.addEventListener("input", () => {
+      componentsLegacy.showValue(input5);
+    });
+    componentsLegacy.showValue(input5);
+  }
+  function wrapNumber(input5) {
+    if (input5.closest(".lrow") && input5.offsetWidth && input5.offsetWidth < SMALL_ROW_INPUT) return;
+    const wrapper = document.createElement("span");
+    wrapper.className = "numw";
+    input5.parentNode?.insertBefore(wrapper, input5);
+    wrapper.appendChild(input5);
+    wrapper.insertAdjacentHTML("afterbegin", `<button type="button" class="nb" data-nd="-1" aria-label="${t("components.datePicker.less")}" tabindex="-1">−</button>`);
+    wrapper.insertAdjacentHTML("beforeend", `<button type="button" class="nb" data-nd="1" aria-label="${t("components.datePicker.more")}" tabindex="-1">+</button>`);
+    if (input5.disabled) wrapper.classList.add("dis");
+  }
+  function enhanceNow(root) {
+    root.querySelectorAll("input[type=date]:not([data-sel]), input[type=time]:not([data-sel]), input[type=number]:not([data-sel])").forEach((input5) => {
+      input5.dataset.sel = "1";
+      if (input5.closest(".selpop")) return;
+      if (input5.type === "number") {
+        wrapNumber(input5);
+        return;
+      }
+      wrapPicked(input5, `selw ${input5.type === "date" ? "fecha" : "hora"}`, input5.type === "date" ? "📅" : "🕒");
+    });
+  }
+  function enhanceSoon(root) {
+    if (root === document) {
+      enhanceNow(root);
+      return;
+    }
+    const element2 = root;
+    if (element2.nodeType !== 1 || !Reflect.has(element2, "querySelector") && element2.tagName !== "INPUT") return;
+    const pending = componentsLegacy.pending();
+    pending.add(element2);
+    if (componentsLegacy.flushScheduled()) return;
+    componentsLegacy.setFlushScheduled(true);
+    queueMicrotask(() => {
+      componentsLegacy.setFlushScheduled(false);
+      const nodes = [...pending];
+      pending.clear();
+      nodes.forEach((node) => {
+        const target = node.tagName === "INPUT" ? node.parentElement : node;
+        if (node.isConnected && target && (node.tagName === "INPUT" || node.querySelector("input[type=date],input[type=time],input[type=number]"))) enhanceNow(target);
+      });
+    });
+  }
+  function labelText(input5) {
+    const label = (input5.id ? document.querySelector(`label[for="${input5.id}"]`) : null) ?? input5.closest("label");
+    return `${input5.id} ${input5.dataset.f ?? ""} ${input5.placeholder} ${label?.textContent ?? ""}`.toLowerCase();
+  }
+  function markDecimals(root) {
+    root.querySelectorAll("input[type=number]:not([data-sel])").forEach((input5) => {
+      if (componentsLegacy.isVatField(input5)) {
+        componentsLegacy.vatSelector(input5);
+        return;
+      }
+      const decimal2 = /^(0?\.\d+|any)$/.test(input5.getAttribute("step") ?? "");
+      if (decimal2 || DECIMAL_TEXT.test(labelText(input5))) {
+        input5.dataset.sel = "1";
+        input5.classList.add("numdec");
+      }
+    });
+  }
+  function enhanceNewKinds(root) {
+    const list = [...root.querySelectorAll(NEW_KINDS)];
+    if (root instanceof HTMLInputElement && root.matches(NEW_KINDS)) list.push(root);
+    list.forEach((input5) => {
+      input5.dataset.sel = "1";
+      if (input5.closest(".selpop")) return;
+      wrapPicked(input5, "selw fecha", "📅");
+    });
+    root.querySelectorAll("input[type=number]:not([inputmode])").forEach((input5) => {
+      const step = input5.step && input5.step !== "any" ? Number(input5.step) : 1;
+      input5.setAttribute("inputmode", step < 1 || input5.step === "any" ? "decimal" : "numeric");
+    });
+  }
+  function withoutSystemPicker(root) {
+    if (!componentsLegacy.touchScreen()) return;
+    const inputs = [...root.querySelectorAll("input")];
+    if (root instanceof HTMLInputElement) inputs.push(root);
+    inputs.forEach((input5) => {
+      if (/^(date|time|month|datetime-local)$/.test(input5.type) && !input5.closest(".selpop")) input5.inert = true;
+    });
+  }
+  function enhanceFields(root) {
+    const target = root ?? document;
+    if (!Reflect.has(target, "querySelectorAll")) return;
+    markDecimals(target);
+    enhanceSoon(target);
+    enhanceNewKinds(target);
+    try {
+      withoutSystemPicker(target);
+    } catch {
+    }
+  }
+
+  // src/app/components/date-picker/shared.ts
+  var twoDigits = (value19) => String(value19).padStart(2, "0");
+  var kindOf = (input5) => {
+    if (input5.type === "month") return "mes";
+    if (input5.type === "datetime-local") return "fechahora";
+    return input5.type === "time" ? "hora" : "fecha";
+  };
+  var longMonths = () => t("dates.monthsLong").split(",");
+  var shortMonths2 = () => t("dates.monthsShort").split(",");
+  function longDate(isoDate) {
+    const date = /* @__PURE__ */ new Date(`${isoDate}T12:00:00`), weekdays = t("components.datePicker.weekdays").split(",");
+    return t("components.datePicker.longDate", { weekday: weekdays[date.getDay()] ?? "", day: date.getDate(), month: longMonths()[date.getMonth()] ?? "", year: date.getFullYear() });
+  }
+  function mediumDate(isoDate) {
+    const date = /* @__PURE__ */ new Date(`${isoDate}T12:00:00`);
+    return isNaN(date.getTime()) ? isoDate : date.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  }
+  function closePicker() {
+    componentsLegacy.popup()?.remove();
+    componentsLegacy.setPopup(null);
+    const dialog6 = document.getElementById("seldlg");
+    if (dialog6?.open) dialog6.close();
+  }
+  function closePickers(except) {
+    document.querySelectorAll(".picker .gsug").forEach((list) => {
+      if (!except?.contains(list)) list.classList.add("hide");
+    });
+  }
+  var layerOf = (input5) => input5.closest("dialog[open]") ?? [...document.querySelectorAll("dialog[open]")].pop() ?? document.body;
+  function newPopup(className, label, same) {
+    if (same && componentsLegacy.popup()) {
+      componentsLegacy.popup()?.remove();
+      componentsLegacy.setPopup(null);
+    } else closePicker();
+    const popup = document.createElement("div");
+    popup.className = className;
+    popup.__t = Date.now();
+    popup.setAttribute("role", "dialog");
+    popup.setAttribute("aria-label", label);
+    componentsLegacy.setPopup(popup);
+    popup.addEventListener("pointerdown", () => {
+      popup.__t = Date.now();
+    });
+    return popup;
+  }
+  function attachPopup(popup, input5) {
+    (document.getElementById("seldlg") ?? layerOf(input5)).appendChild(popup);
+  }
+  var placePopup = (popup, input5) => {
+    componentsLegacy.placePopup(popup, input5.closest(".selw") ?? input5);
+  };
+  function setValue(input5, value19, focus = false) {
+    input5.value = value19;
+    componentsLegacy.emitChange(input5);
+    closePicker();
+    if (focus) input5.focus({ preventScroll: true });
+  }
+
+  // src/app/components/date-picker/pickers.ts
+  var YEARS_SHOWN = 12;
+  var YEARS_BEFORE = 5;
+  var KEY_STEPS = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+  var optional = (calendar2) => calendar2.input.required ? "" : `<button type="button" data-cq="borrar">${t("components.datePicker.clear")}</button>`;
+  var outside = (value19, min, max) => min !== null && value19 < min || max !== null && value19 > max;
+  function dayButton(calendar2, isoDate, day) {
+    const today = todayIso(), focused = isoDate === calendar2.focused;
+    return `<button type="button" data-cd="${isoDate}" class="${isoDate === calendar2.chosen ? "sel" : ""} ${isoDate === today ? "hoy" : ""}" tabindex="${focused ? 0 : -1}" ${focused ? "autofocus" : ""}
+          aria-label="${longDate(isoDate)}" aria-pressed="${String(isoDate === calendar2.chosen)}" ${outside(isoDate, calendar2.min, calendar2.max) ? "disabled" : ""}>${day}</button>`;
+  }
+  function daysView(calendar2) {
+    const year = calendar2.shown.getFullYear(), month = calendar2.shown.getMonth();
+    const gap = (new Date(year, month, 1).getDay() + 6) % 7, days = new Date(year, month + 1, 0).getDate();
+    const cells = "<span></span>".repeat(gap) + range(days).map((index) => dayButton(calendar2, `${year}-${twoDigits(month + 1)}-${twoDigits(index + 1)}`, index + 1)).join("");
+    return {
+      head: `<button type="button" data-cm="-1" aria-label="${t("components.datePicker.previousMonth")}">‹</button><button type="button" class="caltit" data-cv="meses" aria-label="${t("components.datePicker.chooseMonthYear")}">${longMonths()[month] ?? ""} ${year}</button><button type="button" data-cm="1" aria-label="${t("components.datePicker.nextMonth")}">›</button>`,
+      body: `<div class="calg">${t("dates.weekdayLetters").split(",").map((letter) => `<i>${letter}</i>`).join("")}${cells}</div>`,
+      foot: `<button type="button" data-cq="hoy">${t("components.datePicker.today")}</button><button type="button" data-cq="manana">${t("components.datePicker.tomorrow")}</button>${optional(calendar2)}`
+    };
+  }
+  function monthsView(calendar2) {
+    const year = calendar2.shown.getFullYear(), short = shortMonths2(), min = calendar2.min?.slice(0, 7) ?? null, max = calendar2.max?.slice(0, 7) ?? null;
+    const months2 = longMonths().map((name, index) => {
+      const key = `${year}-${twoDigits(index + 1)}`;
+      return `<button type="button" data-cmes="${index}" class="${key === calendar2.chosen.slice(0, 7) ? "sel" : ""} ${key === calendar2.thisMonth ? "hoy" : ""}" aria-label="${t("components.datePicker.monthOf", { month: name, year })}" ${outside(key, min, max) ? "disabled" : ""}>${short[index] ?? ""}</button>`;
+    }).join("");
+    return {
+      head: `<button type="button" data-cy="-1" aria-label="${t("components.datePicker.previousYear")}">‹</button><button type="button" class="caltit" data-cv="anios" aria-label="${t("components.datePicker.chooseYear")}">${year}</button><button type="button" data-cy="1" aria-label="${t("components.datePicker.nextYear")}">›</button>`,
+      body: `<div class="calm">${months2}</div>`,
+      foot: calendar2.kind === "mes" ? `<button type="button" data-cq="estemes">${t("components.datePicker.thisMonth")}</button>${optional(calendar2)}` : ""
+    };
+  }
+  function yearsView(calendar2) {
+    const first = calendar2.shown.getFullYear() - YEARS_BEFORE;
+    const years = range(YEARS_SHOWN).map((index) => first + index).map((year) => `<button type="button" data-canio="${year}" class="${String(year) === calendar2.chosen.slice(0, 4) ? "sel" : ""} ${String(year) === calendar2.thisMonth.slice(0, 4) ? "hoy" : ""}">${year}</button>`).join("");
+    return {
+      head: `<button type="button" data-cy="-12" aria-label="${t("components.datePicker.previousYears")}">‹</button><b>${first} – ${first + YEARS_SHOWN - 1}</b><button type="button" data-cy="12" aria-label="${t("components.datePicker.nextYears")}">›</button>`,
+      body: `<div class="calm">${years}</div>`,
+      foot: ""
+    };
+  }
+  function paint(calendar2) {
+    const parts = calendar2.view === "dias" ? daysView(calendar2) : calendar2.view === "meses" ? monthsView(calendar2) : yearsView(calendar2);
+    calendar2.popup.innerHTML = `<div class="calh">${parts.head}</div>${parts.body}${parts.foot ? `<div class="calp">${parts.foot}</div>` : ""}`;
+    placePopup(calendar2.popup, calendar2.input);
+    if (isMobile() || calendar2.view !== "dias") return;
+    const button2 = calendar2.popup.querySelector(`[data-cd="${calendar2.focused}"]`);
+    if (button2 && calendar2.popup.contains(document.activeElement) || calendar2.options.teclado) button2?.focus({ preventScroll: true });
+  }
+  function pick(calendar2, isoDate) {
+    if (calendar2.kind === "fechahora") {
+      openClock(calendar2.input, { fecha: isoDate, desdeCal: true, mismo: true });
+      return;
+    }
+    setValue(calendar2.input, isoDate, true);
+  }
+  function quick(calendar2, action) {
+    if (action === "hoy") pick(calendar2, todayIso());
+    else if (action === "manana") pick(calendar2, addDays(todayIso(), 1));
+    else if (action === "estemes") setValue(calendar2.input, calendar2.thisMonth);
+    else if (action === "borrar") setValue(calendar2.input, "");
+  }
+  function move(calendar2, data) {
+    const { shown: shown5 } = calendar2;
+    if (data.cm) calendar2.shown = new Date(shown5.getFullYear(), shown5.getMonth() + Number(data.cm), 1);
+    else if (data.cy) calendar2.shown = new Date(shown5.getFullYear() + Number(data.cy), shown5.getMonth(), 1);
+    else if (data.cv) calendar2.view = data.cv;
+    else if (data.canio) {
+      calendar2.shown = new Date(Number(data.canio), shown5.getMonth(), 1);
+      calendar2.view = "meses";
+    } else return false;
+    paint(calendar2);
+    return true;
+  }
+  function onClick(calendar2, event) {
+    event.stopPropagation();
+    const button2 = event.target.closest("button");
+    if (!button2 || button2.disabled) return;
+    const data = button2.dataset;
+    if (data.cd) {
+      pick(calendar2, data.cd);
+      return;
+    }
+    if (move(calendar2, data)) return;
+    if (data.cmes !== void 0) {
+      const shown5 = calendar2.shown;
+      if (calendar2.kind === "mes") {
+        setValue(calendar2.input, `${shown5.getFullYear()}-${twoDigits(Number(data.cmes) + 1)}`);
+        return;
+      }
+      calendar2.shown = new Date(shown5.getFullYear(), Number(data.cmes), 1);
+      calendar2.view = "dias";
+      paint(calendar2);
+      return;
+    }
+    quick(calendar2, data.cq);
+  }
+  function onKey(calendar2, event) {
+    if (calendar2.view !== "dias") return;
+    const step = KEY_STEPS[event.key], date = /* @__PURE__ */ new Date(`${calendar2.focused}T12:00:00`);
+    if (step) date.setDate(date.getDate() + step);
+    else if (event.key === "PageUp" || event.key === "PageDown") date.setMonth(date.getMonth() + (event.key === "PageUp" ? -1 : 1));
+    else if (event.key === "Home") date.setDate(date.getDate() - (date.getDay() + 6) % 7);
+    else if (event.key === "End") date.setDate(date.getDate() + (6 - (date.getDay() + 6) % 7));
+    else return;
+    event.preventDefault();
+    calendar2.focused = toIsoDate(date);
+    calendar2.shown = new Date(date.getFullYear(), date.getMonth(), 1);
+    calendar2.options.teclado = true;
+    paint(calendar2);
+  }
+  function startOf(input5, kind, options3) {
+    const value19 = input5.value || "";
+    if (options3.fecha) return options3.fecha;
+    if (kind === "mes") return value19 ? `${value19}-01` : "";
+    return value19.slice(0, 10);
+  }
+  function openCalendar(input5, options3 = {}) {
+    const kind = kindOf(input5), value19 = input5.value || "", start2 = startOf(input5, kind, options3), size = kind === "mes" ? 7 : 10;
+    const popup = newPopup("selpop cal", t(kind === "mes" ? "components.datePicker.chooseMonth" : "components.datePicker.chooseDate"), options3.mismo);
+    const calendar2 = {
+      input: input5,
+      options: options3,
+      popup,
+      kind,
+      shown: /* @__PURE__ */ new Date(`${start2 || todayIso()}T12:00:00`),
+      focused: start2 || todayIso(),
+      view: kind === "mes" ? "meses" : "dias",
+      min: input5.min.slice(0, size) || null,
+      max: input5.max.slice(0, size) || null,
+      chosen: kind === "mes" ? value19.slice(0, 7) : value19.slice(0, 10),
+      thisMonth: todayIso().slice(0, 7)
+    };
+    popup.addEventListener("click", (event) => {
+      onClick(calendar2, event);
+    });
+    popup.addEventListener("keydown", (event) => {
+      onKey(calendar2, event);
+    });
+    attachPopup(popup, input5);
+    paint(calendar2);
+  }
+  var DEFAULT_STEP = 5;
+  var MAX_STEP = 30;
+  var HOURS = 24;
+  var MINUTES_PER_HOUR = 60;
+  var SECONDS_PER_MINUTE = 60;
+  var DEFAULT_HOUR = 9;
+  function stepOf(input5) {
+    const seconds = Number(input5.step), minutes2 = seconds >= SECONDS_PER_MINUTE ? Math.round(seconds / SECONDS_PER_MINUTE) : DEFAULT_STEP;
+    return [1, 2, 3, 4].includes(minutes2) || minutes2 > MAX_STEP ? DEFAULT_STEP : minutes2;
+  }
+  function paintClock(clock) {
+    const { hour, minute, input: input5, options: options3 } = clock, minutes2 = range(Math.ceil(MINUTES_PER_HOUR / clock.step)).map((index) => index * clock.step);
+    clock.popup.innerHTML = `${options3.fecha ? `<div class="rjfecha"><span>${mediumDate(options3.fecha)}</span><button type="button" data-rq="dia">${t("components.datePicker.changeDay")}</button></div>` : ""}
+      <div class="rjh"><b>${twoDigits(hour)}:${twoDigits(minute)}</b></div>
+      <div class="rjt">${t("components.datePicker.hour")}</div><div class="rjg">${range(HOURS).map((index) => `<button type="button" data-rh="${index}" class="${index === hour ? "sel" : ""}" aria-pressed="${String(index === hour)}">${twoDigits(index)}</button>`).join("")}</div>
+      <div class="rjt">${t("components.datePicker.minutes")}</div><div class="rjg m">${minutes2.map((index) => `<button type="button" data-rm="${index}" class="${index === minute ? "sel" : ""}" aria-pressed="${String(index === minute)}">${twoDigits(index)}</button>`).join("")}</div>
+      <div class="calp"><button type="button" data-rq="ahora">${t("components.datePicker.now")}</button>${input5.required ? "" : `<button type="button" data-rq="borrar">${t("components.datePicker.clear")}</button>`}<button type="button" data-rq="ok" class="okb">${t("components.datePicker.accept")}</button></div>`;
+    placePopup(clock.popup, input5);
+  }
+  function finishClock(clock, action) {
+    const { input: input5, options: options3 } = clock;
+    if (action === "dia") {
+      openCalendar(input5, { fecha: options3.fecha, mismo: true });
+      return;
+    }
+    if (action === "ahora") {
+      const now = /* @__PURE__ */ new Date();
+      clock.hour = now.getHours();
+      clock.minute = Math.min(MINUTES_PER_HOUR - clock.step, Math.round(now.getMinutes() / clock.step) * clock.step);
+      paintClock(clock);
+      return;
+    }
+    const time = `${twoDigits(clock.hour)}:${twoDigits(clock.minute)}`;
+    const day = orFallback(options3.fecha, (input5.value || todayIso()).slice(0, 10));
+    setValue(input5, action === "borrar" ? "" : clock.kind === "fechahora" ? `${day}T${time}` : time, true);
+  }
+  function onClockClick(clock, event) {
+    event.stopPropagation();
+    const target = event.target;
+    const hour = target.closest("[data-rh]"), minute = target.closest("[data-rm]"), action = target.closest("[data-rq]");
+    if (hour) {
+      clock.hour = Number(hour.dataset.rh);
+      paintClock(clock);
+    }
+    if (minute) {
+      clock.minute = Number(minute.dataset.rm);
+      paintClock(clock);
+    }
+    if (action) finishClock(clock, action.dataset.rq ?? "");
+  }
+  function initialTime(input5, kind) {
+    const current = kind === "fechahora" ? input5.value.slice(11, 16) : input5.value;
+    const [hour = NaN, minute = NaN] = (current || "09:00").split(":").map(Number);
+    return [isNaN(hour) ? DEFAULT_HOUR : hour, isNaN(minute) ? 0 : minute];
+  }
+  function openClock(input5, options3 = {}) {
+    const kind = kindOf(input5);
+    if (!options3.desdeCal && (kind === "mes" || kind === "fechahora")) {
+      openCalendar(input5);
+      return;
+    }
+    const [hour, minute] = initialTime(input5, kind);
+    const popup = newPopup("selpop reloj", t("components.datePicker.chooseTime"), options3.mismo);
+    const clock = { input: input5, options: options3, popup, kind, step: stepOf(input5), hour, minute };
+    popup.addEventListener("click", (event) => {
+      onClockClick(clock, event);
+    });
+    attachPopup(popup, input5);
+    paintClock(clock);
+  }
+
+  // src/app/components/dialogs.ts
+  var FOCUS_DELAY_MS = 30;
+  var SAVE_BUTTON = /^(guardar|validar|crear|añadir|enviar|aplicar|aceptar|confirmar|registrar|emitir|dar de alta)/i;
+  var SAVING_TEXT = /^(\+\s*)?(guardar|crear|añadir|enviar|validar|aplicar|confirmar|emitir|cobrar|registrar|marcar|asignar|unificar|cambiar|borrar|eliminar|quitar|anular|rectificar|liquidar|pedir|actualizar)\b/i;
+  var mini = () => document.getElementById("mini");
+  var fieldValue = () => document.getElementById("mcampo")?.value ?? "";
+  function fieldHtml(field10) {
+    if (!field10) return "";
+    return `<input id="mcampo" type="${field10.tipo ?? "text"}" value="${escapeHtml(field10.valor ?? "")}"
+                   placeholder="${escapeHtml(field10.placeholder ?? "")}" ${field10.min ? `min="${field10.min}"` : ""}>`;
+  }
+  function dialogHtml(options3) {
+    const { titulo, msg, ok, cancel: cancel3, campo, opciones, peligro } = options3;
+    return `<div class="fbox">
+      <div class="fh"><h2>${escapeHtml(titulo ?? t("components.dialogs.confirm"))}</h2></div>
+      ${msg ? `<p style="margin:0 0 10px;white-space:pre-line">${escapeHtml(msg)}</p>` : ""}
+      ${fieldHtml(campo)}
+      ${opciones?.length ? `<div class="chips" style="padding:10px 0 0">${opciones.map((option4) => `<button type="button" class="chip" data-mop="${escapeHtml(option4)}">${escapeHtml(option4)}</button>`).join("")}</div>` : ""}
+      <div class="acts" style="justify-content:flex-end">
+        ${cancel3 === false ? "" : `<button class="btn sec" id="mno">${escapeHtml(cancel3 ?? t("components.dialogs.cancel"))}</button>`}
+        <button class="btn ${peligro ? "dang" : ""}" id="mok">${escapeHtml(ok ?? t("components.dialogs.accept"))}</button></div></div>`;
+  }
+  function bindDialog(dialog6, hasField, finish) {
+    const ok = document.getElementById("mok"), no = document.getElementById("mno");
+    if (ok) ok.onclick = () => {
+      finish(hasField ? fieldValue() : true);
+    };
+    if (no) no.onclick = () => {
+      finish(hasField ? null : false);
+    };
+    dialog6.querySelectorAll("[data-mop]").forEach((button2) => {
+      button2.onclick = () => {
+        const input5 = document.getElementById("mcampo");
+        if (input5) input5.value = button2.dataset.mop ?? "";
+      };
+    });
+    dialog6.onclick = (event) => {
+      if (event.target === dialog6) finish(hasField ? null : false);
+    };
+    dialog6.oncancel = (event) => {
+      event.preventDefault();
+      finish(hasField ? null : false);
+    };
+  }
+  function focusField(finish) {
+    setTimeout(() => {
+      const input5 = document.getElementById("mcampo");
+      if (!input5) {
+        document.getElementById("mok")?.focus();
+        return;
+      }
+      input5.focus();
+      input5.onkeydown = (event) => {
+        if (event.key === "Enter") finish(input5.value);
+      };
+    }, FOCUS_DELAY_MS);
+  }
+  function openDialog(options3) {
+    return new Promise((resolve) => {
+      const dialog6 = mini();
+      dialog6.innerHTML = dialogHtml(options3);
+      const finish = (value19) => {
+        dialog6.close();
+        resolve(value19);
+      };
+      bindDialog(dialog6, Boolean(options3.campo), finish);
+      dialog6.showModal();
+      focusField(finish);
+    });
+  }
+  function showDialog(options3) {
+    const answer = openDialog(options3);
+    if (options3.campo?.tipo === "area") setTimeout(() => {
+      const input5 = document.getElementById("mcampo");
+      if (!input5) return;
+      const area = document.createElement("textarea");
+      area.id = "mcampo";
+      area.rows = 6;
+      area.value = input5.value;
+      area.placeholder = input5.placeholder;
+      input5.replaceWith(area);
+      mini().classList.add("ancha");
+      area.focus();
+    }, 0);
+    return answer;
+  }
+  var confirmAction = (message, options3 = {}) => showDialog({ msg: message, titulo: options3.titulo, ok: options3.ok, peligro: options3.peligro });
+  var askText = (message, value19, options3 = {}) => showDialog({ msg: message, titulo: options3.titulo, ok: options3.ok ?? t("components.dialogs.save"), campo: { valor: value19, placeholder: options3.placeholder, tipo: options3.tipo }, opciones: options3.opciones });
+  function chooseOption(title2, message, buttons) {
+    return new Promise((resolve) => {
+      const dialog6 = mini();
+      dialog6.innerHTML = `<div class="fbox"><div class="fh"><h2>${escapeHtml(title2)}</h2></div>
+      <p style="margin:0 0 10px;white-space:pre-line">${escapeHtml(message)}</p>
+      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">${buttons.map((button2) => `<button class="btn ${button2.cls ?? ""}" data-op="${button2.k}">${escapeHtml(button2.t)}</button>`).join("")}</div></div>`;
+      const finish = (value19) => {
+        dialog6.close();
+        resolve(value19);
+      };
+      dialog6.querySelectorAll("[data-op]").forEach((button2) => {
+        button2.onclick = () => {
+          finish(button2.dataset.op === "no" ? null : button2.dataset.op ?? null);
+        };
+      });
+      dialog6.oncancel = (event) => {
+        event.preventDefault();
+        finish(null);
+      };
+      dialog6.onclick = (event) => {
+        if (event.target === dialog6) finish(null);
+      };
+      dialog6.showModal();
+    });
+  }
+  function askField(title2, type, value19, label) {
+    return new Promise((resolve) => {
+      const dialog6 = mini();
+      dialog6.innerHTML = `<div class="fbox"><div class="fh"><h2>${escapeHtml(title2)}</h2></div><label for="rnpc">${escapeHtml(label)}</label><input id="rnpc" type="${type}" value="${escapeHtml(value19 ?? "")}" min="${todayIso()}">
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-op="no">${t("components.dialogs.cancel")}</button><button class="btn" data-op="si">${t("components.dialogs.accept")}</button></div></div>`;
+      const finish = (answer) => {
+        dialog6.close();
+        resolve(answer);
+      };
+      dialog6.querySelectorAll("[data-op]").forEach((button2) => {
+        button2.onclick = () => {
+          finish(button2.dataset.op === "si" ? document.getElementById("rnpc").value : null);
+        };
+      });
+      dialog6.oncancel = (event) => {
+        event.preventDefault();
+        finish(null);
+      };
+      enhanceFields(dialog6);
+      dialog6.showModal();
+    });
+  }
+  var hasSaveButton = (dialog6) => [...dialog6.querySelectorAll("button, .btn")].some((button2) => button2.offsetParent && !button2.disabled && !button2.classList.contains("sec") && SAVE_BUTTON.test((button2.textContent ?? "").trim()));
+  function isSaveButton(button2) {
+    if (!button2 || button2.matches(".sec, .x, .kmv, .plic, [data-cerrar], [data-cerrar2], .vueltabtn, .guardando")) return false;
+    if (!button2.closest("dialog[open], #v-config")) return false;
+    return /ok$|guardar|enviar/i.test(button2.id || "") || SAVING_TEXT.test((button2.textContent ?? "").trim());
+  }
+  async function tryClose(dialog6) {
+    if (dialog6.dataset.sucio && hasSaveButton(dialog6) && !await confirmAction(
+      t("components.dialogs.leaveText"),
+      { titulo: t("components.dialogs.leaveTitle"), ok: t("components.dialogs.leaveOk"), peligro: true }
+    )) return;
+    dialog6.close();
+  }
+
+  // src/app/components/help.ts
+  function glueHelp(title2, button2) {
+    const last = [...title2.childNodes].reverse().find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+    const parts = last?.textContent?.match(/^([\s\S]*?)(\S+)(\s*)$/);
+    if (!last || !parts) {
+      title2.insertAdjacentHTML("beforeend", button2);
+      return;
+    }
+    const glued = document.createElement("span");
+    glued.className = "ai-pegada";
+    glued.append(parts[2] ?? "");
+    glued.insertAdjacentHTML("beforeend", button2);
+    last.textContent = parts[1] ?? "";
+    last.after(glued);
+  }
+  function addHelpButtons2() {
+    componentsLegacy.helpAnchors().forEach(([selector, key]) => {
+      const title2 = document.querySelector(selector);
+      if (title2 && !title2.querySelector(".ai")) glueHelp(title2, `<button class="ai" data-ayuda="${key}" aria-label="${t("components.help.label")}">i</button>`);
+    });
+    const tools = document.getElementById("dirtools");
+    if (tools && !tools.previousElementSibling?.matches(".ai"))
+      tools.insertAdjacentHTML("beforebegin", `<button class="ai ai-dir" data-ayuda="directorio" aria-label="${t("components.help.label")}">i</button>`);
+  }
+  function helpAnchor(button2) {
+    const key = button2.dataset.ayuda ?? "";
+    if (button2.dataset.manual) return button2.dataset.manual;
+    const anchors = componentsLegacy.manualAnchors();
+    if (anchors[key]) return anchors[key];
+    if (key.startsWith("ini_")) return anchors.inicio ?? "";
+    return anchors[currentScreen()] ?? "";
+  }
+
+  // src/app/components/keyboard.ts
+  var LISTS = ".gsug, .cpres, .lista, .dgrid, [role=listbox], table";
+  var visible = (element2) => element2.offsetParent !== null && !element2.classList.contains("hide");
+  function listItems(list) {
+    let items;
+    if (list.matches("table")) items = [...list.querySelectorAll(":scope > tbody > tr")];
+    else if (list.matches(".dgrid")) items = [...list.querySelectorAll(":scope > .dr")];
+    else if (list.matches(".lista")) items = [...list.children];
+    else items = [...list.querySelectorAll("button, [role=option], a[href]")];
+    return items.filter((item) => visible(item) && !item.matches(".gsh, .gload, .vacio, [disabled]"));
+  }
+  function resultsOf(input5) {
+    const box = input5.closest(".gsearch, .picker, .cpbus");
+    if (box) return box.querySelector(".gsug, .cpres");
+    const area = input5.closest("dialog, section, .card") ?? document.body;
+    return [...area.querySelectorAll(LISTS)].find((list) => Boolean(input5.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING) && !list.closest(".hide") && listItems(list).length) ?? null;
+  }
+  function activateItem(item) {
+    const target = item.matches("button, a[href], [role=option], tr, .dr") ? item : item.querySelector("button, a[href], [data-inificha]") ?? item;
+    target.click();
+  }
+
+  // src/app/components/loading.ts
+  function showFullLoading(message) {
+    let overlay = document.getElementById("cargatotal");
+    if (!overlay) {
+      document.body.insertAdjacentHTML("beforeend", '<div id="cargatotal" class="cargatotal"></div>');
+      overlay = document.getElementById("cargatotal");
+    }
+    if (!overlay) return;
+    overlay.innerHTML = `<div><span class="spin"></span><b>${escapeHtml(message)}</b><span class="sm">${t("components.loading.everything")}</span></div>`;
+    overlay.classList.remove("hide");
+  }
+  var hideFullLoading = () => {
+    document.getElementById("cargatotal")?.classList.add("hide");
+  };
+  function showLoading(element2, text2) {
+    if (element2) element2.innerHTML = `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(orFallback(text2, t("components.loading.default")))}</span></div>`;
+  }
+  var cardSkeleton = (title2) => `<h2>${escapeHtml(title2)}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div>`;
+
+  // src/app/components/search-highlight.ts
+  var MIN_INSIDE = 3;
+  function matchIn(word, tokens) {
+    let start2 = -1, length = 0;
+    for (const token of tokens) {
+      if (word.startsWith(token)) return [0, token.length];
+      if (start2 < 0 && token.length >= MIN_INSIDE && word.indexOf(token) > 0) {
+        start2 = word.indexOf(token);
+        length = token.length;
+      }
+    }
+    return start2 < 0 ? null : [start2, length];
+  }
+  function highlightSearch(text2, query) {
+    const value19 = String(text2 ?? "");
+    const tokens = [...new Set(normalise(query).split(/[^\p{L}\p{N}]+/u).filter(Boolean))].sort((first, second) => second.length - first.length);
+    if (!tokens.length) return escapeHtml(value19);
+    let html = "", last = 0;
+    for (const found of value19.matchAll(/[\p{L}\p{N}]+/gu)) {
+      const word = normalise(found[0]);
+      if (word.length !== found[0].length) continue;
+      const match = matchIn(word, tokens);
+      if (!match) continue;
+      const start2 = found.index + match[0];
+      html += `${escapeHtml(value19.slice(last, start2))}<mark>${escapeHtml(value19.slice(start2, start2 + match[1]))}</mark>`;
+      last = start2 + match[1];
+    }
+    return html + escapeHtml(value19.slice(last));
+  }
+  function isSearchBox(element2) {
+    if (!(element2 instanceof HTMLInputElement) || element2.list) return false;
+    return element2.type === "search" || Boolean(element2.nextElementSibling?.matches(".gsug, .cpres, .lista, [role=listbox]"));
+  }
+
+  // src/app/components/signature.ts
+  var INK = "#0B2540";
+  var LINE_WIDTH = 2.2;
+  function signaturePad(canvas) {
+    const context = canvas.getContext("2d");
+    let drawing = false, signed = false, last = null;
+    const fit = () => {
+      const box = canvas.getBoundingClientRect(), ratio = window.devicePixelRatio || 1;
+      canvas.width = box.width * ratio;
+      canvas.height = box.height * ratio;
+      if (context) {
+        context.scale(ratio, ratio);
+        context.lineWidth = LINE_WIDTH;
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.strokeStyle = INK;
+      }
+      signed = false;
+    };
+    const point = (event) => {
+      const box = canvas.getBoundingClientRect();
+      return { x: event.clientX - box.left, y: event.clientY - box.top };
+    };
+    canvas.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      drawing = true;
+      last = point(event);
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (!drawing || !context || !last) return;
+      const next = point(event);
+      context.beginPath();
+      context.moveTo(last.x, last.y);
+      context.lineTo(next.x, next.y);
+      context.stroke();
+      last = next;
+      signed = true;
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach((type) => {
+      canvas.addEventListener(type, () => {
+        drawing = false;
+      });
+    });
+    requestAnimationFrame(fit);
+    return { borrar: fit, vacia: () => !signed, imagen: () => signed ? canvas.toDataURL("image/png").split(",")[1] ?? null : null, marcar: () => {
+      signed = true;
+    } };
+  }
+
+  // src/app/core/router.ts
+  var MAX_REDIRECTS = 10;
+  function createRouter(fallbackRoute) {
+    const routes2 = /* @__PURE__ */ new Map();
+    const redirects = [];
+    const hooks = [];
+    let current = null;
+    function resolve(target, context) {
+      let resolved = target;
+      for (let hops = 0; hops < MAX_REDIRECTS; hops++) {
+        const next = redirects.map((redirect) => redirect(resolved, context)).find((id) => id !== void 0 && id !== resolved);
+        if (next === void 0) break;
+        resolved = next;
+      }
+      const route = routes2.get(resolved);
+      return route && (route.canEnter?.() ?? true) ? resolved : fallbackRoute;
+    }
+    async function navigate2(target, ...params2) {
+      const context = { from: current, params: params2 };
+      const routeId = resolve(target, context);
+      const route = routes2.get(routeId);
+      if (!route) throw new Error(`Unknown route: ${routeId}`);
+      current = routeId;
+      await route.enter(context);
+      hooks.forEach((hook) => {
+        hook(routeId, context);
+      });
+      return routeId;
+    }
+    return {
+      register: (route) => {
+        routes2.set(route.id, route);
+      },
+      addRedirect: (redirect) => {
+        redirects.push(redirect);
+      },
+      onNavigate: (hook) => {
+        hooks.push(hook);
+      },
+      navigate: navigate2,
+      get current() {
+        return current;
+      }
+    };
+  }
+
+  // src/app/core/navigation/pipeline.ts
+  function runBefores(steps3, navigation) {
+    const passed = [];
+    for (const step of steps3) {
+      step.before?.(navigation);
+      passed.push({ step, target: navigation.target });
+      if (navigation.blocked) break;
+    }
+    return passed;
+  }
+  function runNavigation(steps3, switchScreen, target, args) {
+    const navigation = { target, args, blocked: false };
+    let passed = [];
+    try {
+      passed = runBefores(steps3, navigation);
+      if (!navigation.blocked) switchScreen(navigation.target, args);
+      for (const { step, target: seen } of [...passed].reverse()) step.after?.(seen, args);
+    } finally {
+      for (const { step, target: seen } of [...passed].reverse()) step.cleanup?.(seen);
+    }
+  }
+
+  // src/app/core/navigation/steps-outer.ts
+  var PORTAL_SCREENS = ["informe", "config", "perfil"];
+  var PLATFORM_SCREENS = ["delcos", "config", "perfil", "manual"];
+  var safely = (action) => {
+    try {
+      action();
+    } catch {
+    }
+  };
+  var later = (delays, action) => {
+    delays.forEach((delay2) => {
+      setTimeout(() => {
+        safely(action);
+      }, delay2);
+    });
+  };
+  var resetBackStack = {
+    name: "v2.300 · a new navigation empties the «Volver» stack",
+    before: () => {
+      VUELTA.length = 0;
+      VISTA = null;
+    }
+  };
+  var professionalPortalOnly = {
+    name: "v2.271 · the professional (and centre) portal only opens its own screens",
+    before: (nav) => {
+      if (ES_MEDICO() && !PORTAL_SCREENS.includes(nav.target)) nav.target = "informe";
+    }
+  };
+  var loadingComet = {
+    name: "v2.267 · the loading line at the top when the screen changes",
+    before: (nav) => {
+      if (nav.target && nav.target !== TAB) safely(cometa);
+    }
+  };
+  var watchListPage = {
+    name: "v2.239 · list pages (PL) keep their layout in sync",
+    after: (target) => {
+      if (PL[target]) {
+        plVigilar(target);
+        setTimeout(() => {
+          plVigilar(target);
+        }, 0);
+      }
+    }
+  };
+  var customMenuNames = {
+    name: "v2.231 · menu names chosen by the company",
+    after: () => {
+      setTimeout(() => {
+        safely(aplicarNombresMenu);
+      }, 0);
+      queueMicrotask(() => {
+        safely(aplicarNombresMenu);
+      });
+    }
+  };
+  var rememberManualReturn = {
+    name: "v2.224 · entering the manual remembers where to come back to",
+    before: (nav) => {
+      if (nav.target === "manual" && TAB !== "manual") MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
+    }
+  };
+  var NAVIGATION_START_EVENT = "delcos:navigation-start";
+  var announceNavigation = {
+    name: "v2.221 · tell listeners a navigation starts (the mobile «+» comes back into view)",
+    before: (nav) => {
+      document.dispatchEvent(new CustomEvent(NAVIGATION_START_EVENT, { detail: { target: nav.target } }));
+    }
+  };
+  function configKey(target) {
+    if (target === "config") return claveCfgVieja(CFG_SEC, CFG_SUB);
+    if (target === "perfil") return PAG_TAB.perfil === "notif" ? "notif" : "datos";
+    if (target === "organizacion" || target === "empresa") return `o.${orFallback(PAG_TAB[target], "marca")}`;
+    if (target === "plan") return "o.plan";
+    if (target === "usuarios") return PAG_TAB.usuarios === "roles" ? "roles" : "usuarios";
+    return null;
+  }
+  var singleConfiguration = {
+    name: "v2.215/v2.340 · profile, company, plan and users are parts of the single Configuración page",
+    before: (nav) => {
+      if (nav.target === "config" && ["seguridad", "orgs"].includes(CFG_SEC ?? "")) return;
+      const key = configKey(nav.target);
+      if (key === null) return;
+      if (key) {
+        CFG_KEY = key;
+        CFG_DETALLE = true;
+      } else if (IR_DESDE_MENU_CFG) {
+        CFG_DETALLE = false;
+        CFG_KEY = "datos";
+      }
+      if (nav.target !== "config") {
+        PAG_TAB.perfil = void 0;
+        PAG_TAB.organizacion = void 0;
+        PAG_TAB.empresa = void 0;
+        PAG_TAB.usuarios = void 0;
+      }
+      CFG_SEC = "__cfg";
+      CFG_SUB = null;
+      IR_DESDE_MENU_CFG = false;
+      nav.target = "config";
+    }
+  };
+  var directoryLabel = {
+    name: "v2.210 · the directory title with the company word for its accounts",
+    after: (target) => {
+      if (target === "directorio") later([0, 300, 1200], aplicarEtiqueta);
+    }
+  };
+  var manualHelpButton = {
+    name: "v2.226 · the «i» help next to each screen title",
+    after: () => {
+      later([400, 1200, 2500], ponerAyudaManual);
+    }
+  };
+  var platformPanel = {
+    name: "v2.166 · Panel delcos sections, and platform mode only shows the panel",
+    before: (nav) => {
+      const section2 = PANEL_SECCIONES.find((entry) => entry[0] === nav.target);
+      if (section2) {
+        PAG_TAB.delcos = section2[1];
+        nav.target = "delcos";
+        return;
+      }
+      if (MODO_PLATAFORMA && !PLATFORM_SCREENS.includes(nav.target)) nav.target = "delcos";
+    },
+    after: (target) => {
+      if (target === "delcos") marcarPanel();
+    }
+  };
+  var stripeReturnToPlan = {
+    name: "v2.167 · coming back from Stripe opens «Plan y suscripción»",
+    before: (nav) => {
+      if (!PAGO_IR_PLAN || !PERFIL) return;
+      pagoAlPlan();
+      if (!ES_MEDICO() && puedeOrganizacion()) nav.target = "plan";
+    }
+  };
+  var planSections = {
+    name: "v2.152 · sections outside the contracted plan show the plan notice instead",
+    before: (nav) => {
+      if (nav.target in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) {
+        avisoPlan(nav.target);
+        nav.blocked = true;
+      }
+    }
+  };
+  var agendaFromMenuIsToday = {
+    name: "v2.140 · Agenda from the menu always opens today",
+    before: (nav) => {
+      if (nav.target === "agenda" && IR_DESDE_MENU) {
+        AG_MODO = "dia";
+        AG_FECHA = hoyISO();
+      }
+    }
+  };
+  var ordersSections = {
+    name: "v2.128 · Oportunidades, Compras… are sections of Pedidos",
+    before: (nav) => {
+      const section2 = ALIAS_PEDIDOS[nav.target];
+      if (section2 !== void 0) {
+        PEDSEC = section2;
+        nav.target = "ventas";
+        return;
+      }
+      if (nav.target === "ventas" && IR_DESDE_MENU) PEDSEC = "ventas";
+    },
+    after: (target) => {
+      if (target === "ventas") marcarPedsec();
+    }
+  };
+  var closePageDialog = {
+    name: "v2.128 · a window that belongs to the page closes when leaving it",
+    before: () => {
+      const dialog6 = document.getElementById("dlg");
+      if (dialog6?.open && (Boolean(dialog6.dataset.fija) || Boolean(dialog6.dataset.depagina))) dialog6.close();
+    }
+  };
+  var footerMenuMark = {
+    name: "v2.128 · mark the current screen in the footer menu",
+    after: () => {
+      menuMarcarPie();
+      setTimeout(menuMarcarPie, 0);
+    }
+  };
+
+  // src/app/core/navigation/steps-inner.ts
+  var COMPANY_SECTIONS = ["__empresa", "empresa", "marca", "correo", "copias"];
+  var MAIL_SECTIONS = ["correo", "copias"];
+  var screenSection = () => document.getElementById(`v-${TAB}`);
+  var configToOwnPages = {
+    name: "v2.128 · team, security and organizations open their own pages",
+    before: (nav) => {
+      if (nav.target === "config" && CFG_SEC === "equipo") {
+        PAG_TAB.usuarios = CFG_SUB === "roles" ? "roles" : "usuarios";
+        CFG_SEC = "inicio";
+        CFG_SUB = null;
+        nav.target = "usuarios";
+      }
+      if (nav.target === "config" && CFG_SEC === "seguridad" && puede("gestionar_plataforma")) {
+        PAG_TAB.delcos = CFG_SUB === "accesos" ? "accesos" : "auditoria";
+        CFG_SEC = "inicio";
+        CFG_SUB = null;
+        nav.target = "delcos";
+      }
+      if (nav.target === "config" && CFG_SEC === "orgs" && puede("gestionar_plataforma")) {
+        PAG_TAB.delcos = "orgs";
+        CFG_SEC = "inicio";
+        nav.target = "delcos";
+      }
+    }
+  };
+  var closeEmbeddedWindows = {
+    name: "v2.117 · windows embedded in a page close when leaving it",
+    before: () => {
+      cerrarEncajadas();
+    }
+  };
+  var organizationPage = {
+    name: "v2.121 · company and plan are parts of the Organización page (only for who may configure it)",
+    before: (nav) => {
+      const fromConfig = nav.target === "config" && CFG_SEC !== null ? ORG_DESDE[CFG_SEC] : void 0;
+      if (nav.target === "empresa") {
+        PAG_TAB.organizacion = orFallback(PAG_TAB.empresa, "marca");
+        nav.target = "organizacion";
+      } else if (nav.target === "plan") {
+        PAG_TAB.organizacion = "plan";
+        nav.target = "organizacion";
+      } else if (fromConfig) {
+        PAG_TAB.organizacion = orFallback(CFG_SUB !== null ? ORG_DESDE[CFG_SUB] : void 0, fromConfig);
+        CFG_SEC = "rutas";
+        nav.target = "organizacion";
+      }
+      if (nav.target === "organizacion" && !puedeOrganizacion()) nav.target = "inicio";
+    }
+  };
+  var clearPagesWhenLeaving = {
+    name: "v2.117 · going to a non-page screen empties the pages, so no old page shows up",
+    before: (nav) => {
+      if (nav.target in PAGINAS) return;
+      Object.keys(PAGINAS).forEach((page) => {
+        const section2 = document.getElementById(`v-${page}`);
+        if (section2) section2.innerHTML = "";
+      });
+    }
+  };
+  var revealSince = [];
+  var atomicReveal = {
+    name: "v2.60 · the screen is revealed at once when its data is ready (no screen «ghosts»)",
+    before: () => {
+      revealSince.push(Date.now() - 2);
+    },
+    after: () => {
+      const section2 = screenSection();
+      if (section2) {
+        section2.classList.remove("cargando", "cargando-pend");
+        revelar(section2, 4e3, revealSince[revealSince.length - 1] ?? Date.now());
+      }
+      document.querySelectorAll("main > section.preparando").forEach((other) => {
+        if (other !== section2) other.classList.remove("preparando");
+      });
+    },
+    cleanup: () => {
+      revealSince.pop();
+    }
+  };
+  function billingSection() {
+    const map2 = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(FAC_ULTIMA, "empresa") };
+    const section2 = CFG_SEC ?? "";
+    if (!(map2[section2] ?? (section2 === "fact" ? map2[CFG_SUB ?? ""] : void 0))) return void 0;
+    return orFallback(map2[section2 === "fact" ? orFallback(CFG_SUB, "fact") : section2], "empresa");
+  }
+  var billingSettings = {
+    name: "v2.57 · fiscal data, series and VeriFactu open in Facturación",
+    before: (nav) => {
+      if (nav.target !== "config") return;
+      const section2 = billingSection();
+      if (section2 !== void 0) {
+        FSEC = section2;
+        CFG_SEC = "rutas";
+        nav.target = "facturacion";
+      }
+    }
+  };
+  var loadingIndicatorAfterDelay = {
+    name: "v2.56 · the loading indicator only shows while the screen is still requesting data",
+    after: () => {
+      const section2 = screenSection();
+      if (section2?.classList.contains("cargando-pend")) {
+        section2.classList.remove("cargando-pend");
+        if (PEND > 0) section2.classList.add("cargando");
+      }
+    }
+  };
+  var markNavigationInProgress = {
+    name: "v2.56 · VIA_IR tells the screens they are being opened by a navigation",
+    before: (nav) => {
+      VIA_IR = nav.target;
+    },
+    cleanup: () => {
+      setTimeout(() => {
+        VIA_IR = null;
+      }, 0);
+    }
+  };
+  function companyTab() {
+    if (CFG_SUB !== null && MAIL_SECTIONS.includes(CFG_SUB)) return CFG_SUB;
+    if (CFG_SEC !== null && MAIL_SECTIONS.includes(CFG_SEC)) return CFG_SEC;
+    return "marca";
+  }
+  var legacyConfigPages = {
+    name: "v2.53 · notifications, company and plan have their own page; pages are loaded after switching",
+    before: (nav) => {
+      if (nav.target === "config" && CFG_SEC === "notif") {
+        PAG_TAB.perfil = "notif";
+        CFG_SEC = "rutas";
+        nav.target = "perfil";
+      }
+      if (nav.target === "config" && ["perfil", "prefs"].includes(CFG_SEC ?? "")) CFG_SEC = "rutas";
+      if (nav.target === "config" && COMPANY_SECTIONS.includes(CFG_SEC ?? "")) {
+        PAG_TAB.empresa = companyTab();
+        CFG_SEC = "rutas";
+        nav.target = "empresa";
+      }
+      if (nav.target === "config" && CFG_SEC === "plan") {
+        CFG_SEC = "rutas";
+        nav.target = "plan";
+      }
+    },
+    after: (target) => {
+      if (PAGINAS[target]) cargarPagina(target);
+    }
+  };
+  var noFlashOnFastLoad = {
+    name: "v2.52 · fast screens go straight from the old content to the new one, without a flash of the loader",
+    after: () => {
+      const section2 = screenSection();
+      if (!section2?.classList.contains("cargando")) return;
+      section2.classList.remove("cargando");
+      section2.classList.add("cargando-pend");
+      if (PEND > 0) section2.classList.add("cargando");
+      section2.classList.remove("cargando-pend");
+    }
+  };
+
+  // src/app/core/navigation/index.ts
+  var NAVIGATION_STEPS = [
+    resetBackStack,
+    professionalPortalOnly,
+    loadingComet,
+    watchListPage,
+    customMenuNames,
+    rememberManualReturn,
+    announceNavigation,
+    singleConfiguration,
+    directoryLabel,
+    manualHelpButton,
+    platformPanel,
+    stripeReturnToPlan,
+    planSections,
+    agendaFromMenuIsToday,
+    ordersSections,
+    closePageDialog,
+    footerMenuMark,
+    configToOwnPages,
+    closeEmbeddedWindows,
+    organizationPage,
+    clearPagesWhenLeaving,
+    atomicReveal,
+    billingSettings,
+    loadingIndicatorAfterDelay,
+    markNavigationInProgress,
+    legacyConfigPages,
+    noFlashOnFastLoad
+  ];
+  function navigate(target, ...args) {
+    runNavigation(NAVIGATION_STEPS, (screen2) => {
+      irBase(screen2);
+    }, target, args);
+  }
+
+  // src/app/screens/accounts/index.ts
+  var accounts_exports = {};
+  __export(accounts_exports, {
+    columnSettings: () => columnSettings,
+    openAccountCard: () => openAccountCard,
+    openColumnsPanel: () => openColumnsPanel,
+    paintAccountsHeader: () => paintHeader,
+    paintMap: () => paintMap,
+    refreshPortal: () => refreshPortal,
+    saveColumns: () => saveColumns,
+    searchAccounts: () => searchAccounts
+  });
 
   // src/app/legacy/visit-bridge.ts
   var visitLegacy = {
@@ -5351,7 +6769,7 @@
     readCopy: (key) => leerCache(key)?.d ?? null,
     resultValues: () => CAT.resultado_visita ?? [],
     dataField: (value19, key) => campoDato(value19, key),
-    signaturePad: (canvas) => padFirma(canvas),
+    signaturePad: (canvas) => signaturePad(canvas),
     promotedProducts: () => productosPromocionados(),
     reloadProducts: async () => {
       await cargarProductos();
@@ -5360,7 +6778,7 @@
     readPhoto: (file) => leerJustificante(file),
     photosMax: () => FOTOS_VISITA_MAX,
     privateConsultation: () => consultaPrivada(),
-    normalise: (text2) => clasNorm(text2),
+    normalise: (text2) => normalise(text2),
     weekdayLetter: () => hoyLetra(),
     /** The write queue: without connection the call is kept and `data.encolada` is true. */
     writeRpc: (name, payload9) => escribirRpc(name, payload9),
@@ -5368,7 +6786,7 @@
       void cargarInicio();
     },
     loading: (element2, text2) => {
-      cargando(element2, text2);
+      showLoading(element2, text2);
     },
     materials: () => PRES_MAT,
     materialsTime: () => PRES_T,
@@ -5460,7 +6878,7 @@
   // src/app/screens/visit/model.ts
   var NEGATIVE = "neg";
   var MODES = [["presencial", "visit.modes.inPerson"], ["telefono", "visit.modes.phone"], ["video", "visit.modes.video"]];
-  var modeButtons = (attribute, chosen3) => MODES.map(([mode, label]) => `<button type="button" data-${attribute}="${mode}" class="${mode === chosen3 ? "on" : ""}" aria-pressed="${String(mode === chosen3)}">${t(label)}</button>`).join("");
+  var modeButtons = (attribute, chosen4) => MODES.map(([mode, label]) => `<button type="button" data-${attribute}="${mode}" class="${mode === chosen4 ? "on" : ""}" aria-pressed="${String(mode === chosen4)}">${t(label)}</button>`).join("");
   var pressed = (button2) => button2.getAttribute("aria-pressed") === "true";
   function togglePressed(button2) {
     const on5 = !pressed(button2);
@@ -5505,17 +6923,17 @@
   }
   async function loadExtra(visitId, planHasCoverage) {
     const { data: activity } = await legacyDb().from("actividades").select("modo,productos").eq("id", visitId).maybeSingle();
-    const chosen3 = activity?.productos ?? [];
+    const chosen4 = activity?.productos ?? [];
     let productList = [];
     if (planHasCoverage) {
       productList = [...await visitLegacy.promotedProducts()];
-      const missing2 = chosen3.filter((id) => !productList.some((product) => product.id === id));
+      const missing2 = chosen4.filter((id) => !productList.some((product) => product.id === id));
       if (missing2.length) {
         const { data } = await legacyDb().from("productos").select("id,nombre").in("id", missing2);
         productList = productList.concat(data ?? []);
       }
     }
-    return { mode: activity?.modo ?? "presencial", products: [...chosen3], productList };
+    return { mode: activity?.modo ?? "presencial", products: [...chosen4], productList };
   }
   function afterChange(accountId, message) {
     document.getElementById("dlg")?.close();
@@ -5704,9 +7122,9 @@
   var stillShown = (id) => accountCardLegacy.shownId() === id;
   var fieldsPlace = () => document.getElementById("fzcampos");
   function addBeforeFields(id, blockId, html) {
-    const place2 = fieldsPlace();
-    if (!place2 || document.getElementById(blockId) || !stillShown(id)) return null;
-    place2.insertAdjacentHTML("beforebegin", html);
+    const place3 = fieldsPlace();
+    if (!place3 || document.getElementById(blockId) || !stillShown(id)) return null;
+    place3.insertAdjacentHTML("beforebegin", html);
     return document.getElementById(blockId);
   }
   function closeCardAnd(open2) {
@@ -5759,11 +7177,11 @@
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     return `<select id="cicde" aria-label="${t("cycle.whose")}"><option value="">${t("cycle.allTeam")}</option>${salesTeam.members().map((member) => `<option value="${member.id}" ${cycleState.owner === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("")}</select>`;
   }
-  function bindOwner(paint11) {
+  function bindOwner(paint12) {
     const select3 = document.getElementById("cicde");
     if (select3) select3.onchange = () => {
       cycleState.owner = select3.value;
-      void paint11();
+      void paint12();
     };
   }
   var percentOf = (done, goal) => goal ? Math.round(done / goal * 100) : 0;
@@ -5785,7 +7203,7 @@
   }
 
   // src/app/screens/accounts/card/sections-account.ts
-  var CENTRE = "Centro";
+  var CENTRE2 = "Centro";
   var DELETE_LEVEL = 3;
   async function cycle2(id) {
     if (permissions.isProfessionalPortal() || document.getElementById("fciclo") || !stillShown(id)) return;
@@ -5796,7 +7214,7 @@
   }
   async function centreProfessionals(id) {
     const account = await accountKind(id), body2 = document.getElementById("fbody");
-    if (account?.tipo !== CENTRE || !account.centro_id || !body2 || !stillShown(id) || document.getElementById("fcentrop")) return;
+    if (account?.tipo !== CENTRE2 || !account.centro_id || !body2 || !stillShown(id) || document.getElementById("fcentrop")) return;
     const professionals = escapeHtml(term("medico", { number: "p" }));
     (body2.querySelector(".fh") ?? body2.firstElementChild)?.insertAdjacentHTML("afterend", `<div class="blk" id="fcentrop"><div class="fcentropf"><span>${t("accounts.card.centreProfessionals", { professionals })}</span>
         <button type="button" class="btn sec chico" data-fcver="${account.centro_id}">${t("accounts.card.seeCentreProfessionals", { professionals })}</button></div></div>`);
@@ -5811,7 +7229,7 @@
   }
 
   // src/app/screens/accounts/card/sections-access.ts
-  var CENTRE2 = "Centro";
+  var CENTRE3 = "Centro";
   var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
   var canShow = (id) => stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById("facceso");
   var accountOf = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico ?? {};
@@ -5823,7 +7241,7 @@
   async function adminAccess(id) {
     const [{ data: users }, account] = await Promise.all([callRpc("usuarios_resumen", {}), accountOf(id)]);
     if (!canShow(id)) return;
-    const user = (users ?? []).find((item) => item.cuenta_id === id), isCentre3 = account.tipo === CENTRE2;
+    const user = (users ?? []).find((item) => item.cuenta_id === id), isCentre3 = account.tipo === CENTRE3;
     document.getElementById("fbody")?.insertAdjacentHTML("beforeend", `<div class="blk" id="facceso"><h3>${t("accounts.access.title")}</h3>
     ${user ? hasAccessHtml(user, isCentre3, true) : `<p class="sm">${canText(isCentre3)}</p>
          <button class="btn sec" id="fdaracc">${t("accounts.access.give")}</button>`}</div>`);
@@ -5834,7 +7252,7 @@
       const professional = data?.medico;
       if (!professional) return;
       document.getElementById("ficha")?.close();
-      accessLegacy.newUser({ medico: { id, nombre: professional.nombre }, nombre: professional.nombre, email: professional.email ?? "", centro: professional.tipo === CENTRE2 });
+      accessLegacy.newUser({ medico: { id, nombre: professional.nombre }, nombre: professional.nombre, email: professional.email ?? "", centro: professional.tipo === CENTRE3 });
     };
   }
   var FAILURES = {
@@ -5882,7 +7300,7 @@
     const [{ data: withAccess }, { data: inPortfolio }, account] = await Promise.all([callRpc("cuentas_con_acceso", {}), mine, accountOf(id)]);
     const user = (withAccess ?? []).find((item) => item.cuenta_id === id);
     if (!user && !(inPortfolio ?? []).length || !canShow(id)) return;
-    const isCentre3 = account.tipo === CENTRE2;
+    const isCentre3 = account.tipo === CENTRE3;
     document.getElementById("fbody")?.insertAdjacentHTML("beforeend", `<div class="blk" id="facceso"><h3>${t("accounts.access.title")}</h3>
     ${user ? hasAccessHtml(user, isCentre3, false) : `<p class="sm">${canText(isCentre3)}</p>
          <div class="g2"><div><label for="faccmail">${t("accounts.access.email")}</label><input id="faccmail" type="email" value="${escapeHtml(account.email ?? "")}" placeholder="${t("accounts.access.emailPlaceholder")}"></div>
@@ -6050,10 +7468,10 @@
     });
     rows.forEach((row4) => {
       if (row4.querySelector("[data-vfotos]")) return;
-      const count2 = counts.get(row4.dataset.vrow ?? "") ?? 0, place2 = row4.querySelector("span");
-      if (!place2 || !count2 && !row4.querySelector("[data-editv]")) return;
+      const count2 = counts.get(row4.dataset.vrow ?? "") ?? 0, place3 = row4.querySelector("span");
+      if (!place3 || !count2 && !row4.querySelector("[data-editv]")) return;
       const label = count2 ? count2 === 1 ? t("accounts.card.photo") : t("accounts.card.photos", { count: count2 }) : t("accounts.card.addPhotos");
-      place2.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row4.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
+      place3.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row4.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
     });
     document.querySelectorAll("#fbody [data-vfotos]").forEach((button2) => {
       button2.onclick = () => {
@@ -6070,9 +7488,9 @@
     const { data: products3 } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
     const names = new Map((products3 ?? []).map((product) => [product.id, product.nombre]));
     (data ?? []).forEach((visit2) => {
-      const row4 = document.querySelector(`#fbody [data-vrow="${visit2.id}"]`), place2 = row4?.querySelector("span");
+      const row4 = document.querySelector(`#fbody [data-vrow="${visit2.id}"]`), place3 = row4?.querySelector("span");
       const presented = (visit2.productos ?? []).map((product) => names.get(product)).filter((name) => Boolean(name));
-      if (place2 && presented.length && !row4?.querySelector(".vprodtx")) place2.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
+      if (place3 && presented.length && !row4?.querySelector(".vprodtx")) place3.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
     });
   }
   function visitMaterial(id) {
@@ -6086,8 +7504,8 @@
       }
       const text2 = cardSectionsLegacy.visitDetails(visit2);
       if (!text2) return;
-      const place2 = button2.parentElement?.querySelector(":scope > span");
-      if (place2 && !place2.querySelector(".vdet")) place2.insertAdjacentHTML("beforeend", `<div class="sm vdet">📎 ${escapeHtml(text2)}</div>`);
+      const place3 = button2.parentElement?.querySelector(":scope > span");
+      if (place3 && !place3.querySelector(".vdet")) place3.insertAdjacentHTML("beforeend", `<div class="sm vdet">📎 ${escapeHtml(text2)}</div>`);
     });
     return Promise.resolve();
   }
@@ -6184,7 +7602,7 @@
   var NOT_ATTENDED = "No asistió";
   var AWARDED = "Adjudicado";
   var INSTALLED = "Instalado";
-  var CENTRE3 = "Centro";
+  var CENTRE4 = "Centro";
   var OPEN_TENDERS = ["En estudio", "Oferta enviada", AWARDED];
   var SHOWN_EVENTS = 5;
   var canAdd = (blockId, section2) => Boolean(fieldsPlace()) && !document.getElementById(blockId) && (!section2 || accountCardLegacy.planIncludes(section2));
@@ -6214,9 +7632,9 @@
     });
   }
   function depositText(state) {
-    const lines2 = (state.lineas ?? []).filter((line2) => line2.unidades > 0), total2 = sum(lines2.map((line2) => line2.unidades));
+    const lines2 = (state.lineas ?? []).filter((line3) => line3.unidades > 0), total2 = sum(lines2.map((line3) => line3.unidades));
     if (!state.existe || !total2) return t("accounts.card.depositNone");
-    const productCount = new Set(lines2.map((line2) => line2.producto_id)).size, expiring = lines2.filter((line2) => relatedLegacy.expiresSoon(line2.caducidad)).length;
+    const productCount = new Set(lines2.map((line3) => line3.producto_id)).size, expiring = lines2.filter((line3) => relatedLegacy.expiresSoon(line3.caducidad)).length;
     const products3 = productCount === 1 ? t("accounts.card.oneProduct") : t("accounts.card.products", { count: productCount });
     const soon = expiring ? ` · <b style="color:var(--warn)">${expiring === 1 ? t("accounts.card.oneBatchExpires") : t("accounts.card.batchesExpire", { count: expiring })}${t("accounts.card.inLessThan60Days")}</b>` : "";
     return t("accounts.card.depositUnits", { units: formatNumber(total2), products: products3 }) + soon;
@@ -6224,7 +7642,7 @@
   async function deposit(id) {
     if (!canAdd("fdeposito", "deposito")) return;
     const account = await accountKind(id);
-    if (account?.tipo !== CENTRE3) return;
+    if (account?.tipo !== CENTRE4) return;
     const { data: state } = await legacyDb().rpc("deposito_estado", { p_cuenta: id });
     if (!state || state.ok === false || !canAdd("fdeposito") || !stillShown(id)) return;
     addBeforeFields(id, "fdeposito", `<div class="blk" id="fdeposito"><h3>${t("accounts.card.depositTitle")}</h3>
@@ -6275,7 +7693,7 @@
     const { data } = await legacyDb().from("equipos").select("id,serie,ubicacion,estado,contrato,contrato_fin,garantia_hasta,proxima_revision,productos(nombre)").eq("cuenta_id", id).eq("estado", INSTALLED).order("instalado", { ascending: false }).limit(20);
     if (!canAdd("fequipos") || !stillShown(id)) return;
     const list = data ?? [], account = await accountKind(id);
-    if (!list.length && account?.tipo !== CENTRE3) return;
+    if (!list.length && account?.tipo !== CENTRE4) return;
     const block4 = addBeforeFields(id, "fequipos", equipmentHtml(list));
     if (block4) bindEquipment(block4, id, account?.nombre ?? "");
   }
@@ -6359,7 +7777,7 @@
   // src/app/screens/accounts/card/sections-portal.ts
   var PENDING = "Pendiente";
   var DELIVERED = "Entregado";
-  var CENTRE4 = "Centro";
+  var CENTRE5 = "Centro";
   var ACTIVE = "Activo";
   var SERVICE = "servicio";
   var SHOWN_REQUESTS = 10;
@@ -6433,8 +7851,8 @@
     bindPortal(id);
     if (messageList.some((message) => message.del_portal && !message.leido_en)) void callRpc("leer_mensajes_cuenta", { p_cuenta: id });
   }
-  function productRow(product, chosen3) {
-    const own = chosen3.get(product.id), name = escapeHtml(product.nombre);
+  function productRow(product, chosen4) {
+    const own = chosen4.get(product.id), name = escapeHtml(product.nombre);
     const tariff = product.precio !== null && product.precio !== void 0 ? portalLegacy.euros(product.precio) : "—";
     return `<label class="item" style="cursor:default"><input type="checkbox" data-fpcp="${product.id}" ${own ? "checked" : ""}>
         <span class="tx"><b>${name}</b><span class="sm">${t("accounts.portal.tariff", { price: tariff })}</span></span>
@@ -6459,14 +7877,14 @@
     void centreProducts(id);
   }
   function productsHtml(catalog2, chosenRows) {
-    const chosen3 = new Map(chosenRows.map((row4) => [row4.producto_id, row4]));
+    const chosen4 = new Map(chosenRows.map((row4) => [row4.producto_id, row4]));
     const list = catalog2.filter((product) => product.tipo !== SERVICE && (product.estado ?? ACTIVE) === ACTIVE);
     return `<section class="blk" id="fprodc"><h3>${t("accounts.portal.productsTitle")} <span class="n">${formatNumber(chosenRows.length)}</span></h3>
     <p class="sm">${t("accounts.portal.productsNote")}</p>
-    <div class="lista">${list.map((product) => productRow(product, chosen3)).join("") || `<div class="sm">${t("accounts.portal.noProducts")}</div>`}</div>
+    <div class="lista">${list.map((product) => productRow(product, chosen4)).join("") || `<div class="sm">${t("accounts.portal.noProducts")}</div>`}</div>
     <div class="acts" style="margin:8px 0 0;justify-content:flex-end"><button type="button" class="btn sec" id="fpcok">${t("accounts.portal.saveProducts")}</button></div></section>`;
   }
-  var isCentre2 = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico?.tipo === CENTRE4;
+  var isCentre2 = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico?.tipo === CENTRE5;
   async function centreProducts(id) {
     if (!canShow2(id, "fprodc") || !await isCentre2(id) || !canShow2(id, "fprodc")) return;
     const catalog2 = await portalLegacy.products();
@@ -6623,7 +8041,7 @@
 
   // src/app/screens/accounts/list/cells.ts
   var WORKDAYS3 = ["L", "M", "X", "J", "V"];
-  var CUSTOM_PREFIX = "cp:";
+  var CUSTOM_PREFIX3 = "cp:";
   function nameCell(row4) {
     const urgent = row4.urgente ? `<span class="pill p-urg">${t("accounts.list.urgent")}</span> ` : "";
     const noReporting = row4.sin_reporting ? `<span class="pill p-sr" title="${t("accounts.columns.noReportingTitle", { visit: term("visita") })}">${t("accounts.columns.noReporting")}</span> ` : "";
@@ -6660,64 +8078,12 @@
   ]);
   function cell(row4, key, onAccessLoaded) {
     if (key === "acceso") return accessCell(row4, onAccessLoaded);
-    if (key.startsWith(CUSTOM_PREFIX)) return customCell(row4, key.slice(CUSTOM_PREFIX.length));
+    if (key.startsWith(CUSTOM_PREFIX3)) return customCell(row4, key.slice(CUSTOM_PREFIX3.length));
     const special = CELLS.get(key);
     if (special) return special(row4);
     const value19 = row4[key];
     return `<span class="sm">${escapeHtml(value19 ? String(value19) : "")}</span>`;
   }
-
-  // src/app/screens/accounts/list/columns.ts
-  var SALES_REPS = "comerciales";
-  var CUSTOM_PREFIX2 = "cp:";
-  var CUSTOM_WIDTH = 150;
-  var DEFAULT_ON = ["nombre", "especialidad", "centro_nombre", "municipio", "dias", "estado_comercial"];
-  function columnDefinitions() {
-    return [
-      { k: "nombre", t: term("medico", { capital: "C" }), w: 250, fixed: true },
-      { k: "especialidad", t: term("especialidad", { capital: "C" }), w: 170 },
-      { k: "centro_nombre", t: t("accounts.columns.centre"), w: 200 },
-      { k: "municipio", t: t("accounts.columns.town"), w: 140 },
-      { k: "direccion", t: t("accounts.columns.address"), w: 200 },
-      { k: "telefono", t: t("accounts.columns.phone"), w: 130 },
-      { k: "dias", t: t("accounts.columns.days"), w: 150 },
-      { k: "ultima_visita", t: term("visita", { article: "ultimo", articleCapital: "C" }), w: 130 },
-      { k: "estado_comercial", t: t("accounts.columns.state"), w: 150 },
-      { k: SALES_REPS, t: t("accounts.columns.salesReps"), w: 190 },
-      { k: "acceso", t: t("accounts.columns.access"), w: 170 },
-      ...accountColumnsLegacy.customFields().map((field10) => ({ k: CUSTOM_PREFIX2 + field10.clave, t: field10.nombre, w: CUSTOM_WIDTH }))
-    ];
-  }
-  var columnTitle = (key) => columnDefinitions().find((column) => column.k === key)?.t ?? key;
-  function saved() {
-    try {
-      return JSON.parse(localStorage.getItem(accountColumnsLegacy.storageKey()) ?? "null");
-    } catch {
-      return null;
-    }
-  }
-  function saveColumns(settings2) {
-    try {
-      localStorage.setItem(accountColumnsLegacy.storageKey(), JSON.stringify(settings2));
-    } catch {
-    }
-  }
-  function resetColumns() {
-    try {
-      localStorage.removeItem(accountColumnsLegacy.storageKey());
-    } catch {
-    }
-  }
-  function columnSettings() {
-    const all2 = columnDefinitions(), everything = permissions.seesEverything(), chosen3 = saved();
-    const settings2 = chosen3?.length ? [...chosen3] : all2.map((column) => ({ k: column.k, on: DEFAULT_ON.includes(column.k) || column.k === SALES_REPS && everything, w: column.w }));
-    all2.forEach((column) => {
-      if (!settings2.some((setting) => setting.k === column.k)) settings2.push({ k: column.k, on: column.k === SALES_REPS && everything, w: column.w });
-    });
-    const fields = accountColumnsLegacy.customFields();
-    return settings2.filter((setting) => setting.k !== SALES_REPS || everything).map((setting) => setting.k.startsWith(CUSTOM_PREFIX2) && !(chosen3 ?? []).some((item) => item.k === setting.k) ? { ...setting, on: Boolean(fields.find((field10) => CUSTOM_PREFIX2 + field10.clave === setting.k)?.en_tabla) } : setting);
-  }
-  var visibleColumns = () => columnSettings().filter((setting) => setting.on);
 
   // src/app/screens/accounts/list/table.ts
   function paintHeader() {
@@ -6745,8 +8111,8 @@
   }
   function rowHtml(row4, onAccessLoaded) {
     const cells = visibleColumns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row4, column.k, onAccessLoaded)}</span>`).join("");
-    const place2 = [row4.centro_nombre, row4.municipio].filter(Boolean).join(" · ");
-    const card2 = `<span class="plcard"><b>${row4.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row4.nombre ?? "")}</b><span class="plc2">${escapeHtml(place2)}</span><span class="plc3">${cell(row4, "estado_comercial", onAccessLoaded)}</span></span>`;
+    const place3 = [row4.centro_nombre, row4.municipio].filter(Boolean).join(" · ");
+    const card2 = `<span class="plcard"><b>${row4.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row4.nombre ?? "")}</b><span class="plc2">${escapeHtml(place3)}</span><span class="plc3">${cell(row4, "estado_comercial", onAccessLoaded)}</span></span>`;
     return `<button class="trow" data-id="${row4.id}">${cells}${card2}</button>`;
   }
   function paintChips() {
@@ -6771,8 +8137,8 @@
     },
     loadPlan: () => pagoCargarEstado(),
     plan: () => PLAN_ACTUAL,
-    setAppVisible: (visible) => {
-      APP_VISIBLE = visible;
+    setAppVisible: (visible2) => {
+      APP_VISIBLE = visible2;
     },
     timetables: (list) => conHorarios(list),
     reloadHome: () => {
@@ -6785,7 +8151,7 @@
     reloadRoutes: () => {
       void cargarRutas();
     },
-    askText: (message, value19, options3) => pedirTexto(message, value19, options3),
+    askText: (message, value19, options3) => askText(message, value19, options3),
     stateColour: (state) => colEstado(state),
     leaflet: () => window.L ?? null
   };
@@ -6962,8 +8328,8 @@
   }
 
   // src/app/screens/accounts/list/column-panel.ts
-  var MIN_WIDTH = 80;
-  var MAX_WIDTH = 600;
+  var MIN_WIDTH2 = 80;
+  var MAX_WIDTH2 = 600;
   function panelHtml(settings2) {
     const definitions2 = columnDefinitions();
     const rows = settings2.map((setting, index) => {
@@ -7015,7 +8381,7 @@
         settings2[from] = other;
         settings2[to] = moved;
         apply(settings2);
-        paint(filters, panel, settings2, apply);
+        paint2(filters, panel, settings2, apply);
       };
     });
     const restore = panel.querySelector("#tcres");
@@ -7023,10 +8389,10 @@
       resetColumns();
       const fresh = columnSettings();
       apply(fresh);
-      paint(filters, panel, fresh, apply);
+      paint2(filters, panel, fresh, apply);
     };
   }
-  function paint(filters, panel, settings2, apply) {
+  function paint2(filters, panel, settings2, apply) {
     panel.innerHTML = panelHtml(settings2);
     bindPanel(filters, panel, settings2, apply);
   }
@@ -7037,7 +8403,7 @@
       saveColumns(list);
       onChange();
     };
-    paint(filters, panel, columnSettings(), apply);
+    paint2(filters, panel, columnSettings(), apply);
     filters.classList.add("abierto");
     panel.classList.add("abierto");
   }
@@ -7054,14 +8420,14 @@
     });
     document.addEventListener("pointermove", (event) => {
       if (!drag) return;
-      const width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, Math.round(drag.startWidth + (event.clientX - drag.startX)))), key = drag.key;
+      const width = Math.max(MIN_WIDTH2, Math.min(MAX_WIDTH2, Math.round(drag.startWidth + (event.clientX - drag.startX)))), key = drag.key;
       const settings2 = drag.settings.map((item) => item.k === key ? { ...item, w: width } : item);
       saveColumns(settings2);
       paintHeader2();
-      const visible = settings2.filter((item) => item.on);
+      const visible2 = settings2.filter((item) => item.on);
       document.querySelectorAll("#lista .trow").forEach((row4) => {
         [...row4.children].forEach((cellElement, index) => {
-          const column = visible[index];
+          const column = visible2[index];
           if (column && cellElement instanceof HTMLElement) {
             cellElement.style.width = `${column.w}px`;
             cellElement.style.minWidth = `${column.w}px`;
@@ -7170,7 +8536,7 @@
     <button type="button" class="kmv agmnav" data-agm="1" aria-label="${t("agenda.month.next")}">›</button>
     ${month !== current ? `<button type="button" class="btn sec agmhoy" id="agmhoy">${t("agenda.month.today")}</button>` : ""}`;
   }
-  function onClick(element2, action) {
+  function onClick2(element2, action) {
     if (element2 instanceof HTMLElement) element2.onclick = (event) => {
       event.stopPropagation();
       action();
@@ -7178,15 +8544,15 @@
   }
   function bindHeader(box, month, current) {
     box.querySelectorAll("[data-agm]").forEach((button2) => {
-      onClick(button2, () => {
+      onClick2(button2, () => {
         void renderMonth(shiftMonth(month, Number(button2.dataset.agm)));
       });
     });
-    onClick(document.getElementById("agmhoy"), () => {
+    onClick2(document.getElementById("agmhoy"), () => {
       void renderMonth(current);
     });
     const title2 = document.getElementById("agmtit");
-    onClick(title2, () => {
+    onClick2(title2, () => {
       if (title2) openMonthPicker(month, title2);
     });
   }
@@ -7195,7 +8561,7 @@
     box.querySelectorAll(".agmc[data-agdia]").forEach((button2) => {
       const day = button2.dataset.agdia ?? "";
       button2.classList.toggle("sel", day === selected2 && selected2 !== today);
-      onClick(button2, () => {
+      onClick2(button2, () => {
         legacyAgenda.showDay(day);
       });
     });
@@ -7228,7 +8594,7 @@
     const picker = document.createElement("div");
     picker.className = "agmpop";
     const names = shortMonthNames();
-    const paint11 = () => {
+    const paint12 = () => {
       picker.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="${t("agenda.month.previousYear")}">‹</button><b>${year}</b>
       <button type="button" class="kmv" data-an="1" aria-label="${t("agenda.month.nextYear")}">›</button></div>
       <div class="agmpopg">${names.map((name, index) => {
@@ -7236,19 +8602,19 @@
         return `<button type="button" data-mk="${key}" class="${key === month ? "on" : ""}">${name}</button>`;
       }).join("")}</div>`;
       picker.querySelectorAll("[data-an]").forEach((button2) => {
-        onClick(button2, () => {
+        onClick2(button2, () => {
           year += Number(button2.dataset.an);
-          paint11();
+          paint12();
         });
       });
       picker.querySelectorAll("[data-mk]").forEach((button2) => {
-        onClick(button2, () => {
+        onClick2(button2, () => {
           picker.remove();
           void renderMonth(button2.dataset.mk);
         });
       });
     };
-    paint11();
+    paint12();
     document.body.appendChild(picker);
     const rect = anchor.getBoundingClientRect(), width = Math.min(PICKER_WIDTH, innerWidth - 20);
     picker.style.width = `${width}px`;
@@ -7388,7 +8754,7 @@
     const title2 = person.visitar ? t("agenda.sameCentre.addAppointment", { reason: person.visitar }) : t("agenda.sameCentre.seeCard") + missing2;
     return `<button type="button" data-agti="${person.id}" data-agtv="${person.visitar ? 1 : ""}" title="${escapeHtml(title2)}">${person.visitar ? "<i>+</i> " : ""}${escapeHtml(person.nombre)}</button>`;
   }
-  function blockHtml(group, people, isoDate) {
+  function blockHtml2(group, people, isoDate) {
     const chips = groupByAttendance(people.slice(0, SHOWN_PEOPLE), isoDate).map(({ title: title2, people: list }) => `<div class="agtambg"><span class="agtambgt">${escapeHtml(title2)}</span><div class="agtambl">${list.map(personChip).join("")}</div></div>`).join("") + (people.length > SHOWN_PEOPLE ? `<span class="sm">${t("agenda.sameCentre.andMore", { count: people.length - SHOWN_PEOPLE })}</span>` : "");
     const centre = group.centro_id ? escapeHtml(group.centro_id) : "";
     const opener = centre ? ` data-agtc="${centre}" role="button" tabindex="0" title="${t("agenda.sameCentre.openCentre")}"` : "";
@@ -7416,7 +8782,7 @@
       });
       if (!card2) return;
       used.add(card2);
-      (card2.querySelector(".tdu-pie") ?? card2.lastElementChild)?.insertAdjacentHTML("beforebegin", blockHtml(group, people, isoDate));
+      (card2.querySelector(".tdu-pie") ?? card2.lastElementChild)?.insertAdjacentHTML("beforebegin", blockHtml2(group, people, isoDate));
     });
   }
   function listenToSameCentre() {
@@ -7510,11 +8876,11 @@
   function applySuggestions(isoDate, suggestions) {
     if (suggestions?.date === isoDate) agendaSources.setSuggestions(isoDate, suggestions);
   }
-  async function withData(loads, paint11) {
+  async function withData(loads, paint12) {
     painting++;
     try {
       await Promise.all(loads.filter(Boolean).map((load3) => Promise.resolve(load3).catch(() => null)));
-      return await paint11();
+      return await paint12();
     } finally {
       setTimeout(() => {
         painting--;
@@ -7773,7 +9139,7 @@
     bind2(box, data);
   }
   function paintOpenWeek() {
-    const paint11 = async () => {
+    const paint12 = async () => {
       const strip = document.getElementById("agcinta");
       if (!legacyAgenda.isDayView() || !strip || !stripState.weekOpen() || document.getElementById("agsemexp")) {
         await render();
@@ -7787,7 +9153,7 @@
         if (box) box.style.display = "";
       }
     };
-    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint11) : paint11();
+    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint12) : paint12();
   }
 
   // src/app/screens/agenda/strip.ts
@@ -7807,7 +9173,7 @@
     if (!appointments.isOpen(item.estado)) return "ch";
     return isoDate < today ? "cx" : "cp";
   }
-  function dayButton(isoDate, context) {
+  function dayButton2(isoDate, context) {
     const { today, selected: selected2, perDay, blocked } = context;
     const items = perDay.get(isoDate) ?? [], date = fromIsoDate(isoDate), reason = blocked[isoDate];
     const dots = items.slice(0, MAX_DOTS).map((item) => `<i class="${dotKind(item, isoDate, today)}"></i>`).join("") + (items.length > MAX_DOTS ? `<em>+${items.length - MAX_DOTS}</em>` : "");
@@ -7825,7 +9191,7 @@
   function stripHtml(start2, context) {
     const month = capitalise(formatMonthYear(addDays(start2, 3)));
     const today = mondayOf(context.today) === start2 ? "" : `<button type="button" class="btn sec chico" id="choy">${t("agenda.strip.today")}</button>`;
-    const weeks = [0, WEEK_DAYS3].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start2, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS3).map((index) => dayButton(addDays(start2, offset + index), context)).join("")}</div></div>`).join("");
+    const weeks = [0, WEEK_DAYS3].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start2, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS3).map((index) => dayButton2(addDays(start2, offset + index), context)).join("")}</div></div>`).join("");
     return `<div class="cinta" id="agcinta" data-ini="${start2}"><div class="ccab">
       <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="${t("agenda.strip.previousWeekNav")}" title="${t("agenda.strip.previousWeekNav")}">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="${t("agenda.strip.seeMonth")}">${escapeHtml(month)} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="${t("agenda.strip.nextWeekNav")}" title="${t("agenda.strip.nextWeekNav")}">›</button>${today}</div>
       <div class="cley" aria-hidden="true"><span><i class="ch"></i>${t("agenda.strip.done")}</span><span><i class="cp"></i>${t("agenda.strip.toDo")}</span><span><i class="cx"></i>${t("agenda.strip.notClosed")}</span></div>
@@ -8002,7 +9368,7 @@
     document.getElementById("agcuerpo")?.insertAdjacentHTML("afterend", '<div class="card" id="agsemlat"></div>');
     return document.getElementById("agsemlat");
   }
-  async function paint2() {
+  async function paint3() {
     if (currentScreen() !== "agenda" || legacyAgendaParts.mode() !== "dia") return;
     if (!document.getElementById("v-agenda")?.classList.contains("agcinta")) return;
     const box = sidebarBox();
@@ -8021,7 +9387,7 @@
     bind4(box, blocked);
   }
   function paintWeekSidebar() {
-    return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint2) : paint2();
+    return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint3) : paint3();
   }
 
   // src/app/screens/agenda/reschedule.ts
@@ -8039,11 +9405,11 @@
     });
   }
   function rowHtml2(row4, index, today) {
-    const place2 = escapeHtml([row4.item.centro_nombre, row4.item.municipio].filter(Boolean).join(" · "));
+    const place3 = escapeHtml([row4.item.centro_nombre, row4.item.municipio].filter(Boolean).join(" · "));
     return `<div class="item" style="cursor:default">
         <input type="checkbox" data-rpi="${index}" checked aria-label="${t("agendaMore.reschedule.move")}">
         <span class="tx"><b>${escapeHtml(row4.item.nombre ?? "")}</b>
-          <span class="sm">${place2}${row4.item.fecha < today ? t("agendaMore.reschedule.wasOn", { date: formatShortDate(row4.item.fecha) }) : ""}</span>
+          <span class="sm">${place3}${row4.item.fecha < today ? t("agendaMore.reschedule.wasOn", { date: formatShortDate(row4.item.fecha) }) : ""}</span>
           <span class="sm">${row4.attends ? t("agendaMore.reschedule.attends", { days: escapeHtml(row4.attends) }) : t("agendaMore.reschedule.noDays")}</span></span>
         <input type="date" data-rpf="${index}" value="${row4.day}" min="${today}"></div>`;
   }
@@ -8387,20 +9753,20 @@
     const before = legacyAgenda.selectedDate() ?? day, start2 = stripState.start();
     agendaState.setSelectedDate(day);
     dayBody()?.classList.add("agcargando");
-    const outside = !start2 || day < start2 || day > addDays(start2, STRIP_DAYS3 - 1);
-    if (outside) stripState.setStart(mondayOf(day));
+    const outside2 = !start2 || day < start2 || day > addDays(start2, STRIP_DAYS3 - 1);
+    if (outside2) stripState.setStart(mondayOf(day));
     const otherWeek = mondayOf(day) !== mondayOf(before);
     let suggestions = null;
     try {
       await withData([...dayLoads(day), loadSuggestions(day).then((found) => {
         suggestions = found;
-      }), ...outside ? stripLoads() : [], ...weekLoads(day)], async () => {
+      }), ...outside2 ? stripLoads() : [], ...weekLoads(day)], async () => {
         if (legacyAgenda.selectedDate() !== day || !legacyAgenda.isDayView()) return;
         applySuggestions(day, suggestions);
         const pieces = [legacyAgendaPaint.yourDay(), paintWeekSidebar()];
-        if (outside || otherWeek && stripState.weekOpen()) pieces.push(paintStrip());
+        if (outside2 || otherWeek && stripState.weekOpen()) pieces.push(paintStrip());
         await Promise.all(pieces);
-        if (!outside) document.querySelectorAll("#agcinta .cdia").forEach((element2) => {
+        if (!outside2) document.querySelectorAll("#agcinta .cdia").forEach((element2) => {
           element2.classList.toggle("sel", element2.dataset.cf === day);
         });
         markSelectedDay();
@@ -8500,8 +9866,8 @@
   }
   function nextOf(open2, estimates, now) {
     return open2.find((item) => {
-      const minutes = minutesOf(item, estimates);
-      return minutes === null || minutes + NEXT_GRACE_MINUTES >= now;
+      const minutes2 = minutesOf(item, estimates);
+      return minutes2 === null || minutes2 + NEXT_GRACE_MINUTES >= now;
     }) ?? null;
   }
   var daysSince = (isoDate) => Math.max(0, Math.round((fromIsoDate(todayIso()).getTime() - fromIsoDate(String(isoDate).slice(0, 10)).getTime()) / DAY_MS4));
@@ -8514,7 +9880,7 @@
   }
   function whenText(item, time, context) {
     if (!isOpen(item.estado)) return "";
-    const minutes = minutesOf(item, context.estimates), left = minutes === null ? null : minutes - context.now;
+    const minutes2 = minutesOf(item, context.estimates), left = minutes2 === null ? null : minutes2 - context.now;
     if (item === context.next && left !== null && left > 0) return t("agenda.card.inTime", { time: `${left >= 60 ? `${Math.floor(left / 60)} h ` : ""}${left % 60} min` });
     return time.startsWith("~") ? t("agenda.card.estimatedTime") : "";
   }
@@ -8549,14 +9915,14 @@
       isOpen(item.estado) && !pointOf(item) ? ["aviso", "tdav", t("agenda.card.noLocation")] : null,
       item.nota ? ["nota", "", escapeHtml(item.nota)] : null
     ];
-    return lines2.filter((line2) => line2 !== null);
+    return lines2.filter((line3) => line3 !== null);
   }
   function ladderHtml(item, ladder) {
     const level2 = ladder.findIndex((step) => step.valor === item.estado_comercial);
     if (!ladder.length || level2 < 0) return "";
     const goal = ladder[level2 + 1];
-    const bars2 = range(ladder.length).map((index) => `<i class="${index <= level2 ? "on" : index === level2 + 1 ? "obj" : ""}"></i>`).join("");
-    return `<div class="tdu-niv"><div class="tdu-barra" title="${escapeHtml(ladder.map((step) => step.valor).join(" → "))}">${bars2}</div>
+    const bars3 = range(ladder.length).map((index) => `<i class="${index <= level2 ? "on" : index === level2 + 1 ? "obj" : ""}"></i>`).join("");
+    return `<div class="tdu-niv"><div class="tdu-barra" title="${escapeHtml(ladder.map((step) => step.valor).join(" → "))}">${bars3}</div>
         <span class="tdu-nt"><b>${escapeHtml(item.estado_comercial)}</b>${goal ? ` → ${escapeHtml(goal.valor)}` : t("agenda.card.keep")}</span></div>`;
   }
   function headHtml(item, index, context) {
@@ -8588,8 +9954,8 @@
     return isAbsent(state) ? "ausente" : "cerrada";
   }
   function appointmentCard(item, index, context) {
-    const open2 = isOpen(item.estado), mini2 = !open2 && !isDone(item.estado) && !isAbsent(item.estado), lines2 = detailLines(item, context);
-    const classes = `tdu ${item === context.next ? "sig" : ""} ${open2 ? "" : "hecha"} ${mini2 ? "tdmini" : ""} tdst-${statusClass(item.estado)}`;
+    const open2 = isOpen(item.estado), mini3 = !open2 && !isDone(item.estado) && !isAbsent(item.estado), lines2 = detailLines(item, context);
+    const classes = `tdu ${item === context.next ? "sig" : ""} ${open2 ? "" : "hecha"} ${mini3 ? "tdmini" : ""} tdst-${statusClass(item.estado)}`;
     const details2 = lines2.length ? `<ul class="tdu-dat">${lines2.map(([iconName, className, html, title2]) => `<li class="${className}"${title2 ? ` title="${escapeHtml(title2)}"` : ""}>${legacyIcons.line(iconName)}<span>${html}</span></li>`).join("")}</ul>` : "";
     return `<article class="${classes}" data-tdu="${item.id}" data-tdf="${item.cuenta_id}" tabindex="0" aria-label="${escapeHtml(item.nombre)}">
       ${headHtml(item, index, context)}
@@ -8601,15 +9967,15 @@
 
   // src/app/screens/agenda/your-day/header.ts
   var DAY_MINUTES = 24 * 60;
-  function compactButton(compact2) {
-    const title2 = t(compact2 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactTitle"), label = t(compact2 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactLabel");
-    return `<button type="button" class="btn sec chico plic" id="tdcompactar" aria-pressed="${String(compact2)}" title="${title2}" aria-label="${label}">${legacyIcons.list(compact2 ? "file-text" : "list")}</button>`;
+  function compactButton(compact3) {
+    const title2 = t(compact3 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactTitle"), label = t(compact3 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactLabel");
+    return `<button type="button" class="btn sec chico plic" id="tdcompactar" aria-pressed="${String(compact3)}" title="${title2}" aria-label="${label}">${legacyIcons.list(compact3 ? "file-text" : "list")}</button>`;
   }
-  function setCompactButton(button2, compact2) {
-    button2.title = t(compact2 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactTitle");
-    button2.setAttribute("aria-label", t(compact2 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactLabel"));
-    button2.innerHTML = legacyIcons.list(compact2 ? "file-text" : "list");
-    button2.setAttribute("aria-pressed", String(compact2));
+  function setCompactButton(button2, compact3) {
+    button2.title = t(compact3 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactTitle");
+    button2.setAttribute("aria-label", t(compact3 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactLabel"));
+    button2.innerHTML = legacyIcons.list(compact3 ? "file-text" : "list");
+    button2.setAttribute("aria-pressed", String(compact3));
   }
   function statsHtml(summary4) {
     const end = summary4.open && !summary4.isPast ? `<span>${t("agenda.yourDay.estimatedEnd")} <b style="color:${summary4.overReturn ? "var(--warn)" : "var(--navy)"}">${formatMinutes(summary4.end)}</b>${summary4.overReturn ? t("agenda.yourDay.overReturn") : ""}${summary4.end >= DAY_MINUTES ? ` <span class="sm">${t("agenda.yourDay.nextDay")}</span>` : ""}</span>` : "";
@@ -8651,8 +10017,8 @@
   function noFitHtml(noFit) {
     if (!noFit.shown) return "";
     const end = t(noFit.end >= DAY_MINUTES ? "agenda.yourDay.endAfterMidnight" : "agenda.yourDay.endAround", { time: formatMinutes(noFit.end) });
-    const outside = noFit.outside ? noFit.outside === 1 ? t("agenda.yourDay.outsideOne") : t("agenda.yourDay.outsideMany", { count: noFit.outside }) : "";
-    const head = noFit.overLimit ? t("agenda.yourDay.noFit", { end, outside }) : t("agenda.yourDay.badWindows");
+    const outside2 = noFit.outside ? noFit.outside === 1 ? t("agenda.yourDay.outsideOne") : t("agenda.yourDay.outsideMany", { count: noFit.outside }) : "";
+    const head = noFit.overLimit ? t("agenda.yourDay.noFit", { end, outside: outside2 }) : t("agenda.yourDay.badWindows");
     const order = noFit.canOrder ? `<button type="button" class="btn sec chico" id="tdnocord">${t("agenda.yourDay.orderByDistance")}</button>${t("agenda.yourDay.or")}` : "";
     return `<div class="banda-aviso" id="tdnocabe">${head}
       ${t("agenda.yourDay.beforeEach")}${order}${t("agenda.yourDay.moveFarthest")}</div>`;
@@ -8704,9 +10070,9 @@
   function paintTasks(body2, list) {
     document.getElementById("tdtareas")?.remove();
     if (!list?.length) return;
-    const place2 = document.getElementById("tdnocabe") ?? body2.querySelector(".tdesc, .vacio");
+    const place3 = document.getElementById("tdnocabe") ?? body2.querySelector(".tdesc, .vacio");
     const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t("agenda.tasks.title", { count: list.length })}</div>${list.map((task) => taskRow(task, list)).join("")}</div>`;
-    if (place2) place2.insertAdjacentHTML("beforebegin", html);
+    if (place3) place3.insertAdjacentHTML("beforebegin", html);
     else body2.insertAdjacentHTML("beforeend", html);
     const block4 = document.getElementById("tdtareas");
     if (block4) bind5(block4);
@@ -8842,8 +10208,8 @@
       compact: compact(),
       visit: visit2
     };
-    const outside = Object.values(info).filter((stop) => stop.llegada !== null && stop.llegada !== void 0 && stop.llegada >= limit).length;
-    return { context, summary: summary4, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
+    const outside2 = Object.values(info).filter((stop) => stop.llegada !== null && stop.llegada !== void 0 && stop.llegada >= limit).length;
+    return { context, summary: summary4, noFit: { shown: banner, overLimit, end: estimate.fin, outside: outside2, canOrder: !isPast && withPlace > 1 } };
   }
   function on(id, action) {
     const button2 = document.getElementById(id);
@@ -8979,6 +10345,15 @@
     });
   }
 
+  // src/app/components/list/counted.ts
+  var lastShown = /* @__PURE__ */ new Map();
+  function alreadyCounted(key, values2) {
+    const id = `${currentScreen()}:${key}`, shown5 = values2.join("|");
+    if (lastShown.get(id) === shown5) return true;
+    lastShown.set(id, shown5);
+    return false;
+  }
+
   // src/app/screens/home/indicators/chart-tools.ts
   var EMPTY_CHART = { summary: "", visual: "" };
   var WEEKDAY_LETTERS = ["D", "L", "M", "X", "J", "V", "S"];
@@ -9012,9 +10387,9 @@
     const next = open2.find((item) => (minutesOf2(item.hora) ?? 9999) >= minutesNow - 15) ?? open2[0];
     const time = (item, empty2) => escapeHtml(String(item.hora ?? "").slice(0, 5) || empty2);
     const summary4 = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
-    const visible = isMobile() ? 3 : 5;
+    const visible2 = isMobile() ? 3 : 5;
     const nextIndex = next ? list.indexOf(next) : 0;
-    const start2 = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown5 = list.slice(start2, start2 + visible);
+    const start2 = Math.max(0, Math.min(nextIndex - (visible2 >> 1), list.length - visible2)), shown5 = list.slice(start2, start2 + visible2);
     const more2 = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown5.length);
     const dots = shown5.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
     return { summary: summary4, visual: list.length ? `<div class="kvdots">${dots}${more2 > 0 ? `<span class="kvdot"><em class="kvmas">+${more2}</em></span>` : ""}</div>` : "" };
@@ -9039,12 +10414,12 @@
     const perDay = countsByDate(charts.por_dia), nextDays = countsByDate(charts.proximos);
     const values2 = days.map((day) => (upcoming2 ? nextDays.get(day) : perDay.get(day)) ?? 0);
     const max = Math.max(1, ...values2), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
-    const bars2 = values2.map((value19, i) => {
+    const bars3 = values2.map((value19, i) => {
       const day = days[i] ?? today, height = Math.max(3, value19 / max * 40), x = i * (barWidth + gap), future = !upcoming2 && day > today, isToday = day === today;
       const fill2 = future ? "#E3EBF3" : isToday ? "var(--sky)" : "var(--navy)";
       return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value19 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
     }).join("");
-    return { summary: weekSummary({ upcoming: upcoming2, days, values: values2, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars2}</svg>` };
+    return { summary: weekSummary({ upcoming: upcoming2, days, values: values2, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars3}</svg>` };
   }
   function monthChart(charts, today) {
     const perDay = countsByDate(charts.por_dia), dayOfMonth = Number(today.slice(8, 10)), monthStart = `${today.slice(0, 8)}01`;
@@ -9061,12 +10436,12 @@
     if (dayOfMonth < 2) return EMPTY_CHART;
     const max = Math.max(1, ...last, ...current), width = 196, height = 46;
     const x = (i) => i / (dayOfMonth - 1) * width, y = (value19) => height - value19 / max * height;
-    const line2 = (values2) => values2.map((value19, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value19).toFixed(1)}`).join("");
+    const line3 = (values2) => values2.map((value19, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value19).toFixed(1)}`).join("");
     const end = current[current.length - 1] ?? 0, difference2 = end - (last[last.length - 1] ?? 0);
     return {
       summary: t(difference2 >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference: difference2 }),
-      visual: `<svg class="kvlin" viewBox="0 0 ${width} ${height + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${line2(last)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
-        <path class="l" d="${line2(current)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      visual: `<svg class="kvlin" viewBox="0 0 ${width} ${height + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${line3(last)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
+        <path class="l" d="${line3(current)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
         <text x="0" y="${height + 11}">1</text><text x="${width}" y="${height + 11}" text-anchor="end" class="hoy">${t("home.indicators.today")}</text>
         <circle class="fin" cx="${x(dayOfMonth - 1)}" cy="${y(end)}" r="4" fill="var(--sky)" stroke="var(--navy)" stroke-width="1.5"/></svg>`
     };
@@ -10072,10 +11447,10 @@
   function fillVisitResult(item) {
     if (!isDone(item.estado) || !item.cuenta_id) return;
     legacyDb().from("actividades").select("resultados, hora").eq("cuenta_id", item.cuenta_id).eq("fecha", item.fecha).limit(1).then(({ data }) => {
-      const visit2 = data?.[0], place2 = document.getElementById("vccomo");
-      if (!visit2 || !place2) return;
+      const visit2 = data?.[0], place3 = document.getElementById("vccomo");
+      if (!visit2 || !place3) return;
       const results = Array.isArray(visit2.resultados) ? visit2.resultados.filter(Boolean).join(", ") : visit2.resultados ?? "";
-      place2.textContent = t("agenda.sheet.recorded", { visit: term("visita"), time: visit2.hora ? t("agenda.sheet.recordedAt", { time: String(visit2.hora).slice(0, 5) }) : "", results: results ? `: ${results}` : "" });
+      place3.textContent = t("agenda.sheet.recorded", { visit: term("visita"), time: visit2.hora ? t("agenda.sheet.recordedAt", { time: String(visit2.hora).slice(0, 5) }) : "", results: results ? `: ${results}` : "" });
     }, () => void 0);
   }
   function showAppointment(item) {
@@ -10482,7 +11857,7 @@
   }
 
   // src/app/screens/events/report.ts
-  var YEARS_SHOWN = 4;
+  var YEARS_SHOWN2 = 4;
   var BOM = String.fromCharCode(65279);
   var amount = (row4, key) => Number(row4[key]) || 0;
   function tableHtml(rows) {
@@ -10512,7 +11887,7 @@
     const box = document.getElementById("cfgcuerpo");
     if (!box || currentScreen() !== "eventos") return;
     const rows = data?.filas ?? [];
-    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option4) => `<option ${option4 === shown5 ? "selected" : ""}>${option4}</option>`).join("")}</select>
+    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN2).map((back) => current - back).map((option4) => `<option ${option4 === shown5 ? "selected" : ""}>${option4}</option>`).join("")}</select>
       ${rows.length ? `<button type="button" class="btn sec" id="trcsv">${t("events.report.download")}</button>` : ""}</div>
     <p class="sm">${t("events.report.note", { professional: term("medico") })}</p>
     ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown5 })}</div>`}</div>`;
@@ -10635,6 +12010,432 @@
     });
   }
 
+  // src/app/components/list/index.ts
+  var list_exports = {};
+  __export(list_exports, {
+    alreadyCounted: () => alreadyCounted,
+    closePopovers: () => closePopovers,
+    itemHtml: () => itemHtml,
+    openPopover: () => openPopover,
+    pageHtml: () => pageHtml,
+    paginateLists: () => paginateLists,
+    sortRemembered: () => sortRemembered,
+    tableSkeleton: () => tableSkeleton
+  });
+
+  // src/app/components/list/item.ts
+  var itemHtml = (item) => `<button class="item" data-id="${item.id}"><span class="ic ${item.iconClass ?? ""}">${item.icon}</span>
+   <span class="tx"><b>${escapeHtml(item.title)}</b><span class="sm">${item.detail}</span></span></button>`;
+
+  // src/app/legacy/lists-bridge.ts
+  var listsLegacy = {
+    pageSize: () => tamPagina(),
+    setPageSize: (size) => {
+      fijarTam(size);
+    },
+    pageSizes: () => TAMANOS,
+    normalise: (text2) => normalizar(text2),
+    touchScreen: () => PANTALLA_TACTIL,
+    shortMonths: () => MESES_CORTOS,
+    widthsKey: (kind) => claveAnchos(kind),
+    sortState: () => HT_ORDEN,
+    serverSort: () => ORD_SRV,
+    rememberedSort: () => ORD_MEM,
+    filterState: () => HT_ESTADO
+  };
+
+  // src/app/components/list/pagination.ts
+  var EXCLUDED = ".carsel, .picker, #lista, #slista, #kpis, .gsug, .umenu, .dl-menu, #tools, .opciones, .chips, .pag, #c-agenda, #c-acciones, #c-urgentes, #c-ultimas, #c-recom, #c-pend";
+  function pageNumbers(pages, page) {
+    const numbers = [];
+    for (const index of range(pages)) {
+      if (index === 0 || index === pages - 1 || Math.abs(index - page) <= 1) numbers.push(index);
+      else if (numbers[numbers.length - 1] !== "…") numbers.push("…");
+    }
+    return numbers;
+  }
+  function pageHtml(total2, page, size) {
+    const pages = Math.max(1, Math.ceil(total2 / size));
+    const from = total2 ? page * size + 1 : 0, to = Math.min(total2, (page + 1) * size);
+    const buttons = pageNumbers(pages, page).map((item) => item === "…" ? '<span class="sm">…</span>' : `<button data-pg="${item}" aria-current="${String(item === page)}">${item + 1}</button>`).join("");
+    return `<div class="pag">
+    <span>${t("listComponents.pagination.range", { from: formatNumber(from), to: formatNumber(to), total: formatNumber(total2) })}</span>
+    <span class="pbtns">
+      <button data-pg="${page - 1}" ${page <= 0 ? "disabled" : ""} aria-label="${t("listComponents.pagination.previous")}">‹</button>
+      ${buttons}
+      <button data-pg="${page + 1}" ${page >= pages - 1 ? "disabled" : ""} aria-label="${t("listComponents.pagination.next")}">›</button>
+    </span>
+    <span class="ptam">${t("listComponents.pagination.show")} <select class="chico" data-pgtam>${listsLegacy.pageSizes().map((option4) => `<option value="${option4}" ${option4 === size ? "selected" : ""}>${option4}</option>`).join("")}</select></span></div>`;
+  }
+  var paging = /* @__PURE__ */ new WeakMap();
+  var barList = /* @__PURE__ */ new WeakMap();
+  var rememberedPage = /* @__PURE__ */ new Map();
+  function stateOf(list) {
+    let state = paging.get(list);
+    if (!state) {
+      state = { page: null, rows: 0, first: null, shown: null, bar: null };
+      paging.set(list, state);
+    }
+    return state;
+  }
+  function listsOnScreen() {
+    const groups2 = /* @__PURE__ */ new Map();
+    document.querySelectorAll("main .item, main .trow, dialog[open] .item, dialog[open] .trow").forEach((row4) => {
+      const list = row4.parentElement;
+      if (!list || row4.hasAttribute("data-fijo") || list.closest(EXCLUDED)) return;
+      const rows = groups2.get(list) ?? [];
+      rows.push(row4);
+      groups2.set(list, rows);
+    });
+    return groups2;
+  }
+  function choosePage(list, state, rows) {
+    const remembered = list.id ? rememberedPage.get(list.id) : void 0;
+    if (remembered !== void 0 && state.page === null) state.page = remembered;
+    else if ((state.rows !== rows.length || state.first !== rows[0]) && remembered === void 0) state.page = 0;
+    state.rows = rows.length;
+    state.first = rows[0] ?? null;
+  }
+  function barOf(list, state) {
+    if (state.bar?.isConnected) return state.bar;
+    const bar2 = document.createElement("div");
+    bar2.setAttribute("data-auto", "");
+    bar2.className = "pag";
+    barList.set(bar2, list);
+    list.insertAdjacentElement("afterend", bar2);
+    state.bar = bar2;
+    return bar2;
+  }
+  function forgetShown() {
+    document.querySelectorAll(".pag[data-auto]").forEach((bar2) => {
+      const list = barList.get(bar2);
+      if (list) stateOf(list).shown = null;
+    });
+  }
+  function bindBar(list, state, bar2) {
+    bar2.querySelectorAll("[data-pg]").forEach((button2) => {
+      button2.onclick = () => {
+        state.page = Number(button2.dataset.pg);
+        state.shown = null;
+        paginateLists();
+        if (list.getBoundingClientRect().top < 0) list.scrollIntoView({ block: "start", behavior: "smooth" });
+      };
+    });
+    const select3 = bar2.querySelector("[data-pgtam]");
+    if (select3) select3.onchange = () => {
+      listsLegacy.setPageSize(Number(select3.value));
+      forgetShown();
+      paginateLists();
+    };
+  }
+  function paginateList(list, rows) {
+    const state = stateOf(list), size = listsLegacy.pageSize();
+    if (rows.length <= (listsLegacy.pageSizes()[0] ?? 0)) {
+      if (state.bar) {
+        state.bar.remove();
+        state.bar = null;
+        rows.forEach((row4) => {
+          row4.style.display = "";
+        });
+      }
+      return;
+    }
+    choosePage(list, state, rows);
+    const pages = Math.ceil(rows.length / size);
+    const page = Math.min(state.page ?? 0, pages - 1);
+    state.page = page;
+    if (list.id) rememberedPage.set(list.id, page);
+    const shown5 = [rows.length, page, size].join("|");
+    if (state.bar?.isConnected && state.shown === shown5) return;
+    state.shown = shown5;
+    rows.forEach((row4, index) => {
+      row4.style.display = Math.floor(index / size) === page ? "" : "none";
+    });
+    const bar2 = barOf(list, state), holder = document.createElement("div");
+    holder.innerHTML = pageHtml(rows.length, page, size);
+    bar2.innerHTML = holder.firstElementChild?.innerHTML ?? "";
+    bindBar(list, state, bar2);
+  }
+  function paginateLists() {
+    document.querySelectorAll(".pag[data-auto]").forEach((bar2) => {
+      const list = barList.get(bar2);
+      if (!list?.isConnected) bar2.remove();
+    });
+    listsOnScreen().forEach((rows, list) => {
+      paginateList(list, rows);
+    });
+  }
+
+  // src/app/components/list/popover.ts
+  var SEARCH_FROM = 12;
+  var MARGIN = 8;
+  var GAP2 = 6;
+  function closePopovers() {
+    document.querySelectorAll(".plpop").forEach((popover) => {
+      popover.remove();
+    });
+  }
+  function place2(popover, button2) {
+    if (isMobile()) {
+      popover.classList.add("plhoja");
+      return;
+    }
+    const anchor = button2.getBoundingClientRect();
+    const left = Math.min(Math.max(MARGIN, anchor.left), innerWidth - popover.offsetWidth - MARGIN);
+    Object.assign(popover.style, { left: `${left}px`, top: `${anchor.bottom + GAP2 + scrollY}px` });
+  }
+  function bindSearch2(popover) {
+    const search4 = popover.querySelector(".plpopq");
+    if (!search4) return;
+    search4.oninput = () => {
+      const wanted = listsLegacy.normalise(search4.value);
+      popover.querySelectorAll("[data-ppi]").forEach((option4) => {
+        option4.classList.toggle("hide", Boolean(wanted) && !listsLegacy.normalise(option4.textContent).includes(wanted));
+      });
+    };
+    if (!listsLegacy.touchScreen()) search4.focus();
+  }
+  function openPopover(button2, items) {
+    closePopovers();
+    const popover = document.createElement("div");
+    popover.className = "plpop";
+    popover.setAttribute("role", "menu");
+    popover.innerHTML = (items.length > SEARCH_FROM ? `<input type="search" class="plpopq" placeholder="${t("listComponents.popover.searchPlaceholder")}" aria-label="${t("listComponents.popover.search")}">` : "") + `<div class="plpopl">${items.map((item, index) => `<button type="button" role="menuitemradio" aria-checked="${String(Boolean(item.on))}" class="${item.on ? "on" : ""}" data-ppi="${index}">${escapeHtml(item.t)}</button>`).join("")}</div>`;
+    document.body.appendChild(popover);
+    place2(popover, button2);
+    popover.querySelectorAll("[data-ppi]").forEach((option4) => {
+      option4.onclick = () => {
+        closePopovers();
+        items[Number(option4.dataset.ppi)]?.fn();
+      };
+    });
+    bindSearch2(popover);
+  }
+
+  // src/app/components/list/remembered-sort.ts
+  function fieldValue2(row4, field10) {
+    const value19 = typeof field10 === "function" ? field10(row4) : row4[field10];
+    return value19 === null || value19 === void 0 || value19 === "" ? null : value19;
+  }
+  var NUMBER = /^-?\d+(\.\d+)?$/;
+  function compareValues(first, second) {
+    if (typeof first === "number" || typeof first === "string" && NUMBER.test(first) && NUMBER.test(String(second))) return Number(first) - Number(second);
+    return String(first).localeCompare(String(second), "es", { numeric: true, sensitivity: "base" });
+  }
+  function sortRemembered(kind, list) {
+    const order = listsLegacy.sortState()[kind], settings2 = listsLegacy.rememberedSort()[kind];
+    if (!order || !settings2 || !Array.isArray(list)) return list;
+    const field10 = settings2.campos[order.i];
+    if (field10 === void 0) return list;
+    const rows = list;
+    return rows.map((row4, position) => ({ row: row4, position })).sort((first, second) => {
+      const one = fieldValue2(first.row, field10), other = fieldValue2(second.row, field10);
+      if (one === null || other === null) return Number(one === null) - Number(other === null) || first.position - second.position;
+      return order.dir * compareValues(one, other) || first.position - second.position;
+    }).map((item) => item.row);
+  }
+
+  // src/app/components/list/skeleton.ts
+  var DEFAULT_WIDTHS = [200, 90, 110, 110, 170, 130, 130, 110, 70, 60, 100];
+  var BAR_WIDTHS = [70, 55, 80, 60, 45, 65, 50];
+  var ROWS = 8;
+  var HEADER_BAR = 46;
+  var cell2 = (width, barWidth) => `<span class="plskc" style="width:${width}px;min-width:${width}px"><i class="plsk" style="width:${barWidth}%"></i></span>`;
+  function rowHtml3(widths, row4) {
+    return `<div class="plskr">${widths.map((width, index) => cell2(width, BAR_WIDTHS[(index + row4) % BAR_WIDTHS.length] ?? 0)).join("")}<span class="plcard"><i class="plsk" style="width:62%"></i><i class="plsk" style="width:44%"></i></span></div>`;
+  }
+  function tableSkeleton(screen2, withHeader) {
+    const widths = screen2 === "directorio" ? columnSettings().filter((column) => column.on).map((column) => column.w) : DEFAULT_WIDTHS;
+    const header2 = withHeader ? `<div class="plskh">${widths.map((width) => cell2(width, HEADER_BAR)).join("")}</div>` : "";
+    return `<div class="plsktab">${header2}${range(ROWS).map((row4) => rowHtml3(widths, row4)).join("")}</div>`;
+  }
+
+  // src/app/components/filters/index.ts
+  var filters_exports = {};
+  __export(filters_exports, {
+    applyColumnFilters: () => applyColumnFilters,
+    cellValue: () => cellValue,
+    clearSort: () => clearSort,
+    columnKind: () => columnKind,
+    compact: () => compact2,
+    compareCells: () => compareCells,
+    filterHasValue: () => filterHasValue,
+    hiddenColumns: () => hiddenColumns,
+    markHeader: () => markHeader,
+    normalise: () => normalise2,
+    notFilterable: () => notFilterable,
+    notSortable: () => notSortable,
+    rememberFilter: () => rememberFilter,
+    restoreFilters: () => restoreFilters,
+    savedWidths: () => savedWidths,
+    sortRows: () => sortRows,
+    tableKind: () => tableKind
+  });
+
+  // src/app/components/filters/cell-values.ts
+  var pad = (value19) => value19.padStart(2, "0");
+  var SLASH_DATE = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/;
+  var ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})/;
+  var SHORT_DATE = /^(?:[a-záéíóú]{3,4}\.? )?(\d{1,2}) (ene|feb|mar|abr|may|jun|jul|ago|sept?|oct|nov|dic)[a-z.]*(?: (\d{4}))?/;
+  var DOTTED_NUMBER = /^[-−]?\s?\d{1,3}(?:\.\d{3})*(?:,\d+)?\s*(?:€|%|uds?\.?|h|min|km)?$/i;
+  var PLAIN_NUMBER = /^[-−]?\d+(?:[.,]\d+)?\s*(?:€|%|uds?\.?|h|min|km)?$/i;
+  function dateOf(text2) {
+    const slash = SLASH_DATE.exec(text2);
+    if (slash) {
+      const [, day2 = "", month2 = "", year2 = ""] = slash;
+      return `${year2.length === 2 ? `20${year2}` : year2}-${pad(month2)}-${pad(day2)}`;
+    }
+    const iso = ISO_DATE.exec(text2);
+    if (iso) return iso[0];
+    const short = SHORT_DATE.exec(text2.toLowerCase());
+    if (!short) return null;
+    const [, day = "", month = "", year = String((/* @__PURE__ */ new Date()).getFullYear())] = short;
+    return `${year}-${pad(String(listsLegacy.shortMonths()[month]))}-${pad(day)}`;
+  }
+  function numberOf(text2) {
+    if (!DOTTED_NUMBER.test(text2) && !PLAIN_NUMBER.test(text2)) return null;
+    const value19 = parseFloat(text2.replace(/[−]/, "-").replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", "."));
+    return Number.isNaN(value19) ? null : value19;
+  }
+  function cellValue(text2) {
+    const clean = (text2 ? String(text2) : "").replace(/\s+/g, " ").trim();
+    if (!clean || clean === "—" || clean === "-") return {};
+    const date = dateOf(clean);
+    if (date) return { f: date };
+    const value19 = numberOf(clean);
+    if (value19 !== null) return { n: value19 };
+    return { t: clean.toLowerCase() };
+  }
+  var isEmpty = (value19) => value19.n === void 0 && value19.f === void 0 && value19.t === void 0;
+  var asText = (value19) => String(value19.t ?? value19.n ?? value19.f);
+  function compareCells(first, second) {
+    const one = cellValue(first), other = cellValue(second);
+    if (isEmpty(one) || isEmpty(other)) return Number(isEmpty(one)) - Number(isEmpty(other));
+    if (one.n !== void 0 && other.n !== void 0) return one.n - other.n;
+    if (one.f !== void 0 && other.f !== void 0) return one.f < other.f ? -1 : one.f > other.f ? 1 : 0;
+    return asText(one).localeCompare(asText(other), "es", { numeric: true, sensitivity: "base" });
+  }
+  function columnKind(texts) {
+    const values2 = texts.map(cellValue).filter((value19) => !isEmpty(value19));
+    if (!values2.length) return "texto";
+    if (values2.every((value19) => value19.f !== void 0)) return "fecha";
+    if (values2.every((value19) => value19.n !== void 0)) return "numero";
+    return "texto";
+  }
+  var normalise2 = (text2) => (text2 ? String(text2) : "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g, " ").trim();
+  var notSortable = (name) => !name || /^(operativa|acciones?|productos)$/i.test(name);
+  var notFilterable = (name) => !name || /^(operativa|acciones?)$/i.test(name);
+  function filterHasValue(value19) {
+    if (value19 === null || value19 === void 0 || value19 === "") return false;
+    if (Array.isArray(value19)) return value19.length > 0;
+    if (typeof value19 === "object") return Object.values(value19).some((part) => part !== null && part !== void 0 && part !== "");
+    return true;
+  }
+
+  // src/app/components/filters/memory.ts
+  var chosen = /* @__PURE__ */ new Map();
+  var FILTER_FIELDS = ".filtros select[id], .filtros input[id], .htpropios select[id], .htpropios input[id]";
+  var isChoice = (field10) => field10.type === "checkbox" || field10.type === "radio";
+  function compact2(element2, small) {
+    [element2, ...element2.querySelectorAll("input, select")].forEach((field10) => {
+      if (field10.matches("input, select")) field10.classList.toggle("chico", small);
+    });
+    return element2;
+  }
+  function rememberFilter(event) {
+    const field10 = event.target;
+    if (!field10?.id || !/^(SELECT|INPUT)$/.test(field10.tagName) || !field10.closest("main .filtros, main .htpropios")) return;
+    if (isChoice(field10)) return;
+    chosen.set(field10.id, field10.value);
+  }
+  function restoreFilters(root) {
+    (root ?? document).querySelectorAll(FILTER_FIELDS).forEach((field10) => {
+      const value19 = chosen.get(field10.id);
+      if (value19 === void 0 || field10.value === value19 || isChoice(field10)) return;
+      if (field10 instanceof HTMLSelectElement && ![...field10.options].some((option4) => option4.value === value19)) return;
+      field10.value = value19;
+    });
+  }
+
+  // src/app/components/filters/table-sort.ts
+  var tableKind = (grid) => [...grid.classList].find((name) => name !== "dgrid") ?? "tabla";
+  function storedJson(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key) ?? "null");
+    } catch {
+      return null;
+    }
+  }
+  var hiddenColumns = (kind) => storedJson(`ht-cols-${kind}`) ?? [];
+  var savedWidths = (kind) => storedJson(listsLegacy.widthsKey(kind)) ?? null;
+  var headerOf = (grid) => grid.querySelector(":scope > .dh");
+  var rowsOf = (grid) => [...grid.querySelectorAll(":scope > .dr")];
+  function markHeader(grid) {
+    const kind = tableKind(grid), order = listsLegacy.sortState()[kind], header2 = headerOf(grid);
+    if (!header2) return;
+    const server = listsLegacy.serverSort()[kind];
+    [...header2.children].forEach((column, index) => {
+      const name = column.textContent?.trim() ?? "", sortable = server ? Boolean(server(index, name)) : !notSortable(name);
+      column.classList.toggle("htord", sortable);
+      column.classList.toggle("ord-asc", Boolean(order) && order?.i === index && order.dir === 1);
+      column.classList.toggle("ord-desc", Boolean(order) && order?.i === index && order.dir === -1);
+      if (sortable) {
+        column.setAttribute("role", "button");
+        column.title = t("listComponents.sort.byColumn");
+      }
+    });
+  }
+  function sortRows(grid) {
+    const kind = tableKind(grid), order = listsLegacy.sortState()[kind];
+    markHeader(grid);
+    if (!order || listsLegacy.serverSort()[kind]) return;
+    const header2 = headerOf(grid), rows = rowsOf(grid);
+    if (!header2 || !rows.length) return;
+    rows.forEach((row4, position) => {
+      var _a;
+      (_a = row4.dataset).htpos ?? (_a.htpos = String(position));
+    });
+    const cellText = (row4) => row4.children[order.i]?.textContent;
+    const sorted = [...rows].sort((first, second) => order.dir * compareCells(cellText(first), cellText(second)) || Number(first.dataset.htpos) - Number(second.dataset.htpos));
+    if (sorted.some((row4, position) => row4 !== rows[position])) {
+      let previous = header2;
+      sorted.forEach((row4) => {
+        previous.after(row4);
+        previous = row4;
+      });
+    }
+  }
+  function clearSort(grid) {
+    const rows = rowsOf(grid);
+    if (rows.some((row4) => row4.dataset.htpos === void 0)) return;
+    let previous = headerOf(grid);
+    if (!previous) return;
+    [...rows].sort((first, second) => Number(first.dataset.htpos) - Number(second.dataset.htpos)).forEach((row4) => {
+      previous?.after(row4);
+      previous = row4;
+    });
+  }
+  function inRange(text2, range2) {
+    const value19 = cellValue(text2), isDate = range2.k === "fecha", current = isDate ? value19.f : value19.n;
+    if (current === void 0) return false;
+    const bound = (end) => isDate ? end ?? null : end === "" || end === null || end === void 0 ? null : Number(end);
+    const from = bound(range2.d), to = bound(range2.h);
+    return (from === null || from === "" || current >= from) && (to === null || to === "" || current <= to);
+  }
+  function applyColumnFilters(grid) {
+    const filters = listsLegacy.filterState()[tableKind(grid)] ?? { texto: "", facetas: {} };
+    const text2 = normalise2(filters.texto ?? ""), facets = Object.entries(filters.facetas ?? {}).filter(([, value19]) => value19);
+    const ranges = Object.entries(filters.rangos ?? {}).filter(([, range2]) => Boolean(range2.d) || Boolean(range2.h));
+    rowsOf(grid).forEach((row4) => {
+      const cells = [...row4.children];
+      const matches = (!text2 || normalise2(row4.textContent).includes(text2)) && facets.every(([index, value19]) => {
+        const cell4 = cells[Number(index)];
+        return Boolean(cell4) && normalise2(cell4?.textContent).includes(normalise2(value19));
+      }) && ranges.every(([index, range2]) => inRange(cells[Number(index)]?.textContent, range2));
+      row4.classList.toggle("htfuera", !matches);
+    });
+  }
+
   // src/app/screens/settings/more/index.ts
   var more_exports = {};
   __export(more_exports, {
@@ -10653,21 +12454,21 @@
     paintPersonUndo: () => paintPersonUndo,
     paintRoles: () => paintRoles,
     undoChange: () => undoChange,
-    valueText: () => valueText
+    valueText: () => valueText2
   });
 
   // src/app/legacy/settings2-bridge.ts
   var profile = () => PERFIL;
   var settingsMoreLegacy = {
     loading: (element2, text2) => {
-      cargando(element2, text2);
+      showLoading(element2, text2);
     },
     appName: () => nombreApp(),
     hasPortal: () => hayExtra("portal"),
     reloadCatalogs: () => cargarCatalogos(),
     /** Level (0–3) of the user in an area of the legacy profile (K = classifiers). */
     areaLevel: (letter) => profile().areas?.[letter] ?? 0,
-    askText: (message, value19, options3) => pedirTexto(message, value19, options3),
+    askText: (message, value19, options3) => askText(message, value19, options3),
     settingsKey: () => CFG_KEY,
     stateRoles: () => PAPELES_ESTADO,
     // Classifiers: the catalog list, the custom field box and the list repaint stay in legacy
@@ -10724,13 +12525,13 @@
   var AGENT_LENGTH = 60;
   var LIMIT2 = 200;
   function whenText2(date, long) {
-    const locale2 = t("dates.locale"), minutes = Math.round((Date.now() - date.getTime()) / MINUTE_MS);
+    const locale2 = t("dates.locale"), minutes2 = Math.round((Date.now() - date.getTime()) / MINUTE_MS);
     const time = date.toLocaleTimeString(locale2, { hour: "2-digit", minute: "2-digit" });
     const today = /* @__PURE__ */ new Date();
     today.setHours(0, 0, 0, 0);
     const yesterday = new Date(today.getTime() - DAY_MS5);
-    if (minutes < NOW_MINUTES) return t("settingsMore.access.now");
-    if (minutes < HOUR_MINUTES) return t("settingsMore.access.minutesAgo", { minutes });
+    if (minutes2 < NOW_MINUTES) return t("settingsMore.access.now");
+    if (minutes2 < HOUR_MINUTES) return t("settingsMore.access.minutesAgo", { minutes: minutes2 });
     if (date >= today) return t("settingsMore.access.todayAt", { time });
     if (date >= yesterday) return t("settingsMore.access.yesterdayAt", { time });
     const day = date.toLocaleDateString(locale2, { day: "numeric", month: "short", ...date.getFullYear() === today.getFullYear() ? {} : { year: "numeric" } });
@@ -10762,10 +12563,10 @@
   async function fillConnection(userId) {
     if (!cardSectionsLegacy.can("administrar")) return;
     const { data } = await callRpc("ultimas_conexiones", { p_ids: [userId] });
-    const line2 = document.querySelector(`[data-facccon="${userId}"]`);
-    if (!line2) return;
+    const line3 = document.querySelector(`[data-facccon="${userId}"]`);
+    if (!line3) return;
     const connection = (data ?? []).find((item) => item.id === userId);
-    line2.textContent = connection ? connectionText(connection, true) : "";
+    line3.textContent = connection ? connectionText(connection, true) : "";
   }
 
   // src/app/screens/settings/more/audit-text.ts
@@ -10775,15 +12576,15 @@
   var LONG = 30;
   var PLAIN = 120;
   var more = (count2) => count2 > SHOWN ? "…" : "";
-  function valueText(value19) {
+  function valueText2(value19) {
     if (value19 === null || value19 === void 0 || value19 === "") return "—";
     if (typeof value19 === "boolean") return t(value19 ? "settingsMore.audit.yes" : "settingsMore.audit.no");
-    if (Array.isArray(value19)) return value19.length ? value19.slice(0, SHOWN).map(valueText).join(", ") + more(value19.length) : "—";
+    if (Array.isArray(value19)) return value19.length ? value19.slice(0, SHOWN).map(valueText2).join(", ") + more(value19.length) : "—";
     if (typeof value19 === "object") {
       const record2 = value19;
       if (record2.nombre) return String(record2.nombre);
       const keys = Object.keys(record2);
-      return keys.length ? keys.slice(0, SHOWN).map((key) => `${key}: ${valueText(record2[key])}`).join(", ") + more(keys.length) : "—";
+      return keys.length ? keys.slice(0, SHOWN).map((key) => `${key}: ${valueText2(record2[key])}`).join(", ") + more(keys.length) : "—";
     }
     return String(value19);
   }
@@ -10796,10 +12597,10 @@
     if (changes.length) {
       return changes.map((key) => {
         const [before, after] = record2[key];
-        return `${key}: ${valueText(before).slice(0, SHORT)} → ${valueText(after).slice(0, SHORT)}`;
+        return `${key}: ${valueText2(before).slice(0, SHORT)} → ${valueText2(after).slice(0, SHORT)}`;
       }).join(" · ");
     }
-    return Object.keys(record2).slice(0, SHOWN_CHANGES).map((key) => `${key}: ${valueText(record2[key]).slice(0, LONG)}`).join(" · ");
+    return Object.keys(record2).slice(0, SHOWN_CHANGES).map((key) => `${key}: ${valueText2(record2[key]).slice(0, LONG)}`).join(" · ");
   }
 
   // src/app/screens/settings/more/backups.ts
@@ -10813,7 +12614,7 @@
     return `<div class="copiaest ${stale ? "mal" : "bien"}"><b>${title2}</b>
       <span>${hint}</span></div>`;
   }
-  function pageHtml(last) {
+  function pageHtml2(last) {
     return `<div class="card cfgpanel"><h2>${t("settingsMore.backups.title")}</h2>
     <p class="sm">${t("settingsMore.backups.intro", { professionals: term("medico", { number: "p" }), visits: term("visita", { number: "p" }) })}</p>
     ${stateHtml2(last)}
@@ -10848,7 +12649,7 @@
     const box = document.getElementById("cfgcuerpo");
     if (!box) return;
     const first = audit?.[0];
-    box.innerHTML = pageHtml(first ? new Date(first.creado_en) : null);
+    box.innerHTML = pageHtml2(first ? new Date(first.creado_en) : null);
     const button2 = document.getElementById("copok");
     if (button2) button2.onclick = () => {
       void download2(button2);
@@ -10862,13 +12663,13 @@
     ["visita", "settingsMore.brand.termVisit"]
   ]);
   function termRow(key) {
-    const defaults = settingsMoreLegacy.termDefaults()[key] ?? { s: "", p: "" }, chosen3 = settingsMoreLegacy.terms()[key] ?? {};
+    const defaults = settingsMoreLegacy.termDefaults()[key] ?? { s: "", p: "" }, chosen4 = settingsMoreLegacy.terms()[key] ?? {};
     const label = TERM_LABELS.get(key);
     return `<div class="g3 mkvocf" data-term="${key}">
-      <div><label class="sm">${label ? t(label) : ""} · ${t("settingsMore.brand.singular")}</label><input data-tf="s" value="${escapeHtml(chosen3.s ?? "")}" placeholder="${escapeHtml(defaults.s)}"></div>
-      <div><label class="sm">${t("settingsMore.brand.plural")}</label><input data-tf="p" value="${escapeHtml(chosen3.p ?? "")}" placeholder="${escapeHtml(defaults.p)}"></div>
+      <div><label class="sm">${label ? t(label) : ""} · ${t("settingsMore.brand.singular")}</label><input data-tf="s" value="${escapeHtml(chosen4.s ?? "")}" placeholder="${escapeHtml(defaults.s)}"></div>
+      <div><label class="sm">${t("settingsMore.brand.plural")}</label><input data-tf="p" value="${escapeHtml(chosen4.p ?? "")}" placeholder="${escapeHtml(defaults.p)}"></div>
       <div><label class="sm">${t("settingsMore.brand.gender")}</label><select data-tf="g"><option value="">${t(defaults.g === "f" ? "settingsMore.brand.feminineDefault" : "settingsMore.brand.masculineDefault")}</option>
-        <option value="m" ${chosen3.g === "m" ? "selected" : ""}>${t("settingsMore.brand.masculine")}</option><option value="f" ${chosen3.g === "f" ? "selected" : ""}>${t("settingsMore.brand.feminine")}</option></select></div></div>`;
+        <option value="m" ${chosen4.g === "m" ? "selected" : ""}>${t("settingsMore.brand.masculine")}</option><option value="f" ${chosen4.g === "f" ? "selected" : ""}>${t("settingsMore.brand.feminine")}</option></select></div></div>`;
   }
   function vocabularyHtml() {
     return `<div class="mkvoc"><label>${t("settingsMore.brand.vocabularyTitle")}</label>
@@ -10980,9 +12781,9 @@
       if (shown5) shown5.textContent = name.value || t("settingsMore.brand.defaultName");
     };
     if (file) file.onchange = async () => {
-      const chosen3 = file.files?.[0];
-      if (!chosen3) return;
-      state.logo = await squareLogo(chosen3);
+      const chosen4 = file.files?.[0];
+      if (!chosen4) return;
+      state.logo = await squareLogo(chosen4);
       const logo = document.getElementById("mklogo");
       if (logo) logo.src = state.logo;
     };
@@ -11252,7 +13053,7 @@
     field("dtlw")?.classList.toggle("hide", type !== LIST);
   }
   async function save6(value19, onSave) {
-    const type = valueOf3("dtt"), options3 = valueOf3("dtl").split("\n").map((line2) => line2.trim()).filter(Boolean);
+    const type = valueOf3("dtt"), options3 = valueOf3("dtl").split("\n").map((line3) => line3.trim()).filter(Boolean);
     if (type === LIST && !options3.length) {
       notices.toast(t("settingsMore.valueData.writeOne"), true);
       return;
@@ -11285,11 +13086,11 @@
   function openClassifier(id) {
     const classifier = settingsMoreLegacy.classifiers().find((item) => item.id === id);
     if (!classifier) return;
-    const paint11 = () => {
+    const paint12 = () => {
       const body2 = document.getElementById("dbody");
       if (!body2) return;
       body2.innerHTML = classifierHtml(classifier, rightsOf(classifier));
-      bindClassifier(classifier, paint11, (value19) => {
+      bindClassifier(classifier, paint12, (value19) => {
         editValueData(value19, () => {
           void reloadClassifier(classifier).then(() => {
             void settingsMoreLegacy.reloadCatalogs();
@@ -11298,7 +13099,7 @@
         });
       });
     };
-    paint11();
+    paint12();
     const box = document.getElementById("dlg");
     if (box && !box.open) box.showModal();
   }
@@ -11313,17 +13114,17 @@
   function roleHint(value19) {
     return settingsMoreLegacy.stateRoles().find((role) => role[0] === value19.papel)?.[2] ?? t("settingsMore.states.noRoleHint");
   }
-  function rowHtml3(value19) {
+  function rowHtml4(value19) {
     const options3 = settingsMoreLegacy.stateRoles().map(([key, label]) => `<option value="${key}" ${value19.papel === key ? "selected" : ""}>${label}</option>`).join("");
     const title2 = value19.papel === INITIAL ? `title="${t("settingsMore.states.initialTitle")}"` : "";
     return `<div class="ajfila estfila" data-estid="${value19.id}"><div><b>${escapeHtml(value19.valor)}</b>
           <span class="sm">${escapeHtml(roleHint(value19))}</span></div>
         <div class="ajctl"><select data-estpapel="${value19.id}" aria-label="${t("settingsMore.states.roleOf", { name: escapeHtml(value19.valor) })}" ${title2}>${value19.papel ? "" : `<option value="" selected>${t("settingsMore.states.noRole")}</option>`}${options3}</select></div></div>`;
   }
-  function pageHtml2(states) {
+  function pageHtml3(states) {
     return `<div class="card estw">
       <p class="sm">${t("settingsMore.states.intro", { aVisit: escapeHtml(term("visita", { article: "una" })) })}</p>
-      ${states.length ? states.map(rowHtml3).join("") : `<p class="vacio">${t("settingsMore.states.none")}</p>`}</div>`;
+      ${states.length ? states.map(rowHtml4).join("") : `<p class="vacio">${t("settingsMore.states.none")}</p>`}</div>`;
   }
   async function readStates() {
     const { data: classifier } = await legacyDb().from("clasificadores").select("id").eq("papel", "estado_comercial").limit(1);
@@ -11355,10 +13156,10 @@
     return t("settingsMore.states.couldNotChange") + (error ? `: ${error.message ?? ""}` : "");
   }
   async function changeRole(states, select3) {
-    const value19 = states.find((state) => state.id === select3.dataset.estpapel), chosen3 = select3.value;
-    if (!value19 || !chosen3 || chosen3 === value19.papel || !await canChange(states, value19, select3)) return;
+    const value19 = states.find((state) => state.id === select3.dataset.estpapel), chosen4 = select3.value;
+    if (!value19 || !chosen4 || chosen4 === value19.papel || !await canChange(states, value19, select3)) return;
     select3.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("guardar_papel_estado", { p_id: value19.id, p_papel: chosen3 });
+    const { data: result, error } = await legacyDb().rpc("guardar_papel_estado", { p_id: value19.id, p_papel: chosen4 });
     if (error || !result?.ok) {
       select3.disabled = false;
       select3.value = value19.papel ?? "";
@@ -11384,7 +13185,7 @@
       return;
     }
     const active = states.filter((state) => state.activo !== false);
-    box.innerHTML = pageHtml2(active);
+    box.innerHTML = pageHtml3(active);
     box.querySelectorAll("[data-estpapel]").forEach((select3) => {
       select3.onchange = () => {
         void changeRole(active, select3);
@@ -11441,19 +13242,19 @@
         <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>${t("common.cancel")}</button><button type="button" class="btn" data-venok>${t("common.save")}</button></div></div>`;
   }
   async function save8(value19, item, box, button2) {
-    const chosen3 = [...box.querySelectorAll('[data-vene][aria-pressed="true"]')].map((chip) => chip.dataset.vene ?? ""), all2 = cardBaseLegacy.states().length;
+    const chosen4 = [...box.querySelectorAll('[data-vene][aria-pressed="true"]')].map((chip) => chip.dataset.vene ?? ""), all2 = cardBaseLegacy.states().length;
     button2.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("guardar_valor", { p: { id: value19.id, en_estados: chosen3.length === all2 ? [] : chosen3 } });
+    const { data: result, error } = await legacyDb().rpc("guardar_valor", { p: { id: value19.id, en_estados: chosen4.length === all2 ? [] : chosen4 } });
     button2.disabled = false;
     if (error || result?.ok === false) {
       notices.toast(t("settingsMore.couldNotSave"), true);
       return;
     }
-    value19.en_estados = chosen3.length && chosen3.length < all2 ? chosen3 : null;
+    value19.en_estados = chosen4.length && chosen4.length < all2 ? chosen4 : null;
     const label = item.querySelector("[data-ven]");
     if (label) label.textContent = statesText(value19.en_estados);
     box.remove();
-    notices.toast(value19.en_estados ? t("settingsMore.results.savedOnly", { name: value19.valor, states: chosen3.join(", ") }) : t("settingsMore.results.savedAll", { name: value19.valor }));
+    notices.toast(value19.en_estados ? t("settingsMore.results.savedOnly", { name: value19.valor, states: chosen4.join(", ") }) : t("settingsMore.results.savedAll", { name: value19.valor }));
   }
   function toggleBox(body2, item, value19) {
     const open2 = item.nextElementSibling?.classList.contains("venbox");
@@ -11712,14 +13513,14 @@
   // src/app/screens/settings/more/visit-material.ts
   var DEFAULT_MAX = 20;
   var MAX_LIMIT = 1e3;
-  var NUMBER = "numero";
+  var NUMBER2 = "numero";
   function portalHtml2(allowed) {
     return `<label class="opt mtpor"><input type="checkbox" data-mpp ${allowed ? "checked" : ""}> ${t("settingsMore.material.portal")}</label>
       <label class="mtcampo mtmax"><span class="sm">${t("settingsMore.material.max")}</span><input type="number" step="1" data-mpx value="${allowed ? allowed.max : DEFAULT_MAX}" ${allowed ? "" : "disabled"}></label>`;
   }
-  function rowHtml4(material, allowed, withPortal) {
-    const counted = material.dato_tipo === NUMBER;
-    return `<div class="matfila2 ${material.activo ? "" : "off"}" data-mv="${material.id}" data-mvv="${escapeHtml(material.valor)}" data-mdt0="${counted ? NUMBER : ""}">
+  function rowHtml5(material, allowed, withPortal) {
+    const counted = material.dato_tipo === NUMBER2;
+    return `<div class="matfila2 ${material.activo ? "" : "off"}" data-mv="${material.id}" data-mvv="${escapeHtml(material.valor)}" data-mdt0="${counted ? NUMBER2 : ""}">
       <b class="mtnom">${escapeHtml(material.valor)}</b>
       <label class="mtcampo"><span class="sm">${t("settingsMore.material.onVisit", { theVisit: term("visita", { article: "la" }) })}</span><select class="chico" data-mdt>
         <option value="numero" ${counted ? "selected" : ""}>${t("settingsMore.material.count")}</option>
@@ -11836,7 +13637,7 @@
     const list = document.querySelector("#cfgcuerpo .matlista");
     if (!list) return;
     list.classList.add("matlista2");
-    list.innerHTML = values2.map((value19) => rowHtml4(value19, allowed.find((item) => item.valor === value19.valor), withPortal)).join("") || `<div class="sm">${t("settingsMore.material.none")}</div>`;
+    list.innerHTML = values2.map((value19) => rowHtml5(value19, allowed.find((item) => item.valor === value19.valor), withPortal)).join("") || `<div class="sm">${t("settingsMore.material.none")}</div>`;
     if (values2.length) list.insertAdjacentHTML("afterend", `<div class="acts mtacts" style="justify-content:space-between;align-items:center">
       <span class="sm">${withPortal && !portal2?.material ? t("settingsMore.material.portalDefault") : ""}</span>
       <button class="btn" id="matguardar">${t("settingsMore.material.save")}</button></div>`);
@@ -11854,7 +13655,7 @@
     newClassifier: () => newClassifier,
     paintAudit: () => paintAudit,
     paintBillingLog: () => paintBillingLog,
-    paintClassifiers: () => paintClassifiers,
+    paintClassifiers: () => paintClassifiers2,
     paintCustomFieldsBlock: () => paintCustomFieldsBlock,
     paintPreferences: () => paintPreferences,
     paintProfile: () => paintProfile,
@@ -11897,7 +13698,7 @@
     fieldTable: (area) => CAMPO_TABLA[area],
     areaOfTable: (table) => Object.keys(CAMPO_TABLA).find((area) => CAMPO_TABLA[area] === table),
     fieldInput: (field10, value19) => campoInput(field10, value19),
-    fieldText: (field10, value19) => campoTexto(field10, value19),
+    fieldText: (field10, value19) => fieldText(field10, value19),
     testEnvironment: () => RPC_ORIG_FROM("entorno_pruebas"),
     refreshReason: (reason) => MOTIVO_REFRESCO[reason],
     edgeFunctions: () => db.functions,
@@ -11908,9 +13709,9 @@
       limpiarDatosLocales();
     },
     showLoading: (element2, text2) => {
-      cargando(element2, text2);
+      showLoading(element2, text2);
     },
-    skeletonCard: (text2) => skelCard(text2),
+    skeletonCard: (text2) => cardSkeleton(text2),
     /** The range chosen in a period box mounted with mountPeriod (the legacy box keeps it in a property of the element). */
     periodRange: (element2) => {
       const read2 = element2 ? Reflect.get(element2, "__rango") : void 0;
@@ -11955,7 +13756,7 @@
   var iconClass = (action) => action === REMOVED ? "w" : action === ADDED ? "o" : "";
   var iconText = (action) => action === ADDED ? "+" : action === REMOVED ? "−" : "✎";
   var when = (date) => new Date(date).toLocaleString("es", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  function rowHtml5(entry) {
+  function rowHtml6(entry) {
     return `<div class="item" style="cursor:default">
       <span class="ic ${iconClass(entry.accion)}">${iconText(entry.accion)}</span>
       <span class="tx"><b>${escapeHtml(entry.accion)} · ${escapeHtml(entityName2(entry.entidad))}</b>
@@ -11963,9 +13764,9 @@
         <span class="sm">${escapeHtml(cardSectionsLegacy.detailSummary(entry.detalle))}</span></span>${settingsLegacy.undoable(entry) ? `<button type="button" class="btn sec" data-audx="${entry.id}">${t("settings.audit.undo")}</button>` : ""}</div>`;
   }
   var selected = (id) => document.getElementById(id);
-  var chosen = (id) => selected(id)?.value ?? "";
+  var chosen2 = (id) => selected(id)?.value ?? "";
   function read(period) {
-    return callRpc("auditoria_lista", { p_entidad: chosen("aent") || null, p_usuario: chosen("ausr") || null, p_desde: period.desde, lim: LIMIT3 });
+    return callRpc("auditoria_lista", { p_entidad: chosen2("aent") || null, p_usuario: chosen2("ausr") || null, p_desde: period.desde, lim: LIMIT3 });
   }
   function bindUndo(list, period) {
     list.querySelectorAll("[data-audx]").forEach((button2) => {
@@ -11977,7 +13778,7 @@
     });
     const user = selected("ausr");
     settingsLegacy.undoPersonBox(document.getElementById("auddes"), {
-      userId: chosen("ausr"),
+      userId: chosen2("ausr"),
       from: period.desde,
       name: user?.selectedOptions[0]?.textContent ?? "",
       then: () => {
@@ -11994,7 +13795,7 @@
     const until = period.hasta;
     const entries = (data ?? []).filter((entry) => !until || String(entry.creado_en).slice(0, 10) <= until);
     count2.textContent = formatNumber(entries.length) + (entries.length === LIMIT3 ? "+" : "");
-    list.innerHTML = entries.map(rowHtml5).join("") || `<div class="vacio">${t("settings.audit.empty")}</div>`;
+    list.innerHTML = entries.map(rowHtml6).join("") || `<div class="vacio">${t("settings.audit.empty")}</div>`;
     bindUndo(list, period);
   }
   async function paintAudit() {
@@ -12019,7 +13820,7 @@
   // src/app/screens/settings/audit/billing-log.ts
   var LIMIT4 = 200;
   var when2 = (date) => new Date(date).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
-  var rowHtml6 = (event) => `<div class="dr" style="cursor:default"><span>${when2(event.fecha)}</span><span><b>${escapeHtml(event.tipo)}</b></span>
+  var rowHtml7 = (event) => `<div class="dr" style="cursor:default"><span>${when2(event.fecha)}</span><span><b>${escapeHtml(event.tipo)}</b></span>
       <span>${escapeHtml(orFallback(event.numero, "—"))}</span><span>${escapeHtml(orFallback(event.usuario, "—"))}</span><span class="sm corta">${escapeHtml(settingsLegacy.billingEventDetail(event.detalle))}</span></div>`;
   async function paintBillingLog() {
     settingsLegacy.showLoading(document.getElementById("fcuerpo"), t("settings.billingLog.loading"));
@@ -12029,7 +13830,7 @@
     const head = [t("settings.billingLog.date"), t("settings.billingLog.event"), t("settings.billingLog.invoice"), t("settings.billingLog.person"), t("settings.billingLog.detail")];
     box.innerHTML = `<div class="panel"><div class="cuenta">${t("settings.billingLog.intro")}</div>
     <div class="dgrid-wrap"><div class="dgrid evs"><div class="dh">${head.map((title2) => `<span>${title2}</span>`).join("")}</div>
-    ${(data ?? []).map(rowHtml6).join("") || `<div class="vacio">${t("settings.billingLog.empty")}</div>`}
+    ${(data ?? []).map(rowHtml7).join("") || `<div class="vacio">${t("settings.billingLog.empty")}</div>`}
     </div></div></div>`;
   }
 
@@ -12096,20 +13897,20 @@
     onCreated();
     settingsLegacy.reloadCatalogs();
   }
-  function paint3(values2, onCreated) {
+  function paint4(values2, onCreated) {
     const body2 = document.getElementById("dbody");
     if (!body2) return;
     body2.innerHTML = formHtml(values2);
     const read2 = () => [...body2.querySelectorAll("#ncv [data-ncv]")].map((input5) => input5.value);
     const more2 = document.getElementById("ncmas");
     if (more2) more2.onclick = () => {
-      paint3([...read2(), ""], onCreated);
+      paint4([...read2(), ""], onCreated);
     };
     body2.querySelectorAll("[data-ncx]").forEach((button2) => {
       button2.onclick = () => {
         const list = read2();
         list.splice(Number(button2.dataset.ncx), 1);
-        paint3(list, onCreated);
+        paint4(list, onCreated);
       };
     });
     const ok = document.getElementById("ncok2");
@@ -12118,7 +13919,7 @@
     };
   }
   function newClassifier(onCreated) {
-    paint3([""], onCreated);
+    paint4([""], onCreated);
     document.getElementById("dlg")?.showModal();
   }
 
@@ -12160,7 +13961,7 @@
     }
     return groups2;
   }
-  async function paintClassifiers() {
+  async function paintClassifiers2() {
     settingsLegacy.showLoading(document.getElementById("cfgcuerpo"), t("settings.classifiers.loading"));
     const { data } = await legacyDb().rpc("catalogos_todos");
     settingsLegacy.setClassifiers(data ?? []);
@@ -12177,7 +13978,7 @@
         const group = button2.dataset.grupo ?? "";
         if (folded2.has(group)) folded2.delete(group);
         else folded2.add(group);
-        void paintClassifiers();
+        void paintClassifiers2();
       };
     });
     box.querySelectorAll("[data-cat]").forEach((button2) => {
@@ -12188,20 +13989,20 @@
     const add2 = document.getElementById("cnuevo");
     if (add2) add2.onclick = () => {
       newClassifier(() => {
-        void paintClassifiers();
+        void paintClassifiers2();
       });
     };
   }
 
   // src/app/screens/settings/custom-fields/card.ts
   var keyName = (key) => key.replace(/_/g, " ").toLowerCase().replace(/^./, (letter) => letter.toUpperCase());
-  var blockHtml2 = (cells) => `<div class="campospers"><h3>${t("settings.customFields.title")}</h3><div class="cpgrid">${cells}</div></div>`;
+  var blockHtml3 = (cells) => `<div class="campospers"><h3>${t("settings.customFields.title")}</h3><div class="cpgrid">${cells}</div></div>`;
   function knownHtml(definitions2, values2, keys) {
     const ordered = [
       ...definitions2.filter((field10) => keys.includes(field10.clave)),
       ...keys.filter((key) => !definitions2.some((field10) => field10.clave === key)).map((key) => ({ clave: key, nombre: keyName(key) }))
     ];
-    return blockHtml2(ordered.map((field10) => `<div><span class="sm">${escapeHtml(field10.nombre)}</span><b>${escapeHtml(settingsLegacy.fieldText(field10, values2[field10.clave]))}</b></div>`).join(""));
+    return blockHtml3(ordered.map((field10) => `<div><span class="sm">${escapeHtml(field10.nombre)}</span><b>${escapeHtml(settingsLegacy.fieldText(field10, values2[field10.clave]))}</b></div>`).join(""));
   }
   var rawText = (value19) => typeof value19 === "object" ? JSON.stringify(value19) : String(value19);
   async function paintCustomFieldsBlock(table, id, container) {
@@ -12210,7 +14011,7 @@
     const values2 = data?.clasificadores ?? {}, keys = Object.keys(values2).filter((key) => values2[key] !== "" && values2[key] !== null && values2[key] !== void 0);
     const area = settingsLegacy.areaOfTable(table), definitions2 = area ? settingsLegacy.fields()[area] ?? [] : [];
     if (!keys.length || container.querySelector(".campospers")) return;
-    container.insertAdjacentHTML("beforeend", definitions2.length ? knownHtml(definitions2, values2, keys) : blockHtml2(keys.map((key) => `<div><span class="sm">${escapeHtml(keyName(key))}</span><b>${escapeHtml(rawText(values2[key]))}</b></div>`).join("")));
+    container.insertAdjacentHTML("beforeend", definitions2.length ? knownHtml(definitions2, values2, keys) : blockHtml3(keys.map((key) => `<div><span class="sm">${escapeHtml(keyName(key))}</span><b>${escapeHtml(rawText(values2[key]))}</b></div>`).join("")));
   }
   function bindCustomFieldFilters(zone, state, onChange) {
     zone.querySelectorAll("[data-fcp]").forEach((select3) => {
@@ -12313,14 +14114,14 @@
   var SHOWN_ADDRESS_PARTS = 3;
   var KEYS = { start: "salida", end: "llegada" };
   var located = (text2) => `<b style="color:var(--ok)">${t("settings.preferences.located")}</b> ${text2}`;
-  function placeCard(key, place2, title2, hint) {
+  function placeCard(key, place3, title2, hint) {
     return `<div class="card" style="padding-top:16px;padding-bottom:16px">
     <h2 style="padding:0">${title2}</h2><p class="sm" style="padding:0">${hint}</p>
     <div class="g2" style="margin-top:10px">
-      <div><label>${t("settings.preferences.name")}</label><input data-pn="${key}" value="${escapeHtml(place2?.nombre ?? "")}" placeholder="${t("settings.preferences.namePlaceholder")}"></div>
-      <div><label>${t("settings.preferences.address")}</label><input data-pd="${key}" value="${escapeHtml(place2?.dir ?? "")}" placeholder="${t("settings.preferences.addressPlaceholder")}"></div>
+      <div><label>${t("settings.preferences.name")}</label><input data-pn="${key}" value="${escapeHtml(place3?.nombre ?? "")}" placeholder="${t("settings.preferences.namePlaceholder")}"></div>
+      <div><label>${t("settings.preferences.address")}</label><input data-pd="${key}" value="${escapeHtml(place3?.dir ?? "")}" placeholder="${t("settings.preferences.addressPlaceholder")}"></div>
     </div>
-    <div class="sm" style="margin-top:8px" data-pe="${key}">${place2?.lat ? located(escapeHtml(place2.dir)) : `<span style="color:var(--warn)">${t("settings.preferences.notLocated")}</span>`}</div>
+    <div class="sm" style="margin-top:8px" data-pe="${key}">${place3?.lat ? located(escapeHtml(place3.dir)) : `<span style="color:var(--warn)">${t("settings.preferences.notLocated")}</span>`}</div>
     <div class="acts"><button class="btn sec" data-pg="${key}">${t("settings.preferences.findAddress")}</button>
       <button class="btn sec" data-pgps="${key}">${t("settings.preferences.useLocation")}</button></div></div>`;
   }
@@ -12541,10 +14342,10 @@
   }
   async function refreshStatus() {
     const { data: environment } = await settingsLegacy.testEnvironment().select("*").eq("id", 1).single();
-    const line2 = document.getElementById("prrefresco");
-    if (!line2 || !environment) return null;
-    line2.textContent = statusText(environment);
-    line2.classList.toggle("falta", environment.refresco_estado === FAILED);
+    const line3 = document.getElementById("prrefresco");
+    if (!line3 || !environment) return null;
+    line3.textContent = statusText(environment);
+    line3.classList.toggle("falta", environment.refresco_estado === FAILED);
     const bring = document.getElementById("prtraer");
     if (bring) bring.disabled = running(environment);
     if (running(environment) && !watcher) watch();
@@ -12576,7 +14377,7 @@
     void refreshStatus();
   }
   var when3 = (date) => date ? new Date(date).toLocaleString("es", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
-  function pageHtml3(environment, allowed) {
+  function pageHtml4(environment, allowed) {
     const actions = allowed ? `<div class="acts" style="justify-content:flex-start;flex-wrap:wrap">
         <button type="button" class="btn" id="prtraer">${t("settings.testEnvironment.bring")}</button>
         <button type="button" class="btn sec" id="prreset">${t("settings.testEnvironment.reset")}</button></div>
@@ -12599,7 +14400,7 @@
     ]);
     if (!document.getElementById("cfgcuerpo")) return;
     const allowed = cardSectionsLegacy.can(ADMINISTER2) && (error ? true : canReset === true);
-    box.innerHTML = pageHtml3(environment, allowed);
+    box.innerHTML = pageHtml4(environment, allowed);
     const bring = document.getElementById("prtraer");
     if (bring) bring.onclick = () => {
       void bringProduction(bring);
@@ -12629,7 +14430,7 @@
   var LONG_LENGTH = 16;
   var MAX_LEVEL = 4;
   var LEVELS = ["access.strength.veryWeak", "access.strength.weak", "access.strength.fair", "access.strength.strong", "access.strength.veryStrong"];
-  var COLOURS = ["#C24141", "#D9480F", "#D97706", "#12805C", "#0F6E4C"];
+  var COLOURS2 = ["#C24141", "#D9480F", "#D97706", "#12805C", "#0F6E4C"];
   var CHARACTER_KINDS = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/];
   var OBVIOUS = /^(1234|abcd|qwer|contrase|password|dlc)/i;
   function passwordStrength(password) {
@@ -12649,7 +14450,7 @@
   var meterHtml = () => `<div class="clavemed"><div class="clavebar"><i></i><i></i><i></i><i></i></div><span class="clavetxt"></span>
     <ul class="clavereq"><li data-r="len">${t("access.strength.length")}</li><li data-r="may">${t("access.strength.cases")}</li><li data-r="num">${t("access.strength.number")}</li><li data-r="sim">${t("access.strength.symbol")}</li></ul></div>`;
   function paintMeter(meter, password) {
-    const strength = passwordStrength(password), colour = COLOURS[Math.max(0, strength.level)] ?? "";
+    const strength = passwordStrength(password), colour = COLOURS2[Math.max(0, strength.level)] ?? "";
     meter.querySelectorAll(".clavebar i").forEach((bar2, index) => {
       bar2.style.background = password && index < Math.max(1, strength.level) ? colour : "";
     });
@@ -12662,10 +14463,10 @@
     meter.querySelectorAll("[data-r]").forEach((item) => item.classList.toggle("ok", Boolean(met[item.dataset.r ?? ""])));
   }
   function paintRepeat(repeat, password) {
-    const line2 = repeat.nextElementSibling, same = Boolean(repeat.value) && repeat.value === password;
-    if (line2) {
-      line2.textContent = !repeat.value ? "" : t(same ? "access.strength.match" : "access.strength.noMatch");
-      line2.style.color = same ? "var(--ok)" : "var(--dang)";
+    const line3 = repeat.nextElementSibling, same = Boolean(repeat.value) && repeat.value === password;
+    if (line3) {
+      line3.textContent = !repeat.value ? "" : t(same ? "access.strength.match" : "access.strength.noMatch");
+      line3.style.color = same ? "var(--ok)" : "var(--dang)";
     }
     return same;
   }
@@ -12728,8 +14529,8 @@
           message.textContent = sent;
         },
         err: (failed) => {
-          const line2 = message.querySelector("span");
-          if (line2) line2.textContent = failed;
+          const line3 = message.querySelector("span");
+          if (line3) line3.textContent = failed;
           button2.disabled = false;
         }
       });
@@ -12796,8 +14597,8 @@
     document.getElementById("bootsplash")?.classList.add("hide");
     document.getElementById("app")?.classList.add("hide");
     document.getElementById("login")?.classList.remove("hide");
-    const line2 = document.getElementById("lmsg");
-    if (message && line2) line2.textContent = message;
+    const line3 = document.getElementById("lmsg");
+    if (message && line3) line3.textContent = message;
     restLegacy.setAppVisible(false);
   }
 
@@ -12838,7 +14639,7 @@
     nextWorkingDay: () => siguienteLaborable(),
     mapLibrary: () => rmLib(),
     streetRoute: (points, start2) => rmRuta(points, start2),
-    durationText: (minutes) => rmDur(minutes),
+    durationText: (minutes2) => rmDur(minutes2),
     reasonText: (reason) => RM_MOTIVO[reason ?? ""] ?? RM_MOTIVO.servicio ?? "",
     palette: () => RM_PAL,
     map: () => RM_MAPA,
@@ -12850,9 +14651,9 @@
       RN_MAPA_P = pending;
     },
     improveFields: (root) => {
-      mejorarCampos(root);
+      enhanceFields(root);
     },
-    askField: (title2, type, value19, label) => pedirCampo(title2, type, value19, label),
+    askField: (title2, type, value19, label) => askField(title2, type, value19, label),
     blockedDays: (from, to) => bloqueadosSemana(from, to),
     firstOpenState: () => CITA_ABIERTA[0] ?? ""
   };
@@ -12968,7 +14769,7 @@
     if (windows?.length && !windows.some(([from, to]) => start2 >= from && start2 + length <= to)) return t("routes.hours.outOfHours", { hours: yourDayLegacy.windowsText(windows) });
     return "";
   }
-  function startOf(arrival, fixed2, windows, length) {
+  function startOf2(arrival, fixed2, windows, length) {
     if (fixed2 !== null) return Math.max(arrival, fixed2);
     const window2 = windows?.find(([, to]) => arrival <= to - length);
     return window2 && arrival < window2[0] ? window2[0] : arrival;
@@ -12985,7 +14786,7 @@
     const settings2 = routesLegacy.settings(), length = nonZeroOr(settings2.visita, DEFAULT_VISIT), point = hasLocation(member) ? [Number(member.lat), Number(member.lon)] : null;
     const windows = windowsOf(member, context.isoDate), { trip, same } = tripTo(walk, point, nonZeroOr(settings2.parada, 0));
     const fixedTime = context.fixed?.[member.id], fixed2 = fixedTime ? routesLegacy.minutesOf(fixedTime) : null;
-    const start2 = startOf(walk.time + trip, fixed2, windows, length);
+    const start2 = startOf2(walk.time + trip, fixed2, windows, length);
     if (point) walk.pos = point;
     walk.time = start2 + length;
     return { m: member, i: index, ini: start2, fin: start2 + length, viaje: trip, ven: windows, aviso: warningOf2(point, windows, start2, length), fija: fixed2 !== null, mismo: same };
@@ -13010,18 +14811,18 @@
     const places = [];
     members2.filter(hasLocation).forEach((member) => {
       const lat = Number(member.lat), lon = Number(member.lon);
-      if (!places.some((place2) => place2.lat === lat && place2.lon === lon)) places.push({ lat, lon });
+      if (!places.some((place3) => place3.lat === lat && place3.lon === lon)) places.push({ lat, lon });
     });
     return places;
   }
   function routeSketch(members2) {
     const places = placesOf(members2);
     if (!places.length) return `<div class="rnsin">${t("routes.sketch.noLocations")}</div>`;
-    const lats = places.map((place2) => place2.lat), lons = places.map((place2) => place2.lon);
+    const lats = places.map((place3) => place3.lat), lons = places.map((place3) => place3.lon);
     const south = Math.min(...lats), north = Math.max(...lats), west = Math.min(...lons), east = Math.max(...lons), squeeze = Math.cos(south * Math.PI / 180);
     const scale2 = Math.min((WIDTH - 2 * PADDING) / Math.max(1e-6, (east - west) * squeeze), (HEIGHT - PADDING - PADDING_TOP) / Math.max(1e-6, north - south));
     const left = (WIDTH - (east - west) * squeeze * scale2) / 2, top = (HEIGHT - PADDING_TOP - PADDING - (north - south) * scale2) / 2 + PADDING;
-    const points = places.map((place2) => [left + (place2.lon - west) * squeeze * scale2, HEIGHT - top - (place2.lat - south) * scale2]);
+    const points = places.map((place3) => [left + (place3.lon - west) * squeeze * scale2, HEIGHT - top - (place3.lat - south) * scale2]);
     return `<svg viewBox="0 0 ${WIDTH} ${HEIGHT}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><polyline points="${points.map((point) => point.map(fixed).join(",")).join(" ")}" fill="none" stroke="#3F82C0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
     ${points.map((point, index) => `<circle cx="${fixed(point[0])}" cy="${fixed(point[1])}" r="10.5" fill="#17457A" stroke="#fff" stroke-width="2.5"/><text x="${fixed(point[0])}" y="${fixed(point[1] + 4)}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="Manrope, sans-serif">${index + 1}</text>`).join("")}</svg>`;
   }
@@ -13176,7 +14977,7 @@
   function moveButtons(index, count2) {
     return `<button type="button" data-rnmv="-1|${index}" aria-label="${t("routes.order.up")}" ${index ? "" : "disabled"}>${routeIcon("up")}</button><button type="button" data-rnmv="1|${index}" aria-label="${t("routes.order.down")}" ${index < count2 - 1 ? "" : "disabled"}>${routeIcon("down")}</button>`;
   }
-  function rowHtml7(row4, index, count2) {
+  function rowHtml8(row4, index, count2) {
     const note = noteOf(row4);
     return `${tripHtml(row4, index)}<div class="rnpar ${row4.aviso ? "aviso" : ""}">
           <span class="n">${index + 1}</span>
@@ -13198,7 +14999,7 @@
         <span class="sm">${escapeHtml(t("routes.order.from", { place: orFallback(home.nombre, t("routes.order.yourStart")), date: formatLongDate(isoDate) }))}</span></div>
         <button class="btn sec" type="button" id="rnauto">${routeIcon("wand")} ${t(draft.ordenManual ? "routes.order.backToAuto" : "routes.order.auto")}</button></div>
       <p class="sm rnordtx">${t(draft.ordenManual ? "routes.order.manualText" : "routes.order.autoText")} ${t("routes.order.howTo")}</p>
-      <div class="rnlst">${hours.filas.map((row4, index) => rowHtml7(row4, index, hours.filas.length)).join("")}</div></div>
+      <div class="rnlst">${hours.filas.map((row4, index) => rowHtml8(row4, index, hours.filas.length)).join("")}</div></div>
     ${summaryHtml2(draft, hours)}</div>
     ${stepFooter(t("routes.order.mapNext"), `<button class="btn sec" type="button" id="rnant2">${t("routes.order.previous")}</button><button class="btn" type="button" id="rnsig2">${t("routes.order.nextStep")}</button>`)}`;
   }
@@ -13351,17 +15152,17 @@
     set("fill-color", palette.zona);
     set("fill-opacity", 0.6);
   }
-  function paintLine(id, paint11, palette) {
+  function paintLine(id, paint12, palette) {
     if (/water|river|stream|canal/i.test(id)) {
-      paint11.set("line-color", palette.agua);
+      paint12.set("line-color", palette.agua);
       return;
     }
     if (/rail|ferry|aeroway|boundary|admin/i.test(id)) {
-      paint11.hide();
+      paint12.hide();
       return;
     }
     const main = /motorway|trunk|primary/i.test(id);
-    paint11.set("line-color", /casing/i.test(id) ? main ? palette.viaBorde : palette.borde : main ? palette.via : palette.calle);
+    paint12.set("line-color", /casing/i.test(id) ? main ? palette.viaBorde : palette.borde : main ? palette.via : palette.calle);
   }
   function restyle(map2) {
     const palette = routesLegacy.palette();
@@ -13435,10 +15236,10 @@
       marker.style.setProperty("--c", ROUTE_COLOUR);
       marker.innerHTML = `<span>${group.numbers.length > 2 ? `${group.numbers[0] ?? ""}–${group.numbers[group.numbers.length - 1] ?? ""}` : group.numbers.join("·")}</span>`;
       marker.title = group.member.nombre;
-      const pick = layers.onPick;
-      if (pick) marker.onclick = (event) => {
+      const pick2 = layers.onPick;
+      if (pick2) marker.onclick = (event) => {
         event.stopPropagation();
-        pick(group.member);
+        pick2(group.member);
       };
       map2.__mk.push(new library.Marker({ element: marker, anchor: "bottom" }).setLngLat([group.lon, group.lat]).addTo(map2));
     });
@@ -13503,12 +15304,12 @@
   }
   var dayTitle = (isoDate) => t("routes.preview.dayTitle", { date: capitalise(formatLongDate(isoDate)) });
   function timelineHtml(draft, hours) {
-    const home = routesLegacy.start(), line2 = (time, text2) => `<div class="rntli viaje"><span class="h">${time}</span><span class="l"></span><span class="t">${text2}</span></div>`;
-    const rows = hours.filas.map((row4, index) => `${index && !row4.mismo && row4.viaje ? line2("", t("routes.preview.driving", { minutes: Math.round(row4.viaje) })) : ""}
+    const home = routesLegacy.start(), line3 = (time, text2) => `<div class="rntli viaje"><span class="h">${time}</span><span class="l"></span><span class="t">${text2}</span></div>`;
+    const rows = hours.filas.map((row4, index) => `${index && !row4.mismo && row4.viaje ? line3("", t("routes.preview.driving", { minutes: Math.round(row4.viaje) })) : ""}
         <div class="rntli"><span class="h">${formatMinutes(row4.ini)}</span><span class="l"><i></i></span><span class="t"><b>${index + 1}. ${escapeHtml(row4.m.nombre)}</b><span class="sm">${escapeHtml(orFallback(row4.m.centro_nombre, titleCase(row4.m.municipio)))}${row4.aviso ? ` · <span class="rnav">${escapeHtml(row4.aviso)}</span>` : ""}</span></span></div>`).join("");
-    return `${line2(formatMinutes(routesLegacy.minutesOf(orFallback(draft.salida, "09:00")) ?? 0), t("routes.preview.leave", { place: escapeHtml(orFallback(home.nombre, t("routes.order.yourStart"))) }))}
+    return `${line3(formatMinutes(routesLegacy.minutesOf(orFallback(draft.salida, "09:00")) ?? 0), t("routes.preview.leave", { place: escapeHtml(orFallback(home.nombre, t("routes.order.yourStart"))) }))}
       ${rows}
-      ${line2(formatMinutes(hours.fin), t("routes.preview.lastVisit", { visit: term("visita") }))}`;
+      ${line3(formatMinutes(hours.fin), t("routes.preview.lastVisit", { visit: term("visita") }))}`;
   }
   var saveLabel2 = (draft) => t(draft.rep ? "routes.preview.saveToAgenda" : "routes.preview.saveChooseDay");
   function stepHtml2(draft, isoDate) {
@@ -13664,7 +15465,7 @@
   // src/app/screens/routes/step-who.ts
   var SEARCH_LIMIT = 200;
   var SHOWN2 = 120;
-  var SEARCH_WAIT_MS = 300;
+  var SEARCH_WAIT_MS2 = 300;
   async function search(draft) {
     const filters = draft.fil, day = draft.rep?.dia;
     const { data } = await legacyDb().rpc("buscar_cuentas", {
@@ -13698,18 +15499,18 @@
     const hours = member.dias[day];
     return hours ? t("routes.who.attends", { hours: escapeHtml(String(hours)) }) : t("routes.who.notAttending", { day: weekdayName2(day) });
   }
-  function optionHtml(member, chosen3, day) {
-    return `<button type="button" class="rnopt ${chosen3 ? "on" : ""}" data-rnm="${member.id}" aria-pressed="${String(chosen3)}">
-      <span class="ck">${chosen3 ? routeIcon("check") : ""}</span>
+  function optionHtml(member, chosen4, day) {
+    return `<button type="button" class="rnopt ${chosen4 ? "on" : ""}" data-rnm="${member.id}" aria-pressed="${String(chosen4)}">
+      <span class="ck">${chosen4 ? routeIcon("check") : ""}</span>
       <span class="tx"><b>${escapeHtml(member.nombre)}</b><span class="sm">${escapeHtml([member.centro_nombre, titleCase(member.municipio)].filter(Boolean).join(" · "))}${attendText(member, day)}</span></span>
       <span class="tag ${member.urgente ? "u" : ""}">${member.urgente ? t("routes.who.urgentTag") : escapeHtml(member.estado_comercial ?? "")}</span></button>`;
   }
   function paintList2() {
     const box = document.getElementById("rnres"), draft = currentDraft();
     if (!box || !draft) return;
-    const chosen3 = new Set(draft.ms.map((member) => member.id)), day = draft.rep?.dia;
+    const chosen4 = new Set(draft.ms.map((member) => member.id)), day = draft.rep?.dia;
     const list = [...draft.ms.filter((member) => !draft.res.some((found) => found.id === member.id)), ...draft.res];
-    box.innerHTML = list.length ? list.slice(0, SHOWN2).map((member) => optionHtml(member, chosen3.has(member.id), day)).join("") : `<div class="vacio">${t("routes.who.noneWithFilters", { professionals: term("medico", { number: "p" }) })}</div>`;
+    box.innerHTML = list.length ? list.slice(0, SHOWN2).map((member) => optionHtml(member, chosen4.has(member.id), day)).join("") : `<div class="vacio">${t("routes.who.noneWithFilters", { professionals: term("medico", { number: "p" }) })}</div>`;
     box.querySelectorAll("[data-rnm]").forEach((button2) => {
       button2.onclick = () => {
         const member = list.find((item) => item.id === button2.dataset.rnm);
@@ -13735,12 +15536,12 @@
     await mapReady(element2);
     const map2 = routesLegacy.map(), draft = currentDraft();
     if (!draft || !map2?.__ml || map2.getContainer() !== document.getElementById("rnmc")) return;
-    const chosen3 = new Set(draft.ms.map((member) => member.id)), home = routesLegacy.start();
-    const line2 = [
+    const chosen4 = new Set(draft.ms.map((member) => member.id)), home = routesLegacy.start();
+    const line3 = [
       ...home.lat !== null && home.lat !== void 0 && draft.ms.length ? [[Number(home.lon), Number(home.lat)]] : [],
       ...draft.ms.filter(hasLocation).map((member) => [Number(member.lon), Number(member.lat)])
     ];
-    paintLayers(map2, map2.__ml, { members: draft.ms, others: draft.res.filter((member) => !chosen3.has(member.id)), line: line2, fit: !map2.__ya, onPick: toggle2 });
+    paintLayers(map2, map2.__ml, { members: draft.ms, others: draft.res.filter((member) => !chosen4.has(member.id)), line: line3, fit: !map2.__ya, onPick: toggle2 });
   }
   function toggle2(member) {
     const draft = currentDraft();
@@ -13780,14 +15581,14 @@
     void paintMap2();
   };
   function bind10(box, draft) {
-    let timer;
+    let timer2;
     const query = document.getElementById("rnq");
     if (query) query.oninput = () => {
       draft.q = query.value;
-      clearTimeout(timer);
-      timer = setTimeout(() => {
+      clearTimeout(timer2);
+      timer2 = setTimeout(() => {
         void refresh2(draft);
-      }, SEARCH_WAIT_MS);
+      }, SEARCH_WAIT_MS2);
     };
     box.querySelectorAll("[data-rnf]").forEach((button2) => {
       button2.onclick = () => {
@@ -13913,7 +15714,7 @@
         <div class="rnacts"><button class="btn chico" type="button" data-rnag="${index}">${t("routes.list.toAgenda")}</button>
           ${actions}</div></article>`;
   }
-  function pageHtml4(cards) {
+  function pageHtml5(cards) {
     return `
     <div class="saludo"><div><h1>${t("routes.list.title")}</h1><div class="fecha">${t("routes.list.subtitle")}</div></div>
       <div class="acts" style="margin:0"><button class="btn" id="rnueva">${t("routes.list.newRoute")}</button></div></div>
@@ -13972,7 +15773,7 @@
     const cards = await Promise.all(routes2.map(async (route) => ({ r: route, ms: await routeMembers(route) })));
     routesLegacy.setCards(cards);
     if (!view) return;
-    view.innerHTML = pageHtml4(cards);
+    view.innerHTML = pageHtml5(cards);
     bind11(view, cards);
   }
 
@@ -14024,9 +15825,6 @@
     reload: () => {
       void cargarVentas();
     },
-    restoreFilters: (root) => {
-      filtrosRestaurar(root);
-    },
     paintOperations: () => {
       void pintarOperativa();
     },
@@ -14041,8 +15839,8 @@
     paymentState: (order) => cobroDe(order),
     channelLabel: (order, total2) => etiquetaCanal(order, total2),
     paymentMethods: () => CAT.forma_pago ?? [],
-    fieldColumns: () => clasVisibles("pedido"),
-    fieldCells: (fields, values2) => clasCeldas(fields, values2)
+    fieldColumns: () => visibleFields("pedido"),
+    fieldCells: (fields, values2) => columnCells(fields, values2)
   };
   var orderSheetLegacy = {
     whileLoading: (work) => ventanaCargando(work),
@@ -14062,7 +15860,7 @@
     saveFields: (read2, id) => camposGuardar(read2, id),
     loadPdf: () => cargarJsPDF(),
     appName: () => nombreApp(),
-    askText: (message, value19, options3) => pedirTexto(message, value19, options3)
+    askText: (message, value19, options3) => askText(message, value19, options3)
   };
   var orderMailLegacy = {
     template: (kind, field10, values2) => plantillaCorreo(kind, field10, varsCorreo(values2)),
@@ -14155,17 +15953,17 @@
     forgetShownAccount: () => {
       FICHA_ID = null;
     },
-    visibleFieldColumns: () => clasVisibles("cliente"),
-    fieldHeaders: (fields) => clasCabeceras(fields),
+    visibleFieldColumns: () => visibleFields("cliente"),
+    fieldHeaders: (fields) => columnHeaders(fields),
     widenGrid: (grid, count2) => {
-      clasRejilla(grid, count2);
+      widenGrid(grid, count2);
     },
     fieldFilters: (state) => camposFiltros("cliente", state, "pfcp"),
     bindFieldFilters: (zone, state, onChange) => {
       camposFiltrosActivar(zone, state, onChange);
     },
     showLoading: (element2, text2) => {
-      cargando(element2, text2);
+      showLoading(element2, text2);
     },
     clearModules: (except) => {
       vaciarModulos(except);
@@ -14187,8 +15985,8 @@
   var PENDING_PAYMENT = "Pendiente de cobro";
   var round2 = (value19) => Math.round((Number(value19) || 0) * 100) / 100;
   var euros = (value19) => formatCurrency(round2(value19));
-  function lineBreakdown(line2) {
-    const gross = Number(line2.importe) || 0, base = gross * (1 - (Number(line2.descuento) || 0) / 100), vat = base * (Number(line2.iva) || 0) / 100;
+  function lineBreakdown(line3) {
+    const gross = Number(line3.importe) || 0, base = gross * (1 - (Number(line3.descuento) || 0) / 100), vat = base * (Number(line3.iva) || 0) / 100;
     return { bruto: gross, base, iva: vat, total: base + vat };
   }
   function shippingTotals(shipping) {
@@ -14197,7 +15995,7 @@
     return { con: withVat2, iva: rate, base, nombre: shipping.nombre ?? t("orders.totals.shipping"), ivaImp: withVat2 - base };
   }
   function orderTotals(lines2, discount, discountType, shipping) {
-    const items = lines2.map((line2) => ({ base: (Number(line2.importe) || 0) * (1 - (Number(line2.descuento) || 0) / 100), rate: Number(line2.iva) || 0, units: Number(line2.unidades) || 0 }));
+    const items = lines2.map((line3) => ({ base: (Number(line3.importe) || 0) * (1 - (Number(line3.descuento) || 0) / 100), rate: Number(line3.iva) || 0, units: Number(line3.unidades) || 0 }));
     const gross = sum(items.map((item) => item.base));
     const factor = !Number(discount) || !gross ? 1 : discountType === "importe" ? Math.max(0, 1 - discount / gross) : Math.max(0, 1 - discount / 100);
     const byRate = {};
@@ -14369,14 +16167,14 @@
       };
     });
   }
-  var rowHtml8 = (item) => `<div class="ajfila disfila${item.activo ? "" : " disoff"}" data-disid="${item.id}">
+  var rowHtml9 = (item) => `<div class="ajfila disfila${item.activo ? "" : " disoff"}" data-disid="${item.id}">
       <div><b>${escapeHtml(item.nombre)}${item.activo ? "" : ` <span class="pill">${t("orders.distributors.notUsed")}</span>`}</b>
         <span class="sm">${[item.email, item.telefono].filter((text2) => Boolean(text2)).map(escapeHtml).join(" · ") || t("orders.distributors.noContact")}${item.nota ? ` · ${escapeHtml(item.nota)}` : ""}</span></div>
       <div class="ajctl"><button type="button" class="btn sec" data-distrf="${item.id}">${t("orders.distributors.transfers")}</button><button type="button" class="btn sec" data-dised="${item.id}">${t("orders.distributors.edit")}</button>
         <button type="button" class="btn sec" data-disact="${item.id}">${t(item.activo ? "orders.distributors.stopUsing" : "orders.distributors.useAgain")}</button></div></div>`;
-  function pageHtml5() {
+  function pageHtml6() {
     const used = all.filter((item) => item.activo), unused = all.filter((item) => !item.activo);
-    const list = all.length ? used.map(rowHtml8).join("") + (unused.length ? `<h3 class="dissub">${t("orders.distributors.noLongerUsed")}</h3>${unused.map(rowHtml8).join("")}` : "") : `<p class="vacio" id="disvacio">${t("orders.distributors.none")}</p>`;
+    const list = all.length ? used.map(rowHtml9).join("") + (unused.length ? `<h3 class="dissub">${t("orders.distributors.noLongerUsed")}</h3>${unused.map(rowHtml9).join("")}` : "") : `<p class="vacio" id="disvacio">${t("orders.distributors.none")}</p>`;
     return `<div class="card disw">
       <div class="discab"><p class="sm">${t("orders.distributors.hint")}</p>
         <button type="button" class="btn" id="disnuevo">${t("orders.distributors.new")}</button></div>
@@ -14430,7 +16228,7 @@
       return;
     }
     all = data ?? [];
-    box.innerHTML = pageHtml5();
+    box.innerHTML = pageHtml6();
     bind12(box);
   }
 
@@ -14500,7 +16298,7 @@
     if (row4.origen === "web") return ` · <span class="pweb">${t("orders.list.webTag")}</span>`;
     return row4.origen === "portal" ? ` · <span class="pweb">${t("orders.list.portalTag")}</span>` : "";
   }
-  function rowHtml9(row4, fields) {
+  function rowHtml10(row4, fields) {
     const amounts = permissions.canSeeAmounts(), reference2 = orFallback(row4.factura, row4.numero ?? "");
     return `<button class="dr" data-ped="${row4.id}" style="${row4.estado === STATES5.voided ? "opacity:.55" : ""}">
       <span>${formatShortDate(row4.fecha)}${reference2 ? `<span class="sm">${escapeHtml(reference2)}</span>` : ""}</span>
@@ -14517,7 +16315,7 @@
     return `<div class="dgrid-wrap"><div class="dgrid peds2 ${amounts ? "" : "sinimp"}">
     <div class="dh"><span>${t("orders.list.date")}</span><span>${t("orders.list.customer")}</span><span>${term("medico", { capital: "C" })}</span><span>${t("orders.list.salesperson")}</span><span>${t("orders.list.products")}</span>
       <span class="num">${t("orders.list.unitsShort")}</span>${amounts ? `<span class="num">${t("orders.list.baseShort")}</span><span class="num">${t("orders.list.totalShort")}</span>` : ""}<span>${t("orders.list.state")}</span><span>${t("orders.list.operations")}</span><span>${t("orders.list.notes")}</span>${customersLegacy.fieldHeaders(fields)}</div>
-    ${rows.map((row4) => rowHtml9(row4, fields)).join("")}
+    ${rows.map((row4) => rowHtml10(row4, fields)).join("")}
   </div></div>`;
   }
   function paintPages(list, total2) {
@@ -14537,7 +16335,7 @@
       }
     });
   }
-  function paint4(list, data) {
+  function paint5(list, data) {
     const rows = data.filas ?? [], fields = ordersLegacy.fieldColumns();
     ordersLegacy.setRows(rows);
     const totals = document.getElementById("ptotales");
@@ -14554,7 +16352,7 @@
   async function paintOrderList() {
     if (!document.getElementById("pedlista") || !document.getElementById("pper") || !document.getElementById("pcanal")) return;
     addExtraFilters();
-    ordersLegacy.restoreFilters(document.getElementById("v-ventas"));
+    restoreFilters(document.getElementById("v-ventas"));
     const query = params(), loading2 = document.getElementById("pedlista");
     if (loading2 && !loading2.querySelector(".dgrid")) customersLegacy.showLoading(loading2, t("orders.list.loading"));
     const result = await cachedRpc("pedidos_pagina", query, `pedidos-${JSON.stringify(query)}`);
@@ -14565,7 +16363,7 @@
       list.innerHTML = `<div class="vacio">${t("orders.list.couldNotLoad", { error: error ? `: ${escapeHtml(error.message)}` : "" })}</div>`;
       return;
     }
-    paint4(list, result.data);
+    paint5(list, result.data);
     if (result.cache) showCacheNotice(list, result.fecha);
   }
 
@@ -14618,15 +16416,15 @@
           <div><label for="cpprev">${t("purchases.editor.expected")}</label><input id="cpprev" type="date" value="${escapeHtml(purchase.fecha_prevista ?? "")}" ${off}></div></div>
       </div>`;
   }
-  function lineHtml(editor, line2, index) {
+  function lineHtml(editor, line3, index) {
     const off = disabled(editor);
-    const products3 = purchasesLegacy.products().map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("");
-    const received = editor.id ? `<label>${t("purchases.editor.received")}</label><div class="cprec">${t("purchases.editor.receivedOf", { received: formatNumber(line2.recibidas ?? 0), units: formatNumber(line2.unidades) })}</div>` : "";
+    const products3 = purchasesLegacy.products().map((product) => `<option value="${product.id}" ${product.id === line3.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("");
+    const received = editor.id ? `<label>${t("purchases.editor.received")}</label><div class="cprec">${t("purchases.editor.receivedOf", { received: formatNumber(line3.recibidas ?? 0), units: formatNumber(line3.unidades) })}</div>` : "";
     const remove7 = editor.editable && editor.lines.length > 1 ? `<button type="button" class="btn sec" data-clx="${index}" aria-label="${t("purchases.editor.remove")}">✕</button>` : "";
     return `<div class="lin"><div class="lrow cprow">
         <div><label>${t("purchases.editor.product")}</label><select data-cl="${index}|producto_id" ${off}>${products3}</select></div>
-        <div><label>${t("purchases.editor.units")}</label><input type="number" min="1" data-cl="${index}|unidades" value="${line2.unidades}" ${off}></div>
-        <div><label>${t("purchases.editor.unitCost")}</label><input type="number" step="0.0001" min="0" data-cl="${index}|coste_unitario" value="${line2.coste_unitario ?? ""}" ${off}></div>
+        <div><label>${t("purchases.editor.units")}</label><input type="number" min="1" data-cl="${index}|unidades" value="${line3.unidades}" ${off}></div>
+        <div><label>${t("purchases.editor.unitCost")}</label><input type="number" step="0.0001" min="0" data-cl="${index}|coste_unitario" value="${line3.coste_unitario ?? ""}" ${off}></div>
         <div>${received}</div>
         <div>${remove7}</div></div></div>`;
   }
@@ -14662,7 +16460,7 @@
       ${headerHtml5(editor)}
       ${supplierHtml(editor)}
       <label>${t("purchases.editor.products")}</label>
-      <div id="cplin">${editor.lines.map((line2, index) => lineHtml(editor, line2, index)).join("")}</div>
+      <div id="cplin">${editor.lines.map((line3, index) => lineHtml(editor, line3, index)).join("")}</div>
       ${editor.editable ? `<div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="cpmas">${t("purchases.editor.addProduct")}</button></div>` : ""}
       <div class="g2">
         <div><label for="cpport">${t("purchases.editor.shipping")}</label><input id="cpport" type="number" step="0.01" min="0" value="${purchase.portes ? String(purchase.portes) : 0}" ${off}></div>
@@ -14672,19 +16470,19 @@
       ${buttonsHtml2(editor)}`;
   }
   function totalsHtml2(lines2, shipping) {
-    const amount3 = sum(lines2.map((line2) => (Number(line2.unidades) || 0) * (Number(line2.coste_unitario) || 0))) + shipping;
-    return `<div><span>${t("purchases.editor.totalUnits")}</span><b>${formatNumber(sum(lines2.map((line2) => Number(line2.unidades) || 0)))}</b></div>
+    const amount3 = sum(lines2.map((line3) => (Number(line3.unidades) || 0) * (Number(line3.coste_unitario) || 0))) + shipping;
+    return `<div><span>${t("purchases.editor.totalUnits")}</span><b>${formatNumber(sum(lines2.map((line3) => Number(line3.unidades) || 0)))}</b></div>
         <div class="tot"><span>${t("purchases.editor.totalAmount")}</span><b>${euros2(amount3)}</b></div>`;
   }
 
   // src/app/screens/purchases/receive.ts
   var field3 = (row4, name) => row4.querySelector(`[data-r=${name}]`)?.value ?? "";
-  function lineHtml2(line2, storeId) {
-    const pending = line2.unidades - (line2.recibidas ?? 0);
-    return `<div class="lin" data-rl="${line2.id ?? ""}">
-      <b>${escapeHtml(line2.producto)}</b> <span class="sm">${t("purchases.receive.pending", { pending: formatNumber(pending), units: formatNumber(line2.unidades) })}</span>
-      <div class="rclotes">${purchasesLegacy.batchFields(line2, pending, storeId)}</div>
-      <button type="button" class="kcfg" data-rlmas="${line2.id ?? ""}">${t("purchases.receive.otherBatch")}</button></div>`;
+  function lineHtml2(line3, storeId) {
+    const pending = line3.unidades - (line3.recibidas ?? 0);
+    return `<div class="lin" data-rl="${line3.id ?? ""}">
+      <b>${escapeHtml(line3.producto)}</b> <span class="sm">${t("purchases.receive.pending", { pending: formatNumber(pending), units: formatNumber(line3.unidades) })}</span>
+      <div class="rclotes">${purchasesLegacy.batchFields(line3, pending, storeId)}</div>
+      <button type="button" class="kcfg" data-rlmas="${line3.id ?? ""}">${t("purchases.receive.otherBatch")}</button></div>`;
   }
   function readRows(box) {
     return [...box.querySelectorAll(".rcl")].map((row4) => ({
@@ -14723,7 +16521,7 @@
     purchasesLegacy.reloadSales();
   }
   function receivePurchase(id, detail) {
-    const pending = detail.lineas.filter((line2) => line2.unidades > (line2.recibidas ?? 0));
+    const pending = detail.lineas.filter((line3) => line3.unidades > (line3.recibidas ?? 0));
     const stores2 = purchasesLegacy.stores(), storeId = (stores2.find((store) => store.tipo === "central") ?? stores2[0])?.id;
     const body2 = document.getElementById("dbody");
     if (!body2) return;
@@ -14731,14 +16529,14 @@
     <div class="fh"><div><h2>${t("purchases.receive.title", { number: escapeHtml(detail.compra.numero) })}</h2>
       <div class="sm">${t("purchases.receive.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <div id="rclin">${pending.map((line2) => lineHtml2(line2, storeId)).join("")}</div>
+    <div id="rclin">${pending.map((line3) => lineHtml2(line3, storeId)).join("")}</div>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.receive.cancel")}</button><button class="btn" id="rcok">${t("purchases.receive.record")}</button></div>`;
     const box = document.getElementById("rclin");
     if (!box) return;
     box.querySelectorAll("[data-rlmas]").forEach((button2) => {
       button2.onclick = () => {
-        const line2 = pending.find((item) => item.id === button2.dataset.rlmas);
-        if (line2) button2.previousElementSibling?.insertAdjacentHTML("beforeend", purchasesLegacy.batchFields(line2, "", storeId));
+        const line3 = pending.find((item) => item.id === button2.dataset.rlmas);
+        if (line3) button2.previousElementSibling?.insertAdjacentHTML("beforeend", purchasesLegacy.batchFields(line3, "", storeId));
       };
     });
     const ok = document.getElementById("rcok");
@@ -14762,18 +16560,18 @@
     if (box) box.innerHTML = totalsHtml2(editor.lines, Number(value6("cpport")) || 0);
   }
   function onLineChange(editor, target) {
-    const [index = "", field10 = ""] = (target.dataset.cl ?? "").split("|"), line2 = editor.lines[Number(index)];
-    if (!field10 || !line2) return;
+    const [index = "", field10 = ""] = (target.dataset.cl ?? "").split("|"), line3 = editor.lines[Number(index)];
+    if (!field10 || !line3) return;
     if (field10 === "producto_id") {
-      line2.producto_id = target.value;
+      line3.producto_id = target.value;
       const product = purchasesLegacy.products().find((item) => item.id === target.value);
       if (product && product.coste !== null && product.coste !== void 0) {
-        line2.coste_unitario = product.coste;
-        paint5(editor);
+        line3.coste_unitario = product.coste;
+        paint6(editor);
         return;
       }
-    } else if (field10 === "unidades") line2.unidades = Number(target.value);
-    else line2.coste_unitario = Number(target.value);
+    } else if (field10 === "unidades") line3.unidades = Number(target.value);
+    else line3.coste_unitario = Number(target.value);
     paintTotals(editor);
   }
   function suggestExpected() {
@@ -14793,12 +16591,12 @@
     const add2 = document.getElementById("cpmas");
     if (add2) add2.onclick = () => {
       editor.lines.push(newLine());
-      paint5(editor);
+      paint6(editor);
     };
     lines2?.querySelectorAll("[data-clx]").forEach((button2) => {
       button2.onclick = () => {
         editor.lines.splice(Number(button2.dataset.clx), 1);
-        paint5(editor);
+        paint6(editor);
       };
     });
     const supplier = document.getElementById("cpprov");
@@ -14806,7 +16604,7 @@
     if (!value6("cpprev") && supplier?.value) suggestExpected();
   }
   function payload(editor, state) {
-    const lines2 = editor.lines.filter((line2) => line2.producto_id && Number(line2.unidades) > 0).map((line2) => ({ producto_id: line2.producto_id, unidades: Number(line2.unidades), coste_unitario: line2.coste_unitario }));
+    const lines2 = editor.lines.filter((line3) => line3.producto_id && Number(line3.unidades) > 0).map((line3) => ({ producto_id: line3.producto_id, unidades: Number(line3.unidades), coste_unitario: line3.coste_unitario }));
     return {
       id: editor.id ?? null,
       proveedor_id: value6("cpprov"),
@@ -14879,7 +16677,7 @@
       if (editor.id && editor.detail) receivePurchase(editor.id, editor.detail);
     });
   }
-  function paint5(editor) {
+  function paint6(editor) {
     const body2 = document.getElementById("dbody");
     if (!body2) return;
     body2.innerHTML = editorHtml6(editor);
@@ -14896,9 +16694,9 @@
       purchase,
       detail,
       editable: purchasesLegacy.canBuy() && EDITABLE_STATES.includes(purchase.estado),
-      lines: detail ? detail.lineas.map((line2) => ({ ...line2 })) : [newLine()]
+      lines: detail ? detail.lineas.map((line3) => ({ ...line3 })) : [newLine()]
     };
-    paint5(editor);
+    paint6(editor);
     document.getElementById("dlg")?.showModal();
   }
 
@@ -14916,7 +16714,7 @@
       <div class="kpi"><b>${euros2(bought)}</b><span>${t("purchases.list.boughtThisYear")}</span></div>
     </div>`;
   }
-  function rowHtml10(row4) {
+  function rowHtml11(row4) {
     const expected = row4.fecha_prevista ? formatShortDate(row4.fecha_prevista) + (row4.retrasada ? t("purchases.list.lateTag") : "") : "—";
     const received = row4.recibidas && row4.recibidas < row4.unidades ? `${formatNumber(row4.recibidas)}/` : "";
     return `<button class="dr" data-comp="${row4.id}">
@@ -14931,7 +16729,7 @@
     const head = [["", "number"], ["", "supplier"], ["", "products"], ["", "date"], ["", "expected"], ["num", "units"], ["num", "amount"], ["", "state"]];
     return `<div class="dgrid-wrap"><div class="dgrid comps">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.list.${key}`)}</span>`).join("")}</div>
-      ${rows.map(rowHtml10).join("")}
+      ${rows.map(rowHtml11).join("")}
     </div></div>`;
   }
   async function paintPurchases() {
@@ -14958,7 +16756,7 @@
 
   // src/app/screens/purchases/suppliers.ts
   var joined = (values2) => values2.filter(Boolean).join(" · ");
-  function rowHtml11(supplier) {
+  function rowHtml12(supplier) {
     return `<button class="dr" data-prov="${supplier.id ?? ""}" style="${supplier.activo ? "" : "opacity:.55"}">
       <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined([supplier.municipio, supplier.pais]))}</span></span>
       <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
@@ -14971,7 +16769,7 @@
     const head = [["", "supplier"], ["", "taxId"], ["", "contact"], ["num", "leadTime"], ["num", "purchases"], ["", "lastPurchase"], ["", "state"]];
     return `<div class="dgrid-wrap"><div class="dgrid provs">
     <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.suppliers.${key}`)}</span>`).join("")}</div>
-    ${suppliers.map(rowHtml11).join("")}
+    ${suppliers.map(rowHtml12).join("")}
   </div></div>`;
   }
   async function paintSuppliers() {
@@ -15005,13 +16803,13 @@
     ["cuenta_contable", "purchases.supplierEditor.account", 'placeholder="400xxxxx"']
   ];
   var SAVED_FIELDS = [...FIELDS.map(([name]) => name), "nota"];
-  function fieldHtml(supplier, [name, label, extra = ""], readOnly) {
+  function fieldHtml2(supplier, [name, label, extra = ""], readOnly) {
     const current = supplier[name];
     return `<div><label for="pv_${name}">${t(label)}</label><input id="pv_${name}" value="${escapeHtml(current ?? "")}" ${extra} ${readOnly}></div>`;
   }
   function editorHtml7(supplier, canBuy) {
     const readOnly = canBuy ? "" : "disabled", pairs2 = [];
-    for (let i = 0; i < FIELDS.length; i += 2) pairs2.push(`<div class="g2">${FIELDS.slice(i, i + 2).map((item) => fieldHtml(supplier, item, readOnly)).join("")}</div>`);
+    for (let i = 0; i < FIELDS.length; i += 2) pairs2.push(`<div class="g2">${FIELDS.slice(i, i + 2).map((item) => fieldHtml2(supplier, item, readOnly)).join("")}</div>`);
     return `
     <div class="fh"><div><h2>${supplier.id ? escapeHtml(supplier.nombre) : t("purchases.supplierEditor.newTitle")}</h2><div class="sm">${t("purchases.supplierEditor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -15056,7 +16854,7 @@
   }
 
   // src/app/screens/orders/page.ts
-  var SEARCH_WAIT_MS2 = 350;
+  var SEARCH_WAIT_MS3 = 350;
   var SALES = "ventas";
   var PURCHASES = "compras";
   var SUPPLIERS = "proveedores";
@@ -15103,7 +16901,7 @@
     const search4 = document.getElementById("pq");
     if (search4) search4.oninput = () => {
       clearTimeout(searchTimer);
-      searchTimer = setTimeout(repaint2, SEARCH_WAIT_MS2);
+      searchTimer = setTimeout(repaint2, SEARCH_WAIT_MS3);
     };
     await purchasesLegacy.loadProducts();
     repaint2();
@@ -15243,7 +17041,7 @@
 
   // src/app/screens/orders/sheet/bank-transfer.ts
   var PAID_FLAG_MS = 6e4;
-  function blockHtml3(detail) {
+  function blockHtml4(detail) {
     const order = detail.pedido, sent = order.email_pago_en;
     const status2 = sent ? t("orders.bankTransfer.sentOn", { date: formatShortDate(String(sent).slice(0, 10)) }) : t("orders.bankTransfer.notSent");
     const send3 = detail.contacto?.email ? `<button type="button" class="btn sec chico" id="pdtrfmail">${t(sent ? "orders.bankTransfer.sendAgain" : "orders.bankTransfer.send")}</button>` : `<span class="sm">${t("orders.bankTransfer.noEmail", { customer: escapeHtml(term("paciente", { capital: "C" })) })}</span>`;
@@ -15257,7 +17055,7 @@
     if (!dialog6?.open || document.getElementById("pdtrfb") || !confirm || !customersLegacy.canSell()) return;
     const order = detail.pedido;
     if (order.estado !== STATES5.draft || !isBankTransfer(order.forma_pago)) return;
-    confirm.closest(".acts")?.insertAdjacentHTML("beforebegin", blockHtml3(detail));
+    confirm.closest(".acts")?.insertAdjacentHTML("beforebegin", blockHtml4(detail));
     const send3 = document.getElementById("pdtrfmail");
     if (send3) send3.onclick = async () => {
       send3.disabled = true;
@@ -15332,11 +17130,11 @@
     if (currentScreen() === "ventas") ordersLegacy.reload();
   };
   var failureOf = (error, result) => orFallback(error?.message, result?.error ?? "");
-  function lineHtml3(line2) {
-    const amounts = lineBreakdown(line2);
+  function lineHtml3(line3) {
+    const amounts = lineBreakdown(line3);
     return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)">
-        <span><b>${escapeHtml(orFallback(line2.producto, t("orders.sheet.noProduct")))}</b> · ${t("orders.sheet.units", { count: formatNumber(line2.unidades) })}
-          <div class="sm">${t("orders.sheet.base", { amount: euros(amounts.base) })}${Number(line2.descuento) ? t("orders.sheet.discount", { percent: formatNumber(line2.descuento) }) : ""} · ${t("orders.sheet.vat", { rate: formatNumber(line2.iva ?? 0), amount: euros(amounts.iva) })}</div></span>
+        <span><b>${escapeHtml(orFallback(line3.producto, t("orders.sheet.noProduct")))}</b> · ${t("orders.sheet.units", { count: formatNumber(line3.unidades) })}
+          <div class="sm">${t("orders.sheet.base", { amount: euros(amounts.base) })}${Number(line3.descuento) ? t("orders.sheet.discount", { percent: formatNumber(line3.descuento) }) : ""} · ${t("orders.sheet.vat", { rate: formatNumber(line3.iva ?? 0), amount: euros(amounts.iva) })}</div></span>
         <b style="white-space:nowrap">${euros(amounts.total)}</b></div>`;
   }
   function peopleHtml(detail) {
@@ -15392,7 +17190,7 @@
       envio_con_iva: order.envio ? round2(Number(order.envio_base) * (1 + rate / 100)) : 0,
       envio_iva: order.envio_iva,
       servicio_id: order.servicio_id,
-      lineas: (detail.lineas ?? []).map((line2) => ({ producto_id: line2.producto_id, unidades: line2.unidades, importe: line2.importe, descuento: line2.descuento, iva: line2.iva }))
+      lineas: (detail.lineas ?? []).map((line3) => ({ producto_id: line3.producto_id, unidades: line3.unidades, importe: line3.importe, descuento: line3.descuento, iva: line3.iva }))
     };
   }
   async function confirmOrder(detail, button2) {
@@ -15548,21 +17346,21 @@
     doc.line(LEFT, writer.y + 2, RIGHT, writer.y + 2);
     writer.y += 8;
     writer.normal();
-    for (const line2 of detail.lineas ?? []) {
+    for (const line3 of detail.lineas ?? []) {
       if (writer.y > PAGE_END) {
         doc.addPage();
         writer.y = 20;
       }
-      const product = codes.get(line2.producto_id ?? "");
-      doc.text(doc.splitTextToSize(String(line2.producto ?? ""), NAME_WIDTH), LEFT, writer.y);
+      const product = codes.get(line3.producto_id ?? "");
+      doc.text(doc.splitTextToSize(String(line3.producto ?? ""), NAME_WIDTH), LEFT, writer.y);
       writer.write(orFallback(product?.referencia, "—"), REFERENCE_X);
       writer.write(orFallback(product?.codigo_barras, "—"), BARCODE_X);
-      writer.write(formatNumber(line2.unidades), RIGHT, { align: "right" });
+      writer.write(formatNumber(line3.unidades), RIGHT, { align: "right" });
       writer.y += 7;
     }
   }
   function footer(writer, detail) {
-    const order = detail.pedido, doc = writer.doc, units2 = sum((detail.lineas ?? []).map((line2) => Number(line2.unidades) || 0));
+    const order = detail.pedido, doc = writer.doc, units2 = sum((detail.lineas ?? []).map((line3) => Number(line3.unidades) || 0));
     doc.line(LEFT, writer.y - 3, RIGHT, writer.y - 3);
     writer.y += 4;
     writer.bold();
@@ -15575,7 +17373,7 @@
   }
   async function downloadTransfer(detail, distributor) {
     const pdfConstructor = await orderSheetLegacy.loadPdf(), doc = new pdfConstructor({ unit: "mm", format: "a4" });
-    const ids = [...new Set((detail.lineas ?? []).map((line2) => line2.producto_id).filter((id) => Boolean(id)))];
+    const ids = [...new Set((detail.lineas ?? []).map((line3) => line3.producto_id).filter((id) => Boolean(id)))];
     const { data } = ids.length ? await legacyDb().from("productos").select("id,referencia,codigo_barras").in("id", ids) : { data: [] };
     const writer = new TransferWriter(doc);
     header(writer, detail, distributor);
@@ -15599,7 +17397,7 @@
       t("orders.distributor.mailCustomer", { name, code: order.distribuidor_codigo ? t("orders.distributor.mailCode", { code: order.distribuidor_codigo }) : "" }),
       address2,
       "",
-      ...(detail.lineas ?? []).map((line2) => `- ${line2.unidades} × ${orFallback(line2.producto, line2.nombre ?? "")}`),
+      ...(detail.lineas ?? []).map((line3) => `- ${line3.unidades} × ${orFallback(line3.producto, line3.nombre ?? "")}`),
       "",
       order.factura_distribuidor ? t("orders.distributor.invoicedByThem") : t("orders.distributor.invoicedBy", { app }),
       order.nota ? `
@@ -15607,7 +17405,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ].join("\n");
     return { subject: t("orders.distributor.mailSubject", { number: order.numero ?? "", name }), text: text2 };
   }
-  function blockHtml4(detail, distributor) {
+  function blockHtml5(detail, distributor) {
     const order = detail.pedido, mail = emailOf(detail);
     const who2 = t("orders.distributor.servedBy", { name: escapeHtml(distributor.nombre) }) + (order.distribuidor_codigo ? t("orders.distributor.customerCode", { code: escapeHtml(order.distribuidor_codigo) }) : "") + ` · ${t(order.factura_distribuidor ? "orders.distributor.theyInvoice" : "orders.distributor.weInvoice")}`;
     const sent = order.transfer_enviado_en ? t("orders.distributor.mailPreparedOn", { date: formatShortDate(String(order.transfer_enviado_en).slice(0, 10)) }) : t("orders.distributor.mailNotPrepared");
@@ -15617,10 +17415,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <p>${who2}</p>
       ${actions}</div>`;
   }
-  var pressOnly = (buttons, chosen3) => {
+  var pressOnly = (buttons, chosen4) => {
     buttons.forEach((button2) => {
-      button2.classList.toggle("on", button2 === chosen3);
-      button2.setAttribute("aria-pressed", String(button2 === chosen3));
+      button2.classList.toggle("on", button2 === chosen4);
+      button2.setAttribute("aria-pressed", String(button2 === chosen4));
     });
   };
   async function noteFor(order, state) {
@@ -15683,9 +17481,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const distributor = await distributorOf(order.distribuidor_id);
     if (!isOpen3()) return;
     if (order.factura_distribuidor) document.getElementById("pvemitir")?.remove();
-    const place2 = document.getElementById("pdpago") ?? document.getElementById("dbody")?.querySelector(".acts:last-of-type");
-    if (!place2) return;
-    place2.insertAdjacentHTML("beforebegin", blockHtml4(detail, distributor));
+    const place3 = document.getElementById("pdpago") ?? document.getElementById("dbody")?.querySelector(".acts:last-of-type");
+    if (!place3) return;
+    place3.insertAdjacentHTML("beforebegin", blockHtml5(detail, distributor));
     paintTransfer(detail, distributor);
     document.getElementById("pdmaild")?.addEventListener("click", () => {
       void legacyDb().rpc("marcar_transfer_enviado", { p_id: order.id }).then(({ data }) => {
@@ -15705,7 +17503,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <div class="g2"><div><label for="pdeqi">${t("orders.equipment.installedOn")}</label><input id="pdeqi" type="date" value="${todayIso()}"></div><div><label for="pdequ">${t("orders.equipment.place")}</label><input id="pdequ" placeholder="${t("orders.equipment.placePlaceholder")}"></div></div>
         <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">${t("orders.equipment.register")}</button></div></div>`;
   }
-  function rowsOf(pending, orderId) {
+  function rowsOf2(pending, orderId) {
     const box = document.getElementById("pdeqf"), rows = [];
     pending.forEach((item, index) => box?.querySelectorAll(`[data-pqs="${index}"]`).forEach((input5) => {
       if (!input5.value.trim() || !item.cuenta_id) return;
@@ -15714,7 +17512,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return rows;
   }
   async function register(pending, orderId, button2) {
-    const rows = rowsOf(pending, orderId);
+    const rows = rowsOf2(pending, orderId);
     if (!rows.length) {
       notices.toast(t(pending.some((item) => !item.cuenta_id) ? "orders.equipment.noAccount" : "orders.equipment.writeOne"), true);
       return;
@@ -15740,10 +17538,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!isOpen2() || !accountCardLegacy.planIncludes("parque")) return;
     const pending = await pendingOf(orderId);
     if (!pending.length || !isOpen2()) return;
-    const place2 = document.getElementById("pddist") ?? document.getElementById("pdpago") ?? document.getElementById("dbody")?.querySelector(".acts:last-of-type");
-    if (!place2) return;
+    const place3 = document.getElementById("pddist") ?? document.getElementById("pdpago") ?? document.getElementById("dbody")?.querySelector(".acts:last-of-type");
+    if (!place3) return;
     const count2 = sum(pending.map((item) => item.faltan));
-    place2.insertAdjacentHTML("beforebegin", `<div class="blk" id="pdequipos"><h3>${t("orders.equipment.title")}</h3>
+    place3.insertAdjacentHTML("beforebegin", `<div class="blk" id="pdequipos"><h3>${t("orders.equipment.title")}</h3>
       <div class="banda-aviso">${count2 === 1 ? t("orders.equipment.oneMissing") : t("orders.equipment.missing", { count: count2 })} <button type="button" class="btn sec" id="pdeqalta">${t("orders.equipment.registerAll")}</button></div>
       <div id="pdeqf"></div></div>`);
     const open2 = document.getElementById("pdeqalta");
@@ -15772,7 +17570,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!customer?.email) return `<span class="sm">${t("orders.operations.noEmail")}</span>`;
     return `<a class="btn sec" id="pdmailpago" data-ped="${order.id}" href="${mailtoLink(escapeHtml(customer.email), paymentSubject(order, total2, customer.nombre), paymentText(order, total2, customer.nombre))}">${t("orders.operations.preparePaymentEmail")}</a>`;
   }
-  function blockHtml5(detail, allowed) {
+  function blockHtml6(detail, allowed) {
     const order = detail.pedido;
     return `<div class="blk" id="pdops" data-nosucio><h3>${t("orders.operations.title")}</h3>
     ${order.sin_cargo ? `<p class="sm">${t("orders.operations.freeDelivery")}</p>` : ""}${OPERATIONS.filter(([key]) => !(order.sin_cargo && key === "pago")).map(([key, label]) => operationHtml(order, key, t(label), allowed)).join("")}
@@ -15830,7 +17628,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     await cycleLegacy.loadSettings();
     const body2 = document.getElementById("dbody"), actions = body2?.querySelector(".acts:last-of-type");
     if (!body2 || !actions) return;
-    actions.insertAdjacentHTML("beforebegin", blockHtml5(detail, permissions.seesEverything() && permissions.salesLevel() >= SALES_LEVEL));
+    actions.insertAdjacentHTML("beforebegin", blockHtml6(detail, permissions.seesEverything() && permissions.salesLevel() >= SALES_LEVEL));
     bind14(body2, order);
   }
 
@@ -15858,7 +17656,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   var receiptRow = (receipt) => `<div class="item"><span class="tx"><b>${escapeHtml(receipt.nombre)}</b><span class="sm">${formatShortDate(String(receipt.creado_en).slice(0, 10))} · ${formatNumber(Math.round(receipt.tamano / KILOBYTE))} KB</span></span>
       <button type="button" class="btn sec chico" data-jver="${receipt.id}">${t("orders.payment.see")}</button></div>`;
-  function blockHtml6(detail, receipts) {
+  function blockHtml7(detail, receipts) {
     const order = detail.pedido;
     return `<div class="blk" id="pdpago"><h3>${t("orders.payment.title")}</h3>
     ${order.origen === "web" ? `<p class="sm"><span class="pill p-est">${t("orders.payment.byWeb")}</span></p>` : ""}
@@ -15872,7 +17670,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!isOpen3() || detail.pedido.sin_cargo) return;
     const actions = document.getElementById("dbody")?.querySelector(".acts:last-of-type");
     if (!actions) return;
-    (document.getElementById("pdops") ?? actions).insertAdjacentHTML("beforebegin", blockHtml6(detail, receipts ?? []));
+    (document.getElementById("pdops") ?? actions).insertAdjacentHTML("beforebegin", blockHtml7(detail, receipts ?? []));
     document.getElementById("pdpago")?.querySelectorAll("[data-jver]").forEach((button2) => {
       button2.onclick = () => {
         void openReceipt(button2.dataset.jver ?? "");
@@ -15885,9 +17683,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/orders/sheet/index.ts
-  var CUSTOM_FIELDS_DELAY_MS = 150;
   var STEADY_MAX_MS = 2500;
-  var optional = (part) => part.catch(() => void 0);
+  var optional2 = (part) => part.catch(() => void 0);
   async function paintOrder2(id) {
     const detail = await orderSheetLegacy.whileLoading(async () => {
       const loaded = await paintBase4(id);
@@ -15895,14 +17692,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       await orderSheetLegacy.invoices(id);
       await paintOperations(loaded);
       await paintPayment(loaded);
+      await optional2(orderSheetLegacy.customFields(id, document.getElementById("dbody")));
       return loaded;
     });
-    setTimeout(() => {
-      void orderSheetLegacy.customFields(id, document.getElementById("dbody"));
-    }, CUSTOM_FIELDS_DELAY_MS);
     if (!detail) return;
-    await optional(paintDistributor(detail));
-    await optional(paintEquipment(id));
+    await optional2(paintDistributor(detail));
+    await optional2(paintEquipment(id));
     try {
       paintBankTransfer(detail);
     } catch {
@@ -15948,8 +17743,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     reload: () => {
       void cargarProductosModulo();
     },
-    openStock: (line2) => {
-      void fichaStock(line2);
+    openStock: (line3) => {
+      void fichaStock(line3);
     },
     openDeposit: (accountId, name, notice) => verDeposito(accountId, name, notice),
     editProduct: (product) => {
@@ -15962,15 +17757,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       vaciarModulos(except);
     },
     showLoading: (element2, text2) => {
-      cargando(element2, text2);
+      showLoading(element2, text2);
     },
-    matchesFieldFilters: (values2) => Boolean(clasCumple(values2, PRODF)),
+    matchesFieldFilters: (values2) => Boolean(matchesFilters(values2, PRODF)),
     hasFieldFilters: () => Object.keys(PRODF).length > 0,
-    visibleFieldColumns: () => clasVisibles("producto"),
-    fieldHeaders: (fields) => clasCabeceras(fields),
-    fieldCells: (fields, values2) => clasCeldas(fields, values2),
+    visibleFieldColumns: () => visibleFields("producto"),
+    fieldHeaders: (fields) => columnHeaders(fields),
+    fieldCells: (fields, values2) => columnCells(fields, values2),
     widenGrid: (grid, count2) => {
-      clasRejilla(grid, count2);
+      widenGrid(grid, count2);
     }
   };
 
@@ -15979,10 +17774,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var EXPIRY_SOON_DAYS = 90;
   var euros3 = (value19) => formatCurrency(Math.round((Number(value19) || 0) * 100) / 100);
   var round22 = (value19) => Math.round(value19 * 100) / 100;
-  function stockState(line2) {
-    if (line2.stock <= 0) return [t("products.stock.outOfStock"), "p-anu"];
-    if (line2.stock_minimo !== null && line2.stock_minimo !== void 0 && line2.stock < line2.stock_minimo) return [t("products.stock.belowMinimum"), "p-bor"];
-    if (line2.dias_cobertura !== null && line2.dias_cobertura !== void 0 && line2.dias_cobertura <= line2.plazo_dias + ORDER_MARGIN_DAYS && !line2.en_camino) return [t("products.stock.orderNow"), "p-bor"];
+  function stockState(line3) {
+    if (line3.stock <= 0) return [t("products.stock.outOfStock"), "p-anu"];
+    if (line3.stock_minimo !== null && line3.stock_minimo !== void 0 && line3.stock < line3.stock_minimo) return [t("products.stock.belowMinimum"), "p-bor"];
+    if (line3.dias_cobertura !== null && line3.dias_cobertura !== void 0 && line3.dias_cobertura <= line3.plazo_dias + ORDER_MARGIN_DAYS && !line3.en_camino) return [t("products.stock.orderNow"), "p-bor"];
     return [t("products.stock.fine"), "p-est"];
   }
   function expiryClass(isoDate) {
@@ -16005,7 +17800,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const active = rows.filter((row4) => row4.activo).length, inactive = rows.length - active;
     return `<b>${formatNumber(active)}</b> ${t(active === 1 ? "products.catalog.oneActive" : "products.catalog.active")}${inactive ? t("products.catalog.inactive", { count: formatNumber(inactive) }) : ""}`;
   }
-  function rowHtml12(row4, fields) {
+  function rowHtml13(row4, fields) {
     const photo = row4.foto_url ? `background-image:url('${escapeHtml(row4.foto_url)}')` : "";
     return `<button class="dr" data-prod="${row4.id}" style="${row4.activo ? "" : "opacity:.55"}">
         <span><span class="pfoto" style="${photo}">${row4.foto_url ? "" : "◧"}</span></span>
@@ -16019,7 +17814,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const empty2 = `<div class="vacio">${t(productsLegacy.hasFieldFilters() ? "products.catalog.noneFiltered" : "products.catalog.none")}</div>`;
     return `<div class="dgrid-wrap"><div class="dgrid prods">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${key ? t(`products.catalog.${key}`) : ""}</span>`).join("")}${productsLegacy.fieldHeaders(fields)}</div>
-      ${rows.map((row4) => rowHtml12(row4, fields)).join("") || empty2}
+      ${rows.map((row4) => rowHtml13(row4, fields)).join("") || empty2}
     </div></div>`;
   }
   async function paintProducts() {
@@ -16043,7 +17838,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/products/deposit-form.ts
   var whole = (input5) => Math.max(0, Math.floor(Number(input5.value) || 0));
-  var batchOf = (line2) => escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatchLower")));
+  var batchOf = (line3) => escapeHtml(orFallback(line3.numero_lote, t("products.deposit.noBatchLower")));
   var actsHtml = (ok) => `<div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">${t("common.cancel")}</button><button type="button" class="btn" id="depok">${ok}</button></div>`;
   function replenishHtml() {
     const products3 = purchasesLegacy.products().filter((item) => item.activo !== false && orFallback(item.estado, "Activo") !== "Descatalogado");
@@ -16054,15 +17849,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function useHtml(lines2) {
     return `<div class="depbox"><b>${t("products.deposit.useTitle")}</b>
-      <div class="depitems">${lines2.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.left", { units: formatNumber(line2.unidades) })}</span></span>
-        <input type="number" min="0" max="${line2.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t("products.deposit.usedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
+      <div class="depitems">${lines2.map((line3, index) => `<label><span>${escapeHtml(line3.nombre)} <span class="sm">· ${batchOf(line3)} · ${t("products.deposit.left", { units: formatNumber(line3.unidades) })}</span></span>
+        <input type="number" min="0" max="${line3.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t("products.deposit.usedOf", { name: escapeHtml(line3.nombre) })}"></label>`).join("")}</div>
       <label for="depref">${t("products.deposit.reference")}</label><input id="depref" maxlength="120" placeholder="${t("products.deposit.referencePlaceholder")}">
       ${actsHtml(t("products.deposit.record"))}</div>`;
   }
   function countHtml2(lines2) {
     return `<div class="depbox"><b>${t("products.deposit.countTitle")}</b><span class="sm">${t("products.deposit.countHint")}</span>
-      <div class="depitems">${lines2.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.had", { units: formatNumber(line2.unidades) })}</span></span>
-        <input type="number" min="0" step="1" data-dcnt="${index}" value="${line2.unidades}" aria-label="${t("products.deposit.countedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
+      <div class="depitems">${lines2.map((line3, index) => `<label><span>${escapeHtml(line3.nombre)} <span class="sm">· ${batchOf(line3)} · ${t("products.deposit.had", { units: formatNumber(line3.unidades) })}</span></span>
+        <input type="number" min="0" step="1" data-dcnt="${index}" value="${line3.unidades}" aria-label="${t("products.deposit.countedOf", { name: escapeHtml(line3.nombre) })}"></label>`).join("")}</div>
       ${actsHtml(t("products.deposit.saveCount"))}</div>`;
   }
   function request(form, deposit2, action) {
@@ -16074,16 +17869,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const lineAt = (input5, key) => deposit2.lines[Number(input5.dataset[key])];
     if (action === "consumo") {
       const items = [...form.querySelectorAll("[data-dlin]")].map((input5) => {
-        const line2 = lineAt(input5, "dlin");
-        return { producto_id: line2?.producto_id, lote_id: line2?.lote_id, unidades: whole(input5), max: line2?.unidades ?? 0 };
+        const line3 = lineAt(input5, "dlin");
+        return { producto_id: line3?.producto_id, lote_id: line3?.lote_id, unidades: whole(input5), max: line3?.unidades ?? 0 };
       }).filter((item) => item.unidades > 0);
       if (!items.length) return t("products.deposit.writeUsed");
       if (items.some((item) => item.unidades > item.max)) return t("products.deposit.tooMany");
       return { ...base, items, referencia: document.getElementById("depref")?.value.trim() ?? "" };
     }
     return { ...base, items: [...form.querySelectorAll("[data-dcnt]")].map((input5) => {
-      const line2 = lineAt(input5, "dcnt");
-      return { producto_id: line2?.producto_id, lote_id: line2?.lote_id, contadas: whole(input5) };
+      const line3 = lineAt(input5, "dcnt");
+      return { producto_id: line3?.producto_id, lote_id: line3?.lote_id, contadas: whole(input5) };
     }) };
   }
   function failureText5(result) {
@@ -16166,15 +17961,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ["ajuste", "products.deposit.moveAdjust"]
   ]);
   function summary2(lines2) {
-    const total2 = sum(lines2.map((line2) => line2.unidades));
+    const total2 = sum(lines2.map((line3) => line3.unidades));
     if (!total2) return t("products.deposit.empty");
-    const count2 = new Set(lines2.map((line2) => line2.producto_id)).size;
+    const count2 = new Set(lines2.map((line3) => line3.producto_id)).size;
     return t("products.deposit.unitsOf", { units: formatNumber(total2), products: count2 === 1 ? t("products.deposit.oneProduct") : t("products.deposit.products", { count: count2 }) });
   }
   function tableHtml5(lines2) {
     if (!lines2.length) return `<div class="vacio vlinea">${t("products.deposit.emptyDeposit")}</div>`;
-    const rows = lines2.map((line2) => `<div class="depf"><span>${escapeHtml(line2.nombre)}</span>
-      <span>${escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatch")))}</span><span class="${relatedLegacy.expiresSoon(line2.caducidad) ? "depcad" : ""}">${line2.caducidad ? formatShortDate(line2.caducidad) : "—"}</span><b>${formatNumber(line2.unidades)}</b></div>`).join("");
+    const rows = lines2.map((line3) => `<div class="depf"><span>${escapeHtml(line3.nombre)}</span>
+      <span>${escapeHtml(orFallback(line3.numero_lote, t("products.deposit.noBatch")))}</span><span class="${relatedLegacy.expiresSoon(line3.caducidad) ? "depcad" : ""}">${line3.caducidad ? formatShortDate(line3.caducidad) : "—"}</span><b>${formatNumber(line3.unidades)}</b></div>`).join("");
     return `<div class="deptab"><div class="deph"><span>${t("products.deposit.product")}</span><span>${t("products.deposit.batch")}</span><span>${t("products.deposit.expires")}</span><span>${t("products.deposit.units")}</span></div>${rows}</div>`;
   }
   function movementRow(item) {
@@ -16207,7 +18002,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     if (!purchasesLegacy.products().length) await purchasesLegacy.loadProducts();
-    const lines2 = (detail.lineas ?? []).filter((line2) => line2.unidades > 0);
+    const lines2 = (detail.lineas ?? []).filter((line3) => line3.unidades > 0);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
     body2.innerHTML = sheetHtml4(detail, name, notice, lines2);
@@ -16221,17 +18016,17 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/products/stock.ts
-  function rowHtml13(line2) {
-    const [label, kind] = stockState(line2);
-    const unbatched = line2.sin_lote ? ` · <span style="color:var(--warn)">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line2.sin_lote) })}</span>` : "";
-    const byStore = (line2.por_almacen ?? []).map((store) => `${escapeHtml(store.almacen)}: ${formatNumber(store.unidades)}`).join(" · ") || "—";
-    const coverage = isPresent(line2.dias_cobertura) ? t("products.stock.coverageDays", { days: formatNumber(line2.dias_cobertura), supplier: formatNumber(line2.plazo_dias) }) : t("products.stock.noSales");
-    const onTheWay = line2.en_camino ? formatNumber(line2.en_camino) + (line2.llegada ? `<span class="sm">${formatShortDate(line2.llegada)}</span>` : "") : "—";
-    return `<button class="dr" data-stk="${line2.id}">
-        <span><b>${escapeHtml(line2.nombre)}</b><span class="sm">${escapeHtml(line2.presentacion ?? "")}${unbatched}</span></span>
-        <span class="num"><b>${formatNumber(line2.stock)}</b></span>
+  function rowHtml14(line3) {
+    const [label, kind] = stockState(line3);
+    const unbatched = line3.sin_lote ? ` · <span style="color:var(--warn)">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line3.sin_lote) })}</span>` : "";
+    const byStore = (line3.por_almacen ?? []).map((store) => `${escapeHtml(store.almacen)}: ${formatNumber(store.unidades)}`).join(" · ") || "—";
+    const coverage = isPresent(line3.dias_cobertura) ? t("products.stock.coverageDays", { days: formatNumber(line3.dias_cobertura), supplier: formatNumber(line3.plazo_dias) }) : t("products.stock.noSales");
+    const onTheWay = line3.en_camino ? formatNumber(line3.en_camino) + (line3.llegada ? `<span class="sm">${formatShortDate(line3.llegada)}</span>` : "") : "—";
+    return `<button class="dr" data-stk="${line3.id}">
+        <span><b>${escapeHtml(line3.nombre)}</b><span class="sm">${escapeHtml(line3.presentacion ?? "")}${unbatched}</span></span>
+        <span class="num"><b>${formatNumber(line3.stock)}</b></span>
         <span class="sm">${byStore}</span>
-        <span class="${expiryClass(line2.proxima_caducidad)}">${line2.proxima_caducidad ? formatShortDate(line2.proxima_caducidad) : "—"}</span>
+        <span class="${expiryClass(line3.proxima_caducidad)}">${line3.proxima_caducidad ? formatShortDate(line3.proxima_caducidad) : "—"}</span>
         <span class="sm">${coverage}</span>
         <span class="num">${onTheWay}</span>
         <span><span class="pill ${kind}">${label}</span></span></button>`;
@@ -16246,18 +18041,18 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       body2.innerHTML = `<div class="vacio">${escapeHtml(errorMessage(error))}</div>`;
       return;
     }
-    const list = (data ?? []).filter((line2) => Boolean(line2.activo) || Boolean(line2.stock));
+    const list = (data ?? []).filter((line3) => Boolean(line3.activo) || Boolean(line3.stock));
     const head = [["", "product"], ["num", "stock"], ["", "byStore"], ["", "nextExpiry"], ["", "coverage"], ["num", "onTheWay"], ["", "state"]];
     body2.innerHTML = `<div class="panel">
     <div class="cuenta">${t("products.stock.intro")}</div>
     <div class="dgrid-wrap"><div class="dgrid stock">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`products.stock.${key}`)}</span>`).join("")}</div>
-      ${list.map(rowHtml13).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
+      ${list.map(rowHtml14).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
     </div></div></div>`;
     body2.querySelectorAll("[data-stk]").forEach((button2) => {
       button2.onclick = () => {
-        const line2 = list.find((item) => item.id === button2.dataset.stk);
-        if (line2) productsLegacy.openStock(line2);
+        const line3 = list.find((item) => item.id === button2.dataset.stk);
+        if (line3) productsLegacy.openStock(line3);
       };
     });
   }
@@ -16270,28 +18065,28 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   };
   var value9 = (id) => document.getElementById(id)?.value ?? "";
   var options2 = (list, selected2) => list.map((item) => `<option value="${item.id ?? ""}" ${selected2 && item.id === selected2 ? "selected" : ""}>${escapeHtml(item.nombre ?? "")}</option>`).join("");
-  function entryHtml2(line2) {
+  function entryHtml2(line3) {
     const stores2 = purchasesLegacy.stores().filter((store) => store.activo);
     return `<div class="g2">
-      <div><label for="mvp">${t("products.movement.product")}</label><select id="mvp">${options2(purchasesLegacy.products(), line2?.id)}</select></div>
+      <div><label for="mvp">${t("products.movement.product")}</label><select id="mvp">${options2(purchasesLegacy.products(), line3?.id)}</select></div>
       <div><label for="mva">${t("products.movement.store")}</label><select id="mva">${options2(stores2)}</select></div></div>
       <div class="g2"><div><label for="mvl">${t("products.movement.batch")}</label><input id="mvl" placeholder="${t("products.movement.batchPlaceholder")}"></div>
         <div><label for="mvpr">${t("products.movement.supplier")}</label><select id="mvpr"><option value="">—</option>${options2(purchasesLegacy.suppliers())}</select></div></div>
       <div class="g2"><div><label for="mvc">${t("products.movement.expiry")}</label><input id="mvc" type="date"></div><div><label for="mvf">${t("products.movement.made")}</label><input id="mvf" type="date"></div></div>`;
   }
-  function formHtml4(line2, kind, place2) {
+  function formHtml4(line3, kind, place3) {
     const [title2, hint] = TEXTS[kind], adjust = kind === "ajuste";
-    const destinations = purchasesLegacy.stores().filter((store) => store.activo && store.id !== place2?.storeId);
+    const destinations = purchasesLegacy.stores().filter((store) => store.activo && store.id !== place3?.storeId);
     return `
     <div class="fh"><div><h2>${t(title2)}</h2><div class="sm">${t(hint)}</div></div>
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
-    ${kind === "inicial" ? entryHtml2(line2) : ""}
+    ${kind === "inicial" ? entryHtml2(line3) : ""}
     ${kind === "traspaso" ? `<label for="mvd">${t("products.movement.destination")}</label><select id="mvd">${options2(destinations)}</select>` : ""}
     <div class="g2"><div><label for="mvu">${t(adjust ? "products.movement.unitsSigned" : "products.movement.units")}</label><input id="mvu" type="number" ${adjust ? "" : 'min="1"'}></div>
       <div><label for="mvn">${t("products.movement.note")}</label><input id="mvn" placeholder="${t(adjust ? "products.movement.adjustPlaceholder" : "products.movement.optional")}"></div></div>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="mvok">${t("products.movement.register")}</button></div>`;
   }
-  function payload2(line2, kind, place2, units2) {
+  function payload2(line3, kind, place3, units2) {
     const note = value9("mvn").trim();
     if (kind === "inicial") {
       return {
@@ -16306,19 +18101,19 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         nota: note
       };
     }
-    return { tipo: kind, producto_id: line2?.id, lote_id: place2?.batchId, almacen_id: place2?.storeId, destino_id: document.getElementById("mvd") ? value9("mvd") : null, unidades: units2, nota: note };
+    return { tipo: kind, producto_id: line3?.id, lote_id: place3?.batchId, almacen_id: place3?.storeId, destino_id: document.getElementById("mvd") ? value9("mvd") : null, unidades: units2, nota: note };
   }
   function missing(kind, units2) {
     if (!units2) return t("products.movement.writeUnits");
     return kind === "inicial" && !value9("mvl").trim() ? t("products.movement.writeBatch") : "";
   }
-  async function register2(line2, kind, place2) {
+  async function register2(line3, kind, place3) {
     const units2 = Number(value9("mvu")), problem = missing(kind, units2);
     if (problem) {
       notices.toast(problem, true);
       return;
     }
-    const { data: result, error } = await legacyDb().rpc("movimiento_manual", { p: payload2(line2, kind, place2, units2) });
+    const { data: result, error } = await legacyDb().rpc("movimiento_manual", { p: payload2(line3, kind, place3, units2) });
     if (error || result?.ok === false) {
       notices.toast(t("products.movement.failed", { error: orFallback(errorMessage(error), result?.error ?? "") }), true);
       return;
@@ -16327,15 +18122,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     notices.toast(t("products.movement.registered"));
     if (currentScreen() === "productos") void paintStock();
   }
-  async function stockMovement(line2, kind, place2) {
+  async function stockMovement(line3, kind, place3) {
     await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadStores(), purchasesLegacy.loadSuppliers()]);
     const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
     if (!body2 || !box) return;
-    body2.innerHTML = formHtml4(line2, kind, place2);
+    body2.innerHTML = formHtml4(line3, kind, place3);
     box.showModal();
     const ok = document.getElementById("mvok");
     if (ok) ok.onclick = () => {
-      void register2(line2, kind, place2);
+      void register2(line3, kind, place3);
     };
   }
 
@@ -16344,7 +18139,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var PRICE_DECIMALS = 4;
   var money2 = (value19) => isPresent(value19) ? euros3(value19) : "—";
   var field4 = (id) => document.getElementById(id);
-  function rowHtml14(service) {
+  function rowHtml15(service) {
     const byDefault = service.por_defecto ? `<span class="pill p-est">${t("products.services.byDefault")}</span>` : '<span class="vac">—</span>';
     return `<button class="dr" data-serv="${service.id ?? ""}" style="${service.activo ? "" : "opacity:.55"}">
         <span><b>${escapeHtml(service.nombre ?? "")}</b></span><span class="num">${money2(service.precio)}</span>
@@ -16364,7 +18159,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="cuenta"><b>${formatNumber(list.filter((item) => item.activo).length)}</b>${t("products.services.activeCount")}</div>
     <div class="dgrid-wrap"><div class="dgrid servs">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(key)}</span>`).join("")}</div>
-      ${list.map(rowHtml14).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
+      ${list.map(rowHtml15).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
     </div></div></div>`;
     body2.querySelectorAll("[data-serv]").forEach((button2) => {
       button2.onclick = () => {
@@ -16625,14 +18420,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.close")}</button></div>`;
     box.showModal();
   }
-  function summaryText(line2) {
-    const use = Number(line2.consumo_diario) ? t("products.sheet.dailyUse", { value: String(line2.consumo_diario).replace(".", ",") }) : t("products.sheet.noUse");
-    return `${t("products.sheet.units", { units: formatNumber(line2.stock) })} · ${use}${isPresent(line2.dias_cobertura) ? t("products.sheet.covers", { days: formatNumber(line2.dias_cobertura) }) : ""}`;
+  function summaryText(line3) {
+    const use = Number(line3.consumo_diario) ? t("products.sheet.dailyUse", { value: String(line3.consumo_diario).replace(".", ",") }) : t("products.sheet.noUse");
+    return `${t("products.sheet.units", { units: formatNumber(line3.stock) })} · ${use}${isPresent(line3.dias_cobertura) ? t("products.sheet.covers", { days: formatNumber(line3.dias_cobertura) }) : ""}`;
   }
-  function settingsHtml(line2) {
-    const suppliers = purchasesLegacy.suppliers().map((supplier) => `<option value="${supplier.id ?? ""}" ${supplier.nombre === line2.proveedor ? "selected" : ""}>${t("products.sheet.supplierOption", { name: escapeHtml(supplier.nombre ?? ""), days: formatNumber(supplier.plazo_dias) })}</option>`).join("");
+  function settingsHtml(line3) {
+    const suppliers = purchasesLegacy.suppliers().map((supplier) => `<option value="${supplier.id ?? ""}" ${supplier.nombre === line3.proveedor ? "selected" : ""}>${t("products.sheet.supplierOption", { name: escapeHtml(supplier.nombre ?? ""), days: formatNumber(supplier.plazo_dias) })}</option>`).join("");
     return `<div class="g2">
-      <div><label for="stmin">${t("products.sheet.minimum")}</label><input id="stmin" type="number" min="0" value="${line2.stock_minimo ?? ""}" placeholder="${t("products.sheet.noMinimum")}"></div>
+      <div><label for="stmin">${t("products.sheet.minimum")}</label><input id="stmin" type="number" min="0" value="${line3.stock_minimo ?? ""}" placeholder="${t("products.sheet.noMinimum")}"></div>
       <div><label for="stprov">${t("products.sheet.supplier")}</label><select id="stprov"><option value="">—</option>${suppliers}</select></div></div>`;
   }
   function batchHtml(batch, canBuy) {
@@ -16645,22 +18440,22 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <span class="acts" style="margin:0"><button class="btn sec" data-traz="${batch.id}">${t("products.sheet.traceability")}</button>
           ${tools}</span></div>`;
   }
-  function sheetHtml5(line2, canBuy) {
-    const [label, kind] = stockState(line2), batches = line2.lotes ?? [];
+  function sheetHtml5(line3, canBuy) {
+    const [label, kind] = stockState(line3), batches = line3.lotes ?? [];
     return `
-    <div class="fh"><div><h2>${escapeHtml(line2.nombre)} <span class="pill ${kind}">${label}</span></h2>
-      <div class="sm">${summaryText(line2)}</div></div>
+    <div class="fh"><div><h2>${escapeHtml(line3.nombre)} <span class="pill ${kind}">${label}</span></h2>
+      <div class="sm">${summaryText(line3)}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    ${canBuy ? settingsHtml(line2) : ""}
+    ${canBuy ? settingsHtml(line3) : ""}
     <div class="blk"><h3>${t("products.sheet.batches")}</h3>
       ${batches.length ? `<div class="lista">${batches.map((batch) => batchHtml(batch, canBuy)).join("")}</div>` : `<div class="sm">${t("products.sheet.noBatches")}</div>`}</div>
     <div class="acts" style="justify-content:flex-end">
       <button class="btn sec" data-cerrar>${t("common.close")}</button>
       ${canBuy ? `<button class="btn sec" id="stent">${t("products.sheet.entry")}</button><button class="btn" id="stgu">${t("products.sheet.saveMinimum")}</button>` : ""}</div>`;
   }
-  async function saveSettings(line2) {
+  async function saveSettings(line3) {
     const minimum = document.getElementById("stmin")?.value ?? "", supplier = document.getElementById("stprov")?.value ?? "";
-    const { error } = await legacyDb().from("productos").update({ stock_minimo: minimum === "" ? null : Number(minimum), proveedor_id: supplier || null }).eq("id", line2.id);
+    const { error } = await legacyDb().from("productos").update({ stock_minimo: minimum === "" ? null : Number(minimum), proveedor_id: supplier || null }).eq("id", line3.id);
     if (error) {
       notices.toast(t("products.sheet.couldNotSave"), true);
       return;
@@ -16669,7 +18464,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     notices.toast(t("products.sheet.saved"));
     void paintStock();
   }
-  function bind16(body2, line2) {
+  function bind16(body2, line3) {
     body2.querySelectorAll("[data-traz]").forEach((button2) => {
       button2.onclick = () => {
         void traceability(button2.dataset.traz ?? "");
@@ -16679,26 +18474,26 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       body2.querySelectorAll(`[data-${attribute}]`).forEach((button2) => {
         const [batchId = "", storeId = ""] = (button2.dataset[attribute] ?? "").split("|");
         button2.onclick = () => {
-          void stockMovement(line2, kind, { batchId, storeId });
+          void stockMovement(line3, kind, { batchId, storeId });
         };
       });
     }
     const entry = document.getElementById("stent");
     if (entry) entry.onclick = () => {
-      void stockMovement(line2, "inicial");
+      void stockMovement(line3, "inicial");
     };
     const save31 = document.getElementById("stgu");
     if (save31) save31.onclick = () => {
-      void saveSettings(line2);
+      void saveSettings(line3);
     };
   }
-  async function showStock(line2) {
+  async function showStock(line3) {
     await purchasesLegacy.loadSuppliers();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml5(line2, purchasesLegacy.canBuy());
+    body2.innerHTML = sheetHtml5(line3, purchasesLegacy.canBuy());
     if (!box.open) box.showModal();
-    bind16(body2, line2);
+    bind16(body2, line3);
   }
 
   // src/app/screens/billing/index.ts
@@ -16733,7 +18528,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     },
     withLoading: (work) => ventanaCargando(work),
     showLoading: (element2, text2) => {
-      cargando(element2, text2);
+      showLoading(element2, text2);
     },
     readOnly: () => Boolean(facConsulta()),
     planName: () => planDe(String(PLAN_ACTUAL.plan)).nombre,
@@ -16771,7 +18566,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var errorMessage2 = (error) => error?.message ?? "";
 
   // src/app/screens/billing/list.ts
-  var SEARCH_WAIT_MS3 = 300;
+  var SEARCH_WAIT_MS4 = 300;
   var emptyToNull = (value19) => value19 ? value19 : null;
   var field5 = (id) => document.getElementById(id);
   var total = (rows, key) => sum(rows.map((row4) => Number(row4[key]) || 0));
@@ -16795,7 +18590,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div class="kpi"><b>${euros4(total(pending, "total") - total(pending, "cobrado"))}</b><span>${t("billing.list.toCollect", { count: formatNumber(pending.length) })}</span></div>
       <div class="kpi ${overdue.length ? "warn" : ""}"><b>${euros4(total(overdue, "total") - total(overdue, "cobrado"))}</b><span>${t("billing.list.overdueTotal", { count: formatNumber(overdue.length) })}</span></div>`;
   }
-  function rowHtml15(row4) {
+  function rowHtml16(row4) {
     const note = row4.rectifica ? `<span class="sm">${t("billing.list.rectifies", { number: escapeHtml(row4.rectifica) })}</span>` : row4.rectificada_por ? `<span class="sm">${t("billing.list.rectifiedBy", { number: escapeHtml(row4.rectificada_por) })}</span>` : "";
     return `<button class="dr" data-fac="${row4.id}">
         <span><b>${escapeHtml(row4.numero)}</b>${note}</span>
@@ -16809,7 +18604,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const head = [["", "number"], ["", "date"], ["", "client"], ["", "nif"], ["num", "base"], ["num", "vatShort"], ["num", "total"], ["", "due"], ["", "payment"]];
     return `<div class="dgrid-wrap"><div class="dgrid facts">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.list.${key}`)}</span>`).join("")}</div>
-      ${rows.map(rowHtml15).join("")}</div></div>`;
+      ${rows.map(rowHtml16).join("")}</div></div>`;
   }
   function pageRows(rows) {
     const size = accountListLegacy.pageSize();
@@ -16870,7 +18665,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const search4 = field5("fq"), payment = field5("fcob");
     if (search4) search4.oninput = () => {
       clearTimeout(searchTimer2);
-      searchTimer2 = setTimeout(restart, SEARCH_WAIT_MS3);
+      searchTimer2 = setTimeout(restart, SEARCH_WAIT_MS4);
     };
     if (payment) payment.onchange = restart;
     void paintRows();
@@ -16890,7 +18685,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var typeName = (type) => t(TYPES.find(([key]) => key === type)?.[1] ?? "billing.series.simplified");
   var input3 = (id) => document.getElementById(id);
   var valueOf5 = (id) => input3(id)?.value ?? "";
-  function rowHtml16(series) {
+  function rowHtml17(series) {
     const notes2 = `${series.por_defecto ? t("billing.series.byDefault") : ""}${series.activa ? "" : t("billing.series.inactive")}`;
     return `<button class="dr" data-ser="${series.id ?? ""}"><span><b>${escapeHtml(series.codigo)}</b><span class="sm">${escapeHtml(series.nombre)}${notes2}</span></span>
         <span>${escapeHtml(typeName(series.tipo))}</span><span class="mono">${escapeHtml(series.formato)}</span>
@@ -16903,7 +18698,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       ${admin ? `<button class="btn sec" id="sernueva" style="margin-left:8px">${t("billing.series.add")}</button>` : ""}</div>
     <div class="dgrid-wrap"><div class="dgrid sers">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.series.${key}`)}</span>`).join("")}</div>
-      ${list.map(rowHtml16).join("")}
+      ${list.map(rowHtml17).join("")}
     </div></div>
     <p class="sm" style="padding:10px 16px">${t("billing.series.formatHelp")}</p></div>`;
   }
@@ -16945,8 +18740,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function preview() {
     const code = valueOf5("sec").trim().toUpperCase() || "X", year = Number(valueOf5("sea")) || FALLBACK_YEAR, next = Number(valueOf5("ses")) || 1;
     const text2 = valueOf5("sef").replace("{S}", code).replace("{AAAA}", String(year)).replace("{AA}", String(year % YEAR_DIGITS).padStart(2, "0")).replace(/\{(N+)\}/, (...[, digits]) => String(next).padStart(digits?.length ?? 0, "0"));
-    const place2 = document.getElementById("serprev");
-    if (place2) place2.textContent = text2;
+    const place3 = document.getElementById("serprev");
+    if (place3) place3.textContent = text2;
   }
   async function save19(series) {
     const checked3 = (id) => Boolean(input3(id)?.checked), active = input3("seac");
@@ -17173,8 +18968,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var failure = (error, result) => orFallback(errorMessage2(error), result?.error ?? "");
   var partial = (body2) => body2.querySelector("[name=rft]:checked")?.value === "parcial";
   function formHtml6(invoice2) {
-    const lines2 = invoice2.lineas.map((line2, index) => `<div class="g2" style="align-items:center"><div>${escapeHtml(line2.descripcion)} <span class="sm">${t("billing.rectify.units", { units: formatNumber(line2.unidades) })}</span></div>
-      <div><input type="number" min="0" max="${line2.unidades}" data-rfi="${index}" value="0" aria-label="${t("billing.rectify.unitsLabel")}"></div></div>`).join("");
+    const lines2 = invoice2.lineas.map((line3, index) => `<div class="g2" style="align-items:center"><div>${escapeHtml(line3.descripcion)} <span class="sm">${t("billing.rectify.units", { units: formatNumber(line3.unidades) })}</span></div>
+      <div><input type="number" min="0" max="${line3.unidades}" data-rfi="${index}" value="0" aria-label="${t("billing.rectify.unitsLabel")}"></div></div>`).join("");
     return `
     <div class="fh"><div><h2>${t("billing.rectify.title", { number: escapeHtml(invoice2.numero) })}</h2><div class="sm">${t("billing.rectify.subtitle")}</div></div>
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
@@ -17188,7 +18983,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   var reasonOf = () => document.getElementById("rfm")?.value.trim() ?? "";
   function chosenLines(body2) {
-    return [...body2.querySelectorAll("[data-rfi]")].map((input5) => ({ indice: Number(input5.dataset.rfi), unidades: Number(input5.value) || 0 })).filter((line2) => line2.unidades > 0);
+    return [...body2.querySelectorAll("[data-rfi]")].map((input5) => ({ indice: Number(input5.dataset.rfi), unidades: Number(input5.value) || 0 })).filter((line3) => line3.unidades > 0);
   }
   async function issue(invoice2, body2, button2) {
     const reason = reasonOf();
@@ -17268,8 +19063,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function linesHtml(invoice2) {
     const head = [["", "concept"], ["num", "units"], ["num", "price"], ["num", "discount"], ["num", "vat"], ["num", "base"]];
-    const lines2 = invoice2.lineas.map((line2) => `<div class="dr" style="cursor:default"><span>${escapeHtml(line2.descripcion)}</span><span class="num">${formatNumber(line2.unidades)}</span>
-        <span class="num">${euros4(line2.precio)}</span><span class="num">${line2.descuento ? `${formatNumber(line2.descuento)}%` : "—"}</span><span class="num">${formatNumber(line2.iva)}%</span><span class="num"><b>${euros4(line2.base)}</b></span></div>`).join("");
+    const lines2 = invoice2.lineas.map((line3) => `<div class="dr" style="cursor:default"><span>${escapeHtml(line3.descripcion)}</span><span class="num">${formatNumber(line3.unidades)}</span>
+        <span class="num">${euros4(line3.precio)}</span><span class="num">${line3.descuento ? `${formatNumber(line3.descuento)}%` : "—"}</span><span class="num">${formatNumber(line3.iva)}%</span><span class="num"><b>${euros4(line3.base)}</b></span></div>`).join("");
     const breakdown = invoice2.desglose_iva.map((item) => `<div><span>${t("billing.sheet.baseAt", { rate: formatNumber(item.iva) })}</span><b>${euros4(item.base)}</b></div><div><span>${t("billing.sheet.vatAt", { rate: formatNumber(item.iva) })}</span><b>${euros4(item.cuota)}</b></div>`).join("");
     return `<div class="dgrid-wrap"><div class="dgrid flin">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.sheet.${key}`)}</span>`).join("")}</div>
@@ -17340,7 +19135,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       });
     });
   }
-  async function paint6(id) {
+  async function paint7(id) {
     const { data: detail } = await callRpc("factura_detalle", { p_id: id });
     const invoice2 = detail?.factura;
     if (!detail || !invoice2) {
@@ -17362,7 +19157,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     bind17(body2, detail, invoice2, pending);
   }
   function showInvoice(id) {
-    return billingLegacy.withLoading(() => paint6(id));
+    return billingLegacy.withLoading(() => paint7(id));
   }
 
   // src/app/screens/platform/index.ts
@@ -17390,7 +19185,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       const { data } = await RPC_ORIG("plan_uso", {});
       if (data?.plan) PLAN_ACTUAL = data.plan;
     },
-    askText: (message, value19, options3) => pedirTexto(message, value19, options3),
+    askText: (message, value19, options3) => askText(message, value19, options3),
     prepareOrganizationChange: (name) => {
       prepararCambioOrg(name);
     },
@@ -17472,7 +19267,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const planned = change ? t("platform.billing.planned", { plan: platformLegacy.planName(change.plan ?? plan.plan) }) + (change.usuarios ? t("platform.billing.plannedUsers", { users: change.usuarios }) : "") + (change.desde ? t("platform.billing.plannedOn", { date: platformLegacy.shortDate(change.desde) }) : "") : "";
     return [plan.baja_al_final ? t("platform.billing.leaving") : "", planned, plan.compromiso_hasta ? t("platform.billing.commitment", { date: platformLegacy.shortDate(plan.compromiso_hasta) }) : ""].filter(Boolean);
   }
-  function rowHtml17({ organization, plan, state }) {
+  function rowHtml18({ organization, plan, state }) {
     const monthly = platformLegacy.monthlyAmount(plan), users = plan.plan === "medida" ? "" : (plan.usuarios ? t("platform.billing.hired", { count: plan.usuarios }) : "") + t(plan.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly");
     return `<tr><td><b>${escapeHtml(organization.nombre)}</b><div class="sm">${t("platform.billing.activeUsers", { count: organization.usuarios })}${plan.origen === "web" ? t("platform.billing.fromWeb") : ""}</div></td>
           <td>${escapeHtml(platformLegacy.planName(plan.plan))}<div class="sm">${users}</div></td>
@@ -17487,9 +19282,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const shown5 = rows.filter((row4) => shownIn(filter, row4));
     const head = ["company", "plan", "state", "perMonth", "pending"].map((key) => `<th>${t(`platform.billing.${key}`)}</th>`).join("");
     box.innerHTML = shown5.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr>${head}<th></th></tr></thead><tbody>
-      ${shown5.map(rowHtml17).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.billing.empty")}</div>`;
+      ${shown5.map(rowHtml18).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.billing.empty")}</div>`;
   }
-  function pageHtml6(rows, error) {
+  function pageHtml7(rows, error) {
     const count2 = (state) => rows.filter((row4) => row4.state[0] === state).length;
     const income = sum(rows.filter((row4) => row4.state[0] === UP_TO_DATE).map((row4) => platformLegacy.monthlyAmount(row4.plan)));
     const figures = [
@@ -17515,7 +19310,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const box = panelBox();
     if (!box) return;
     const rows = (error ? [] : data ?? []).map((organization) => ({ organization, plan: planOf(organization), state: platformLegacy.billingState(organization) }));
-    box.innerHTML = pageHtml6(rows, error);
+    box.innerHTML = pageHtml7(rows, error);
     box.querySelectorAll("[data-pdf]").forEach((button2) => {
       button2.onclick = () => {
         box.querySelectorAll("[data-pdf]").forEach((other) => {
@@ -17948,7 +19743,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <button class="btn sec chico" type="button" data-orgexp="${organization.id}">${t("platform.orgs.download")}</button>
         ${toggle3}${remove7}</span>`;
   }
-  function rowHtml18(organization) {
+  function rowHtml19(organization) {
     const domains = organization.dominios ?? [];
     return `<div class="item" style="cursor:default">
       <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
@@ -18018,7 +19813,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box.innerHTML = `<div class="card"><div class="fh"><div><h2>${t("platform.orgs.title")}</h2>
       <div class="sm">${t("platform.orgs.subtitle")}</div></div>
       <button class="btn" id="orgnueva">${t("platform.orgs.new")}</button></div>
-    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map(rowHtml18).join("")}</div>`}</div>`;
+    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map(rowHtml19).join("")}</div>`}</div>`;
     bind18(box, list);
   }
 
@@ -18034,7 +19829,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return escapeHtml(orFallback(data.nombre, request2.persona ?? "")) + (data.correo ? ` · <a href="mailto:${escapeHtml(data.correo)}">${escapeHtml(data.correo)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + `
           · ${how ? t(how) : ""}${data.horario ? ` (${escapeHtml(data.horario)})` : ""}`;
   }
-  function rowHtml19(request2, index) {
+  function rowHtml20(request2, index) {
     const data = request2.datos ?? {}, needs = data.necesita_txt ?? [];
     return `<div class="presufila${request2.estado === "Cerrada" ? " cerrada" : ""}">
         <div class="presucab"><b>${escapeHtml(request2.organizacion)}</b> <span class="pill p-est">${escapeHtml(platformLegacy.planName(request2.plan))}</span>
@@ -18067,7 +19862,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.requests.title")}</h2>
     <p class="sm">${t("platform.requests.subtitle")}</p>
     ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
-    <div class="presulista">${list.map(rowHtml19).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
+    <div class="presulista">${list.map(rowHtml20).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
     box.querySelectorAll("[data-psok]").forEach((button2) => {
       button2.onclick = () => {
         const index = button2.dataset.psok ?? "", request2 = list[Number(index)];
@@ -18080,7 +19875,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var COMPLETED = "completada";
   var WEEK_MS = 7 * 864e5;
   var DEFAULT_USERS = 3;
-  function stateOf(signup) {
+  function stateOf2(signup) {
     if (signup.estado !== COMPLETED) return [t("platform.signups.half"), "p-warn", t("platform.signups.halfText", { ago: platformLegacy.timeAgo(signup.creado_en) })];
     if (signup.entro) return [t("platform.signups.inside"), "p-est", t("platform.signups.insideText")];
     return [t("platform.signups.invited"), "p-per", signup.invitado_en ? t("platform.signups.invitedText", { ago: platformLegacy.timeAgo(signup.invitado_en) }) : t("platform.signups.noInvitation")];
@@ -18088,15 +19883,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function contactHtml(data) {
     return escapeHtml(data.nombre ?? "") + (data.email ? ` · <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + (data.nif ? ` · ${escapeHtml(data.nif)}` : "");
   }
-  function rowHtml20(signup) {
-    const data = signup.datos ?? {}, [label, pill, text2] = stateOf(signup);
+  function rowHtml21(signup) {
+    const data = signup.datos ?? {}, [label, pill, text2] = stateOf2(signup);
     const plan = t("platform.signups.plan", { plan: platformLegacy.planName(data.plan), users: nonZeroOr(data.usuarios, DEFAULT_USERS), payment: t(data.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly") });
     return `<div class="pdalta"><div class="pdaltacab"><b>${escapeHtml(orFallback(orFallback(signup.organizacion, data.empresa ?? ""), t("platform.signups.noName")))}</b> <span class="pill ${pill}">${label}</span>
         <span class="pill p-per">${escapeHtml(plan)}</span></div>
       <div class="sm">${contactHtml(data)}</div>
       <div class="sm">${escapeHtml(text2)} · ${t("platform.signups.started", { date: platformLegacy.shortDate(signup.creado_en) })}</div></div>`;
   }
-  function pageHtml7(list, error) {
+  function pageHtml8(list, error) {
     const done = list.filter((signup) => signup.estado === COMPLETED), half = list.filter((signup) => signup.estado !== COMPLETED);
     const week = list.filter((signup) => Date.now() - new Date(signup.creado_en).getTime() < WEEK_MS);
     const figures = [
@@ -18108,8 +19903,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="card cfgpanel">
     ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
     ${platformLegacy.kpis(figures)}
-    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml20).join("")}` : ""}
-    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done.map(rowHtml20).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
+    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml21).join("")}` : ""}
+    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done.map(rowHtml21).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
   }
   async function paintSignups() {
     const start2 = panelBox();
@@ -18118,7 +19913,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const { data, error } = await callRpc("altas_lista", {});
     if (!stillOnTab("altas")) return;
     const box = panelBox();
-    if (box) box.innerHTML = pageHtml7(error ? [] : data ?? [], error);
+    if (box) box.innerHTML = pageHtml8(error ? [] : data ?? [], error);
   }
 
   // src/app/screens/platform/status.ts
@@ -18152,7 +19947,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       [formatNumber(state.errores ?? 0), t("platform.status.openErrors"), state.errores ? "aviso" : ""]
     ]);
   }
-  function pageHtml8(state, error) {
+  function pageHtml9(state, error) {
     const test = platformLegacy.isTestEnvironment();
     return `<div class="card cfgpanel">
     ${error ? `<div class="banda-peligro">${t("platform.status.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
@@ -18192,7 +19987,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!stillOnTab("estado")) return;
     const box = panelBox();
     if (!box) return;
-    box.innerHTML = pageHtml8(error ? {} : data ?? {}, error);
+    box.innerHTML = pageHtml9(error ? {} : data ?? {}, error);
     const { data: use } = await routes2;
     if (stillOnTab("estado") && use?.ok) addRoutes(box, use);
   }
@@ -18246,11 +20041,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/legacy/portal-bridge.ts
   var portalPageLegacy = {
-    barChart: (items, format) => barrasH(items, format),
-    emptyChart: (text2) => vacioGrafico(text2),
-    donut: (items) => svgDonut(items),
+    barChart: (items, format) => rankingBars(items, format),
+    emptyChart: (text2) => emptyChart(text2),
+    donut: (items) => donut(items),
     monthsBetween: (from, to) => mesesEntre(from, to),
-    skeletonCard: (title2) => skelCard(title2),
+    skeletonCard: (title2) => cardSkeleton(title2),
     /** A company word with its singular, plural and gender. */
     wordOf: (key) => terminoDe(key),
     userName: () => PERFIL?.nombre ?? "",
@@ -18364,10 +20159,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <span class="sm">${escapeHtml(item.producto)} · ${t(item.tipo === "application/pdf" ? "portal.docs.pdf" : "portal.docs.image")}${item.tamano ? ` · ${sizeText(item.tamano)}` : ""}</span></span>
       <button type="button" class="btn sec chico" data-pcmat="${item.id}">${t("portal.docs.download")}</button></div>`;
   async function paintDownloads() {
-    const place2 = document.getElementById("pmmat");
-    if (!place2 || document.getElementById("pcdesc")) return;
+    const place3 = document.getElementById("pmmat");
+    if (!place3 || document.getElementById("pcdesc")) return;
     const title2 = t("portal.docs.downloadsTitle");
-    place2.insertAdjacentHTML("afterbegin", `<div class="card ancard" id="pcdesc"><h2>${title2} ${helpButton(title2, t("portal.docs.downloadsHelp"))}</h2><div id="pcdescl">${portalPageLegacy.skeletonCard(t("common.loading"))}</div></div>`);
+    place3.insertAdjacentHTML("afterbegin", `<div class="card ancard" id="pcdesc"><h2>${title2} ${helpButton(title2, t("portal.docs.downloadsHelp"))}</h2><div id="pcdescl">${portalPageLegacy.skeletonCard(t("common.loading"))}</div></div>`);
     const { data } = await callRpc("portal_materiales", {});
     const box = document.getElementById("pcdescl");
     if (!box) return;
@@ -18410,7 +20205,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div class="pcpacks">${packs.map((pack, index) => packRow(product, pack, index)).join("")}</div></div>`;
   }
   function formHtml9(products3) {
-    const addresses = [...new Set(portalState.places.map((place2) => [place2.direccion, place2.municipio].filter(Boolean).join(", ")).filter(Boolean))];
+    const addresses = [...new Set(portalState.places.map((place3) => [place3.direccion, place3.municipio].filter(Boolean).join(", ")).filter(Boolean))];
     return `<div id="ctprods">${products3.map(productHtml).join("")}</div>
       <div class="pcent"><b>${t("portal.order.delivery")}</b>
         <label class="opt"><input type="radio" name="pcent" value="una" checked> ${t("portal.order.deliverCentre")}</label>
@@ -18553,28 +20348,28 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/portal/form-data.ts
   var MAX_HOUR = 23;
   var MAX_MINUTE = 59;
-  var MORNING = ["09:00", "14:00"];
-  var AFTERNOON = ["16:00", "20:00"];
+  var MORNING2 = ["09:00", "14:00"];
+  var AFTERNOON2 = ["16:00", "20:00"];
   function splitTime(text2) {
     if (text2.includes(":")) {
-      const [hours = "", minutes = ""] = text2.split(":");
-      return [hours, minutes];
+      const [hours = "", minutes2 = ""] = text2.split(":");
+      return [hours, minutes2];
     }
     if (text2.length <= 2) return [text2, "00"];
     return [text2.slice(0, text2.length - 2), text2.slice(-2)];
   }
   function timeOf5(value19) {
     const text2 = String(value19 ?? "").replace(/[^\d:]/g, "");
-    const [hoursText, minutesText] = splitTime(text2), hours = Number(hoursText), minutes = Number(minutesText || 0);
-    if (!text2 || isNaN(hours) || hours > MAX_HOUR || minutes > MAX_MINUTE) return "";
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    const [hoursText, minutesText] = splitTime(text2), hours = Number(hoursText), minutes2 = Number(minutesText || 0);
+    if (!text2 || isNaN(hours) || hours > MAX_HOUR || minutes2 > MAX_MINUTE) return "";
+    return `${String(hours).padStart(2, "0")}:${String(minutes2).padStart(2, "0")}`;
   }
   function rangesOf(value19) {
     const text2 = String(value19 ?? ""), found = [];
     const pattern = /(\d{1,2})(?::(\d{2}))?\s*[-–a]\s*(\d{1,2})(?::(\d{2}))?/g;
     for (let match = pattern.exec(text2); match; match = pattern.exec(text2)) found.push([timeOf5(`${match[1]}:${match[2] ?? "00"}`), timeOf5(`${match[3]}:${match[4] ?? "00"}`)]);
-    if (!found.length && /mañana/i.test(text2)) found.push([...MORNING]);
-    if (/tarde/i.test(text2) && !found.some((range2) => range2[0] >= "14:00")) found.push([...AFTERNOON]);
+    if (!found.length && /mañana/i.test(text2)) found.push([...MORNING2]);
+    if (/tarde/i.test(text2) && !found.some((range2) => range2[0] >= "14:00")) found.push([...AFTERNOON2]);
     return found;
   }
   function daysOf(saved2) {
@@ -18597,7 +20392,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const places = sent.consultas ?? portalState.places.map((known) => ({ ...placeOf(known), dias: known.dias }));
     portalState.form = {
       ...contactOf(sent, answer.cuenta ?? {}),
-      consultas: places.map((place2) => ({ ...place2, dias: daysOf(place2.dias) })),
+      consultas: places.map((place3) => ({ ...place3, dias: daysOf(place3.dias) })),
       visitas: { como: "", momento: "", ...sent.visitas },
       notas: sent.notas ?? ""
     };
@@ -18611,12 +20406,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     form.visitas = { como: field7("pmcomo"), momento: field7("pmmom").trim() };
     form.notas = field7("pmnot").trim();
     document.querySelectorAll("#pmficha [data-pmcf]").forEach((input5) => {
-      const [index = "", key = ""] = (input5.dataset.pmcf ?? "").split("|"), place2 = form.consultas[Number(index)];
-      if (!place2) return;
-      if (key === "nombre") place2.nombre = input5.value.trim();
+      const [index = "", key = ""] = (input5.dataset.pmcf ?? "").split("|"), place3 = form.consultas[Number(index)];
+      if (!place3) return;
+      if (key === "nombre") place3.nombre = input5.value.trim();
       if (key === "direccion") {
-        place2.direccion = input5.value.trim();
-        place2.municipio = "";
+        place3.direccion = input5.value.trim();
+        place3.municipio = "";
       }
     });
     document.querySelectorAll("#pmficha [data-pmhi]").forEach((input5) => {
@@ -18629,7 +20424,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var isValidRange = (range2) => VALID_TIME.test(range2[0] ?? "") && VALID_TIME.test(range2[1] ?? "") && (range2[1] ?? "") > (range2[0] ?? "");
 
   // src/app/screens/portal/form.ts
-  var SEARCH_WAIT_MS4 = 250;
+  var SEARCH_WAIT_MS5 = 250;
   var MIN_SEARCH = 2;
   var HOW_OPTIONS = ["portal.form.howBooked", "portal.form.howEndOfDay", "portal.form.howAnyGap", "portal.form.howPhone", "portal.form.howWriteFirst"];
   var DAY_NAMES2 = /* @__PURE__ */ new Map([["L", "portal.form.monday"], ["M", "portal.form.tuesday"], ["X", "portal.form.wednesday"], ["J", "portal.form.thursday"], ["V", "portal.form.friday"], ["S", "portal.form.saturday"]]);
@@ -18648,15 +20443,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <button type="button" class="chip" data-pmhp="${index}|mt">${t("portal.form.fillBoth")}</button><button type="button" class="chip" data-pmhp="${index}|c">${t("portal.form.copyFirst")}</button></div>
     ${WEEKDAYS.map((day) => timetableDay(index, day, days[day] ?? [])).join("")}</div>`;
   }
-  var placeText = (place2, separator) => [place2.direccion, place2.municipio].filter(Boolean).join(separator);
-  function placeHtml(place2, index) {
-    const isNew = !place2.centro_id && !place2.ubicacion_id || !String(place2.nombre ?? "").trim();
-    const head = isNew ? `<div class="g2 pmcnuevo"><div><label>${t("portal.form.placeName")}</label><input data-pmcf="${index}|nombre" value="${escapeHtml(place2.nombre ?? "")}"></div>
-        <div><label>${t("portal.form.placeAddress")}</label><input data-pmcf="${index}|direccion" value="${escapeHtml(placeText(place2, ", "))}" placeholder="${t("portal.form.placeAddressPlaceholder")}"></div></div>` : `<div><b>${escapeHtml(orFallback(place2.nombre, words2().place))}</b><span class="sm">${escapeHtml(placeText(place2, " · "))}</span></div>`;
+  var placeText = (place3, separator) => [place3.direccion, place3.municipio].filter(Boolean).join(separator);
+  function placeHtml(place3, index) {
+    const isNew = !place3.centro_id && !place3.ubicacion_id || !String(place3.nombre ?? "").trim();
+    const head = isNew ? `<div class="g2 pmcnuevo"><div><label>${t("portal.form.placeName")}</label><input data-pmcf="${index}|nombre" value="${escapeHtml(place3.nombre ?? "")}"></div>
+        <div><label>${t("portal.form.placeAddress")}</label><input data-pmcf="${index}|direccion" value="${escapeHtml(placeText(place3, ", "))}" placeholder="${t("portal.form.placeAddressPlaceholder")}"></div></div>` : `<div><b>${escapeHtml(orFallback(place3.nombre, words2().place))}</b><span class="sm">${escapeHtml(placeText(place3, " · "))}</span></div>`;
     return `<div class="pmc" data-pmc="${index}">
     <div class="pmccab">${head}
       <button type="button" class="btn sec chico pmcx" data-pmcx="${index}">${t("portal.form.remove")}</button></div>
-    ${timetableHtml(place2.dias, index)}</div>`;
+    ${timetableHtml(place3.dias, index)}</div>`;
   }
   var placesHtml = (places) => places.map(placeHtml).join("") || `<p class="sm">${t("portal.form.noPlaces")}</p>`;
   function paintChecklist() {
@@ -18667,7 +20462,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     } catch {
     }
     const form = portalState.form, phone = Boolean(form.telefono.trim()), how = Boolean(form.visitas.como.trim());
-    const timetable = form.consultas.some((place2) => Object.values(place2.dias).some((ranges) => ranges.some(isValidRange)));
+    const timetable = form.consultas.some((place3) => Object.values(place3.dias).some((ranges) => ranges.some(isValidRange)));
     const done = phone && how && timetable;
     box.classList.toggle("ok", done);
     box.innerHTML = `<b>${t(done ? "portal.form.checkDone" : "portal.form.checkTitle")}</b>
@@ -18731,7 +20526,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       clearTimeout(searchTimer3);
       searchTimer3 = setTimeout(() => {
         void searchCentre();
-      }, SEARCH_WAIT_MS4);
+      }, SEARCH_WAIT_MS5);
     };
     const send3 = document.getElementById("pmenviar");
     if (send3) send3.onclick = () => {
@@ -18742,17 +20537,17 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     paintChecklist();
   }
   function formProblem(places) {
-    const wrong = places.find((place2) => Object.values(place2.dias).some((ranges) => ranges.some((range2) => !isValidRange(range2))));
+    const wrong = places.find((place3) => Object.values(place3.dias).some((ranges) => ranges.some((range2) => !isValidRange(range2))));
     if (wrong) return t("portal.form.checkHours", { name: wrong.nombre ?? "" });
-    return places.some((place2) => !String(place2.nombre ?? "").trim()) ? t("portal.form.nameEachPlace") : null;
+    return places.some((place3) => !String(place3.nombre ?? "").trim()) ? t("portal.form.nameEachPlace") : null;
   }
-  var proposalOf = (places) => places.map((place2) => ({
-    centro_id: place2.centro_id ?? null,
-    ubicacion_id: place2.ubicacion_id ?? null,
-    nombre: place2.nombre,
-    direccion: place2.direccion ?? "",
-    municipio: place2.municipio ?? "",
-    dias: Object.fromEntries(Object.entries(place2.dias).map(([day, ranges]) => [day, ranges.map((range2) => `${range2[0]}-${range2[1]}`).join(", ")]))
+  var proposalOf = (places) => places.map((place3) => ({
+    centro_id: place3.centro_id ?? null,
+    ubicacion_id: place3.ubicacion_id ?? null,
+    nombre: place3.nombre,
+    direccion: place3.direccion ?? "",
+    municipio: place3.municipio ?? "",
+    dias: Object.fromEntries(Object.entries(place3.dias).map(([day, ranges]) => [day, ranges.map((range2) => `${range2[0]}-${range2[1]}`).join(", ")]))
   }));
   async function sendForm(button2) {
     readForm2();
@@ -18778,31 +20573,31 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const banner = document.querySelector("#mdcuerpo > .pmaviso");
     if (banner && !portalState.missing.length) banner.remove();
   }
-  function toggleDay(place2, day) {
-    if (place2.dias[day]?.length) {
-      Reflect.deleteProperty(place2.dias, day);
+  function toggleDay(place3, day) {
+    if (place3.dias[day]?.length) {
+      Reflect.deleteProperty(place3.dias, day);
       return;
     }
-    const first = WEEKDAYS.find((other) => place2.dias[other]?.length);
-    place2.dias[day] = first ? (place2.dias[first] ?? []).map((range2) => [...range2]) : [["09:00", "14:00"]];
+    const first = WEEKDAYS.find((other) => place3.dias[other]?.length);
+    place3.dias[day] = first ? (place3.dias[first] ?? []).map((range2) => [...range2]) : [["09:00", "14:00"]];
   }
   var PRESETS = /* @__PURE__ */ new Map([["m", [["09:00", "14:00"]]], ["t", [["16:00", "20:00"]]], ["mt", [["09:00", "14:00"], ["16:00", "20:00"]]]]);
-  function fillDays(place2, preset) {
-    let days = WEEKDAYS.filter((day) => place2.dias[day]?.length);
+  function fillDays(place3, preset) {
+    let days = WEEKDAYS.filter((day) => place3.dias[day]?.length);
     if (!days.length) days = ["L", "M", "X", "J", "V"];
-    const ranges = PRESETS.get(preset) ?? place2.dias[days[0] ?? ""] ?? [["09:00", "14:00"]];
+    const ranges = PRESETS.get(preset) ?? place3.dias[days[0] ?? ""] ?? [["09:00", "14:00"]];
     days.forEach((day) => {
-      place2.dias[day] = ranges.map((range2) => [...range2]);
+      place3.dias[day] = ranges.map((range2) => [...range2]);
     });
   }
-  function removeRange(place2, day, row4) {
-    const ranges = place2.dias[day];
+  function removeRange(place3, day, row4) {
+    const ranges = place3.dias[day];
     if (!ranges) return;
     ranges.splice(row4, 1);
-    if (!ranges.length) Reflect.deleteProperty(place2.dias, day);
+    if (!ranges.length) Reflect.deleteProperty(place3.dias, day);
   }
-  function addRange(place2, day) {
-    const ranges = place2.dias[day];
+  function addRange(place3, day) {
+    const ranges = place3.dias[day];
     if (!ranges) return;
     const last = ranges[ranges.length - 1];
     ranges.push(last && last[1] < "15:00" ? ["16:00", "20:00"] : ["", ""]);
@@ -18815,17 +20610,17 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (results) results.innerHTML = "";
   }
   var TIMETABLE_ACTIONS = [
-    ["pmhd", (place2, day) => {
-      toggleDay(place2, day);
+    ["pmhd", (place3, day) => {
+      toggleDay(place3, day);
     }],
-    ["pmhp", (place2, preset) => {
-      fillDays(place2, preset);
+    ["pmhp", (place3, preset) => {
+      fillDays(place3, preset);
     }],
-    ["pmhx", (place2, day, row4) => {
-      removeRange(place2, day, row4);
+    ["pmhx", (place3, day, row4) => {
+      removeRange(place3, day, row4);
     }],
-    ["pmha", (place2, day) => {
-      addRange(place2, day);
+    ["pmha", (place3, day) => {
+      addRange(place3, day);
     }]
   ];
   function applyClick(button2, places) {
@@ -18840,8 +20635,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     const found = TIMETABLE_ACTIONS.find(([key]) => data[key]);
     if (!found) return;
-    const [index = "", day = "", row4 = ""] = (data[found[0]] ?? "").split("|"), place2 = places[Number(index)];
-    if (place2) found[1](place2, day, Number(row4));
+    const [index = "", day = "", row4 = ""] = (data[found[0]] ?? "").split("|"), place3 = places[Number(index)];
+    if (place3) found[1](place3, day, Number(row4));
   }
   function listenToForm() {
     document.addEventListener("click", (event) => {
@@ -19002,7 +20797,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var PREPARED = "Preparado";
   var euros6 = (value19) => portalLegacy.euros(value19);
   function orderRow(order) {
-    const lines2 = (order.lineas ?? []).map((line2) => `${line2.producto} × ${formatNumber(line2.unidades)}${line2.regalo ? t("portal.centre.free") : ""}`).join(", ");
+    const lines2 = (order.lineas ?? []).map((line3) => `${line3.producto} × ${formatNumber(line3.unidades)}${line3.regalo ? t("portal.centre.free") : ""}`).join(", ");
     return `<div class="item"><span class="tx">
             <b>${order.numero ? `${escapeHtml(order.numero)} · ` : ""}${formatShortDate(String(order.fecha).slice(0, 10))}</b>
             <span class="sm">${escapeHtml(lines2)}${order.total !== null && order.total !== void 0 ? ` · ${euros6(order.total)}` : ""}</span>${orderExtras(order)}</span>
@@ -19240,10 +21035,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     return true;
   }
-  function materialRow(item, chosen3) {
+  function materialRow(item, chosen4) {
     return `<label class="item" style="cursor:default">
-        <input type="checkbox" data-cfpm="${escapeHtml(item.valor)}" ${chosen3 ? "checked" : ""}> <span class="tx"><b>${escapeHtml(item.valor)}</b></span>
-        <span class="sm">${t("portal.settings.maximum")}</span> <input type="number" min="1" max="${MAX_LIMIT2}" value="${chosen3 ? chosen3.max : DEFAULT_MAX2}" data-cfpx="${escapeHtml(item.valor)}" style="max-width:110px" aria-label="${t("portal.settings.maximumOf", { name: escapeHtml(item.valor) })}"></label>`;
+        <input type="checkbox" data-cfpm="${escapeHtml(item.valor)}" ${chosen4 ? "checked" : ""}> <span class="tx"><b>${escapeHtml(item.valor)}</b></span>
+        <span class="sm">${t("portal.settings.maximum")}</span> <input type="number" min="1" max="${MAX_LIMIT2}" value="${chosen4 ? chosen4.max : DEFAULT_MAX2}" data-cfpx="${escapeHtml(item.valor)}" style="max-width:110px" aria-label="${t("portal.settings.maximumOf", { name: escapeHtml(item.valor) })}"></label>`;
   }
   function materialHtml(catalog2, allowed, saved2) {
     if (!catalog2.length) return `<div class="vacio">${t("portal.settings.noCatalog")}</div>`;
@@ -19315,7 +21110,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return typeof range2 === "function" ? range2() : { desde: null, hasta: null };
     },
     loading: (element2, text2) => {
-      cargando(element2, text2);
+      showLoading(element2, text2);
     },
     setTableExport: (rows) => {
       Reflect.set(window, "__ANTABLA", rows);
@@ -19346,7 +21141,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var TOTAL_WIDTH = 120;
   var BASE_SHADE = 0.08;
   var SHADE_RANGE = 0.42;
-  var cell2 = (width, html, extra = "", style = "") => `<span class="tcell${extra}" style="width:${width}px;min-width:${width}px${width === NAME_WIDTH2 ? "" : ";text-align:right"}${style}">${html}</span>`;
+  var cell3 = (width, html, extra = "", style = "") => `<span class="tcell${extra}" style="width:${width}px;min-width:${width}px${width === NAME_WIDTH2 ? "" : ";text-align:right"}${style}">${html}</span>`;
   var valueIn = (row4, month) => Number(row4.meses?.[month]) || 0;
   function monthHeader(month) {
     const name = shortMonthNames()[Number(month.slice(5, 7)) - 1] ?? month.slice(5);
@@ -19362,19 +21157,19 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const months2 = data.meses ?? [], format = (value19) => data.medida === "importe" ? formatCurrency(value19) : formatNumber(value19);
     const max = Math.max(1, ...rows.flatMap((row4) => months2.map((month) => valueIn(row4, month))));
     const shade = (value19) => value19 ? `;background:rgba(46,134,201,${(BASE_SHADE + value19 / max * SHADE_RANGE).toFixed(2)})` : "";
-    const monthCell = (row4, month) => cell2(MONTH_WIDTH, row4.meses?.[month] ? format(row4.meses[month]) : '<span class="sm">·</span>', "", shade(valueIn(row4, month)));
+    const monthCell = (row4, month) => cell3(MONTH_WIDTH, row4.meses?.[month] ? format(row4.meses[month]) : '<span class="sm">·</span>', "", shade(valueIn(row4, month)));
     return `<div class="tabla"><div style="min-width:${180 + months2.length * MONTH_WIDTH}px">
-    <div class="thead">${cell2(NAME_WIDTH2, t("analytics.table.concept"), " th")}
-      ${months2.map((month) => cell2(MONTH_WIDTH, escapeHtml(monthHeader(month)), " th")).join("")}
-      ${cell2(TOTAL_WIDTH, t("analytics.explore.total"), " th")}</div>
+    <div class="thead">${cell3(NAME_WIDTH2, t("analytics.table.concept"), " th")}
+      ${months2.map((month) => cell3(MONTH_WIDTH, escapeHtml(monthHeader(month)), " th")).join("")}
+      ${cell3(TOTAL_WIDTH, t("analytics.explore.total"), " th")}</div>
     ${rows.map((row4) => `<div class="trow" style="cursor:default">
-      ${cell2(NAME_WIDTH2, `<b>${escapeHtml(row4.nombre)}</b>`)}
+      ${cell3(NAME_WIDTH2, `<b>${escapeHtml(row4.nombre)}</b>`)}
       ${months2.map((month) => monthCell(row4, month)).join("")}
-      ${cell2(TOTAL_WIDTH, `<b>${format(row4.total)}</b>`)}</div>`).join("")}
+      ${cell3(TOTAL_WIDTH, `<b>${format(row4.total)}</b>`)}</div>`).join("")}
     <div class="trow" data-fijo style="cursor:default;background:var(--bg)">
-      ${cell2(NAME_WIDTH2, `<b>${t("analytics.explore.total")}</b>`)}
-      ${months2.map((month) => cell2(MONTH_WIDTH, `<b>${format(sum(rows.map((row4) => valueIn(row4, month))))}</b>`)).join("")}
-      ${cell2(TOTAL_WIDTH, `<b>${format(sum(rows.map((row4) => Number(row4.total) || 0)))}</b>`)}</div>
+      ${cell3(NAME_WIDTH2, `<b>${t("analytics.explore.total")}</b>`)}
+      ${months2.map((month) => cell3(MONTH_WIDTH, `<b>${format(sum(rows.map((row4) => valueIn(row4, month))))}</b>`)).join("")}
+      ${cell3(TOTAL_WIDTH, `<b>${format(sum(rows.map((row4) => Number(row4.total) || 0)))}</b>`)}</div>
   </div></div>`;
   }
   function exportRows(data, rows) {
@@ -19506,7 +21301,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   });
 
   // src/app/screens/analytics/visit-orders/effect.ts
-  var PAD = 22;
+  var PAD2 = 22;
   var SMOOTH = 3;
   var HEADROOM = 1.2;
   var MIN_MAX = 1e-3;
@@ -19518,7 +21313,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var decimals = (value19) => value19.toLocaleString("es-ES", { maximumFractionDigits: value19 < 10 ? 2 : 1 });
   function scale(frame) {
     return {
-      x: (day) => PAD + (day + frame.days) / (2 * frame.days) * (frame.width - 2 * PAD),
+      x: (day) => PAD2 + (day + frame.days) / (2 * frame.days) * (frame.width - 2 * PAD2),
       y: (value19) => frame.height - 24 - value19 / frame.max * (frame.height - 52)
     };
   }
@@ -19563,7 +21358,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/analytics/visit-orders/funnel.ts
   var bar = (width, extraClass) => `<svg class="tvbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="tvbg" width="100" height="10" rx="3"/><rect class="tvfg${extraClass}" width="${width}" height="10" rx="3"/></svg>`;
-  var mini = (value19, label, valueClass = "") => `<div class="tvmini"><b${valueClass ? ` class="${valueClass}"` : ""}>${value19}</b><span class="tvlbl">${label}</span></div>`;
+  var mini2 = (value19, label, valueClass = "") => `<div class="tvmini"><b${valueClass ? ` class="${valueClass}"` : ""}>${value19}</b><span class="tvlbl">${label}</span></div>`;
   function steps(summary4, days) {
     const visits2 = summary4.visitas ?? 0, visited = summary4.profesionales ?? 0, withOrder = summary4.con_venta ?? 0;
     return [
@@ -19583,8 +21378,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const average2 = isPresent(summary4.dias_media) ? t("analytics.orders.days", { count: formatNumber(summary4.dias_media) }) : "—";
     return `<div class="tvgrid"><div class="tvizq"><div class="tvbig">${formatNumber(share)}<small> %</small></div>
       <div class="tvlbl">${t("analytics.orders.haveOrder", { visited: term("medico", { number: "p", article: "del", adjective: "visitado" }), days })}</div>
-      <div class="tvrow">${mini(formatNumber(summary4.unidades ?? 0), t("analytics.orders.units"))}
-        ${mini(average2, t("analytics.orders.untilFirst"))}</div></div>
+      <div class="tvrow">${mini2(formatNumber(summary4.unidades ?? 0), t("analytics.orders.units"))}
+        ${mini2(average2, t("analytics.orders.untilFirst"))}</div></div>
     <div class="tvfun">${steps(summary4, days).map(([label, count2, share2, extraClass]) => `<div class="tvst"><span>${escapeHtml(label)}</span>
       ${bar(Math.max(share2 * 100, count2 ? 3 : 0).toFixed(1), extraClass ? ` ${extraClass}` : " ")}
       <b>${formatNumber(count2)}</b></div>`).join("")}
@@ -19615,8 +21410,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const total2 = sum(rows.map((row4) => Number(row4.con_pedido) || 0)), fresh = sum(rows.filter((row4) => row4.tipo !== FOLLOW_UP).map((row4) => Number(row4.con_pedido) || 0));
     return `<div class="tvgrid"><div class="tvizq"><div class="tvbig">${formatNumber(percent2(fresh, total2))}<small> %</small></div>
       <div class="tvlbl">${t("analytics.orders.newShare", words4())}</div>
-      <div class="tvrow">${mini(formatNumber(fresh), t("analytics.orders.newOnes"))}
-        ${mini(formatNumber(total2 - fresh), t("analytics.orders.followUps"))}</div></div>
+      <div class="tvrow">${mini2(formatNumber(fresh), t("analytics.orders.newOnes"))}
+        ${mini2(formatNumber(total2 - fresh), t("analytics.orders.followUps"))}</div></div>
     <div class="tvfun">${rows.map(typeRow).join("")}
       <div class="tvlbl">${rows.map((row4) => t("analytics.orders.typeUnits", { type: escapeHtml(typeName2(row4.tipo)), units: formatNumber(row4.unidades ?? 0) })).join(" · ")}</div></div></div>
     ${teamHtml(data.equipo ?? [])}`;
@@ -19638,13 +21433,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       yPercent: (value19) => height - BOTTOM - value19 / 100 * (height - TOP)
     };
   }
-  function bars(month, index, frame) {
+  function bars2(month, index, frame) {
     const x0 = SIDE + frame.barWidth * index + frame.barWidth * 0.2, width = frame.barWidth * 0.6, base = frame.height - BOTTOM;
     return `<rect x="${x0}" y="${frame.yVisits(month.visitas)}" width="${width}" height="${base - frame.yVisits(month.visitas)}" rx="6" class="tvbv"/>
       <rect x="${x0}" y="${frame.yVisits(month.con_venta)}" width="${width}" height="${base - frame.yVisits(month.con_venta)}" rx="6" class="tvbc"/>
       <text x="${x0 + width / 2}" y="${frame.height - 8}" class="tvtxt tvtxteje" text-anchor="middle">${escapeHtml(monthName(month.mes))}</text>`;
   }
-  function line(months2, frame) {
+  function line2(months2, frame) {
     const points = months2.map((month, index) => ({ x: SIDE + frame.barWidth * index + frame.barWidth / 2, share: percent2(month.con_venta, month.visitas), visits: month.visitas })).filter((point) => point.visits).map((point) => ({ ...point, y: frame.yPercent(point.share) }));
     return `<path d="${points.map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ")}" class="tvlinp"/>
     ${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="4.5" class="tvpt"/><text x="${point.x}" y="${point.y - 10}" class="tvtxt tvtxtpct" text-anchor="middle">${point.share}%</text>`).join("")}`;
@@ -19663,8 +21458,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const frame = frameOf(list);
     return `${headline2(list)}
     <svg class="tvsvg" viewBox="0 0 ${frame.width} ${frame.height}" role="img" aria-label="${t("analytics.orders.monthsLabel")}">
-    ${list.map((month, index) => bars(month, index, frame)).join("")}
-    ${line(list, frame)}
+    ${list.map((month, index) => bars2(month, index, frame)).join("")}
+    ${line2(list, frame)}
     </svg><div class="tvley"><span><i class="tvl3"></i>${t("analytics.orders.legendVisits", words4())}</span><span><i class="tvl4"></i>${t("analytics.orders.withOrderIn", { days: data.dias ?? DEFAULT_DAYS2 })}</span><span><i class="tvl5"></i>${t("analytics.orders.shareInOrder")}</span></div>`;
   }
 
@@ -19682,7 +21477,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     viewIndex = Math.max(0, VIEWS.findIndex((view) => view.key === localStorage.getItem(STORAGE_KEY)));
   } catch {
   }
-  function paint7() {
+  function paint8() {
     const body2 = document.getElementById("tvcuerpo"), view = VIEWS[viewIndex];
     if (!body2 || !shown2 || !view) return;
     body2.innerHTML = view.paint(shown2);
@@ -19707,7 +21502,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     shown2 = data;
     if (!data?.resumen) return;
     box.insertAdjacentHTML("afterbegin", cardHtml6(data.dias ?? DEFAULT_DAYS2));
-    paint7();
+    paint8();
   }
   function listenToVisitOrdersViews() {
     document.addEventListener("click", (event) => {
@@ -19718,7 +21513,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         localStorage.setItem(STORAGE_KEY, VIEWS[viewIndex]?.key ?? "");
       } catch {
       }
-      paint7();
+      paint8();
     });
   }
 
@@ -19868,7 +21663,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     visitLegacy.materialFiles().set(material.id, data.datos);
     return data.datos;
   }
-  async function paint8() {
+  async function paint9() {
     const current = showing;
     if (!current) return;
     const material = current.list[current.index], box = document.getElementById("prescuerpo");
@@ -19884,12 +21679,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     current.urls.push(url);
     box.innerHTML = material.tipo === "application/pdf" ? `<iframe class="prespdf" src="${url}" title="${escapeHtml(material.nombre)}"></iframe>` : `<img class="presimg" src="${url}" alt="${escapeHtml(material.nombre)}">`;
   }
-  function move(step) {
+  function move2(step) {
     if (!showing) return;
     const index = showing.index + step;
     if (index < 0 || index >= showing.list.length) return;
     showing.index = index;
-    void paint8();
+    void paint9();
   }
   function dialog5() {
     if (!document.getElementById("presenta")) document.body.insertAdjacentHTML("beforeend", `<dialog id="presenta" class="presdlg" aria-label="${t("visit.presentation.label")}"></dialog>`);
@@ -19908,21 +21703,21 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
     on5("prescerrar", close2);
     on5("presant", () => {
-      move(-1);
+      move2(-1);
     });
     on5("pressig", () => {
-      move(1);
+      move2(1);
     });
     box.oncancel = (event) => {
       event.preventDefault();
       close2();
     };
     box.onkeydown = (event) => {
-      if (event.key === "ArrowRight") move(1);
-      if (event.key === "ArrowLeft") move(-1);
+      if (event.key === "ArrowRight") move2(1);
+      if (event.key === "ArrowLeft") move2(-1);
     };
     box.showModal();
-    void paint8();
+    void paint9();
   }
   function presentProduct(productId) {
     const list = materialsOf(productId);
@@ -19938,7 +21733,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/visit/record/data.ts
-  var CENTRE5 = "Centro";
+  var CENTRE6 = "Centro";
   async function cardAndResults(id) {
     const [card2, results] = await Promise.all([
       cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`),
@@ -19957,7 +21752,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
   }
   async function samplesLeft(id, type) {
-    if (!navigator.onLine || type === CENTRE5) return [];
+    if (!navigator.onLine || type === CENTRE6) return [];
     const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
     return Array.isArray(data) ? data : [];
   }
@@ -20180,10 +21975,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
   }
   function bindPhotos(draft) {
-    const paint11 = () => {
+    const paint12 = () => {
       paintPhotos(document.getElementById("vfotos"), draft.fotos, (index) => {
         draft.fotos.splice(index, 1);
-        paint11();
+        paint12();
       });
     };
     const input5 = document.getElementById("vfotof");
@@ -20197,34 +21992,34 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         if (photo) draft.fotos.push(photo);
       }
       input5.value = "";
-      paint11();
+      paint12();
     };
   }
   function bindSamples(body2, samples3, draft) {
     if (!samples3.length) return;
-    let pad2 = null;
+    let pad3 = null;
     const items = () => [...body2.querySelectorAll("[data-vmprod]")].map((input5) => ({ producto_id: input5.dataset.vmprod ?? "", unidades: Math.max(0, Math.floor(Number(input5.value) || 0)), max: Number(input5.max) })).filter((item) => item.unidades > 0);
     const show2 = () => {
       const any = items().length > 0, canvas = document.getElementById("vmcanvas");
       document.getElementById("vmfirma")?.classList.toggle("hide", !any);
-      if (any && !pad2 && canvas) pad2 = visitLegacy.signaturePad(canvas);
+      if (any && !pad3 && canvas) pad3 = visitLegacy.signaturePad(canvas);
     };
     body2.querySelectorAll("[data-vmprod]").forEach((input5) => {
       input5.addEventListener("input", show2);
     });
     const clear = document.getElementById("vmborrar");
     if (clear) clear.onclick = () => {
-      pad2?.borrar();
+      pad3?.borrar();
     };
     draft.muestras = {
       items,
       firmante: () => document.getElementById("vmfirmante")?.value.trim() ?? "",
-      firma: () => pad2?.imagen() ?? null,
+      firma: () => pad3?.imagen() ?? null,
       validar: () => {
-        const chosen3 = items();
-        if (!chosen3.length) return null;
-        if (chosen3.some((item) => item.unidades > item.max)) return t("visit.samples.overLimit");
-        return !pad2 || pad2.vacia() ? t("visit.samples.missingSignature") : null;
+        const chosen4 = items();
+        if (!chosen4.length) return null;
+        if (chosen4.some((item) => item.unidades > item.max)) return t("visit.samples.overLimit");
+        return !pad3 || pad3.vacia() ? t("visit.samples.missingSignature") : null;
       }
     };
   }
@@ -20252,7 +22047,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const first = box.querySelector(".chips, [data-res]"), container = first?.classList.contains("chips") ? first : first?.parentElement;
     container?.insertAdjacentHTML("afterend", `<p class="sm srnota">${t("visit.record.noReporting", { professional: term("medico", { article: "este", articleCapital: "C" }), visit: term("visita") })}</p>`);
   }
-  function paint9(id, data, date) {
+  function paint10(id, data, date) {
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
     const index = /* @__PURE__ */ new Map(), resultsKey = splitGroups(data.groups).results.clave;
@@ -20282,7 +22077,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         notices.toast(t("visit.record.couldNotOpen", { reason: t(data === "online" ? "visit.record.cardUnreadable" : "visit.record.noCopy") }), true);
         return;
       }
-      paint9(id, data, date);
+      paint10(id, data, date);
     });
   }
 
@@ -20405,7 +22200,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/commissions/scheme-people.ts
   var block = (inner) => `<div class="blk" id="esqpers"><h3>${t("commissions.people.title")}</h3>${inner}</div>`;
-  function rowHtml21(item, admin) {
+  function rowHtml22(item, admin) {
     const state = assignmentState(item), today = todayIso();
     const since = item.desde <= ALL_HISTORY ? t("commissions.people.allHistory") : t("commissions.people.since", { date: formatShortDate(item.desde) });
     return `<div class="esqfila"><span class="candado" title="${t("commissions.people.locked")}">🔒</span>
@@ -20474,7 +22269,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const list = document.getElementById("esqlista");
     if (!list) return;
     const assignments = (data ?? []).filter((item) => item.esquema_id === schemeId), admin = cardSectionsLegacy.can("administrar");
-    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml21(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
+    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml22(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
     ${admin ? addHtml2() : ""}`;
     if (admin) bind20(schemeId, list, () => {
       void paintList3(schemeId);
@@ -20495,7 +22290,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/commissions/scheme-editor.ts
   var FIXED = "fijo";
   var DEFAULT_CALCULATION = "tramo_alcanzado";
-  var option2 = (value19, label, chosen3) => `<option value="${value19}" ${chosen3 === value19 ? "selected" : ""}>${label}</option>`;
+  var option2 = (value19, label, chosen4) => `<option value="${value19}" ${chosen4 === value19 ? "selected" : ""}>${label}</option>`;
   var input4 = (id) => document.getElementById(id);
   var SchemeEditor = class {
     constructor(id, scheme, onSaved) {
@@ -20637,7 +22432,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/commissions/settlements.ts
   var settlementFilters = { person: "", month: "" };
-  var rowHtml22 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
+  var rowHtml23 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
       <span class="ic ${item.estado === SETTLEMENT.paid ? "o" : ""}">${item.estado === SETTLEMENT.draft ? "○" : "✓"}</span>
       <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${t("commissions.page.settlementLine", { period: formatMonth(item.periodo), units: formatNumber(item.unidades), amount: formatCurrency(item.importe), state: escapeHtml(item.estado) })}</span></span>
       <span class="acts" style="margin:0">
@@ -20672,11 +22467,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     repaint2();
   }
   function paintSettlements(list, all2, repaint2) {
-    const paint11 = () => {
+    const paint12 = () => {
       const shown5 = all2.filter((item) => (!settlementFilters.person || item.usuario_id === settlementFilters.person) && (!settlementFilters.month || item.periodo === settlementFilters.month));
       const result = document.getElementById("liqres");
       if (result) result.textContent = summary3(shown5);
-      list.innerHTML = shown5.map(rowHtml22).join("") || `<div class="vacio">${t(all2.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
+      list.innerHTML = shown5.map(rowHtml23).join("") || `<div class="vacio">${t(all2.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
       list.querySelectorAll("[data-liq]").forEach((button2) => {
         button2.onclick = () => {
           void settle(button2, repaint2);
@@ -20686,13 +22481,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const person = document.getElementById("liqfu"), month = document.getElementById("liqfp");
     if (person) person.onchange = () => {
       settlementFilters.person = person.value;
-      paint11();
+      paint12();
     };
     if (month) month.onchange = () => {
       settlementFilters.month = month.value;
-      paint11();
+      paint12();
     };
-    paint11();
+    paint12();
   }
   function resultText2(period, done, closed, failed) {
     const doneText = done === 1 ? t("commissions.calculate.oneDone") : t("commissions.calculate.done", { count: done });
@@ -20757,7 +22552,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         ${people.length ? ` · ${people.map(escapeHtml).join(", ")}` : t("commissions.page.unassigned")}</span></span>
       <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${scheme.id}">${t("commissions.page.edit")}</button></span></div>`;
   }
-  function pageHtml9(all2) {
+  function pageHtml10(all2) {
     const list = schemes();
     return `
     <h2>${t("commissions.page.schemes")}<span class="n">${list.length}</span></h2>
@@ -20785,7 +22580,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     commissionsLegacy.setSchemes(found ?? []);
     const body2 = document.getElementById("admcuerpo");
     if (!body2) return;
-    body2.innerHTML = pageHtml9(settlements ?? []);
+    body2.innerHTML = pageHtml10(settlements ?? []);
     const add2 = document.getElementById("esqnuevo");
     if (add2) add2.onclick = () => {
       editScheme(null, repaint);
@@ -20881,7 +22676,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       [t("customers.sheet.note"), customer.nota]
     ];
     return `<div class="blk"><h3>${t("customers.sheet.contact")}</h3>
-      ${lines2.filter((line2) => line2[1]).map(([label, value19]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value19)}</div>`).join("") || `<div class="sm">${t("customers.sheet.noContact")}</div>`}</div>`;
+      ${lines2.filter((line3) => line3[1]).map(([label, value19]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value19)}</div>`).join("") || `<div class="sm">${t("customers.sheet.noContact")}</div>`}</div>`;
   }
   var orderHtml = (order) => `<button class="item" data-fpped="${order.id}" style="padding:8px 4px">
         <span class="tx"><b>${formatShortDate(order.fecha)} · ${escapeHtml(orFallback(order.productos, t("customers.sheet.noProducts")))}</b>
@@ -20989,7 +22784,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/customers/list.ts
-  var SEARCH_WAIT_MS5 = 300;
+  var SEARCH_WAIT_MS6 = 300;
   var empty = '<span class="vac">—</span>';
   var shown3 = (value19) => value19 ? escapeHtml(value19) : empty;
   function headerHtml7(fields) {
@@ -20997,7 +22792,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="dh">${titles.map((title2) => `<span>${title2}</span>`).join("")}
       <span>${words5().Professional}</span><span>${t("customers.list.salesRep")}</span><span class="num">${t("customers.list.orders")}</span><span class="num">${t("customers.list.units")}</span><span>${t("customers.list.lastOrder")}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
   }
-  function rowHtml23(row4, fields) {
+  function rowHtml24(row4, fields) {
     const company = row4.tipo === TYPES3.company, values2 = row4.clasificadores ?? {};
     return `<button class="dr" data-pac="${row4.id}">
       <span><b>${escapeHtml(row4.nombre)}</b></span>
@@ -21015,7 +22810,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const rows = page.filas ?? [], fields = customersLegacy.visibleFieldColumns();
     list.innerHTML = rows.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
     ${headerHtml7(fields)}
-    ${rows.map((row4) => rowHtml23(row4, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
+    ${rows.map((row4) => rowHtml24(row4, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
     customersLegacy.widenGrid(list.querySelector(".dgrid.pacs"), fields.length);
     list.querySelectorAll("[data-pac]").forEach((button2) => {
       button2.onclick = () => {
@@ -21048,7 +22843,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     paintRows3(data);
   }
-  var option3 = (value19, label, chosen3) => `<option value="${escapeHtml(value19)}" ${chosen3 === value19 ? "selected" : ""}>${label}</option>`;
+  var option3 = (value19, label, chosen4) => `<option value="${escapeHtml(value19)}" ${chosen4 === value19 ? "selected" : ""}>${label}</option>`;
   function filtersHtml2(towns) {
     const filters = customersLegacy.filters();
     filters.campos ?? (filters.campos = {});
@@ -21078,7 +22873,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       searchTimer4 = setTimeout(() => {
         filters.q = search4.value.trim();
         again();
-      }, SEARCH_WAIT_MS5);
+      }, SEARCH_WAIT_MS6);
     };
     const onSelect = (id, set) => {
       const select3 = document.getElementById(id);
@@ -21282,13 +23077,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     await loadCatalog("origen_oportunidad");
   }
   var toneOf = (entry) => entry.extra === "neg" ? "neg" : entry.extra === "pos" ? "pos" : "";
-  var chipsHtml = (list, chosen3, attribute) => list.map((entry) => `<button type="button" class="chipsel ${entry.valor === chosen3 ? "on" : ""} ${toneOf(entry)}" ${attribute}="${escapeHtml(entry.valor)}">${escapeHtml(entry.valor)}</button>`).join("");
+  var chipsHtml = (list, chosen4, attribute) => list.map((entry) => `<button type="button" class="chipsel ${entry.valor === chosen4 ? "on" : ""} ${toneOf(entry)}" ${attribute}="${escapeHtml(entry.valor)}">${escapeHtml(entry.valor)}</button>`).join("");
   function toggleChip(group, attribute, current, pressed2) {
-    const chosen3 = current === pressed2 ? "" : pressed2;
+    const chosen4 = current === pressed2 ? "" : pressed2;
     group.querySelectorAll(`[${attribute}]`).forEach((chip) => {
-      chip.classList.toggle("on", chip.getAttribute(attribute) === chosen3);
+      chip.classList.toggle("on", chip.getAttribute(attribute) === chosen4);
     });
-    return chosen3;
+    return chosen4;
   }
   var round24 = (value19) => Math.round((Number(value19) || 0) * 100) / 100;
   function lineAmount(productId, units2) {
@@ -21303,7 +23098,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var isPhone = (text2) => /^[+\d\s]{6,}$/.test(text2);
 
   // src/app/screens/opportunities/call-record.ts
-  var chosen2 = { motivo: "", resultado: "" };
+  var chosen3 = { motivo: "", resultado: "" };
   var value16 = (id) => document.getElementById(id)?.value ?? "";
   var needsFollowUp = (result) => Boolean(result) && result !== ORDER_DONE;
   function callRecordHtml(state) {
@@ -21322,14 +23117,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="acts" style="margin-top:8px"><button type="button" class="btn sec" id="kosolo">${t("opportunities.callRecord.callOnly")}</button></div>
   </details>`;
   }
-  function onClick2(event) {
+  function onClick3(event) {
     const target = event.target;
     const reason = target.closest("[data-kom]"), result = target.closest("[data-kor]"), days = target.closest("[data-kold]");
     const reasons = document.getElementById("kolmot"), results = document.getElementById("kolres");
-    if (reason && reasons) chosen2.motivo = toggleChip(reasons, "data-kom", chosen2.motivo, reason.dataset.kom ?? "");
+    if (reason && reasons) chosen3.motivo = toggleChip(reasons, "data-kom", chosen3.motivo, reason.dataset.kom ?? "");
     if (result && results) {
-      chosen2.resultado = toggleChip(results, "data-kor", chosen2.resultado, result.dataset.kor ?? "");
-      document.getElementById("kolseg")?.classList.toggle("hide", !needsFollowUp(chosen2.resultado));
+      chosen3.resultado = toggleChip(results, "data-kor", chosen3.resultado, result.dataset.kor ?? "");
+      document.getElementById("kolseg")?.classList.toggle("hide", !needsFollowUp(chosen3.resultado));
     }
     if (days) {
       const date = document.getElementById("kolpf");
@@ -21340,20 +23135,20 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
   }
   function activateCallRecord(state) {
-    chosen2.motivo = orFallback(state?.motivo, "");
-    chosen2.resultado = orFallback(state?.resultado, "");
+    chosen3.motivo = orFallback(state?.motivo, "");
+    chosen3.resultado = orFallback(state?.resultado, "");
     void loadCallCatalogs().then(() => {
       const reasons = document.getElementById("kolmot"), results = document.getElementById("kolres");
       if (!reasons || !results) return;
-      reasons.innerHTML = chipsHtml(catalog("motivo_llamada"), chosen2.motivo, "data-kom");
-      results.innerHTML = chipsHtml(catalog("resultado_llamada"), chosen2.resultado, "data-kor");
+      reasons.innerHTML = chipsHtml(catalog("motivo_llamada"), chosen3.motivo, "data-kom");
+      results.innerHTML = chipsHtml(catalog("resultado_llamada"), chosen3.resultado, "data-kor");
     });
     const block4 = document.getElementById("kollam");
-    if (block4) block4.onclick = onClick2;
+    if (block4) block4.onclick = onClick3;
   }
   function readCallRecord() {
     if (!document.getElementById("kollam")) return null;
-    return { motivo: chosen2.motivo, resultado: chosen2.resultado, direccion: value16("kold"), nota: value16("kolno").trim(), proxima_fecha: value16("kolpf"), proxima_accion: value16("kolpa").trim() };
+    return { motivo: chosen3.motivo, resultado: chosen3.resultado, direccion: value16("kold"), nota: value16("kolno").trim(), proxima_fecha: value16("kolpf"), proxima_accion: value16("kolpa").trim() };
   }
   function caller(subject, state) {
     return {
@@ -21393,36 +23188,36 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/opportunities/editor/draft.ts
   var typedQuery = () => document.getElementById("nvq")?.value.trim() ?? "";
-  var fieldValue = (id) => {
+  var fieldValue3 = (id) => {
     const field10 = document.getElementById(id);
     return field10 ? field10.value : null;
   };
 
   // src/app/screens/opportunities/editor/interest.ts
   var HIDDEN_STATES = ["En pausa", "Descatalogado"];
-  var totalInterest = (draft) => sum(draft.lines.map((line2) => lineAmount(line2.producto_id, line2.unidades)));
+  var totalInterest = (draft) => sum(draft.lines.map((line3) => lineAmount(line3.producto_id, line3.unidades)));
   function paintLoss(draft) {
     const loss = document.getElementById("nvperd");
     if (loss) loss.innerHTML = totalInterest(draft) ? t("opportunities.editor.unsold", { amount: portalLegacy.euros(totalInterest(draft)) }) : "";
   }
   function lineHtml4(draft, products3, index) {
-    const line2 = draft.lines[index] ?? { producto_id: "", unidades: 0 };
-    const options3 = products3.map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("") || `<option value="">${t("opportunities.editor.noProducts")}</option>`;
+    const line3 = draft.lines[index] ?? { producto_id: "", unidades: 0 };
+    const options3 = products3.map((product) => `<option value="${product.id}" ${product.id === line3.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("") || `<option value="">${t("opportunities.editor.noProducts")}</option>`;
     return `<div class="nvlin" data-nvi="${index}">
         <select data-nvf="producto_id" aria-label="${t("opportunities.editor.product")}">${options3}</select>
-        <input data-nvf="unidades" type="number" min="1" step="1" value="${escapeHtml(String(line2.unidades))}" aria-label="${t("opportunities.editor.units")}">
-        <span class="nvimp">${portalLegacy.euros(lineAmount(line2.producto_id, line2.unidades))}</span>
+        <input data-nvf="unidades" type="number" min="1" step="1" value="${escapeHtml(String(line3.unidades))}" aria-label="${t("opportunities.editor.units")}">
+        <span class="nvimp">${portalLegacy.euros(lineAmount(line3.producto_id, line3.unidades))}</span>
         ${draft.lines.length > 1 ? `<button type="button" class="btn sec" data-nvx="${index}" aria-label="${t("opportunities.editor.remove")}">✕</button>` : "<span></span>"}</div>`;
   }
   function bindLine(draft, row4) {
-    const index = Number(row4.dataset.nvi), line2 = draft.lines[index];
-    if (!line2) return;
+    const index = Number(row4.dataset.nvi), line3 = draft.lines[index];
+    if (!line3) return;
     row4.querySelectorAll("[data-nvf]").forEach((input5) => {
       input5.oninput = input5.onchange = () => {
-        if (input5.dataset.nvf === "unidades") line2.unidades = Math.max(0, Number(input5.value) || 0);
-        else line2.producto_id = input5.value;
+        if (input5.dataset.nvf === "unidades") line3.unidades = Math.max(0, Number(input5.value) || 0);
+        else line3.producto_id = input5.value;
         const amount3 = row4.querySelector(".nvimp");
-        if (amount3) amount3.textContent = portalLegacy.euros(lineAmount(line2.producto_id, line2.unidades));
+        if (amount3) amount3.textContent = portalLegacy.euros(lineAmount(line3.producto_id, line3.unidades));
         const total2 = document.getElementById("nvtotv");
         if (total2) total2.textContent = portalLegacy.euros(totalInterest(draft));
         paintLoss(draft);
@@ -21466,17 +23261,17 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/opportunities/editor/client.ts
-  var SEARCH_WAIT_MS6 = 250;
+  var SEARCH_WAIT_MS7 = 250;
   var ORDERS_SHOWN = 20;
   var CALLS_SHOWN = 5;
   var phoneOf2 = (client) => orFallback(client.movil, orFallback(client.telefono, orFallback(client.tel, "")));
-  var orderTotal = (order) => sum(order.lineas_pedido.map((line2) => (Number(line2.importe) || 0) * (1 + (Number(line2.iva) || 0) / 100)));
+  var orderTotal = (order) => sum(order.lineas_pedido.map((line3) => (Number(line3.importe) || 0) * (1 + (Number(line3.iva) || 0) / 100)));
   var productName = (id) => opportunitiesLegacy.products().find((product) => product.id === id)?.nombre ?? t("opportunities.editor.defaultProduct");
   async function pastOrders(clientId) {
     const { data: orders2 } = await legacyDb().from("pedidos").select("id,numero,fecha,estado").eq("contacto_id", clientId).neq("estado", "Anulado").order("fecha", { ascending: false }).limit(ORDERS_SHOWN);
     const list = orders2 ?? [];
     const { data: lines2 } = list.length ? await legacyDb().from("lineas_pedido").select("pedido_id,producto_id,unidades,importe,iva").in("pedido_id", list.map((order) => order.id)) : { data: [] };
-    return list.map((order) => ({ ...order, lineas_pedido: (lines2 ?? []).filter((line2) => line2.pedido_id === order.id) }));
+    return list.map((order) => ({ ...order, lineas_pedido: (lines2 ?? []).filter((line3) => line3.pedido_id === order.id) }));
   }
   async function pastCalls(draft, clientId) {
     if (!draft.recording) return [];
@@ -21485,7 +23280,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function lastOrderHtml(draft, last) {
     if (!last) return "";
-    const lines2 = last.lineas_pedido.map((line2) => `${productName(line2.producto_id)} × ${formatNumber(line2.unidades)}`).join(", ");
+    const lines2 = last.lineas_pedido.map((line3) => `${productName(line3.producto_id)} × ${formatNumber(line3.unidades)}`).join(", ");
     return `<div class="nvult"><span>${t("opportunities.editor.lastOrder", { date: formatShortDate(String(last.fecha).slice(0, 10)), lines: escapeHtml(lines2), amount: portalLegacy.euros(orderTotal(last)) })}</span>
         ${draft.recording && !draft.closed ? `<button type="button" class="btn sec" id="nvrep">${t("opportunities.editor.repeat")}</button>` : ""}</div>`;
   }
@@ -21513,7 +23308,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box.innerHTML = contextHtml(draft, orders2, promised);
     const repeat = document.getElementById("nvrep"), last = orders2[0];
     if (repeat && last) repeat.onclick = () => {
-      draft.lines = last.lineas_pedido.map((line2) => ({ producto_id: line2.producto_id, unidades: Number(line2.unidades) || 1 }));
+      draft.lines = last.lineas_pedido.map((line3) => ({ producto_id: line3.producto_id, unidades: Number(line3.unidades) || 1 }));
       paintInterest(draft);
       notices.toast(t("opportunities.editor.repeated"));
     };
@@ -21553,13 +23348,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         ${source.id || draft.previous ? "" : `<button type="button" class="lnk" id="nvsin">${t("opportunities.editor.orderWithoutClient")}</button>`}</div>
       ${draft.recording ? `<div class="sm" style="margin-top:4px">${t("opportunities.editor.nameIsEnough")}</div>` : ""}`;
   }
-  function bindSearch(draft) {
+  function bindSearch3(draft) {
     const input5 = document.getElementById("nvq");
     if (input5) input5.oninput = () => {
       clearTimeout(searchTimer5);
       searchTimer5 = setTimeout(() => {
         void search2(draft);
-      }, SEARCH_WAIT_MS6);
+      }, SEARCH_WAIT_MS7);
     };
     const add2 = document.getElementById("nvalta");
     if (add2) add2.onclick = () => {
@@ -21594,7 +23389,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     box.innerHTML = searchHtml(draft);
-    bindSearch(draft);
+    bindSearch3(draft);
   }
 
   // src/app/screens/opportunities/editor/html.ts
@@ -21663,7 +23458,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var refreshList = () => {
     if (currentScreen() === "ventas" && opportunitiesLegacy.ordersSection() === "llamadas") opportunitiesLegacy.repaintList();
   };
-  var wantedLines = (draft) => draft.lines.filter((line2) => line2.producto_id && Number(line2.unidades) > 0).map((line2) => ({ producto_id: line2.producto_id, unidades: Number(line2.unidades) }));
+  var wantedLines = (draft) => draft.lines.filter((line3) => line3.producto_id && Number(line3.unidades) > 0).map((line3) => ({ producto_id: line3.producto_id, unidades: Number(line3.unidades) }));
   function who(draft) {
     const typed = typedQuery(), phone = isPhone(typed), source = draft.source;
     if (draft.client) return { nombre: orFallback(draft.client.nombre, ""), telefono: orFallback(draft.client.movil, orFallback(draft.client.telefono, orFallback(draft.client.tel, ""))) };
@@ -21675,10 +23470,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function nextStep(result) {
     const followUp = Boolean(result) && result !== ORDER_DONE;
-    return { proxima_fecha: followUp ? fieldValue("nvpf") ?? "" : "", proxima_accion: followUp ? (fieldValue("nvpa") ?? "").trim() : "" };
+    return { proxima_fecha: followUp ? fieldValue3("nvpf") ?? "" : "", proxima_accion: followUp ? (fieldValue3("nvpa") ?? "").trim() : "" };
   }
   function payload7(draft, result) {
-    const source = draft.source, date = fieldValue("nvf");
+    const source = draft.source, date = fieldValue3("nvf");
     return {
       id: source.id ?? null,
       fecha: date ? new Date(date).toISOString() : source.fecha,
@@ -21689,7 +23484,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       motivo: draft.reason,
       resultado: result,
       ...nextStep(result),
-      nota: fieldValue("nvno")?.trim() ?? orFallback(source.nota, ""),
+      nota: fieldValue3("nvno")?.trim() ?? orFallback(source.nota, ""),
       pedido_id: source.pedido_id ?? null,
       llamada_origen: draft.previous ? draft.previous.id : source.llamada_origen ?? null,
       interes: wantedLines(draft)
@@ -21726,7 +23521,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     closeWindow2();
     refreshList();
     if (saved2?.id) opportunitiesLegacy.setPendingCall(saved2.id);
-    const lines2 = draft.recording ? wantedLines(draft).map((line2) => ({ ...line2, importe: orderLineAmount(line2.producto_id, line2.unidades) })) : [];
+    const lines2 = draft.recording ? wantedLines(draft).map((line3) => ({ ...line3, importe: orderLineAmount(line3.producto_id, line3.unidades) })) : [];
     const reference2 = draft.reference;
     opportunitiesLegacy.editOrder({
       contacto: { ...contact ?? client, medico: reference2 ? orFallback(reference2.nombre, "") : "" },
@@ -21790,7 +23585,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const now = (/* @__PURE__ */ new Date()).toISOString(), source = { fecha: now, ...start2 };
     if (!source.fecha) source.fecha = now;
     const recording = permissions.hasOpportunities(), client = clientOf(source);
-    const lines2 = (source.interes ?? []).map((line2) => ({ producto_id: line2.producto_id, unidades: line2.unidades }));
+    const lines2 = (source.interes ?? []).map((line3) => ({ producto_id: line3.producto_id, unidades: line3.unidades }));
     const defaultOrigin = previous ? OUTGOING_CALL : catalog("origen_oportunidad")[0]?.valor ?? "";
     return {
       source,
@@ -21920,7 +23715,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (call.proxima_fecha < today) return "background:#FDECEC;color:var(--dang)";
     return call.proxima_fecha === today ? "background:#FFF4E5;color:var(--warn)" : "";
   }
-  function rowHtml24(call, today) {
+  function rowHtml25(call, today) {
     const phone = orFallback(call.tel_cliente, orFallback(call.telefono, ""));
     const details2 = `${whenHtml(call, today)}${escapeHtml(orFallback(call.resultado, ""))}${call.proxima_accion ? ` · ${escapeHtml(call.proxima_accion)}` : ""}${call.medico ? t("opportunities.list.fromReference", { name: escapeHtml(call.medico) }) : ""}`;
     return `<div class="item" style="cursor:default">
@@ -21936,7 +23731,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!box) return;
     box.innerHTML = !list.length ? "" : `<div class="card" id="llsegs"><h2>${t("opportunities.list.callAgainTitle")}<span class="n">${list.length}</span></h2>
       <p class="sm" style="padding:0 16px">${t("opportunities.list.callAgainHint")}</p>
-      <div class="lista">${list.slice(0, SHOWN5).map((call) => rowHtml24(call, today)).join("")}</div></div>`;
+      <div class="lista">${list.slice(0, SHOWN5).map((call) => rowHtml25(call, today)).join("")}</div></div>`;
     box.querySelectorAll("[data-llseg]").forEach((button2) => {
       button2.onclick = () => {
         const call = list.find((item) => item.id === button2.dataset.llseg);
@@ -21953,8 +23748,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/opportunities/list.ts
-  var SEARCH_WAIT_MS7 = 300;
-  function pageHtml10() {
+  var SEARCH_WAIT_MS8 = 300;
+  function pageHtml11() {
     const results = catalog("resultado_llamada").map((entry) => `<option>${escapeHtml(entry.valor)}</option>`).join("");
     return `<div class="panel">
     <div id="llsegz"></div>
@@ -21965,12 +23760,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="angrid" id="llres2" style="margin:0 0 14px"></div>
     <div id="lllista"></div></div>`;
   }
-  var interestText = (item) => (item.interes ?? []).map((line2) => `${orFallback(line2.producto, "")} × ${formatNumber(line2.unidades)}`).join(", ");
+  var interestText = (item) => (item.interes ?? []).map((line3) => `${orFallback(line3.producto, "")} × ${formatNumber(line3.unidades)}`).join(", ");
   function endsHtml2(item) {
     const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, ORDER_DONE)) : `<span class="pill p-warn">${t("opportunities.list.notClosed")}</span>`;
     return `${ends}${item.pedido ? `<span class="sm">${t("opportunities.list.order", { number: escapeHtml(item.pedido) })}</span>` : ""}`;
   }
-  function rowHtml25(item) {
+  function rowHtml26(item) {
     const when4 = new Date(item.fecha).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
     const reference2 = typeof item.medico === "string" ? item.medico : "";
     return `<button class="dr" data-ll="${item.id}"><span>${when4}<span class="sm">${escapeHtml(orFallback(item.origen, orFallback(item.direccion, "")))}</span></span>
@@ -21984,7 +23779,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const heads = [t("opportunities.list.date"), t("opportunities.list.client"), t("opportunities.list.wants"), term("medico", { capital: "C" }), t("opportunities.list.ends"), t("opportunities.list.next"), t("opportunities.list.attended")];
     return `<div class="dgrid-wrap"><div class="dgrid llam opor">
       <div class="dh">${heads.map((head) => `<span>${head}</span>`).join("")}</div>
-      ${shown5.map(rowHtml25).join("")}</div></div>`;
+      ${shown5.map(rowHtml26).join("")}</div></div>`;
   }
   function paintList4(list, rows) {
     const size = accountListLegacy.pageSize();
@@ -22011,11 +23806,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       }
     });
   }
-  var fieldValue2 = (id) => document.getElementById(id)?.value ?? "";
+  var fieldValue4 = (id) => document.getElementById(id)?.value ?? "";
   async function paintPeriod() {
     const period = opportunitiesLegacy.periodOf(document.getElementById("llper"));
     const [{ data: rows }, { data: summary4 }] = await Promise.all([
-      legacyDb().rpc("llamadas_lista", { p_desde: period.desde, p_hasta: period.hasta, q: fieldValue2("llq").trim() || null, p_resultado: fieldValue2("llfres") || null }),
+      legacyDb().rpc("llamadas_lista", { p_desde: period.desde, p_hasta: period.hasta, q: fieldValue4("llq").trim() || null, p_resultado: fieldValue4("llfres") || null }),
       legacyDb().rpc("llamadas_resumen", { p_desde: period.desde, p_hasta: period.hasta })
     ]);
     const list = document.getElementById("lllista"), totals = document.getElementById("lltot"), charts = document.getElementById("llres2");
@@ -22029,7 +23824,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     await loadOpportunityCatalogs();
     const box = document.getElementById("vcuerpo");
     if (!box) return;
-    box.innerHTML = pageHtml10();
+    box.innerHTML = pageHtml11();
     const search4 = document.getElementById("llq"), result = document.getElementById("llfres");
     opportunitiesLegacy.mountPeriod(document.getElementById("llper"), { id: "llamadas", valor: "mes", alCambiar: () => {
       void paintPeriod();
@@ -22038,7 +23833,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       clearTimeout(searchTimer6);
       searchTimer6 = setTimeout(() => {
         void paintPeriod();
-      }, SEARCH_WAIT_MS7);
+      }, SEARCH_WAIT_MS8);
     };
     if (result) result.onchange = () => {
       void paintPeriod();
@@ -22106,16 +23901,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!quality2 || document.getElementById("calidad")) return;
     document.querySelector("#v-seguimiento .saludo")?.insertAdjacentHTML("afterend", summaryHtml6(quality2));
   }
-  function placeRow2(place2) {
-    const address2 = [place2.centro_nombre, place2.direccion, [place2.cp, place2.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
-    const distance = place2.km !== null && place2.km !== void 0 ? t("quality.addresses.farFrom", { km: formatNumber(place2.km), municipality: escapeHtml(orFallback(place2.municipio, "")) }) : t("quality.addresses.outOfSpain");
-    return `<div class="item cdir" data-cdir="${place2.id}" style="cursor:default">
-      <span class="tx"><b>${escapeHtml(place2.nombre)}</b>
+  function placeRow2(place3) {
+    const address2 = [place3.centro_nombre, place3.direccion, [place3.cp, place3.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
+    const distance = place3.km !== null && place3.km !== void 0 ? t("quality.addresses.farFrom", { km: formatNumber(place3.km), municipality: escapeHtml(orFallback(place3.municipio, "")) }) : t("quality.addresses.outOfSpain");
+    return `<div class="item cdir" data-cdir="${place3.id}" style="cursor:default">
+      <span class="tx"><b>${escapeHtml(place3.nombre)}</b>
         <span class="sm">${escapeHtml(address2 || t("quality.addresses.noAddress"))}</span>
         <span class="sm cdirkm">${distance}</span></span>
       <span class="acts" style="margin:0">
-        <button type="button" class="btn sec" data-cdirf="${place2.cuenta_id}">${t("quality.addresses.card")}</button>
-        ${place2.direccion || place2.municipio ? `<button type="button" class="btn" data-cdirg="${place2.id}">${t("quality.addresses.relocate")}</button>` : ""}</span></div>`;
+        <button type="button" class="btn sec" data-cdirf="${place3.cuenta_id}">${t("quality.addresses.card")}</button>
+        ${place3.direccion || place3.municipio ? `<button type="button" class="btn" data-cdirg="${place3.id}">${t("quality.addresses.relocate")}</button>` : ""}</span></div>`;
   }
   var addressesHtml = (places) => `<div class="card" id="caldirs">
     <div class="fh"><div><h2>${t("quality.addresses.title", { count: formatNumber(places.length) })}</h2>
@@ -22127,12 +23922,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!left) box.remove();
     else if (title2) title2.textContent = t("quality.addresses.title", { count: formatNumber(left) });
   }
-  async function relocate(box, place2, button2) {
+  async function relocate(box, place3, button2) {
     const text2 = button2.textContent;
     button2.disabled = true;
     button2.textContent = t("quality.addresses.searching");
-    const query = [place2.direccion, place2.cp, place2.municipio, place2.provincia, "España"].filter(Boolean).join(", ");
-    const found = await qualityLegacy.geocode(query, { direccion: place2.direccion, municipio: place2.municipio, cp: place2.cp });
+    const query = [place3.direccion, place3.cp, place3.municipio, place3.provincia, "España"].filter(Boolean).join(", ");
+    const found = await qualityLegacy.geocode(query, { direccion: place3.direccion, municipio: place3.municipio, cp: place3.cp });
     button2.disabled = false;
     button2.textContent = text2;
     if (!found) {
@@ -22140,16 +23935,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     if (found.fuera) {
-      notices.toast(t("quality.addresses.elsewhere", { place: found.fuera, municipality: orFallback(place2.municipio, "") }), true);
+      notices.toast(t("quality.addresses.elsewhere", { place: found.fuera, municipality: orFallback(place3.municipio, "") }), true);
       return;
     }
-    const { error } = await legacyDb().from("ubicaciones").update({ lat: Number(found.lat), lon: Number(found.lon) }).eq("id", place2.id);
+    const { error } = await legacyDb().from("ubicaciones").update({ lat: Number(found.lat), lon: Number(found.lon) }).eq("id", place3.id);
     if (error) {
       notices.toast(t("quality.addresses.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    notices.toast(t("quality.addresses.placed", { name: place2.nombre, municipality: orFallback(place2.municipio, "") }));
-    removeRow(box, place2.id);
+    notices.toast(t("quality.addresses.placed", { name: place3.nombre, municipality: orFallback(place3.municipio, "") }));
+    removeRow(box, place3.id);
   }
   async function paintDoubtfulAddresses() {
     if (!document.getElementById("calidad") || document.getElementById("caldirs")) return;
@@ -22168,8 +23963,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
     box.querySelectorAll("[data-cdirg]").forEach((button2) => {
       button2.onclick = () => {
-        const place2 = places.find((item) => item.id === button2.dataset.cdirg);
-        if (place2) void relocate(box, place2, button2);
+        const place3 = places.find((item) => item.id === button2.dataset.cdirg);
+        if (place3) void relocate(box, place3, button2);
       };
     });
   }
@@ -22195,7 +23990,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
            <br><span class="acts" style="margin:4px 0 0"><button class="btn sec chico" data-acc="hecha|${row4.id}">${t("quality.followUp.done")}</button>
            <button class="btn sec chico" data-acc="aplazar|${row4.id}">${t("quality.followUp.postpone")}</button></span>`;
   }
-  function rowHtml26(row4) {
+  function rowHtml27(row4) {
     const last = row4.ultima_visita ? t("quality.followUp.last", { date: formatShortDate(row4.ultima_visita), result: escapeHtml(orFallback(row4.ultimo_resultado, "")) }) : t("quality.followUp.notVisited");
     return `
     <button class="fila" data-id="${row4.id}">
@@ -22241,7 +24036,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     list.innerHTML = "";
-    list.insertAdjacentHTML("beforeend", rows.map(rowHtml26).join(""));
+    list.insertAdjacentHTML("beforeend", rows.map(rowHtml27).join(""));
   }
   async function paintFollowUp(restart2) {
     const list = document.getElementById("slista"), count2 = document.getElementById("scuenta");
@@ -22282,7 +24077,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="saludo"><div><h1>${t("quality.page.title")}</h1><div class="fecha">${t("quality.page.subtitle", { professional: term("medico") })}</div></div>
       <div class="acts" style="margin:0">${duplicates}</div></div>`;
   }
-  function pageHtml11() {
+  function pageHtml12() {
     const modes = MODES3.map(([value19, key]) => `<option value="${value19}">${t(key)}</option>`).join("");
     return `${headerHtml8()}
     <div class="kpis" id="segkpis"><div class="skel"></div></div>
@@ -22315,7 +24110,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       };
     }
   }
-  var percentText = (part, total2) => `${total2 ? Math.round(part / total2 * 100) : 0}%`;
+  var percentText2 = (part, total2) => `${total2 ? Math.round(part / total2 * 100) : 0}%`;
   function paintIndicators3(summary4) {
     const box = document.getElementById("segkpis");
     if (!summary4 || !box) return;
@@ -22323,8 +24118,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box.innerHTML = `${funnel2}<div class="kpi ok"><b>${formatNumber(summary4.visitados)}</b><span>${term("medico", { number: "p", adjective: "visitado" })}</span></div>
        <div class="kpi"><b>${formatNumber(summary4.visitas_total)}</b><span>${term("visita", { number: "p", adjective: "registrado" })}</span></div>
        <div class="kpi"><b>${formatNumber(summary4.muestras_total)}</b><span>${t("quality.page.samplesGiven")}</span></div>
-       <div class="kpi"><b>${percentText(summary4.con_direccion, summary4.total)}</b><span>${t("quality.page.withAddress")}</span></div>
-       <div class="kpi"><b>${percentText(summary4.con_dias, summary4.total)}</b><span>${t("quality.page.withDays")}</span></div>`;
+       <div class="kpi"><b>${percentText2(summary4.con_direccion, summary4.total)}</b><span>${t("quality.page.withAddress")}</span></div>
+       <div class="kpi"><b>${percentText2(summary4.con_dias, summary4.total)}</b><span>${t("quality.page.withDays")}</span></div>`;
   }
   function bindHeader3() {
     const back = document.getElementById("calvolver");
@@ -22347,7 +24142,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const view = document.getElementById("v-seguimiento");
     if (!view) return;
     Object.assign(followUpState, { estado: "", prov: "", muni: "", modo: "todos", pagina: 0 });
-    view.innerHTML = pageHtml11();
+    view.innerHTML = pageHtml12();
     bindHeader3();
     const { data: options3 } = await legacyDb().rpc("opciones_filtros", {});
     fillFilters(options3);
@@ -22397,7 +24192,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/manual/portal-info.ts
   var SETTINGS_FOR_EVERYONE = ["horario", "kpis", "prefs"];
-  function openDialog(html) {
+  function openDialog2(html) {
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
     body2.innerHTML = html;
@@ -22413,7 +24208,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var close3 = `<button class="x" data-cerrar aria-label="${t("common.close")}">✕</button>`;
   function showFirstStep(step) {
     const [stepIcon, title2, text2, screen2] = step, about = findSection(screen2)?.para;
-    openDialog(`<div class="fh"><div><h2>${stepIcon} ${escapeHtml(title2)}</h2><div class="sm">${t("manual.portal.firstSteps")}</div></div>${close3}</div>
+    openDialog2(`<div class="fh"><div><h2>${stepIcon} ${escapeHtml(title2)}</h2><div class="sm">${t("manual.portal.firstSteps")}</div></div>${close3}</div>
       <p>${escapeHtml(text2)}</p>${about ? `<p class="sm">${escapeHtml(about)}</p>` : ""}
       <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("manual.portal.notNow")}</button>
         ${screen2 === "config" || manualLegacy.canOpenModule(screen2) ? `<button class="btn" id="mangoir">${t("manual.portal.takeMe")}</button>` : ""}</div>`);
@@ -22423,8 +24218,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const level2 = sheetLevel(section2), lines2 = helpLines(section2.id), places = section2.config ?? [];
     const can = section2.hacer.map(([required, text2]) => `<li class="${level2 >= required ? "si" : "no"}"><span>${level2 >= required ? "✓" : "🔒"}</span><span>${escapeHtml(text2)}</span></li>`).join("");
     return `<h3 class="mansub">${t("manual.portal.whatYouCanDo")}</h3><ul class="manlist">${can}</ul>
-    ${lines2.length ? `<h3 class="mansub">${t("manual.portal.howItWorks")}</h3><ul class="manlist">${lines2.map((line2) => `<li><span>•</span><span>${line2}</span></li>`).join("")}</ul>` : ""}
-    ${places.length ? `<h3 class="mansub">${t("manual.portal.whereConfigured")}</h3><div class="mancfg">${places.map((place2) => `<span>⚙ ${escapeHtml(place2)}</span>`).join("")}</div>` : ""}`;
+    ${lines2.length ? `<h3 class="mansub">${t("manual.portal.howItWorks")}</h3><ul class="manlist">${lines2.map((line3) => `<li><span>•</span><span>${line3}</span></li>`).join("")}</ul>` : ""}
+    ${places.length ? `<h3 class="mansub">${t("manual.portal.whereConfigured")}</h3><div class="mancfg">${places.map((place3) => `<span>⚙ ${escapeHtml(place3)}</span>`).join("")}</div>` : ""}`;
   }
   var canGoToSettings = (settings2) => settings2 !== void 0 && settings2 !== "" && (manualLegacy.can("administrar") || SETTINGS_FOR_EVERYONE.includes(settings2));
   var canOpenScreen = (destination2) => destination2 !== null && destination2 !== "manual" && (destination2 === "config" || manualLegacy.canOpenModule(destination2));
@@ -22433,7 +24228,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!section2) return;
     const destination2 = manualLegacy.isModule(id) || ["manual", "config"].includes(id) ? id : null, settings2 = manualLegacy.settingsOf(id);
     const canSettings = canGoToSettings(settings2), canOpen = canOpenScreen(destination2);
-    openDialog(`<div class="fh"><div><h2>${sectionIcon(id)} ${escapeHtml(section2.t)}</h2><div class="sm">${escapeHtml(section2.para)}</div></div>${close3}</div>
+    openDialog2(`<div class="fh"><div><h2>${sectionIcon(id)} ${escapeHtml(section2.t)}</h2><div class="sm">${escapeHtml(section2.para)}</div></div>${close3}</div>
     ${listsHtml(section2)}
     <div class="acts" style="justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn sec" data-cerrar>${t("common.close")}</button>
       ${canSettings ? `<button class="btn sec" id="manircfg">${t("manual.portal.goToSettings")}</button>` : ""}
@@ -22446,7 +24241,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var MIN_QUERY = 2;
   var MAX_HITS = 12;
   var stripTags = (text2) => text2.replace(/<[^>]+>/g, "");
-  var normalise = (text2) => stripTags(text2).toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+  var normalise3 = (text2) => stripTags(text2).toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
   var escapeRegExp = (text2) => text2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   function searchIndex() {
     const entries = [];
@@ -22458,11 +24253,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       section2.hacer.forEach(([, text2]) => {
         add2(text2);
       });
-      (section2.config ?? []).forEach((place2) => {
-        add2(t("manual.portal.configuredIn", { place: place2 }));
+      (section2.config ?? []).forEach((place3) => {
+        add2(t("manual.portal.configuredIn", { place: place3 }));
       });
-      helpLines(section2.id, false).forEach((line2) => {
-        add2(stripTags(line2));
+      helpLines(section2.id, false).forEach((line3) => {
+        add2(stripTags(line3));
       });
     }
     manualLegacy.faq().forEach(([question, answer]) => {
@@ -22478,7 +24273,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<button class="manhit" ${entry.section ? `data-mansec2="${entry.section}"` : ""}><span class="mhm">${escapeHtml(entry.module)}</span><span>${text2}</span></button>`;
   }
   function search3(input5, results, entries) {
-    const query = normalise(input5.value.trim());
+    const query = normalise3(input5.value.trim());
     document.querySelectorAll(".mancard").forEach((card2) => {
       card2.classList.remove("hide");
     });
@@ -22487,7 +24282,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     const words8 = query.split(/\s+/);
-    const hits = entries.filter((entry) => words8.every((word) => normalise(`${entry.text} ${entry.module}`).includes(word))).slice(0, MAX_HITS);
+    const hits = entries.filter((entry) => words8.every((word) => normalise3(`${entry.text} ${entry.module}`).includes(word))).slice(0, MAX_HITS);
     results.classList.remove("hide");
     results.innerHTML = hits.length ? hits.map((entry) => hitHtml(entry, words8)).join("") : `<div class="manhit">${t("manual.portal.noResults", { query: escapeHtml(input5.value) })}</div>`;
   }
@@ -22522,7 +24317,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<button class="mancard ${level2 ? "" : "bloq"}" data-mansec="${section2.id}"><span class="mci">${sectionIcon(section2.id)}</span>
         <b>${escapeHtml(section2.t)}</b><span class="mcd">${escapeHtml(section2.para)}</span><span class="pill ${pill}">${level2 ? t("manual.portal.yourAccess", { level: accessText(section2) }) : t("manual.portal.noAccess")}</span></button>`;
   }
-  function pageHtml12() {
+  function pageHtml13() {
     const steps3 = firstSteps().map(([stepIcon, title2, text2, screen2], index) => `<button class="manpaso" data-mira="${screen2}"><span class="mpn">${index + 1}</span><span class="mpi">${stepIcon}</span><b>${escapeHtml(title2)}</b><span>${escapeHtml(text2)}</span></button>`).join("");
     return `${heroHtml2()}
     <h2 class="mantit">${t("manual.portal.firstSteps")}</h2>
@@ -22551,8 +24346,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     page.onclick = (event) => {
       const step = event.target?.closest("[data-mira]");
       if (!step) return;
-      const card2 = step.closest(".manpaso"), index = card2 ? [...page.querySelectorAll(".manpaso")].indexOf(card2) : -1, chosen3 = firstSteps()[index];
-      if (index >= 0 && chosen3) showFirstStep(chosen3);
+      const card2 = step.closest(".manpaso"), index = card2 ? [...page.querySelectorAll(".manpaso")].indexOf(card2) : -1, chosen4 = firstSteps()[index];
+      if (index >= 0 && chosen4) showFirstStep(chosen4);
     };
     page.querySelectorAll(".mancard").forEach((card2) => {
       card2.onclick = () => {
@@ -22563,7 +24358,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function paintPortalManual() {
     const page = document.getElementById("v-manual");
     if (!page) return;
-    page.innerHTML = pageHtml12();
+    page.innerHTML = pageHtml13();
     bind23(page);
     listenToSearch();
     markOutOfPlan(page);
@@ -22774,12 +24569,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }).join("")}</div>`;
   }
   var pageBox = () => document.getElementById("cfgcuerpo");
-  function paint10(html) {
+  function paint11(html) {
     const box = pageBox();
     if (box) box.innerHTML = html;
     return box;
   }
-  function onClick3(id, action) {
+  function onClick4(id, action) {
     const element2 = document.getElementById(id);
     if (element2) element2.onclick = action;
   }
@@ -22794,16 +24589,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var SAMPLES = 3;
   var samples2 = (index) => [...new Set(wizard.rows.slice(0, SAMPLE_ROWS).map((row4) => row4.v[index] ?? "").filter(Boolean))].slice(0, SAMPLES);
   function columnHtml(header2, index) {
-    const chosen3 = wizard.mapping[index] ?? "no", entity = wizard.entity;
-    const options3 = FIELDS2[entity].map(([key, required]) => `<option value="std:${key}" ${chosen3 === `std:${key}` ? "selected" : ""}>${escapeHtml(fieldLabel(entity, key))}${required ? " *" : ""}</option>`).join("");
-    return `<div class="impcol ${chosen3 === "no" ? "ignorada" : ""}">
+    const chosen4 = wizard.mapping[index] ?? "no", entity = wizard.entity;
+    const options3 = FIELDS2[entity].map(([key, required]) => `<option value="std:${key}" ${chosen4 === `std:${key}` ? "selected" : ""}>${escapeHtml(fieldLabel(entity, key))}${required ? " *" : ""}</option>`).join("");
+    return `<div class="impcol ${chosen4 === "no" ? "ignorada" : ""}">
       <div><b>${escapeHtml(header2)}</b><span class="sm">${samples2(index).map(escapeHtml).join(" · ") || t("importing.columns.empty")}</span></div>
       <span class="impflecha">→</span>
-      <select data-impc="${index}"><option value="no" ${chosen3 === "no" ? "selected" : ""}>${t("importing.columns.skip")}</option>
+      <select data-impc="${index}"><option value="no" ${chosen4 === "no" ? "selected" : ""}>${t("importing.columns.skip")}</option>
         <optgroup label="${t("importing.columns.platformFields")}">${options3}</optgroup>
-        <option value="extra" ${chosen3 === "extra" ? "selected" : ""}>${t("importing.columns.custom", { name: escapeHtml(header2) })}</option></select></div>`;
+        <option value="extra" ${chosen4 === "extra" ? "selected" : ""}>${t("importing.columns.custom", { name: escapeHtml(header2) })}</option></select></div>`;
   }
-  function pageHtml13() {
+  function pageHtml14() {
     const intro = t("importing.columns.summary", { rows: formatNumber(wizard.rows.length), columns: wizard.headers.length }) + (wizard.remembered ? t("importing.columns.remembered") : t("importing.columns.proposed")) + t("importing.columns.customHint", { type: escapeHtml(entityName3(wizard.entity)) });
     return `<div class="card cfgpanel impcaja">${stepsHtml3(3)}
     <h2 style="padding:0 0 4px">${t("importing.columns.title", { name: escapeHtml(wizard.fileName) })}</h2>
@@ -22827,7 +24622,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (next) next.disabled = Boolean(missing2.length || repeated.length);
   }
   function paintColumnsStep() {
-    const box = paint10(pageHtml13());
+    const box = paint11(pageHtml14());
     box?.querySelectorAll("[data-impc]").forEach((select3) => {
       select3.onchange = () => {
         wizard.mapping[Number(select3.dataset.impc)] = select3.value;
@@ -22835,8 +24630,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         check();
       };
     });
-    onClick3("impvolver", steps2.file);
-    onClick3("impsig", steps2.review);
+    onClick4("impvolver", steps2.file);
+    onClick4("impsig", steps2.review);
     check();
   }
 
@@ -22855,14 +24650,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     for (const char of text2) hash = (hash << 5) + hash + char.charCodeAt(0) | 0;
     return (hash >>> 0).toString(36);
   }
-  var pad = (value19) => String(value19).padStart(2, "0");
-  function cellValue(value19) {
+  var pad2 = (value19) => String(value19).padStart(2, "0");
+  function cellValue2(value19) {
     if (value19 === null || value19 === void 0) return "";
-    if (value19 instanceof Date) return Number.isNaN(value19.getTime()) ? "" : `${value19.getFullYear()}-${pad(value19.getMonth() + 1)}-${pad(value19.getDate())}`;
+    if (value19 instanceof Date) return Number.isNaN(value19.getTime()) ? "" : `${value19.getFullYear()}-${pad2(value19.getMonth() + 1)}-${pad2(value19.getDate())}`;
     return String(value19).trim();
   }
   function detectHeaderRow(rows) {
-    const scores = rows.slice(0, TITLE_ROWS).map((row4) => row4.filter((cell3) => cell3.trim() && Number.isNaN(Number(cell3.replace(",", ".")))).length);
+    const scores = rows.slice(0, TITLE_ROWS).map((row4) => row4.filter((cell4) => cell4.trim() && Number.isNaN(Number(cell4.replace(",", ".")))).length);
     const best = Math.max(0, ...scores);
     if (best < 2) return 0;
     return scores.findIndex((score2) => score2 >= best * TITLE_SHARE);
@@ -22902,7 +24697,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function paintImport() {
     wizard.book = null;
     const types2 = entityTypes().map((type) => `<button class="imptipo" type="button" data-impt="${type.key}"><span class="imptic">${icon(type.icon)}</span><b>${escapeHtml(type.name)}</b><span class="sm">${escapeHtml(type.hint)}</span></button>`).join("");
-    const box = paint10(`<div class="card cfgpanel impcaja">${stepsHtml3(1)}
+    const box = paint11(`<div class="card cfgpanel impcaja">${stepsHtml3(1)}
     <h2 style="padding:0 0 4px">${t("importing.start.title")}</h2>
     <p class="sm">${t("importing.start.text")}</p>
     <div class="imptipos">${types2}</div></div>`);
@@ -22914,14 +24709,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
   }
   function paintFileStep() {
-    paint10(`<div class="card cfgpanel impcaja">${stepsHtml3(2)}
+    paint11(`<div class="card cfgpanel impcaja">${stepsHtml3(2)}
     <h2 style="padding:0 0 4px">${t("importing.file.title", { name: escapeHtml(entityName3(wizard.entity).toLowerCase()) })}</h2>
     <p class="sm">${t("importing.file.text")}${wizard.entity === "ventas" ? t("importing.file.salesText") : ""}</p>
     <label class="impzona" id="impzona"><input type="file" id="impfile" accept=".xlsx,.xls,.csv,.txt" hidden>
       ${icon("file-spreadsheet")}<b>${t("importing.file.drop")}</b><span class="sm">${t("importing.file.maxRows")}</span></label>
     <div id="imphojas"></div>
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button></div></div>`);
-    onClick3("impvolver", steps2.start);
+    onClick4("impvolver", steps2.start);
     const zone = document.getElementById("impzona"), input5 = document.getElementById("impfile");
     if (!zone || !input5) return;
     zone.ondragover = (event) => {
@@ -22952,13 +24747,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return reader.read(buffer, { type: "array", cellDates: true });
   }
   function askSheet(zone, file, book) {
-    const place2 = document.getElementById("imphojas");
-    if (!place2) return;
-    place2.innerHTML = `<label for="imphoja">${t("importing.file.sheets")}</label><select id="imphoja">${book.SheetNames.map((name) => `<option>${escapeHtml(name)}</option>`).join("")}</select>
+    const place3 = document.getElementById("imphojas");
+    if (!place3) return;
+    place3.innerHTML = `<label for="imphoja">${t("importing.file.sheets")}</label><select id="imphoja">${book.SheetNames.map((name) => `<option>${escapeHtml(name)}</option>`).join("")}</select>
         <div class="acts"><button class="btn" type="button" id="imphojaok">${t("importing.file.next")}</button></div>`;
     zoneText(zone, file.name);
     zone.classList.remove("leyendo");
-    onClick3("imphojaok", () => {
+    onClick4("imphojaok", () => {
       void readSheet(document.getElementById("imphoja")?.value ?? "");
     });
   }
@@ -22995,10 +24790,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function readSheet(name) {
     const reader = await importLegacy.excelReader(), sheet = wizard.book?.Sheets[name];
-    const rows = reader.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: "" }).map((row4) => row4.map(cellValue));
+    const rows = reader.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: "" }).map((row4) => row4.map(cellValue2));
     const titleRow = detectHeaderRow(rows);
-    wizard.headers = (rows[titleRow] ?? []).map((cell3, index) => cell3 || t("importing.file.column", { index: index + 1 }));
-    wizard.rows = rows.slice(titleRow + 1).map((values2, index) => ({ fila: titleRow + index + 2, v: values2 })).filter((row4) => row4.v.some((cell3) => cell3 !== ""));
+    wizard.headers = (rows[titleRow] ?? []).map((cell4, index) => cell4 || t("importing.file.column", { index: index + 1 }));
+    wizard.rows = rows.slice(titleRow + 1).map((values2, index) => ({ fila: titleRow + index + 2, v: values2 })).filter((row4) => row4.v.some((cell4) => cell4 !== ""));
     if (!wizard.rows.length) {
       notices.toast(t("importing.file.noRows"), true);
       return;
@@ -23130,7 +24925,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     const fields = customFields();
     if (fields.length) await callRpc("importar_campos", { p_entidad: wizard.entity, p_campos: fields });
-    paint10(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+    paint11(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
     let result;
     try {
       result = await sendInBatches(rows, { entity: wizard.entity, mode, simulate: false, importId }, showRunProgress);
@@ -23141,13 +24936,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     await callRpc("importar_terminar", { p_imp: importId });
     importLegacy.countWrite();
     if (!pageBox()) return;
-    paint10(finishedHtml(result));
+    paint11(finishedHtml(result));
     const destination2 = DESTINATIONS[wizard.entity];
-    onClick3("impdes", () => {
+    onClick4("impdes", () => {
       void undoImport(importId);
     });
-    onClick3("impotra", steps2.start);
-    onClick3("impver", () => {
+    onClick4("impotra", steps2.start);
+    onClick4("impver", () => {
       if (destination2 === "ventas") goToOrders("ventas");
       else goTo(destination2);
     });
@@ -23167,9 +24962,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/import/history.ts
   var UNDONE = "Deshecha";
-  function rowHtml27(item, names) {
+  function rowHtml28(item, names) {
     const date = new Date(item.creado_en).toLocaleString(t("dates.locale"), { dateStyle: "short", timeStyle: "short" });
-    const line2 = t("importing.history.line", {
+    const line3 = t("importing.history.line", {
       date,
       user: escapeHtml(orFallback(item.usuario, "—")),
       rows: formatNumber(item.filas),
@@ -23179,15 +24974,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       state: escapeHtml(item.estado)
     });
     return `<div class="errfila e-${item.estado === UNDONE ? "api" : "reporte"}"><div><b>${escapeHtml(names.get(item.entidad) ?? item.entidad)} · ${escapeHtml(item.archivo ?? "")}</b>
-      <span class="sm">${line2}</span></div>
+      <span class="sm">${line3}</span></div>
       ${item.estado !== UNDONE ? `<button class="btn sec" type="button" data-impdes="${item.id}">${icon("undo-2")} ${t("importing.history.undo")}</button>` : "<span></span>"}</div>`;
   }
   async function paintImports() {
     const { data } = await callRpc("importaciones_lista", {});
     const names = new Map(entityTypes().map((type) => [type.key, type.name]));
-    const box = paint10(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
+    const box = paint11(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
     <p class="sm">${t("importing.history.text")}</p>
-    <div class="errlista">${(data ?? []).map((item) => rowHtml27(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
+    <div class="errlista">${(data ?? []).map((item) => rowHtml28(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
     box?.querySelectorAll("[data-impdes]").forEach((button2) => {
       button2.onclick = () => {
         void undoImport(button2.dataset.impdes ?? "");
@@ -23212,7 +25007,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<label>${t("importing.review.existingLabel")}</label><div class="segs" id="impmodo"><button type="button" data-v="actualizar" class="on">${t("importing.review.update")}</button><button type="button" data-v="omitir">${t("importing.review.keep")}</button></div>
       <p class="sm">${t("importing.review.matchedBy", { keys: t(MATCHED_BY.get(wizard.entity) ?? "importing.review.byName") })}</p>`;
   }
-  function pageHtml14(check2, counts) {
+  function pageHtml15(check2, counts) {
     const custom = wizard.mapping.map((value19, index) => value19 === "extra" ? wizard.headers[index] ?? "" : "").filter(Boolean);
     const errors = check2.errores;
     return `<div class="card cfgpanel impcaja">${stepsHtml3(4)}
@@ -23236,14 +25031,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         if (run) run.textContent = t("importing.review.run", { count: formatNumber(counts.created + (mode === "actualizar" ? counts.existing : 0)), unit: counts.unit });
       };
     });
-    onClick3("impvolver", steps2.columns);
+    onClick4("impvolver", steps2.columns);
     if (run) run.onclick = () => {
       void runImport(rows, wizard.entity === "ventas" ? "omitir" : mode);
     };
   }
   async function paintReviewStep() {
     const rows = rowsToImport();
-    paint10(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+    paint11(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
     let check2;
     try {
       check2 = await sendInBatches(rows, { entity: wizard.entity, mode: "actualizar", simulate: true, importId: null }, showProgress);
@@ -23253,7 +25048,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     const counts = countsOf(check2);
-    paint10(pageHtml14(check2, counts));
+    paint11(pageHtml15(check2, counts));
     bind24(rows, counts);
   }
 
@@ -23427,7 +25222,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const wonText = won ? won === 1 ? t("tenders.list.oneWon") : t("tenders.list.won", { count: won }) : "";
     return ` · ${lots.length === 1 ? t("tenders.list.oneLot") : t("tenders.list.lots", { count: lots.length })}${wonText}`;
   }
-  function rowHtml28(tender, view, warnDays) {
+  function rowHtml29(tender, view, warnDays) {
     const extra = view === "contratos" ? contractPill(tender, warnDays) : view === "marcha" ? deadlinePill(tender) : "";
     return `<button type="button" class="item conrow" data-con="${tender.id}"><span class="tx"><b>${escapeHtml(tender.titulo)}</b>
       <span class="sm">${escapeHtml(tenderLine(tender))}${lotsText(tender)}${tender.importe_licitacion ? ` · ${formatCurrency(tender.importe_licitacion)}` : ""}</span></span>
@@ -23437,13 +25232,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const when4 = days.length ? t("tenders.list.warnDays", { days: [...days].sort((first, second) => second - first).join(t("tenders.list.and")) }) : t("tenders.list.warnNever");
     return `<p class="sm">${t("tenders.list.contractsHint", { when: when4 })}</p>`;
   }
-  function pageHtml15(list, view) {
+  function pageHtml16(list, view) {
     const days = tendersLegacy.warningDays(), warnDays = Math.max(...days, 0);
     const empty2 = t(view === "contratos" ? "tenders.list.noContracts" : view === "cerrados" ? "tenders.list.noClosed" : "tenders.list.noOpen");
     return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="connuevo">${t("tenders.list.newTender")}</button>
       ${cardSectionsLegacy.can("administrar") ? `<button type="button" class="btn sec" id="conavisos">${t("tenders.list.warnings")}</button>` : ""}</div>
     ${view === "contratos" ? contractsHint(days) : ""}
-    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml28(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
+    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml29(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
   async function paintTenders(view) {
     if (!document.getElementById("cfgcuerpo")) return;
@@ -23459,7 +25254,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     const days = setting?.valor?.dias;
     if (Array.isArray(days)) tendersLegacy.setWarningDays(days.map(Number).filter((day) => day > 0));
-    box.innerHTML = pageHtml15(shown4(data ?? [], view), view);
+    box.innerHTML = pageHtml16(shown4(data ?? [], view), view);
     const add2 = document.getElementById("connuevo");
     if (add2) add2.onclick = () => {
       void editTender(null);
@@ -23702,8 +25497,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const { data } = await legacyDb().from("productos").select("id,nombre,es_equipo,revision_meses").order("nombre");
     return (data ?? []).sort((first, second) => Number(second.es_equipo) - Number(first.es_equipo) || String(first.nombre).localeCompare(String(second.nombre)));
   }
-  function productOptions(list, chosen3) {
-    return list.map((product) => `<option value="${product.id}" data-rm="${product.revision_meses ?? 0}" ${product.id === chosen3 ? "selected" : ""}>${escapeHtml(product.nombre)}${product.es_equipo ? "" : t("equipment.editor.notMarked")}</option>`).join("");
+  function productOptions(list, chosen4) {
+    return list.map((product) => `<option value="${product.id}" data-rm="${product.revision_meses ?? 0}" ${product.id === chosen4 ? "selected" : ""}>${escapeHtml(product.nombre)}${product.es_equipo ? "" : t("equipment.editor.notMarked")}</option>`).join("");
   }
   function editorHtml12(item, existing, list) {
     const contracts = equipmentLegacy.contracts().map((kind) => `<option ${kind === item.contrato ? "selected" : ""}>${kind}</option>`).join("");
@@ -23764,9 +25559,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     notices.toast(t("equipment.editor.retired"));
     relatedLegacy.openEquipment(existing.id);
   }
-  function bind26(existing, chosen3) {
-    editorLegacy.pickAccount(field9("eqcta"), chosen3.account, (account) => {
-      chosen3.account = account;
+  function bind26(existing, chosen4) {
+    editorLegacy.pickAccount(field9("eqcta"), chosen4.account, (account) => {
+      chosen4.account = account;
     }, t("equipment.editor.wherePlaceholder"));
     const contract = document.getElementById("eqc"), product = document.getElementById("eqp");
     const showEnd = () => {
@@ -23780,7 +25575,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
     const ok = document.getElementById("eqok");
     if (ok) ok.onclick = () => {
-      void save28(existing, chosen3.account, ok);
+      void save28(existing, chosen4.account, ok);
     };
     const retireButton = field9("eqretirar");
     if (retireButton && existing) retireButton.onclick = () => {
@@ -23804,16 +25599,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/equipment/list.ts
   var LIMIT8 = 500;
   var SOON_DAYS2 = 30;
-  var SEARCH_WAIT_MS8 = 300;
+  var SEARCH_WAIT_MS9 = 300;
   var listState = { query: "" };
   var plain = (text2) => String(text2 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  function rowHtml29(item) {
+  function rowHtml30(item) {
     const details2 = [item.serie ? t("equipment.list.serial", { serial: item.serie }) : "", item.cuentas?.nombre, item.ubicacion, item.contrato].filter(Boolean).join(" · ");
     return `<button type="button" class="item conrow" data-eq="${item.id}"><span class="tx"><b>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</b>
       <span class="sm">${escapeHtml(details2)}${t("equipment.list.since", { date: formatShortDate(item.instalado ?? "") })}</span></span>
     <span class="cirest">${reviewPill(item)}${expiryPill(item)}</span></button>`;
   }
-  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml29).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
+  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml30).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
   function upcoming(list) {
     const installed = list.filter((item) => item.estado === STATES.installed), limit = addDays(todayIso(), SOON_DAYS2), warning = warningLimit();
     const reviews = installed.filter((item) => item.proxima_revision && item.proxima_revision <= limit).sort((first, second) => String(first.proxima_revision).localeCompare(String(second.proxima_revision)));
@@ -23823,7 +25618,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }).sort((first, second) => String(expiryOf(first)).localeCompare(String(expiryOf(second))));
     return { reviews, expiring };
   }
-  function pageHtml16(list) {
+  function pageHtml17(list) {
     const { reviews, expiring } = upcoming(list), query = plain(listState.query);
     const found = list.filter((item) => !listState.query || plain([item.serie, item.productos?.nombre, item.cuentas?.nombre, item.ubicacion].join(" ")).includes(query));
     const empty2 = list.length ? t("equipment.list.noneFound") : t("equipment.list.noneYet");
@@ -23831,7 +25626,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${reviews.length ? block2(t("equipment.list.reviewsSoon"), reviews) : ""}
     ${expiring.length ? block2(t("equipment.list.expiring"), expiring) : ""}
     <section class="card cirbloque"><div class="cicbcab"><h2>${t("equipment.list.all", { count: formatNumber(list.length) })}</h2><input id="eqq" type="search" placeholder="${t("equipment.list.searchPlaceholder")}" value="${escapeHtml(listState.query)}" aria-label="${t("equipment.list.searchLabel")}"></div>
-      ${found.length ? `<div class="lista">${found.map(rowHtml29).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
+      ${found.length ? `<div class="lista">${found.map(rowHtml30).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
   var searchTimer7;
   function bind27(box, wasSearching) {
@@ -23846,7 +25641,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         searchTimer7 = setTimeout(() => {
           listState.query = search4.value.trim();
           void paintEquipment2();
-        }, SEARCH_WAIT_MS8);
+        }, SEARCH_WAIT_MS9);
       };
       if (wasSearching) {
         search4.focus();
@@ -23877,7 +25672,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     rememberWarningDays(setting);
     const search4 = document.getElementById("eqq"), wasSearching = Boolean(search4) && document.activeElement === search4;
-    box.innerHTML = pageHtml16(data ?? []);
+    box.innerHTML = pageHtml17(data ?? []);
     bind27(box, wasSearching);
   }
 
@@ -23931,12 +25726,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     relatedLegacy.openEquipment(id);
   }
   function openReviewForm(id) {
-    const place2 = document.getElementById("eqrevf");
-    if (!place2) return;
-    place2.innerHTML = reviewFormHtml();
+    const place3 = document.getElementById("eqrevf");
+    if (!place3) return;
+    place3.innerHTML = reviewFormHtml();
     const cancel3 = document.getElementById("eqrcanc");
     if (cancel3) cancel3.onclick = () => {
-      place2.innerHTML = "";
+      place3.innerHTML = "";
     };
     const ok = document.getElementById("eqrok");
     if (ok) ok.onclick = () => {
@@ -24148,23 +25943,23 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/surgeries/use.ts
   var MAX_SERIALS2 = 30;
-  function lineHtml5(line2, index) {
-    const details2 = `${escapeHtml(line2.numero_lote ?? t("surgeries.use.noBatch"))}${line2.caducidad ? t("surgeries.use.expires", { date: formatShortDate(line2.caducidad) }) : ""}${t("surgeries.use.available", { count: formatNumber(line2.unidades) })}`;
-    return `<div class="cirl" data-ci="${index}"><label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${details2}</span></span>
-      <input type="number" min="0" max="${line2.unidades}" step="1" data-cu="${index}" placeholder="0" aria-label="${t("surgeries.use.usedOf", { name: escapeHtml(line2.nombre) })}"></label><div class="cirser" data-cs="${index}"></div></div>`;
+  function lineHtml5(line3, index) {
+    const details2 = `${escapeHtml(line3.numero_lote ?? t("surgeries.use.noBatch"))}${line3.caducidad ? t("surgeries.use.expires", { date: formatShortDate(line3.caducidad) }) : ""}${t("surgeries.use.available", { count: formatNumber(line3.unidades) })}`;
+    return `<div class="cirl" data-ci="${index}"><label><span>${escapeHtml(line3.nombre)} <span class="sm">· ${details2}</span></span>
+      <input type="number" min="0" max="${line3.unidades}" step="1" data-cu="${index}" placeholder="0" aria-label="${t("surgeries.use.usedOf", { name: escapeHtml(line3.nombre) })}"></label><div class="cirser" data-cs="${index}"></div></div>`;
   }
   function paintSerials(box, input5) {
     const key = input5.dataset.cu ?? "", units2 = Math.min(Number(input5.max), Math.max(0, Math.floor(Number(input5.value) || 0)));
-    const place2 = box.querySelector(`[data-cs="${key}"]`);
-    if (!place2) return;
-    const written = [...place2.querySelectorAll("input")].map((field10) => field10.value);
-    place2.innerHTML = range(Math.min(units2, MAX_SERIALS2)).map((index) => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? "")}" placeholder="${t("surgeries.use.serialOf", { index: index + 1 })}" aria-label="${t("surgeries.use.serialLabel", { index: index + 1 })}">`).join("");
+    const place3 = box.querySelector(`[data-cs="${key}"]`);
+    if (!place3) return;
+    const written = [...place3.querySelectorAll("input")].map((field10) => field10.value);
+    place3.innerHTML = range(Math.min(units2, MAX_SERIALS2)).map((index) => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? "")}" placeholder="${t("surgeries.use.serialOf", { index: index + 1 })}" aria-label="${t("surgeries.use.serialLabel", { index: index + 1 })}">`).join("");
   }
   async function saveUsed(surgery, stock, box, button2) {
-    const items = stock.map((line2, index) => ({
-      producto_id: line2.producto_id,
-      lote_id: line2.lote_id,
-      max: line2.unidades,
+    const items = stock.map((line3, index) => ({
+      producto_id: line3.producto_id,
+      lote_id: line3.lote_id,
+      max: line3.unidades,
       unidades: Math.max(0, Math.floor(Number(box.querySelector(`[data-cu="${index}"]`)?.value) || 0)),
       series: [...box.querySelectorAll(`[data-cser="${index}"]`)].map((field10) => field10.value.trim()).filter(Boolean)
     })).filter((item) => item.unidades > 0);
@@ -24233,7 +26028,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function usedHtml(used) {
     if (!used.length) return "";
     return `<h3>${t("surgeries.sheet.used")}</h3><div class="deptab"><div class="deph cirh"><span>${t("surgeries.sheet.product")}</span><span>${t("surgeries.sheet.batch")}</span><span>${t("surgeries.sheet.serial")}</span><span>${t("surgeries.sheet.units")}</span></div>
-      ${used.map((line2) => `<div class="depf cirh"><span>${escapeHtml(line2.producto)}</span><span>${escapeHtml(orFallback(line2.numero_lote, t("surgeries.sheet.noBatch")))}</span><span>${escapeHtml(orFallback(line2.serie, "—"))}</span><b>${formatNumber(line2.unidades)}</b></div>`).join("")}</div>`;
+      ${used.map((line3) => `<div class="depf cirh"><span>${escapeHtml(line3.producto)}</span><span>${escapeHtml(orFallback(line3.numero_lote, t("surgeries.sheet.noBatch")))}</span><span>${escapeHtml(orFallback(line3.serie, "—"))}</span><b>${formatNumber(line3.unidades)}</b></div>`).join("")}</div>`;
   }
   function sheetHtml9(detail, notice) {
     const surgery = detail.cirugia, scheduled = surgery.estado === STATES2.scheduled, replenishment = replenishmentOf(surgery), can = Boolean(detail.puede);
@@ -24390,11 +26185,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       ${summary4.cuentas ? `${progressBar(percent3, "div")}<span class="sm">${t("cycle.current.doneOf", { done: formatNumber(summary4.hechas), goal: visitsText(summary4.objetivo), percent: percent3 })}</span>` : ""}</div>`;
   }
   function pendingRow3(item) {
-    const place2 = escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "));
+    const place3 = escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "));
     const last = item.ultima_visita ? t("cycle.current.lastVisit", { ...words(), date: formatShortDate(item.ultima_visita) }) : t("cycle.current.noVisits", words());
     return `<div class="item cicrow">${classPill(item.clase)}
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
-          <span class="sm">${place2}${last}</span></span>
+          <span class="sm">${place3}${last}</span></span>
         <span class="cicfal"><b>${t("cycle.current.progress", { done: item.hechas, goal: item.objetivo })}</b><span class="sm">${item.faltan === 1 ? t("cycle.current.oneMissing") : t("cycle.current.missing", { count: item.faltan })}</span></span>
         ${item.proxima_cita ? `<span class="pill p-per">${t("cycle.current.appointmentOn", { date: formatShortDate(item.proxima_cita) })}</span>` : `<button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button>`}</div>`;
   }
@@ -24418,7 +26213,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <span class="segs" id="cicfil" role="group" aria-label="${t("cycle.classLabel")}">${buttons}</span></div>
       ${pending.length ? `<div class="lista">${pending.map(pendingRow3).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section>`;
   }
-  function pageHtml17(data, selector) {
+  function pageHtml18(data, selector) {
     const classified = sum((data.resumen ?? []).map((item) => item.cuentas));
     return `<div class="cicpag">${headerHtml9(data, selector)}
     ${unclassifiedHtml(data.sin_clase ?? 0)}
@@ -24468,14 +26263,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       box.innerHTML = `<div class="vacio">${t("cycle.current.couldNotLoad")}</div>`;
       return;
     }
-    box.innerHTML = pageHtml17(data, selector);
+    box.innerHTML = pageHtml18(data, selector);
     bind31(box);
   }
 
   // src/app/screens/cycle/classify.ts
   var SHOWN6 = 300;
-  var SEARCH_WAIT_MS9 = 350;
-  function rowHtml30(item) {
+  var SEARCH_WAIT_MS10 = 350;
+  function rowHtml31(item) {
     return `<div class="item cicrow" data-cfila="${item.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
           <span class="sm">${escapeHtml([item.especialidad, item.municipio, item.estado_comercial].filter(Boolean).join(" · "))}</span></span>
@@ -24484,9 +26279,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function listHtml3(rows) {
     if (!rows.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
-    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml30).join("")}</div></section>${rows.length >= SHOWN6 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
+    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml31).join("")}</div></section>${rows.length >= SHOWN6 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
   }
-  function pageHtml18(rows, selector) {
+  function pageHtml19(rows, selector) {
     const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value19 = "", label = ""]) => `<button type="button" data-cl="${value19}" class="${value19 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value19 === cycleState.classifyFilter)}">${label}</button>`).join("");
     return `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="${t("cycle.classifyPage.show")}">${filters}</span>
       <span class="cicacc"><input id="cicq" type="search" placeholder="${t("cycle.classifyPage.search", words())}" value="${escapeHtml(cycleState.query)}" aria-label="${t("cycle.classifyPage.searchLabel")}">${selector}</span></div>
@@ -24508,7 +26303,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         searchTimer8 = setTimeout(() => {
           cycleState.query = search4.value.trim();
           void paintClassify();
-        }, SEARCH_WAIT_MS9);
+        }, SEARCH_WAIT_MS10);
       };
       if (wasSearching) {
         search4.focus();
@@ -24531,17 +26326,17 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     const search4 = document.getElementById("cicq"), wasSearching = Boolean(search4) && document.activeElement === search4;
-    box.innerHTML = pageHtml18(data ?? [], selector);
+    box.innerHTML = pageHtml19(data ?? [], selector);
     bind32(box, wasSearching);
   }
   async function classify(button2, onCard) {
     const [id = "", letter = ""] = (button2.dataset.ccl ?? "").split("|"), group = button2.closest(".cicsegs");
     if (!group) return;
-    const chosen3 = button2.classList.contains("on") ? null : letter, buttons = [...group.querySelectorAll("button")];
+    const chosen4 = button2.classList.contains("on") ? null : letter, buttons = [...group.querySelectorAll("button")];
     buttons.forEach((other) => {
       other.disabled = true;
     });
-    const { data: result, error } = await legacyDb().rpc("clasificar_cuentas", { p_ids: [id], p_clase: chosen3 });
+    const { data: result, error } = await legacyDb().rpc("clasificar_cuentas", { p_ids: [id], p_clase: chosen4 });
     buttons.forEach((other) => {
       other.disabled = false;
     });
@@ -24550,7 +26345,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     buttons.forEach((other) => {
-      const on5 = other.dataset.ccl === `${id}|${String(chosen3)}`;
+      const on5 = other.dataset.ccl === `${id}|${String(chosen4)}`;
       other.classList.toggle("on", on5);
       other.setAttribute("aria-pressed", String(on5));
     });
@@ -24611,7 +26406,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/cycle/team.ts
   var ofText = (done, goal) => t("cycle.current.progress", { done: formatNumber(done), goal: formatNumber(goal) });
-  function rowHtml31(member) {
+  function rowHtml32(member) {
     const classified = member.a + member.b + member.c, percent3 = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
     const progress = percent3 === null ? "—" : `<span class="cicbarc">${progressBar(percent3)}${ofText(member.hechas, member.objetivo)} · ${percent3}%</span>`;
     return `<tr><td><button type="button" class="lnk" data-cde="${member.id}"><b>${escapeHtml(member.nombre)}</b></button><span class="sm"> · ${escapeHtml(member.rol)}</span></td><td>${formatNumber(member.cartera)}</td><td>${formatNumber(member.a)}</td><td>${formatNumber(member.b)}</td><td>${formatNumber(member.c)}</td>
@@ -24622,7 +26417,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!members2.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
     const head = [t("cycle.team.person"), t("cycle.team.portfolio"), "A", "B", "C", t("cycle.team.noClass"), t("cycle.team.upToDate"), t("cycle.team.cycleVisits", words())];
     return `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr>${head.map((title2) => `<th>${title2}</th>`).join("")}</tr></thead>
-      <tbody>${members2.map(rowHtml31).join("")}</tbody></table></div></div>
+      <tbody>${members2.map(rowHtml32).join("")}</tbody></table></div></div>
       <p class="sm">${t("cycle.team.countHint", words())}</p>`;
   }
   async function paintCycleTeam() {
@@ -24710,6 +26505,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     t,
     setLanguage,
     setVocabulary,
+    components: { ...components_exports, list: list_exports, filters: filters_exports },
     screens: {
       home: { load, renderSkeleton, paintIndicators },
       agenda: agenda_exports,

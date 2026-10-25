@@ -1,5 +1,6 @@
 /** Home screen view: the skeleton while loading, the mosaic, its buttons and the figures that count up. */
-import { alreadyCounted, goTo, permissions } from '../../legacy/bridge';
+import { goTo, permissions } from '../../legacy/bridge';
+import { alreadyCounted } from '../../components/list/counted';
 import { t } from '../../i18n';
 import { formatEuros, formatNumber } from '../../services/format';
 import { attentionItems } from './attention';

@@ -1,3 +1,4 @@
+import * as components from '../components';
 /**
  * Bridge of Rutas to the legacy code (kept apart from bridge.ts, which is at its size limit). The planner (conHor, programarVisitas,
  * PLANCFG), the day map (rmLib, rmRuta and its palette and reasons) and the page chain (cargarRutas) stay in legacy: the Agenda and
@@ -27,8 +28,8 @@ export const routesLegacy = {
   setMap: (map: RouteMap | null): void => { RM_MAPA = map; },
   pendingMap: (): PendingMap | null => RN_MAPA_P,
   setPendingMap: (pending: PendingMap): void => { RN_MAPA_P = pending; },
-  improveFields: (root: Element): void => { mejorarCampos(root); },
-  askField: (title: string, type: string, value: string, label: string): Promise<string | null> => pedirCampo(title, type, value, label),
+  improveFields: (root: Element): void => { components.enhanceFields(root); },
+  askField: (title: string, type: string, value: string, label: string): Promise<string | null> => components.askField(title, type, value, label),
   blockedDays: (from: string, to: string): Promise<Record<string, string>> => bloqueadosSemana(from, to),
   firstOpenState: (): string => CITA_ABIERTA[0] ?? '',
 };

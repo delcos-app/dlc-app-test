@@ -1,3 +1,4 @@
+import * as components from '../components';
 /**
  * Bridge of Acceso, the last Agenda pieces and the accounts map to the legacy code (kept apart from bridge.ts, which is at its
  * size limit). The working day key, the traffic and the routes stay in the route domain (Rutas, not migrated yet).
@@ -13,7 +14,7 @@ export const restLegacy = {
   workingDayKey: (): string => JKEY(),
   traffic: (silent: boolean): void => { void tdTrafico(silent); },
   reloadRoutes: (): void => { void cargarRutas(); },
-  askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => pedirTexto(message, value, options),
+  askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => components.askText(message, value, options),
   stateColour: (state: string): string => colEstado(state),
   leaflet: (): Leaflet | null => (window as unknown as { L?: Leaflet }).L ?? null,
 };

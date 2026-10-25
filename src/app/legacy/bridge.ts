@@ -56,7 +56,6 @@ export const appointments = {
 
 export const icon = (name: string): string => svgIco(ICON_NOM[name] ?? ICON_NOM.info ?? '');
 /** True when these figures were already shown counting on this screen (they are not animated twice). */
-export const alreadyCounted = (key: string, values: readonly string[]): boolean => plYaContado(key, values);
 
 /** Home pieces not migrated yet: the header actions and the professional portal. */
 export const legacyHome = {

@@ -1,3 +1,4 @@
+import * as components from '../components';
 /**
  * Bridge of Panel delcos to the legacy code (kept apart from bridge.ts, which is at its size limit): the plans, the billing state
  * helpers shared with Plan (pedidos.js), the dialogs, the environment and the Configuración editors the template reuses.
@@ -11,7 +12,7 @@ export const platformLegacy = {
   planRank: (id: string): number => rangoPlan(id),
   /** The platform's own plan may have changed. */
   reloadPlan: async (): Promise<void> => { const { data } = await RPC_ORIG<{ plan?: Record<string, unknown> }>('plan_uso', {}); if (data?.plan) PLAN_ACTUAL = data.plan; },
-  askText: (message: string, value: string, options: { titulo: string; ok: string }): Promise<string | null> => pedirTexto(message, value, options),
+  askText: (message: string, value: string, options: { titulo: string; ok: string }): Promise<string | null> => components.askText(message, value, options),
   prepareOrganizationChange: (name: string): void => { prepararCambioOrg(name); },
   hasProfile: (): boolean => Boolean(PERFIL),
   can: (capability: string): boolean => puede(capability),

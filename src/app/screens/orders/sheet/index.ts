@@ -13,7 +13,7 @@ import { paintEquipment } from './equipment';
 import { paintOperations } from './operations';
 import { paintPayment } from './payment';
 
-const CUSTOM_FIELDS_DELAY_MS = 150, STEADY_MAX_MS = 2500;
+const STEADY_MAX_MS = 2500;
 
 /** Each extra part is optional: if one fails, the order is still shown. */
 const optional = (part: Promise<void>): Promise<void> => part.catch(() => undefined);
@@ -25,10 +25,10 @@ async function paintOrder(id: string): Promise<void> {
     await orderSheetLegacy.invoices(id);
     await paintOperations(loaded);
     await paintPayment(loaded);
+    // v2.74.0: the order's custom fields, inside the loader (v2.416.0: added late they moved the buttons once shown)
+    await optional(orderSheetLegacy.customFields(id, document.getElementById('dbody')));
     return loaded;
   });
-  // v2.74.0: the order's custom fields
-  setTimeout(() => { void orderSheetLegacy.customFields(id, document.getElementById('dbody')); }, CUSTOM_FIELDS_DELAY_MS);
   if (!detail) return;
   await optional(paintDistributor(detail));
   await optional(paintEquipment(id));

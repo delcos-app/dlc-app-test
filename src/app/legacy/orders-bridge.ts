@@ -1,3 +1,4 @@
+import * as components from '../components';
 /**
  * Bridge of Pedidos to the legacy code (kept apart from bridge.ts, which is at its size limit). The section, page, field filters
  * and the loaded rows stay in the legacy PEDSEC, PEDPAG, PEDF and PEDIDOS (the list bar, legado 034/082/139 and the tests read
@@ -23,7 +24,6 @@ export const ordersLegacy = {
   setRows: (rows: unknown[]): void => { PEDIDOS = rows; },
   /** Through the global name (legado 057 keeps the screen cached around it). */
   reload: (): void => { void cargarVentas(); },
-  restoreFilters: (root: Element | null): void => { filtrosRestaurar(root); },
   paintOperations: (): void => { void pintarOperativa(); },
   paintUnattributed: (): void => { void pintarSinAtribuir(); },
   canAttribute: (): boolean => Boolean(puedeAtribuir()),
@@ -32,8 +32,8 @@ export const ordersLegacy = {
   paymentState: (order: object): string => cobroDe(order),
   channelLabel: (order: object, total: number | null | undefined): string => etiquetaCanal(order, total),
   paymentMethods: (): readonly { valor: string }[] => CAT.forma_pago ?? [],
-  fieldColumns: (): CustomField[] => clasVisibles('pedido'),
-  fieldCells: (fields: readonly CustomField[], values: Record<string, unknown> | null | undefined): string => clasCeldas(fields, values),
+  fieldColumns: (): CustomField[] => components.visibleFields('pedido'),
+  fieldCells: (fields: readonly CustomField[], values: Record<string, unknown> | null | undefined): string => components.columnCells(fields, values),
 };
 
 /** The order window: the pieces that stay in legacy (invoices, card payment, custom fields, editor). */
@@ -51,7 +51,7 @@ export const orderSheetLegacy = {
   saveFields: (read: OrderFieldsRead | null, id: string): Promise<boolean> => camposGuardar(read, id),
   loadPdf: (): Promise<unknown> => cargarJsPDF(),
   appName: (): string => nombreApp(),
-  askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => pedirTexto(message, value, options),
+  askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => components.askText(message, value, options),
 };
 
 /** Emails and settings of Pedidos. */

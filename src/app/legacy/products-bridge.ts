@@ -1,3 +1,4 @@
+import * as components from '../components';
 /**
  * Bridge of Productos to the legacy code (kept apart from bridge.ts, which is at its size limit). The catalog loaders (PRODUCTOS,
  * SERVICIOS, cargarProductos), the section (PSEC) and the field filters (PRODF) stay in legacy: Pedidos, Visita, the list bar and
@@ -15,11 +16,11 @@ export const productsLegacy = {
   editProduct: (product: object | null): void => { editorProducto(product); },
   editSamples: (): void => { void editorMuestras(); },
   clearModules: (except: string): void => { vaciarModulos(except); },
-  showLoading: (element: HTMLElement | null, text: string): void => { cargando(element, text); },
-  matchesFieldFilters: (values: ProductValues | null | undefined): boolean => Boolean(clasCumple(values, PRODF)),
+  showLoading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
+  matchesFieldFilters: (values: ProductValues | null | undefined): boolean => Boolean(components.matchesFilters(values, PRODF)),
   hasFieldFilters: (): boolean => Object.keys(PRODF).length > 0,
-  visibleFieldColumns: (): CustomField[] => clasVisibles('producto'),
-  fieldHeaders: (fields: readonly CustomField[]): string => clasCabeceras(fields),
-  fieldCells: (fields: readonly CustomField[], values: ProductValues | null | undefined): string => clasCeldas(fields, values),
-  widenGrid: (grid: Element | null, count: number): void => { clasRejilla(grid, count); },
+  visibleFieldColumns: (): CustomField[] => components.visibleFields('producto'),
+  fieldHeaders: (fields: readonly CustomField[]): string => components.columnHeaders(fields),
+  fieldCells: (fields: readonly CustomField[], values: ProductValues | null | undefined): string => components.columnCells(fields, values),
+  widenGrid: (grid: Element | null, count: number): void => { components.widenGrid(grid, count); },
 };

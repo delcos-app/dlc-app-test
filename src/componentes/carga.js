@@ -1,17 +1,11 @@
 // @ts-check
-// componentes/carga.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
-// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+// componentes/carga.js · los estados de carga están en src/app/components/loading.ts (v2.416.0). Estos nombres se quedan:
+// toda la app los usa.
 
-function pantallaCarga(msg) {
-  let o = $('cargatotal');
-  if (!o) { document.body.insertAdjacentHTML('beforeend', '<div id="cargatotal" class="cargatotal"></div>'); o = $('cargatotal'); }
-  o.innerHTML = `<div><span class="spin"></span><b>${esc(msg)}</b><span class="sm">Un momento: se está cargando todo de nuevo</span></div>`;
-  o.classList.remove('hide');
-}
-
-const cargando = (el, texto) => { if (el) el.innerHTML =
-  `<div class="cargador"><span class="spin"></span><span class="sm">${esc(texto || 'Cargando…')}</span></div>`; };
-
-const skelCard = t => `<h2>${esc(t)}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div>`;
-
-const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('hide'); };
+/** @param {string} msg */
+function pantallaCarga(msg) { window.delcos.components.showFullLoading(msg); }
+/** @param {Element | null} el @param {string} [texto] */
+function cargando(el, texto) { window.delcos.components.showLoading(el, texto); }
+/** @param {string} t */
+function skelCard(t) { return window.delcos.components.cardSkeleton(t); }
+function quitarCarga() { window.delcos.components.hideFullLoading(); }

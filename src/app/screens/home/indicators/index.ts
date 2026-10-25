@@ -2,7 +2,8 @@
  * Indicators of Inicio (the cards behind «Ver tus indicadores»). Migrated from the legacy inicioIndicadores + kpisVivos +
  * indicadoresCompletos (v2.389.0): the cards are painted complete in one go instead of being transformed twice after painting.
  */
-import { addHelpButtons, alreadyCounted, cachedRpc, currentScreen, homeCache, indicatorCatalog, showCacheNotice, timingMark } from '../../../legacy/bridge';
+import { addHelpButtons, cachedRpc, currentScreen, homeCache, indicatorCatalog, showCacheNotice, timingMark } from '../../../legacy/bridge';
+import { alreadyCounted } from '../../../components/list/counted';
 import { formatNumber } from '../../../services/format';
 import { t } from '../../../i18n';
 import { filterCard, indicatorCard, type CardContext } from './cards';

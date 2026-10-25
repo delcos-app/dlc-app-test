@@ -41,7 +41,6 @@ declare function ES_MEDICO(): boolean;
 declare function citaAnulada(state: string): boolean;
 declare function citasDelDia(date: string): Promise<{ estado: string; hora?: string | null; medico?: string; nombre?: string }[]>;
 declare function svgIco(inner: string): string;
-declare function plYaContado(key: string, values: readonly string[]): boolean;
 declare function hayOportunidades(): boolean;
 declare function puedeDuplicados(): boolean;
 declare function inicioQuitarAntiguo(): void;

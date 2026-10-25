@@ -2,12 +2,15 @@
  * Entry point of the new code (src/app). esbuild bundles it into src/generated/core.js, which runs first in app.js.
  * While screens migrate, the legacy code (src/legado) reaches the new services and screens through `window.delcos`.
  */
+import * as components from './components';
 import { createRouter, type Router } from './core/router';
 import { navigate } from './core/navigation';
 import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as listComponents from './components/list';
+import * as filterComponents from './components/filters';
 import * as settingsMore from './screens/settings/more';
 import * as settings from './screens/settings';
 import * as access from './screens/access';
@@ -46,6 +49,8 @@ export interface DelcosCore {
   readonly t: typeof t;
   readonly setLanguage: typeof setLanguage;
   readonly setVocabulary: typeof setVocabulary;
+  /** Shared components (src/app/components), called by the legacy adapters in src/componentes. */
+  readonly components: typeof components & { readonly list: typeof listComponents; readonly filters: typeof filterComponents };
   /** Migrated screens, called by the legacy adapters (e.g. cargarInicio) until navigation moves to the router. */
   readonly screens: {
     readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators };
@@ -92,6 +97,7 @@ window.delcos = {
   t,
   setLanguage,
   setVocabulary,
+  components: { ...components, list: listComponents, filters: filterComponents },
   screens: {
     home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators },
     agenda,

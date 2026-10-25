@@ -1,3 +1,4 @@
+import * as components from '../components';
 /**
  * Bridge of the professional and centre portal to the legacy code (kept apart from bridge.ts, which is at its size limit): charts,
  * the period selector, the plan, the company words, the invoice PDF and the colours of the centre's order states.
@@ -5,11 +6,11 @@
 export interface InvoiceData { ok?: boolean; motivo?: string; numero?: string; concepto?: string; rectifica_num?: string | null; diseno?: Partial<PdfDesign> | null }
 
 export const portalPageLegacy = {
-  barChart: (items: { n: string; v: number }[], format: (value: number) => string): string => barrasH(items, format),
-  emptyChart: (text: string): string => vacioGrafico(text),
-  donut: (items: { n: string; v: number }[]): string => svgDonut(items),
+  barChart: (items: { n: string; v: number }[], format: (value: number) => string): string => components.rankingBars(items, format),
+  emptyChart: (text: string): string => components.emptyChart(text),
+  donut: (items: { n: string; v: number }[]): string => components.donut(items),
   monthsBetween: (from: string, to: string): string[] => mesesEntre(from, to),
-  skeletonCard: (title: string): string => skelCard(title),
+  skeletonCard: (title: string): string => components.cardSkeleton(title),
   /** A company word with its singular, plural and gender. */
   wordOf: (key: string): { s: string; p: string; g?: string } => terminoDe(key) as { s: string; p: string; g?: string },
   userName: (): string => (PERFIL as { nombre?: string } | null)?.nombre ?? '',

@@ -10,6 +10,7 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 import { euros, STATES, stepPill } from './model';
+import { restoreFilters } from '../../components/filters/memory';
 
 interface OrderRow {
   id: string; fecha: string; estado: string; numero?: string | null; factura?: string | null; contacto?: string | null; centro?: string | null; cuenta_texto?: string | null;
@@ -133,7 +134,7 @@ export async function paintOrderList(): Promise<void> {
   if (!document.getElementById('pedlista') || !document.getElementById('pper') || !document.getElementById('pcanal')) return;
   addExtraFilters();
   // v2.269.0: the filters the user had
-  ordersLegacy.restoreFilters(document.getElementById('v-ventas'));
+  restoreFilters(document.getElementById('v-ventas'));
   const query = params(), loading = document.getElementById('pedlista');
   if (loading && !loading.querySelector('.dgrid')) customersLegacy.showLoading(loading, t('orders.list.loading'));
   const result = await cachedRpc<OrdersPage>('pedidos_pagina', query, `pedidos-${JSON.stringify(query)}`);

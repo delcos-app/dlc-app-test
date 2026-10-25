@@ -1,3 +1,4 @@
+import * as components from '../components';
 /**
  * Bridge of Configuración (second part: portfolio rules, backups, undo, commercial states, visit material, accesses, classifiers,
  * roles and brand) to the legacy code (kept apart from bridge.ts, which is at its size limit). The settings, the catalogs, the
@@ -18,13 +19,13 @@ const profile = (): { id: string; nombre?: string; areas?: Record<string, number
   PERFIL as { id: string; nombre?: string; areas?: Record<string, number>; capacidades?: string[] };
 
 export const settingsMoreLegacy = {
-  loading: (element: HTMLElement | null, text: string): void => { cargando(element, text); },
+  loading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   appName: (): string => nombreApp(),
   hasPortal: (): boolean => hayExtra('portal'),
   reloadCatalogs: (): Promise<void> => cargarCatalogos(),
   /** Level (0–3) of the user in an area of the legacy profile (K = classifiers). */
   areaLevel: (letter: string): number => profile().areas?.[letter] ?? 0,
-  askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => pedirTexto(message, value, options),
+  askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => components.askText(message, value, options),
   settingsKey: (): string => CFG_KEY,
   stateRoles: (): readonly (readonly [string, string, string])[] => PAPELES_ESTADO,
   // Classifiers: the catalog list, the custom field box and the list repaint stay in legacy

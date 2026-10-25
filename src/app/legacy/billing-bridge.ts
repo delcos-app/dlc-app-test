@@ -1,3 +1,4 @@
+import * as components from '../components';
 /**
  * Bridge of Facturación to the legacy code (kept apart from bridge.ts, which is at its size limit). The section (FSEC) and the
  * page of the list (FACPAG) stay in legacy: the tab bar, the filters and the cache of loaded screens read them. The PDF, the
@@ -17,7 +18,7 @@ export const billingLegacy = {
   reload: (): void => { void cargarFacturacion(); },
   openInvoice: (id: string): void => { void verFactura(id); },
   withLoading: <T>(work: () => Promise<T>): Promise<T> => ventanaCargando(work),
-  showLoading: (element: HTMLElement | null, text: string): void => { cargando(element, text); },
+  showLoading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   readOnly: (): boolean => Boolean(facConsulta()),
   planName: (): string => planDe(String(PLAN_ACTUAL.plan)).nombre,
   paintCompany: (): void => { void pintarEmpresa(); },
