@@ -248,7 +248,7 @@ function ponerAyudaManual() {
   const v = $('v-' + TAB), h = v && v.querySelector('.saludo h1'); if (!h) return;
   const sal = h.closest('.saludo') || h;
   if (sal.querySelector('.ai')) return;
-  if (AYUDA[TAB]) { h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`); return; }
   const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
-  h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
+  pegarAyuda(h, AYUDA[TAB] ? `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`
+    : `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
 }

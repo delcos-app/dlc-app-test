@@ -64,4 +64,6 @@ dialog.encajada{width:100%}
 body.modo-medico #v-config .cfu #miperfil,body.modo-medico #v-config #cfgcuerpo #miperfil,body.modo-medico .perfsegf > div:nth-child(2),body.modo-medico #cfgcuerpo .g2 > div:has(#pfi){display:none}
 @media (max-width:760px){dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{width:100%}}
 @media (max-width:760px){dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{max-width:100%}}
+/* La «i» de ayuda va pegada a la última palabra del título (src/pantallas/manual.js · pegarAyuda) */
+.ai-pegada{white-space:nowrap}
 }

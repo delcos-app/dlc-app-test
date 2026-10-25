@@ -3811,10 +3811,21 @@ function toast(msg, err) {
 // componentes/ayuda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
+/** Pone la «i» al final del título pegada a su última palabra: un título que ocupa dos líneas no deja la «i» sola en la segunda
+    (aviso de Eric: en el móvil, «Buenas noches, Eric» dejaba la «i» sola abajo). */
+function pegarAyuda(h, boton) {
+  const ultimo = [...h.childNodes].reverse().find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
+  const m = ultimo && ultimo.textContent.match(/^([\s\S]*?)(\S+)(\s*)$/);
+  if (!m) { h.insertAdjacentHTML('beforeend', boton); return; }
+  const pegada = document.createElement('span'); pegada.className = 'ai-pegada';
+  pegada.append(m[2]); pegada.insertAdjacentHTML('beforeend', boton);
+  ultimo.textContent = m[1]; ultimo.after(pegada);
+}
+
 function ponerAyudas() {
   ANCLAS_AYUDA.forEach(([sel, k]) => {
     const h = document.querySelector(sel);
-    if (h && !h.querySelector(':scope > .ai')) h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${k}" aria-label="Ayuda">i</button>`);
+    if (h && !h.querySelector('.ai')) pegarAyuda(h, `<button class="ai" data-ayuda="${k}" aria-label="Ayuda">i</button>`);
   });
   const dt = $('dirtools');
   if (dt && !(dt.previousElementSibling && dt.previousElementSibling.matches('.ai')))
@@ -16942,9 +16953,9 @@ function ponerAyudaManual() {
   const v = $('v-' + TAB), h = v && v.querySelector('.saludo h1'); if (!h) return;
   const sal = h.closest('.saludo') || h;
   if (sal.querySelector('.ai')) return;
-  if (AYUDA[TAB]) { h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`); return; }
   const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
-  h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
+  pegarAyuda(h, AYUDA[TAB] ? `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`
+    : `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
 }
 // pantallas/oportunidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
