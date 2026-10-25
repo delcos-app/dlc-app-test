@@ -27,3 +27,18 @@ export function shortMonthNames(): string[] {
 }
 
 export const capitalise = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** «2026-10-24» → «sábado, 24 de octubre» */
+export function formatLongDate(isoDate: string): string {
+  return fromIsoDate(isoDate).toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+/** «2026-10-24» → «octubre de 2026» */
+export function formatMonthYear(isoDate: string): string {
+  return fromIsoDate(isoDate).toLocaleDateString(locale(), { month: 'long', year: 'numeric' });
+}
+
+/** «2026-10-24» → «octubre» */
+export function monthNameOf(isoDate: string): string {
+  return fromIsoDate(isoDate).toLocaleDateString(locale(), { month: 'long' });
+}

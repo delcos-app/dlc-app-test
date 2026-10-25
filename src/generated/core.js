@@ -531,6 +531,25 @@
         notVisited: "{count} sin visitar",
         nothingPending: "Nada pendiente."
       },
+      strip: {
+        thisWeek: "Esta semana",
+        nextWeek: "La semana que viene",
+        lastWeek: "La semana pasada",
+        weekOf: "Semana del {day} de {month}",
+        previousWeekNav: "Semana anterior",
+        nextWeekNav: "Semana siguiente",
+        seeMonth: "Ver el mes",
+        today: "Hoy",
+        done: "Hecha",
+        toDo: "Por hacer",
+        notClosed: "Sin cerrar",
+        oneAppointment: "{count} cita",
+        appointments: "{count} citas",
+        dayOptions: "Opciones del día",
+        showWeek: "Ver la semana",
+        hideWeek: "Ocultar la semana",
+        showWeekTitle: "Ver la semana entera, moverla y repartirla"
+      },
       week: {
         title: "Tu semana",
         hint: "«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.",
@@ -686,6 +705,7 @@
   // src/app/screens/agenda/index.ts
   var agenda_exports = {};
   __export(agenda_exports, {
+    bindWeekButton: () => bindWeekButton,
     closeMonth: () => closeMonth,
     data: () => preload_exports,
     dueList: () => dueList,
@@ -693,6 +713,7 @@
     metricsHtml: () => metricsHtml,
     openTray: () => openTray,
     paintSameCentre: () => paintSameCentre,
+    paintStrip: () => paintStrip,
     paintTrayButtons: () => paintTrayButtons,
     paintWeekSidebar: () => paintWeekSidebar,
     refreshMetrics: () => refreshMetrics,
@@ -839,6 +860,17 @@
       AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
     }
   };
+  var stripState = {
+    start: () => CINTA_INI,
+    setStart: (isoDate) => {
+      CINTA_INI = isoDate;
+    },
+    weekOpen: () => AG_SEM_ABIERTA,
+    setWeekOpen: (open) => {
+      AG_SEM_ABIERTA = open;
+    },
+    paintOpenWeek: () => agPintarSemanaExp()
+  };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -876,6 +908,15 @@
     return range(12).map((index) => new Date(2026, index, 15).toLocaleDateString(locale(), { month: "short" }).replace(".", ""));
   }
   var capitalise = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+  function formatLongDate(isoDate) {
+    return fromIsoDate(isoDate).toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
+  }
+  function formatMonthYear(isoDate) {
+    return fromIsoDate(isoDate).toLocaleDateString(locale(), { month: "long", year: "numeric" });
+  }
+  function monthNameOf(isoDate) {
+    return fromIsoDate(isoDate).toLocaleDateString(locale(), { month: "long" });
+  }
 
   // src/app/services/format.ts
   var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -1474,6 +1515,151 @@
     if (document.getElementById("tools")?.classList.contains("abierto") && context.startsWith(CONTEXT_PREFIX)) openTray(context.slice(CONTEXT_PREFIX.length) === "toca" ? "toca" : "pend");
   }
 
+  // src/app/screens/agenda/strip.ts
+  var STRIP_DAYS2 = 14;
+  var WEEK_DAYS3 = 7;
+  var MAX_DOTS = 6;
+  var DAY_MS = 864e5;
+  var hasStrip = () => currentScreen() === "agenda" && legacyAgendaParts.mode() === "dia" && Boolean(document.getElementById("v-agenda"));
+  function weekTitle(monday, today) {
+    const weeks = Math.round((fromIsoDate(monday).getTime() - fromIsoDate(mondayOf(today)).getTime()) / DAY_MS / WEEK_DAYS3);
+    if (weeks === 0) return t("agenda.strip.thisWeek");
+    if (weeks === 1) return t("agenda.strip.nextWeek");
+    if (weeks === -1) return t("agenda.strip.lastWeek");
+    return t("agenda.strip.weekOf", { day: fromIsoDate(monday).getDate(), month: monthNameOf(monday) });
+  }
+  function dotKind(item, isoDate, today) {
+    if (!appointments.isOpen(item.estado)) return "ch";
+    return isoDate < today ? "cx" : "cp";
+  }
+  function dayButton(isoDate, context) {
+    const { today, selected, perDay, blocked } = context;
+    const items = perDay.get(isoDate) ?? [], date = fromIsoDate(isoDate), reason = blocked[isoDate];
+    const dots = items.slice(0, MAX_DOTS).map((item) => `<i class="${dotKind(item, isoDate, today)}"></i>`).join("") + (items.length > MAX_DOTS ? `<em>+${items.length - MAX_DOTS}</em>` : "");
+    const count2 = t(items.length === 1 ? "agenda.strip.oneAppointment" : "agenda.strip.appointments", { count: items.length });
+    const classes = ["cdia", isoDate === today ? "hoy" : "", isoDate === selected ? "sel" : "", [0, 6].includes(date.getDay()) ? "finde" : "", reason ? "bloq" : ""].filter(Boolean).join(" ");
+    const options = isoDate >= today ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t("agenda.strip.dayOptions")}" title="${t("agenda.strip.dayOptions")}">⋯</span>` : "";
+    const letter = t("dates.weekdayLetters").split(",")[(date.getDay() + 6) % 7] ?? "";
+    return `<button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ""} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count2}" title="${count2}">
+      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span>${options}</button>`;
+  }
+  function weekButtonHtml(open) {
+    const label = t(open ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
+    return `<button type="button" class="btn sec chico" id="cplan" title="${open ? label : t("agenda.strip.showWeekTitle")}" aria-expanded="${String(open)}">${icon("calendar-days")}<span>${label}</span></button>`;
+  }
+  function stripHtml(start, context) {
+    const month = capitalise(formatMonthYear(addDays(start, 3)));
+    const today = mondayOf(context.today) === start ? "" : `<button type="button" class="btn sec chico" id="choy">${t("agenda.strip.today")}</button>`;
+    const weeks = [0, WEEK_DAYS3].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS3).map((index) => dayButton(addDays(start, offset + index), context)).join("")}</div></div>`).join("");
+    return `<div class="cinta" id="agcinta" data-ini="${start}"><div class="ccab">
+      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="${t("agenda.strip.previousWeekNav")}" title="${t("agenda.strip.previousWeekNav")}">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="${t("agenda.strip.seeMonth")}">${escapeHtml(month)} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="${t("agenda.strip.nextWeekNav")}" title="${t("agenda.strip.nextWeekNav")}">›</button>${today}</div>
+      <div class="cley" aria-hidden="true"><span><i class="ch"></i>${t("agenda.strip.done")}</span><span><i class="cp"></i>${t("agenda.strip.toDo")}</span><span><i class="cx"></i>${t("agenda.strip.notClosed")}</span></div>
+      ${weekButtonHtml(stripState.weekOpen())}</div>
+    <div class="csems">${weeks}</div></div>`;
+  }
+  function perDayOf(list, owner) {
+    const days = /* @__PURE__ */ new Map();
+    list.filter((item) => item.usuario_id === owner && !appointments.isCancelled(item.estado)).forEach((item) => {
+      days.set(item.fecha, [...days.get(item.fecha) ?? [], item]);
+    });
+    return days;
+  }
+  function bindWeekButton() {
+    const button = document.getElementById("cplan");
+    if (!button) return;
+    const open = Boolean(document.getElementById("agsemexp")), label = t(open ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
+    button.innerHTML = `${icon("calendar-days")}<span>${label}</span>`;
+    button.title = open ? label : t("agenda.strip.showWeekTitle");
+    button.setAttribute("aria-expanded", String(open));
+    button.onclick = async (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+      if (button.dataset.ocupado) return;
+      button.dataset.ocupado = "1";
+      stripState.setWeekOpen(!open);
+      try {
+        await stripState.paintOpenWeek();
+      } finally {
+        delete button.dataset.ocupado;
+        bindWeekButton();
+      }
+    };
+  }
+  function bindDayOptions(strip) {
+    strip.querySelectorAll(".cdmas").forEach((options) => {
+      const day = options.closest("[data-cf]");
+      const open = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        legacyAgendaParts.dayMenu(options, day?.dataset.cf ?? "", Boolean(day?.classList.contains("bloq")));
+      };
+      options.addEventListener("click", open, true);
+      options.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") open(event);
+      });
+    });
+  }
+  function bind2(strip) {
+    strip.querySelectorAll("[data-cf]").forEach((day) => {
+      day.onclick = () => {
+        closeMonth();
+        strip.querySelectorAll(".cdia").forEach((other) => other.classList.toggle("sel", other === day));
+        legacyAgenda.showDay(day.dataset.cf ?? "");
+      };
+    });
+    strip.querySelectorAll("[data-cm]").forEach((arrow) => {
+      arrow.onclick = () => {
+        stripState.setStart(addDays(stripState.start() ?? mondayOf(todayIso()), Number(arrow.dataset.cm)));
+        void paintStrip();
+      };
+    });
+    const month = document.getElementById("cmesb");
+    if (month) month.onclick = (event) => {
+      event.stopPropagation();
+      void toggleMonth();
+    };
+    const today = document.getElementById("choy");
+    if (today) today.onclick = () => {
+      stripState.setStart(null);
+      legacyAgenda.showDay(todayIso());
+    };
+    bindDayOptions(strip);
+  }
+  async function render() {
+    if (!hasStrip() || !document.getElementById("agcuerpo")) return;
+    const today = todayIso(), start = stripState.start() ?? mondayOf(legacyAgenda.selectedDate() ?? today), owner = agendaSources.ownerId();
+    stripState.setStart(start);
+    const end = addDays(start, STRIP_DAYS2 - 1);
+    const [result, blocked] = await Promise.all([
+      cachedRpc("agenda_rango", { p_desde: start, p_hasta: end, p_usuario: owner }, `agenda-cinta-${owner}-${start}`),
+      legacyAgendaParts.blockedDays(start, STRIP_DAYS2)
+    ]);
+    const body = document.getElementById("agcuerpo");
+    if (!hasStrip() || stripState.start() !== start || !body) return;
+    const html = stripHtml(start, { today, selected: legacyAgenda.selectedDate(), perDay: perDayOf(result.data ?? [], owner), blocked });
+    const old = document.getElementById("agcinta");
+    if (old) old.outerHTML = html;
+    else body.insertAdjacentHTML("beforebegin", html);
+    const strip = document.getElementById("agcinta");
+    if (!strip) return;
+    bind2(strip);
+    showSelectedWeek(strip, start);
+  }
+  function showSelectedWeek(strip, start) {
+    const weeks = strip.querySelector(".csems"), selected = legacyAgenda.selectedDate();
+    if (weeks && selected && selected >= addDays(start, WEEK_DAYS3)) weeks.scrollLeft = weeks.scrollWidth;
+  }
+  function paintStrip() {
+    if (!legacyAgenda.isDayView()) return Promise.resolve();
+    if (!stripState.start()) stripState.setStart(mondayOf(legacyAgenda.selectedDate() ?? todayIso()));
+    return withData([...stripLoads(), ...stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : []], async () => {
+      await render();
+      if (!legacyAgenda.isDayView() || !document.getElementById("agcinta")) return;
+      if (stripState.weekOpen()) await stripState.paintOpenWeek();
+      bindWeekButton();
+    });
+  }
+
   // src/app/screens/home/indicators/chart-tools.ts
   var EMPTY_CHART = { summary: "", visual: "" };
   var WEEKDAY_LETTERS = ["D", "L", "M", "X", "J", "V", "S"];
@@ -1496,7 +1682,7 @@
   }
 
   // src/app/screens/home/indicators/charts-activity.ts
-  function dotKind(item, next) {
+  function dotKind2(item, next) {
     if (appointments.isOpen(item.estado)) return item === next ? "sig" : "";
     return commercialStates.color(item.estado) === "var(--warn)" ? "no" : "ok";
   }
@@ -1511,7 +1697,7 @@
     const nextIndex = next ? list.indexOf(next) : 0;
     const start = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown = list.slice(start, start + visible);
     const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown.length);
-    const dots = shown.map((item) => `<span class="kvdot"><i class="${dotKind(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
+    const dots = shown.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
     return { summary, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
   }
   function urgentChart(kpis) {
@@ -1704,7 +1890,7 @@
     };
     requestAnimationFrame(step);
   }
-  function render(container, settings, kpis) {
+  function render2(container, settings, kpis) {
     const definitions = indicatorCatalog.definitions();
     const allowed = settings.map((setting) => ({ setting, definition: definitions.find((item) => item.id === setting.id) }));
     const panel = homeCache.panel();
@@ -1735,7 +1921,7 @@
       return;
     }
     const settings = indicatorCatalog.settings().filter((setting) => setting.on);
-    const live = render(container, settings, result.data.kpis ?? {});
+    const live = render2(container, settings, result.data.kpis ?? {});
     if (result.cache) showCacheNotice(container, result.fecha);
     countSavedFilters(settings);
     addHelpButtons();

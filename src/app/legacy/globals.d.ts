@@ -149,7 +149,7 @@ declare function fichaCentro(id: string): Promise<void>;
 declare function nuevaCita(accountId: string, isoDate: string | null): Promise<void>;
 declare function planDesdeLista(list: readonly DueAccount[], name: string, button: HTMLElement): Promise<void>;
 declare function reprogramarCitas(list: readonly PendingAppointment[], title: string, text: string): Promise<void>;
-interface RangeAppointment { fecha: string; estado: string; hora?: string | null; medico?: string | null; nombre?: string | null }
+interface RangeAppointment { fecha: string; estado: string; usuario_id?: string; hora?: string | null; medico?: string | null; nombre?: string | null }
 declare let AG_MODO: string;
 declare function agBloqueos(fromIsoDate: string, days: number): Promise<Record<string, string>>;
 declare function menuDiaSemana(button: HTMLElement, isoDate: string, blocked: boolean): Promise<void>;
@@ -159,3 +159,5 @@ declare let CINTA_INI: string | null;
 declare function agUid(): string;
 declare function tareasDelDia(isoDate: string): Promise<unknown>;
 declare function bloqueadosSemanaBase(fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>>;
+declare let AG_SEM_ABIERTA: boolean;
+declare function agPintarSemanaExp(): Promise<void>;

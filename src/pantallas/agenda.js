@@ -342,23 +342,6 @@ function puedeRegistrarEnDia(f) {
 
 async function agBloqueos(desde, n) { try { return await bloqueadosSemana(desde, isoMas(desde, n - 1)); } catch (e) { return {}; } }
 
-async function agMenusCinta() {
-  const cin = $('agcinta'); if (!cin) return;
-  const ini = cin.dataset.ini; if (!ini) return;
-  const bloq = await agBloqueos(ini, 14);
-  if ($('agcinta') !== cin) return;
-  cin.querySelectorAll('button').forEach(b => {
-    const f = b.dataset.cf || b.dataset.agdia || b.dataset.f || b.dataset.fecha; if (!f || !/^\d{4}-\d{2}-\d{2}$/.test(f)) return;
-    b.classList.add('cdia'); b.classList.toggle('bloq', !!bloq[f]);
-    if (bloq[f]) b.dataset.bloq = bloq[f]; else delete b.dataset.bloq;
-    if (f >= hoyISO() && !b.querySelector('.cdmas')) {
-      b.insertAdjacentHTML('beforeend', '<span class="cdmas" role="button" tabindex="0" aria-label="Opciones del día" title="Opciones del día">⋯</span>');
-      const m = b.querySelector('.cdmas');
-      const abrir = ev => { ev.stopPropagation(); ev.preventDefault(); menuDiaSemana(m, f, b.classList.contains('bloq')); };
-      m.addEventListener('click', abrir, true); m.addEventListener('keydown', ev => { if (ev.key === 'Enter') abrir(ev); });
-    }
-  });
-}
 
 // Agenda · las citas cerradas no tienen menú (salvo «Volver a planificarla» de hoy en adelante)
 // (sin escribir estados: se pregunta al propio menú si tiene algo que ofrecer)
@@ -591,7 +574,7 @@ async function agCargarDia() {
       <div class="card" id="agcuerpo"></div>
       <div class="card" id="agsemlat"></div>`;
     asegurarEquipo();
-    await Promise.all([pintarTuDia(), agCinta(), window.delcos.screens.agenda.paintWeekSidebar()]);
+    await Promise.all([pintarTuDia(), window.delcos.screens.agenda.paintStrip(), window.delcos.screens.agenda.paintWeekSidebar()]);
     agMarcarDia(); agDiaVacio();
     if (!AG_VISTA) avisoSinSalida($('agcuerpo'));
     if (mismo) window.scrollTo(0, y);
@@ -601,24 +584,10 @@ async function agCargarDia() {
   });
 }
 
-// «Ver la semana» / «Ocultar la semana»: el botón dice lo que hay pintado (cambia cuando la semana ya está)
-function agBotonSemana() {
-  const b = $('cplan'); if (!b) return;
-  const ab = !!$('agsemexp');
-  b.innerHTML = `${svgIco(ICON_NOM['calendar-days'] || ICON_NOM.info)}<span>${ab ? 'Ocultar la semana' : 'Ver la semana'}</span>`;
-  b.title = ab ? 'Ocultar la semana' : 'Ver la semana entera, moverla y repartirla';
-  b.setAttribute('aria-expanded', String(ab));
-  b.onclick = async ev => {
-    ev.stopPropagation(); ev.preventDefault();
-    if (b.dataset.ocupado) return; b.dataset.ocupado = '1';
-    AG_SEM_ABIERTA = !ab;
-    try { await agPintarSemanaExp(); } finally { delete b.dataset.ocupado; agBotonSemana(); }
-  };
-}
 
 async function agRepartirSemana() {
   AG_SEM_ABIERTA = true;
-  await agPintarSemanaExp(); agBotonSemana();
+  await agPintarSemanaExp(); window.delcos.screens.agenda.bindWeekButton();
   const p = $('semplan'); if (p) { $('agsemexp').scrollIntoView({ behavior: 'smooth', block: 'start' }); p.click(); }
 }
 
@@ -631,7 +600,7 @@ function agCifrasQuietas() {
   datosAgenda.withData([...datosAgenda.stripLoads(), ...datosAgenda.weekLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; })], async () => {
     if (AG_FECHA !== f || !agN()) return;
     datosAgenda.applySuggestions(f, s);
-    await Promise.all([agCinta(), window.delcos.screens.agenda.paintWeekSidebar()]);
+    await Promise.all([window.delcos.screens.agenda.paintStrip(), window.delcos.screens.agenda.paintWeekSidebar()]);
     window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons();
   });
   window.delcos.screens.agenda.refreshOpenMonth();
@@ -962,47 +931,6 @@ function editarTareaBase(t, fecha) {
 }
 
 // La cinta de 14 días
-async function agCintaBase() {
-  const v = $('v-agenda'); if (!v || !agConCinta() || !$('agcuerpo')) return;
-  const hoy = hoyISO();
-  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoy);
-  const ini = CINTA_INI, fin = diasMas(ini, 13);
-  const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUid() }, 'agenda-cinta-' + agUid() + '-' + ini);
-  if (!agConCinta() || CINTA_INI !== ini || !$('agcuerpo')) return;
-  const por = {};
-  (data || []).filter(c => c.usuario_id === agUid() && !citaAnulada(c.estado)).forEach(c => { (por[c.fecha] = por[c.fecha] || []).push(c); });
-  const dn = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-  const semTxt = l => {
-    const dd = Math.round((new Date(l + 'T12:00:00') - new Date(lunesCinta(hoy) + 'T12:00:00')) / 864e5 / 7);
-    if (dd === 0) return 'Esta semana'; if (dd === 1) return 'La semana que viene'; if (dd === -1) return 'La semana pasada';
-    const d0 = new Date(l + 'T12:00:00'); return 'Semana del ' + d0.getDate() + ' de ' + d0.toLocaleDateString('es-ES', { month: 'long' });
-  };
-  const dia = f => {
-    const l = por[f] || [], d = new Date(f + 'T12:00:00');
-    const tipo = c => !CITA_ABIERTA.includes(c.estado) ? 'ch' : f < hoy ? 'cx' : 'cp';
-    const pts = l.slice(0, 6).map(c => `<i class="${tipo(c)}"></i>`).join('') + (l.length > 6 ? `<em>+${l.length - 6}</em>` : '');
-    const n = `${l.length} ${l.length === 1 ? 'cita' : 'citas'}`;
-    return `<button type="button" class="cdia ${f === hoy ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${[0, 6].includes(d.getDay()) ? 'finde' : ''}" data-cf="${f}" aria-label="${esc(fechaLarga(d))}: ${n}" title="${n}">
-      <span class="dn">${dn[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="cpts">${pts || '<b></b>'}</span></button>`;
-  };
-  const mes = new Date(diasMas(ini, 3) + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-  const html = `<div class="cinta" id="agcinta" data-ini="${ini}"><div class="ccab">
-      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="Semana anterior" title="Semana anterior">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="Ver el mes">${esc(mes.charAt(0).toUpperCase() + mes.slice(1))} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="Semana siguiente" title="Semana siguiente">›</button>${ini !== lunesCinta(hoy) ? '<button type="button" class="btn sec chico" id="choy">Hoy</button>' : ''}</div>
-      <div class="cley" aria-hidden="true"><span><i class="ch"></i>Hecha</span><span><i class="cp"></i>Por hacer</span><span><i class="cx"></i>Sin cerrar</span></div>
-      <button type="button" class="btn sec chico" id="cplan" title="Planificar la semana">${SVA(ICU.plan)}<span>Planificar la semana</span></button></div>
-    <div class="csems">${[0, 7].map(o => `<div class="csem"><span class="csemt">${semTxt(diasMas(ini, o))}</span><div class="c7">${Array.from({ length: 7 }, (_, k) => dia(diasMas(ini, o + k))).join('')}</div></div>`).join('')}</div></div>`;
-  const vieja = $('agcinta');
-  if (vieja) vieja.outerHTML = html; else $('agcuerpo').insertAdjacentHTML('beforebegin', html);
-  const c = $('agcinta');
-  c.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { cerrarMesCinta(); c.querySelectorAll('.cdia').forEach(x => x.classList.toggle('sel', x === b)); agVerDia(b.dataset.cf); });
-  c.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => { CINTA_INI = diasMas(CINTA_INI, +b.dataset.cm); agCinta(); });
-  if ($('choy')) $('choy').onclick = () => { CINTA_INI = lunesCinta(hoy); agCinta(); agVerDia(hoy); };
-  $('cmesb').onclick = e => { e.stopPropagation(); const m = $('agmes'); if (!m) return; const ab = !m.classList.contains('pop'); m.classList.toggle('pop', ab); $('cmesb').setAttribute('aria-expanded', String(ab));
-    // El mes se abre bajo su botón (en el móvil, centrado)
-    if (ab) { const r = $('cmesb').getBoundingClientRect(), w = Math.min(380, innerWidth - 32); m.style.top = Math.round(r.bottom + 8) + 'px'; m.style.left = Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px'; m.style.bottom = 'auto'; m.style.right = 'auto'; } };
-  // En el móvil, la cinta se abre en la semana del día elegido
-  const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
-}
 
 function editarTarea(t, fecha) {
   if (!t || !t.id || !t.hecha) return editarTareaBase.apply(this, arguments);
@@ -1046,19 +974,6 @@ function bloqueadosSemana(d, h) {
 }
 
 // ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
-async function agCinta() {
-  if (!agN()) return;
-  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoyISO());
-  return datosAgenda.withData([...datosAgenda.stripLoads(), ...(AG_SEM_ABIERTA ? datosAgenda.weekLoads(AG_FECHA) : [])], async () => {
-    await agCintaBase();
-    if (!agN() || !$('agcinta')) return;
-    await agMenusCinta();
-    if (AG_SEM_ABIERTA) await agPintarSemanaExp();
-    agBotonSemana();
-    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); window.delcos.screens.agenda.toggleMonth(); };
-    const h = $('choy'); if (h) h.onclick = () => { CINTA_INI = null; agVerDia(hoyISO()); };
-  });
-}
 
 
 async function empezarJornada(...a) {
@@ -1393,7 +1308,7 @@ async function agVerDia(f) {
       if (AG_FECHA !== f || !agN()) return;
       datosAgenda.applySuggestions(f, s);
       const piezas = [pintarTuDia(), window.delcos.screens.agenda.paintWeekSidebar()];
-      if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
+      if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(window.delcos.screens.agenda.paintStrip());
       await Promise.all(piezas);
       if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
       agMarcarDia(); agDiaVacio(); window.delcos.screens.agenda.refreshMetrics();

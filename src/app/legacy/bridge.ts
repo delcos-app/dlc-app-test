@@ -143,3 +143,12 @@ export const agendaSources = {
     AG_PEND = suggestions.pend; AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
   },
 };
+
+/** The day strip state, still shared with the legacy day view: its first Monday and whether the whole week is open below it. */
+export const stripState = {
+  start: (): string | null => CINTA_INI,
+  setStart: (isoDate: string | null): void => { CINTA_INI = isoDate; },
+  weekOpen: (): boolean => AG_SEM_ABIERTA,
+  setWeekOpen: (open: boolean): void => { AG_SEM_ABIERTA = open; },
+  paintOpenWeek: (): Promise<void> => agPintarSemanaExp(),
+};
