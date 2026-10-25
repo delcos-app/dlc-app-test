@@ -13,7 +13,8 @@ import { paintEquipment } from './equipment';
 import { paintOperations } from './operations';
 import { paintPayment } from './payment';
 
-const STEADY_MAX_MS = 2500;
+// v2.426.0: 6 s (was 2.5): under load the parts took longer and the window was shown half painted
+const STEADY_MAX_MS = 6000;
 
 /** Each extra part is optional: if one fails, the order is still shown. */
 const optional = (part: Promise<void>): Promise<void> => part.catch(() => undefined);

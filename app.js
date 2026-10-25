@@ -828,6 +828,104 @@
     }
   };
 
+  // src/app/i18n/es/navigation-core.ts
+  var navigationCore = {
+    pages: {
+      profile: "Mi perfil",
+      profileDescription: "Tus datos, idioma, qué abrir al entrar y tus notificaciones",
+      profileData: "Mis datos",
+      notifications: "Notificaciones",
+      company: "Empresa",
+      companyDescription: "Marca, correo de la empresa y copias de seguridad",
+      brand: "Marca y logo",
+      mail: "Correo y firma",
+      backups: "Copias de seguridad",
+      plan: "Plan y suscripción",
+      planTab: "Plan",
+      settings: "Configuración",
+      whereYouWere: "donde estabas"
+    },
+    viewTitles: {
+      appointment: "la cita",
+      centre: "el centro",
+      card: "la ficha",
+      order: "el pedido",
+      invoice: "la factura",
+      event: "el evento",
+      surgery: "la intervención",
+      tender: "el concurso",
+      equipment: "el equipo",
+      deposit: "el depósito",
+      product: "el producto",
+      previousWindow: "la ventana anterior",
+      backTo: "Volver a {what}",
+      back: "‹ Volver"
+    },
+    testData: {
+      question: "Se borrará todo lo creado o cambiado en el entorno de pruebas y los datos volverán a como se copiaron de producción. No se puede deshacer.",
+      title: "¿Volver a los datos de partida?",
+      ok: "Sí, volver",
+      loading: "Volviendo a los datos de partida…",
+      onlyOwner: "Solo la persona responsable del entorno puede hacerlo",
+      noMaster: "Faltan los datos de partida",
+      failed: "No se ha podido: {error}"
+    },
+    session: {
+      backToMine: "Volviendo a tu sesión{name}…",
+      expired: "Tu sesión había caducado: vuelve a entrar",
+      trialEnded: "La prueba de {organization} terminó el {date}. Tus datos se conservan: escríbenos para seguir.",
+      deactivatedCompany: "{organization} está desactivada. Tus datos se conservan: escríbenos para volver a activarla.",
+      deactivatedUser: "Tu usuario está desactivado.",
+      noProfile: "Tu usuario no tiene perfil en la plataforma. Avisa a administración."
+    },
+    menu: {
+      groupDay: "Tu día",
+      groupPortfolio: "Cartera",
+      groupSales: "Ventas",
+      groupResults: "Resultados",
+      groupTeam: "Equipo",
+      groupPlatform: "Plataforma",
+      others: "Otros",
+      usersAndRoles: "Usuarios y roles",
+      users: "Usuarios",
+      platformPanel: "Panel delcos",
+      notInPlan: "No está incluido en tu plan {plan}",
+      notInPlanShort: "No incluido en tu plan",
+      count: "{shown} de {total}",
+      add: "Añadir",
+      customise: "Personalizar menú",
+      save: "Guardar",
+      reset: "Restablecer",
+      close: "Cerrar",
+      saved: "Menú guardado",
+      couldNotSave: "No se ha podido guardar el menú",
+      customiseHint: "Arrastra para ordenar y elige qué secciones ves. Solo cambia tu menú.",
+      alwaysFirst: "Siempre el primero",
+      moveHandle: "Mover {what} (flechas arriba y abajo)",
+      theGroup: "el bloque {name}",
+      dragToSort: "Arrastra para ordenar",
+      showInMenu: "Ver {name} en el menú"
+    },
+    mobileMenu: {
+      bar: "Barra de abajo",
+      barLimit: "Hasta 4",
+      more: "En «Más»",
+      hidden: "Ocultas",
+      hiddenNote: "Tampoco salen en el menú del ordenador",
+      zoneBar: "Barra",
+      zoneMore: "Más",
+      zoneHidden: "Oculta",
+      hint: "Arrastra por ⠿ (o usa las flechas) para cambiar el orden. Si pasas una pantalla a otro grupo, se coloca sola al final de ese grupo.",
+      alwaysFirst: "Siempre la primera",
+      dropHere: "Suelta aquí una pantalla",
+      drag: "Arrastrar",
+      up: "Subir",
+      down: "Bajar",
+      where: "Dónde va",
+      barNeedsOne: "La barra de abajo necesita al menos una pantalla"
+    }
+  };
+
   // src/app/i18n/es/core.ts
   var core = {
     myCompany: "Mi empresa",
@@ -7728,6 +7826,7 @@
     legacyD,
     legacyC,
     core,
+    navigationCore,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -8822,15 +8921,15 @@
     return value27.slice(0, 10);
   }
   function openCalendar(input10, options5 = {}) {
-    const kind = kindOf(input10), value27 = input10.value || "", start2 = startOf(input10, kind, options5), size = kind === "mes" ? 7 : 10;
+    const kind = kindOf(input10), value27 = input10.value || "", start4 = startOf(input10, kind, options5), size = kind === "mes" ? 7 : 10;
     const popup = newPopup("selpop cal", t(kind === "mes" ? "components.datePicker.chooseMonth" : "components.datePicker.chooseDate"), options5.mismo);
     const calendar2 = {
       input: input10,
       options: options5,
       popup,
       kind,
-      shown: /* @__PURE__ */ new Date(`${start2 || todayIso()}T12:00:00`),
-      focused: start2 || todayIso(),
+      shown: /* @__PURE__ */ new Date(`${start4 || todayIso()}T12:00:00`),
+      focused: start4 || todayIso(),
       view: kind === "mes" ? "meses" : "dias",
       min: input10.min.slice(0, size) || null,
       max: input10.max.slice(0, size) || null,
@@ -9143,15 +9242,15 @@
   // src/app/components/search-highlight.ts
   var MIN_INSIDE = 3;
   function matchIn(word, tokens) {
-    let start2 = -1, length = 0;
+    let start4 = -1, length = 0;
     for (const token of tokens) {
       if (word.startsWith(token)) return [0, token.length];
-      if (start2 < 0 && token.length >= MIN_INSIDE && word.indexOf(token) > 0) {
-        start2 = word.indexOf(token);
+      if (start4 < 0 && token.length >= MIN_INSIDE && word.indexOf(token) > 0) {
+        start4 = word.indexOf(token);
         length = token.length;
       }
     }
-    return start2 < 0 ? null : [start2, length];
+    return start4 < 0 ? null : [start4, length];
   }
   function highlightSearch(text5, query) {
     const value27 = String(text5 ?? "");
@@ -9163,9 +9262,9 @@
       if (word.length !== found[0].length) continue;
       const match = matchIn(word, tokens);
       if (!match) continue;
-      const start2 = found.index + match[0];
-      html += `${escapeHtml(value27.slice(last, start2))}<mark>${escapeHtml(value27.slice(start2, start2 + match[1]))}</mark>`;
-      last = start2 + match[1];
+      const start4 = found.index + match[0];
+      html += `${escapeHtml(value27.slice(last, start4))}<mark>${escapeHtml(value27.slice(start4, start4 + match[1]))}</mark>`;
+      last = start4 + match[1];
     }
     return html + escapeHtml(value27.slice(last));
   }
@@ -9180,7 +9279,7 @@
   function signaturePad(canvas) {
     const context = canvas.getContext("2d");
     let drawing = false, signed = false, last = null;
-    const fit = () => {
+    const fit2 = () => {
       const box5 = canvas.getBoundingClientRect(), ratio = window.devicePixelRatio || 1;
       canvas.width = box5.width * ratio;
       canvas.height = box5.height * ratio;
@@ -9218,8 +9317,8 @@
         drawing = false;
       });
     });
-    requestAnimationFrame(fit);
-    return { borrar: fit, vacia: () => !signed, imagen: () => signed ? canvas.toDataURL("image/png").split(",")[1] ?? null : null, marcar: () => {
+    requestAnimationFrame(fit2);
+    return { borrar: fit2, vacia: () => !signed, imagen: () => signed ? canvas.toDataURL("image/png").split(",")[1] ?? null : null, marcar: () => {
       signed = true;
     } };
   }
@@ -9673,6 +9772,1454 @@
     }, target, args);
   }
 
+  // src/app/core/navigation/api.ts
+  var api_exports = {};
+  __export(api_exports, {
+    BACK_STACK: () => BACK_STACK,
+    BAR_DEFAULT: () => BAR_DEFAULT,
+    MENU_FIXED: () => MENU_FIXED,
+    MENU_GROUPS: () => MENU_GROUPS,
+    MENU_OUT: () => MENU_OUT,
+    PAGES: () => PAGES,
+    VIEW_TITLES: () => VIEW_TITLES,
+    applyMenuNames: () => applyMenuNames,
+    arrive: () => arrive,
+    backButton: () => backButton,
+    backToMySession: () => backToMySession,
+    backToTestData: () => backToTestData,
+    bottomBar: () => bottomBar,
+    comet: () => comet,
+    customiseDesktopMenu: () => customiseDesktopMenu,
+    customiseMobileMenu: () => customiseMobileMenu,
+    fabToDesktop: () => fabToDesktop,
+    followLink: () => followLink,
+    freeze: () => freeze,
+    isDesktopMenu: () => isDesktopMenu,
+    isMenuFolded: () => isMenuFolded,
+    isMobileWidth: () => isMobileWidth,
+    loadPage: () => loadPage,
+    lockModules: () => lockModules,
+    lockSections: () => lockSections,
+    measureBottomBar: () => measureBottomBar,
+    menuGroups: () => menuGroups,
+    menuNames: () => menuNames,
+    menuPrefs: () => menuPrefs2,
+    menuTip: () => menuTip2,
+    mobileHeader: () => mobileHeader,
+    mobileName: () => mobileName,
+    openApp: () => openApp,
+    openMoreMenu: () => openMoreMenu,
+    openView: () => openView,
+    orderAfterPermissions: () => orderAfterPermissions,
+    orderMenu: () => orderMenu,
+    pageButtons: () => pageButtons,
+    pager: () => pager,
+    raisePageAction: () => raisePageAction,
+    redoMenu: () => redoMenu,
+    refreshBelow: () => refreshBelow,
+    returnAfterReload: () => returnAfterReload,
+    reveal: () => reveal,
+    sameView: () => sameView,
+    screenAfterReload: () => screenAfterReload,
+    screenName: () => screenName,
+    showAllowedModules: () => showAllowedModules,
+    start: () => start2,
+    steady: () => steady
+  });
+
+  // src/app/core/navigation/menu/groups.ts
+  var FOLD_BELOW = 1440;
+  var DESKTOP_FROM = 900;
+  var TIP_GAP = 10;
+  var LAST = 99;
+  var MENU_GROUPS = [
+    { id: "dia", t: t("navigationCore.menu.groupDay"), items: ["inicio", "agenda", "rutas"] },
+    { id: "cartera", t: t("navigationCore.menu.groupPortfolio"), items: ["directorio", "pacientes", "seguimiento"] },
+    { id: "ventas", t: t("navigationCore.menu.groupSales"), items: ["ventas", "productos", "facturacion"] },
+    { id: "resultados", t: t("navigationCore.menu.groupResults"), items: ["analitica", "informe"] },
+    { id: "equipo", t: t("navigationCore.menu.groupTeam"), items: ["usuarios"] }
+  ];
+  var MENU_FIXED = { id: "plataforma", t: t("navigationCore.menu.groupPlatform"), items: ["delcos"] };
+  var MENU_ORDER = ["inicio", "agenda", "rutas", "directorio", "ventas", "pacientes", "productos", "facturacion", "analitica", "informe"];
+  var redoFrame = 0;
+  var menuPrefs2 = () => PERFIL?.preferencias?.menu ?? {};
+  var menuNames = () => AJUSTES?.menu_nombres ?? {};
+  var isDesktopMenu = () => innerWidth >= DESKTOP_FROM;
+  function isMenuFolded() {
+    try {
+      const saved3 = localStorage.getItem("dlc-menu-plegado");
+      if (saved3 === "1" || saved3 === "0") return saved3 === "1";
+    } catch {
+    }
+    return innerWidth < FOLD_BELOW;
+  }
+  function redoMenu() {
+    if (redoFrame) return;
+    redoFrame = requestAnimationFrame(() => {
+      redoFrame = 0;
+      montarMenuLateral();
+    });
+  }
+  function orderedItems(group, prefs) {
+    const own = prefs.items?.[group.id];
+    return Array.isArray(own) ? [...own.filter((key) => group.items.includes(key)), ...group.items.filter((key) => !own.includes(key))] : [...group.items];
+  }
+  function menuGroups() {
+    const prefs = menuPrefs2(), known = /* @__PURE__ */ new Set([...MENU_GROUPS.flatMap((group) => group.items), ...MENU_FIXED.items]);
+    const groups3 = MENU_GROUPS.map((group) => ({ id: group.id, t: group.t, items: orderedItems(group, prefs) }));
+    const order = Array.isArray(prefs.orden) ? prefs.orden : [];
+    groups3.sort((first2, second) => (order.indexOf(first2.id) + 1 || LAST) - (order.indexOf(second.id) + 1 || LAST));
+    const others = [...document.querySelectorAll("#nav button[data-t]")].map((button2) => button2.dataset.t ?? "").filter((key) => !known.has(key));
+    if (others.length) groups3.push({ id: "otros", t: t("navigationCore.menu.others"), items: others });
+    groups3.forEach((group) => {
+      group.items = group.items.filter((key) => key !== "inicio");
+    });
+    if (groups3.length && known.has("inicio")) groups3[0]?.items.unshift("inicio");
+    return groups3;
+  }
+  function menuTip2(button2) {
+    let tip = document.getElementById("mltip");
+    if (!button2 || !document.body.classList.contains("menupleg") || !document.body.classList.contains("menulat")) {
+      tip?.classList.remove("ver");
+      return;
+    }
+    if (!tip) {
+      document.body.insertAdjacentHTML("beforeend", '<div id="mltip" role="tooltip"></div>');
+      tip = document.getElementById("mltip");
+    }
+    if (!tip) return;
+    const rect = button2.getBoundingClientRect();
+    tip.textContent = button2.dataset.tip ?? "";
+    tip.style.top = `${rect.top + rect.height / 2}px`;
+    tip.style.left = `${rect.right + TIP_GAP}px`;
+    tip.classList.add("ver");
+  }
+  function renameButton(button2, names) {
+    const key = button2.dataset.t ?? button2.dataset.bm;
+    if (!key || key === "directorio" || key.startsWith("pd-")) return;
+    const text5 = txTexto(button2);
+    if (!text5) return;
+    if (!button2.dataset.txdef) button2.dataset.txdef = text5.get();
+    const name = orFallback(names[key], button2.dataset.txdef);
+    if (text5.get() !== name) text5.set(name);
+  }
+  function applyMenuNames() {
+    const names = menuNames();
+    document.querySelectorAll("nav.main [data-t], #bnav [data-t], .bmasgrid [data-bm]").forEach((button2) => {
+      renameButton(button2, names);
+    });
+    renameTitle(names);
+  }
+  function titleText(screen3) {
+    const title2 = document.querySelector(`#v-${screen3} .saludo h1, #v-${screen3} .pagcab h1`) ?? (screen3 === "ventas" ? document.querySelector("#v-ventas .saludo h1") : null);
+    return title2 ? [...title2.childNodes].find((child) => child.nodeType === Node.TEXT_NODE && (child.nodeValue ?? "").trim()) : void 0;
+  }
+  var originalName = (screen3) => screen3 && screen3 !== "directorio" ? document.querySelector(`nav.main [data-t="${screen3}"]`)?.dataset.txdef : void 0;
+  function renameTitle(names) {
+    const screen3 = TAB, original = originalName(screen3);
+    if (!original) return;
+    const node = titleText(screen3), current = node?.nodeValue?.trim() ?? "", name = orFallback(names[screen3], original);
+    const known = current === original || Object.values(names).includes(current);
+    if (node && known && current !== name) node.nodeValue = (node.nodeValue ?? "").replace(current, name);
+  }
+  function orderMenu() {
+    const nav = document.querySelector("nav.main .in") ?? document.querySelector("nav.main");
+    if (!nav) return;
+    MENU_ORDER.forEach((key) => {
+      const button2 = nav.querySelector(`:scope > [data-t="${key}"]`);
+      if (button2) nav.appendChild(button2);
+    });
+    nav.querySelector('[data-t="seguimiento"]')?.classList.add("hide", "fuera");
+    const directory = nav.querySelector('[data-t="directorio"]');
+    if (directory) [...directory.childNodes].forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue ?? "").includes("Directorio")) node.nodeValue = (node.nodeValue ?? "").replace("Directorio", TT("medico", "p", "", "l", "C"));
+    });
+  }
+  var LOCK = '<span class="cand">🔒</span>';
+  function lockSections() {
+    Object.keys(PLAN_SECCIONES).forEach((key) => {
+      document.querySelectorAll(`nav.main [data-t="${key}"], .bmasgrid [data-bm="${key}"]`).forEach((button2) => {
+        lockButton(button2, key);
+      });
+    });
+  }
+  function lockButton(button2, key) {
+    const locked = !planIncluyeSeccion(key), lock = button2.querySelector(".cand");
+    button2.classList.toggle("bloq", locked);
+    if (locked && !lock && button2.matches("nav.main [data-t]")) button2.insertAdjacentHTML("beforeend", LOCK);
+    if (!locked && lock) lock.remove();
+  }
+  function lockModules() {
+    document.querySelectorAll("nav.main [data-t]").forEach((button2) => {
+      const key = button2.dataset.t ?? "";
+      if (!(key in MODULO_AREA)) return;
+      const locked = puedeModuloV2400(key) && !planIncluye(key);
+      button2.classList.toggle("bloq", locked);
+      if (locked) {
+        button2.classList.remove("hide");
+        if (!button2.querySelector(".cand")) button2.insertAdjacentHTML("beforeend", LOCK);
+      } else button2.querySelector(".cand")?.remove();
+    });
+  }
+  function orderAfterPermissions() {
+    orderMenu();
+    document.querySelector('nav.main [data-t="seguimiento"]')?.classList.add("hide");
+  }
+  function showAllowedModules() {
+    document.querySelectorAll("nav.main [data-t]").forEach((button2) => {
+      if ((button2.dataset.t ?? "") in MODULO_AREA) button2.classList.toggle("hide", !puedeModulo(button2.dataset.t ?? ""));
+    });
+    pintarBnav();
+  }
+  function placePageButton(nav, key, text5, shown5) {
+    let button2 = nav.querySelector(`[data-t="${key}"]`);
+    if (!button2 && shown5) {
+      nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" aria-selected="false">${text5}</button>`);
+      button2 = nav.querySelector(`[data-t="${key}"]`);
+    }
+    if (!button2) return;
+    button2.classList.toggle("hide", !shown5);
+    if (!button2.closest(".mlbs") && button2 !== nav.lastElementChild) nav.appendChild(button2);
+  }
+  function pageButtons() {
+    const nav = document.querySelector("nav.main .in");
+    if (nav && !ES_MEDICO()) {
+      placePageButton(nav, "usuarios", t("navigationCore.menu.usersAndRoles"), puede("administrar"));
+      placePageButton(nav, "delcos", t("navigationCore.menu.platformPanel"), puede("gestionar_plataforma"));
+    }
+    const users = document.querySelector('nav.main [data-t="usuarios"]');
+    if (!users) return;
+    const text5 = txTexto(users), label = t("navigationCore.menu.users");
+    if (text5 && /roles/i.test(text5.get())) text5.set(label);
+    else if (!text5 && /roles/i.test(users.textContent ?? "")) users.textContent = label;
+    if (users.dataset.txdef) users.dataset.txdef = label;
+  }
+
+  // src/app/core/navigation/menu/customise.ts
+  var sectionButton = (key) => document.querySelector(`#nav button[data-t="${key}"]`);
+  var nameOf = (key) => {
+    const button2 = sectionButton(key);
+    return button2 ? button2.dataset.tip ?? (button2.querySelector(".mllab") ?? button2).textContent?.trim() ?? "" : "";
+  };
+  var iconOf = (key) => sectionButton(key)?.querySelector("svg")?.outerHTML ?? "";
+  var available = (key) => {
+    const button2 = sectionButton(key);
+    return Boolean(button2) && key !== "seguimiento" && key !== "inicio" && !button2?.classList.contains("hide") && (Boolean(button2?.classList.contains("mloculto")) || (button2 ? getComputedStyle(button2).display !== "none" : false));
+  };
+  var groupTitle = (id) => (MENU_GROUPS.find((group) => group.id === id) ?? { t: t("navigationCore.menu.others") }).t;
+  var blocks = (draft) => draft.orden.filter((id) => (draft.items[id] ?? []).some(available));
+  var handle = (text5, attributes) => `<button type="button" class="mlpasa" ${attributes} aria-label="${escapeHtml(t("navigationCore.menu.moveHandle", { what: text5 }))}" title="${t("navigationCore.menu.dragToSort")}">${svgIco(ICON_NOM["grip-vertical"] ?? "")}</button>`;
+  function itemHtml(key, id, shown5) {
+    return `<div class="mlpi${shown5 ? "" : " off"}" data-k="${key}" data-g="${id}">${handle(nameOf(key), `data-ak="${key}" data-g="${id}"`)}
+              <span class="mlpico">${iconOf(key)}</span><span class="mlpn">${escapeHtml(nameOf(key))}</span>
+              <label class="vfswitch mini"><input type="checkbox" role="switch" data-vk="${key}" ${shown5 ? "checked" : ""} aria-label="${escapeHtml(t("navigationCore.menu.showInMenu", { name: nameOf(key) }))}"><span class="sw"></span></label></div>`;
+  }
+  function blockHtml2(id, draft) {
+    const items = (draft.items[id] ?? []).filter(available), shown5 = items.filter((key) => !draft.ocultos.includes(key)).length;
+    return `<section class="mlpg" data-g="${id}">
+          <div class="mlpgh">${handle(t("navigationCore.menu.theGroup", { name: groupTitle(id) }), `data-ag="${id}"`)}<b>${escapeHtml(groupTitle(id))}</b><span class="mlpcnt">${t("navigationCore.menu.count", { shown: shown5, total: items.length })}</span></div>
+          <div class="mlpis">${items.map((key) => itemHtml(key, id, !draft.ocultos.includes(key))).join("")}</div></section>`;
+  }
+  function paint2(session, focus) {
+    const home = sectionButton("inicio") ? `<div class="mlpi mlpfijo"><span class="mlpico">${iconOf("inicio")}</span><span class="mlpn">${escapeHtml(nameOf("inicio"))}</span><span class="sm">${t("navigationCore.menu.alwaysFirst")}</span></div>` : "";
+    session.box.innerHTML = `<div class="mlph"><div><b>${t("navigationCore.menu.customise")}</b><span class="sm">${t("navigationCore.menu.customiseHint")}</span></div>
+        <button type="button" class="x" id="mlpx" aria-label="${t("navigationCore.menu.close")}">✕</button></div>
+      ${home}
+      <div class="mlpl">${blocks(session.draft).map((id) => blockHtml2(id, session.draft)).join("")}</div>
+      <div class="mlpacts"><button type="button" class="btn sec mlpdef" id="mlpdef">${svgIco(ICON_NOM["rotate-ccw"] ?? "")} ${t("navigationCore.menu.reset")}</button><button type="button" class="btn" id="mlpok">${t("navigationCore.menu.save")}</button></div>`;
+    if (focus) session.box.querySelector(focus)?.focus();
+    lockOutOfPlan(session.box);
+  }
+  var menuWith = (session, draft) => {
+    const original = session.original ?? {};
+    return { ...original, menu: { ...original.menu ?? {}, orden: draft.orden, items: draft.items, ocultos: draft.ocultos } };
+  };
+  function preview(session) {
+    const draft = session.draft;
+    PERFIL.preferencias = menuWith(session, { orden: [...draft.orden], items: JSON.parse(JSON.stringify(draft.items)), ocultos: [...draft.ocultos] });
+    MENU_FIRMA = "";
+    montarMenuLateral();
+  }
+  function lockOutOfPlan(box5) {
+    box5.querySelectorAll(".mlpi[data-k]").forEach((row4) => {
+      const button2 = sectionButton(row4.dataset.k ?? "");
+      if (!button2 || !fueraDePlan(button2)) return;
+      row4.classList.add("off", "fueraplan");
+      row4.title = t("navigationCore.menu.notInPlan", { plan: PLAN_NOMBRE() });
+      const toggle4 = row4.querySelector("[data-vk]");
+      if (toggle4) {
+        toggle4.checked = false;
+        toggle4.disabled = true;
+      }
+      if (!row4.querySelector(".mlpcand")) row4.querySelector(".mlpn")?.insertAdjacentHTML("afterend", `<span class="mlpcand" aria-label="${t("navigationCore.menu.notInPlanShort")}"></span>`);
+    });
+    box5.querySelectorAll(".mlpg").forEach((group) => {
+      const rows2 = [...group.querySelectorAll(".mlpi[data-k]")], count2 = group.querySelector(".mlpcnt");
+      if (count2) count2.textContent = t("navigationCore.menu.count", { shown: rows2.filter((row4) => !row4.classList.contains("off")).length, total: rows2.filter((row4) => !row4.classList.contains("fueraplan")).length });
+    });
+  }
+  var moveBlock = (draft, id, target, before) => {
+    if (id === target) return;
+    const order = draft.orden.filter((other) => other !== id), index = order.indexOf(target);
+    order.splice(before ? index : index + 1, 0, id);
+    draft.orden = order;
+  };
+  var moveItem = (draft, group, key, target) => {
+    if (key === target.key) return;
+    const list = (draft.items[group] ?? []).filter((other) => other !== key), index = list.indexOf(target.key);
+    list.splice(target.before ? index : index + 1, 0, key);
+    draft.items[group] = list;
+  };
+  function close(session) {
+    if (!document.getElementById("mlpanel")) return;
+    session.box.remove();
+    detach(session);
+    if (!session.saved) {
+      PERFIL.preferencias = session.original;
+      MENU_FIRMA = "";
+      montarMenuLateral();
+    }
+    document.getElementById("mlpers")?.focus();
+  }
+  var detach = () => void 0;
+  async function save(session, button2) {
+    const prefs = menuWith(session, session.draft);
+    button2.disabled = true;
+    const { data, error } = await db.rpc("guardar_preferencias", { p: prefs });
+    button2.disabled = false;
+    if (error) {
+      toast(t("navigationCore.menu.couldNotSave"), true);
+      return;
+    }
+    PERFIL.preferencias = data ?? prefs;
+    session.saved = true;
+    close(session);
+    MENU_FIRMA = "";
+    montarMenuLateral();
+    toast(t("navigationCore.menu.saved"));
+  }
+  function onClick2(session, event) {
+    const target = event.target;
+    if (target.closest("#mlpx")) {
+      close(session);
+      return;
+    }
+    if (target.closest("#mlpdef")) {
+      session.draft.orden = MENU_GROUPS.map((group) => group.id);
+      MENU_GROUPS.forEach((group) => {
+        session.draft.items[group.id] = [...group.items];
+      });
+      session.draft.ocultos = [];
+      paint2(session);
+      preview(session);
+      return;
+    }
+    const ok = target.closest("#mlpok");
+    if (ok) void save(session, ok);
+  }
+  function onToggle(session, event) {
+    const toggle4 = event.target.closest("[data-vk]");
+    if (!toggle4) return;
+    const key = toggle4.dataset.vk ?? "", draft = session.draft;
+    draft.ocultos = toggle4.checked ? draft.ocultos.filter((other) => other !== key) : [.../* @__PURE__ */ new Set([...draft.ocultos, key])];
+    const row4 = toggle4.closest(".mlpi");
+    row4?.classList.toggle("off", !toggle4.checked);
+    const group = row4?.closest(".mlpg"), items = (draft.items[group?.dataset.g ?? ""] ?? []).filter(available), count2 = group?.querySelector(".mlpcnt");
+    if (count2) count2.textContent = t("navigationCore.menu.count", { shown: items.filter((other) => !draft.ocultos.includes(other)).length, total: items.length });
+    lockOutOfPlan(session.box);
+    preview(session);
+  }
+  function onKey2(session, event) {
+    const grip = event.target.closest(".mlpasa");
+    if (!grip || event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    event.preventDefault();
+    const step = event.key === "ArrowUp" ? -1 : 1, draft = session.draft;
+    if (grip.dataset.ag) {
+      const list = blocks(draft), other = list[list.indexOf(grip.dataset.ag) + step];
+      if (!other) return;
+      moveBlock(draft, grip.dataset.ag, other, step < 0);
+      paint2(session, `[data-ag="${grip.dataset.ag}"]`);
+    } else {
+      const group = grip.dataset.g ?? "", key = grip.dataset.ak ?? "", list = (draft.items[group] ?? []).filter(available), other = list[list.indexOf(key) + step];
+      if (!other) return;
+      moveItem(draft, group, key, { key: other, before: step < 0 });
+      paint2(session, `[data-ak="${key}"]`);
+    }
+    preview(session);
+  }
+  function customiseMenu(wireDrag2) {
+    const open2 = document.getElementById("mlpanel");
+    if (open2) {
+      if (open2.__cerrar) open2.__cerrar();
+      else open2.remove();
+      return;
+    }
+    const prefs = menuPrefs2(), draft = { orden: menuGroups().filter((group) => group.id !== "otros").map((group) => group.id), items: {}, ocultos: [...prefs.ocultos ?? []] };
+    menuGroups().forEach((group) => {
+      draft.items[group.id] = [...group.items];
+    });
+    document.body.insertAdjacentHTML("beforeend", `<div id="mlpanel" class="mlp2" role="dialog" aria-label="${t("navigationCore.menu.customise")}"></div>`);
+    const box5 = document.getElementById("mlpanel");
+    if (!box5) return;
+    const session = { box: box5, draft, saved: false, original: PERFIL.preferencias };
+    const outside2 = (event) => {
+      if (!event.target.closest("#mlpanel, #mlpers")) close(session);
+    };
+    const escape = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        close(session);
+      }
+    };
+    detach = () => {
+      document.removeEventListener("click", outside2, true);
+      document.removeEventListener("keydown", escape, true);
+    };
+    box5.__cerrar = () => {
+      close(session);
+    };
+    paint2(session);
+    preview(session);
+    box5.addEventListener("click", (event) => {
+      onClick2(session, event);
+    });
+    box5.addEventListener("change", (event) => {
+      onToggle(session, event);
+    });
+    box5.addEventListener("keydown", (event) => {
+      onKey2(session, event);
+    });
+    wireDrag2({ box: box5, draft, repaint: () => {
+      paint2(session);
+      preview(session);
+    } });
+    setTimeout(() => {
+      document.addEventListener("click", outside2, true);
+      document.addEventListener("keydown", escape, true);
+    }, 0);
+    box5.querySelector(".mlpasa")?.focus();
+  }
+
+  // src/app/core/navigation/menu/drag.ts
+  var MARKS = ["soltar-antes", "soltar-despues"];
+  function start(box5, event) {
+    const element4 = event.target.closest('[draggable="true"]');
+    if (!element4) {
+      event.preventDefault();
+      return null;
+    }
+    const dragged = element4.classList.contains("mlpi") ? { kind: "item", key: element4.dataset.k ?? "", group: element4.dataset.g ?? "", element: element4 } : { kind: "block", group: element4.dataset.g ?? "", element: element4 };
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = "move";
+      try {
+        event.dataTransfer.setData("text/plain", dragged.key ?? dragged.group);
+      } catch {
+      }
+    }
+    requestAnimationFrame(() => {
+      if (box5.contains(dragged.element)) dragged.element.classList.add("arrastrando");
+    });
+    return dragged;
+  }
+  function over(box5, dragged, event) {
+    const target = dragged.kind === "item" ? event.target.closest(`.mlpi[data-g="${dragged.group}"]`) : event.target.closest(".mlpg");
+    box5.querySelectorAll(`.${MARKS.join(", .")}`).forEach((mark2) => {
+      mark2.classList.remove(...MARKS);
+    });
+    if (!target || target === dragged.element) return;
+    event.preventDefault();
+    const rect = target.getBoundingClientRect();
+    target.classList.add(event.clientY < rect.top + rect.height / 2 ? "soltar-antes" : "soltar-despues");
+  }
+  function drop(box5, dragged, draft) {
+    const target = box5.querySelector(".soltar-antes, .soltar-despues");
+    if (!target) return false;
+    const before = target.classList.contains("soltar-antes");
+    if (dragged.kind === "item") moveItem(draft, dragged.group, dragged.key ?? "", { key: target.dataset.k ?? "", before });
+    else moveBlock(draft, dragged.group, target.dataset.g ?? "", before);
+    return true;
+  }
+  function wireDrag(panel) {
+    const { box: box5, draft, repaint: repaint5 } = panel;
+    let dragged = null;
+    box5.addEventListener("pointerdown", (event) => {
+      box5.querySelectorAll('[draggable="true"]').forEach((element4) => {
+        element4.removeAttribute("draggable");
+      });
+      const grip = event.target.closest(".mlpasa");
+      if (!grip) return;
+      (grip.dataset.ag ? grip.closest(".mlpg") : grip.closest(".mlpi"))?.setAttribute("draggable", "true");
+    });
+    box5.addEventListener("dragstart", (event) => {
+      dragged = start(box5, event);
+    });
+    box5.addEventListener("dragover", (event) => {
+      if (dragged) over(box5, dragged, event);
+    });
+    box5.addEventListener("drop", (event) => {
+      if (!dragged) return;
+      event.preventDefault();
+      if (drop(box5, dragged, draft)) {
+        dragged = null;
+        repaint5();
+      }
+    });
+    box5.addEventListener("dragend", () => {
+      dragged = null;
+      box5.querySelectorAll(`.${MARKS.join(", .")}`).forEach((mark2) => {
+        mark2.classList.remove(...MARKS);
+      });
+      box5.querySelectorAll(".arrastrando").forEach((element4) => {
+        element4.classList.remove("arrastrando");
+      });
+    });
+  }
+
+  // src/app/core/navigation/menu/mobile.ts
+  var MENU_OUT = ["usuarios"];
+  var BAR_DEFAULT = ["inicio", "agenda", "rutas", "directorio"];
+  var SUBSECTION_MENU = { llamadas: "oportunidades", compras: "compras", proveedores: "proveedores" };
+  var BAR_SIZE = 4;
+  var CLOSE_MS = 180;
+  var UNKNOWN = 999;
+  var NEW_AFTER = 900;
+  var menuTab = () => TAB === "ventas" && SUBSECTION_MENU[pedsecVista()] ? SUBSECTION_MENU[pedsecVista()] ?? TAB : TAB;
+  function mobileName(key) {
+    const button2 = document.querySelector(`nav.main [data-t="${key}"]`);
+    if (!button2) return key;
+    const text5 = txTexto(button2);
+    return orFallback(text5?.get(), orFallback(button2.textContent, "")).replace("Pronto", "").trim();
+  }
+  function menuPosition(key) {
+    let keys = [];
+    try {
+      keys = menuGroups().flatMap((group) => group.items);
+    } catch {
+    }
+    const index = keys.indexOf(key);
+    return index < 0 ? UNKNOWN : index;
+  }
+  function availableScreens() {
+    const seen = /* @__PURE__ */ new Set();
+    return [...document.querySelectorAll("nav.main [data-t]")].filter((button2) => {
+      const key = button2.dataset.t ?? "";
+      if (seen.has(key) || button2.classList.contains("hide") || button2.disabled || button2.classList.contains("bloq") || button2.classList.contains("mlplan") || MENU_OUT.includes(key)) return false;
+      seen.add(key);
+      return true;
+    }).map((button2) => button2.dataset.t ?? "").sort((first2, second) => menuPosition(first2) - menuPosition(second));
+  }
+  function bottomBar() {
+    const available2 = availableScreens(), chosen5 = menuPrefs2().barra;
+    let bar2 = (Array.isArray(chosen5) && chosen5.length ? chosen5 : BAR_DEFAULT).filter((key) => available2.includes(key) && key !== "inicio");
+    if (available2.includes("inicio")) bar2.unshift("inicio");
+    bar2 = bar2.slice(0, BAR_SIZE);
+    return bar2.length ? bar2 : BAR_DEFAULT.filter((key) => available2.includes(key));
+  }
+  function moreOrder(keys) {
+    const own = menuPrefs2().mas ?? [];
+    const position = (key) => {
+      const index = own.indexOf(key);
+      return index < 0 ? NEW_AFTER + menuPosition(key) : index;
+    };
+    return [...keys].sort((first2, second) => position(first2) - position(second));
+  }
+  function lockOutOfPlan2(sheet) {
+    const close5 = () => {
+      sheet.classList.add("hide");
+      document.body.classList.remove("masabierto");
+    };
+    sheet.querySelectorAll("[data-bm]").forEach((button2) => {
+      const key = button2.dataset.bm ?? "";
+      if (planIncluye(key) && planIncluyeSeccion(key)) return;
+      button2.classList.add("bloq");
+      button2.onclick = () => {
+        close5();
+        avisoPlan(key);
+      };
+    });
+    sheet.querySelectorAll(".bmasgrid [data-bm].bloq").forEach((button2) => {
+      button2.remove();
+    });
+  }
+  function fillMore(sheet, grid) {
+    const bar2 = bottomBar(), hidden2 = menuPrefs2().ocultos ?? [];
+    const wanted = moreOrder(availableScreens().filter((key) => !bar2.includes(key) && !hidden2.includes(key)));
+    const close5 = () => {
+      sheet.classList.remove("abierto");
+      setTimeout(() => {
+        sheet.classList.add("hide");
+      }, CLOSE_MS);
+    };
+    grid.querySelectorAll("[data-bm]").forEach((button2) => {
+      if (!wanted.includes(button2.dataset.bm ?? "")) button2.remove();
+    });
+    wanted.forEach((key) => {
+      if (grid.querySelector(`[data-bm="${key}"]`)) return;
+      grid.insertAdjacentHTML("beforeend", `<button data-bm="${key}" class="${menuTab() === key ? "on" : ""}"><span>${ICO_MOD[key] ?? "•"}</span>${escapeHtml(mobileName(key))}</button>`);
+      const added = grid.querySelector(`[data-bm="${key}"]`);
+      if (added) added.onclick = () => {
+        close5();
+        ir(key);
+      };
+    });
+    wanted.forEach((key) => {
+      const button2 = grid.querySelector(`[data-bm="${key}"]`);
+      if (button2) grid.appendChild(button2);
+    });
+    if (!sheet.querySelector("#bmaspers")) {
+      grid.insertAdjacentHTML("afterend", `<div class="acts bmaspers"><button type="button" class="btn sec chico" id="bmaspers">${t("navigationCore.menu.customise")}</button></div>`);
+      const customise2 = document.getElementById("bmaspers");
+      if (customise2) customise2.onclick = () => {
+        close5();
+        void openMobileCustomise();
+      };
+    }
+  }
+  var openMobileCustomise = () => void 0;
+  function setMobileCustomise(open2) {
+    openMobileCustomise = open2;
+  }
+  function openMoreMenu() {
+    abrirMasMovilBase();
+    const sheet = document.getElementById("bmas");
+    if (!sheet) return;
+    sheet.querySelectorAll(".bmasbox > .sm").forEach((note) => {
+      note.remove();
+    });
+    lockOutOfPlan2(sheet);
+    document.body.classList.add("masabierto");
+    const observer = new MutationObserver(() => {
+      if (sheet.classList.contains("hide")) {
+        document.body.classList.remove("masabierto");
+        observer.disconnect();
+      }
+    });
+    observer.observe(sheet, { attributes: true, attributeFilter: ["class"] });
+    const current = menuTab();
+    sheet.querySelectorAll("[data-bm]").forEach((button2) => {
+      const on6 = button2.dataset.bm === current;
+      if (button2.classList.contains("on") !== on6) button2.classList.toggle("on", on6);
+    });
+    const grid = sheet.querySelector(".bmasgrid");
+    if (grid) fillMore(sheet, grid);
+  }
+  function mobileHeader(section2) {
+    if (!ES_MOVIL() || !section2) return;
+    const header4 = section2.querySelector(":scope > .saludo");
+    if (!header4 || header4.dataset.movil) return;
+    const actions = header4.querySelector(".acts");
+    if (!actions) return;
+    header4.dataset.movil = "1";
+    const main = [...actions.children].find((child) => child.tagName === "BUTTON" && !child.classList.contains("sec") && /^\s*\+/.test(child.textContent ?? ""));
+    if (main) {
+      const label = (main.textContent ?? "").replace("+", "").trim();
+      main.classList.add("fab");
+      main.setAttribute("aria-label", label);
+      main.dataset.txt = label;
+      main.innerHTML = svgIco(ICON_NOM.plus ?? "");
+      section2.appendChild(main);
+    }
+    actions.classList.add("chips");
+    [...actions.children].forEach((child) => {
+      child.classList.add("chip");
+    });
+  }
+  function measureBottomBar() {
+    const bar2 = document.getElementById("bnav"), height = bar2 && getComputedStyle(bar2).display !== "none" ? Math.round(bar2.getBoundingClientRect().height) : 0;
+    document.documentElement.style.setProperty("--bnavh", `${height}px`);
+  }
+  function fabToDesktop() {
+    if (ES_MOVIL()) return;
+    document.querySelectorAll("main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]").forEach((button2) => {
+      const actions = button2.closest("main > section")?.querySelector(":scope > .saludo .acts");
+      if (!actions) return;
+      const text5 = button2.dataset.txt ?? button2.getAttribute("aria-label") ?? t("navigationCore.menu.add");
+      button2.classList.remove("fab", "plfuera");
+      delete button2.dataset.plfab;
+      delete button2.dataset.txt;
+      button2.innerHTML = `${plIco("plus")} ${escapeHtml(text5.replace(/^\s*\+\s*/, ""))}`;
+      actions.appendChild(button2);
+    });
+  }
+
+  // src/app/core/navigation/menu/mobile-customise.ts
+  var ZONES = ["barra", "mas", "oculta"];
+  var GROUP_TEXTS = {
+    barra: ["navigationCore.mobileMenu.bar", "navigationCore.mobileMenu.barLimit"],
+    mas: ["navigationCore.mobileMenu.more", null],
+    oculta: ["navigationCore.mobileMenu.hidden", "navigationCore.mobileMenu.hiddenNote"]
+  };
+  var ZONE_TEXTS = { barra: "navigationCore.mobileMenu.zoneBar", mas: "navigationCore.mobileMenu.zoneMore", oculta: "navigationCore.mobileMenu.zoneHidden" };
+  var EDGE = 60;
+  var SCROLL_STEP = 12;
+  var BAR_MAX = 4;
+  var body = () => document.getElementById("dlg2body");
+  var maxBar = (state2) => state2.fixed ? BAR_MAX - 1 : BAR_MAX;
+  var zoneOf = (state2, key) => ZONES.find((zone) => state2.groups[zone].includes(key)) ?? "mas";
+  var fit = (state2) => {
+    while (state2.groups.barra.length > maxBar(state2)) {
+      const last = state2.groups.barra.pop();
+      if (last) state2.groups.mas.unshift(last);
+    }
+  };
+  function rowHtml(key, zone, index, count2) {
+    const zones = ZONES.map((other) => `<button type="button" data-mpz="${other}|${key}" class="${zone === other ? "on" : ""}">${t(ZONE_TEXTS[other])}</button>`).join("");
+    return `<div class="movp movp-${zone}" data-mpt="${key}">
+      <span class="movpdrag" data-mpd="${key}" aria-hidden="true" title="${t("navigationCore.mobileMenu.drag")}">⠿</span>
+      <span class="movpmv"><button type="button" class="kmv" data-mpm="-1|${key}" aria-label="${t("navigationCore.mobileMenu.up")}" ${index === 0 ? "disabled" : ""}>↑</button><button type="button" class="kmv" data-mpm="1|${key}" aria-label="${t("navigationCore.mobileMenu.down")}" ${index === count2 - 1 ? "disabled" : ""}>↓</button></span>
+      <span class="movpico">${ICO_MOD[key] ?? "•"}</span><span class="movpn">${escapeHtml(mobileName(key))}</span>
+      <div class="segs" role="group" aria-label="${t("navigationCore.mobileMenu.where")}">${zones}</div></div>`;
+  }
+  function groupHtml(state2, zone) {
+    const [title2, note] = GROUP_TEXTS[zone], list = state2.groups[zone], count2 = list.length + (zone === "barra" && state2.fixed ? 1 : 0);
+    const fixed2 = zone === "barra" && state2.fixed ? `<div class="movp movp-barra movpfijo"><span class="movpico">${ICO_MOD[state2.fixed] ?? "•"}</span><span class="movpn">${escapeHtml(mobileName(state2.fixed))}</span><span class="sm">${t("navigationCore.mobileMenu.alwaysFirst")}</span></div>` : "";
+    return `<div class="movpg"><h3>${t(title2)} <span class="sm">· ${count2}${note ? ` · ${t(note)}` : ""}</span></h3>
+        ${fixed2}
+        <div class="movpl" data-mpg="${zone}">${list.map((key, index) => rowHtml(key, zone, index, list.length)).join("") || `<div class="movpvac sm">${t("navigationCore.mobileMenu.dropHere")}</div>`}</div></div>`;
+  }
+  function paint3(state2) {
+    const box5 = body();
+    if (!box5) return;
+    box5.innerHTML = `<div class="fh"><div><h2>${t("navigationCore.menu.customise")}</h2></div><button class="x" data-cerrar2 aria-label="${t("navigationCore.menu.close")}">✕</button></div>
+      <p class="sm">${t("navigationCore.mobileMenu.hint")}</p>
+      ${ZONES.map((zone) => groupHtml(state2, zone)).join("")}
+      <div class="acts"><button type="button" class="btn sec" id="movpdef">${t("navigationCore.menu.reset")}</button><button type="button" class="btn" id="movpok">${t("navigationCore.menu.save")}</button></div>`;
+  }
+  function move2(state2, data) {
+    const [direction = "0", key = ""] = data.split("|"), list = state2.groups[zoneOf(state2, key)], index = list.indexOf(key), other = index + Number(direction);
+    if (other < 0 || other >= list.length) return;
+    const swapped = list[other];
+    if (swapped === void 0) return;
+    list[other] = key;
+    list[index] = swapped;
+    paint3(state2);
+  }
+  function changeZone(state2, data) {
+    const [zone, key = ""] = data.split("|"), from2 = zoneOf(state2, key);
+    if (zone === from2) return;
+    if (from2 === "barra" && !state2.fixed && state2.groups.barra.length <= 1) {
+      toast(t("navigationCore.mobileMenu.barNeedsOne"), true);
+      return;
+    }
+    state2.groups[from2] = state2.groups[from2].filter((other) => other !== key);
+    if (zone === "barra" && state2.groups.barra.length >= maxBar(state2)) {
+      const last = state2.groups.barra.pop();
+      if (last) state2.groups.mas.unshift(last);
+    }
+    state2.groups[zone].push(key);
+    paint3(state2);
+  }
+  async function save2(state2, button2) {
+    const prefs = menuPrefs2(), hidden2 = [.../* @__PURE__ */ new Set([...(prefs.ocultos ?? []).filter((key) => !state2.available.includes(key)), ...state2.groups.oculta])];
+    const bar2 = state2.fixed ? [state2.fixed, ...state2.groups.barra] : [...state2.groups.barra];
+    const profile5 = PERFIL;
+    const saved3 = { ...profile5.preferencias ?? {}, menu: { ...prefs, barra: bar2, mas: [...state2.groups.mas, ...state2.groups.oculta], ocultos: hidden2 } };
+    button2.disabled = true;
+    const { data, error } = await db.rpc("guardar_preferencias", { p: saved3 });
+    button2.disabled = false;
+    if (error) {
+      toast(t("navigationCore.menu.couldNotSave"), true);
+      return;
+    }
+    profile5.preferencias = data ?? saved3;
+    document.getElementById("dlg2")?.close();
+    pintarBnav();
+    MENU_FIRMA = "";
+    try {
+      montarMenuLateral();
+    } catch {
+    }
+    toast(t("navigationCore.menu.saved"));
+  }
+  function onClick3(state2, event) {
+    const target = event.target, arrow = target.closest("[data-mpm]"), zone = target.closest("[data-mpz]");
+    if (arrow) {
+      move2(state2, arrow.dataset.mpm ?? "");
+      return;
+    }
+    if (zone) {
+      changeZone(state2, zone.dataset.mpz ?? "");
+      return;
+    }
+    if (target.closest("#movpdef")) {
+      state2.groups.barra = BAR_DEFAULT.filter((key) => state2.available.includes(key) && key !== state2.fixed);
+      state2.groups.mas = state2.available.filter((key) => !state2.groups.barra.includes(key) && key !== state2.fixed);
+      state2.groups.oculta = [];
+      paint3(state2);
+      return;
+    }
+    const ok = target.closest("#movpok");
+    if (ok) void save2(state2, ok);
+  }
+  function startDrag(event) {
+    const grip = event.target.closest("[data-mpd]"), row4 = grip?.closest(".movp");
+    if (!grip || !row4) return null;
+    event.preventDefault();
+    const rect = row4.getBoundingClientRect(), gap = document.createElement("div");
+    gap.className = "movphueco";
+    gap.style.height = `${rect.height}px`;
+    row4.before(gap);
+    row4.classList.add("movparr");
+    row4.style.width = `${rect.width}px`;
+    row4.style.top = `${rect.top}px`;
+    row4.style.left = `${rect.left}px`;
+    try {
+      grip.setPointerCapture(event.pointerId);
+    } catch {
+    }
+    return { row: row4, offset: event.clientY - rect.top, pointer: event.pointerId, gap };
+  }
+  function dragMove(box5, dragged, event) {
+    dragged.row.style.top = `${event.clientY - dragged.offset}px`;
+    const rows2 = [...box5.querySelectorAll(".movpl > .movp:not(.movparr), .movpl > .movpvac")];
+    const target = rows2.find((row4) => {
+      const rect2 = row4.getBoundingClientRect();
+      return event.clientY < rect2.top + rect2.height / 2;
+    });
+    if (target) target.before(dragged.gap);
+    else {
+      const lists2 = box5.querySelectorAll(".movpl");
+      lists2[lists2.length - 1]?.appendChild(dragged.gap);
+    }
+    const dialog11 = document.getElementById("dlg2");
+    if (!dialog11) return;
+    const rect = dialog11.getBoundingClientRect();
+    if (event.clientY < rect.top + EDGE) dialog11.scrollTop -= SCROLL_STEP;
+    else if (event.clientY > rect.bottom - EDGE) dialog11.scrollTop += SCROLL_STEP;
+  }
+  function dragEnd(state2, box5, dragged) {
+    const { row: row4, gap } = dragged;
+    gap.replaceWith(row4);
+    row4.classList.remove("movparr");
+    row4.style.width = row4.style.top = row4.style.left = "";
+    const key = row4.dataset.mpt ?? "";
+    box5.querySelectorAll(".movpl").forEach((list) => {
+      state2.groups[list.dataset.mpg] = [...list.querySelectorAll(":scope > .movp")].map((item) => item.dataset.mpt ?? "");
+    });
+    if (!state2.fixed && !state2.groups.barra.length) {
+      ZONES.forEach((zone) => {
+        state2.groups[zone] = state2.groups[zone].filter((other) => other !== key);
+      });
+      state2.groups.barra = [key];
+      toast(t("navigationCore.mobileMenu.barNeedsOne"), true);
+    }
+    fit(state2);
+    paint3(state2);
+  }
+  function wire(state2, box5, dialog11) {
+    let dragged = null;
+    const handlers = [
+      ["click", (event) => {
+        onClick3(state2, event);
+      }],
+      ["pointerdown", (event) => {
+        dragged = startDrag(event) ?? dragged;
+      }],
+      ["pointermove", (event) => {
+        if (dragged && event.pointerId === dragged.pointer) dragMove(box5, dragged, event);
+      }]
+    ];
+    const end = (event) => {
+      if (!dragged || event.pointerId !== dragged.pointer) return;
+      const done2 = dragged;
+      dragged = null;
+      dragEnd(state2, box5, done2);
+    };
+    handlers.push(["pointerup", end], ["pointercancel", end]);
+    handlers.forEach(([name, handler]) => {
+      box5.addEventListener(name, handler);
+    });
+    dialog11.addEventListener("close", () => {
+      handlers.forEach(([name, handler]) => {
+        box5.removeEventListener(name, handler);
+      });
+    }, { once: true });
+  }
+  function customiseMobileMenu() {
+    const available2 = availableScreens(), prefs = menuPrefs2(), fixed2 = available2.includes("inicio") ? "inicio" : null;
+    const bar2 = bottomBar().filter((key) => key !== fixed2), rest = moreOrder(available2.filter((key) => !bar2.includes(key) && key !== fixed2)), hidden2 = prefs.ocultos ?? [];
+    const state2 = { fixed: fixed2, available: available2, groups: { barra: [...bar2], mas: rest.filter((key) => !hidden2.includes(key)), oculta: rest.filter((key) => hidden2.includes(key)) } };
+    paint3(state2);
+    const dialog11 = document.getElementById("dlg2"), box5 = body();
+    if (!dialog11 || !box5) return;
+    wire(state2, box5, dialog11);
+    dialog11.showModal();
+  }
+
+  // src/app/legacy/nav-bridge.ts
+  var navLegacy = {
+    /** The Agenda refresh with its options (its declaration takes none). */
+    refreshAgenda: () => {
+      agRefrescoQuieto(null, { cifras: false });
+    },
+    /** The list templates by screen (PL is declared read-only: the reveal takes one out for a moment). */
+    listTemplates: () => PL,
+    /** The session of the database client. */
+    auth: () => db.auth,
+    /** The date and time pickers on every field of the page. */
+    improveFields: () => {
+      mejorarCampos(document);
+    }
+  };
+
+  // src/app/core/startup/index.ts
+  var RETRIES = 2;
+  var RETRY_WAIT_MS = 1500;
+  var NOT_FOUND = "PGRST116";
+  var MOBILE_QUERY = "(max-width: 760px)";
+  var isMobileWidth = () => matchMedia(MOBILE_QUERY).matches;
+  function savedProfile() {
+    let saved3 = null;
+    try {
+      saved3 = JSON.parse(localStorage.getItem(PKEY) ?? "null");
+    } catch {
+      saved3 = null;
+    }
+    return saved3 && Array.isArray(saved3.capacidades) ? saved3 : null;
+  }
+  async function readProfile(userId) {
+    const read4 = () => db.from("perfiles").select("*,capacidades").eq("id", userId).single();
+    let { data, error } = await read4();
+    for (let attempt = 0; attempt < RETRIES && error && error.code !== NOT_FOUND; attempt++) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, RETRY_WAIT_MS);
+      });
+      ({ data, error } = await read4());
+    }
+    return { profile: data ?? null, error };
+  }
+  async function refusalText(profile5) {
+    const { data: access2 } = await Promise.resolve(RPC_ORIG("acceso_organizacion", {})).catch(() => ({ data: null }));
+    if (access2?.bloqueada) {
+      const organization = access2.organizacion ?? "";
+      return access2.motivo === "prueba_terminada" ? t("navigationCore.session.trialEnded", { organization, date: fechaCorta(access2.prueba_hasta ?? "") }) : t("navigationCore.session.deactivatedCompany", { organization });
+    }
+    return t(profile5 && !profile5.activo ? "navigationCore.session.deactivatedUser" : "navigationCore.session.noProfile");
+  }
+  async function refuse(profile5) {
+    const text5 = await refusalText(profile5);
+    localStorage.removeItem(PKEY);
+    await db.auth.signOut();
+    mostrarLogin(text5);
+  }
+  async function enter(profile5, saved3, roles) {
+    try {
+      localStorage.setItem(PKEY, JSON.stringify(profile5));
+    } catch {
+    }
+    if (!await roles && !(ROLES_DEF.length && ESTADOS_DEF.length)) await cargarRoles().catch(() => false);
+    const changed = !saved3 || JSON.stringify(saved3) !== JSON.stringify(profile5);
+    if (!APP_VISIBLE) mostrarApp(profile5);
+    else if (changed) {
+      mostrarApp(profile5);
+      if (TAB === "inicio") void cargarInicio();
+    }
+    Promise.resolve(db.rpc("registrar_acceso", { p_evento: "Entrada", p_agente: navigator.userAgent })).catch(() => void 0);
+  }
+  function showSaved(saved3) {
+    if (saved3 && ROLES_DEF.length && ESTADOS_DEF.length && localStorage.getItem("dlc-os-sesion") && !APP_VISIBLE) {
+      mostrarApp(saved3);
+      marca("app visible con el perfil guardado");
+    }
+  }
+  async function start2() {
+    if (RECUPERANDO) {
+      pantallaRecuperacion();
+      return;
+    }
+    marca("inicio del arranque");
+    const saved3 = savedProfile();
+    showSaved(saved3);
+    const { data: { session } } = await navLegacy.auth().getSession();
+    marca("sesión comprobada");
+    if (!session) {
+      if (!navigator.onLine && saved3 && APP_VISIBLE) return;
+      localStorage.removeItem(PKEY);
+      mostrarLogin();
+      return;
+    }
+    const roles = cargarRoles().catch(() => false);
+    const { profile: profile5, error } = await profileOrSaved(session.user.id, saved3);
+    marca("perfil recibido");
+    if (error || !profile5?.activo) {
+      await refuse(profile5);
+      return;
+    }
+    await enter(profile5, saved3, roles);
+  }
+  async function profileOrSaved(userId, saved3) {
+    const read4 = await readProfile(userId);
+    return read4.error && read4.error.code !== NOT_FOUND && saved3 ? { profile: saved3, error: null } : read4;
+  }
+  function openApp() {
+    navLegacy.improveFields();
+    aplicarMarca();
+    aplicarMarca();
+    if (RECUPERANDO) pantallaRecuperacion();
+    pintarBnav();
+    pintarConexion();
+    vaciarCola();
+    void start2();
+    if (PERFIL) menuOrganizacion();
+    if (PAGO_IR_PLAN && PERFIL) setTimeout(() => {
+      if (PAGO_IR_PLAN) ir("plan");
+    }, 0);
+  }
+
+  // src/app/core/navigation/pages.ts
+  var PAGES = {
+    perfil: { t: t("navigationCore.pages.profile"), d: t("navigationCore.pages.profileDescription"), tabs: [
+      ["datos", t("navigationCore.pages.profileData"), () => pintarPerfil()],
+      ["notif", t("navigationCore.pages.notifications"), () => pintarNotif()]
+    ] },
+    empresa: { t: t("navigationCore.pages.company"), d: t("navigationCore.pages.companyDescription"), admin: true, tabs: [
+      ["marca", t("navigationCore.pages.brand"), () => pintarMarca()],
+      ["correo", t("navigationCore.pages.mail"), () => pintarCorreo()],
+      ["copias", t("navigationCore.pages.backups"), () => pintarCopias()]
+    ] },
+    plan: { t: t("navigationCore.pages.plan"), d: "", admin: true, tabs: [["plan", t("navigationCore.pages.planTab"), () => pintarPaginaPlan()]] }
+  };
+  var byId = (id) => document.getElementById(id);
+  var chosenTab = (screen3, page) => {
+    const wanted = PAG_TAB[screen3];
+    return page.tabs.some((tab) => tab[0] === wanted) && wanted ? wanted : page.tabs[0]?.[0] ?? "";
+  };
+  var painterOf = (page, key) => page.tabs.find((tab) => tab[0] === key)?.[2];
+  function headerHtml(screen3, page, tab) {
+    const header4 = screen3 === "plan" ? "" : `<div class="saludo"><div><h1>${escapeHtml(page.t)}</h1><div class="fecha">${escapeHtml(page.d)}</div></div></div>`;
+    const tabs = page.tabs.length > 1 ? `<div class="cfgsubs pagtabs">${page.tabs.map(([key, name]) => `<button data-ptab="${key}" class="${key === tab ? "on" : ""}">${escapeHtml(name)}</button>`).join("")}</div>` : "";
+    return `${header4}
+    ${tabs}
+    <div id="cfgcuerpo" class="pagcuerpo"></div>`;
+  }
+  function sectionFor(screen3) {
+    let section2 = byId(`v-${screen3}`);
+    if (!section2) {
+      document.querySelector("main")?.insertAdjacentHTML("beforeend", `<section id="v-${screen3}"></section>`);
+      section2 = byId(`v-${screen3}`);
+    }
+    return section2;
+  }
+  function platformTitle() {
+    const section2 = byId("v-delcos"), tab = PAG_TAB.delcos ?? "orgs", found = PANEL_SECCIONES.find((item) => item[1] === tab);
+    if (!section2 || !found) return;
+    const title2 = section2.querySelector(".saludo h1"), description = section2.querySelector(".saludo .fecha");
+    if (title2) title2.textContent = found[2] ?? "";
+    if (description) description.textContent = PANEL_DESC[tab] ?? "";
+  }
+  function buildPage(screen3, page) {
+    if (page.permiso && !page.permiso()) {
+      ir("inicio");
+      return;
+    }
+    if (page.admin && !puede("administrar")) {
+      ir("inicio");
+      return;
+    }
+    const section2 = sectionFor(screen3);
+    if (!section2) return;
+    const settings2 = byId("v-config");
+    if (settings2) settings2.innerHTML = "";
+    Object.keys(PAGES).forEach((other) => {
+      const box5 = other === screen3 ? null : byId(`v-${other}`);
+      if (box5) box5.innerHTML = "";
+    });
+    const tab = chosenTab(screen3, page);
+    section2.innerHTML = headerHtml(screen3, page, tab);
+    section2.querySelectorAll(".pagtabs [data-ptab]").forEach((button2) => {
+      button2.onclick = () => {
+        PAG_TAB[screen3] = button2.dataset.ptab;
+        loadPage(screen3);
+      };
+    });
+    void Promise.resolve().then(painterOf(page, tab));
+    if (screen3 === "delcos" && MODO_PLATAFORMA) platformTitle();
+  }
+  function switchListTab(screen3, page, box5, tabs) {
+    const tab = chosenTab(screen3, page);
+    tabs.querySelectorAll("[data-ptab]").forEach((button2) => button2.classList.toggle("on", button2.dataset.ptab === tab));
+    const isList = PL_SECC[screen3];
+    if (isList && !isList()) return null;
+    box5.classList.add("pagcambia");
+    return Promise.resolve().then(painterOf(page, tab)).finally(() => {
+      byId("cfgcuerpo")?.classList.remove("pagcambia");
+    });
+  }
+  function loadPage(screen3) {
+    const page = PAGES[screen3];
+    if (!page) return void 0;
+    const section2 = byId(`v-${screen3}`), box5 = section2?.querySelector("#cfgcuerpo"), tabs = section2?.querySelector(":scope > .pagtabs");
+    if (BLQ[screen3] && TAB === screen3 && box5 && tabs && section2?.classList.contains("plantilla")) {
+      const switched = switchListTab(screen3, page, box5, tabs);
+      if (switched) return switched;
+    }
+    buildPage(screen3, page);
+    return void 0;
+  }
+
+  // src/app/core/navigation/links.ts
+  var RELOAD_WINDOW_MS = 6e4;
+  var OWN_PAGES = ["config", "perfil", "empresa", "plan"];
+  var toToday = () => {
+    AG_MODO = "dia";
+    AG_FECHA = hoyISO();
+    return ir("agenda");
+  };
+  var toOrders = (section2) => {
+    PEDSEC = section2;
+    return ir("ventas");
+  };
+  var LINKS = /* @__PURE__ */ new Map([
+    ["plan", () => ir("plan")],
+    ["equipo", (id) => id ? verEquipo(id) : void 0],
+    ["concurso", (id) => id ? verConcurso(id) : void 0],
+    ["cirugia", (id) => id ? verCirugia(id) : void 0],
+    ["cliente", (id) => id ? nuevaVenta({ contacto_id: id }) : void 0],
+    ["cita", toToday],
+    ["agenda", toToday],
+    ["llamadas", () => toOrders("llamadas")],
+    ["ventas", () => toOrders("ventas")],
+    ["stock", () => {
+      PSEC = "stock";
+      return ir("productos");
+    }],
+    ["facturacion", () => ir("facturacion")],
+    ["duplicados", () => ir("duplicados")],
+    ["ficha", (id) => id ? abrirFicha(id) : void 0],
+    ["pedido", (id) => id ? verPedido(id) : void 0],
+    ["informe", () => ir("informe")],
+    ["directorio", () => ir("directorio")]
+  ]);
+  function followLink(link2) {
+    const [kind = "", id] = String(link2 ?? "").split(":");
+    if (kind === "delcos") return puede("gestionar_plataforma") ? ir("delcos") : void 0;
+    return LINKS.get(kind)?.(id);
+  }
+  function screenAfterReload() {
+    let point = null;
+    try {
+      point = JSON.parse(sessionStorage.getItem("dlc-f5") ?? "null");
+      sessionStorage.removeItem("dlc-f5");
+    } catch {
+      point = null;
+    }
+    return point?.t && Date.now() - (point.h ?? 0) < RELOAD_WINDOW_MS ? point : null;
+  }
+  function returnAfterReload(point) {
+    if (point.c) CFG_SEC = point.c;
+    if (point.s) CFG_SUB = point.s;
+    if (point.p) Object.assign(PAG_TAB, point.p);
+    if (point.t && (OWN_PAGES.includes(point.t) || puedeModulo(point.t))) ir(point.t);
+  }
+  function screenName(screen3) {
+    const button2 = document.querySelector(`nav.main [data-t="${screen3}"]`);
+    const name = orFallback(button2?.textContent?.trim(), orFallback(PAGES[screen3]?.t, screen3 === "config" ? t("navigationCore.pages.settings") : ""));
+    return orFallback(name, t("navigationCore.pages.whereYouWere"));
+  }
+  function pager(element4, position, handlers) {
+    if (!element4) return;
+    const { total: total2, page } = position, { onPage, onSize } = handlers;
+    if (element4.id) document.querySelectorAll(`#${element4.id}`).forEach((other) => {
+      if (other !== element4) other.remove();
+    });
+    const size = tamPagina();
+    if (total2 <= (TAMANOS[0] ?? 0)) {
+      element4.innerHTML = "";
+      return;
+    }
+    element4.innerHTML = pagHTML(total2, page, size);
+    element4.querySelectorAll("[data-pg]").forEach((button2) => {
+      button2.onclick = () => {
+        onPage(Number(button2.dataset.pg));
+      };
+    });
+    const sizeSelect = element4.querySelector("[data-pgtam]");
+    if (sizeSelect) sizeSelect.onchange = () => {
+      fijarTam(Number(sizeSelect.value));
+      onSize();
+    };
+  }
+  var resetFailure = (result, error) => {
+    if (result?.error === "permiso") return t("navigationCore.testData.onlyOwner");
+    if (result?.error === "sin_maestro") return t("navigationCore.testData.noMaster");
+    return t("navigationCore.testData.failed", { error: orFallback(error?.message, orFallback(result?.error, "")) });
+  };
+  async function backToTestData() {
+    if (!await preguntar(t("navigationCore.testData.question"), { titulo: t("navigationCore.testData.title"), ok: t("navigationCore.testData.ok"), peligro: true })) return;
+    pantallaCarga(t("navigationCore.testData.loading"));
+    let { data: result, error } = await RPC_ORIG("pruebas_resetear_responsable", { p_confirmacion: "RESTABLECER" });
+    if (error && /pruebas_resetear_responsable|PGRST202|not find/i.test(error.message ?? "")) {
+      ({ data: result, error } = await RPC_ORIG("pruebas_resetear", { p_confirmacion: "RESTABLECER" }));
+    }
+    if (error || !result?.ok) {
+      quitarCarga();
+      toast(resetFailure(result ?? null, error), true);
+      return;
+    }
+    limpiarDatosLocales();
+    location.reload();
+  }
+  async function backToMySession() {
+    const impersonated = suplantando();
+    pantallaCarga(t("navigationCore.session.backToMine", { name: impersonated ? `, ${nombrePila(impersonated.nombre)}` : "" }));
+    if (!impersonated) return;
+    const { error } = await navLegacy.auth().setSession({ access_token: impersonated.access_token, refresh_token: impersonated.refresh_token });
+    localStorage.removeItem(SKEY);
+    limpiarDatosLocales();
+    if (error) {
+      await db.auth.signOut();
+      toast(t("navigationCore.session.expired"), true);
+    }
+    location.reload();
+  }
+
+  // src/app/core/navigation/reveal.ts
+  var QUIET_MS = 50;
+  var CHECK_EVERY_MS = 15;
+  var DEFAULT_MAX_MS = 4e3;
+  var ARRIVAL_MS = 700;
+  var CARD_MAX_MS = 5e3;
+  var LIST_MAX_MS = 6e3;
+  var MIN_WAIT_MS = 300;
+  var RETRY_MS = 60;
+  var PAGE_ACTIONS = ["usrnuevo", "orgnueva"];
+  var revealTurn = 0;
+  var arrivalTimers = /* @__PURE__ */ new WeakMap();
+  function isCountChange(mutation) {
+    if (mutation.type !== "childList") return false;
+    const nodes = [...mutation.addedNodes, ...mutation.removedNodes];
+    return nodes.length > 0 && nodes.every((node) => node.nodeType === Node.TEXT_NODE) && /^[\d.,\s%€+\-−]*$/.test(mutation.target.textContent ?? "");
+  }
+  var hasSkeletons = (element4) => Boolean(element4.querySelector(".skel, .ksk, .cargandolocal"));
+  function steady(element4, maxMs = DEFAULT_MAX_MS, since2) {
+    return new Promise((resolve) => {
+      const startedAt = since2 && since2 > 0 ? since2 : Date.now() - 5, start4 = performance.now();
+      let last = start4 - 5, done2 = false;
+      const observer = new MutationObserver((list) => {
+        if (list.some((mutation) => mutation.target !== element4 && !isCountChange(mutation))) last = performance.now();
+      });
+      observer.observe(element4, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style"] });
+      const finish = () => {
+        if (done2) return;
+        done2 = true;
+        observer.disconnect();
+        resolve();
+      };
+      setTimeout(() => {
+        if (pendientesDesde(startedAt) === 0 && last <= start4 && !hasSkeletons(element4)) finish();
+      }, 0);
+      const timer3 = setInterval(() => {
+        if (done2) {
+          clearInterval(timer3);
+          return;
+        }
+        const now = performance.now();
+        if (pendientesDesde(startedAt) === 0 && now - Math.max(last, RED_ULTIMO_FIN) >= QUIET_MS && !hasSkeletons(element4) || now - start4 > maxMs) {
+          clearInterval(timer3);
+          finish();
+        }
+      }, CHECK_EVERY_MS);
+    });
+  }
+  function arrive(element4) {
+    if (!element4?.matches("main > section")) return;
+    element4.classList.remove("llega");
+    void element4.offsetWidth;
+    element4.classList.add("llega");
+    clearTimeout(arrivalTimers.get(element4));
+    arrivalTimers.set(element4, setTimeout(() => {
+      element4.classList.remove("llega");
+    }, ARRIVAL_MS));
+  }
+  var isScreen = (element4) => element4.matches("main > section");
+  function revealWhenSteady(element4, maxMs, since2) {
+    const turn = ++revealTurn;
+    element4.classList.add("preparando");
+    void steady(element4, maxMs, since2).then(() => {
+      if (turn === revealTurn || !isScreen(element4)) {
+        element4.classList.remove("preparando");
+        arrive(element4);
+      }
+    });
+  }
+  function revealTemplate(element4, screen3, maxMs, since2) {
+    if (navLegacy.listTemplates()[screen3] && isScreen(element4)) {
+      element4.classList.remove("preparando");
+      plSync(screen3);
+      arrive(element4);
+      return;
+    }
+    revealWhenSteady(element4, maxMs, since2);
+  }
+  function revealWhenReady(element4, screen3, maxMs, since2) {
+    const ready2 = LISTA_PARA[screen3];
+    if (!ready2 || !isScreen(element4)) {
+      revealTemplate(element4, screen3, maxMs, since2);
+      return;
+    }
+    if (screen3 === "inicio" && !ES_MEDICO()) {
+      inicioEsqueleto();
+      element4.classList.remove("preparando");
+      arrive(element4);
+      return;
+    }
+    const turn = ++revealTurn, start4 = performance.now(), limit = LISTA_ESPERA[screen3] ?? LIST_MAX_MS;
+    element4.classList.add("preparando");
+    const look = () => {
+      void steady(element4, Math.max(MIN_WAIT_MS, limit - (performance.now() - start4)), since2).then(() => {
+        if (turn !== revealTurn) return;
+        if (ready2(element4) || performance.now() - start4 > limit) {
+          element4.classList.remove("preparando");
+          arrive(element4);
+        } else setTimeout(look, RETRY_MS);
+      });
+    };
+    look();
+  }
+  function reveal(element4, maxMs, since2) {
+    if (!element4) return;
+    const limit = element4.id === "fbody" ? Math.max(maxMs ?? 0, CARD_MAX_MS) : maxMs, screen3 = element4.id.slice(2);
+    const sections2 = PL_SECC[screen3];
+    if (!sections2 || !isScreen(element4)) {
+      revealWhenReady(element4, screen3, limit, since2);
+      return;
+    }
+    const startedAt = Date.now();
+    element4.classList.add("preparando");
+    setTimeout(() => {
+      if (plCfg(screen3)) plSync(screen3);
+      const lists2 = navLegacy.listTemplates(), keep = lists2[screen3];
+      Reflect.deleteProperty(lists2, screen3);
+      try {
+        revealWhenReady(element4, screen3, limit, since2 && since2 > 0 ? since2 : startedAt);
+      } finally {
+        lists2[screen3] = keep;
+      }
+    }, 0);
+  }
+  function comet() {
+    let line3 = document.getElementById("cometa");
+    if (!line3) {
+      document.body.insertAdjacentHTML("beforeend", '<div id="cometa" class="cometa" aria-hidden="true"><i></i></div>');
+      line3 = document.getElementById("cometa");
+    }
+    if (!line3) return;
+    line3.classList.remove("va");
+    void line3.offsetWidth;
+    line3.classList.add("va");
+  }
+  function refreshBelow() {
+    if (document.querySelector("dialog[open]")) {
+      DATOS_CAMBIADOS = true;
+      return;
+    }
+    DATOS_CAMBIADOS = false;
+    if (TAB === "agenda" && document.getElementById("agcuerpo")) navLegacy.refreshAgenda();
+    else if (TAB === "directorio") void buscar(true);
+  }
+  function raisePageAction() {
+    if (!PAGES[TAB]) return;
+    const section2 = document.getElementById(`v-${TAB}`), header4 = section2?.querySelector(":scope > .saludo");
+    if (!section2 || !header4) return;
+    PAGE_ACTIONS.forEach((id) => {
+      const button2 = document.getElementById(id);
+      if (!button2 || !section2.contains(button2) || button2.closest(".saludo")) return;
+      let actions = header4.querySelector(":scope > .acts");
+      if (!actions) {
+        header4.insertAdjacentHTML("beforeend", '<div class="acts htacts"></div>');
+        actions = header4.querySelector(":scope > .acts");
+      }
+      actions?.appendChild(button2);
+    });
+  }
+
+  // src/app/core/navigation/views.ts
+  var FREEZE_WAIT_MS = 3e3;
+  var MIN_HEIGHT = 40;
+  var BAR_GAP = 4;
+  var BACK_STACK = [];
+  var TITLES = [
+    ["verCita", "navigationCore.viewTitles.appointment"],
+    ["fichaCentro", "navigationCore.viewTitles.centre"],
+    ["abrirFicha", "navigationCore.viewTitles.card"],
+    ["verPedido", "navigationCore.viewTitles.order"],
+    ["verFactura", "navigationCore.viewTitles.invoice"],
+    ["verEvento", "navigationCore.viewTitles.event"],
+    ["verCirugia", "navigationCore.viewTitles.surgery"],
+    ["verConcurso", "navigationCore.viewTitles.tender"],
+    ["verEquipo", "navigationCore.viewTitles.equipment"],
+    ["verDeposito", "navigationCore.viewTitles.deposit"],
+    ["fichaStock", "navigationCore.viewTitles.product"]
+  ];
+  var VIEW_TITLES = Object.fromEntries(TITLES.map(([name, key]) => [name, t(key)]));
+  var openView = () => ["ficha", "dlg"].map((id) => document.getElementById(id)).find((dialog11) => dialog11?.open) ?? null;
+  var idOf = (arg) => {
+    const id = arg && typeof arg === "object" ? arg.id : void 0;
+    return id ? id : arg;
+  };
+  var idsOf = (view) => JSON.stringify(view.args.map(idOf));
+  var sameView = (first2, second) => Boolean(first2 && second && first2.fn === second.fn && idsOf(first2) === idsOf(second));
+  var titleOf = (view) => (view ? VIEW_TITLES[view.fn] : void 0) ?? t("navigationCore.viewTitles.previousWindow");
+  function backButton(view, dialog11) {
+    const box5 = dialog11 ?? view?.dlg;
+    if (!box5?.open || !BACK_STACK.length || box5.querySelector(".vueltabtn")) return;
+    const header4 = box5.querySelector(".fh");
+    if (!header4) return;
+    const previous = BACK_STACK[BACK_STACK.length - 1], first2 = header4.firstElementChild;
+    const place5 = first2 && first2.tagName !== "BUTTON" && !first2.matches("h2") ? first2 : header4;
+    const what = titleOf(previous);
+    place5.insertAdjacentHTML("afterbegin", `<button type="button" class="btn sec chico vueltabtn" title="${escapeHtml(t("navigationCore.viewTitles.backTo", { what }))}">${t("navigationCore.viewTitles.back")}</button>`);
+  }
+  function markPressed(copy, pressed2) {
+    const attributes = [...pressed2.attributes].filter((attribute) => attribute.name.startsWith("data-") && attribute.name !== "data-expl");
+    const selector = attributes.length ? attributes.map((attribute) => `[${attribute.name}="${CSS.escape(attribute.value)}"]`).join("") : null;
+    const button2 = selector ? copy.querySelector(selector) : null;
+    if (!button2?.parentElement) return;
+    [...button2.parentElement.children].forEach((other) => {
+      other.setAttribute("aria-pressed", String(other === button2));
+      other.classList.toggle("on", other === button2);
+      if (other !== button2 && other.classList.contains("btn") && !other.classList.contains("sec")) other.classList.add("sec");
+    });
+    button2.classList.remove("sec");
+  }
+  function frozenCopy(section2, rect) {
+    const copy = section2.cloneNode(true);
+    copy.classList.add("congelada", "atenuada");
+    copy.classList.remove("cargando", "cargando-pend", "preparando");
+    Object.assign(copy.style, { position: "absolute", left: `${rect.left + scrollX}px`, top: `${rect.top + scrollY}px`, width: `${rect.width}px`, margin: 0, zIndex: 45, background: "var(--bg, #F3F8FC)" });
+    return copy;
+  }
+  function freeze(section2) {
+    if (!section2 || section2.classList.contains("hide") || document.querySelector(".congelada")) return;
+    const rect = section2.getBoundingClientRect();
+    if (rect.height < MIN_HEIGHT) return;
+    const since2 = Date.now() - 2, copy = frozenCopy(section2, rect), pressed2 = CLIC_PESTANA;
+    const inside = pressed2 && section2.contains(pressed2) ? pressed2 : null;
+    if (inside) markPressed(copy, inside);
+    copy.insertAdjacentHTML("afterbegin", '<div class="barraprog"><i></i></div>');
+    if (inside) {
+      const row4 = inside.closest(".subnav, .cfgsubs, .acts, .segs") ?? inside.parentElement, bar2 = copy.querySelector(".barraprog");
+      if (row4 && bar2) bar2.style.top = `${Math.round(row4.getBoundingClientRect().bottom - rect.top + BAR_GAP)}px`;
+    }
+    document.body.appendChild(copy);
+    section2.style.minHeight = `${rect.height}px`;
+    setTimeout(() => {
+      void steady(section2, FREEZE_WAIT_MS, since2).then(() => {
+        copy.remove();
+        requestAnimationFrame(() => {
+          section2.style.minHeight = "";
+        });
+      });
+    }, 0);
+  }
+
+  // src/app/core/navigation/api.ts
+  setMobileCustomise(customiseMobileMenu);
+  var customiseDesktopMenu = () => {
+    customiseMenu(wireDrag);
+  };
+
   // src/app/screens/accounts/index.ts
   var accounts_exports = {};
   __export(accounts_exports, {
@@ -9992,9 +11539,9 @@
     agendaActions.openAccount(accountId);
     visitLegacy.reloadHome();
   }
-  async function save(visit2, extra, accountId, button2) {
-    const body2 = document.getElementById("dbody");
-    const results = [...body2?.querySelectorAll("[data-res][aria-pressed=true]") ?? []].map((item) => item.dataset.res ?? "");
+  async function save3(visit2, extra, accountId, button2) {
+    const body3 = document.getElementById("dbody");
+    const results = [...body3?.querySelectorAll("[data-res][aria-pressed=true]") ?? []].map((item) => item.dataset.res ?? "");
     button2.disabled = true;
     button2.textContent = t("visit.edit.saving");
     const { data: result, error } = await legacyDb().rpc("actualizar_actividad", { p: {
@@ -10026,17 +11573,17 @@
     }
     afterChange(accountId, t("visit.edit.deleted", { visit: term("visita", { capital: "C", adjective: "borrado" }) }));
   }
-  function bind(body2, visit2, extra, accountId) {
-    body2.querySelectorAll("[data-res]").forEach((button2) => {
+  function bind(body3, visit2, extra, accountId) {
+    body3.querySelectorAll("[data-res]").forEach((button2) => {
       button2.onclick = () => {
         const negative = button2.dataset.neg === "1", on6 = pressed(button2);
-        body2.querySelectorAll("[data-res]").forEach((other) => {
+        body3.querySelectorAll("[data-res]").forEach((other) => {
           if (negative || other.dataset.neg === "1") other.setAttribute("aria-pressed", "false");
         });
         button2.setAttribute("aria-pressed", String(!on6));
       };
     });
-    const modes = body2.querySelectorAll("[data-evmodo]");
+    const modes = body3.querySelectorAll("[data-evmodo]");
     modes.forEach((button2) => {
       button2.onclick = () => {
         extra.mode = button2.dataset.evmodo ?? "presencial";
@@ -10046,15 +11593,15 @@
         });
       };
     });
-    body2.querySelectorAll("[data-evprod]").forEach((button2) => {
+    body3.querySelectorAll("[data-evprod]").forEach((button2) => {
       button2.onclick = () => {
         togglePressed(button2);
-        extra.products = [...body2.querySelectorAll("[data-evprod][aria-pressed=true]")].map((item) => item.dataset.evprod ?? "");
+        extra.products = [...body3.querySelectorAll("[data-evprod][aria-pressed=true]")].map((item) => item.dataset.evprod ?? "");
       };
     });
     const ok = document.getElementById("evok");
     if (ok) ok.onclick = () => {
-      void save(visit2, extra, accountId, ok);
+      void save3(visit2, extra, accountId, ok);
     };
     const del = document.getElementById("evborrar");
     if (del) del.onclick = () => {
@@ -10063,10 +11610,10 @@
   }
   async function editVisit(visit2, accountId) {
     const extra = await loadExtra(visit2.id, accountCardLegacy.planIncludes("cobertura")).catch(() => ({ mode: "presencial", products: [], productList: [] }));
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml(visit2, extra);
-    bind(body2, visit2, extra, accountId);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml(visit2, extra);
+    bind(body3, visit2, extra, accountId);
     box5.showModal();
   }
 
@@ -10074,8 +11621,8 @@
   var WORKDAYS2 = ["L", "M", "X", "J", "V"];
   var SHOWN_VISITS = 10;
   var SKELETON = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
-  var body = () => document.getElementById("fbody");
-  function headerHtml(account) {
+  var body2 = () => document.getElementById("fbody");
+  function headerHtml2(account) {
     const urgent = account.urgente ? `<span class="pill p-urg">${t("accounts.base.urgent")}</span> ` : "";
     const noReporting = account.sin_reporting ? `<span class="pill p-sr" title="${t("accounts.base.noReportingTitle", { visit: term("visita") })}">${t("accounts.base.noReporting")}</span> ` : "";
     return `<div class="fh">
@@ -10136,7 +11683,7 @@
     const account = data.medico, consultations = data.consultas ?? [], visits2 = data.visitas ?? [];
     const forVisit = visitConsultation(consultations);
     return `${cached2 ? `<div class="cacheaviso">${t("accounts.base.cachedNotice")}</div>` : ""}
-    ${headerHtml(account)}
+    ${headerHtml2(account)}
     ${actionsHtml(account)}
     ${visitBlock(account, consultations, visits2)}
     ${stateHtml(account, data.comerciales ?? [])}
@@ -10146,7 +11693,7 @@
     <section class="blk fventas" id="fventas"><h3>${t("accounts.base.salesTitle", { patients: term("paciente", { number: "p" }) })}</h3><div id="fventasc"></div></section>`;
   }
   async function paintBase(id) {
-    const box5 = body(), card4 = document.getElementById("ficha");
+    const box5 = body2(), card4 = document.getElementById("ficha");
     if (!box5 || !card4) return;
     accountCardLegacy.setShownId(id);
     box5.innerHTML = SKELETON;
@@ -10158,8 +11705,8 @@
       return;
     }
     box5.innerHTML = cardHtml({ ...data, medico: account }, Boolean(result.cache));
-    const close4 = document.getElementById("fx");
-    if (close4) close4.onclick = () => {
+    const close5 = document.getElementById("fx");
+    if (close5) close5.onclick = () => {
       card4.close();
     };
     box5.querySelectorAll("[data-editv]").forEach((button2) => {
@@ -10228,11 +11775,11 @@
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     return `<select id="cicde" aria-label="${t("cycle.whose")}"><option value="">${t("cycle.allTeam")}</option>${salesTeam.members().map((member) => `<option value="${member.id}" ${cycleState.owner === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("")}</select>`;
   }
-  function bindOwner(paint20) {
+  function bindOwner(paint22) {
     const select3 = document.getElementById("cicde");
     if (select3) select3.onchange = () => {
       cycleState.owner = select3.value;
-      void paint20();
+      void paint22();
     };
   }
   var percentOf = (done2, goal) => goal ? Math.round(done2 / goal * 100) : 0;
@@ -10264,17 +11811,17 @@
     await paintCardCycle(id);
   }
   async function centreProfessionals(id) {
-    const account = await accountKind(id), body2 = document.getElementById("fbody");
-    if (account?.tipo !== CENTRE2 || !account.centro_id || !body2 || !stillShown(id) || document.getElementById("fcentrop")) return;
+    const account = await accountKind(id), body3 = document.getElementById("fbody");
+    if (account?.tipo !== CENTRE2 || !account.centro_id || !body3 || !stillShown(id) || document.getElementById("fcentrop")) return;
     const professionals3 = escapeHtml(term("medico", { number: "p" }));
-    (body2.querySelector(".fh") ?? body2.firstElementChild)?.insertAdjacentHTML("afterend", `<div class="blk" id="fcentrop"><div class="fcentropf"><span>${t("accounts.card.centreProfessionals", { professionals: professionals3 })}</span>
+    (body3.querySelector(".fh") ?? body3.firstElementChild)?.insertAdjacentHTML("afterend", `<div class="blk" id="fcentrop"><div class="fcentropf"><span>${t("accounts.card.centreProfessionals", { professionals: professionals3 })}</span>
         <button type="button" class="btn sec chico" data-fcver="${account.centro_id}">${t("accounts.card.seeCentreProfessionals", { professionals: professionals3 })}</button></div></div>`);
   }
   async function archiveButtons(id) {
-    const account = await accountKind(id), body2 = document.getElementById("fbody");
-    if (!account || !body2 || !stillShown(id) || document.getElementById("fbajablk") || !accountCardLegacy.canEditType(account.tipo)) return;
+    const account = await accountKind(id), body3 = document.getElementById("fbody");
+    if (!account || !body3 || !stillShown(id) || document.getElementById("fbajablk") || !accountCardLegacy.canEditType(account.tipo)) return;
     const status2 = account.archivado_en ? `<button type="button" class="btn sec chico" data-falta="${id}">${t("accounts.card.reactivate")}</button>` : `<button type="button" class="btn sec chico" data-fbaja="${id}">${t("accounts.card.archive")}</button>`;
-    body2.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="fbajablk"><div class="acts">
+    body3.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="fbajablk"><div class="acts">
       ${status2}
       ${permissions.levelOf("M") >= DELETE_LEVEL ? `<button type="button" class="btn sec dang chico" data-felim="${id}">${t("accounts.card.delete")}</button>` : ""}</div></div>`);
   }
@@ -10390,9 +11937,9 @@
   async function changeHistory(id) {
     if (!cardSectionsLegacy.can("administrar") || !stillShown(id) || !document.getElementById("fbody") || document.getElementById("fhist")) return;
     const { data } = await callRpc("historial_entidad", { p_entidad: "cuentas", p_id: id, lim: HISTORY_LIMIT });
-    const list = Array.isArray(data) ? data : [], body2 = document.getElementById("fbody");
-    if (!stillShown(id) || !body2 || document.getElementById("fhist")) return;
-    body2.insertAdjacentHTML("beforeend", `<details class="blk" id="fhist"><summary>${t("accounts.history.title")} <span class="n">${formatNumber(list.length)}</span></summary>
+    const list = Array.isArray(data) ? data : [], body3 = document.getElementById("fbody");
+    if (!stillShown(id) || !body3 || document.getElementById("fhist")) return;
+    body3.insertAdjacentHTML("beforeend", `<details class="blk" id="fhist"><summary>${t("accounts.history.title")} <span class="n">${formatNumber(list.length)}</span></summary>
     <div class="lista">${list.map(historyRow).join("") || `<div class="sm">${t("accounts.history.none")}</div>`}</div></details>`);
     document.querySelectorAll("#fhist [data-fhx]").forEach((button2) => {
       button2.onclick = () => {
@@ -10437,19 +11984,19 @@
     if (permissions.isProfessionalPortal() || !canShowProposal(id)) return;
     const { data: proposal } = await callRpc("ficha_propuesta", { p_cuenta: id });
     if (!proposal || !canShowProposal(id)) return;
-    const card4 = await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`), body2 = document.getElementById("fbody");
-    if (!body2) return;
-    const edit = body2.querySelector("[data-act=editar]");
+    const card4 = await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`), body3 = document.getElementById("fbody");
+    if (!body3) return;
+    const edit = body3.querySelector("[data-act=editar]");
     const html = proposalHtml(proposal, card4.data?.medico ?? {}, Boolean(edit));
-    const first2 = [...body2.children].find((child) => child.matches(".blk, section, .card") && child.id !== "fprop");
+    const first2 = [...body3.children].find((child) => child.matches(".blk, section, .card") && child.id !== "fprop");
     if (first2) first2.insertAdjacentHTML("beforebegin", html);
-    else body2.insertAdjacentHTML("beforeend", html);
-    bindProposal(body2, proposal);
+    else body3.insertAdjacentHTML("beforeend", html);
+    bindProposal(body3, proposal);
   }
-  function bindProposal(body2, proposal) {
+  function bindProposal(body3, proposal) {
     const editButton = document.getElementById("fpropedit");
     if (editButton) editButton.onclick = () => {
-      body2.querySelector("[data-act=editar]")?.click();
+      body3.querySelector("[data-act=editar]")?.click();
     };
     const ok = document.getElementById("fpropok");
     if (ok) ok.onclick = () => {
@@ -10517,13 +12064,13 @@
 
   // src/app/screens/settings/custom-fields/card.ts
   var keyName = (key) => key.replace(/_/g, " ").toLowerCase().replace(/^./, (letter) => letter.toUpperCase());
-  var blockHtml2 = (cells) => `<div class="campospers"><h3>${t("settings.customFields.title")}</h3><div class="cpgrid">${cells}</div></div>`;
+  var blockHtml3 = (cells) => `<div class="campospers"><h3>${t("settings.customFields.title")}</h3><div class="cpgrid">${cells}</div></div>`;
   function knownHtml(definitions3, values2, keys) {
     const ordered = [
       ...definitions3.filter((field20) => keys.includes(field20.clave)),
       ...keys.filter((key) => !definitions3.some((field20) => field20.clave === key)).map((key) => ({ clave: key, nombre: keyName(key) }))
     ];
-    return blockHtml2(ordered.map((field20) => `<div><span class="sm">${escapeHtml(field20.nombre)}</span><b>${escapeHtml(settingsLegacy.fieldText(field20, values2[field20.clave]))}</b></div>`).join(""));
+    return blockHtml3(ordered.map((field20) => `<div><span class="sm">${escapeHtml(field20.nombre)}</span><b>${escapeHtml(settingsLegacy.fieldText(field20, values2[field20.clave]))}</b></div>`).join(""));
   }
   var rawText = (value27) => typeof value27 === "object" ? JSON.stringify(value27) : String(value27);
   async function paintCustomFieldsBlock(table, id, container) {
@@ -10532,7 +12079,7 @@
     const values2 = data?.clasificadores ?? {}, keys = Object.keys(values2).filter((key) => values2[key] !== "" && values2[key] !== null && values2[key] !== void 0);
     const area = settingsLegacy.areaOfTable(table), definitions3 = area ? settingsLegacy.fields()[area] ?? [] : [];
     if (!keys.length || container.querySelector(".campospers")) return;
-    container.insertAdjacentHTML("beforeend", definitions3.length ? knownHtml(definitions3, values2, keys) : blockHtml2(keys.map((key) => `<div><span class="sm">${escapeHtml(keyName(key))}</span><b>${escapeHtml(rawText(values2[key]))}</b></div>`).join("")));
+    container.insertAdjacentHTML("beforeend", definitions3.length ? knownHtml(definitions3, values2, keys) : blockHtml3(keys.map((key) => `<div><span class="sm">${escapeHtml(keyName(key))}</span><b>${escapeHtml(rawText(values2[key]))}</b></div>`).join("")));
   }
   function bindCustomFieldFilters(zone, state2, onChange) {
     zone.querySelectorAll("[data-fcp]").forEach((select3) => {
@@ -10864,7 +12411,7 @@
     set("p", first2(address2.province, address2.state_district, address2.county).toUpperCase());
     context.place.querySelector(".cpubi")?.firstChild?.replaceWith(Object.assign(document.createElement("b"), { style: "color:var(--ok)", textContent: `${t("accountsEditor.centreForm.located")} ` }));
   }
-  async function save2(context, button2) {
+  async function save4(context, button2) {
     const value27 = (suffix) => valueOf2(context, suffix);
     if (!value27("n")) {
       notices.toast(t("accountsEditor.centreForm.writeName"), true);
@@ -10918,7 +12465,7 @@
       void paintCentrePicker(context.box, context.index, context.centre.id ? void 0 : "buscar");
     });
     on6("[data-cpguardar]", (button2) => {
-      void save2(context, button2);
+      void save4(context, button2);
     });
   }
   function centreForm(box5, index, centre, notice2) {
@@ -11160,10 +12707,10 @@
     set("edcp", "provincia");
   }
   function adaptForCentre(id, hooks) {
-    const body2 = document.getElementById("dbody"), list = document.getElementById("econs");
-    if (!body2 || !list || document.getElementById("ee") || document.getElementById("esr")) return;
-    body2.classList.add("edcentro");
-    body2.querySelectorAll(".cpersform[data-cpamb=medico]").forEach((block4) => {
+    const body3 = document.getElementById("dbody"), list = document.getElementById("econs");
+    if (!body3 || !list || document.getElementById("ee") || document.getElementById("esr")) return;
+    body3.classList.add("edcentro");
+    body3.querySelectorAll(".cpersform[data-cpamb=medico]").forEach((block4) => {
       block4.remove();
     });
     if (!id) [...list.children].slice(1).forEach((box6) => {
@@ -11303,19 +12850,19 @@
   </div>`;
   }
   var nextIndex = (list) => String(1 + Math.max(-1, ...[...list.children].map((box5) => Number(box5.dataset.cons) || 0)));
-  function moveConsultation(move3) {
-    const box5 = move3.closest(".cons"), parent = box5?.parentElement;
+  function moveConsultation(move4) {
+    const box5 = move4.closest(".cons"), parent = box5?.parentElement;
     if (!box5 || !parent) return;
-    if (move3.dataset.cmov === "-1" && box5.previousElementSibling) parent.insertBefore(box5, box5.previousElementSibling);
-    else if (move3.dataset.cmov === "1" && box5.nextElementSibling) parent.insertBefore(box5.nextElementSibling, box5);
+    if (move4.dataset.cmov === "-1" && box5.previousElementSibling) parent.insertBefore(box5, box5.previousElementSibling);
+    else if (move4.dataset.cmov === "1" && box5.nextElementSibling) parent.insertBefore(box5.nextElementSibling, box5);
   }
   function bindConsultationList(list) {
     list.onclick = (event) => {
-      const target = event.target, remove9 = target?.closest("[data-quitar]"), move3 = target?.closest("[data-cmov]");
+      const target = event.target, remove9 = target?.closest("[data-quitar]"), move4 = target?.closest("[data-cmov]");
       if (remove9) {
         remove9.closest(".cons")?.remove();
         if (!list.children.length) list.insertAdjacentHTML("beforeend", consultationHtml2({}, nextIndex(list)));
-      } else if (move3) moveConsultation(move3);
+      } else if (move4) moveConsultation(move4);
     };
   }
   var orNull = (text5) => text5 ? text5 : null;
@@ -11431,7 +12978,7 @@
       header4.classList.toggle("ord-desc", current && direction === "desc");
     });
   }
-  function rowHtml(row4, onAccessLoaded) {
+  function rowHtml2(row4, onAccessLoaded) {
     const cells = visibleColumns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row4, column.k, onAccessLoaded)}</span>`).join("");
     const place5 = [row4.centro_nombre, row4.municipio].filter(Boolean).join(" · ");
     const card4 = `<span class="plcard"><b>${row4.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row4.nombre ?? "")}</b><span class="plc2">${escapeHtml(place5)}</span><span class="plc3">${cell(row4, "estado_comercial", onAccessLoaded)}</span></span>`;
@@ -11598,7 +13145,7 @@
       if (head) head.innerHTML = "";
     } else {
       paintHeader();
-      list.innerHTML = rows2.map((row4) => rowHtml(row4, () => {
+      list.innerHTML = rows2.map((row4) => rowHtml2(row4, () => {
         void searchAccounts(true);
       })).join("");
     }
@@ -11678,12 +13225,12 @@
   async function warnedOfDuplicates(data) {
     const firstTown = data.consultas[0]?.municipio ?? null;
     const { data: found } = await legacyDb().rpc("duplicados_de", { p_nombre: data.nombre, p_tipo: data.tipo, p_municipio: firstTown ? firstTown : null });
-    const close4 = (found ?? []).filter((item) => item.pct >= DUPLICATE_PERCENT);
+    const close5 = (found ?? []).filter((item) => item.pct >= DUPLICATE_PERCENT);
     const box5 = document.getElementById("edup"), button2 = document.getElementById("eguardar");
-    if (!close4.length || !box5 || !button2) return false;
+    if (!close5.length || !box5 || !button2) return false;
     box5.innerHTML = `<div class="dupbox"><b>${t("accountsEditor.save.mayExist")}</b>
           <div class="sm">${t("accountsEditor.save.mayExistHint")}</div>
-          ${close4.map(duplicateRow).join("")}</div>`;
+          ${close5.map(duplicateRow).join("")}</div>`;
     button2.textContent = t("accountsEditor.save.createAnyway");
     return true;
   }
@@ -11718,7 +13265,7 @@
     miscLegacy.reloadHome();
     if (savedId) void openAccountCard(savedId);
   }
-  async function save3(state2, button2) {
+  async function save5(state2, button2) {
     for (const step of state2.hooks.before) await step();
     const data = payload(state2.id, state2.account), fields = readCustomFields(document.getElementById("dbody"));
     if (!await readyToSave(state2, data, fields?.falta[0])) return;
@@ -11733,7 +13280,7 @@
     const state2 = { id, account, hooks: { before: [], after: [] }, warned: false };
     const button2 = document.getElementById("eguardar");
     if (button2) button2.onclick = () => {
-      void save3(state2, button2);
+      void save5(state2, button2);
     };
     return state2.hooks;
   }
@@ -11786,9 +13333,9 @@
   }
   async function openEditor(id, type) {
     const loaded = await loadAccount(id, type);
-    const body2 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
-    if (!loaded || !body2 || !dialog11) return;
-    body2.innerHTML = formHtml3(loaded.account, loaded.consultations, id);
+    const body3 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
+    if (!loaded || !body3 || !dialog11) return;
+    body3.innerHTML = formHtml3(loaded.account, loaded.consultations, id);
     const list = document.getElementById("econs"), add2 = document.getElementById("eadd");
     if (list) {
       bindConsultationList(list);
@@ -11798,10 +13345,10 @@
         paintNewPickers(list);
       };
     }
-    const save44 = bindSave(id, loaded.account);
+    const save46 = bindSave(id, loaded.account);
     dialog11.showModal();
-    if (id) await addSalesperson(id, save44);
-    if (loaded.account.tipo === CENTRE5) adaptForCentre(id, save44);
+    if (id) await addSalesperson(id, save46);
+    if (loaded.account.tipo === CENTRE5) adaptForCentre(id, save46);
   }
 
   // src/app/screens/accounts/timetable.ts
@@ -11809,15 +13356,15 @@
   var LOOK_AHEAD_DAYS = 21;
   var NOON = "T12:00:00";
   function nextAttendanceDay(days, from2) {
-    const start2 = from2 || todayIso(), open2 = Object.keys(days ?? {}).filter((key) => days?.[key]);
-    const date = new Date(start2 + NOON);
+    const start4 = from2 || todayIso(), open2 = Object.keys(days ?? {}).filter((key) => days?.[key]);
+    const date = new Date(start4 + NOON);
     for (let step = 1; step <= LOOK_AHEAD_DAYS; step++) {
       date.setDate(date.getDate() + 1);
       const letter = LETTERS[date.getDay()] ?? "";
       if (letter === "D" || letter === "S") continue;
       if (!open2.length || open2.includes(letter)) return toIsoDate(date);
     }
-    return addDays(start2, 1);
+    return addDays(start4, 1);
   }
   async function withTimetables(list) {
     const missing2 = list.filter((item) => !("dias" in item)).map((item) => item.id);
@@ -12276,12 +13823,12 @@
   async function portalActivity(id) {
     if (!canShow2(id, "fportal")) return;
     const { requests: requestList, messages: messageList, hasUser } = await loadPortal(id);
-    const body2 = document.getElementById("fbody");
-    if (!stillShown(id) || !body2 || document.getElementById("fportal")) return;
+    const body3 = document.getElementById("fbody");
+    if (!stillShown(id) || !body3 || document.getElementById("fportal")) return;
     if (!requestList.length && !messageList.length && !hasUser) return;
-    const html = portalHtml(requestList, messageList), visit2 = body2.querySelector("section.fvis");
+    const html = portalHtml(requestList, messageList), visit2 = body3.querySelector("section.fvis");
     if (visit2) visit2.insertAdjacentHTML("afterend", html);
-    else body2.insertAdjacentHTML("beforeend", html);
+    else body3.insertAdjacentHTML("beforeend", html);
     bindPortal(id);
     if (messageList.some((message4) => message4.del_portal && !message4.leido_en)) void callRpc("leer_mensajes_cuenta", { p_cuenta: id });
   }
@@ -12323,15 +13870,15 @@
     if (!canShow2(id, "fprodc") || !await isCentre2(id) || !canShow2(id, "fprodc")) return;
     const catalog2 = await portalLegacy.products();
     const { data: chosenRows } = await legacyDb().from("productos_cuenta").select("producto_id,precio").eq("cuenta_id", id);
-    const body2 = document.getElementById("fbody");
-    if (!body2 || !canShow2(id, "fprodc")) return;
+    const body3 = document.getElementById("fbody");
+    if (!body3 || !canShow2(id, "fprodc")) return;
     const html = productsHtml(catalog2, chosenRows ?? []);
-    const after = document.getElementById("fportal") ?? body2.querySelector("section.fvis");
+    const after = document.getElementById("fportal") ?? body3.querySelector("section.fvis");
     if (after) after.insertAdjacentHTML("afterend", html);
-    else body2.insertAdjacentHTML("beforeend", html);
-    const save44 = document.getElementById("fpcok");
-    if (save44) save44.onclick = () => {
-      void saveProducts(id, save44);
+    else body3.insertAdjacentHTML("beforeend", html);
+    const save46 = document.getElementById("fpcok");
+    if (save46) save46.onclick = () => {
+      void saveProducts(id, save46);
     };
   }
 
@@ -12343,11 +13890,11 @@
     if (!stillShown(id) || !select3) return;
     const options5 = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
     select3.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options5}`;
-    const save44 = document.getElementById("fcomok");
-    if (save44) save44.onclick = async () => {
-      save44.disabled = true;
+    const save46 = document.getElementById("fcomok");
+    if (save46) save46.onclick = async () => {
+      save46.disabled = true;
       const { data: result, error } = await legacyDb().rpc("asignar_responsable_cuenta", { p_medico: id, p_usuario: select3.value || null });
-      save44.disabled = false;
+      save46.disabled = false;
       if (error || result?.ok === false) {
         notices.toast(t("accounts.sales.couldNotAssign"), true);
         return;
@@ -12379,11 +13926,11 @@
     };
   }
   async function salesRepAndPatients(id) {
-    const body2 = document.getElementById("fbody");
-    if (!stillShown(id) || !body2?.querySelector(".fh")) return;
+    const body3 = document.getElementById("fbody");
+    if (!stillShown(id) || !body3?.querySelector(".fh")) return;
     const admin = cardSectionsLegacy.can("administrar");
     if (admin) {
-      body2.insertAdjacentHTML("beforeend", `<div class="blk" id="fcomblk"><h3>${t("accounts.sales.repTitle")}</h3>
+      body3.insertAdjacentHTML("beforeend", `<div class="blk" id="fcomblk"><h3>${t("accounts.sales.repTitle")}</h3>
       <div style="display:flex;gap:8px"><select id="fcomsel" style="flex:1"><option>${t("accounts.sales.loading")}</option></select>
         <button class="btn sec" id="fcomok">${t("accounts.sales.save")}</button></div>
       <div class="sm" style="margin-top:6px">${t("accounts.sales.repNote")}</div></div>`);
@@ -12495,8 +14042,8 @@
       <div class="acts"><button class="btn sec" id="tcres">${t("accounts.columns.restore")}</button></div></div>`;
   }
   function bindPanel(filters3, panel, settings2, apply2) {
-    const close4 = panel.querySelector("#tclose");
-    if (close4) close4.onclick = () => {
+    const close5 = panel.querySelector("#tclose");
+    if (close5) close5.onclick = () => {
       panel.classList.remove("abierto");
       filters3.classList.remove("abierto");
     };
@@ -12527,7 +14074,7 @@
         settings2[from2] = other;
         settings2[to] = moved;
         apply2(settings2);
-        paint2(filters3, panel, settings2, apply2);
+        paint4(filters3, panel, settings2, apply2);
       };
     });
     const restore = panel.querySelector("#tcres");
@@ -12535,10 +14082,10 @@
       resetColumns();
       const fresh = columnSettings();
       apply2(fresh);
-      paint2(filters3, panel, fresh, apply2);
+      paint4(filters3, panel, fresh, apply2);
     };
   }
-  function paint2(filters3, panel, settings2, apply2) {
+  function paint4(filters3, panel, settings2, apply2) {
     panel.innerHTML = panelHtml(settings2);
     bindPanel(filters3, panel, settings2, apply2);
   }
@@ -12549,16 +14096,16 @@
       saveColumns(list);
       onChange();
     };
-    paint2(filters3, panel, columnSettings(), apply2);
+    paint4(filters3, panel, columnSettings(), apply2);
     filters3.classList.add("abierto");
     panel.classList.add("abierto");
   }
   function listenToColumnResize(paintHeader3) {
     let drag = null;
     document.addEventListener("pointerdown", (event) => {
-      const handle = event.target instanceof Element ? event.target.closest("i.res[data-res]") : null;
-      if (!handle) return;
-      const settings2 = columnSettings(), column = settings2.find((item) => item.k === handle.dataset.res);
+      const handle2 = event.target instanceof Element ? event.target.closest("i.res[data-res]") : null;
+      if (!handle2) return;
+      const settings2 = columnSettings(), column = settings2.find((item) => item.k === handle2.dataset.res);
       if (!column) return;
       event.preventDefault();
       drag = { key: column.k, startX: event.clientX, startWidth: column.w, settings: settings2 };
@@ -12731,8 +14278,8 @@
   }
   async function readKinds(ids) {
     duplicatesState.kindById = /* @__PURE__ */ new Map();
-    for (let start2 = 0; start2 < ids.length; start2 += KINDS_PER_READ) {
-      const { data } = await legacyDb().from("cuentas").select("id, tipo").in("id", ids.slice(start2, start2 + KINDS_PER_READ));
+    for (let start4 = 0; start4 < ids.length; start4 += KINDS_PER_READ) {
+      const { data } = await legacyDb().from("cuentas").select("id, tipo").in("id", ids.slice(start4, start4 + KINDS_PER_READ));
       (data ?? []).forEach((account) => {
         duplicatesState.kindById.set(account.id, orFallback(account.tipo, PERSON));
       });
@@ -12829,10 +14376,10 @@
     const list = document.getElementById("lista");
     if (list) list.innerHTML = "";
   }
-  function paint3(panel, view) {
+  function paint5(panel, view) {
     panel.innerHTML = panelHtml2(view);
-    const close4 = document.getElementById("dcx");
-    if (close4) close4.onclick = () => {
+    const close5 = document.getElementById("dcx");
+    if (close5) close5.onclick = () => {
       duplicatesState.current = null;
       document.querySelectorAll("#v-duplicados .item.sel").forEach((item) => {
         item.classList.remove("sel");
@@ -12842,14 +14389,14 @@
     panel.querySelectorAll("[data-queda]").forEach((option7) => {
       option7.onclick = () => {
         view.stays = option7.dataset.queda ?? view.stays;
-        paint3(panel, view);
+        paint5(panel, view);
       };
     });
     panel.querySelectorAll("[data-campo]").forEach((option7) => {
       option7.onclick = () => {
         const [key = "", side] = (option7.dataset.campo ?? "").split("|");
         view.fields[key] = side === "va" ? "va" : "queda";
-        paint3(panel, view);
+        paint5(panel, view);
       };
     });
     bindCentres(panel, view.centres);
@@ -12886,7 +14433,7 @@
     unifyFields().forEach(([key]) => {
       fields[key] = kept[key] ? "queda" : other[key] ? "va" : "queda";
     });
-    paint3(panel, { a: other, b: kept, sheets, rows: rows2, centres: await centreChoice(sheets, rows2), stays: kept.id, fields });
+    paint5(panel, { a: other, b: kept, sheets, rows: rows2, centres: await centreChoice(sheets, rows2), stays: kept.id, fields });
   }
 
   // src/app/screens/accounts/duplicates/page.ts
@@ -12913,8 +14460,8 @@
     if (back) back.onclick = () => {
       goTo("seguimiento");
     };
-    const close4 = document.getElementById("dvolver");
-    if (close4) close4.onclick = () => {
+    const close5 = document.getElementById("dvolver");
+    if (close5) close5.onclick = () => {
       const previous = miscLegacy.previousScreen();
       goTo(previous && previous !== "duplicados" ? previous : "directorio");
     };
@@ -13003,7 +14550,7 @@
     if (found?.fuera) notices.toast(t("accountsMore.centreEditor.elsewhere", { place: found.fuera, town: value4("ecm") }), true);
     return { lat: centre.lat, lon: centre.lon };
   }
-  async function save4(centre, button2, reopen3) {
+  async function save6(centre, button2, reopen3) {
     if (!value4("ecn")) {
       notices.toast(t("accountsMore.centreEditor.writeName"), true);
       return;
@@ -13035,16 +14582,16 @@
     void reopen3(centre.id);
   }
   function editCentre(centre, reopen3) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = editorHtml2(centre);
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = editorHtml2(centre);
     const back = document.getElementById("ecvolver");
     if (back) back.onclick = () => {
       void reopen3(centre.id);
     };
     const ok = document.getElementById("ecok");
     if (ok) ok.onclick = () => {
-      void save4(centre, ok, reopen3);
+      void save6(centre, ok, reopen3);
     };
   }
 
@@ -13107,7 +14654,7 @@
     notices.toast(t("accountsMore.centre.removed", { name: item.nombre, centre: centre.nombre }));
     void showCentre(centre.id);
   }
-  function bind3(body2, box5, sheet, centre) {
+  function bind3(body3, box5, sheet, centre) {
     const on6 = (id, action) => {
       const button2 = document.getElementById(id);
       if (button2) button2.onclick = () => {
@@ -13126,19 +14673,19 @@
       editorLegacy.pickAccount(place5, null, (account) => addProfessional(centre, account));
       place5?.querySelector("input")?.focus();
     });
-    body2.querySelectorAll("[data-fcf]").forEach((button2) => {
+    body3.querySelectorAll("[data-fcf]").forEach((button2) => {
       button2.onclick = () => {
         box5.close();
         appointmentLegacy.openAccountFromCentre(button2.dataset.fcf ?? "", centre.nombre);
       };
     });
-    body2.querySelectorAll("[data-fcc]").forEach((button2) => {
+    body3.querySelectorAll("[data-fcc]").forEach((button2) => {
       button2.onclick = () => {
         miscLegacy.setCardCentre(centre.nombre);
         agendaActions.newAppointment(button2.dataset.fcc ?? "", null);
       };
     });
-    body2.querySelectorAll("[data-fcq]").forEach((button2) => {
+    body3.querySelectorAll("[data-fcq]").forEach((button2) => {
       button2.onclick = () => {
         const item = (sheet.profesionales ?? []).find((other) => other.id === button2.dataset.fcq);
         if (item) void removeProfessional(centre, item);
@@ -13146,10 +14693,10 @@
     });
   }
   async function showCentre(id) {
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
     box5.classList.remove("pequena");
-    body2.innerHTML = `${header(t("accountsMore.centre.title"))}
+    body3.innerHTML = `${header(t("accountsMore.centre.title"))}
     <div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>`;
     if (!box5.open) box5.showModal();
     const [{ data: sheet, error }, { data: account }] = await Promise.all([
@@ -13158,19 +14705,19 @@
     ]);
     if (!box5.open) return;
     if (error || !sheet?.datos) {
-      body2.innerHTML = `${header(t("accountsMore.centre.title"))}
+      body3.innerHTML = `${header(t("accountsMore.centre.title"))}
       <div class="banda-peligro">${t("accountsMore.centre.couldNotOpen", { error: error ? `: ${escapeHtml(orFallback(error.message, ""))}` : "" })}</div>`;
       return;
     }
-    body2.innerHTML = sheetHtml(sheet, sheet.datos, account?.id ?? null);
-    bind3(body2, box5, sheet, sheet.datos);
+    body3.innerHTML = sheetHtml(sheet, sheet.datos, account?.id ?? null);
+    bind3(body3, box5, sheet, sheet.datos);
   }
 
   // src/app/screens/accounts/nearby.ts
   var RADIUS_KM = 10;
   var LIMIT = 100;
   var TIMEOUT_MS = 15e3;
-  function rowHtml2(item) {
+  function rowHtml3(item) {
     const urgent = item.urgente ? `<span class="pill p-urg">${t("accountsMore.nearby.urgent")}</span> ` : "";
     const noReporting = item.sin_reporting ? `<span class="pill p-sr" title="${t("accountsMore.nearby.noReportingTitle", { visit: term("visita") })}">${t("accountsMore.nearby.noReporting")}</span> ` : "";
     return `<button class="trow" data-id="${item.id}" style="padding:10px 14px;gap:12px">
@@ -13190,7 +14737,7 @@
     if (head) head.innerHTML = "";
     if (count2) count2.innerHTML = `${t("accountsMore.nearby.count", { count: formatNumber(list.length), professionals: term("medico", { number: list.length === 1 ? "s" : "p" }) })}
     <button class="kcfg" id="cercacerrar" style="margin-left:10px">${t("accountsMore.nearby.back")}</button>`;
-    if (rows2) rows2.innerHTML = shown5.length ? shown5.map(rowHtml2).join("") : `<div class="vacio">${t("accountsMore.nearby.none", { professionals: term("medico", { number: "p" }) })}</div>`;
+    if (rows2) rows2.innerHTML = shown5.length ? shown5.map(rowHtml3).join("") : `<div class="vacio">${t("accountsMore.nearby.none", { professionals: term("medico", { number: "p" }) })}</div>`;
     pages4?.classList.remove("hide");
     accountListLegacy.paginate({
       element: pages4,
@@ -13206,8 +14753,8 @@
         paintNearby();
       }
     });
-    const close4 = document.getElementById("cercacerrar");
-    if (close4) close4.onclick = () => {
+    const close5 = document.getElementById("cercacerrar");
+    if (close5) close5.onclick = () => {
       miscLegacy.setNearby(null);
       void searchAccounts(true);
     };
@@ -13351,14 +14898,14 @@
   }
   function pickAccount(element4, options5) {
     let chosen5 = options5.valor ?? null;
-    const paint20 = () => {
+    const paint22 = () => {
       if (chosen5) {
         element4.innerHTML = cardHtml2(chosen5);
         const remove9 = element4.querySelector(".sx");
         if (remove9) remove9.onclick = () => {
           chosen5 = null;
           Reflect.set(element4, TYPED, "");
-          paint20();
+          paint22();
           void options5.alElegir?.(null);
           setTimeout(() => {
             element4.querySelector("input")?.focus();
@@ -13373,7 +14920,7 @@
       const context = { element: element4, box: box5, results, input: input10, asked: 0, choose: (account) => {
         chosen5 = account;
         Reflect.set(element4, TYPED, "");
-        paint20();
+        paint22();
         void options5.alElegir?.(account);
       } };
       input10.oninput = () => {
@@ -13392,7 +14939,7 @@
         }
       };
     };
-    paint20();
+    paint22();
     Reflect.set(element4, "__valor", () => chosen5);
   }
 
@@ -13491,7 +15038,7 @@
   // src/app/screens/accounts/portfolio.ts
   var LIMIT2 = 500;
   var SEARCH_WAIT_MS4 = 300;
-  function rowHtml3(account) {
+  function rowHtml4(account) {
     const last = account.ultima_visita ? ` · ${term("visita", { article: "ultimo" })} ${formatShortDate(account.ultima_visita)}` : ` · ${t("accountsEditor.portfolio.notVisited")}`;
     return `<div class="item" style="cursor:default">
         <span class="ic ${account.urgente ? "w" : ""}">${account.urgente ? "!" : "·"}</span>
@@ -13508,7 +15055,7 @@
         <div class="sm">${formatNumber(list.length)} ${assigned}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       <input id="cbusca" value="${escapeHtml(query)}" placeholder="${t("accountsEditor.portfolio.search")}">
-      <div class="lista" style="max-height:52vh;overflow:auto">${list.map(rowHtml3).join("") || `<div class="vacio">${t("accountsEditor.portfolio.none", { assigned })}</div>`}</div>
+      <div class="lista" style="max-height:52vh;overflow:auto">${list.map(rowHtml4).join("") || `<div class="vacio">${t("accountsEditor.portfolio.none", { assigned })}</div>`}</div>
       <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cmas">${t("accountsEditor.portfolio.assignMore", { professionals: term("medico", { number: "p" }) })}</button></div>`;
   }
   async function removeFrom(userId, accountId, repaint5) {
@@ -13522,29 +15069,29 @@
     repaint5();
     accountsEditorLegacy.reloadAdmin();
   }
-  async function paint4(userId, name, query) {
+  async function paint6(userId, name, query) {
     const { data } = await legacyDb().rpc("cartera_usuario", { p_usuario: userId, q: query || null, lim: LIMIT2 });
-    const body2 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
-    if (!body2 || !dialog11) return;
-    body2.innerHTML = pageHtml2(name, data ?? [], query);
+    const body3 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
+    if (!body3 || !dialog11) return;
+    body3.innerHTML = pageHtml2(name, data ?? [], query);
     let timer3;
     const search9 = document.getElementById("cbusca");
     if (search9) search9.oninput = () => {
       clearTimeout(timer3);
       timer3 = setTimeout(() => {
-        void paint4(userId, name, search9.value.trim());
+        void paint6(userId, name, search9.value.trim());
       }, SEARCH_WAIT_MS4);
     };
-    body2.querySelectorAll("[data-cficha]").forEach((button2) => {
+    body3.querySelectorAll("[data-cficha]").forEach((button2) => {
       button2.onclick = () => {
         dialog11.close();
         void openAccountCard(button2.dataset.cficha ?? "");
       };
     });
-    body2.querySelectorAll("[data-cquita]").forEach((button2) => {
+    body3.querySelectorAll("[data-cquita]").forEach((button2) => {
       button2.onclick = () => {
         void removeFrom(userId, button2.dataset.cquita ?? "", () => {
-          void paint4(userId, name, query);
+          void paint6(userId, name, query);
         });
       };
     });
@@ -13556,10 +15103,10 @@
   }
   async function showPortfolio(userId) {
     const user = accountsEditorLegacy.teamUsers().find((item) => item.id === userId);
-    const body2 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
-    showLoading(body2, t("accountsEditor.portfolio.loading"));
+    const body3 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
+    showLoading(body3, t("accountsEditor.portfolio.loading"));
     dialog11?.showModal();
-    await paint4(userId, user?.nombre ?? "", "");
+    await paint6(userId, user?.nombre ?? "", "");
   }
 
   // src/app/screens/accounts/status.ts
@@ -13759,13 +15306,13 @@
     const cells = range(days).map((index) => `${month}-${String(index + 1).padStart(2, "0")}`);
     return header4 + "<span></span>".repeat(blanks) + cells.map((day) => dayCell(day, perDay.get(day) ?? 0, today2)).join("");
   }
-  function headerHtml2(month, current) {
+  function headerHtml3(month, current) {
     return `<button type="button" class="kmv agmnav" data-agm="-1" aria-label="${t("agenda.month.previous")}">‹</button>
     <button type="button" class="agmtit" id="agmtit" aria-label="${t("agenda.month.choose")}">${escapeHtml(capitalise(formatMonth(month)))}</button>
     <button type="button" class="kmv agmnav" data-agm="1" aria-label="${t("agenda.month.next")}">›</button>
     ${month !== current ? `<button type="button" class="btn sec agmhoy" id="agmhoy">${t("agenda.month.today")}</button>` : ""}`;
   }
-  function onClick2(element4, action) {
+  function onClick4(element4, action) {
     if (element4 instanceof HTMLElement) element4.onclick = (event) => {
       event.stopPropagation();
       action();
@@ -13773,15 +15320,15 @@
   }
   function bindHeader(box5, month, current) {
     box5.querySelectorAll("[data-agm]").forEach((button2) => {
-      onClick2(button2, () => {
+      onClick4(button2, () => {
         void renderMonth(shiftMonth(month, Number(button2.dataset.agm)));
       });
     });
-    onClick2(document.getElementById("agmhoy"), () => {
+    onClick4(document.getElementById("agmhoy"), () => {
       void renderMonth(current);
     });
     const title2 = document.getElementById("agmtit");
-    onClick2(title2, () => {
+    onClick4(title2, () => {
       if (title2) openMonthPicker(month, title2);
     });
   }
@@ -13790,7 +15337,7 @@
     box5.querySelectorAll(".agmc[data-agdia]").forEach((button2) => {
       const day = button2.dataset.agdia ?? "";
       button2.classList.toggle("sel", day === selected3 && selected3 !== today2);
-      onClick2(button2, () => {
+      onClick4(button2, () => {
         legacyAgenda.showDay(day);
       });
     });
@@ -13811,7 +15358,7 @@
     const box22 = calendar(), header4 = box22?.querySelector(".fh");
     if (!box22 || !header4) return;
     header4.classList.add("agmesh");
-    header4.innerHTML = headerHtml2(target, current);
+    header4.innerHTML = headerHtml3(target, current);
     bindHeader(header4, target, current);
     bindDays(box22);
   }
@@ -13823,7 +15370,7 @@
     const picker = document.createElement("div");
     picker.className = "agmpop";
     const names = shortMonthNames();
-    const paint20 = () => {
+    const paint22 = () => {
       picker.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="${t("agenda.month.previousYear")}">‹</button><b>${year}</b>
       <button type="button" class="kmv" data-an="1" aria-label="${t("agenda.month.nextYear")}">›</button></div>
       <div class="agmpopg">${names.map((name, index) => {
@@ -13831,19 +15378,19 @@
         return `<button type="button" data-mk="${key}" class="${key === month ? "on" : ""}">${name}</button>`;
       }).join("")}</div>`;
       picker.querySelectorAll("[data-an]").forEach((button2) => {
-        onClick2(button2, () => {
+        onClick4(button2, () => {
           year += Number(button2.dataset.an);
-          paint20();
+          paint22();
         });
       });
       picker.querySelectorAll("[data-mk]").forEach((button2) => {
-        onClick2(button2, () => {
+        onClick4(button2, () => {
           picker.remove();
           void renderMonth(button2.dataset.mk);
         });
       });
     };
-    paint20();
+    paint22();
     document.body.appendChild(picker);
     const rect = anchor.getBoundingClientRect(), width = Math.min(PICKER_WIDTH, innerWidth - 20);
     picker.style.width = `${width}px`;
@@ -13983,7 +15530,7 @@
     const title2 = person.visitar ? t("agenda.sameCentre.addAppointment", { reason: person.visitar }) : t("agenda.sameCentre.seeCard") + missing2;
     return `<button type="button" data-agti="${person.id}" data-agtv="${person.visitar ? 1 : ""}" title="${escapeHtml(title2)}">${person.visitar ? "<i>+</i> " : ""}${escapeHtml(person.nombre)}</button>`;
   }
-  function blockHtml3(group, people, isoDate) {
+  function blockHtml4(group, people, isoDate) {
     const chips2 = groupByAttendance(people.slice(0, SHOWN_PEOPLE), isoDate).map(({ title: title2, people: list }) => `<div class="agtambg"><span class="agtambgt">${escapeHtml(title2)}</span><div class="agtambl">${list.map(personChip).join("")}</div></div>`).join("") + (people.length > SHOWN_PEOPLE ? `<span class="sm">${t("agenda.sameCentre.andMore", { count: people.length - SHOWN_PEOPLE })}</span>` : "");
     const centre = group.centro_id ? escapeHtml(group.centro_id) : "";
     const opener = centre ? ` data-agtc="${centre}" role="button" tabindex="0" title="${t("agenda.sameCentre.openCentre")}"` : "";
@@ -13993,25 +15540,25 @@
     return new Set(legacyAgenda.dayAppointments().filter((item) => !appointments.isCancelled(item.estado)).map((item) => item.cuenta_id));
   }
   function paintSameCentre() {
-    const body2 = document.getElementById("agcuerpo"), suggestions = agendaSuggestions.forDay(), isoDate = legacyAgenda.selectedDate();
-    if (!body2 || !suggestions || !isoDate || suggestions.fecha !== isoDate) return;
-    body2.querySelectorAll(".agtamb").forEach((element4) => {
+    const body3 = document.getElementById("agcuerpo"), suggestions = agendaSuggestions.forDay(), isoDate = legacyAgenda.selectedDate();
+    if (!body3 || !suggestions || !isoDate || suggestions.fecha !== isoDate) return;
+    body3.querySelectorAll(".agtamb").forEach((element4) => {
       element4.remove();
     });
-    const cards2 = [...body2.querySelectorAll(".tdu[data-tdu]")];
+    const cards2 = [...body3.querySelectorAll(".tdu[data-tdu]")];
     if (!cards2.length) return;
-    const byId16 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    const byId17 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
     const already = withAppointmentToday(), used = /* @__PURE__ */ new Set();
     suggestions.centros.forEach((group) => {
       const people = (group.cuentas ?? group.medicos ?? []).filter((person) => !already.has(person.id));
       if (!people.length) return;
       const card4 = cards2.find((element4) => {
-        const appointment = byId16.get(element4.dataset.tdu ?? "");
+        const appointment = byId17.get(element4.dataset.tdu ?? "");
         return appointment !== void 0 && !used.has(element4) && isSameCentre(group, appointment);
       });
       if (!card4) return;
       used.add(card4);
-      (card4.querySelector(".tdu-pie") ?? card4.lastElementChild)?.insertAdjacentHTML("beforebegin", blockHtml3(group, people, isoDate));
+      (card4.querySelector(".tdu-pie") ?? card4.lastElementChild)?.insertAdjacentHTML("beforebegin", blockHtml4(group, people, isoDate));
     });
   }
   function listenToSameCentre() {
@@ -14085,8 +15632,8 @@
     ];
   }
   function stripLoads() {
-    const start2 = agendaSources.stripStart() ?? mondayOf(legacyAgenda.selectedDate() ?? todayIso()), owner = agendaSources.ownerId();
-    return [loadRange(start2, addDays(start2, STRIP_DAYS - 1), owner, `agenda-cinta-${owner}-${start2}`), loadBlocked(start2, addDays(start2, STRIP_DAYS - 1))];
+    const start4 = agendaSources.stripStart() ?? mondayOf(legacyAgenda.selectedDate() ?? todayIso()), owner = agendaSources.ownerId();
+    return [loadRange(start4, addDays(start4, STRIP_DAYS - 1), owner, `agenda-cinta-${owner}-${start4}`), loadBlocked(start4, addDays(start4, STRIP_DAYS - 1))];
   }
   function weekLoads(isoDate) {
     const monday = mondayOf(isoDate ?? legacyAgenda.selectedDate() ?? todayIso());
@@ -14105,11 +15652,11 @@
   function applySuggestions(isoDate, suggestions) {
     if (suggestions?.date === isoDate) agendaSources.setSuggestions(isoDate, suggestions);
   }
-  async function withData(loads, paint20) {
+  async function withData(loads, paint22) {
     painting++;
     try {
       await Promise.all(loads.filter(Boolean).map((load4) => Promise.resolve(load4).catch(() => null)));
-      return await paint20();
+      return await paint22();
     } finally {
       setTimeout(() => {
         painting--;
@@ -14224,7 +15771,7 @@
     setAnimation: (frame) => {
       RM_ANIM = frame;
     },
-    invokeRoutes: (body2) => db.functions.invoke("rutas", { body: body2 })
+    invokeRoutes: (body3) => db.functions.invoke("rutas", { body: body3 })
   };
 
   // src/app/screens/routes/planner/settings.ts
@@ -14289,10 +15836,10 @@
     const fixed2 = pending.filter((item) => item.fija !== null).sort((first2, second) => (first2.fija ?? 0) - (second.fija ?? 0))[0];
     let best = null;
     for (const item of pending) {
-      const arrival = arrivalAt(item, walk.pos, walk.time, walk.first), start2 = routes2Legacy.possibleStart(item, arrival, length);
-      if (start2 === null || start2 + length + routes2Legacy.travelMinutes(item.xy ?? walk.pos, home) > limit) continue;
-      if (makesLate(item, fixed2, start2 + length)) continue;
-      if (!best || start2 - walk.time < best.cost) best = { it: item, lleg: arrival, ini: start2, cost: start2 - walk.time };
+      const arrival = arrivalAt(item, walk.pos, walk.time, walk.first), start4 = routes2Legacy.possibleStart(item, arrival, length);
+      if (start4 === null || start4 + length + routes2Legacy.travelMinutes(item.xy ?? walk.pos, home) > limit) continue;
+      if (makesLate(item, fixed2, start4 + length)) continue;
+      if (!best || start4 - walk.time < best.cost) best = { it: item, lleg: arrival, ini: start4, cost: start4 - walk.time };
     }
     return best;
   }
@@ -14302,7 +15849,7 @@
     if (windows?.every(([, to]) => to <= time)) return t("routesMore.planner.hoursOver", { hours: routes2Legacy.windowsText(windows) });
     return t("routesMore.planner.noTimeToComeBack");
   }
-  function scheduleVisits(items, start2) {
+  function scheduleVisits(items, start4) {
     const home = homePoint(), length = planSettings().visita;
     const seq = [], fuera = [];
     let pending = [];
@@ -14311,7 +15858,7 @@
       else if (!item.xy) fuera.push({ it: item, motivo: t("routesMore.planner.noLocation") });
       else pending.push(item);
     }
-    const walk = { pos: home, time: start2, first: true };
+    const walk = { pos: home, time: start4, first: true };
     while (pending.length) {
       const best = bestNext(pending, walk, home);
       if (!best) break;
@@ -14327,11 +15874,11 @@
   function orderByDistance(list) {
     return withHours(routes2Legacy.hoursOfAppointments(list), () => {
       const isoDate = orFallback(list[0]?.fecha, orFallback(routes2Legacy.selectedDate(), ""));
-      let start2 = routes2Legacy.minutesOf(planSettings().salida) ?? 0;
-      if (isoDate === todayIso()) start2 = Math.max(start2, nowRounded());
+      let start4 = routes2Legacy.minutesOf(planSettings().salida) ?? 0;
+      if (isoDate === todayIso()) start4 = Math.max(start4, nowRounded());
       const closed = list.filter((item) => !appointments.isOpen(item.estado)), open2 = list.filter((item) => appointments.isOpen(item.estado));
       const items = open2.map((item) => ({ id: item.id, ref: item, xy: routes2Legacy.pointOf(item), ventanas: routes2Legacy.windowsOf(item.dias, isoDate), fija: routes2Legacy.minutesOf(item.hora) }));
-      const { seq, fuera } = scheduleVisits(items, start2);
+      const { seq, fuera } = scheduleVisits(items, start4);
       return { list: [...closed, ...seq.map((step) => step.it.ref), ...fuera.map((step) => step.it.ref)], left: fuera.length };
     });
   }
@@ -14344,20 +15891,20 @@
     return !(windows && !windows.length);
   };
   function startOn(isoDate) {
-    const start2 = routes2Legacy.minutesOf(planSettings().salida) ?? 0;
-    return isoDate === todayIso() ? Math.max(start2, nowRounded()) : start2;
+    const start4 = routes2Legacy.minutesOf(planSettings().salida) ?? 0;
+    return isoDate === todayIso() ? Math.max(start4, nowRounded()) : start4;
   }
   function dayEntries(pending, isoDate, options5, uid) {
-    const available = pending.filter((item) => attendsOn(item.m, isoDate));
-    if (!available.length) return { entries: [], chosen: /* @__PURE__ */ new Set() };
+    const available2 = pending.filter((item) => attendsOn(item.m, isoDate));
+    if (!available2.length) return { entries: [], chosen: /* @__PURE__ */ new Set() };
     const home = homePoint(), dayCount = (item) => options5.days.filter((day) => attendsOn(item.m, day)).length;
-    available.sort((first2, second) => dayCount(first2) - dayCount(second) || (second.m.urgente ? 1 : 0) - (first2.m.urgente ? 1 : 0) || routes2Legacy.km(home, first2.xy) - routes2Legacy.km(home, second.xy));
-    const seed = available[0]?.xy ?? home;
-    const close4 = available.slice().sort((first2, second) => routes2Legacy.km(seed, first2.xy) - routes2Legacy.km(seed, second.xy)).slice(0, CLOSEST);
+    available2.sort((first2, second) => dayCount(first2) - dayCount(second) || (second.m.urgente ? 1 : 0) - (first2.m.urgente ? 1 : 0) || routes2Legacy.km(home, first2.xy) - routes2Legacy.km(home, second.xy));
+    const seed = available2[0]?.xy ?? home;
+    const close5 = available2.slice().sort((first2, second) => routes2Legacy.km(seed, first2.xy) - routes2Legacy.km(seed, second.xy)).slice(0, CLOSEST);
     const existing = (options5.perDay[isoDate] ?? []).filter((item) => item.usuario_id === uid && appointments.isOpen(item.estado));
     const items = [
       ...existing.map((item) => ({ id: item.id, ref: { existente: item }, xy: routes2Legacy.pointOf(item), ventanas: windowsOn(item.dias, isoDate), fija: routes2Legacy.minutesOf(item.hora) })),
-      ...close4.map((item) => ({ id: item.m.id, ref: { p: item }, xy: item.xy, ventanas: windowsOn(item.m.dias, isoDate), fija: null }))
+      ...close5.map((item) => ({ id: item.m.id, ref: { p: item }, xy: item.xy, ventanas: windowsOn(item.m.dias, isoDate), fija: null }))
     ];
     const { seq } = scheduleVisits(items, startOn(isoDate));
     let fresh = seq.filter((step) => step.it.ref.p);
@@ -14366,10 +15913,10 @@
     const entries = seq.filter((step) => step.it.ref.existente ?? (step.it.ref.p && chosen5.has(step.it.ref.p))).map((step) => toEntry(step.it.ref, step.ini, isoDate));
     return { entries, chosen: chosen5 };
   }
-  function toEntry(ref, start2, isoDate) {
+  function toEntry(ref, start4, isoDate) {
     if (ref.existente || !ref.p) return ref.existente ? { existente: ref.existente } : {};
     const { m: candidate, xy } = ref.p;
-    return { m: candidate, ini: start2, cita: { id: `nueva-${candidate.id}`, fecha: isoDate, dias: candidate.dias, lat: xy[0], lon: xy[1] } };
+    return { m: candidate, ini: start4, cita: { id: `nueva-${candidate.id}`, fecha: isoDate, dias: candidate.dias, lat: xy[0], lon: xy[1] } };
   }
   function splitWeek(list, options5) {
     const uid = routes2Legacy.agendaOwner();
@@ -14494,9 +16041,9 @@
     const { data } = await callRpc("rutas_visibles", {});
     const viewed = agendaState.viewed(), owner = routes2Legacy.agendaOwner();
     const routes2 = (data ?? []).filter((route) => !viewed || route.usuario_id === owner || route.visible_para === "*");
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml4(days, free, blocked, routes2);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml4(days, free, blocked, routes2);
     box5.showModal();
     const ok = document.getElementById("spok");
     if (ok) ok.onclick = () => {
@@ -14549,7 +16096,7 @@
   }
 
   // src/app/screens/agenda/day-menu.ts
-  var EDGE = 10;
+  var EDGE2 = 10;
   var GAP = 6;
   function options(isoDate, blocked) {
     const coming = isoDate >= todayIso();
@@ -14562,8 +16109,8 @@
   }
   function place(menu, button2) {
     const box5 = button2.getBoundingClientRect();
-    menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - EDGE, box5.bottom + GAP)}px`;
-    menu.style.left = `${Math.max(EDGE, Math.min(window.innerWidth - menu.offsetWidth - EDGE, box5.right - menu.offsetWidth))}px`;
+    menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - EDGE2, box5.bottom + GAP)}px`;
+    menu.style.left = `${Math.max(EDGE2, Math.min(window.innerWidth - menu.offsetWidth - EDGE2, box5.right - menu.offsetWidth))}px`;
   }
   async function setBlocked(isoDate, block4) {
     let reason = null;
@@ -14632,8 +16179,8 @@
               ${time}${escapeHtml(firstName(item.nombre))}${other}</span>`;
   }
   function proposedChip(item) {
-    const start2 = item.ini === null || item.ini === void 0 ? "" : formatMinutes(item.ini);
-    return `<span class="semcita nueva" title="${t("agenda.openWeek.proposal", { name: escapeHtml(item.m.nombre) })}${start2 ? ` · ~${start2}` : ""}"><i>~${start2}</i>${escapeHtml(firstName(item.m.nombre))}</span>`;
+    const start4 = item.ini === null || item.ini === void 0 ? "" : formatMinutes(item.ini);
+    return `<span class="semcita nueva" title="${t("agenda.openWeek.proposal", { name: escapeHtml(item.m.nombre) })}${start4 ? ` · ~${start4}` : ""}"><i>~${start4}</i>${escapeHtml(firstName(item.m.nombre))}</span>`;
   }
   function dayColumn(day, data) {
     const all2 = (data.perDay[day] ?? []).filter((item) => !NOT_SHOWN.includes(item.estado));
@@ -14748,9 +16295,9 @@
       weekPlanner.discardDraft();
       reloadAgenda();
     };
-    const save44 = box5.querySelector("#semguardar");
-    if (save44) save44.onclick = () => {
-      void saveWeekDraft(save44);
+    const save46 = box5.querySelector("#semguardar");
+    if (save46) save46.onclick = () => {
+      void saveWeekDraft(save46);
     };
     box5.querySelectorAll("[data-semdia]").forEach((column) => {
       bindDay(column, data);
@@ -14795,7 +16342,7 @@
     bind4(box5, data);
   }
   function paintOpenWeek() {
-    const paint20 = async () => {
+    const paint22 = async () => {
       const strip = document.getElementById("agcinta");
       if (!legacyAgenda.isDayView() || !strip || !stripState.weekOpen() || document.getElementById("agsemexp")) {
         await render();
@@ -14809,7 +16356,7 @@
         if (box5) box5.style.display = "";
       }
     };
-    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint20) : paint20();
+    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint22) : paint22();
   }
 
   // src/app/screens/agenda/strip.ts
@@ -14844,11 +16391,11 @@
     const label = t(open2 ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
     return `<button type="button" class="btn sec chico" id="cplan" title="${open2 ? label : t("agenda.strip.showWeekTitle")}" aria-expanded="${String(open2)}">${icon("calendar-days")}<span>${label}</span></button>`;
   }
-  function stripHtml(start2, context) {
-    const month = capitalise(formatMonthYear(addDays(start2, 3)));
-    const today2 = mondayOf(context.today) === start2 ? "" : `<button type="button" class="btn sec chico" id="choy">${t("agenda.strip.today")}</button>`;
-    const weeks = [0, WEEK_DAYS3].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start2, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS3).map((index) => dayButton2(addDays(start2, offset + index), context)).join("")}</div></div>`).join("");
-    return `<div class="cinta" id="agcinta" data-ini="${start2}"><div class="ccab">
+  function stripHtml(start4, context) {
+    const month = capitalise(formatMonthYear(addDays(start4, 3)));
+    const today2 = mondayOf(context.today) === start4 ? "" : `<button type="button" class="btn sec chico" id="choy">${t("agenda.strip.today")}</button>`;
+    const weeks = [0, WEEK_DAYS3].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start4, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS3).map((index) => dayButton2(addDays(start4, offset + index), context)).join("")}</div></div>`).join("");
+    return `<div class="cinta" id="agcinta" data-ini="${start4}"><div class="ccab">
       <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="${t("agenda.strip.previousWeekNav")}" title="${t("agenda.strip.previousWeekNav")}">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="${t("agenda.strip.seeMonth")}">${escapeHtml(month)} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="${t("agenda.strip.nextWeekNav")}" title="${t("agenda.strip.nextWeekNav")}">›</button>${today2}</div>
       <div class="cley" aria-hidden="true"><span><i class="ch"></i>${t("agenda.strip.done")}</span><span><i class="cp"></i>${t("agenda.strip.toDo")}</span><span><i class="cx"></i>${t("agenda.strip.notClosed")}</span></div>
       ${weekButtonHtml(stripState.weekOpen())}</div>
@@ -14924,27 +16471,27 @@
   }
   async function render2() {
     if (!hasStrip() || !document.getElementById("agcuerpo")) return;
-    const today2 = todayIso(), start2 = stripState.start() ?? mondayOf(legacyAgenda.selectedDate() ?? today2), owner = agendaSources.ownerId();
-    stripState.setStart(start2);
-    const end = addDays(start2, STRIP_DAYS2 - 1);
+    const today2 = todayIso(), start4 = stripState.start() ?? mondayOf(legacyAgenda.selectedDate() ?? today2), owner = agendaSources.ownerId();
+    stripState.setStart(start4);
+    const end = addDays(start4, STRIP_DAYS2 - 1);
     const [result, blocked] = await Promise.all([
-      cachedRpc("agenda_rango", { p_desde: start2, p_hasta: end, p_usuario: owner }, `agenda-cinta-${owner}-${start2}`),
-      legacyAgendaParts.blockedDays(start2, STRIP_DAYS2)
+      cachedRpc("agenda_rango", { p_desde: start4, p_hasta: end, p_usuario: owner }, `agenda-cinta-${owner}-${start4}`),
+      legacyAgendaParts.blockedDays(start4, STRIP_DAYS2)
     ]);
-    const body2 = document.getElementById("agcuerpo");
-    if (!hasStrip() || stripState.start() !== start2 || !body2) return;
-    const html = stripHtml(start2, { today: today2, selected: legacyAgenda.selectedDate(), perDay: perDayOf(result.data ?? [], owner), blocked });
+    const body3 = document.getElementById("agcuerpo");
+    if (!hasStrip() || stripState.start() !== start4 || !body3) return;
+    const html = stripHtml(start4, { today: today2, selected: legacyAgenda.selectedDate(), perDay: perDayOf(result.data ?? [], owner), blocked });
     const old = document.getElementById("agcinta");
     if (old) old.outerHTML = html;
-    else body2.insertAdjacentHTML("beforebegin", html);
+    else body3.insertAdjacentHTML("beforebegin", html);
     const strip = document.getElementById("agcinta");
     if (!strip) return;
     bind5(strip);
-    showSelectedWeek(strip, start2);
+    showSelectedWeek(strip, start4);
   }
-  function showSelectedWeek(strip, start2) {
+  function showSelectedWeek(strip, start4) {
     const weeks = strip.querySelector(".csems"), selected3 = legacyAgenda.selectedDate();
-    if (weeks && selected3 && selected3 >= addDays(start2, WEEK_DAYS3)) weeks.scrollLeft = weeks.scrollWidth;
+    if (weeks && selected3 && selected3 >= addDays(start4, WEEK_DAYS3)) weeks.scrollLeft = weeks.scrollWidth;
   }
   function paintStrip() {
     if (!legacyAgenda.isDayView()) return Promise.resolve();
@@ -15024,7 +16571,7 @@
     document.getElementById("agcuerpo")?.insertAdjacentHTML("afterend", '<div class="card" id="agsemlat"></div>');
     return document.getElementById("agsemlat");
   }
-  async function paint5() {
+  async function paint7() {
     if (currentScreen() !== "agenda" || legacyAgendaParts.mode() !== "dia") return;
     if (!document.getElementById("v-agenda")?.classList.contains("agcinta")) return;
     const box5 = sidebarBox();
@@ -15043,7 +16590,7 @@
     bind6(box5, blocked);
   }
   function paintWeekSidebar() {
-    return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint5) : paint5();
+    return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint7) : paint7();
   }
 
   // src/app/screens/routes/editor/html.ts
@@ -15260,8 +16807,8 @@
       f_urgentes: Boolean(rules.urgentes)
     });
     button2.disabled = false;
-    const preview2 = document.getElementById("rprev");
-    if (preview2) preview2.innerHTML = t("routesMore.editor.matching", { count: formatNumber((data ?? []).length), professionals: term("medico", { number: "p" }), beforeDays: rules.sinVisita ? t("routesMore.editor.beforeDays") : "" });
+    const preview3 = document.getElementById("rprev");
+    if (preview3) preview3.innerHTML = t("routesMore.editor.matching", { count: formatNumber((data ?? []).length), professionals: term("medico", { number: "p" }), beforeDays: rules.sinVisita ? t("routesMore.editor.beforeDays") : "" });
   }
   function payload2(state2) {
     const list = state2.mode === "lista";
@@ -15278,7 +16825,7 @@
       reglas: list ? null : readRules()
     };
   }
-  async function save5(state2, button2) {
+  async function save7(state2, button2) {
     if (!field3("rn").trim()) {
       notices.toast(t("routesMore.editor.writeName"), true);
       return;
@@ -15305,28 +16852,28 @@
     state2.codes = state2.codes.filter((code) => code !== id);
     state2.members = state2.members.filter((member) => member.id !== id);
     state2.centres = state2.centres.filter((centre) => state2.members.some((member) => member.centro_ruta === centre.id));
-    paint6(state2);
+    paint8(state2);
   }
   function removeCentre(state2, id) {
     const out = state2.members.filter((member) => member.centro_ruta === id).map((member) => member.id);
     state2.codes = state2.codes.filter((code) => !out.includes(code));
     state2.members = state2.members.filter((member) => !out.includes(member.id));
     state2.centres = state2.centres.filter((centre) => centre.id !== id);
-    paint6(state2);
+    paint8(state2);
   }
-  function bind7(state2, body2) {
-    body2.querySelectorAll("[data-rm]").forEach((button2) => {
+  function bind7(state2, body3) {
+    body3.querySelectorAll("[data-rm]").forEach((button2) => {
       button2.onclick = () => {
         state2.mode = button2.dataset.rm === "crit" ? "crit" : "lista";
-        paint6(state2);
+        paint8(state2);
       };
     });
-    body2.querySelectorAll("[data-rq]").forEach((button2) => {
+    body3.querySelectorAll("[data-rq]").forEach((button2) => {
       button2.onclick = () => {
         removeMember(state2, button2.dataset.rq ?? "");
       };
     });
-    body2.querySelectorAll("[data-rqc]").forEach((button2) => {
+    body3.querySelectorAll("[data-rqc]").forEach((button2) => {
       button2.onclick = () => {
         removeCentre(state2, button2.dataset.rqc ?? "");
       };
@@ -15338,36 +16885,36 @@
     };
     const ok = document.getElementById("rguardar");
     if (ok) ok.onclick = () => {
-      void save5(state2, ok);
+      void save7(state2, ok);
     };
   }
-  function paint6(state2) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
+  function paint8(state2) {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
     readHead(state2);
-    body2.innerHTML = editorHtml3(state2);
-    bind7(state2, body2);
+    body3.innerHTML = editorHtml3(state2);
+    bind7(state2, body3);
   }
   function loadInBackground(state2) {
     const { id, route } = state2;
     void legacyDb().rpc("opciones_filtros", {}).then(({ data }) => {
       if (data) {
         state2.options = data;
-        if (state2.mode === "crit") paint6(state2);
+        if (state2.mode === "crit") paint8(state2);
       }
     });
     if (state2.codes.length) {
       const request2 = id && !route?.dinamica ? legacyDb().rpc("cuentas_de_ruta", { p_id: id }) : legacyDb().rpc("cuentas_por_ids", { p_ids: state2.codes });
       void request2.then(({ data }) => {
         state2.members = (data ?? []).filter((member) => state2.codes.includes(member.id));
-        paint6(state2);
+        paint8(state2);
       });
     }
     const centreIds = route?.centros ?? [];
     if (centreIds.length) {
       void legacyDb().from("centros").select("id,nombre,municipio").in("id", centreIds).then(({ data }) => {
         state2.centres = centreIds.map((centreId) => (data ?? []).find((centre) => centre.id === centreId)).filter((centre) => Boolean(centre));
-        paint6(state2);
+        paint8(state2);
       });
     }
   }
@@ -15393,20 +16940,20 @@
   function editRoute(id) {
     const route = id ? routes2Legacy.savedRoutes().find((item) => item.id === id) ?? null : null, state2 = initialState(id, route);
     editorHooks.repaint = () => {
-      paint6(state2);
+      paint8(state2);
     };
     showLoading(document.getElementById("dbody"), t("routesMore.editor.opening"));
     const box5 = document.getElementById("dlg");
     if (box5 && !box5.open) box5.showModal();
     loadInBackground(state2);
-    paint6(state2);
+    paint8(state2);
   }
 
   // src/app/screens/routes/today/service.ts
   var LIBRARY = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl";
   var INTEGRITY = "sha384-SYKAG6cglRMN0RVvhNeBY0r3FYKNOJtznwA0v7B5Vp9tr31xAHsZC0DqkQ/pZDmj";
   var MEMORY_MS = 6e5;
-  var NOT_FOUND = 404;
+  var NOT_FOUND2 = 404;
   var KM_PER_DEGREE = 111.32;
   var PALETTE = {
     tierra: "#F1F3F4",
@@ -15461,20 +17008,20 @@
     return loading;
   }
   async function failureOf(error) {
-    if (error.context?.status === NOT_FOUND) return { ok: false, motivo: "sin_clave" };
+    if (error.context?.status === NOT_FOUND2) return { ok: false, motivo: "sin_clave" };
     try {
-      const body2 = await error.context?.json?.();
-      return body2?.motivo ? body2 : { ok: false, motivo: "servicio" };
+      const body3 = await error.context?.json?.();
+      return body3?.motivo ? body3 : { ok: false, motivo: "servicio" };
     } catch {
       return { ok: false, motivo: "servicio" };
     }
   }
-  async function streetRoute(points, start2) {
-    const key = JSON.stringify([points, start2]), remembered = routes2Legacy.routeMemory().get(key);
+  async function streetRoute(points, start4) {
+    const key = JSON.stringify([points, start4]), remembered = routes2Legacy.routeMemory().get(key);
     if (remembered && Date.now() - remembered.t < MEMORY_MS) return remembered.r;
     let result;
     try {
-      const { data, error } = await routes2Legacy.invokeRoutes({ puntos: points, salida: start2 });
+      const { data, error } = await routes2Legacy.invokeRoutes({ puntos: points, salida: start4 });
       result = error ? await failureOf(error) : data;
     } catch {
       result = { ok: false, motivo: "servicio" };
@@ -15500,14 +17047,14 @@
       void cargarRutas();
     },
     withSchedule: (hours2, work) => withHours(hours2, work),
-    schedule: (items, start2) => scheduleVisits(items, start2),
+    schedule: (items, start4) => scheduleVisits(items, start4),
     settings: () => planSettings(),
     start: () => salidaUsuario(),
     minutesOf: (time) => minHora(time),
     travelMinutes: (from2, to) => minutosEntre(from2, to),
     nextWorkingDay: () => siguienteLaborable(),
     mapLibrary: () => mapLibrary(),
-    streetRoute: (points, start2) => streetRoute(points, start2),
+    streetRoute: (points, start4) => streetRoute(points, start4),
     durationText: (minutes2) => durationText(minutes2),
     reasonText: (reason) => reasonText(reason),
     palette: () => PALETTE,
@@ -15548,8 +17095,8 @@
   function weekRule(repeat, isoDate, date) {
     if (repeat.tipo === "semanal") return !repeat.desde || isoDate >= repeat.desde;
     if (repeat.tipo === "quincenal") {
-      const start2 = orFallback(repeat.desde, isoDate), weeks = Math.round((date.getTime() - fromIsoDate(start2).getTime()) / 864e5 / 7);
-      return isoDate >= start2 && weeks % 2 === 0;
+      const start4 = orFallback(repeat.desde, isoDate), weeks = Math.round((date.getTime() - fromIsoDate(start4).getTime()) / 864e5 / 7);
+      return isoDate >= start4 && weeks % 2 === 0;
     }
     return repeat.tipo === "mensual" && monthlyRule(repeat, date);
   }
@@ -15623,19 +17170,19 @@
   var KM_PER_DEGREE2 = 111.32;
   var ROAD_FACTOR = 1.3;
   var windowsOf = (member, isoDate) => weekPlanner.attendanceWindows(member.dias, isoDate);
-  var withHours2 = (start2, back, work) => routesLegacy.withSchedule({ salida: orFallback(start2, DEFAULT_START2), vuelta: back ? back : null }, work);
-  var startMinutes = (start2) => routesLegacy.minutesOf(orFallback(start2, DEFAULT_START2)) ?? 0;
-  function bestOrder(members2, isoDate, start2, back) {
-    return withHours2(start2, back, () => {
+  var withHours2 = (start4, back, work) => routesLegacy.withSchedule({ salida: orFallback(start4, DEFAULT_START2), vuelta: back ? back : null }, work);
+  var startMinutes = (start4) => routesLegacy.minutesOf(orFallback(start4, DEFAULT_START2)) ?? 0;
+  function bestOrder(members2, isoDate, start4, back) {
+    return withHours2(start4, back, () => {
       const items = members2.map((member) => ({ id: member.id, ref: member, xy: pointOf3(member), ventanas: windowsOf(member, isoDate), fija: null }));
-      const { seq, fuera } = routesLegacy.schedule(items, startMinutes(start2));
+      const { seq, fuera } = routesLegacy.schedule(items, startMinutes(start4));
       return [...seq.map((step) => step.it.ref), ...fuera.map((step) => step.it.ref)];
     });
   }
-  function warningOf(point, windows, start2, length) {
+  function warningOf(point, windows, start4, length) {
     if (!point) return t("routes.hours.noLocation");
     if (windows && !windows.length) return t("routes.hours.notThatDay");
-    if (windows?.length && !windows.some(([from2, to]) => start2 >= from2 && start2 + length <= to)) return t("routes.hours.outOfHours", { hours: yourDayLegacy.windowsText(windows) });
+    if (windows?.length && !windows.some(([from2, to]) => start4 >= from2 && start4 + length <= to)) return t("routes.hours.outOfHours", { hours: yourDayLegacy.windowsText(windows) });
     return "";
   }
   function startOf2(arrival, fixed2, windows, length) {
@@ -15655,10 +17202,10 @@
     const settings2 = routesLegacy.settings(), length = nonZeroOr(settings2.visita, DEFAULT_VISIT2), point = hasLocation(member) ? [Number(member.lat), Number(member.lon)] : null;
     const windows = windowsOf(member, context.isoDate), { trip, same } = tripTo(walk, point, nonZeroOr(settings2.parada, 0));
     const fixedTime = context.fixed?.[member.id], fixed2 = fixedTime ? routesLegacy.minutesOf(fixedTime) : null;
-    const start2 = startOf2(walk.time + trip, fixed2, windows, length);
+    const start4 = startOf2(walk.time + trip, fixed2, windows, length);
     if (point) walk.pos = point;
-    walk.time = start2 + length;
-    return { m: member, i: index, ini: start2, fin: start2 + length, viaje: trip, ven: windows, aviso: warningOf(point, windows, start2, length), fija: fixed2 !== null, mismo: same };
+    walk.time = start4 + length;
+    return { m: member, i: index, ini: start4, fin: start4 + length, viaje: trip, ven: windows, aviso: warningOf(point, windows, start4, length), fija: fixed2 !== null, mismo: same };
   }
   function hoursOf(members2, isoDate, hours2) {
     return withHours2(hours2.start, hours2.back, () => {
@@ -15846,7 +17393,7 @@
   function moveButtons(index, count2) {
     return `<button type="button" data-rnmv="-1|${index}" aria-label="${t("routes.order.up")}" ${index ? "" : "disabled"}>${routeIcon("up")}</button><button type="button" data-rnmv="1|${index}" aria-label="${t("routes.order.down")}" ${index < count2 - 1 ? "" : "disabled"}>${routeIcon("down")}</button>`;
   }
-  function rowHtml4(row4, index, count2) {
+  function rowHtml5(row4, index, count2) {
     const note = noteOf(row4);
     return `${tripHtml(row4, index)}<div class="rnpar ${row4.aviso ? "aviso" : ""}">
           <span class="n">${index + 1}</span>
@@ -15868,7 +17415,7 @@
         <span class="sm">${escapeHtml(t("routes.order.from", { place: orFallback(home.nombre, t("routes.order.yourStart")), date: formatLongDate(isoDate) }))}</span></div>
         <button class="btn sec" type="button" id="rnauto">${routeIcon("wand")} ${t(draft.ordenManual ? "routes.order.backToAuto" : "routes.order.auto")}</button></div>
       <p class="sm rnordtx">${t(draft.ordenManual ? "routes.order.manualText" : "routes.order.autoText")} ${t("routes.order.howTo")}</p>
-      <div class="rnlst">${hours2.filas.map((row4, index) => rowHtml4(row4, index, hours2.filas.length)).join("")}</div></div>
+      <div class="rnlst">${hours2.filas.map((row4, index) => rowHtml5(row4, index, hours2.filas.length)).join("")}</div></div>
     ${summaryHtml(draft, hours2)}</div>
     ${stepFooter(t("routes.order.mapNext"), `<button class="btn sec" type="button" id="rnant2">${t("routes.order.previous")}</button><button class="btn" type="button" id="rnsig2">${t("routes.order.nextStep")}</button>`)}`;
   }
@@ -15895,9 +17442,9 @@
       if (!draft.ordenManual) bestOrderOf(draft);
       paintOrder();
     };
-    const start2 = document.getElementById("rnsal");
-    if (start2) start2.onchange = () => {
-      draft.salida = orFallback(start2.value, "09:00");
+    const start4 = document.getElementById("rnsal");
+    if (start4) start4.onchange = () => {
+      draft.salida = orFallback(start4.value, "09:00");
       reorder();
     };
     const back = document.getElementById("rnvue");
@@ -16021,17 +17568,17 @@
     set("fill-color", palette.zona);
     set("fill-opacity", 0.6);
   }
-  function paintLine(id, paint20, palette) {
+  function paintLine(id, paint22, palette) {
     if (/water|river|stream|canal/i.test(id)) {
-      paint20.set("line-color", palette.agua);
+      paint22.set("line-color", palette.agua);
       return;
     }
     if (/rail|ferry|aeroway|boundary|admin/i.test(id)) {
-      paint20.hide();
+      paint22.hide();
       return;
     }
     const main = /motorway|trunk|primary/i.test(id);
-    paint20.set("line-color", /casing/i.test(id) ? main ? palette.viaBorde : palette.borde : main ? palette.via : palette.calle);
+    paint22.set("line-color", /casing/i.test(id) ? main ? palette.viaBorde : palette.borde : main ? palette.via : palette.calle);
   }
   function restyle(map2) {
     const palette = routesLegacy.palette();
@@ -16155,8 +17702,8 @@
     const days = ["semanal", "quincenal", "mensual"].includes(kind) ? `<div class="rndias2" role="group" aria-label="${t("routes.preview.weekday")}">${WEEKDAYS4.map((letter) => `<button type="button" data-rnd="${letter}" class="${letter === day ? "on" : ""}">${weekdayShort(letter)}</button>`).join("")}</div>` : "";
     const weeks = t("routes.when.weeksOfMonth").split(","), week = Number(repeat?.semana ?? 1);
     const month = kind === "mensual" ? `<label for="rnsem">${t("routes.preview.weekOfMonth")}</label><select id="rnsem">${weeks.slice(0, WEEKS_OF_MONTH).map((label, index) => `<option value="${index + 1}" ${week === index + 1 ? "selected" : ""}>${label}</option>`).join("")}</select>` : "";
-    const start2 = kind === "quincenal" ? `<label for="rnde">${t("routes.preview.startingOn")}</label><input type="date" id="rnde" value="${escapeHtml(orFallback(repeat?.desde, nextDay))}" min="${todayIso()}">` : "";
-    return date + days + month + start2;
+    const start4 = kind === "quincenal" ? `<label for="rnde">${t("routes.preview.startingOn")}</label><input type="date" id="rnde" value="${escapeHtml(orFallback(repeat?.desde, nextDay))}" min="${todayIso()}">` : "";
+    return date + days + month + start4;
   }
   function repeatTextHtml(repeat) {
     if (!repeat) return t("routes.preview.savedNoDate");
@@ -16209,8 +17756,8 @@
     paintTimeline(draft, draftHours(draft, isoDate));
     const name = document.getElementById("rnnom");
     if (draft.auto && name) name.value = routeName(draft);
-    const save44 = document.getElementById("rnguarag");
-    if (save44) save44.textContent = saveLabel(draft);
+    const save46 = document.getElementById("rnguarag");
+    if (save46) save46.textContent = saveLabel(draft);
   }
   function bindRepeat(box5, draft) {
     const change = (repeat) => {
@@ -16232,9 +17779,9 @@
     if (date) date.onchange = () => {
       change({ tipo: "fecha", fecha: date.value });
     };
-    const start2 = input10("rnde");
-    if (start2) start2.onchange = () => {
-      change({ ...draft.rep ?? { tipo: "" }, desde: start2.value });
+    const start4 = input10("rnde");
+    if (start4) start4.onchange = () => {
+      change({ ...draft.rep ?? { tipo: "" }, desde: start4.value });
     };
     const week = input10("rnsem");
     if (week) week.onchange = () => {
@@ -16282,7 +17829,7 @@
     if (draft.id) payload12.id = draft.id;
     return payload12;
   }
-  async function save6(toAgenda) {
+  async function save8(toAgenda) {
     const draft = currentDraft();
     if (!draft) return;
     const payload12 = payloadOf(draft);
@@ -16322,11 +17869,11 @@
     };
     const saveOnly = document.getElementById("rnguar");
     if (saveOnly) saveOnly.onclick = () => {
-      void save6(false);
+      void save8(false);
     };
     const saveAndCopy = document.getElementById("rnguarag");
     if (saveAndCopy) saveAndCopy.onclick = () => {
-      void save6(true);
+      void save8(true);
     };
     await paintPreviewMap(draft, isoDate);
   }
@@ -16794,8 +18341,8 @@
     setHours(options5.horario !== void 0 ? options5.horario : hoursOfRoute(routeId));
     const settings2 = planSettings(), isoDate = options5.manana ? routes2Legacy.nextWorkingDay() : todayIso();
     const leave3 = routes2Legacy.minutesOf(settings2.salida) ?? 0, limit = routes2Legacy.minutesOf(settings2.tope) ?? Infinity;
-    const start2 = options5.manana ? leave3 : Math.max(leave3, nowRounded());
-    if (start2 >= limit) {
+    const start4 = options5.manana ? leave3 : Math.max(leave3, nowRounded());
+    if (start4 >= limit) {
       await tooLate(list, routeId, button2);
       return;
     }
@@ -16804,7 +18351,7 @@
     const cited = everyone.filter((item) => planned[item.id]).map((item) => ({ m: item, fecha: planned[item.id] ?? "" }));
     const members2 = everyone.filter((item) => !planned[item.id]);
     const items = members2.map((item) => ({ id: item.id, ref: item, xy: item.lat !== null && item.lat !== void 0 && item.lon !== null && item.lon !== void 0 ? [Number(item.lat), Number(item.lon)] : null, ventanas: routes2Legacy.windowsOf(item.dias, isoDate), fija: null }));
-    const { seq, fuera, fin } = scheduleVisits(items, start2);
+    const { seq, fuera, fin } = scheduleVisits(items, start4);
     if (!members2.length && cited.length) {
       await allCited(cited);
       return;
@@ -16813,7 +18360,7 @@
       await noneFits(list, { routeId, button: button2, options: options5, leftOut: fuera, isoDate, citedCount: cited.length });
       return;
     }
-    routes2Legacy.setPlan({ rutaId: routeId, salida: routes2Legacy.start(), paradas: stopsOf(seq), fin, fecha: isoDate, inicio: start2, fuera: fuera.map((item) => ({ m: item.it.ref, motivo: item.motivo })), citados: cited, horario: currentHours() });
+    routes2Legacy.setPlan({ rutaId: routeId, salida: routes2Legacy.start(), paradas: stopsOf(seq), fin, fecha: isoDate, inicio: start4, fuera: fuera.map((item) => ({ m: item.it.ref, motivo: item.motivo })), citados: cited, horario: currentHours() });
     if (currentScreen() !== "rutas") goTo("rutas");
     routes2Legacy.paintPlan();
     setTimeout(() => {
@@ -16914,7 +18461,7 @@
       };
     });
   }
-  function rowHtml5(row4, index, today2) {
+  function rowHtml6(row4, index, today2) {
     const place5 = escapeHtml([row4.item.centro_nombre, row4.item.municipio].filter(Boolean).join(" · "));
     return `<div class="item" style="cursor:default">
         <input type="checkbox" data-rpi="${index}" checked aria-label="${t("agendaMore.reschedule.move")}">
@@ -16929,16 +18476,16 @@
       <div class="fh"><div><h2>${escapeHtml(title2)}</h2><div class="sm">${escapeHtml(text5)}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       <p class="sm">${t("agendaMore.reschedule.proposal", { professional: term("medico") })}</p>
-      <div class="lista reprog" data-nosucio>${rows2.map((row4, index) => rowHtml5(row4, index, today2)).join("")}</div>
+      <div class="lista reprog" data-nosucio>${rows2.map((row4, index) => rowHtml6(row4, index, today2)).join("")}</div>
       <div class="acts" style="justify-content:flex-end">
         <button class="btn sec" id="rpno">${t("agendaMore.reschedule.leave")}</button>
         <button class="btn" id="rpok">${t("agendaMore.reschedule.moveMarked")}</button></div>`;
   }
-  async function moveTicked(body2, rows2) {
+  async function moveTicked(body3, rows2) {
     let moved = 0;
     for (const [index, row4] of rows2.entries()) {
-      if (!body2.querySelector(`[data-rpi="${index}"]`)?.checked) continue;
-      const day = body2.querySelector(`[data-rpf="${index}"]`)?.value;
+      if (!body3.querySelector(`[data-rpi="${index}"]`)?.checked) continue;
+      const day = body3.querySelector(`[data-rpf="${index}"]`)?.value;
       if (!day) continue;
       const { data: result } = await legacyDb().rpc("aplazar_cita", { p_id: row4.item.id, p_fecha: day, p_hora: null, p_origen: "Reprogramada" });
       if (result?.ok) moved++;
@@ -16952,25 +18499,25 @@
   async function rescheduleAppointments(list, title2, text5) {
     if (!list.length) return false;
     const rows2 = await proposals(list);
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return false;
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return false;
     return new Promise((resolve) => {
-      body2.innerHTML = windowHtml(rows2, title2, text5);
-      const close4 = (moved) => {
+      body3.innerHTML = windowHtml(rows2, title2, text5);
+      const close5 = (moved) => {
         box5.close();
         resolve(moved);
       };
       const leave3 = document.getElementById("rpno");
       if (leave3) leave3.onclick = () => {
-        close4(false);
+        close5(false);
       };
       const ok = document.getElementById("rpok");
       if (ok) ok.onclick = async () => {
         ok.disabled = true;
         ok.textContent = t("agendaMore.reschedule.moving");
-        const moved = await moveTicked(body2, rows2);
+        const moved = await moveTicked(body3, rows2);
         notices.toast(movedText(moved));
-        close4(moved > 0);
+        close5(moved > 0);
         reloadAgenda();
         restLegacy.reloadHome();
         void paintRouteBar();
@@ -17036,11 +18583,11 @@
     <div class="agbdc"><div class="lista">${rows2 || `<div class="vacio">${t("agenda.trays.nothingPending")}</div>`}</div></div></div>`;
   }
   function bindTray(panel, due, pending) {
-    const close4 = () => {
+    const close5 = () => {
       panel.classList.remove("abierto");
     };
     const closeButton = document.getElementById("tclose");
-    if (closeButton) closeButton.onclick = close4;
+    if (closeButton) closeButton.onclick = close5;
     panel.querySelectorAll("[data-agbf]").forEach((button2) => {
       button2.onclick = () => {
         agendaActions.openAccount(button2.dataset.agbf ?? "");
@@ -17053,7 +18600,7 @@
     });
     const route = document.getElementById("agbruta");
     if (route) route.onclick = () => {
-      close4();
+      close5();
       goTo("rutas");
       setTimeout(() => {
         void planFromList(due, "toca", route);
@@ -17132,15 +18679,15 @@
   var SCROLL_BOTTOM_RATIO = 0.6;
   var agendaView = () => document.getElementById("v-agenda");
   var dayBody = () => document.getElementById("agcuerpo");
-  function titleText() {
+  function titleText2() {
     const viewed = agendaState.viewed();
     return t("agenda.todayTitle", { date: formatLongDate(todayIso()) }) + (viewed && legacyAgenda.isDayView() ? t("agenda.agendaOf", { name: viewed.nombre }) : "");
   }
   function markEmptyDay() {
-    const body2 = dayBody();
-    if (!body2 || currentScreen() !== "agenda") return;
-    const empty2 = body2.querySelector(":scope > .vacio"), stats = body2.querySelector(".tdhead .tdstats");
-    stats?.classList.toggle("hide", Boolean(empty2) && !body2.querySelector(".tdesc"));
+    const body3 = dayBody();
+    if (!body3 || currentScreen() !== "agenda") return;
+    const empty2 = body3.querySelector(":scope > .vacio"), stats = body3.querySelector(".tdhead .tdstats");
+    stats?.classList.toggle("hide", Boolean(empty2) && !body3.querySelector(".tdesc"));
     if (!empty2) return;
     empty2.classList.add("vlinea");
     const selected3 = legacyAgenda.selectedDate();
@@ -17151,7 +18698,7 @@
     if (!view?.classList.contains("agunida")) return;
     const today2 = todayIso(), selected3 = legacyAgenda.selectedDate();
     const title2 = document.getElementById("agtit");
-    if (title2) title2.textContent = titleText();
+    if (title2) title2.textContent = titleText2();
     const heading = view.querySelector("#agcuerpo .tdhead h2");
     if (!heading) return;
     let back = document.getElementById("agahoy");
@@ -17176,9 +18723,9 @@
     };
     return back;
   }
-  function headerHtml3() {
+  function headerHtml4() {
     return `
-      <div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${escapeHtml(titleText())}</div></div>
+      <div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${escapeHtml(titleText2())}</div></div>
         <div class="aghud" id="aghud" aria-label="${t("agenda.yourNumbers")}">${metricsHtml()}</div>
         <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">${t("agenda.newAppointment")}</button></div></div>
       <div class="card" id="agcuerpo"></div>
@@ -17217,7 +18764,7 @@
       if (metrics) legacyAgenda.setMetrics(metrics);
       applySuggestions(day, suggestions);
       view.classList.add("agunida", "agcinta", "agb", "agn");
-      view.innerHTML = headerHtml3();
+      view.innerHTML = headerHtml4();
       ensureTeamControls();
       await Promise.all([legacyAgendaPaint.yourDay(), paintStrip(), paintWeekSidebar()]);
       markSelectedDay();
@@ -17243,9 +18790,9 @@
     if (plan3) void shareWeek();
   }
   function scrollToDay() {
-    const body2 = dayBody();
-    if (!body2) return;
-    const top = body2.getBoundingClientRect().top;
+    const body3 = dayBody();
+    if (!body3) return;
+    const top = body3.getBoundingClientRect().top;
     if (top < SCROLL_TOP_LIMIT || top > innerHeight * SCROLL_BOTTOM_RATIO) scrollTo({ top: scrollY + top - SCROLL_MARGIN, behavior: "smooth" });
   }
   async function showDay(day) {
@@ -17260,10 +18807,10 @@
       await loadAgenda();
       return;
     }
-    const before = legacyAgenda.selectedDate() ?? day, start2 = stripState.start();
+    const before = legacyAgenda.selectedDate() ?? day, start4 = stripState.start();
     agendaState.setSelectedDate(day);
     dayBody()?.classList.add("agcargando");
-    const outside2 = !start2 || day < start2 || day > addDays(start2, STRIP_DAYS3 - 1);
+    const outside2 = !start4 || day < start4 || day > addDays(start4, STRIP_DAYS3 - 1);
     if (outside2) stripState.setStart(mondayOf(day));
     const otherWeek = mondayOf(day) !== mondayOf(before);
     let suggestions = null;
@@ -17511,7 +19058,7 @@
         ${isPast && open2 ? `<button class="btn chico" id="tdrepro">${t("agenda.yourDay.reschedulePending")}</button>` : ""}
       </div>`;
   }
-  function headerHtml4(summary5) {
+  function headerHtml5(summary5) {
     const title2 = t(summary5.isToday ? "agenda.yourDay.titleToday" : summary5.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
     const dayMenu = summary5.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
     return `
@@ -17577,13 +19124,13 @@
       };
     });
   }
-  function paintTasks(body2, list) {
+  function paintTasks(body3, list) {
     document.getElementById("tdtareas")?.remove();
     if (!list?.length) return;
-    const place5 = document.getElementById("tdnocabe") ?? body2.querySelector(".tdesc, .vacio");
+    const place5 = document.getElementById("tdnocabe") ?? body3.querySelector(".tdesc, .vacio");
     const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t("agenda.tasks.title", { count: list.length })}</div>${list.map((task) => taskRow(task, list)).join("")}</div>`;
     if (place5) place5.insertAdjacentHTML("beforebegin", html);
-    else body2.insertAdjacentHTML("beforeend", html);
+    else body3.insertAdjacentHTML("beforeend", html);
     const block4 = document.getElementById("tdtareas");
     if (block4) bind10(block4);
   }
@@ -17626,12 +19173,12 @@
     return legs ? Math.max(leaves + trip, routes2Legacy.minutesOf(stop.c.hora) ?? 0) : stop.ini;
   }
   function addStop(plan3, walk, stop, legs) {
-    const length = planSettings().visita || DEFAULT_VISIT3, start2 = travelTo(plan3, walk, stop, legs);
+    const length = planSettings().visita || DEFAULT_VISIT3, start4 = travelTo(plan3, walk, stop, legs);
     if (walk.pos && (plan3.casa || walk.index > 0)) walk.leg += 1;
-    stop.ini = start2;
-    plan3.segs.push({ tipo: "vis", a: start2, b: start2 + length, p: stop });
+    stop.ini = start4;
+    plan3.segs.push({ tipo: "vis", a: start4, b: start4 + length, p: stop });
     walk.pos = stop.xy;
-    walk.time = start2 + length;
+    walk.time = start4 + length;
     walk.index += 1;
   }
   function homeOf() {
@@ -17743,7 +19290,7 @@
     const summary5 = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
     const visible3 = isMobile() ? 3 : 5;
     const nextIndex2 = next ? list.indexOf(next) : 0;
-    const start2 = Math.max(0, Math.min(nextIndex2 - (visible3 >> 1), list.length - visible3)), shown5 = list.slice(start2, start2 + visible3);
+    const start4 = Math.max(0, Math.min(nextIndex2 - (visible3 >> 1), list.length - visible3)), shown5 = list.slice(start4, start4 + visible3);
     const more2 = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown5.length);
     const dots = shown5.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
     return { summary: summary5, visual: list.length ? `<div class="kvdots">${dots}${more2 > 0 ? `<span class="kvdot"><em class="kvmas">+${more2}</em></span>` : ""}</div>` : "" };
@@ -17891,10 +19438,10 @@
     const icon3 = indicatorCatalog.icon(definition.id), description = indicatorCatalog.description(definition.id);
     const help = helpButton2(indicatorCatalog.help(definition.id), title2);
     const raw = definition.v(context.kpis);
-    const body2 = context.panel ? liveBody(definition.id, capitalise(title2).trim(), raw, context) : `
+    const body3 = context.panel ? liveBody(definition.id, capitalise(title2).trim(), raw, context) : `
        ${help}
        <b>${typeof raw === "string" ? raw : formatNumber(raw)}</b><span>${escapeHtml(capitalise(title2))}</span>`;
-    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon3 ? `<span class="kico" aria-hidden="true">${icon3}</span>` : ""}${context.panel ? help : ""}${body2}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
+    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon3 ? `<span class="kico" aria-hidden="true">${icon3}</span>` : ""}${context.panel ? help : ""}${body3}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
   }
   function liveBody(id, title2, raw, context) {
     const { summary: summary5, visual } = chartFor(id, context.kpis, context.panel, context.charts);
@@ -17928,9 +19475,9 @@
       showFinal();
       return;
     }
-    const start2 = performance.now();
+    const start4 = performance.now();
     const step = (now) => {
-      const progress = Math.min(1, (now - start2) / COUNT_DURATION_MS), eased = 1 - Math.pow(1 - progress, 3);
+      const progress = Math.min(1, (now - start4) / COUNT_DURATION_MS), eased = 1 - Math.pow(1 - progress, 3);
       figures.forEach((el) => {
         if (el.isConnected) el.textContent = formatNumber(Math.round(finalValue(el) * eased));
       });
@@ -18057,13 +19604,13 @@
       <div class="sm">${escapeHtml(orFallback(item.titulo, ""))}</div><button class="btn sec chico" data-alrec="${escapeHtml(item.clave)}">${t("homeMore.hidden.recover")}</button></div>`;
   async function showHiddenAlerts() {
     const list = await hiddenAlerts(true);
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = `<div class="fh"><div><h2>${t("homeMore.hidden.title")}</h2><div class="sm">${t("homeMore.hidden.hint")}</div></div>
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${t("homeMore.hidden.title")}</h2><div class="sm">${t("homeMore.hidden.hint")}</div></div>
     <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <div class="alcards">${list.map(hiddenCard).join("") || `<div class="vacio">${t("homeMore.hidden.none")}</div>`}</div>`;
     box5.showModal();
-    body2.querySelectorAll("[data-alrec]").forEach((button2) => {
+    body3.querySelectorAll("[data-alrec]").forEach((button2) => {
       button2.onclick = async () => {
         await legacyDb().rpc("restaurar_alerta", { p_clave: button2.dataset.alrec });
         button2.closest(".alcard")?.remove();
@@ -18708,9 +20255,9 @@
     const figures = [...box5.querySelectorAll("[data-mcnt], [data-meur]")];
     if (alreadyCounted("mos", figures.map((el) => el.dataset.mcnt ?? el.dataset.meur ?? ""))) return;
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const start2 = performance.now();
+    const start4 = performance.now();
     const step = (now) => {
-      const progress = Math.min(1, (now - start2) / COUNT_DURATION_MS2), eased = 1 - Math.pow(1 - progress, 3);
+      const progress = Math.min(1, (now - start4) / COUNT_DURATION_MS2), eased = 1 - Math.pow(1 - progress, 3);
       figures.forEach((el) => {
         const euros8 = el.dataset.meur;
         el.textContent = euros8 === void 0 ? formatNumber(Math.round(Number(el.dataset.mcnt) * eased)) : formatEuros(Number(euros8) * eased);
@@ -18814,8 +20361,8 @@
     const before = positionsOf(CARDS, "tdu"), day = legacyAgenda.selectedDate();
     agendaCache.forget();
     if (data && day) agendaCache.preset(day, data);
-    const body2 = document.getElementById("agcuerpo"), scroll = window.scrollY;
-    if (body2) body2.style.minHeight = `${body2.offsetHeight}px`;
+    const body3 = document.getElementById("agcuerpo"), scroll = window.scrollY;
+    if (body3) body3.style.minHeight = `${body3.offsetHeight}px`;
     try {
       await paintYourDay();
     } finally {
@@ -18923,8 +20470,8 @@
       routes2Legacy.setCalculating(false);
     }
     if (plan3.puntos.length < MIN_STOPS || plan3.puntos.length > MAX_POINTS) return null;
-    const first2 = plan3.segs[0], start2 = first2 ? `${isoDate}T${formatMinutes(Math.max(0, first2.a))}:00` : null;
-    return { puntos: plan3.puntos, salida: start2, k: JSON.stringify([plan3.puntos, start2]) };
+    const first2 = plan3.segs[0], start4 = first2 ? `${isoDate}T${formatMinutes(Math.max(0, first2.a))}:00` : null;
+    return { puntos: plan3.puntos, salida: start4, k: JSON.stringify([plan3.puntos, start4]) };
   }
   function setRealTimes(route, result) {
     const legs = result?.tramos;
@@ -19039,12 +20586,12 @@
     routes2Legacy.navigate(points[points.length - 1] ?? null, points.slice(0, -1).slice(0, MAX_STOPS));
   }
   function bindStart() {
-    const start2 = document.getElementById("tdempezar");
-    if (!start2 || start2.dataset.v264) return;
-    start2.dataset.v264 = "1";
-    start2.textContent = t("routesMore.agenda.startRoute");
-    start2.title = t("routesMore.agenda.startRouteTitle");
-    start2.onclick = async () => {
+    const start4 = document.getElementById("tdempezar");
+    if (!start4 || start4.dataset.v264) return;
+    start4.dataset.v264 = "1";
+    start4.textContent = t("routesMore.agenda.startRoute");
+    start4.title = t("routesMore.agenda.startRouteTitle");
+    start4.onclick = async () => {
       const first2 = routes2Legacy.stops()[0];
       await startWorkingDay();
       if (first2) routes2Legacy.navigate(routes2Legacy.pointOf(first2), null);
@@ -19151,14 +20698,14 @@
   async function paintDay() {
     const day = legacyAgenda.selectedDate() ?? todayIso(), today2 = todayIso();
     const result = await cachedRpc("agenda_rango", { p_desde: day, p_hasta: day, p_usuario: legacyAgenda.userFilter() }, `agenda-${day}`);
-    const body2 = document.getElementById("agcuerpo");
-    if (legacyAgenda.selectedDate() !== day || legacyAgendaParts.mode() !== "dia" || !body2) return;
+    const body3 = document.getElementById("agcuerpo");
+    if (legacyAgenda.selectedDate() !== day || legacyAgendaParts.mode() !== "dia" || !body3) return;
     const all2 = result.data ?? [], owner = agendaSources.ownerId();
     const data = { day, today: today2, mine: all2.filter((item) => item.usuario_id === owner), others: all2.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
     const { context, summary: summary5, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
     const cards2 = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary5.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
-    body2.innerHTML = `${headerHtml4(summary5)}
+    body3.innerHTML = `${headerHtml5(summary5)}
     ${workingDayHtml(summary5, summary5.workingDay ? formatDuration(Date.now() - summary5.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
     ${cards2}
@@ -19174,9 +20721,9 @@
   function markQueuedVisits() {
     const day = legacyAgenda.selectedDate();
     const queued2 = yourDayLegacy.queuedVisits().filter((item) => item.fn === "registrar_actividad" && item.payload?.p?.fecha === day);
-    const byId16 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    const byId17 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
     document.querySelectorAll("#agcuerpo .tdu[data-tdu]").forEach((card4) => {
-      const item = byId16.get(card4.dataset.tdu ?? "");
+      const item = byId17.get(card4.dataset.tdu ?? "");
       if (!item) return;
       const pending = queued2.some((entry2) => entry2.payload?.p?.cuenta_id === item.cuenta_id);
       if (card4.classList.contains("tdpend") !== pending) card4.classList.toggle("tdpend", pending);
@@ -19479,7 +21026,7 @@
     ${buttonsHtml(item)}`;
   }
   var dialog = () => document.getElementById("dlg");
-  var close = () => {
+  var close2 = () => {
     dialog()?.close();
   };
   async function saveNotes(item, notes2, button2) {
@@ -19492,30 +21039,30 @@
       return;
     }
     item.nota = value27;
-    close();
+    close2();
     notices.toast(t("agenda.sheet.notesSaved"));
     refreshQuietly(item.id, false);
   }
-  function bind12(body2, item) {
-    const notes2 = body2.querySelector("#vcnota"), save44 = body2.querySelector("#vcok");
-    if (notes2 && save44) {
+  function bind12(body3, item) {
+    const notes2 = body3.querySelector("#vcnota"), save46 = body3.querySelector("#vcok");
+    if (notes2 && save46) {
       notes2.oninput = () => {
-        save44.disabled = notes2.value.trim() === (item.nota ?? "").trim();
+        save46.disabled = notes2.value.trim() === (item.nota ?? "").trim();
       };
-      save44.onclick = () => {
-        void saveNotes(item, notes2, save44);
+      save46.onclick = () => {
+        void saveNotes(item, notes2, save46);
       };
     }
     const on6 = (id, action) => {
-      const button2 = body2.querySelector(`#${id}`);
+      const button2 = body3.querySelector(`#${id}`);
       if (button2) button2.onclick = action;
     };
     const closeAnd2 = (action) => () => {
-      close();
+      close2();
       void runAction(action, item);
     };
     on6("vcficha", () => {
-      close();
+      close2();
       appointmentLegacy.openAccountFromCentre(item.cuenta_id, item.centro_nombre);
     });
     on6("vcllegar", () => {
@@ -19527,12 +21074,12 @@
     on6("vcborrar", closeAnd2("borrar"));
     on6("vcrehacer", closeAnd2("rehacer"));
     on6("vcreg", () => {
-      close();
+      close2();
       appointmentLegacy.recordVisit(item.cuenta_id, item.fecha);
     });
-    body2.querySelectorAll("[data-vcdia]").forEach((button2) => {
+    body3.querySelectorAll("[data-vcdia]").forEach((button2) => {
       button2.onclick = () => {
-        close();
+        close2();
         agendaState.setMode("dia");
         legacyAgenda.showDay(button2.dataset.vcdia ?? "");
       };
@@ -19548,10 +21095,10 @@
     }, () => void 0);
   }
   function showAppointment(item) {
-    const body2 = document.getElementById("dbody"), box5 = dialog();
-    if (!item || !body2 || !box5) return;
-    body2.innerHTML = sheetHtml2(item, yourDayLegacy.stopInfo()[item.id] ?? {});
-    bind12(body2, item);
+    const body3 = document.getElementById("dbody"), box5 = dialog();
+    if (!item || !body3 || !box5) return;
+    body3.innerHTML = sheetHtml2(item, yourDayLegacy.stopInfo()[item.id] ?? {});
+    bind12(body3, item);
     fillVisitResult(item);
     box5.classList.add("pequena");
     box5.showModal();
@@ -19674,7 +21221,7 @@
       op_id: `c-${picked.id}-${day}-${Date.now()}`
     } });
   }
-  async function save7(draft, options5, button2) {
+  async function save9(draft, options5, button2) {
     const picked = draft.picked;
     if (!picked) {
       notices.toast(t("agenda.editor.choose", { professional: term("medico", { article: "un" }) }), true);
@@ -19699,9 +21246,9 @@
     const draft = { picked: null, consultations: [] };
     if (accountId) draft.picked = await loadAccount2(accountId, draft);
     const shown5 = legacyAgenda.selectedDate(), today2 = todayIso();
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = windowHtml2(day ?? (currentScreen() === "agenda" && shown5 && shown5 >= today2 ? shown5 : today2));
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = windowHtml2(day ?? (currentScreen() === "agenda" && shown5 && shown5 >= today2 ? shown5 : today2));
     paintCentres(draft);
     editorLegacy.pickAccount(document.getElementById("ncsel"), draft.picked, async (account) => {
       draft.picked = account;
@@ -19710,7 +21257,7 @@
     });
     const ok = document.getElementById("ncok");
     if (ok) ok.onclick = () => {
-      void save7(draft, options5, ok);
+      void save9(draft, options5, ok);
     };
     box5.classList.add("pequena");
     box5.showModal();
@@ -19734,7 +21281,7 @@
     }
     afterChange2(t("agenda.taskEditor.deleted"));
   }
-  async function save8(task, button2) {
+  async function save10(task, button2) {
     const title2 = value6("tat").trim();
     if (!title2) {
       notices.toast(t("agenda.taskEditor.writeWhat"), true);
@@ -19795,13 +21342,13 @@
     if (!box5.open) box5.showModal();
   }
   function editTask(task, day) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
     const current = task ?? {};
-    body2.innerHTML = current.id && current.hecha ? doneHtml(current) : editHtml(current, day);
+    body3.innerHTML = current.id && current.hecha ? doneHtml(current) : editHtml(current, day);
     const ok = document.getElementById("taok");
     if (ok) ok.onclick = () => {
-      void save8(current, ok);
+      void save10(current, ok);
     };
     const again = document.getElementById("tareabrir");
     if (again) again.onclick = () => {
@@ -19862,7 +21409,7 @@
       nota: value7("evn").trim() || null
     };
   }
-  async function save9(existing, button2) {
+  async function save11(existing, button2) {
     const title2 = value7("evt").trim();
     if (!title2) {
       notices.toast(t("events.editor.writeTitle"), true);
@@ -19897,13 +21444,13 @@
     repaintListIfShown();
   }
   function editEvent(existing) {
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml4(existing ?? { fecha: todayIso(), tipo: "Taller", en_linea: false }, existing);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml4(existing ?? { fecha: todayIso(), tipo: "Taller", en_linea: false }, existing);
     if (!box5.open) box5.showModal();
     const ok = document.getElementById("evok");
     if (ok) ok.onclick = () => {
-      void save9(existing, ok);
+      void save11(existing, ok);
     };
     const erase = document.getElementById("evborrar");
     if (erase && existing) erase.onclick = () => {
@@ -20085,10 +21632,10 @@
       notices.toast(t("events.sheet.notFound"), true);
       return;
     }
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
     const attendees = attendeeRows ?? [], canEdit2 = event.creado_por === salesTeam.currentUserId() || cardSectionsLegacy.can("administrar");
-    body2.innerHTML = sheetHtml3(event, attendees, canEdit2);
+    body3.innerHTML = sheetHtml3(event, attendees, canEdit2);
     if (!box5.open) box5.showModal();
     const edit = document.getElementById("eveditar");
     if (edit) edit.onclick = () => {
@@ -20108,7 +21655,7 @@
   var services_exports = {};
   __export(services_exports, {
     appName: () => appName,
-    byId: () => byId,
+    byId: () => byId2,
     calendar: () => calendar_exports,
     errors: () => errors_exports,
     escapeText: () => escapeText,
@@ -20904,11 +22451,11 @@
     const wrapper = input10.closest(".filepick");
     if (!wrapper) return;
     const container = wrapper.parentElement, siblings = container?.parentElement ? [...container.parentElement.children] : [];
-    const preview2 = siblings.find((item) => item !== container && !item.contains(wrapper) && (item.querySelector("img") !== null || /foto|prev/i.test(item.className + item.id)) && item.getBoundingClientRect().width < THUMB_MAX);
-    if (preview2) {
-      const image = preview2.querySelector("img"), thumb = wrapper.querySelector(".fpmini");
+    const preview3 = siblings.find((item) => item !== container && !item.contains(wrapper) && (item.querySelector("img") !== null || /foto|prev/i.test(item.className + item.id)) && item.getBoundingClientRect().width < THUMB_MAX);
+    if (preview3) {
+      const image = preview3.querySelector("img"), thumb = wrapper.querySelector(".fpmini");
       if (image?.src && thumb) thumb.innerHTML = `<img src="${image.src}" alt="">`;
-      preview2.classList.add("hide");
+      preview3.classList.add("hide");
     }
     container?.querySelector(`label[for="${input10.id}"]`)?.classList.add("hide");
   }
@@ -20926,7 +22473,7 @@
     minutesBetween: () => minutesBetween,
     navigateTo: () => navigateTo,
     navigationAttribute: () => navigationAttribute,
-    openApp: () => openApp,
+    openApp: () => openApp2,
     reverseGeocode: () => reverseGeocode,
     webLink: () => webLink
   });
@@ -20956,7 +22503,7 @@
     if (android && !stops?.length) return `google.navigation:q=${encodeURIComponent(target)}&mode=d`;
     return null;
   }
-  function openApp(app, web) {
+  function openApp2(app, web) {
     let away = false;
     const mark2 = () => {
       if (document.visibilityState === "hidden") away = true;
@@ -20994,7 +22541,7 @@
       window.open(web, "_blank", "noopener");
       return;
     }
-    openApp(app, web);
+    openApp2(app, web);
   }
   async function reverseGeocode(lat, lon) {
     try {
@@ -21478,9 +23025,9 @@
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("core.plans.notNow")}</button>${canChange2 ? `<button class="btn" id="vplan">${t("core.plans.seePlans")}</button>` : ""}</div>`;
   }
   function showNotice(html) {
-    const body2 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
-    if (!body2 || !dialog11) return;
-    body2.innerHTML = html;
+    const body3 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
+    if (!body3 || !dialog11) return;
+    body3.innerHTML = html;
     dialog11.showModal();
     const button2 = document.getElementById("vplan");
     if (button2) button2.onclick = () => {
@@ -21579,8 +23126,8 @@
     canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
   }
-  function bindChips(body2, values2) {
-    body2.querySelectorAll(".rpchips").forEach((group) => {
+  function bindChips(body3, values2) {
+    body3.querySelectorAll(".rpchips").forEach((group) => {
       const name = group.dataset.rp ?? "";
       values2[name] = group.querySelector(".on")?.dataset.v ?? "";
       group.querySelectorAll("button").forEach((button2) => {
@@ -21593,8 +23140,8 @@
       });
     });
   }
-  async function send(body2, dialog11, values2, screenshot) {
-    const summary5 = Object.entries(values2).map(([name, value27]) => `${labelOf(name)}: ${body2.querySelector(`[data-rp="${name}"] [data-v="${value27}"]`)?.textContent ?? value27}`).join(" · ");
+  async function send(body3, dialog11, values2, screenshot) {
+    const summary5 = Object.entries(values2).map(([name, value27]) => `${labelOf(name)}: ${body3.querySelector(`[data-rp="${name}"] [data-v="${value27}"]`)?.textContent ?? value27}`).join(" · ");
     const text5 = document.getElementById("rpque")?.value.trim() ?? "";
     const { data, error } = await coreLegacy.rpc("registrar_error", { p: {
       tipo: "reporte",
@@ -21613,13 +23160,13 @@
     coreLegacy.toast(t("core.report.thanks"));
   }
   function reportProblem() {
-    const body2 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
-    if (!body2 || !dialog11) return;
-    body2.innerHTML = formHtml5();
+    const body3 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
+    if (!body3 || !dialog11) return;
+    body3.innerHTML = formHtml5();
     dialog11.classList.add("amplia");
     dialog11.showModal();
     const values2 = {};
-    bindChips(body2, values2);
+    bindChips(body3, values2);
     const text5 = document.getElementById("rpque"), ok = document.getElementById("rptok");
     const picture = document.getElementById("rpcap");
     if (text5 && ok) text5.oninput = () => {
@@ -21631,7 +23178,7 @@
       if (file) screenshot = await screenshotOf(file);
     };
     if (ok) ok.onclick = () => {
-      void coreLegacy.withButtonLoading(ok, t("core.report.sending"), () => send(body2, dialog11, values2, screenshot));
+      void coreLegacy.withButtonLoading(ok, t("core.report.sending"), () => send(body3, dialog11, values2, screenshot));
     };
   }
 
@@ -22090,11 +23637,11 @@
   function localLoading(element4) {
     if (!element4) return;
     element4.classList.add("cargandolocal");
-    const start2 = performance.now();
+    const start4 = performance.now();
     let quiet = 0;
     const timer3 = setInterval(() => {
       quiet = coreLegacy.pendingReads() === 0 ? quiet + 1 : 0;
-      const elapsed = performance.now() - start2;
+      const elapsed = performance.now() - start4;
       if (quiet >= QUIET_TICKS && elapsed > LOCAL_MIN_MS || elapsed > LOCAL_MAX_MS) {
         clearInterval(timer3);
         element4.classList.remove("cargandolocal");
@@ -22110,7 +23657,7 @@
   // src/app/core/utilities.ts
   var DEFAULT_COLOUR = "#1C2733";
   var HEX = 16;
-  var byId = (id) => document.getElementById(id);
+  var byId2 = (id) => document.getElementById(id);
   var escapeText = (value27) => escapeHtml(value27);
   function withCatch(query) {
     if (query && typeof query.then === "function" && typeof query.catch !== "function") {
@@ -22123,7 +23670,7 @@
   var appName = () => coreLegacy.brandName() || t("core.myCompany");
   var hexToRgb = (hex) => {
     const digits = orFallback(hex, DEFAULT_COLOUR).replace("#", "");
-    return [0, 2, 4].map((start2) => parseInt(digits.substring(start2, start2 + 2), HEX));
+    return [0, 2, 4].map((start4) => parseInt(digits.substring(start4, start4 + 2), HEX));
   };
 
   // src/app/core/legacy-c/index.ts
@@ -22201,25 +23748,25 @@
   }
 
   // src/app/core/legacy-c/dom.ts
-  var byId2 = (id) => document.getElementById(id);
+  var byId3 = (id) => document.getElementById(id);
   var closestTo = (target, selector) => target instanceof Element ? target.closest(selector) : null;
   function observe(target, callback, options5) {
     if (target) new MutationObserver(callback).observe(target, options5);
   }
-  function onMainChanges(paint20) {
+  function onMainChanges(paint22) {
     let pending = false;
     observe(document.querySelector("main"), () => {
       if (pending) return;
       pending = true;
       queueMicrotask(() => {
         pending = false;
-        paint20();
+        paint22();
       });
     }, { childList: true, subtree: true });
   }
   var addedElements = (mutations) => mutations.flatMap((mutation) => [...mutation.addedNodes].filter((node) => node.nodeType === Node.ELEMENT_NODE));
   var matchingIn = (node, selector) => [...node.matches(selector) ? [node] : [], ...node.querySelectorAll(selector)];
-  var currentSection = () => byId2(`v-${TAB}`);
+  var currentSection = () => byId3(`v-${TAB}`);
   function whenSignedIn(then, everyMs, times) {
     let tries = 0;
     const timer3 = setInterval(() => {
@@ -22411,7 +23958,7 @@
   }
 
   // src/app/core/legacy-c/version.ts
-  var CHECK_EVERY_MS = 10 * 60 * 1e3;
+  var CHECK_EVERY_MS2 = 10 * 60 * 1e3;
   var CHECKED_FOR_MS = 2e3;
   var openVersion = () => (document.querySelector('script[src*="app.js"]')?.src ?? "").split("v=")[1] ?? "";
   async function confirmNewer(notice2, current) {
@@ -22428,7 +23975,7 @@
     }, CHECKED_FOR_MS);
   }
   function watchVersionNotice() {
-    const current = openVersion(), notice2 = byId2("nuevaver");
+    const current = openVersion(), notice2 = byId3("nuevaver");
     observe(notice2, () => {
       if (!notice2 || notice2.classList.contains("hide") || notice2.dataset.comprobado) return;
       void confirmNewer(notice2, current);
@@ -22438,7 +23985,7 @@
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) comprobarVersion();
     });
-    setInterval(comprobarVersion, CHECK_EVERY_MS);
+    setInterval(comprobarVersion, CHECK_EVERY_MS2);
   }
 
   // src/app/core/legacy-c/contacts-label.ts
@@ -22459,7 +24006,7 @@
       if (text5) text5.nodeValue = name;
       else title2.insertAdjacentText("afterbegin", name);
     }
-    const back = byId2("calvolver");
+    const back = byId3("calvolver");
     if (back) back.textContent = `‹ ${name}`;
   }
   function keepContactsLabel() {
@@ -22475,7 +24022,7 @@
   }
   function applyVocabularyToFixedTexts() {
     if (!Object.keys(TERMINOS ?? {}).length) return;
-    const search9 = byId2("q");
+    const search9 = byId3("q");
     if (search9) search9.placeholder = t("legacyC.fixedTexts.search", { professional: term("medico") });
     const latest = document.querySelector("#c-ultimas h2");
     if (latest) latest.textContent = t("legacyC.fixedTexts.latest", { visits: term("visita", { number: "p" }) });
@@ -22489,16 +24036,16 @@
   var SAVE_FILTER_DELAY_MS = 60;
   var filters = () => F;
   function addSaveFilter() {
-    const tools = byId2("tools"), openDialog3 = document.querySelector("dialog[open]");
+    const tools = byId3("tools"), openDialog3 = document.querySelector("dialog[open]");
     const container = tools?.classList.contains("abierto") ? tools : document.querySelector("dialog[open] .fh") ? openDialog3 : null;
-    const save44 = byId2("guardarFiltro");
-    if (!container || container.querySelector("#hguardarf") || !save44 || TAB !== "directorio") return;
+    const save46 = byId3("guardarFiltro");
+    if (!container || container.querySelector("#hguardarf") || !save46 || TAB !== "directorio") return;
     container.insertAdjacentHTML("beforeend", `<div class="acts" style="margin:12px 0 0"><button class="btn sec" id="hguardarf">${svgIco(ICON_NOM.star ?? "")} ${t("legacyC.tools.saveFilter")}</button></div>`);
-    const button2 = byId2("hguardarf");
+    const button2 = byId3("hguardarf");
     if (button2) button2.onclick = () => {
       if (container instanceof HTMLDialogElement) container.close();
       else container.classList.remove("abierto");
-      save44.click();
+      save46.click();
     };
   }
   var repaintFields = (zone) => {
@@ -22507,10 +24054,10 @@
     clasPintar(zone, "medico", current.campos, () => buscar(true), () => buscar(true), "h3");
   };
   function openTools(context, ...rest) {
-    byId2("tools2")?.classList.remove("abierto");
+    byId3("tools2")?.classList.remove("abierto");
     const result = abrirHerramientasBase(context, ...rest);
     setTimeout(addSaveFilter, SAVE_FILTER_DELAY_MS);
-    const tools = byId2("tools"), zone = tools?.querySelector(".tfcampos");
+    const tools = byId3("tools"), zone = tools?.querySelector(".tfcampos");
     if (context === "directorio" && tools && zone && tools.classList.contains("abierto")) {
       const columns = [...tools.querySelectorAll("h3")].find((heading) => (heading.textContent ?? "").trim() === t("legacyC.tools.columnsHeading"));
       columns?.before(zone);
@@ -22519,13 +24066,13 @@
     return result;
   }
   function listenToFieldChips() {
-    byId2("chips")?.addEventListener("click", (event) => {
+    byId3("chips")?.addEventListener("click", (event) => {
       const chip2 = closestTo(event.target, "[data-xcp]");
       if (!chip2) return;
       const current = filters();
       if (current.campos) Reflect.deleteProperty(current.campos, chip2.dataset.xcp ?? "");
       buscar(true);
-      const tools = byId2("tools"), zone = tools?.querySelector(".tfcampos");
+      const tools = byId3("tools"), zone = tools?.querySelector(".tfcampos");
       if (zone && tools?.classList.contains("abierto")) repaintFields(zone);
     });
   }
@@ -22539,20 +24086,20 @@
         onChange(Number(box5.dataset.t2c), box5.checked);
       };
     });
-    const back = byId2("t2volver");
+    const back = byId3("t2volver");
     if (back) back.onclick = () => {
       panel.classList.remove("abierto");
     };
-    const close4 = byId2("t2cerrar");
-    if (close4) close4.onclick = () => {
+    const close5 = byId3("t2cerrar");
+    if (close5) close5.onclick = () => {
       panel.classList.remove("abierto");
-      byId2("tools")?.classList.remove("abierto");
+      byId3("tools")?.classList.remove("abierto");
     };
     panel.classList.add("abierto");
   }
   function addResetWidths(grid) {
-    byId2("tools2")?.querySelector(".tbox")?.insertAdjacentHTML("beforeend", `<div class="acts"><button class="btn sec" type="button" id="t2anchos">${t("legacyC.tools.resetWidths")}</button></div>`);
-    const reset4 = byId2("t2anchos");
+    byId3("tools2")?.querySelector(".tbox")?.insertAdjacentHTML("beforeend", `<div class="acts"><button class="btn sec" type="button" id="t2anchos">${t("legacyC.tools.resetWidths")}</button></div>`);
+    const reset4 = byId3("t2anchos");
     if (reset4) reset4.onclick = () => {
       localStorage.removeItem(claveAnchos(htTipo(grid)));
       grid.style.minWidth = "";
@@ -22564,15 +24111,15 @@
   function showColumnsPanel(title2, columns, onChange) {
     const grid = currentSection()?.querySelector(".dgrid");
     const header4 = grid ? [...grid.querySelector(":scope > .dh")?.children ?? []] : [];
-    const panel = byId2("tools2");
+    const panel = byId3("tools2");
     if (!panel) return;
     paintColumnsPanel(panel, title2, columns.filter((column) => !header4[column.i]?.classList.contains("cpcol")), onChange);
     if (grid) addResetWidths(grid);
   }
   function createColumnsPanel() {
-    if (byId2("tools2")) return;
+    if (byId3("tools2")) return;
     document.body.insertAdjacentHTML("beforeend", `<div class="tools tools2" id="tools2" aria-label="${t("legacyC.tools.columnsHeading")}"></div><div class="toolsfondo hide" id="toolsfondo"></div>`);
-    const tools = byId2("tools"), second = byId2("tools2"), backdrop = byId2("toolsfondo");
+    const tools = byId3("tools"), second = byId3("tools2"), backdrop = byId3("toolsfondo");
     backdrop?.addEventListener("pointerdown", () => {
       second?.classList.remove("abierto");
       tools?.classList.remove("abierto");
@@ -22595,7 +24142,7 @@
     }, { childList: true, subtree: true });
   }
   function placeToolsButton() {
-    const tools = byId2("tools");
+    const tools = byId3("tools");
     observe(tools, () => {
       if (!tools?.classList.contains("abierto")) htDevolver();
     }, { attributes: true, attributeFilter: ["class"] });
@@ -22621,30 +24168,30 @@
   var MIN_COLUMN_PX = 60;
   function resizeColumnsByDragging() {
     document.addEventListener("pointerdown", (event) => {
-      const handle = closestTo(event.target, ".dgrid .colres");
-      if (!handle) return;
+      const handle2 = closestTo(event.target, ".dgrid .colres");
+      if (!handle2) return;
       event.preventDefault();
       event.stopPropagation();
-      const grid = handle.closest(".dgrid"), header4 = grid?.querySelector(":scope > .dh");
+      const grid = handle2.closest(".dgrid"), header4 = grid?.querySelector(":scope > .dh");
       if (!grid || !header4) return;
-      const kind = htTipo(grid), index = Number(handle.dataset.colres), widths = {};
+      const kind = htTipo(grid), index = Number(handle2.dataset.colres), widths = {};
       [...header4.children].forEach((cell5, position) => {
         if (!cell5.classList.contains("htno")) widths[position] = Math.round(cell5.getBoundingClientRect().width);
       });
       const startX = event.clientX, startWidth = widths[index] ?? 0;
-      const move3 = (moveEvent) => {
+      const move4 = (moveEvent) => {
         widths[index] = Math.max(MIN_COLUMN_PX, Math.round(startWidth + moveEvent.clientX - startX));
         const tracks = (grid.dataset.colsBase ?? "").split(/\s+(?![^(]*\))/).filter(Boolean);
         grid.style.setProperty("--cols", [...tracks.keys()].map((position) => widths[position] !== void 0 ? `${widths[position]}px` : null).filter(Boolean).join(" "));
         grid.style.minWidth = "max-content";
       };
-      const drop2 = () => {
-        document.removeEventListener("pointermove", move3);
-        document.removeEventListener("pointerup", drop2);
+      const drop3 = () => {
+        document.removeEventListener("pointermove", move4);
+        document.removeEventListener("pointerup", drop3);
         localStorage.setItem(claveAnchos(kind), JSON.stringify(widths));
       };
-      document.addEventListener("pointermove", move3);
-      document.addEventListener("pointerup", drop2);
+      document.addEventListener("pointermove", move4);
+      document.addEventListener("pointerup", drop3);
     }, true);
   }
 
@@ -22689,7 +24236,7 @@
   }
   function placeTableBar(section2) {
     moveToolsButton(section2);
-    const tools = section2.id === "v-directorio" && innerWidth >= MIN_DESKTOP ? byId2("dirtools") : null, actions = document.querySelector("#dircab .acts");
+    const tools = section2.id === "v-directorio" && innerWidth >= MIN_DESKTOP ? byId3("dirtools") : null, actions = document.querySelector("#dircab .acts");
     if (!tools || !actions || tools.parentElement === actions) return;
     tools.classList.remove("aderecha");
     actions.insertAdjacentHTML("beforeend", '<span class="ai ai-hueco hide" aria-hidden="true"></span>');
@@ -22745,23 +24292,23 @@
     });
   }
   function watchModuleSections() {
-    observe(byId2("v-directorio"), () => {
+    observe(byId3("v-directorio"), () => {
       if (TAB === "directorio") barraCuentas();
     }, { childList: true, subtree: true, characterData: true });
-    observe(byId2("v-facturacion"), () => {
+    observe(byId3("v-facturacion"), () => {
       if (TAB === "facturacion") subnavFacturacion();
     }, { childList: true, subtree: true });
   }
   function watchAnalyticsChannel() {
-    observe(byId2("v-analitica"), () => {
-      if (TAB === "analitica" && !byId2("ancanal")) graficoCanal();
+    observe(byId3("v-analitica"), () => {
+      if (TAB === "analitica" && !byId3("ancanal")) graficoCanal();
     }, { childList: true, subtree: true });
   }
   function watchBillingSettings() {
-    observe(byId2("v-facturacion"), () => {
+    observe(byId3("v-facturacion"), () => {
       ajustarFacturacion();
     }, { childList: true, subtree: true });
-    observe(byId2("v-facturacion"), () => {
+    observe(byId3("v-facturacion"), () => {
       botonDisenoPDF();
     }, { childList: true, subtree: true });
   }
@@ -22784,7 +24331,7 @@
       });
     }, { childList: true, subtree: true });
   }
-  function raisePageAction() {
+  function raisePageAction2() {
     observe(document.querySelector("main"), () => {
       if (ACCION_PAG_PEND) return;
       ACCION_PAG_PEND = true;
@@ -22960,7 +24507,7 @@
       const input10 = event.target;
       if (input10 instanceof HTMLInputElement && input10.matches(".selw input") && touchScreen()) input10.blur();
     }, true);
-    const mini4 = byId2("mini");
+    const mini4 = byId3("mini");
     if (mini4) {
       const open2 = mini4.showModal.bind(mini4);
       mini4.showModal = () => {
@@ -23007,7 +24554,7 @@
   var writesWhenOpened = 0;
   var unchangedUntil = 0;
   function watchDialogWrites() {
-    const dialog11 = byId2("dlg");
+    const dialog11 = byId3("dlg");
     observe(dialog11, () => {
       if (dialog11?.open) writesWhenOpened = ESCRITURAS;
       else if (ESCRITURAS === writesWhenOpened) unchangedUntil = Date.now() + UNCHANGED_FOR_MS;
@@ -23051,11 +24598,11 @@
   }
   function updateButton() {
     const actions = document.querySelector("#v-inicio .saludo .acts, #v-inicio .hero .acts, #v-inicio .inihead .acts") ?? document.querySelector("#v-inicio .saludo");
-    if (!actions) return { button: byId2("iniact"), inHeader: false };
-    let button2 = byId2("iniact");
+    if (!actions) return { button: byId3("iniact"), inHeader: false };
+    let button2 = byId3("iniact");
     if (!button2) {
       actions.insertAdjacentHTML("beforeend", `<button class="btn sec iniact" id="iniact" type="button" title="${t("legacyC.home.update")}">${svgIco(ICON_NOM["refresh-cw"] ?? "")}<span></span></button>`);
-      button2 = byId2("iniact");
+      button2 = byId3("iniact");
       if (button2) {
         const target = button2;
         target.onclick = () => {
@@ -23110,11 +24657,11 @@
       const original = globals4[name];
       if (!original) return;
       globals4[name] = function(...args) {
-        byId2("dlg")?.classList.add("amplia");
+        byId3("dlg")?.classList.add("amplia");
         return original.apply(this, args);
       };
     });
-    const dialog11 = byId2("dlg");
+    const dialog11 = byId3("dlg");
     observe(dialog11, () => {
       if (!dialog11?.open) dialog11?.classList.remove("amplia");
     }, { attributes: true, attributeFilter: ["open"] });
@@ -23123,11 +24670,11 @@
     }, { attributes: true, attributeFilter: ["open"] });
   }
   function stackWindows() {
-    byId2("dlg")?.addEventListener("close", () => {
+    byId3("dlg")?.addEventListener("close", () => {
       if (APILANDO || !PILA_VENT.length) return;
-      const previous = PILA_VENT.pop(), dialog11 = byId2("dlg"), body2 = byId2("dbody");
-      if (!previous || !dialog11 || !body2) return;
-      body2.replaceChildren(...previous.nodos);
+      const previous = PILA_VENT.pop(), dialog11 = byId3("dlg"), body3 = byId3("dbody");
+      if (!previous || !dialog11 || !body3) return;
+      body3.replaceChildren(...previous.nodos);
       dialog11.className = previous.clases;
       setTimeout(() => {
         if (!dialog11.open) dialog11.showModal();
@@ -23136,7 +24683,7 @@
   }
   function revealWindows() {
     ["dlg", "ficha", "dlg2"].forEach((id) => {
-      const dialog11 = byId2(id);
+      const dialog11 = byId3(id);
       observe(
         dialog11,
         () => {
@@ -23164,7 +24711,7 @@
       open2.apply(this);
       withoutFocusOnClose(this);
     };
-    const dialog11 = byId2("dlg");
+    const dialog11 = byId3("dlg");
     if (dialog11) {
       const own = dialog11.showModal;
       dialog11.showModal = function() {
@@ -23179,7 +24726,7 @@
   }
   function neverHalfOpen() {
     ["dlg", "dlg2"].forEach((id) => {
-      const dialog11 = byId2(id);
+      const dialog11 = byId3(id);
       if (!dialog11) return;
       const previous = dialog11.showModal;
       dialog11.showModal = function() {
@@ -23192,13 +24739,13 @@
     });
   }
   function trackDialogEpoch() {
-    const dialog11 = byId2("dlg");
+    const dialog11 = byId3("dlg");
     observe(dialog11, () => {
       if (dialog11?.open) DLG_EPOCA = RC_EPOCA;
     }, { attributes: true, attributeFilter: ["open"] });
   }
   function forgetVisitOnClose() {
-    const dialog11 = byId2("dlg");
+    const dialog11 = byId3("dlg");
     dialog11?.addEventListener("close", () => {
       setTimeout(() => {
         if (!dialog11.open) VISITA_ACTUAL = null;
@@ -23206,9 +24753,9 @@
     });
   }
   function repaintEventsOnClose() {
-    const dialog11 = byId2("dlg");
+    const dialog11 = byId3("dlg");
     dialog11?.addEventListener("close", () => {
-      if (TAB === "eventos" && (PAG_TAB.eventos ?? "lista") === "lista" && byId2("cfgcuerpo")) setTimeout(() => {
+      if (TAB === "eventos" && (PAG_TAB.eventos ?? "lista") === "lista" && byId3("cfgcuerpo")) setTimeout(() => {
         if (!dialog11.open) void pintarEventos();
       }, REPAINT_AFTER_CLOSE_MS);
     });
@@ -23219,18 +24766,18 @@
       (tabs.find((tab) => tab[0] === (PAG_TAB.ciclo ?? "ciclo")) ?? tabs[0])?.[2]();
     };
     ["dlg", "ficha"].forEach((id) => {
-      const dialog11 = byId2(id);
+      const dialog11 = byId3(id);
       dialog11?.addEventListener("close", () => {
-        if (TAB === "ciclo" && byId2("cfgcuerpo")) setTimeout(() => {
+        if (TAB === "ciclo" && byId3("cfgcuerpo")) setTimeout(() => {
           if (!dialog11.open && TAB === "ciclo") repaint5();
         }, REPAINT_AFTER_CLOSE_MS);
       });
     });
   }
   function repaintSurgeriesOnClose() {
-    const dialog11 = byId2("dlg");
+    const dialog11 = byId3("dlg");
     dialog11?.addEventListener("close", () => {
-      if (TAB === "cirugias" && byId2("cfgcuerpo")) setTimeout(() => {
+      if (TAB === "cirugias" && byId3("cfgcuerpo")) setTimeout(() => {
         if (!dialog11.open && TAB === "cirugias") void pintarCirugias();
       }, REPAINT_AFTER_CLOSE_MS);
     });
@@ -23285,10 +24832,10 @@
       if (dialog11.open) return;
       openEmbedded(dialog11, area);
     };
-    const close4 = dialog11.close;
+    const close5 = dialog11.close;
     dialog11.close = function(...args) {
       devolverEncajada(dialog11);
-      close4.apply(this, args);
+      close5.apply(this, args);
     };
     observe(document.body, () => {
       if (dialog11.__casa && !dialog11.isConnected) {
@@ -23302,12 +24849,12 @@
   }
   function embedWindows() {
     ["dlg", "dlg2"].forEach((id) => {
-      const dialog11 = byId2(id);
+      const dialog11 = byId3(id);
       if (dialog11) embed(dialog11);
     });
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
-      const dialog11 = ["dlg2", "dlg"].map((id) => byId2(id)).find((candidate) => candidate?.open && candidate.classList.contains("encajada"));
+      const dialog11 = ["dlg2", "dlg"].map((id) => byId3(id)).find((candidate) => candidate?.open && candidate.classList.contains("encajada"));
       if (dialog11 && !dialog11.dataset.fija) {
         event.preventDefault();
         dialog11.close();
@@ -23318,7 +24865,7 @@
     }, true);
     addEventListener("resize", () => {
       ["dlg", "dlg2"].forEach((id) => {
-        const dialog11 = byId2(id);
+        const dialog11 = byId3(id);
         if (dialog11?.open && dialog11.__area) {
           if (innerWidth < ENCAJE_MIN) dialog11.close();
           else colocarEncajada(dialog11, dialog11.__area);
@@ -23382,7 +24929,7 @@
       popup.remove();
       ir("manual");
       setTimeout(() => {
-        const search9 = byId2("manq"), name = document.querySelector(`nav.main [data-t="${screen3}"]`)?.textContent ?? screen3;
+        const search9 = byId3("manq"), name = document.querySelector(`nav.main [data-t="${screen3}"]`)?.textContent ?? screen3;
         if (search9) {
           search9.value = name.trim();
           search9.dispatchEvent(new Event("input", { bubbles: true }));
@@ -23412,24 +24959,24 @@
     helpLines("rutas")?.push(t("legacyC.help.routeCentres", { professionals: term("medico", { number: "p" }) }));
   }
   function rememberLogin() {
-    const email = byId2("lu"), form = byId2("lform");
+    const email = byId3("lu"), form = byId3("lform");
     if (!email || !form) return;
     try {
       const last = localStorage.getItem("dlc-ultimo-correo");
       if (last && !email.value) {
         email.value = last;
         setTimeout(() => {
-          const password = byId2("lp");
+          const password = byId3("lp");
           if (password && document.activeElement !== email) password.focus();
         }, FOCUS_DELAY_MS3);
       }
     } catch {
     }
-    if (!byId2("lrecordar")) byId2("lbtn")?.insertAdjacentHTML("beforebegin", `<label class="opt lrecordar"><input type="checkbox" id="lrecordar" ${localStorage.getItem("dlc-no-recordar") ? "" : "checked"}> ${t("legacyC.login.keepSession")}</label>`);
+    if (!byId3("lrecordar")) byId3("lbtn")?.insertAdjacentHTML("beforebegin", `<label class="opt lrecordar"><input type="checkbox" id="lrecordar" ${localStorage.getItem("dlc-no-recordar") ? "" : "checked"}> ${t("legacyC.login.keepSession")}</label>`);
     form.addEventListener("submit", () => {
       try {
         localStorage.setItem("dlc-ultimo-correo", email.value.trim());
-        if (byId2("lrecordar")?.checked) localStorage.removeItem("dlc-no-recordar");
+        if (byId3("lrecordar")?.checked) localStorage.removeItem("dlc-no-recordar");
         else localStorage.setItem("dlc-no-recordar", "1");
         document.cookie = "dlc-sesion-viva=1; path=/; SameSite=Lax";
       } catch {
@@ -23865,7 +25412,7 @@
       <button type="button" class="mlitem" id="mlcfg" data-tip="${t("legacyC.sideMenu.settings")}">${svgIco(ICON_NOM.settings ?? "")}<span class="mllab">${t("legacyC.sideMenu.settings")}</span></button>
       <button type="button" class="mlitem" id="mlpers" data-tip="${t("legacyC.sideMenu.customise")}">${svgIco(ICON_NOM["sliders-horizontal"] ?? "")}<span class="mllab">${t("legacyC.sideMenu.customise")}</span></button>
       <button type="button" class="mlplegar" id="mlplegar" aria-label="${t("legacyC.sideMenu.foldLabel")}">${svgIco(ICO_PLEGAR)}</button></div>`);
-      const settings2 = byId2("mlcfg"), customise2 = byId2("mlpers"), fold2 = byId2("mlplegar");
+      const settings2 = byId3("mlcfg"), customise2 = byId3("mlpers"), fold2 = byId3("mlplegar");
       if (settings2) settings2.onclick = () => {
         ir("config");
       };
@@ -23888,8 +25435,8 @@
     const footer2 = nav.querySelector(".mlpie");
     if (footer2) nav.appendChild(footer2);
     const userSettings = document.querySelector('#umenu [data-u="cfg"]');
-    byId2("mlcfg")?.classList.toggle("hide", !userSettings || userSettings.classList.contains("hide"));
-    const fold = byId2("mlplegar");
+    byId3("mlcfg")?.classList.toggle("hide", !userSettings || userSettings.classList.contains("hide"));
+    const fold = byId3("mlplegar");
     if (fold) fold.dataset.tip = t(document.body.classList.contains("menupleg") ? "legacyC.sideMenu.unfold" : "legacyC.sideMenu.fold");
   }
   var markEmptyGroups = (nav) => {
@@ -23923,7 +25470,7 @@
     markEmptyGroups(nav);
   }
   function mountSideMenu() {
-    const nav = byId2("nav");
+    const nav = byId3("nav");
     if (nav) {
       const side = wantsSideMenu(nav);
       document.body.classList.toggle("menulat", side);
@@ -23938,9 +25485,9 @@
       const button2 = event.target instanceof Element ? event.target.closest("nav.main [data-tip]") : null;
       menuTip(button2);
     });
-    observe(byId2("nav"), menuRehacer, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    observe(byId3("nav"), menuRehacer, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
     addEventListener("resize", menuRehacer);
-    observe(byId2("app"), menuRehacer, { attributes: true, attributeFilter: ["class"] });
+    observe(byId3("app"), menuRehacer, { attributes: true, attributeFilter: ["class"] });
     menuRehacer();
   }
 
@@ -23978,25 +25525,25 @@
       await new Promise((resolve) => {
         setTimeout(resolve, STRIP_DELAY_MS);
       });
-      const reset4 = byId2("prreset");
-      if (!reset4 || byId2("prtraer")) return;
+      const reset4 = byId3("prreset");
+      if (!reset4 || byId3("prtraer")) return;
       reset4.insertAdjacentHTML("beforebegin", `<button class="btn sec" id="prtraer" title="${t("legacyC.testEnvironment.bringHint")}">${t("legacyC.testEnvironment.bring")}</button>`);
-      const point = byId2("prpunto");
-      if (point && !byId2("prrefresco")) point.insertAdjacentHTML("afterend", ' <span class="prpunto" id="prrefresco"></span>');
+      const point = byId3("prpunto");
+      if (point && !byId3("prrefresco")) point.insertAdjacentHTML("afterend", ' <span class="prpunto" id="prrefresco"></span>');
       estadoRefresco();
-      const bring = byId2("prtraer");
+      const bring = byId3("prtraer");
       if (bring) bring.onclick = () => {
         void bringProduction(bring);
       };
     };
-    if (byId2("prreset")) void globals().pintarFranjaPruebas();
+    if (byId3("prreset")) void globals().pintarFranjaPruebas();
   }
   function paintMarker() {
-    byId2("franjapruebas")?.remove();
+    byId3("franjapruebas")?.remove();
     const logo = document.querySelector(".top .logo");
-    if (!logo || byId2("indpruebas")) return;
+    if (!logo || byId3("indpruebas")) return;
     logo.insertAdjacentHTML("afterend", `<button type="button" id="indpruebas" class="indpruebas" title="${t("legacyC.testEnvironment.markerHint")}">${t("legacyC.testEnvironment.marker")}</button>`);
-    const marker = byId2("indpruebas");
+    const marker = byId3("indpruebas");
     if (marker) marker.onclick = () => {
       if (puedeOrganizacion()) {
         PAG_TAB.organizacion = "pruebas";
@@ -24048,29 +25595,29 @@
           <span class="pklg">${t("legacyC.orderAlerts.lastDays")}</span></button>`;
   }
   function alertsBox() {
-    if (!byId2("operativa")) {
-      const reference2 = byId2("vcuerpo");
+    if (!byId3("operativa")) {
+      const reference2 = byId3("vcuerpo");
       if (!reference2) return null;
       reference2.insertAdjacentHTML("beforebegin", '<div id="operativa"></div>');
     }
-    return byId2("operativa");
+    return byId3("operativa");
   }
   function bindCards(box5, mandatory, shown5) {
     box5.querySelectorAll("[data-pk]").forEach((card4) => {
       card4.onclick = () => {
-        const select3 = byId2("popf");
+        const select3 = byId3("popf");
         if (!select3) return;
         select3.value = select3.value === card4.dataset.pk ? "" : card4.dataset.pk ?? "";
         select3.dispatchEvent(new Event("change", { bubbles: true }));
         pkMarcar();
       };
     });
-    const tools = document.querySelector("#v-ventas .htbtn"), gear = byId2("opcfg");
+    const tools = document.querySelector("#v-ventas .htbtn"), gear = byId3("opcfg");
     if (tools?.offsetParent && gear && shown5) {
       gear.className = "btn sec pkcfg pkcfgcab";
       tools.insertAdjacentElement("beforebegin", gear);
     }
-    const settings2 = byId2("opcfg");
+    const settings2 = byId3("opcfg");
     if (settings2) settings2.onclick = () => {
       configurarAvisosPedidos(mandatory);
     };
@@ -24083,7 +25630,7 @@
       RPC_ORIG("operativa_pendiente", {}),
       db.from("ajustes").select("valor").eq("clave", "avisos_pedidos").maybeSingle()
     ]);
-    const box5 = byId2("operativa");
+    const box5 = byId3("operativa");
     if (!box5) return;
     box5.className = "pkop";
     document.querySelectorAll("#opcfg").forEach((gear2) => {
@@ -24167,7 +25714,7 @@
 
   // src/app/core/legacy-c/platform.ts
   var COVER_MAX_MS = 9e3;
-  var CHECK_EVERY_MS2 = 60;
+  var CHECK_EVERY_MS3 = 60;
   var CHECKS = 80;
   var REVEAL_STEP_MS = 100;
   var REVEAL_STEPS = 30;
@@ -24175,7 +25722,7 @@
     document.addEventListener("click", (event) => {
       if (!closestTo(event.target, "[data-orgext]")) return;
       setTimeout(() => {
-        const subtitle3 = byId2("dbody")?.querySelector(".fh .sm");
+        const subtitle3 = byId3("dbody")?.querySelector(".fh .sm");
         if (subtitle3 && (subtitle3.textContent ?? "").includes("aparte de su plan")) subtitle3.textContent = t("legacyC.platform.extras");
       }, 0);
     }, true);
@@ -24230,7 +25777,7 @@
         return;
       }
       if (!(typeof PERFIL !== "undefined" && PERFIL && !document.body.classList.contains("sin-sesion") && typeof RPC_ORIG === "function")) {
-        if (!byId2("login")?.classList.contains("hide")) {
+        if (!byId3("login")?.classList.contains("hide")) {
           clearInterval(timer3);
           clearTimeout(limit);
           finish();
@@ -24242,11 +25789,11 @@
         clearTimeout(limit);
         finish();
       });
-    }, CHECK_EVERY_MS2);
+    }, CHECK_EVERY_MS3);
   }
 
   // src/app/core/legacy-c/plan-page.ts
-  var CHECK_EVERY_MS3 = 1500;
+  var CHECK_EVERY_MS4 = 1500;
   var CHECKS2 = 90;
   var VERSION_EVERY_MS = 2e3;
   var WELCOME_EVERY_MS = 1e3;
@@ -24286,32 +25833,32 @@
     return t("legacyC.plan.trial", { date: fechaDiaMes(date), total: eurW(total2), setup, after: eurW(receipt.despues), every: t(receipt.anual ? "legacyC.plan.perYearShort" : "legacyC.plan.perMonthShort") });
   }
   function receiptBox(title2) {
-    let box5 = byId2("pgrecibo");
+    let box5 = byId3("pgrecibo");
     if (!box5) {
-      const trial = byId2("pgprueba");
+      const trial = byId3("pgprueba");
       if (trial) {
         trial.id = "pgrecibo";
         box5 = trial;
       } else {
         title2.insertAdjacentHTML("afterend", '<div class="banda-info" id="pgrecibo"></div>');
-        box5 = byId2("pgrecibo");
+        box5 = byId3("pgrecibo");
       }
     }
     return box5;
   }
   var charged = (plan3) => Boolean(plan3.stripe_suscripcion) && plan3.plan !== "medida" && !plan3.baja_al_final && plan3.estado !== "cancelada";
   function paintNextReceipt() {
-    const body2 = byId2("cfgcuerpo"), plan3 = currentPlan();
-    if (body2) annualFee(body2.querySelectorAll("#planact .kpi"), plan3);
-    const title2 = body2?.querySelector("#planact h2");
-    if (!body2 || !title2) return;
-    feeWithVat(body2.querySelectorAll("#planact .kpi"));
+    const body3 = byId3("cfgcuerpo"), plan3 = currentPlan();
+    if (body3) annualFee(body3.querySelectorAll("#planact .kpi"), plan3);
+    const title2 = body3?.querySelector("#planact h2");
+    if (!body3 || !title2) return;
+    feeWithVat(body3.querySelectorAll("#planact .kpi"));
     if (!charged(plan3)) return;
     const next = PAGO_PROXIMO, box5 = receiptBox(title2);
     if (!box5) return;
     box5.innerHTML = receiptText(plan3, next);
     box5.dataset.origen = next?.total !== void 0 && next.total !== null ? "stripe" : "calculo";
-    body2.querySelectorAll("#planact > p.sm").forEach((line3) => {
+    body3.querySelectorAll("#planact > p.sm").forEach((line3) => {
       if ((line3.textContent ?? "").trim().startsWith(t("legacyC.plan.looseLine"))) line3.remove();
     });
   }
@@ -24337,7 +25884,7 @@
         pagoEsperarActivo();
       } else if (result === "cancelado") toast(t("legacyC.plan.paymentLeft"));
       void pagoCargarEstado();
-    }, CHECK_EVERY_MS3, CHECKS2);
+    }, CHECK_EVERY_MS4, CHECKS2);
   }
   function cancellationOnStart() {
     if (new URLSearchParams(location.search).get("pago") !== "baja") return;
@@ -24347,7 +25894,7 @@
         clearInterval(timer3);
         pagoEsperarBaja();
       } else if (++tries > CHECKS2) clearInterval(timer3);
-    }, CHECK_EVERY_MS3);
+    }, CHECK_EVERY_MS4);
   }
   var forgetPlanReturnLater = () => {
     setTimeout(() => {
@@ -24359,7 +25906,7 @@
     if (query.get("alta") === "ok") {
       history.replaceState(null, "", location.pathname + location.hash);
       setTimeout(() => {
-        const message4 = byId2("lmsg");
+        const message4 = byId3("lmsg");
         if (message4 && !(typeof PERFIL !== "undefined" && PERFIL)) {
           message4.style.color = "var(--ok)";
           message4.textContent = t("legacyC.plan.signupLogin");
@@ -24428,10 +25975,10 @@
     return false;
   }
   function pullIndicator() {
-    const existing = byId2("ptr");
+    const existing = byId3("ptr");
     if (existing) return existing;
     document.body.insertAdjacentHTML("beforeend", '<div id="ptr" aria-hidden="true"><span class="ptrc"></span></div>');
-    return byId2("ptr") ?? document.body;
+    return byId3("ptr") ?? document.body;
   }
   var showPull = (distance) => {
     const indicator2 = pullIndicator();
@@ -24440,7 +25987,7 @@
     indicator2.classList.toggle("listo", distance > PULL_READY);
   };
   var hidePull = () => {
-    const indicator2 = byId2("ptr");
+    const indicator2 = byId3("ptr");
     if (indicator2) {
       indicator2.style.transform = "translate(-50%, -60px)";
       indicator2.style.opacity = "0";
@@ -24495,18 +26042,18 @@
       event.stopImmediatePropagation();
       event.stopPropagation();
       event.preventDefault();
-      byId2("gsug")?.classList.add("hide");
-      const search9 = byId2("q");
+      byId3("gsug")?.classList.add("hide");
+      const search9 = byId3("q");
       if (search9) search9.value = "";
       void fichaCentro(button2.dataset.gcid ?? "");
     }, true);
   }
   function decorateVisitResults() {
-    const body2 = byId2("dbody");
-    if (!body2) return;
-    observe(body2, () => {
-      if (body2.querySelector("[data-vdest]:not([data-vend])")) {
-        body2.querySelectorAll("[data-vdest]").forEach((item) => {
+    const body3 = byId3("dbody");
+    if (!body3) return;
+    observe(body3, () => {
+      if (body3.querySelector("[data-vdest]:not([data-vend])")) {
+        body3.querySelectorAll("[data-vdest]").forEach((item) => {
           item.dataset.vend = "1";
         });
         decorarResultados();
@@ -24528,7 +26075,7 @@
   }
   function paintPlan(args) {
     const result = pintarPlanBase2(...args);
-    const box5 = byId2("rplan"), booked = PLAN?.citados ?? [];
+    const box5 = byId3("rplan"), booked = PLAN?.citados ?? [];
     if (box5 && booked.length && !box5.querySelector(".plancitados")) {
       box5.insertAdjacentHTML("beforeend", `<div class="plancitados"><h3>${t("legacyC.plan.booked", { count: booked.length })}</h3>
       <p class="sm">${t("legacyC.plan.bookedHint")}</p>
@@ -24543,8 +26090,8 @@
   var infoOf = (id) => TD_INFO[id];
   function markFarStops(stops, date, estimate) {
     try {
-      const start2 = salidaUsuario();
-      let position = start2?.lat !== void 0 && start2.lat !== null ? [Number(start2.lat), Number(start2.lon)] : null;
+      const start4 = salidaUsuario();
+      let position = start4?.lat !== void 0 && start4.lat !== null ? [Number(start4.lat), Number(start4.lon)] : null;
       stops.forEach((stop) => {
         const point = xyCita(stop), info = infoOf(stop.id);
         if (info) {
@@ -24596,7 +26143,7 @@
   // src/app/core/legacy-c/company.ts
   var NOTE_CHARS = 180;
   function previewHtml() {
-    const value27 = (key) => (byId2(`em_${key}`)?.value ?? "").trim();
+    const value27 = (key) => (byId3(`em_${key}`)?.value ?? "").trim();
     const brand2 = AJUSTES.marca ?? {};
     const logo = MARCA.logo && brand2.logo_factura !== false;
     const address2 = [value27("direccion"), [value27("cp"), value27("municipio") || value27("poblacion")].filter(Boolean).join(" "), value27("provincia")].filter(Boolean).join(", ");
@@ -24610,19 +26157,19 @@
   }
   async function paintCompany(args) {
     await pintarEmpresaBase2(...args);
-    const card4 = byId2("fcuerpo")?.querySelector(".card");
-    if (!card4 || byId2("fprev")) return;
+    const card4 = byId3("fcuerpo")?.querySelector(".card");
+    if (!card4 || byId3("fprev")) return;
     const wrapper = document.createElement("div");
     wrapper.className = "conprevia";
     card4.parentNode?.insertBefore(wrapper, card4);
     wrapper.appendChild(card4);
     wrapper.insertAdjacentHTML("beforeend", `<div class="previa"><div class="sm previat">${t("legacyC.company.previewTitle")}</div><div class="facprev" id="fprev"></div></div>`);
-    const paint20 = () => {
-      const preview2 = byId2("fprev");
-      if (preview2) preview2.innerHTML = previewHtml();
+    const paint22 = () => {
+      const preview3 = byId3("fprev");
+      if (preview3) preview3.innerHTML = previewHtml();
     };
-    card4.addEventListener("input", paint20);
-    paint20();
+    card4.addEventListener("input", paint22);
+    paint22();
   }
   function fieldNames() {
     const names = {};
@@ -24768,7 +26315,7 @@
     addIconsOf("074");
     closePopupOutside(".agpop", "[data-agdia]");
     setPanelFilters();
-    raisePageAction();
+    raisePageAction2();
     closePopupOutside(".ankpop", "[data-ancfg]");
   }
   function start075() {
@@ -25440,8 +26987,8 @@
     },
     currentPage: () => pagActual(),
     notAChange: () => PAG_NO_CAMBIA,
-    markChanged: (element4, body2) => {
-      PAG_SUCIO.add(pagBloque(element4, body2));
+    markChanged: (element4, body3) => {
+      PAG_SUCIO.add(pagBloque(element4, body3));
       pagMarcarSucio();
     },
     placeSaveButtonSoon: () => {
@@ -25780,7 +27327,7 @@
       if (dialog11?.open) dialog11.close();
     });
   }
-  var CLOSE_MS = 600;
+  var CLOSE_MS2 = 600;
   var BLOCK_MS = 8e3;
   function installClosedWhileLoading() {
     const closedByUser = {}, closing = {};
@@ -25800,7 +27347,7 @@
       }, true);
       dialog11.addEventListener("close", () => {
         const pressed2 = closing[id] ?? 0, loading3 = dialog11.classList.contains("pdprep") || Boolean(dialog11.querySelector(".spin, .preparando, .cargando, .skel"));
-        if (pressed2 && performance.now() - pressed2 < CLOSE_MS && loading3) closedByUser[id] = performance.now();
+        if (pressed2 && performance.now() - pressed2 < CLOSE_MS2 && loading3) closedByUser[id] = performance.now();
         closing[id] = 0;
       });
       aroundShowModal(dialog11, () => {
@@ -25983,16 +27530,16 @@
     const app = document.getElementById("app");
     if (!app) return;
     let shown5 = !app.classList.contains("hide");
-    const reveal = () => {
+    const reveal2 = () => {
       const screen3 = document.getElementById(`v-${navigationGlueLegacy.currentScreen()}`);
       if (screen3 && !screen3.classList.contains("hide") && navigationGlueLegacy.hasReadyCheck(navigationGlueLegacy.currentScreen())) navigationGlueLegacy.reveal(screen3);
     };
-    if (shown5) reveal();
+    if (shown5) reveal2();
     new MutationObserver(() => {
       const now = !app.classList.contains("hide");
       if (now === shown5) return;
       shown5 = now;
-      if (now) reveal();
+      if (now) reveal2();
     }).observe(app, { attributes: true, attributeFilter: ["class"] });
     navigationGlueLegacy.setReadyCheck("inicio", () => true);
   }
@@ -26067,9 +27614,9 @@
   }
   function indicatorButtonsInHeader() {
     if (pageLegacy.currentScreen() !== "config" || pageLegacy.settingsKey() !== "inicio.kpis") return;
-    const header4 = document.querySelector("#v-config .cfucab"), body2 = document.getElementById("cfgcuerpo");
-    if (!header4 || !body2) return;
-    const actions = [...body2.querySelectorAll(".acts")].filter((item) => item.querySelector(".btn") && !item.classList.contains("cfuacts")).pop();
+    const header4 = document.querySelector("#v-config .cfucab"), body3 = document.getElementById("cfgcuerpo");
+    if (!header4 || !body3) return;
+    const actions = [...body3.querySelectorAll(".acts")].filter((item) => item.querySelector(".btn") && !item.classList.contains("cfuacts")).pop();
     if (!actions) return;
     header4.querySelectorAll(".cfuacts").forEach((item) => {
       item.remove();
@@ -26128,15 +27675,15 @@
       void open2();
     };
   }
-  async function removedWindow({ title: title2, hint, listId, load: load4, rowHtml: rowHtml40, empty: empty2 }) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = `<div class="fh"><div><h2>${title2}</h2><div class="sm">${hint}</div></div>
+  async function removedWindow({ title: title2, hint, listId, load: load4, rowHtml: rowHtml41, empty: empty2 }) {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${title2}</h2><div class="sm">${hint}</div></div>
     <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div><div id="${listId}"><div class="skel"></div><div class="skel"></div></div>`;
     removedLegacy.dialog("dlg")?.showModal();
     const rows2 = await load4(), list = document.getElementById(listId);
     if (!list) return;
-    list.innerHTML = rows2.length ? `<div class="lista">${rows2.map(rowHtml40).join("")}</div>` : `<div class="vacio">${empty2}</div>`;
+    list.innerHTML = rows2.length ? `<div class="lista">${rows2.map(rowHtml41).join("")}</div>` : `<div class="vacio">${empty2}</div>`;
   }
   function removeRowOnClick(selector) {
     document.addEventListener("click", (event) => {
@@ -26314,7 +27861,7 @@
     "catalogos_todos",
     "opciones_filtros"
   ]);
-  var RETRY_MS = 4500;
+  var RETRY_MS2 = 4500;
   var WAIT_MS2 = 8e3;
   var SLOW_MS = 4e3;
   function race(first2, second) {
@@ -26333,7 +27880,7 @@
         other.then(finish, (error) => {
           finish({ data: null, error });
         });
-      }, RETRY_MS);
+      }, RETRY_MS2);
       Promise.resolve(first2()).then((result) => {
         if (other && result?.error) {
           wait = setTimeout(() => {
@@ -26353,13 +27900,13 @@
   function installSlowReadRetry() {
     rpcLegacy.wrap((original) => (name, args, ...rest) => {
       if (!SLOW_READS.has(name)) return original(name, args, ...rest);
-      const start2 = performance.now();
+      const start4 = performance.now();
       return race(() => original(name, args, ...rest), () => {
         rpcLegacy.forgetInFlight(name);
         return rpcLegacy.direct(name, args ?? {}, ...rest);
       }).then((result) => {
-        const ms = Math.round(performance.now() - start2);
-        if (ms > SLOW_MS && navigator.onLine) rpcLegacy.logError("api", `Lento: ${name}`, { funcion: name, ms, pantalla: rpcLegacy.currentScreen(), segundo_intento: ms > RETRY_MS });
+        const ms = Math.round(performance.now() - start4);
+        if (ms > SLOW_MS && navigator.onLine) rpcLegacy.logError("api", `Lento: ${name}`, { funcion: name, ms, pantalla: rpcLegacy.currentScreen(), segundo_intento: ms > RETRY_MS2 });
         return result;
       });
     });
@@ -26464,11 +28011,11 @@
     const group = menuLegacy.menuGroups().find((item) => item.id === "ventas");
     if (group && !group.items.includes(module)) group.items.splice(group.items.indexOf(after) + 1, 0, module);
   }
-  function repaintOnClose(screen3, paint20) {
+  function repaintOnClose(screen3, paint22) {
     menuLegacy.dialog()?.addEventListener("close", () => {
       if (menuLegacy.currentScreen() !== screen3 || !document.getElementById("cfgcuerpo")) return;
       setTimeout(() => {
-        if (!menuLegacy.dialog()?.open && menuLegacy.currentScreen() === screen3) paint20();
+        if (!menuLegacy.dialog()?.open && menuLegacy.currentScreen() === screen3) paint22();
       }, REPAINT_DELAY_MS);
     });
   }
@@ -26581,7 +28128,7 @@
   var OUR_REQUESTS = /\/rest\/v1\/|\/functions\/v1\//;
   var POLL_MS = 80;
   var MIN_MS = 350;
-  var QUIET_MS = 120;
+  var QUIET_MS2 = 120;
   var MAX_MS = 3e4;
   function countRequests() {
     const original = window.fetch;
@@ -26595,7 +28142,7 @@
     };
   }
   function showSaving(button2) {
-    const before = button2.innerHTML, start2 = performance.now(), width = button2.offsetWidth;
+    const before = button2.innerHTML, start4 = performance.now(), width = button2.offsetWidth;
     button2.classList.add("guardando");
     button2.setAttribute("aria-busy", "true");
     button2.style.minWidth = `${width}px`;
@@ -26613,7 +28160,7 @@
         return;
       }
       const now = performance.now();
-      if (saveLegacy.inFlight() === 0 && now - start2 > MIN_MS && now - saveLegacy.lastRequest() > QUIET_MS || now - start2 > MAX_MS) {
+      if (saveLegacy.inFlight() === 0 && now - start4 > MIN_MS && now - saveLegacy.lastRequest() > QUIET_MS2 || now - start4 > MAX_MS) {
         end();
         return;
       }
@@ -26741,11 +28288,11 @@
   }
 
   // src/app/core/layers/settings-polish.ts
-  var byId3 = (id) => document.getElementById(id);
+  var byId4 = (id) => document.getElementById(id);
   var valueOf4 = (id) => document.getElementById(id)?.value ?? "";
-  function liftIntroductions(body2) {
+  function liftIntroductions(body3) {
     const header4 = document.querySelector(".cfucab"), title2 = polishLegacy.normalise(header4?.querySelector("h2")?.textContent ?? "");
-    body2.querySelectorAll(":scope > .card:not([data-pul])").forEach((card4) => {
+    body3.querySelectorAll(":scope > .card:not([data-pul])").forEach((card4) => {
       card4.dataset.pul = "1";
       const heading = card4.querySelector(":scope > h2");
       if (heading && polishLegacy.normalise(heading.textContent) === title2) heading.classList.add("cfudup");
@@ -26762,10 +28309,10 @@
       }
       card4.remove();
     });
-    [...body2.querySelectorAll("h2:not(.cfudup)")].find((heading) => polishLegacy.normalise(heading.textContent) === title2)?.classList.add("cfudup");
+    [...body3.querySelectorAll("h2:not(.cfudup)")].find((heading) => polishLegacy.normalise(heading.textContent) === title2)?.classList.add("cfudup");
   }
-  function numberRows(body2) {
-    body2.querySelectorAll(".g2 > div:not([data-pul])").forEach((row4) => {
+  function numberRows(body3) {
+    body3.querySelectorAll(".g2 > div:not([data-pul])").forEach((row4) => {
       const number3 = row4.querySelector(":scope > .numw");
       if (!number3) return;
       row4.dataset.pul = "1";
@@ -26776,19 +28323,19 @@
       row4.prepend(left);
       row4.parentElement?.classList.add("ajlista");
     });
-    const notice2 = byId3("pfaviso");
+    const notice2 = byId4("pfaviso");
     if (notice2 && !notice2.dataset.pul) {
       notice2.dataset.pul = "1";
       notice2.classList.add("card", "cfgpanel");
     }
   }
-  function vocabularyCard(body2) {
-    const vocabulary2 = body2.querySelector(".mkvoc"), label = body2.querySelector(".mketqbox");
-    if (!vocabulary2 || byId3("mkvoccard")) return;
-    body2.insertAdjacentHTML("beforeend", `<div class="card cfgpanel" id="mkvoccard"><h2 style="padding:0 0 4px">${t("legacyD.polish.vocabularyTitle")}</h2>
+  function vocabularyCard(body3) {
+    const vocabulary2 = body3.querySelector(".mkvoc"), label = body3.querySelector(".mketqbox");
+    if (!vocabulary2 || byId4("mkvoccard")) return;
+    body3.insertAdjacentHTML("beforeend", `<div class="card cfgpanel" id="mkvoccard"><h2 style="padding:0 0 4px">${t("legacyD.polish.vocabularyTitle")}</h2>
         <p class="sm">${t("legacyD.polish.vocabularyHint")}</p>
         <div id="mkvochueco"></div><div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="mkvocok">${t("common.save")}</button></div></div>`);
-    const place5 = byId3("mkvochueco");
+    const place5 = byId4("mkvochueco");
     if (!place5) return;
     if (label) place5.appendChild(label);
     place5.appendChild(vocabulary2);
@@ -26804,27 +28351,27 @@
         input10.setAttribute("aria-label", `${name} · ${partNames.get(input10.dataset.tf ?? "") ?? ""}`);
       });
     });
-    const ok = byId3("mkvocok");
+    const ok = byId4("mkvocok");
     if (ok) ok.onclick = () => {
-      byId3("mkok")?.click();
+      byId4("mkok")?.click();
     };
   }
-  function emailState(body2) {
-    if (!byId3("coprueba") || byId3("costado")) return;
-    const host = valueOf4("cohost").trim(), first2 = body2.querySelector(":scope > .card");
+  function emailState(body3) {
+    if (!byId4("coprueba") || byId4("costado")) return;
+    const host = valueOf4("cohost").trim(), first2 = body3.querySelector(":scope > .card");
     const sender = (valueOf4("coemail") || host).trim();
     first2?.insertAdjacentHTML("beforebegin", `<div class="card cfgpanel" id="costado"><div class="ajfila"><div><b>${t(host ? "legacyD.polish.emailConnected" : "legacyD.polish.emailMissing")}</b>
       <span class="sm">${host ? t("legacyD.polish.emailFrom", { sender: escapeHtml(sender) }) : t("legacyD.polish.emailFill")}</span></div>
       <div class="ajctl"><button type="button" class="btn sec" id="copruebaarriba">${t("legacyD.polish.emailTest")}</button></div></div></div>`);
-    const top = byId3("copruebaarriba");
+    const top = byId4("copruebaarriba");
     if (top) top.onclick = () => {
-      const test = byId3("coprueba");
+      const test = byId4("coprueba");
       test?.scrollIntoView({ block: "center", behavior: "smooth" });
       test?.click();
     };
   }
-  function backupRow(body2) {
-    const state2 = body2.querySelector(".copiaest"), button2 = byId3("copok");
+  function backupRow(body3) {
+    const state2 = body3.querySelector(".copiaest"), button2 = byId4("copok");
     if (!state2 || !button2 || state2.contains(button2)) return;
     const actions = button2.closest(".acts"), text5 = document.createElement("div");
     state2.classList.add("copiafila");
@@ -26833,17 +28380,17 @@
     if (actions && !actions.children.length) actions.remove();
   }
   function polishBase(key) {
-    const body2 = byId3("cfgcuerpo");
-    if (!body2 || polishLegacy.currentScreen() !== "config" || !polishLegacy.polishedKeys().includes(key)) return;
-    liftIntroductions(body2);
-    if (["rutas.horario", "rutas.salida"].includes(key)) numberRows(body2);
-    if (key === "o.marca") vocabularyCard(body2);
-    if (key === "o.correo") emailState(body2);
-    if (["o.correo", "o.copias"].includes(key)) byId3("cfupend")?.classList.add("hide");
-    if (key === "o.copias") backupRow(body2);
+    const body3 = byId4("cfgcuerpo");
+    if (!body3 || polishLegacy.currentScreen() !== "config" || !polishLegacy.polishedKeys().includes(key)) return;
+    liftIntroductions(body3);
+    if (["rutas.horario", "rutas.salida"].includes(key)) numberRows(body3);
+    if (key === "o.marca") vocabularyCard(body3);
+    if (key === "o.correo") emailState(body3);
+    if (["o.correo", "o.copias"].includes(key)) byId4("cfupend")?.classList.add("hide");
+    if (key === "o.copias") backupRow(body3);
   }
-  function userCounters(body2) {
-    const counters = body2.querySelector(".cfgpanel > .kpis.vtot:not([data-pul])");
+  function userCounters(body3) {
+    const counters = body3.querySelector(".cfgpanel > .kpis.vtot:not([data-pul])");
     if (!counters) return;
     counters.dataset.pul = "1";
     counters.classList.add("usrres");
@@ -26876,7 +28423,7 @@
     });
     const guests = counters.querySelector("[data-usrinvk]");
     if (guests) asButton(guests, t("legacyD.polish.guestsTitle"), () => {
-      const card4 = body2.querySelector(".usrinvw");
+      const card4 = body3.querySelector(".usrinvw");
       if (!card4) return;
       card4.scrollIntoView({ behavior: "smooth", block: "start" });
       card4.classList.remove("usrinvluz");
@@ -26889,8 +28436,8 @@
     if (polishLegacy.currentScreen() !== "config" || !key) return;
     if (!polishLegacy.polishedKeys().includes(key)) polishLegacy.polishedKeys().push(key);
     polishBase(key);
-    const body2 = byId3("cfgcuerpo");
-    if (body2 && key === "usuarios") userCounters(body2);
+    const body3 = byId4("cfgcuerpo");
+    if (body3 && key === "usuarios") userCounters(body3);
   }
   function installSettingsPolish() {
     ["scroll", "resize"].forEach((name) => {
@@ -26908,7 +28455,7 @@
       if (key.startsWith("o.")) return "organizacion";
       return ["usuarios", "roles"].includes(key) ? "usuarios" : "ajustes";
     });
-    const settings2 = byId3("v-config");
+    const settings2 = byId4("v-config");
     if (settings2) new MutationObserver(() => {
       if (polishLegacy.currentScreen() === "config") requestAnimationFrame(() => {
         polishLegacy.polish();
@@ -26926,11 +28473,11 @@
     if (item.sub.length === 1 && first2) {
       return [entry({ k: `${item.k}.${first2[0]}`, t: item.k === "inicio" ? t("legacyD.tree.homeIndicators") : item.t, ic: item.ic, d: item.d, r: first2[2], mod: item.mod })];
     }
-    return [entry({ k: item.k, t: item.t, ic: item.ic, d: item.d, mod: item.mod, hijos: item.sub.map(([key, title2, paint20]) => ({ k: `${item.k}.${key}`, t: title2, r: paint20 })) })];
+    return [entry({ k: item.k, t: item.t, ic: item.ic, d: item.d, mod: item.mod, hijos: item.sub.map(([key, title2, paint22]) => ({ k: `${item.k}.${key}`, t: title2, r: paint22 })) })];
   };
   function organisationEntries() {
     const tabs = treeLegacy.canManageOrganisation() ? treeLegacy.pageTabs("organizacion") : [];
-    const byKey = new Map(tabs.map(([key, title2, paint20]) => [key, { title: title2, paint: paint20 }]));
+    const byKey = new Map(tabs.map(([key, title2, paint22]) => [key, { title: title2, paint: paint22 }]));
     return (key, icon3, description, title2) => {
       const tab = byKey.get(key);
       return tab ? [{ k: `o.${key}`, t: title2 ? t(title2) : tab.title, ic: icon3, d: t(description), r: tab.paint }] : [];
@@ -26940,7 +28487,7 @@
     const admin = treeLegacy.can("administrar"), config = treeLegacy.configTree(), all2 = config.flatMap((group) => group[1]);
     const find = (key) => all2.find((item) => item.k === key);
     const org = organisationEntries();
-    const profileTabs = new Map(treeLegacy.pageTabs("perfil").map(([key, , paint20]) => [key, paint20]));
+    const profileTabs = new Map(treeLegacy.pageTabs("perfil").map(([key, , paint22]) => [key, paint22]));
     const groups3 = [
       [t("legacyD.tree.yourAccount"), [
         { k: "datos", t: t("legacyD.tree.myData"), ic: "user", d: t("legacyD.tree.myDataHint"), r: profileTabs.get("datos") ?? (() => treeLegacy.paintProfile()) },
@@ -27160,7 +28707,7 @@
     loadPlanUsage: () => loadPlanUsage,
     loadPublicBrand: () => loadPublicBrand,
     markSignedOut: () => markSignedOut,
-    openMoreMenu: () => openMoreMenu,
+    openMoreMenu: () => openMoreMenu2,
     orderMobileToolbars: () => orderMobileToolbars,
     paintBottomNav: () => paintBottomNav,
     paintCompanyData: () => paintCompanyData,
@@ -27276,8 +28823,8 @@
       quitarCarga();
     },
     testStrip: () => pintarFranjaPruebas,
-    setTestStrip: (paint20) => {
-      pintarFranjaPruebas = paint20;
+    setTestStrip: (paint22) => {
+      pintarFranjaPruebas = paint22;
     },
     applyBrand: () => {
       aplicarMarca();
@@ -27406,7 +28953,7 @@
   function releaseDetachedMaps() {
     const leaflet = window.L;
     if (!leaflet?.map) return;
-    const maps = /* @__PURE__ */ new Set(), create4 = leaflet.map.bind(leaflet), drop2 = (map2) => {
+    const maps = /* @__PURE__ */ new Set(), create4 = leaflet.map.bind(leaflet), drop3 = (map2) => {
       try {
         map2.remove();
       } catch {
@@ -27415,7 +28962,7 @@
     };
     leaflet.map = (element4, options5) => {
       const container = typeof element4 === "string" ? document.getElementById(element4) : element4;
-      if (container?.__mapa) drop2(container.__mapa);
+      if (container?.__mapa) drop3(container.__mapa);
       const map2 = create4(element4, options5);
       if (container) container.__mapa = map2;
       maps.add(map2);
@@ -27424,7 +28971,7 @@
     setInterval(() => {
       maps.forEach((map2) => {
         const container = map2.getContainer?.();
-        if (!container?.isConnected) drop2(map2);
+        if (!container?.isConnected) drop3(map2);
       });
     }, MAPS_CHECK_MS);
   }
@@ -27464,8 +29011,8 @@
     if (!wrap || document.getElementById("mapacerrar")) return;
     wrap.style.position = "relative";
     wrap.insertAdjacentHTML("afterbegin", `<button class="mapacerrar" id="mapacerrar" aria-label="${t("legacyB.map.closeLabel")}">${t("legacyB.map.close")}</button>`);
-    const close4 = document.getElementById("mapacerrar");
-    if (close4) close4.onclick = () => {
+    const close5 = document.getElementById("mapacerrar");
+    if (close5) close5.onclick = () => {
       if (legacyBState.mapMode()) document.getElementById("mapaBtn")?.click();
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
@@ -27564,7 +29111,7 @@
   }
 
   // src/app/core/boot/watchers.ts
-  function inBatches(handle, options5 = {}) {
+  function inBatches(handle2, options5 = {}) {
     const active = options5.active ?? (() => true);
     const pending = /* @__PURE__ */ new Set();
     let queued2 = false;
@@ -27583,7 +29130,7 @@
         const list = [...pending];
         pending.clear();
         list.forEach((element4) => {
-          if (element4.isConnected) handle(element4);
+          if (element4.isConnected) handle2(element4);
         });
       });
     }).observe(document.body, { childList: true, subtree: true });
@@ -27750,14 +29297,14 @@
       return;
     }
     const address2 = new URL(link2.href.replace(/^mailto:/, "http://x/?to=").replace("?subject", "&subject"));
-    const body2 = {
+    const body3 = {
       para: decodeURIComponent(address2.searchParams.get("to") ?? ""),
       asunto: address2.searchParams.get("subject") ?? "",
       texto: address2.searchParams.get("body") ?? "",
       pedido_id: link2.dataset.ped ?? null,
       marca: "email_pago"
     };
-    const { data, error } = await rawDb().functions.invoke("enviar_email", { body: body2 });
+    const { data, error } = await rawDb().functions.invoke("enviar_email", { body: body3 });
     if (!error && data?.ok) {
       notices.toast(t("legacyB.orders.paymentEmailSent"));
       return;
@@ -27783,7 +29330,7 @@
   // src/app/core/mobile/navigation.ts
   var MAIN_TABS = ["inicio", "agenda", "rutas", "directorio"];
   var MAIN_ICONS = { inicio: "◉", agenda: "▤", rutas: "➤", directorio: "☰" };
-  var CLOSE_MS2 = 180;
+  var CLOSE_MS3 = 180;
   var ORDERED_VIEWS = {
     agenda: "v-agenda",
     rutas: "v-rutas",
@@ -27824,7 +29371,7 @@
     };
   }
   var otherModules = () => [...document.querySelectorAll("nav.main [data-t]")].filter((button2) => !button2.classList.contains("hide") && !button2.disabled && !MAIN_TABS.includes(button2.dataset.t ?? "")).map((button2) => [button2.dataset.t ?? "", (button2.textContent ?? "").replace(t("legacyB.mobile.soon"), "").trim()]);
-  function openMoreMenu() {
+  function openMoreMenu2() {
     let sheet = document.getElementById("bmas");
     if (!sheet) {
       document.body.insertAdjacentHTML("beforeend", '<div id="bmas" class="bmas hide"></div>');
@@ -27839,18 +29386,18 @@
     requestAnimationFrame(() => {
       box5.classList.add("abierto");
     });
-    const close4 = () => {
+    const close5 = () => {
       box5.classList.remove("abierto");
       setTimeout(() => {
         box5.classList.add("hide");
-      }, CLOSE_MS2);
+      }, CLOSE_MS3);
     };
     box5.onclick = (event) => {
-      if (event.target === box5) close4();
+      if (event.target === box5) close5();
     };
     box5.querySelectorAll("[data-bm]").forEach((button2) => {
       button2.onclick = () => {
-        close4();
+        close5();
         legacyBActions.goTo(button2.dataset.bm ?? "");
       };
     });
@@ -27910,7 +29457,7 @@
     input10.value = step < 1 ? value27.toFixed((String(step).split(".")[1] ?? "").length) : String(value27);
     legacyBActions.emit(input10);
   }
-  function onClick3(event) {
+  function onClick5(event) {
     const target = event.target;
     const stepper = target.closest(".numw .nb");
     if (stepper) {
@@ -27928,7 +29475,7 @@
     if (justOpened(layer2())) return;
     if (!target.closest(".selpop")) legacyBActions.closeSelector();
   }
-  function onKey2(event) {
+  function onKey3(event) {
     const target = event.target, input10 = target instanceof Element ? target.closest(".selw input") : null;
     if (input10 && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
@@ -27937,11 +29484,11 @@
     if (event.key === "Escape") legacyBActions.closeSelector();
   }
   function listenToPickers() {
-    document.addEventListener("click", onClick3, true);
+    document.addEventListener("click", onClick5, true);
     document.addEventListener("mousedown", (event) => {
       if (event.target.closest(".selw input")) event.preventDefault();
     }, true);
-    document.addEventListener("keydown", onKey2);
+    document.addEventListener("keydown", onKey3);
     document.addEventListener("scroll", (event) => {
       const popover = legacyBState.selectedPopover(), target = event.target;
       if (popover && Date.now() - (popover.__t ?? 0) > GHOST_CLICK_MS && !(target instanceof Element && target.closest(".selpop"))) legacyBActions.closeSelector();
@@ -28048,7 +29595,7 @@
     if (/same|different/i.test(message4)) return t("legacyB.recovery.mustDiffer");
     return /session|expired|invalid/i.test(message4) ? t("legacyB.recovery.linkExpired") : t("legacyB.recovery.couldNotChange", { error: message4 });
   };
-  async function save10(event) {
+  async function save12(event) {
     event.preventDefault();
     const first2 = inputValue2("rp1"), second = inputValue2("rp2"), message4 = document.getElementById("rmsg"), button2 = document.getElementById("rok");
     if (!message4 || !button2) return;
@@ -28090,7 +29637,7 @@
       document.body.insertAdjacentHTML("beforeend", recoveryHtml(legacyBState.invitationLink()));
       const form = formOf("rform");
       if (form) form.onsubmit = (event) => {
-        void save10(event);
+        void save12(event);
       };
       const cancel3 = document.getElementById("rcancel");
       if (cancel3) cancel3.onclick = () => {
@@ -28193,7 +29740,7 @@
       <span><b>${t("legacyB.company.autoIssue")}</b><br><span class="sm">${t("legacyB.company.autoIssueHint")}</span></span></label>`;
   }
   var value8 = (id) => document.getElementById(id)?.value.trim() ?? "";
-  async function save11(previous) {
+  async function save13(previous) {
     const company = {};
     FIELDS2.forEach((key) => {
       company[key] = value8(`em_${key}`);
@@ -28215,15 +29762,15 @@
   }
   async function paintCompanyData() {
     await legacyBActions.loadSettings();
-    const body2 = document.getElementById("fcuerpo");
-    if (!body2) return;
+    const body3 = document.getElementById("fcuerpo");
+    if (!body3) return;
     const settings2 = legacyBState.settings(), company = settings2.empresa ?? {};
     const billing2 = { vencimiento_dias: DEFAULT_DUE_DAYS, forma_pago: "", emitir_al_validar: false, ...settings2.facturacion };
-    body2.innerHTML = `<div class="card" style="padding-top:16px;padding-bottom:16px">${issuerHtml(company)}${issuingHtml(billing2)}
+    body3.innerHTML = `<div class="card" style="padding-top:16px;padding-bottom:16px">${issuerHtml(company)}${issuingHtml(billing2)}
     <div class="acts" style="justify-content:flex-end"><button class="btn" id="emok">${t("legacyB.company.save")}</button></div></div>`;
     const ok = document.getElementById("emok");
     if (ok) ok.onclick = () => {
-      void save11(company);
+      void save13(company);
     };
   }
 
@@ -28269,16 +29816,16 @@
         <div class="alocmenu hide"><span class="sm">${t("legacyB.alerts.hideThis")}</span><button class="kcfg" data-aloc="7">${t("legacyB.alerts.days7")}</button><button class="kcfg" data-aloc="30">${t("legacyB.alerts.days30")}</button><button class="kcfg" data-aloc="siempre">${t("legacyB.alerts.forever")}</button></div></div>`;
   }
   function openCase(kind, id) {
-    const close4 = () => {
+    const close5 = () => {
       document.getElementById("dlg")?.close();
     };
     if (kind === "inificha") {
-      close4();
+      close5();
       legacyBActions.openAccount(id);
     }
     if (kind === "iniped") legacyBActions.openOrder(id);
     if (kind === "inistock") {
-      close4();
+      close5();
       legacyBState.setProductsSection("stock");
       legacyBActions.goTo("productos");
     }
@@ -28304,12 +29851,12 @@
     if (!details2) return;
     const items = [...details2.querySelectorAll(":scope > div > .item, :scope .lista > .item")];
     const title2 = (summary5.textContent ?? "").replace(/\s+/g, " ").replace(/^\s*\d+\s*/, "").replace(/\bequipo\b\s*$/, "").trim();
-    const [meaning, action] = explain(title2), body2 = document.getElementById("dbody");
-    if (!body2) return;
+    const [meaning, action] = explain(title2), body3 = document.getElementById("dbody");
+    if (!body3) return;
     items.forEach((item) => {
       item.dataset.alclave = legacyBActions.alertKey(title2, item);
     });
-    body2.innerHTML = `<div class="fh"><div><h2>${escapeHtml(title2)}</h2><div class="sm">${items.length === 1 ? t("legacyB.alerts.oneCase") : t("legacyB.alerts.cases", { count: formatNumber(items.length) })}</div></div>
+    body3.innerHTML = `<div class="fh"><div><h2>${escapeHtml(title2)}</h2><div class="sm">${items.length === 1 ? t("legacyB.alerts.oneCase") : t("legacyB.alerts.cases", { count: formatNumber(items.length) })}</div></div>
     <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <div class="alinfo"><div><b>${t("legacyB.alerts.meaning")}</b><span>${escapeHtml(meaning)}</span></div><div><b>${t("legacyB.alerts.whatToDo")}</b><span>${escapeHtml(action)}</span></div></div>
     ${items.length > SEARCH_FROM ? `<input id="alq" type="search" placeholder="${t("legacyB.alerts.search")}" style="margin:10px 0 4px">` : ""}
@@ -28418,22 +29965,22 @@
     document.addEventListener("click", onSettingsClick, true);
     const main = document.querySelector("main");
     if (main) new MutationObserver(() => {
-      const body2 = document.getElementById("cfgcuerpo");
-      if (legacyBState.tab() === "config" && legacyBState.isMobile() && body2 && !body2.querySelector(":scope > .cfgvolver")) legacyBActions.mobileSettings();
+      const body3 = document.getElementById("cfgcuerpo");
+      if (legacyBState.tab() === "config" && legacyBState.isMobile() && body3 && !body3.querySelector(":scope > .cfgvolver")) legacyBActions.mobileSettings();
     }).observe(main, { childList: true, subtree: true });
     window.addEventListener("resize", () => {
       if (legacyBState.tab() === "config") legacyBActions.mobileSettings();
     });
   }
   function openPersonActions(item, actions) {
-    const body2 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
-    if (!body2 || !dialog11) return;
+    const body3 = document.getElementById("dbody"), dialog11 = document.getElementById("dlg");
+    if (!body3 || !dialog11) return;
     const buttons = [...actions.querySelectorAll("button")];
-    body2.innerHTML = `<div class="fh"><div><h2>${escapeHtml(item.querySelector(".tx b")?.textContent ?? "")}</h2><div class="sm">${escapeHtml(item.querySelector(".tx .sm")?.textContent ?? "")}</div></div>
+    body3.innerHTML = `<div class="fh"><div><h2>${escapeHtml(item.querySelector(".tx b")?.textContent ?? "")}</h2><div class="sm">${escapeHtml(item.querySelector(".tx .sm")?.textContent ?? "")}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
         <div class="accsheet">${buttons.map((button2, index) => `<button class="btn sec" data-accn="${index}">${button2.innerHTML}</button>`).join("")}</div>`;
     dialog11.showModal();
-    body2.querySelectorAll("[data-accn]").forEach((choice2) => {
+    body3.querySelectorAll("[data-accn]").forEach((choice2) => {
       choice2.onclick = () => {
         dialog11.close();
         setTimeout(() => {
@@ -29082,8 +30629,8 @@
         controller.abort();
       });
     }
-    const start2 = Reflect.get(window, "__redIni"), end = Reflect.get(window, "__redFin");
-    const mark2 = start2 ? start2() : null;
+    const start4 = Reflect.get(window, "__redIni"), end = Reflect.get(window, "__redFin");
+    const mark2 = start4 ? start4() : null;
     return fetch(url, { ...options5, signal: controller.signal }).then((response) => startupLegacy.withOldKeys(String(url), response)).finally(() => {
       clearTimeout(timer3);
       if (mark2 && end) end(mark2);
@@ -29145,7 +30692,7 @@
     const section2 = document.getElementById(`v-${target}`);
     if (!section2 || switchLegacy.isProfessionalPortal()) return;
     section2.classList.add("cargando");
-    const start2 = performance.now();
+    const start4 = performance.now();
     let quiet = 0;
     const timer3 = setInterval(() => {
       if (switchLegacy.screen() !== target) {
@@ -29154,7 +30701,7 @@
         return;
       }
       quiet = switchLegacy.pending() === 0 ? quiet + 1 : 0;
-      const elapsed = performance.now() - start2;
+      const elapsed = performance.now() - start4;
       if (quiet >= QUIET_STEPS && elapsed > LOADER_MIN_MS || elapsed > LOADER_MAX_MS) {
         clearInterval(timer3);
         requestAnimationFrame(() => {
@@ -29178,11 +30725,11 @@
   var SEARCH_WAIT_MS6 = 300;
   var NOT_CONFIRMED = /not confirmed/i;
   var WRONG_CREDENTIALS = "Invalid login credentials";
-  var byId4 = (id) => document.getElementById(id);
-  var valueOf5 = (id) => byId4(id)?.value ?? "";
+  var byId5 = (id) => document.getElementById(id);
+  var valueOf5 = (id) => byId5(id)?.value ?? "";
   async function signIn(event) {
     event.preventDefault();
-    const button2 = byId4("lbtn"), message4 = byId4("lmsg");
+    const button2 = byId5("lbtn"), message4 = byId5("lmsg");
     if (!button2 || !message4) return;
     button2.disabled = true;
     button2.textContent = t("legacyA.signIn.entering");
@@ -29243,7 +30790,7 @@
     }
     if (key === "interesados") filters3.est = shellLegacy.stateFor("interes");
     if (key === "sin_contactar") filters3.est = shellLegacy.stateFor("inicial");
-    const search9 = byId4("q"), state2 = byId4("fest");
+    const search9 = byId5("q"), state2 = byId5("fest");
     if (search9) search9.value = "";
     if (state2) state2.value = filters3.est;
     shellLegacy.goTo("directorio");
@@ -29258,7 +30805,7 @@
   }
   function listenToFilters() {
     const on6 = (id, change) => {
-      byId4(id)?.addEventListener("change", (event) => {
+      byId5(id)?.addEventListener("change", (event) => {
         change(event.target.value);
         shellLegacy.search();
       });
@@ -29291,13 +30838,13 @@
     const key = button2.dataset.x ?? "", filters3 = shellLegacy.filters();
     if (key === "q") {
       filters3.q = "";
-      const search9 = byId4("q");
+      const search9 = byId5("q");
       if (search9) search9.value = "";
     } else if (key === "urg") filters3.urg = false;
     else if (key === "mios" || key === "sin") filters3[key] = false;
     else {
       filters3[key] = "";
-      const select3 = byId4(`f${key}`);
+      const select3 = byId5(`f${key}`);
       if (select3) select3.value = "";
       if (key === "prov") {
         filters3.muni = "";
@@ -29307,32 +30854,32 @@
     shellLegacy.search();
   }
   function startShell() {
-    byId4("lform")?.addEventListener("submit", (event) => {
+    byId5("lform")?.addEventListener("submit", (event) => {
       void signIn(event);
     });
-    byId4("ubtn")?.addEventListener("click", (event) => {
+    byId5("ubtn")?.addEventListener("click", (event) => {
       event.stopPropagation();
-      byId4("umenu")?.classList.toggle("hide");
+      byId5("umenu")?.classList.toggle("hide");
     });
     document.addEventListener("click", () => {
-      byId4("umenu")?.classList.add("hide");
+      byId5("umenu")?.classList.add("hide");
     });
-    byId4("umenu")?.addEventListener("click", (event) => {
+    byId5("umenu")?.addEventListener("click", (event) => {
       void userMenu(event);
     });
-    byId4("nav")?.addEventListener("click", (event) => {
+    byId5("nav")?.addEventListener("click", (event) => {
       const button2 = event.target.closest("[data-t]");
       if (button2 && !button2.disabled) shellLegacy.goTo(button2.dataset.t ?? "");
     });
-    byId4("v-inicio")?.addEventListener("click", homeClick);
-    byId4("q")?.addEventListener("input", searchInput);
+    byId5("v-inicio")?.addEventListener("click", homeClick);
+    byId5("q")?.addEventListener("input", searchInput);
     listenToFilters();
-    byId4("chips")?.addEventListener("click", chipClick);
-    byId4("lista")?.addEventListener("click", (event) => {
+    byId5("chips")?.addEventListener("click", chipClick);
+    byId5("lista")?.addEventListener("click", (event) => {
       const account = event.target.closest("[data-id]");
       if (account) shellLegacy.openAccount(account.dataset.id ?? "");
     });
-    const card4 = byId4("ficha");
+    const card4 = byId5("ficha");
     card4?.addEventListener("click", (event) => {
       if (event.target.id === "ficha") card4.close();
     });
@@ -29340,7 +30887,7 @@
 
   // src/app/core/legacy-a/shell-extras.ts
   var UPDATE_CHECK_MS = 15 * 60 * 1e3;
-  var byId5 = (id) => document.getElementById(id);
+  var byId6 = (id) => document.getElementById(id);
   function registerServiceWorker() {
     if (!("serviceWorker" in navigator)) return;
     window.addEventListener("load", () => {
@@ -29355,48 +30902,48 @@
         const installing = registration.installing;
         if (!installing) return;
         installing.addEventListener("statechange", () => {
-          if (installing.state === "installed" && navigator.serviceWorker.controller) byId5("nuevaver")?.classList.remove("hide");
+          if (installing.state === "installed" && navigator.serviceWorker.controller) byId6("nuevaver")?.classList.remove("hide");
         });
       });
       setInterval(() => {
         registration.update().catch(() => void 0);
       }, UPDATE_CHECK_MS);
     });
-    const update = byId5("actualizar");
+    const update = byId6("actualizar");
     if (update) update.onclick = () => {
       location.reload();
     };
   }
   function listenToBottomBarAndMap() {
-    byId5("bnav")?.addEventListener("click", (event) => {
+    byId6("bnav")?.addEventListener("click", (event) => {
       const button2 = event.target.closest("[data-t]");
       if (button2) shellExtrasLegacy.goTo(button2.dataset.t ?? "");
     });
-    byId5("mapaBtn")?.addEventListener("click", () => {
+    byId6("mapaBtn")?.addEventListener("click", () => {
       const map2 = shellExtrasLegacy.toggleMapMode();
-      const button2 = byId5("mapaBtn");
+      const button2 = byId6("mapaBtn");
       if (button2) button2.textContent = t(map2 ? "legacyA.map.seeList" : "legacyA.map.seeMap");
-      byId5("mapawrap")?.classList.toggle("hide", !map2);
-      byId5("lista")?.classList.toggle("hide", map2);
-      byId5("dirpag")?.classList.toggle("hide", map2);
+      byId6("mapawrap")?.classList.toggle("hide", !map2);
+      byId6("lista")?.classList.toggle("hide", map2);
+      byId6("dirpag")?.classList.toggle("hide", map2);
       if (map2) shellExtrasLegacy.paintMap();
     });
   }
   function listenToDirectoryButtons() {
-    byId5("cercaBtn")?.addEventListener("click", (event) => {
+    byId6("cercaBtn")?.addEventListener("click", (event) => {
       shellExtrasLegacy.nearMe(event.target);
     });
-    byId5("dupBtn")?.addEventListener("click", () => {
+    byId6("dupBtn")?.addEventListener("click", () => {
       shellExtrasLegacy.goTo("duplicados");
     });
-    byId5("dirtools")?.addEventListener("click", () => {
+    byId6("dirtools")?.addEventListener("click", () => {
       shellExtrasLegacy.openTools("directorio");
     });
   }
   var DATE_INPUTS = "input[type=date], input[type=time], input[type=month], input[type=week], input[type=datetime-local]";
   var DOWNLOADS = ["__dlDir", "__dlSeg", "__dlAn"];
   function watchUnsavedChanges(id) {
-    const box5 = byId5(id);
+    const box5 = byId6(id);
     if (!box5) return;
     const mark2 = (event) => {
       if (!event.target.closest("[data-nosucio]")) box5.dataset.sucio = "1";
@@ -29432,7 +30979,7 @@
     document.addEventListener("click", (event) => {
       if (!event.target.closest("#gsug [data-gm], #gsug [data-gc], #gsug [data-gme]")) return;
       setTimeout(() => {
-        const search9 = byId5("q");
+        const search9 = byId6("q");
         if (!search9) return;
         search9.value = "";
         search9.closest(".gsearch")?.classList.remove("buscando");
@@ -29445,14 +30992,14 @@
     });
   }
   function listenToSalespersonFilter() {
-    byId5("fcom")?.addEventListener("change", (event) => {
+    byId6("fcom")?.addEventListener("change", (event) => {
       shellExtrasLegacy.filters().com = event.target.value;
       shellExtrasLegacy.search();
     });
   }
 
   // src/app/core/legacy-a/connection.ts
-  var RETRY_MS2 = 6e4;
+  var RETRY_MS3 = 6e4;
   var changes = (count2) => count2 === 1 ? t("legacyA.connection.oneChange") : t("legacyA.connection.changes", { count: count2 });
   function paintConnection2() {
     const count2 = connectionLegacy.queued(), element4 = document.getElementById("conex");
@@ -29478,16 +31025,16 @@
     });
     setInterval(() => {
       connectionLegacy.sendQueue();
-    }, RETRY_MS2);
+    }, RETRY_MS3);
   }
 
   // src/app/core/legacy-a/password.ts
   var MIN_LENGTH2 = 8;
-  var byId6 = (id) => document.getElementById(id);
-  var valueOf6 = (id) => byId6(id)?.value ?? "";
+  var byId7 = (id) => document.getElementById(id);
+  var valueOf6 = (id) => byId7(id)?.value ?? "";
   var errorText3 = (error) => error.message ?? "";
   async function forgotPassword() {
-    const email = valueOf6("lu").trim(), message4 = byId6("lmsg");
+    const email = valueOf6("lu").trim(), message4 = byId7("lmsg");
     if (!message4) return;
     if (!email) {
       message4.textContent = t("legacyA.password.writeEmail");
@@ -29498,15 +31045,15 @@
     message4.textContent = error ? t("legacyA.password.couldNotSend", { error: errorText3(error) }) : t("legacyA.password.sent");
   }
   function newPasswordWindow() {
-    const body2 = byId6("dbody"), box5 = byId6("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = `
+    const body3 = byId7("dbody"), box5 = byId7("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = `
     <div class="fh"><div><h2>${t("legacyA.password.newTitle")}</h2><div class="sm">${t("legacyA.password.newHint")}</div></div></div>
     <label for="np1">${t("legacyA.password.password")}</label><input id="np1" type="password">
     <label for="np2">${t("legacyA.password.repeat")}</label><input id="np2" type="password">
     <div class="acts" style="justify-content:flex-end"><button class="btn" id="npok">${t("common.save")}</button></div>`;
     box5.showModal();
-    const ok = byId6("npok");
+    const ok = byId7("npok");
     if (ok) ok.onclick = async () => {
       if (valueOf6("np1").length < MIN_LENGTH2 || valueOf6("np1") !== valueOf6("np2")) {
         notices.toast(t("legacyA.password.check"), true);
@@ -29536,11 +31083,11 @@
     notices.toast(error ? t("legacyA.password.couldNot", { error: errorText3(error) }) : t("legacyA.password.updated"), Boolean(error));
   }
   function startPasswordFlows() {
-    byId6("lform")?.insertAdjacentHTML(
+    byId7("lform")?.insertAdjacentHTML(
       "beforeend",
       `<button type="button" id="lolv" style="border:0;background:none;color:var(--navy);font-weight:600;cursor:pointer;margin-top:10px;font-size:13.5px">${t("legacyA.password.forgot")}</button>`
     );
-    const forgot = byId6("lolv");
+    const forgot = byId7("lolv");
     if (forgot) forgot.onclick = () => {
       void forgotPassword();
     };
@@ -29906,9 +31453,9 @@
   var LANGUAGE_KEY = "app-idioma";
   var LANGUAGE_RELOAD_KEY = "app-idioma-recarga";
   var DEFAULT_LANGUAGE = "es";
-  var byId7 = (id) => document.getElementById(id);
+  var byId8 = (id) => document.getElementById(id);
   var setText = (id, text5) => {
-    const element4 = byId7(id);
+    const element4 = byId8(id);
     if (element4) element4.textContent = text5;
   };
   function applyLanguage2(language) {
@@ -29952,17 +31499,17 @@
   }
   function paintFrame(profile5) {
     showAppLegacy.setProfile(profile5);
-    byId7("bootsplash")?.classList.add("hide");
-    byId7("login")?.classList.add("hide");
-    byId7("app")?.classList.remove("hide");
+    byId8("bootsplash")?.classList.add("hide");
+    byId8("login")?.classList.add("hide");
+    byId8("app")?.classList.remove("hide");
     setText("av", showAppLegacy.initials(profile5.nombre));
     setText("uname", showAppLegacy.firstName(profile5.nombre));
     setText("umnom", profile5.nombre);
     setText("umrol", `${profile5.rol} · ${profile5.email}`);
     setText("hola", `${greeting()}, ${showAppLegacy.firstName(profile5.nombre)}`);
     setText("hoyfecha", showAppLegacy.longDate(/* @__PURE__ */ new Date()).replace(/^./, (letter) => letter.toUpperCase()));
-    byId7("nuevoBtn")?.classList.toggle("hide", !showAppLegacy.canCreate());
-    byId7("dupBtn")?.classList.toggle("hide", !showAppLegacy.can("administrar"));
+    byId8("nuevoBtn")?.classList.toggle("hide", !showAppLegacy.canCreate());
+    byId8("dupBtn")?.classList.toggle("hide", !showAppLegacy.can("administrar"));
     document.querySelectorAll('#nav [data-t="ventas"], #nav [data-t="pacientes"], #nav [data-t="productos"]').forEach((button2) => {
       button2.classList.toggle("hide", !showAppLegacy.seesSales());
     });
@@ -29978,7 +31525,7 @@
   function paintMenus() {
     showAppLegacy.paintImpersonationBar();
     showAppLegacy.paintBottomBar();
-    if (!byId7("manbtn")) document.querySelector('[data-u="cfg"]')?.insertAdjacentHTML("beforebegin", `<button data-u="manual" id="manbtn">${t("legacyA.showApp.manual")}</button>`);
+    if (!byId8("manbtn")) document.querySelector('[data-u="cfg"]')?.insertAdjacentHTML("beforebegin", `<button data-u="manual" id="manbtn">${t("legacyA.showApp.manual")}</button>`);
     document.querySelectorAll('[data-t="facturacion"]').forEach((button2) => {
       button2.classList.toggle("hide", !showAppLegacy.seesEverything());
     });
@@ -29998,9 +31545,9 @@
       report = document.querySelector('nav.main [data-t="informe"]');
     }
     report?.classList.remove("hide");
-    if (!byId7("mdavisos")) byId7("ubtn")?.insertAdjacentHTML("beforebegin", `<button class="mdavisos" id="mdavisos" aria-label="${t("legacyA.showApp.notices")}"></button>`);
+    if (!byId8("mdavisos")) byId8("ubtn")?.insertAdjacentHTML("beforebegin", `<button class="mdavisos" id="mdavisos" aria-label="${t("legacyA.showApp.notices")}"></button>`);
     showAppLegacy.refreshBell();
-    byId7("q")?.closest(".gsearch")?.classList.add("hide");
+    byId8("q")?.closest(".gsearch")?.classList.add("hide");
     setTimeout(() => {
       showAppLegacy.goTo("informe");
     }, 0);
@@ -30014,7 +31561,7 @@
     document.querySelector('[data-u="plan"]')?.classList.toggle("hide", !admin);
     document.querySelector('[data-u="empresa"]')?.classList.toggle("hide", !admin);
   }
-  function startScreen(first2, start2) {
+  function startScreen(first2, start4) {
     setTimeout(() => {
       showAppLegacy.refreshBell();
     }, BELL_DELAY_MS);
@@ -30022,8 +31569,8 @@
     if (afterF5) setTimeout(() => {
       showAppLegacy.backAfterF5(afterF5);
     }, START_DELAY_MS);
-    else if (first2 && start2 && start2 !== "inicio" && showAppLegacy.moduleAllowed(start2)) setTimeout(() => {
-      showAppLegacy.goTo(start2);
+    else if (first2 && start4 && start4 !== "inicio" && showAppLegacy.moduleAllowed(start4)) setTimeout(() => {
+      showAppLegacy.goTo(start4);
     }, START_DELAY_MS);
     if (!showAppLegacy.can("portal_prescriptor")) setTimeout(() => {
       showAppLegacy.dayNotices();
@@ -30031,7 +31578,7 @@
   }
   function finishMenu() {
     showAppLegacy.translatePage();
-    const manual2 = byId7("manbtn");
+    const manual2 = byId8("manbtn");
     if (manual2 && !manual2.querySelector("svg")) manual2.insertAdjacentHTML("afterbegin", `${showAppLegacy.bookIcon()} `);
     setTimeout(() => {
       showAppLegacy.menuIcons();
@@ -30053,7 +31600,7 @@
     completeIndicators(preferences);
     paintFrame(profile5);
     firstTimeLoads();
-    byId7("fcomwrap")?.classList.toggle("hide", !showAppLegacy.seesEverything());
+    byId8("fcomwrap")?.classList.toggle("hide", !showAppLegacy.seesEverything());
     if (showAppLegacy.seesEverything()) showAppLegacy.loadSalesTeam();
     showAppLegacy.loadSettings();
     if (showAppLegacy.inTestEnvironment()) showAppLegacy.paintTestStrip();
@@ -30085,7 +31632,7 @@
     element4.textContent = saved3 ? t("legacyA.testStrip.startingData", { date: format(saved3) }) : t("legacyA.testStrip.missingData");
     if (!saved3) element4.classList.add("falta");
   }
-  function resetFailure(error, result) {
+  function resetFailure2(error, result) {
     if (result?.error === "sin_maestro") return t("legacyA.testStrip.noMaster");
     return t("legacyA.testStrip.couldNot", { error: error?.message ?? result?.error ?? "" });
   }
@@ -30103,7 +31650,7 @@
     notices.toast(t("legacyA.testStrip.resetting"));
     const { data: result, error } = await testStripLegacy.reset();
     if (error || !result?.ok) {
-      notices.toast(resetFailure(error, result), true);
+      notices.toast(resetFailure2(error, result), true);
       return;
     }
     try {
@@ -30220,10 +31767,10 @@
       notices.toast(t("legacyA.create.noPermission"), true);
       return;
     }
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = newChoiceHtml();
-    body2.querySelectorAll("[data-crear]").forEach((button2) => {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = newChoiceHtml();
+    body3.querySelectorAll("[data-crear]").forEach((button2) => {
       button2.onclick = () => {
         cardActionsLegacy.create(button2.dataset.crear ?? "");
       };
@@ -30335,8 +31882,8 @@
     ${context === DIRECTORY ? filtersHtml(filters3) : ""}
   </div>`;
     panel.classList.add("abierto");
-    const close4 = document.getElementById("tclose");
-    if (close4) close4.onclick = () => {
+    const close5 = document.getElementById("tclose");
+    if (close5) close5.onclick = () => {
       panel.classList.remove("abierto");
     };
     bind13(panel, context, filters3);
@@ -30561,8 +32108,8 @@
     return { arrival: leg.time + (same ? 0 : dayEstimateLegacy.travelMinutes(leg.position, point) + leg.stopMinutes), position: point };
   }
   function estimateDayBase(appointments2, isoDate) {
-    const settings2 = dayEstimateLegacy.planSettings(), start2 = dayEstimateLegacy.startPoint(), duration2 = settings2.visita, today2 = isoDate === todayIso();
-    let time = dayEstimateLegacy.minutesOf(settings2.salida), position = [start2.lat, start2.lon], first2 = true;
+    const settings2 = dayEstimateLegacy.planSettings(), start4 = dayEstimateLegacy.startPoint(), duration2 = settings2.visita, today2 = isoDate === todayIso();
+    let time = dayEstimateLegacy.minutesOf(settings2.salida), position = [start4.lat, start4.lon], first2 = true;
     if (today2) time = Math.max(time, roundedNow());
     const estimated = {}, info = {};
     dayEstimateLegacy.setStopInfo(info);
@@ -30587,7 +32134,7 @@
       info[appointment.id] = stop;
       time = begin + duration2;
     });
-    return { est: estimated, fin: time + dayEstimateLegacy.travelMinutes(position, [start2.lat, start2.lon]), tope: dayEstimateLegacy.minutesOf(settings2.tope) };
+    return { est: estimated, fin: time + dayEstimateLegacy.travelMinutes(position, [start4.lat, start4.lon]), tope: dayEstimateLegacy.minutesOf(settings2.tope) };
   }
   function estimateDayWithRouteHours(appointments2, isoDate) {
     const hours2 = dayEstimateLegacy.routeHours(appointments2);
@@ -30598,7 +32145,7 @@
 
   // src/app/screens/settings/admin-page.ts
   var box2 = () => document.getElementById("admcuerpo") ?? document.createElement("div");
-  function headerHtml5(section2) {
+  function headerHtml6(section2) {
     const tab = (key, label) => `<button data-as="${key}" aria-pressed="${String(section2 === key)}">${label}</button>`;
     return `
     <div class="saludo"><div><h1>${t("legacyA.admin.title")}</h1><div class="fecha">${t("legacyA.admin.subtitle")}</div></div>
@@ -30646,7 +32193,7 @@
   }
   async function loadAdmin2() {
     const view = document.getElementById("v-admin"), section2 = adminLegacy.section();
-    if (view) view.innerHTML = headerHtml5(section2);
+    if (view) view.innerHTML = headerHtml6(section2);
     const others = { comisiones: adminLegacy.paintCommissions, accesos: adminLegacy.paintAccesses, auditoria: adminLegacy.paintAudit };
     const other = others[section2];
     if (other) {
@@ -30681,9 +32228,9 @@
   // src/app/screens/settings/portfolio-assign.ts
   var PAGE = 50;
   var FILTER_IDS = ["aprov", "amuni", "aesp", "aest", "aurg"];
-  var byId8 = (id) => document.getElementById(id);
+  var byId9 = (id) => document.getElementById(id);
   var valueOf7 = (id) => {
-    const value27 = byId8(id)?.value;
+    const value27 = byId9(id)?.value;
     return value27 ? value27 : null;
   };
   var optionsHtml2 = (list) => `<option value=""></option>${(list ?? []).map((item) => `<option value="${escapeHtml(item.v)}">${escapeHtml(item.v)} (${item.n})</option>`).join("")}`;
@@ -30692,7 +32239,7 @@
     f_municipio: valueOf7("amuni"),
     f_especialidad: valueOf7("aesp"),
     f_estado: valueOf7("aest"),
-    f_urgentes: Boolean(byId8("aurg")?.checked)
+    f_urgentes: Boolean(byId9("aurg")?.checked)
   });
   function windowHtml3(user, options5) {
     const professionals3 = term("medico", { number: "p" });
@@ -30714,7 +32261,7 @@
       <button class="btn sec" id="aquitar">${t("legacyA.portfolio.removeSelected", { professionals: professionals3 })}</button>
       <button class="btn" id="aasignar">${t("legacyA.portfolio.assignSelected", { professionals: professionals3 })}</button></div></div>`;
   }
-  function rowHtml6(item, state2) {
+  function rowHtml7(item, state2) {
     const chips2 = (item.comerciales ?? []).map((person) => `<span>${escapeHtml(portfolioLegacy.firstName(person.nombre))}</span>`).join("") || `<span class="sin">${t("legacyA.portfolio.unassigned")}</span>`;
     return `<label class="item" style="cursor:pointer;margin:0">
         <input type="checkbox" data-am="${item.id}" ${state2.left.has(item.id) ? "" : "checked"}>
@@ -30723,18 +32270,18 @@
       </label>`;
   }
   function paintCount(state2, repaint5) {
-    const message4 = byId8("amsg");
+    const message4 = byId9("amsg");
     if (!message4) return;
     message4.innerHTML = `${t("legacyA.portfolio.selected", { count: formatNumber(state2.total - state2.left.size), total: formatNumber(state2.total) })}
       ${state2.left.size ? ` · <button class="kcfg" id="atodos">${t("legacyA.portfolio.tickAll")}</button>` : ""}`;
-    const all2 = byId8("atodos");
+    const all2 = byId9("atodos");
     if (all2) all2.onclick = () => {
       state2.left.clear();
       repaint5();
     };
   }
   async function paintList2(state2) {
-    const list = byId8("alista");
+    const list = byId9("alista");
     if (!list) return;
     const repaint5 = () => {
       void paintList2(state2);
@@ -30743,7 +32290,7 @@
     const { data } = await legacyDb().rpc("buscar_cuentas", { q: null, f_area: null, f_mios: false, f_sin_visitar: false, orden: "nombre", lim: PAGE, desplaz: state2.page * PAGE, ...filters2() });
     state2.total = data ? data.total : 0;
     const rows2 = data?.filas ?? [];
-    list.innerHTML = `<div class="carsel">${rows2.map((row4) => rowHtml6(row4, state2)).join("") || `<div class="vacio">${t("legacyA.portfolio.none", { noProfessional: term("medico", { article: "ningun", articleCapital: "C" }) })}</div>`}</div><div id="apag"></div>`;
+    list.innerHTML = `<div class="carsel">${rows2.map((row4) => rowHtml7(row4, state2)).join("") || `<div class="vacio">${t("legacyA.portfolio.none", { noProfessional: term("medico", { article: "ningun", articleCapital: "C" }) })}</div>`}</div><div id="apag"></div>`;
     list.querySelectorAll("[data-am]").forEach((box5) => {
       box5.onchange = () => {
         if (box5.checked) state2.left.delete(box5.dataset.am ?? "");
@@ -30751,7 +32298,7 @@
         paintCount(state2, repaint5);
       };
     });
-    const pages4 = byId8("apag");
+    const pages4 = byId9("apag");
     if (pages4) pages4.innerHTML = state2.total > PAGE ? portfolioLegacy.pages(state2.total, state2.page, PAGE).replace(/<span class="ptam">[\s\S]*?<\/span><\/div>$/, "</div>") : "";
     pages4?.querySelectorAll("[data-pg]").forEach((button2) => {
       button2.onclick = () => {
@@ -30785,33 +32332,33 @@
       return;
     }
     notices.toast(changedText(remove9, result?.filas ?? 0, result?.movidos));
-    byId8("dlg")?.close();
+    byId9("dlg")?.close();
     portfolioLegacy.reloadAdmin();
   }
   async function assignPortfolio(id) {
     const user = adminLegacy.users().find((item) => item.id === id);
     if (!user) return;
     const { data: options5 } = await legacyDb().rpc("opciones_filtros", {});
-    const body2 = byId8("dbody");
-    if (!body2) return;
-    body2.innerHTML = windowHtml3(user, options5 ?? {});
+    const body3 = byId9("dbody");
+    if (!body3) return;
+    body3.innerHTML = windowHtml3(user, options5 ?? {});
     const state2 = { total: 0, page: 0, left: /* @__PURE__ */ new Set() };
     FILTER_IDS.forEach((key) => {
-      const field20 = byId8(key);
+      const field20 = byId9(key);
       if (field20) field20.onchange = () => {
         state2.page = 0;
         state2.left.clear();
         void paintList2(state2);
       };
     });
-    const assign3 = byId8("aasignar"), remove9 = byId8("aquitar");
+    const assign3 = byId9("aasignar"), remove9 = byId9("aquitar");
     if (assign3) assign3.onclick = () => {
       void apply(user, state2, false, assign3);
     };
     if (remove9) remove9.onclick = () => {
       void apply(user, state2, true, remove9);
     };
-    byId8("dlg")?.showModal();
+    byId9("dlg")?.showModal();
     void paintList2(state2);
   }
 
@@ -30837,8 +32384,8 @@
     const select3 = element4.querySelector("[data-per]"), from2 = element4.querySelector("[data-pd]"), until2 = element4.querySelector("[data-ph]");
     const range2 = () => {
       if (chosen5 === CUSTOM) return { desde: from2?.value ? from2.value : null, hasta: until2?.value ? until2.value : null };
-      const [start2 = null, end = null] = periodLegacy.rangeOf(chosen5);
-      return { desde: start2, hasta: end };
+      const [start4 = null, end = null] = periodLegacy.rangeOf(chosen5);
+      return { desde: start4, hasta: end };
     };
     Reflect.set(element4, "__rango", range2);
     const text5 = () => {
@@ -30851,8 +32398,8 @@
       localStorage.setItem(key, chosen5);
       element4.querySelector(".perpers")?.classList.toggle("hide", chosen5 !== CUSTOM);
       if (chosen5 === CUSTOM && from2 && until2 && !from2.value) {
-        const [start2, end] = periodLegacy.rangeOf(DEFAULT);
-        from2.value = start2 ?? "";
+        const [start4, end] = periodLegacy.rangeOf(DEFAULT);
+        from2.value = start4 ?? "";
         until2.value = end ?? "";
       }
       text5();
@@ -30883,7 +32430,7 @@
     pendingSettings: () => pendingSettings,
     sleepSection: () => sleepSection,
     stackSections: () => stackSections,
-    steady: () => steady,
+    steady: () => steady2,
     wakeSection: () => wakeSection
   });
 
@@ -31062,7 +32609,7 @@
   var PAINT_MAX_MS = 8e3;
   var REPAINT_DELAY_MS2 = 60;
   var SUBNAV_CLEANUP_MS = [300, 1200];
-  var byId9 = (id) => document.getElementById(id);
+  var byId10 = (id) => document.getElementById(id);
   var settle = (work) => Promise.race([
     Promise.resolve(work).then(() => void 0, () => void 0),
     new Promise((done2) => {
@@ -31075,25 +32622,25 @@
     if (active.tipo === "dbody") {
       const panel = document.querySelector("#cfgcuerpo [data-panel]#dbody");
       if (panel) panel.id = "";
-      const real = byId9("dbody-modal");
+      const real = byId10("dbody-modal");
       if (real) real.id = "dbody";
     }
     if (active.tipo === "admin") {
       const panel = document.querySelector("#cfgcuerpo [data-panel]#v-admin");
       if (panel) panel.id = "";
-      const real = byId9("v-admin-real");
+      const real = byId10("v-admin-real");
       if (real) real.id = "v-admin";
     }
     shellLegacy2.setActivePanel(null);
   }
-  function showWindowInPanel(paint20) {
+  function showWindowInPanel(paint22) {
     leavePanel();
-    const real = byId9("dbody");
+    const real = byId10("dbody");
     if (real) real.id = "dbody-modal";
-    const box5 = byId9("cfgcuerpo");
+    const box5 = byId10("cfgcuerpo");
     if (box5) box5.innerHTML = '<div id="dbody" data-panel="1" class="cfgpanel card"></div>';
-    shellLegacy2.setActivePanel({ tipo: "dbody", refrescar: () => showWindowInPanel(paint20) });
-    return settle(paint20());
+    shellLegacy2.setActivePanel({ tipo: "dbody", refrescar: () => showWindowInPanel(paint22) });
+    return settle(paint22());
   }
   var removeSubnavs = () => {
     document.querySelector("#cfgcuerpo .cfgmod")?.querySelectorAll(".subnav").forEach((subnav) => {
@@ -31102,9 +32649,9 @@
   };
   function showModuleInPanel(section2) {
     leavePanel();
-    const real = byId9("v-admin");
+    const real = byId10("v-admin");
     if (real) real.id = "v-admin-real";
-    const box5 = byId9("cfgcuerpo");
+    const box5 = byId10("cfgcuerpo");
     if (box5) box5.innerHTML = '<div id="v-admin" data-panel="1" class="cfgpanel cfgmod"></div>';
     shellLegacy2.setActivePanel({ tipo: "admin" });
     shellLegacy2.setAdminSection(section2);
@@ -31117,7 +32664,7 @@
   }
   function guardPanelDialog(dialog11) {
     if (!dialog11) return;
-    const open2 = dialog11.showModal.bind(dialog11), close4 = dialog11.close.bind(dialog11);
+    const open2 = dialog11.showModal.bind(dialog11), close5 = dialog11.close.bind(dialog11);
     dialog11.showModal = () => {
       if (shellLegacy2.activePanel()?.tipo === "dbody") return;
       open2();
@@ -31130,7 +32677,7 @@
         }, REPAINT_DELAY_MS2);
         return;
       }
-      close4(value27);
+      close5(value27);
     };
   }
 
@@ -31178,7 +32725,7 @@
   var STEADY_DEFAULT_MAX_MS = 5e3;
   var PART_MAX_MS = 4e3;
   var activeSection = null;
-  var byId10 = (id) => document.getElementById(id);
+  var byId11 = (id) => document.getElementById(id);
   function forgetActiveSection() {
     activeSection = null;
   }
@@ -31195,7 +32742,7 @@
     document.querySelectorAll("#cfgcuerpo-hub .cfgsec").forEach((other) => {
       if (other !== section2) sleepSection(other);
     });
-    const old = byId10("cfgcuerpo");
+    const old = byId11("cfgcuerpo");
     if (old && !section2.contains(old)) old.removeAttribute("id");
     const content = section2.querySelector(":scope > .cfgsecc");
     if (content) content.id = "cfgcuerpo";
@@ -31208,14 +32755,14 @@
       if (modal) modal.id = "dbody-modal";
       shellLegacy2.setActivePanel(section2.__panel);
     } else {
-      const modal = byId10("dbody-modal");
+      const modal = byId11("dbody-modal");
       if (modal && !document.querySelector("#dbody")) modal.id = "dbody";
       shellLegacy2.setActivePanel(null);
     }
     activeSection = section2;
     shellLegacy2.setKey(section2.dataset.cfgsec ?? "");
   }
-  var steady = (element4, max = STEADY_DEFAULT_MAX_MS) => new Promise((done2) => {
+  var steady2 = (element4, max = STEADY_DEFAULT_MAX_MS) => new Promise((done2) => {
     const timers = {};
     const observer = new MutationObserver(() => {
       clearTimeout(timers.quiet);
@@ -31242,14 +32789,14 @@
   async function paintPart(section2, part) {
     section2.__panel = null;
     shellLegacy2.setActivePanel(null);
-    const modal = byId10("dbody-modal");
+    const modal = byId11("dbody-modal");
     if (modal && !document.querySelector("#dbody")) modal.id = "dbody";
     wakeSection(section2);
     try {
       await part.r();
     } catch {
     }
-    await steady(section2, PART_MAX_MS);
+    await steady2(section2, PART_MAX_MS);
     if (shellLegacy2.activePanel() && section2.querySelector("[data-panel]")) section2.__panel = shellLegacy2.activePanel();
     shellLegacy2.polish();
     if ([...section2.querySelectorAll(".cfgsecc h2")].some((title2) => title2.offsetParent)) {
@@ -31267,7 +32814,7 @@
     if (focus && notFirst && first2) first2.scrollIntoView({ block: "start", behavior: "smooth" });
   }
   async function stackSections(item, focus) {
-    const hub = byId10("cfgcuerpo-hub");
+    const hub = byId11("cfgcuerpo-hub");
     if (!hub) return;
     const parts = item.hijos ?? [];
     activeSection = null;
@@ -31285,7 +32832,7 @@
   var SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
   var DEFAULT_KEY = "datos";
   var PLAN_KEY = "o.plan";
-  var byId11 = (id) => document.getElementById(id);
+  var byId12 = (id) => document.getElementById(id);
   var leavesOf2 = (tree) => tree.flatMap(([group, items]) => items.map((item) => ({ gr: group, ...item })));
   function chosenLeaf(leaves, asked2) {
     return leaves.find((leaf) => leaf.k === asked2) ?? leaves.find((leaf) => leaf.hijos?.some((part) => part.k === asked2)) ?? leaves.find((leaf) => asked2.startsWith(`${leaf.k}.`)) ?? leaves.find((leaf) => leaf.k === DEFAULT_KEY) ?? leaves[0];
@@ -31325,7 +32872,7 @@
       }
       heading.classList.toggle("hide", Boolean(query) && !any);
     });
-    byId11("cfusin")?.classList.toggle("hide", shown5 > 0);
+    byId12("cfusin")?.classList.toggle("hide", shown5 > 0);
   }
   function bindIndex(view) {
     view.querySelectorAll("#cfulista [data-ck]").forEach((button2) => {
@@ -31336,13 +32883,13 @@
         if (isMobile()) scrollTo(0, 0);
       };
     });
-    const back = byId11("cfuvolver");
+    const back = byId12("cfuvolver");
     if (back) back.onclick = () => {
       shellLegacy2.setDetail(false);
       view.querySelector(".cfu")?.classList.remove("det");
       scrollTo(0, 0);
     };
-    const search9 = byId11("cfubus");
+    const search9 = byId12("cfubus");
     if (!search9) return;
     search9.oninput = () => {
       filterIndex(view, shellLegacy2.normalise(search9.value.trim()));
@@ -31358,7 +32905,7 @@
   }
   function showPending(view) {
     void pendingSettings().then((list) => {
-      if (!byId11("cfulista")) return;
+      if (!byId12("cfulista")) return;
       Object.entries(list).forEach(([key, text5]) => {
         const button2 = [...view.querySelectorAll("#cfulista [data-ck]")].find((candidate) => key === candidate.dataset.ck || key.startsWith(`${candidate.dataset.ck ?? ""}.`));
         if (button2 && !button2.querySelector(".cfupt")) {
@@ -31366,7 +32913,7 @@
           button2.title = text5;
         }
       });
-      const notice2 = byId11("cfupend"), own = list[shellLegacy2.key()];
+      const notice2 = byId12("cfupend"), own = list[shellLegacy2.key()];
       if (own && notice2) {
         notice2.innerHTML = `<span class="cfupt"></span>${escapeHtml(own)}`;
         notice2.classList.remove("hide");
@@ -31374,12 +32921,12 @@
     });
   }
   function showPlanNeeded(item) {
-    const box5 = byId11("cfgcuerpo");
+    const box5 = byId12("cfgcuerpo");
     if (!box5 || !item.mod) return;
     const plan3 = shellLegacy2.planMinimum(item.mod);
     box5.innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${shellLegacy2.iconOf("lock")}</div><h2>${escapeHtml(t("settingsShell.inPlan", { section: item.t, plan: plan3?.nombre ?? t("settingsShell.customPlan") }))}</h2>
       <p class="sm">${escapeHtml(t("settingsShell.notIncluded", { plan: shellLegacy2.currentPlanName() }))}</p>${shellLegacy2.canManageOrganisation() ? `<div class="acts"><button class="btn" id="planver">${t("settingsShell.seePlans")}</button></div>` : ""}</div>`;
-    const see = byId11("planver");
+    const see = byId12("planver");
     if (see) see.onclick = () => {
       shellLegacy2.setKey(PLAN_KEY);
       shellLegacy2.reload();
@@ -31388,7 +32935,7 @@
   function paintIndexIfChanged(view, tree, leaves) {
     const mobile = isMobile();
     const signature = `${leaves.map((leaf) => leaf.k + (leaf.hijos ? `(${leaf.hijos.map((part) => part.k).join(",")})` : "")).join("|")}|${String(mobile)}`;
-    if (view.dataset.cfgfirma === signature && byId11("cfulista") && view.querySelector(".cfupag")) return;
+    if (view.dataset.cfgfirma === signature && byId12("cfulista") && view.querySelector(".cfupag")) return;
     view.innerHTML = indexHtml(tree);
     view.dataset.cfgfirma = signature;
     bindIndex(view);
@@ -31401,18 +32948,18 @@
     });
     const head = view.querySelector(".cfucab");
     if (head) head.innerHTML = `<div class="miga">${escapeHtml(leaf.gr)}</div><h2>${escapeHtml(leaf.t)}</h2>${leaf.d ? `<p>${escapeHtml(leaf.d)}</p>` : ""}`;
-    const pending = byId11("cfupend");
+    const pending = byId12("cfupend");
     if (pending) {
       pending.classList.add("hide");
       pending.innerHTML = "";
     }
-    const hub = byId11("cfgcuerpo-hub");
+    const hub = byId12("cfgcuerpo-hub");
     if (hub) hub.innerHTML = '<div id="cfgcuerpo"></div>';
   }
   function paintPage() {
     leavePanel();
     const tree = shellLegacy2.tree(), leaves = leavesOf2(tree);
-    const leaf = chosenLeaf(leaves, shellLegacy2.key() || DEFAULT_KEY), view = byId11("v-config");
+    const leaf = chosenLeaf(leaves, shellLegacy2.key() || DEFAULT_KEY), view = byId12("v-config");
     if (!leaf || !view) return;
     const part = leaf.hijos ? leaf.hijos.find((candidate) => candidate.k === shellLegacy2.key()) ?? leaf.hijos[0] ?? null : null;
     shellLegacy2.setKey(part ? part.k : leaf.k);
@@ -31423,16 +32970,16 @@
       showPlanNeeded(leaf);
       return;
     }
-    const paint20 = leaf.hijos ? () => stackSections(leaf, part) : leaf.r;
-    if (paint20) void Promise.resolve().then(paint20);
+    const paint22 = leaf.hijos ? () => stackSections(leaf, part) : leaf.r;
+    if (paint22) void Promise.resolve().then(paint22);
   }
   function leaveStackedParts() {
-    const hub = byId11("cfgcuerpo-hub");
+    const hub = byId12("cfgcuerpo-hub");
     if (!hub?.dataset.apilado) return;
     hub.querySelectorAll("[data-idd]").forEach((element4) => {
       element4.removeAttribute("data-idd");
     });
-    const modal = byId11("dbody-modal");
+    const modal = byId12("dbody-modal");
     if (modal) {
       document.querySelector("#dbody[data-panel]")?.removeAttribute("id");
       modal.id = "dbody";
@@ -31467,12 +33014,12 @@
   // src/app/components/embedded-window/embed.ts
   var WIDE_WINDOWS = ["editorPedido", "verPedido", "editorCompra", "verFactura"];
   var EMBED_MIN_WIDTH = 900;
-  var byId12 = (id) => document.getElementById(id);
+  var byId13 = (id) => document.getElementById(id);
   function embedArea() {
     if (shellLegacy2.openingCard() || innerWidth < EMBED_MIN_WIDTH) return null;
     const screen3 = currentScreen();
-    if (screen3 === "config") return byId12("cfgcuerpo-hub") ?? byId12("cfgcuerpo");
-    if (shellLegacy2.hasPage(screen3)) return document.querySelector(`#v-${screen3} .pagcuerpo`) ?? byId12("cfgcuerpo");
+    if (screen3 === "config") return byId13("cfgcuerpo-hub") ?? byId13("cfgcuerpo");
+    if (shellLegacy2.hasPage(screen3)) return document.querySelector(`#v-${screen3} .pagcuerpo`) ?? byId13("cfgcuerpo");
     return null;
   }
   var fixedBottom = (selector) => {
@@ -31488,12 +33035,12 @@
   }
   function closeEmbedded() {
     ["dlg2", "dlg"].forEach((id) => {
-      const dialog11 = byId12(id);
+      const dialog11 = byId13(id);
       if (dialog11?.open && dialog11.classList.contains("encajada")) dialog11.close();
     });
   }
   async function withDialogLoading(work) {
-    const dialog11 = byId12("dlg");
+    const dialog11 = byId13("dlg");
     dialog11?.classList.add("cargando");
     try {
       return await work();
@@ -31501,25 +33048,25 @@
       dialog11?.classList.remove("cargando");
     }
   }
-  async function openStacked(paint20, backText) {
-    const dialog11 = byId12("dlg"), body2 = byId12("dbody");
-    if (!dialog11 || !body2) return;
-    shellLegacy2.windowStack().push({ nodos: [...body2.childNodes], clases: dialog11.className, titulo: backText });
+  async function openStacked(paint22, backText) {
+    const dialog11 = byId13("dlg"), body3 = byId13("dbody");
+    if (!dialog11 || !body3) return;
+    shellLegacy2.windowStack().push({ nodos: [...body3.childNodes], clases: dialog11.className, titulo: backText });
     shellLegacy2.setStacking(true);
     const keep = document.createDocumentFragment();
-    [...body2.childNodes].forEach((node) => {
+    [...body3.childNodes].forEach((node) => {
       keep.appendChild(node);
     });
     if (dialog11.open) dialog11.close();
     try {
-      await paint20();
+      await paint22();
     } finally {
       shellLegacy2.setStacking(false);
     }
     if (!dialog11.open) dialog11.showModal();
-    const head = body2.querySelector(".fh");
-    if (head && !body2.querySelector(".pilavolver")) head.insertAdjacentHTML("beforebegin", `<button class="pilavolver" type="button">${shellLegacy2.iconOf("arrow-left")} ${escapeHtml(orFallback(backText, t("common.back")))}</button>`);
-    const back = body2.querySelector(".pilavolver");
+    const head = body3.querySelector(".fh");
+    if (head && !body3.querySelector(".pilavolver")) head.insertAdjacentHTML("beforebegin", `<button class="pilavolver" type="button">${shellLegacy2.iconOf("arrow-left")} ${escapeHtml(orFallback(backText, t("common.back")))}</button>`);
+    const back = body3.querySelector(".pilavolver");
     if (back) back.onclick = () => {
       dialog11.close();
     };
@@ -31907,14 +33454,14 @@
     <div class="g2"><div><label for="pfrevd">${t("settings.notice.days")}</label><input id="pfrevd" type="number" min="1" max="60" value="${notice2.dias}"></div></div></div>`);
     const enabled = document.getElementById("pfrev"), days = document.getElementById("pfrevd");
     if (!enabled || !days) return;
-    const save44 = async () => {
+    const save46 = async () => {
       if (await settingsLegacy.saveRevisitNotice({ on: enabled.checked, dias: Math.max(1, Number(days.value) || DEFAULT_DAYS) })) notices.toast(t("settings.notice.saved"));
     };
     enabled.onchange = () => {
-      void save44();
+      void save46();
     };
     days.onchange = () => {
-      void save44();
+      void save46();
     };
   }
 
@@ -32002,8 +33549,8 @@
     const kept = before?.dir === address2 ? before : null;
     return { nombre: name || address2, dir: address2, lat: coordinate(found.lat, kept?.lat), lon: coordinate(found.lon, kept?.lon) };
   }
-  async function save12(box5, button2, start2, repaint5) {
-    const leaving = readPlace(box5, KEYS.start, start2), arriving = readPlace(box5, KEYS.end, null);
+  async function save14(box5, button2, start4, repaint5) {
+    const leaving = readPlace(box5, KEYS.start, start4), arriving = readPlace(box5, KEYS.end, null);
     if (!leaving?.lat) {
       notices.toast(t("settings.preferences.locateStart"), true);
       return;
@@ -32027,11 +33574,11 @@
     repaint5();
   }
   function paintPlaces(box5, repaint5) {
-    const start2 = settingsLegacy.place(KEYS.start) ?? { nombre: "", dir: "" }, end = settingsLegacy.place(KEYS.end);
+    const start4 = settingsLegacy.place(KEYS.start) ?? { nombre: "", dir: "" }, end = settingsLegacy.place(KEYS.end);
     box5.innerHTML = `
     <p class="sm">${t("settings.preferences.intro")}</p>
     <div class="cols">
-      ${placeCard(KEYS.start, start2, t("settings.preferences.startTitle"), t("settings.preferences.startHint"))}
+      ${placeCard(KEYS.start, start4, t("settings.preferences.startTitle"), t("settings.preferences.startHint"))}
       ${placeCard(KEYS.end, end, t("settings.preferences.endTitle"), t("settings.preferences.endHint"))}
     </div>
     <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfguardar">${t("settings.preferences.save")}</button></div>`;
@@ -32051,7 +33598,7 @@
     });
     const saveButton = document.getElementById("pfguardar");
     if (saveButton) saveButton.onclick = () => {
-      void save12(box5, saveButton, start2, repaint5);
+      void save14(box5, saveButton, start4, repaint5);
     };
   }
 
@@ -32200,7 +33747,7 @@
     },
     companyIban: () => String(AJUSTES.empresa?.iban ?? "").trim(),
     /** A server function (the answer is read by the caller). */
-    invoke: (name, body2) => db.functions.invoke(name, { body: body2 }),
+    invoke: (name, body3) => db.functions.invoke(name, { body: body3 }),
     alertPreferences: () => PERFIL.preferencias?.avisos_pedidos ?? {},
     saveAlertPreferences: (alerts) => guardarPrefsAvisos(alerts),
     roleNames: () => rolesNombres()
@@ -32373,14 +33920,14 @@
       return { ok: false, ...failure5.message ? { error: failure5.message } : {} };
     }
   }
-  async function callPayments(body2, button2) {
+  async function callPayments(body3, button2) {
     const text5 = button2?.textContent ?? "";
     if (button2) {
       button2.disabled = true;
       button2.textContent = t("ordersMore.subscription.opening");
     }
     try {
-      const { data, error } = await orderMailLegacy.invoke("pagos", body2);
+      const { data, error } = await orderMailLegacy.invoke("pagos", body3);
       const answer = await answerOf(data, error);
       if (!answer?.ok) {
         notices.toast(t("ordersMore.subscription.couldNot", { error: orFallback(answer?.error, t("ordersMore.subscription.paymentError")) }), true);
@@ -32573,7 +34120,7 @@
         <div><span>${t("ordersMore.choosePlan.vat")}</span><b>${euros2(vat)}</b></div>
         <div class="pgtot"><span>${label}</span><b>${euros2(base + setup + vat)}</b></div></div>`;
   }
-  function headerHtml6(context, choice2) {
+  function headerHtml7(context, choice2) {
     const note = !context.subscribed ? t("ordersMore.choosePlan.stripePage") : isDowngrade2(context, choice2) ? "" : t("ordersMore.choosePlan.appliedNow");
     return `<div class="fh"><div><h2>${t(context.subscribed ? "ordersMore.choosePlan.changeTitle" : "ordersMore.choosePlan.contractTitle")}</h2>
         <div class="sm">${t("ordersMore.choosePlan.pricesPerUser")} ${note}</div></div>
@@ -32591,7 +34138,7 @@
   }
   function windowHtml4(context, choice2) {
     const okKey = !context.subscribed ? "ordersMore.choosePlan.goToPayment" : isDowngrade2(context, choice2) ? "ordersMore.choosePlan.schedule" : "ordersMore.choosePlan.confirm";
-    return `${headerHtml6(context, choice2)}
+    return `${headerHtml7(context, choice2)}
       ${choicesHtml(context, choice2)}
       ${downgradeHtml(context, choice2)}
       ${receiptHtml(context, choice2)}
@@ -32615,20 +34162,20 @@
     notices.toast(t("ordersMore.choosePlan.done"));
     void waitUntilActive();
   }
-  function paint7(context, choice2) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = windowHtml4(context, choice2);
+  function paint9(context, choice2) {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = windowHtml4(context, choice2);
     const repaint5 = () => {
-      paint7(context, choice2);
+      paint9(context, choice2);
     };
-    body2.querySelectorAll("[data-pgp]").forEach((button2) => {
+    body3.querySelectorAll("[data-pgp]").forEach((button2) => {
       button2.onclick = () => {
         choice2.plan = button2.dataset.pgp ?? choice2.plan;
         repaint5();
       };
     });
-    body2.querySelectorAll("[data-pga]").forEach((button2) => {
+    body3.querySelectorAll("[data-pga]").forEach((button2) => {
       button2.onclick = () => {
         choice2.pago = button2.dataset.pga ?? choice2.pago;
         repaint5();
@@ -32653,7 +34200,7 @@
     const used = Number(subscriptionLegacy.state()?.usuarios ?? 0) || 0, pago = current.pago === YEARLY ? YEARLY : MONTHLY;
     const plan3 = plans.includes(initialPlan ?? "") ? String(initialPlan) : plans.includes(String(current.plan)) ? String(current.plan) : DEFAULT_PLAN;
     const context = { current, subscribed: Boolean(current.stripe_suscripcion), used, was: { plan: current.plan, pago, usuarios: Number(current.usuarios) || 0 } };
-    paint7(context, { plan: plan3, pago, usuarios: Math.max(MIN_USERS3, used, Number(current.usuarios) || 0) });
+    paint9(context, { plan: plan3, pago, usuarios: Math.max(MIN_USERS3, used, Number(current.usuarios) || 0) });
     document.getElementById("dlg")?.showModal();
   }
 
@@ -32810,9 +34357,9 @@
           <div><label for="presuhora">${t("settingsRest.request.bestTime")}</label><input id="presuhora" placeholder="${t("settingsRest.request.bestTimePlaceholder")}"></div></div>
         <label>${t("settingsRest.request.prefers")}</label><div class="segs" role="group" id="presucont">${CONTACTS.map(([key, label]) => `<button type="button" data-pc="${key}" class="${key === "correo" ? "on" : ""}" aria-pressed="${String(key === "correo")}">${t(`settingsRest.request.${label}`)}</button>`).join("")}</div></section>`;
   }
-  var checkedNeeds = (body2) => [...body2.querySelectorAll(".presuop input:checked")].map((box5) => box5.value);
-  function requestData(body2, contact) {
-    const needs = checkedNeeds(body2);
+  var checkedNeeds = (body3) => [...body3.querySelectorAll(".presuop input:checked")].map((box5) => box5.value);
+  function requestData(body3, contact) {
+    const needs = checkedNeeds(body3);
     return {
       necesita: needs,
       necesita_txt: needs.map((key) => planLegacy.needs().find((item) => item[0] === key)?.[1] ?? key),
@@ -32838,8 +34385,8 @@
         <p class="sm">${t("settingsRest.request.seeState")}</p></div>
       <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>${t("settingsRest.request.understood")}</button></div>`;
   }
-  function complete(body2) {
-    if (!checkedNeeds(body2).length && !text("presumsg")) {
+  function complete(body3) {
+    if (!checkedNeeds(body3).length && !text("presumsg")) {
       notices.toast(t("settingsRest.request.tellUs"), true);
       field7("presumsg")?.focus();
       return false;
@@ -32850,9 +34397,9 @@
     }
     return true;
   }
-  async function send2(kind, body2, contact, button2) {
-    if (!complete(body2)) return;
-    const data = requestData(body2, contact);
+  async function send2(kind, body3, contact, button2) {
+    if (!complete(body3)) return;
+    const data = requestData(body3, contact);
     button2.disabled = true;
     const { data: result, error } = await callRpc("pedir_presupuesto", { p: { tipo: kind, datos: data } });
     button2.disabled = false;
@@ -32860,20 +34407,20 @@
       notices.toast(t(FAILURES3.get(result?.error ?? "") ?? "settingsRest.request.couldNotSend"), true);
       return;
     }
-    body2.innerHTML = sentHtml(data, contact);
+    body3.innerHTML = sentHtml(data, contact);
     document.getElementById("dlg")?.addEventListener("close", () => {
       if (PLAN_SCREENS2.includes(currentScreen())) goTo(currentScreen());
     }, { once: true });
   }
-  function bind14(kind, body2) {
+  function bind14(kind, body3) {
     const state2 = { contact: "correo" };
-    body2.querySelectorAll(".presuop input").forEach((box5) => {
+    body3.querySelectorAll(".presuop input").forEach((box5) => {
       box5.onchange = () => {
         box5.closest(".presuop")?.classList.toggle("on", box5.checked);
-        document.getElementById("presuprogw")?.classList.toggle("hide", !checkedNeeds(body2).includes("conexion"));
+        document.getElementById("presuprogw")?.classList.toggle("hide", !checkedNeeds(body3).includes("conexion"));
       };
     });
-    const options5 = body2.querySelectorAll("[data-pc]");
+    const options5 = body3.querySelectorAll("[data-pc]");
     options5.forEach((option7) => {
       option7.onclick = () => {
         state2.contact = option7.dataset.pc ?? "correo";
@@ -32885,13 +34432,13 @@
     });
     const ok = document.getElementById("presuok");
     if (ok) ok.onclick = () => {
-      void send2(kind, body2, state2.contact, ok);
+      void send2(kind, body3, state2.contact, ok);
     };
   }
   function askBudget(requested) {
-    const kind = requested === "contrato" ? "contrato" : "presupuesto", body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = `<div class="fh"><div><h2>${t(kind === "contrato" ? "settingsRest.request.contractTitle" : "settingsRest.request.budgetTitle")}</h2>
+    const kind = requested === "contrato" ? "contrato" : "presupuesto", body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${t(kind === "contrato" ? "settingsRest.request.contractTitle" : "settingsRest.request.budgetTitle")}</h2>
       <div class="sm">${t("settingsRest.request.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <div class="presu">
@@ -32900,7 +34447,7 @@
       ${contactHtml()}
     </div>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("settingsRest.request.cancel")}</button><button class="btn" id="presuok">${t("settingsRest.request.send")}</button></div>`;
-    bind14(kind, body2);
+    bind14(kind, body3);
     document.getElementById("dlg")?.showModal();
   }
 
@@ -32936,8 +34483,8 @@
     <div class="acts"><button type="button" class="btn sec" id="pgdcorr">${t("settingsRest.plan.fixData")}</button></div></div>`;
   }
   var header2 = () => ["organizacion", "config"].includes(currentScreen()) ? `<p class="sm">${t("settingsRest.plan.priceNote")}</p>` : `<div class="saludo"><div><h1>${t("settingsRest.plan.pageTitle")}</h1><div class="fecha">${t("settingsRest.plan.priceNote")}</div></div></div>`;
-  async function payAndReload(body2, button2, done2) {
-    const answer = await callPayments(body2, button2);
+  async function payAndReload(body3, button2, done2) {
+    const answer = await callPayments(body3, button2);
     if (!answer) return;
     notices.toast(t(done2 === "cancel" ? "settingsRest.plan.changeCancelled" : "settingsRest.plan.kept"));
     await loadPaymentState();
@@ -33173,10 +34720,10 @@
       await restLegacy.loadPlan();
     } catch {
     }
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = welcomeHtml(restLegacy.plan());
-    body2.querySelectorAll("[data-bien]").forEach((button2) => {
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = welcomeHtml(restLegacy.plan());
+    body3.querySelectorAll("[data-bien]").forEach((button2) => {
       button2.onclick = () => {
         box5.close();
         openStep(button2.dataset.bien ?? "");
@@ -33230,7 +34777,7 @@
 
   // src/app/screens/settings/users/access.ts
   var appUrl = () => location.origin + location.pathname;
-  var headerHtml7 = (title2, user) => `<div class="fh"><div><h2>${escapeHtml(title2)}</h2><div class="sm">${escapeHtml(user.nombre ?? "")} · ${escapeHtml(user.email ?? "")}</div></div><button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>`;
+  var headerHtml8 = (title2, user) => `<div class="fh"><div><h2>${escapeHtml(title2)}</h2><div class="sm">${escapeHtml(user.nombre ?? "")} · ${escapeHtml(user.email ?? "")}</div></div><button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>`;
   var welcomeText = (name, email, password) => t("settingsRest.newUser.message", { name: settingsExtraLegacy.firstName(name), app: settingsExtraLegacy.appName(), url: appUrl(), email, password });
   async function copyText(text5) {
     try {
@@ -33247,10 +34794,10 @@
       ${linked}<div><span>${t("settingsRest.newUser.address")}</span><b>${escapeHtml(appUrl())}</b></div></div>`;
   }
   var REASONS2 = /* @__PURE__ */ new Map([["ya_entro", "settingsRest.access.alreadyIn"], ["sin_datos", "settingsRest.access.noData"]]);
-  function paintFailure(body2, user, result) {
+  function paintFailure(body3, user, result) {
     const text5 = result ? t(REASONS2.get(result.error ?? "") ?? "settingsRest.access.noPermission") : t("settingsRest.access.unreadable");
     const canSend = result && result.error !== "permiso";
-    body2.innerHTML = `${headerHtml7(t("settingsRest.access.title"), user)}<p>${escapeHtml(text5)}</p>
+    body3.innerHTML = `${headerHtml8(t("settingsRest.access.title"), user)}<p>${escapeHtml(text5)}</p>
       <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">${canSend ? `<button class="btn sec" id="accpass">${t("settingsRest.access.sendPassword")}</button>` : ""}<button class="btn" data-cerrar>${t("settingsRest.access.close")}</button></div>`;
     const send5 = document.getElementById("accpass");
     if (send5) send5.onclick = () => {
@@ -33260,14 +34807,14 @@
   }
   async function showTemporaryAccess(user) {
     const { data: result } = await callRpc("ver_acceso_temporal", { p_usuario: user.id });
-    const body2 = dialogBody();
-    if (!body2) return;
+    const body3 = dialogBody();
+    if (!body3) return;
     if (!result?.ok) {
-      paintFailure(body2, user, result);
+      paintFailure(body3, user, result);
       return;
     }
     const data = { nombre: result.nombre ?? "", rol: result.rol ?? "", email: result.email ?? "", pass: result.pass ?? "", vinculado: result.cuenta ?? null };
-    body2.innerHTML = `${headerHtml7(t("settingsRest.access.title"), user)}
+    body3.innerHTML = `${headerHtml8(t("settingsRest.access.title"), user)}
     ${accessDataHtml(data)}
     <p class="sm">${t("settingsRest.access.notYet")}</p>
     <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="acccop">${t("settingsRest.newUser.copy")}</button><button class="btn" data-cerrar>${t("settingsRest.newUser.done")}</button></div>`;
@@ -33487,18 +35034,18 @@
     notices.toast(t("settingsRest.zones.saved", { ...words7(), count: formatNumber(result?.asignados) }) + elsewhere);
   }
   function bindZones(userId) {
-    const body2 = dialogBody();
-    if (!body2) return;
-    body2.querySelectorAll("[data-zcc]").forEach((region) => {
+    const body3 = dialogBody();
+    if (!body3) return;
+    body3.querySelectorAll("[data-zcc]").forEach((region) => {
       region.onchange = () => {
-        body2.querySelectorAll(`[data-zpc="${CSS.escape(region.dataset.zcc ?? "")}"]`).forEach((box5) => {
+        body3.querySelectorAll(`[data-zpc="${CSS.escape(region.dataset.zcc ?? "")}"]`).forEach((box5) => {
           box5.checked = region.checked;
         });
       };
     });
-    const save44 = document.getElementById("uzok");
-    if (save44) save44.onclick = () => {
-      void saveZones(userId, save44);
+    const save46 = document.getElementById("uzok");
+    if (save46) save46.onclick = () => {
+      void saveZones(userId, save46);
     };
   }
   async function paintZones(user) {
@@ -33550,14 +35097,14 @@
       <button class="btn" id="uguardar">${t("settingsRest.editor.save")}</button>
     </div>`;
   }
-  function presetOnRoleChange(body2) {
+  function presetOnRoleChange(body3) {
     const role = document.getElementById("ur");
     if (!role) return;
     role.onchange = () => {
       const changes2 = (settingsExtraLegacy.setting("roles") ?? {})[role.value] ?? {};
       const preset = { ...usersLegacy.role(role.value)?.plantilla ?? {}, ...changes2 };
       usersLegacy.areas().forEach(([key]) => {
-        const select3 = body2.querySelector(`[data-area="${key}"]`);
+        const select3 = body3.querySelector(`[data-area="${key}"]`);
         if (select3) select3.value = String(preset[key] ?? 0);
       });
     };
@@ -33587,10 +35134,10 @@
     }
     return t("settingsRest.editor.zoneSaved", { ...words7(), count: formatNumber(result?.asignados) });
   }
-  async function save13(id, body2, button2) {
+  async function save15(id, body3, button2) {
     const areas2 = {};
     usersLegacy.areas().forEach(([key]) => {
-      areas2[key] = Number(body2.querySelector(`[data-area="${key}"]`)?.value);
+      areas2[key] = Number(body3.querySelector(`[data-area="${key}"]`)?.value);
     });
     button2.disabled = true;
     button2.textContent = t("settingsRest.editor.saving");
@@ -33662,18 +35209,18 @@
   }
   async function editUser(id) {
     await ensureUser(id);
-    const box5 = dialog4(), body2 = dialogBody(), user = userById(id);
-    if (!box5 || !body2 || !user) return;
+    const box5 = dialog4(), body3 = dialogBody(), user = userById(id);
+    if (!box5 || !body3 || !user) return;
     box5.classList.add("cargando");
     const limit = setTimeout(() => {
       box5.classList.remove("cargando");
     }, LOADING_MAX_MS);
     try {
-      body2.innerHTML = editorHtml5(user);
-      presetOnRoleChange(body2);
+      body3.innerHTML = editorHtml5(user);
+      presetOnRoleChange(body3);
       const ok = document.getElementById("uguardar");
       if (ok) ok.onclick = () => {
-        void save13(id, body2, ok);
+        void save15(id, body3, ok);
       };
       if (!box5.open) box5.showModal();
       await paintParts(user);
@@ -33734,9 +35281,9 @@
     if (currentScreen() === "config" && usersLegacy.settingsKey() === "usuarios") usersLegacy.repaintList();
   }
   function deleteUser(user) {
-    const body2 = dialogBody();
-    if (!body2) return;
-    body2.innerHTML = `<div class="fh"><div><h2>${escapeHtml(t("settingsRest.remove.title", { name: user.nombre || (user.email ?? "") }))}</h2><div class="sm">${escapeHtml(user.email ?? "")}</div></div>
+    const body3 = dialogBody();
+    if (!body3) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${escapeHtml(t("settingsRest.remove.title", { name: user.nombre || (user.email ?? "") }))}</h2><div class="sm">${escapeHtml(user.email ?? "")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <p>${t("settingsRest.remove.intro")}</p>
     <label class="chk" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0"><input type="checkbox" id="bucon" style="margin-top:3px">
@@ -33829,9 +35376,9 @@
     actions.get(action)?.();
   }
   function showUser(user) {
-    const body2 = dialogBody();
-    if (!body2) return;
-    body2.innerHTML = `<div class="fh"><div class="usrcab"><span class="usrav grande">${escapeHtml(initialsOf(user.nombre))}</span>
+    const body3 = dialogBody();
+    if (!body3) return;
+    body3.innerHTML = `<div class="fh"><div class="usrcab"><span class="usrav grande">${escapeHtml(initialsOf(user.nombre))}</span>
       <div><h2>${escapeHtml(user.nombre)}</h2><div class="sm">${escapeHtml(user.email ?? "")}</div>
         <div class="usrchips"><span class="pill p-est">${escapeHtml(user.rol)}</span>${user.activo ? "" : `<span class="pill p-anu">${t("settingsRest.users.deactivated")}</span>`}</div></div></div>
     <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -33839,7 +35386,7 @@
     ${activityHtml2(user)}
     ${actionsHtml4(user)}`;
     dialog4()?.showModal();
-    body2.querySelectorAll("[data-uacc]").forEach((button2) => {
+    body3.querySelectorAll("[data-uacc]").forEach((button2) => {
       button2.onclick = () => {
         actionFor(user, button2.dataset.uacc ?? "");
       };
@@ -33939,10 +35486,10 @@
   }
   function paintSummary(draft) {
     void Promise.resolve(callRpc("guardar_acceso_temporal", { p_email: draft.email, p_pass: draft.pass })).then(() => void 0, () => void 0);
-    const box5 = dialog4(), body2 = dialogBody();
-    if (!box5 || !body2) return;
+    const box5 = dialog4(), body3 = dialogBody();
+    if (!box5 || !body3) return;
     delete box5.dataset.sucio;
-    body2.innerHTML = `<div class="fh"><div><h2>${t("settingsRest.newUser.doneTitle")}</h2><div class="sm">${t("settingsRest.newUser.doneSubtitle")}</div></div><button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    body3.innerHTML = `<div class="fh"><div><h2>${t("settingsRest.newUser.doneTitle")}</h2><div class="sm">${t("settingsRest.newUser.doneSubtitle")}</div></div><button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       ${accessDataHtml({ nombre: draft.nombre, rol: draft.rol, email: draft.email, pass: draft.pass, vinculado: draft.linked })}
       <p class="sm">${t("settingsRest.newUser.confirmEmail")}</p>
       <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="usrcop">${t("settingsRest.newUser.copy")}</button><button class="btn" data-cerrar>${t("settingsRest.newUser.done")}</button></div>`;
@@ -33980,9 +35527,9 @@
     toggle4();
   }
   function newUser(preset = null) {
-    const body2 = dialogBody(), box5 = dialog4();
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml6();
+    const body3 = dialogBody(), box5 = dialog4();
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml6();
     let professional = preset?.medico ?? null;
     editorLegacy.pickAccount(document.getElementById("nmed"), professional, async (account) => {
       professional = account;
@@ -34232,7 +35779,7 @@
     message2(`<b style="color:var(--dang)">${escapeHtml(failure5)}</b>${detail}`);
     notices.toast(failure5, true);
   }
-  async function save14(config) {
+  async function save16(config) {
     const value27 = readConfig(), errors = missingData(value27, Boolean(config.hay_clave));
     markMissing(errors);
     if (errors.length) return false;
@@ -34275,7 +35822,7 @@
     return t("settingsExtra.email.couldNotSend") + (failed4 && !answer ? t("settingsExtra.email.noSendFunction") : escapeHtml(answer?.error ?? ""));
   }
   async function sendTest(config) {
-    if (!await save14(config)) return;
+    if (!await save16(config)) return;
     const box5 = document.getElementById("comsg");
     if (box5) box5.textContent = t("settingsExtra.email.sendingTest");
     const response = await settingsExtraLegacy.sendTestEmail();
@@ -34284,7 +35831,7 @@
   function bindSaving(config) {
     const ok = document.getElementById("cook"), test = document.getElementById("coprueba");
     if (ok) ok.onclick = () => {
-      void settingsExtraLegacy.withButtonLoading(ok, t("settingsExtra.email.saving"), () => save14(config));
+      void settingsExtraLegacy.withButtonLoading(ok, t("settingsExtra.email.saving"), () => save16(config));
     };
     if (test) test.onclick = () => {
       void settingsExtraLegacy.withButtonLoading(test, t("settingsExtra.email.sending"), () => sendTest(config));
@@ -34395,10 +35942,10 @@
     if (box5) box5.innerHTML = listHtml2();
   };
   function insertAtCursor(field20, text5) {
-    const start2 = field20.selectionStart ?? field20.value.length, end = field20.selectionEnd ?? start2;
-    field20.value = field20.value.slice(0, start2) + text5 + field20.value.slice(end);
+    const start4 = field20.selectionStart ?? field20.value.length, end = field20.selectionEnd ?? start4;
+    field20.value = field20.value.slice(0, start4) + text5 + field20.value.slice(end);
     field20.focus();
-    field20.selectionStart = field20.selectionEnd = start2 + text5.length;
+    field20.selectionStart = field20.selectionEnd = start4 + text5.length;
   }
   function editorHtml6(template, isNew) {
     return `<div class="fh"><div><h2>${t(isNew ? "settingsExtra.templates.newTitle" : "settingsExtra.templates.editTitle")}</h2></div><button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
@@ -34435,15 +35982,15 @@
     }
   }
   function editTemplate(template, isNew) {
-    const body2 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml6(template, isNew);
+    const body3 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml6(template, isNew);
     box5.showModal();
     let last = document.getElementById("pcet");
     for (const id of ["pcea", "pcet"]) document.getElementById(id)?.addEventListener("focus", () => {
       last = document.getElementById(id);
     });
-    body2.querySelectorAll("[data-plv]").forEach((button2) => {
+    body3.querySelectorAll("[data-plv]").forEach((button2) => {
       button2.onclick = () => {
         if (last) insertAtCursor(last, `[${button2.dataset.plv ?? ""}]`);
       };
@@ -34558,14 +36105,14 @@
       ${text3("faviso") ? `<p class="fprevaviso">${escapeHtml(text3("faviso"))}</p>` : ""}`;
   }
   function bindPreview() {
-    const paint20 = () => {
+    const paint22 = () => {
       const box5 = document.getElementById("fprev");
       if (box5) box5.innerHTML = previewHtml2();
     };
-    for (const id of ["fnom", "fcar", "femp", "fweb", "ftel", "ftel2", "fdir", "faviso", "fcolor", "flogo"]) document.getElementById(id)?.addEventListener("input", paint20);
+    for (const id of ["fnom", "fcar", "femp", "fweb", "ftel", "ftel2", "fdir", "faviso", "fcolor", "flogo"]) document.getElementById(id)?.addEventListener("input", paint22);
     const logo = document.getElementById("flogo");
-    if (logo) logo.onchange = paint20;
-    paint20();
+    if (logo) logo.onchange = paint22;
+    paint22();
   }
   function bindProvider(config) {
     const select3 = document.getElementById("coprov");
@@ -34683,7 +36230,7 @@
     if (group === "today") return date.toLocaleTimeString(locale2, { hour: "2-digit", minute: "2-digit" });
     return group === "yesterday" ? t("settingsExtra.notifications.yesterday") : date.toLocaleDateString(locale2, { weekday: "short", day: "numeric", month: "short" });
   }
-  function rowHtml7(item) {
+  function rowHtml8(item) {
     const actions = actionsOf(item).map(([text5, , main], index) => `<button type="button" class="btn chico ${main ? "" : "sec"}" data-nacc="${index}">${escapeHtml(text5)}</button>`).join("");
     return `<div class="notit2 ${item.leida_en ? "" : "nuevo"}" data-nidx="${state.list.indexOf(item)}">
       <span class="ic" aria-hidden="true">${settingsExtraLegacy.iconOf(item.tipo)}</span>
@@ -34700,8 +36247,8 @@
   function listHtml3(shown5) {
     const fresh = shown5.filter((item) => !item.leida_en), earlier = shown5.filter((item) => item.leida_en);
     return `<div class="notlista2">
-      ${fresh.length ? `<h3 class="notdia">${t("settingsExtra.notifications.fresh", { count: fresh.length })}</h3>${fresh.map(rowHtml7).join("")}` : ""}
-      ${earlier.length ? `<h3 class="notdia">${t("settingsExtra.notifications.earlier")}</h3>${earlier.map(rowHtml7).join("")}` : ""}
+      ${fresh.length ? `<h3 class="notdia">${t("settingsExtra.notifications.fresh", { count: fresh.length })}</h3>${fresh.map(rowHtml8).join("")}` : ""}
+      ${earlier.length ? `<h3 class="notdia">${t("settingsExtra.notifications.earlier")}</h3>${earlier.map(rowHtml8).join("")}` : ""}
       ${shown5.length ? "" : `<div class="vacio">${t(state.filter ? "settingsExtra.notifications.noneInArea" : "settingsExtra.notifications.none")}</div>`}</div>`;
   }
   function panelHtml3() {
@@ -34726,10 +36273,10 @@
     settingsExtraLegacy.refreshBell();
   };
   var markRead = (id) => legacyDb().rpc("leer_notificacion", { p_id: id });
-  function drop(items) {
+  function drop2(items) {
     state.list = state.list.filter((item) => !items.includes(item));
     settingsExtraLegacy.setUnread(Math.max(0, settingsExtraLegacy.unread() - items.filter((item) => !item.leida_en).length));
-    paint8();
+    paint10();
     settingsExtraLegacy.refreshBell();
   }
   async function postpone3(item) {
@@ -34739,7 +36286,7 @@
       return;
     }
     notices.toast(t("settingsExtra.notifications.postponed"));
-    drop([item]);
+    drop2([item]);
   }
   async function openItem(item) {
     await markRead(item.id);
@@ -34752,7 +36299,7 @@
     if (item.leida_en) return;
     item.leida_en = (/* @__PURE__ */ new Date()).toISOString();
     settingsExtraLegacy.setUnread(Math.max(0, settingsExtraLegacy.unread() - 1));
-    paint8();
+    paint10();
     settingsExtraLegacy.refreshBell();
   }
   function bindRow(row4) {
@@ -34780,7 +36327,7 @@
       if (!await removeNotifications([item.id], false)) return;
       row4.classList.add("notsale");
       setTimeout(() => {
-        drop([item]);
+        drop2([item]);
       }, LEAVE_MS2);
     };
     row4.onclick = () => {
@@ -34794,7 +36341,7 @@
       if (!item.leida_en) item.leida_en = now;
     });
     settingsExtraLegacy.setUnread(0);
-    paint8();
+    paint10();
     settingsExtraLegacy.refreshBell();
   }
   async function removeAll() {
@@ -34808,14 +36355,14 @@
       closeAndRefresh();
     }
   }
-  function bind16(body2) {
-    body2.querySelectorAll("[data-nfil]").forEach((button2) => {
+  function bind16(body3) {
+    body3.querySelectorAll("[data-nfil]").forEach((button2) => {
       button2.onclick = () => {
         state.filter = button2.dataset.nfil ?? "";
-        paint8();
+        paint10();
       };
     });
-    body2.querySelectorAll(".notit2").forEach(bindRow);
+    body3.querySelectorAll(".notit2").forEach(bindRow);
     const on6 = (id, action) => {
       const button2 = document.getElementById(id);
       if (button2) button2.onclick = action;
@@ -34827,7 +36374,7 @@
       void (async () => {
         if (await removeNotifications(null, true)) {
           notices.toast(t("settingsExtra.notifications.readRemoved"));
-          drop(state.list.filter((item) => item.leida_en));
+          drop2(state.list.filter((item) => item.leida_en));
         }
       })();
     });
@@ -34839,15 +36386,15 @@
       settingsExtraLegacy.openNotificationSettings();
     });
   }
-  function paint8() {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = panelHtml3();
-    bind16(body2);
+  function paint10() {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = panelHtml3();
+    bind16(body3);
   }
   function showNotifications(list) {
     state.list = [...list ?? []];
-    paint8();
+    paint10();
     const box5 = dialog5();
     if (box5 && !box5.open) box5.showModal();
   }
@@ -34889,7 +36436,7 @@
         <input type="time" id="nsild" value="${escapeHtml(quiet.desde ?? QUIET_FROM)}" aria-label="${t("settingsExtra.notificationSettings.from")}"> ${t("settingsExtra.notificationSettings.toWord")} <input type="time" id="nsilh" value="${escapeHtml(quiet.hasta ?? QUIET_TO)}" aria-label="${t("settingsExtra.notificationSettings.to")}">
         <label class="ntffin"><input type="checkbox" id="nsilf" ${quiet.finde !== false ? "checked" : ""}> ${t("settingsExtra.notificationSettings.weekends")}</label></div></div>`;
   }
-  function rowHtml8([key, icon3, title2, description]) {
+  function rowHtml9([key, icon3, title2, description]) {
     const mode = modeOf(key), daily = settingsExtraLegacy.dailyNotifications().includes(key);
     const button2 = (value27, label) => `<button type="button" data-v="${value27}" class="${mode === value27 ? "on" : ""}" aria-pressed="${String(mode === value27)}">${label}</button>`;
     return `<div class="ntfrow"><span class="ntfic">${icon3}</span><div><b>${escapeHtml(title2)}</b><span class="sm">${escapeHtml(description)}</span></div>
@@ -34932,7 +36479,7 @@
     box5.innerHTML = types2.length ? `<div class="card cfgpanel ntf">
     <div class="ntfres" id="ntfres">${summaryHtml2(types2)}</div>
     ${quietHtml(quiet)}
-    ${groupsOf(types2).map(([title2, list]) => `<h3 class="ntfarea">${escapeHtml(title2)}</h3>${list.map(rowHtml8).join("")}`).join("")}
+    ${groupsOf(types2).map(([title2, list]) => `<h3 class="ntfarea">${escapeHtml(title2)}</h3>${list.map(rowHtml9).join("")}`).join("")}
   </div>` : `<div class="card cfgpanel"><div class="vacio">${t("settingsExtra.notificationSettings.none")}</div></div>`;
     box5.querySelectorAll(".ntfseg button").forEach((button2) => {
       button2.onclick = () => {
@@ -34965,7 +36512,7 @@
       return { module, byDefault, value: module === CONTACTS2 ? contactsLabel2() : names[module] ?? "" };
     });
   }
-  function rowHtml9(row4) {
+  function rowHtml10(row4) {
     return `<div class="txmf" role="row"><span class="txmico" role="cell">${settingsExtraLegacy.moduleIcon(row4.module) ?? "•"}</span><span role="cell" class="txmdef">${escapeHtml(row4.byDefault)}</span>
       <span role="cell"><input data-txm="${row4.module}" value="${escapeHtml(row4.value)}" placeholder="${escapeHtml(row4.byDefault)}" maxlength="${MAX_LENGTH}" aria-label="${escapeHtml(t("settingsExtra.menuNames.nameOf", { name: row4.byDefault }))}"></span></div>`;
   }
@@ -34977,7 +36524,7 @@
       settingsExtraLegacy.applyLabel();
     }
   }
-  async function save15() {
+  async function save17() {
     const box5 = document.getElementById("cfgcuerpo");
     if (!box5) return;
     const names = {}, read4 = { contacts: null };
@@ -35003,11 +36550,11 @@
     const help = settingsExtraLegacy.helpButton(t("settingsExtra.menuNames.title"), t("settingsExtra.menuNames.help"));
     box5.innerHTML = `<div class="card cfgpanel txmenu"><h2>${t("settingsExtra.menuNames.title")} ${help}</h2>
     <div class="txmtab" role="table"><div class="txmf txmcab" role="row"><span></span><span role="columnheader">${t("settingsExtra.menuNames.module")}</span><span role="columnheader">${t("settingsExtra.menuNames.companyName")}</span></div>
-    ${rows2.map(rowHtml9).join("")}</div>
+    ${rows2.map(rowHtml10).join("")}</div>
     <div class="acts"><button type="button" class="btn" id="txmok">${t("settingsExtra.menuNames.save")}</button></div></div>`;
     const ok = document.getElementById("txmok");
     if (ok) ok.onclick = () => {
-      void settingsExtraLegacy.withButtonLoading(ok, t("settingsExtra.menuNames.saving"), () => save15());
+      void settingsExtraLegacy.withButtonLoading(ok, t("settingsExtra.menuNames.saving"), () => save17());
     };
   }
 
@@ -35016,7 +36563,7 @@
   __export(list_exports, {
     alreadyCounted: () => alreadyCounted,
     closePopovers: () => closePopovers,
-    itemHtml: () => itemHtml,
+    itemHtml: () => itemHtml2,
     openPopover: () => openPopover,
     pageHtml: () => pageHtml5,
     paginateLists: () => paginateLists,
@@ -35025,7 +36572,7 @@
   });
 
   // src/app/components/list/item.ts
-  var itemHtml = (item) => `<button class="item" data-id="${item.id}"><span class="ic ${item.iconClass ?? ""}">${item.icon}</span>
+  var itemHtml2 = (item) => `<button class="item" data-id="${item.id}"><span class="ic ${item.iconClass ?? ""}">${item.icon}</span>
    <span class="tx"><b>${escapeHtml(item.title)}</b><span class="sm">${item.detail}</span></span></button>`;
 
   // src/app/legacy/lists-bridge.ts
@@ -35242,13 +36789,13 @@
   var ROWS = 8;
   var HEADER_BAR = 46;
   var cell3 = (width, barWidth) => `<span class="plskc" style="width:${width}px;min-width:${width}px"><i class="plsk" style="width:${barWidth}%"></i></span>`;
-  function rowHtml10(widths, row4) {
+  function rowHtml11(widths, row4) {
     return `<div class="plskr">${widths.map((width, index) => cell3(width, BAR_WIDTHS[(index + row4) % BAR_WIDTHS.length] ?? 0)).join("")}<span class="plcard"><i class="plsk" style="width:62%"></i><i class="plsk" style="width:44%"></i></span></div>`;
   }
   function tableSkeleton(screen3, withHeader) {
     const widths = screen3 === "directorio" ? columnSettings().filter((column) => column.on).map((column) => column.w) : DEFAULT_WIDTHS;
     const header4 = withHeader ? `<div class="plskh">${widths.map((width) => cell3(width, HEADER_BAR)).join("")}</div>` : "";
-    return `<div class="plsktab">${header4}${range(ROWS).map((row4) => rowHtml10(widths, row4)).join("")}</div>`;
+    return `<div class="plsktab">${header4}${range(ROWS).map((row4) => rowHtml11(widths, row4)).join("")}</div>`;
   }
 
   // src/app/components/filters/index.ts
@@ -35866,8 +37413,8 @@
     if (hold && side) [...hold.children].forEach((child) => {
       side.appendChild(compact2(child, false));
     });
-    const close4 = document.getElementById("tclose");
-    if (close4) close4.onclick = () => {
+    const close5 = document.getElementById("tclose");
+    if (close5) close5.onclick = () => {
       box5.classList.remove("abierto");
     };
     box5.classList.add("abierto");
@@ -35984,7 +37531,7 @@
   var list_bar_exports = {};
   __export(list_bar_exports, {
     PAGE_SIZES: () => PAGE_SIZES,
-    blocks: () => blocks2,
+    blocks: () => blocks3,
     chosenGroups: () => chosenGroups,
     configOf: () => configOf,
     configs: () => configs,
@@ -36080,16 +37627,16 @@
 
   // src/app/components/list-bar/configs/grid.ts
   var COLUMNS_DELAY_MS = 80;
-  var byId13 = (id) => id ? document.getElementById(id) : null;
+  var byId14 = (id) => id ? document.getElementById(id) : null;
   var gridOf2 = (tab) => document.querySelector(`#v-${tab} .dgrid`);
   function searchText3(options5) {
-    const input10 = byId13(options5.buscador);
+    const input10 = byId14(options5.buscador);
     if (input10) return input10.value || "";
     const grid = gridOf2(options5.tab);
     return grid ? listBarLegacy.tableFilters()[tableKind(grid)]?.texto ?? "" : "";
   }
   function search6(options5, value27) {
-    const input10 = byId13(options5.buscador);
+    const input10 = byId14(options5.buscador);
     if (input10) {
       input10.value = value27;
       input10.dispatchEvent(new Event("input", { bubbles: true }));
@@ -36129,9 +37676,9 @@
   var gridConfig = (options5) => Object.assign({
     rejilla: true,
     nuevo: () => document.querySelector(`#v-${options5.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) ?? document.querySelector(`#v-${options5.tab} .fab`),
-    cuerpo: () => byId13(options5.lista),
-    tabla: () => byId13(options5.lista) ?? document.querySelector(`#v-${options5.tab} .dgrid-wrap`),
-    pie: () => byId13(options5.pag),
+    cuerpo: () => byId14(options5.lista),
+    tabla: () => byId14(options5.lista) ?? document.querySelector(`#v-${options5.tab} .dgrid-wrap`),
+    pie: () => byId14(options5.pag),
     cuenta: () => null,
     conDatos: (element4) => Boolean(element4.querySelector(".dgrid, .vacio")),
     rapidos: [],
@@ -36178,7 +37725,7 @@
     return [escapeHtml(textOf2(row4.querySelector(".cirf b")) + (time ? ` · ${time}` : "")), bold(row4), escapeHtml(smallText(row4.querySelector(".tx"))), statePill5(row4)];
   }
   var plainCells = (row4) => [bold(row4), escapeHtml(smallText(row4.querySelector(".tx"))), statePill5(row4)];
-  var blocks = () => ({
+  var blocks2 = () => ({
     eventos: {
       attr: "ev",
       que: t("listBar.blocks.events"),
@@ -36228,7 +37775,7 @@
   var TOTAL = "tot";
   var COMPANIES = "emp";
   var COMPANY2 = "Empresa";
-  var byId14 = (id) => document.getElementById(id);
+  var byId15 = (id) => document.getElementById(id);
   async function indicators() {
     const count2 = (filters3) => Promise.resolve(listBarLegacy.countRows("clientes_lista", {
       q: null,
@@ -36260,18 +37807,18 @@
       filters3.pedidos = "";
     } else if (key === COMPANIES) filters3.tipo = filters3.tipo === COMPANY2 ? "" : COMPANY2;
     else filters3.pedidos = filters3.pedidos === key ? "" : key;
-    const type = byId14("pactipo");
+    const type = byId15("pactipo");
     if (type) type.value = filters3.tipo ?? "";
-    const orders2 = byId14("pacped");
+    const orders2 = byId15("pacped");
     if (orders2) orders2.value = filters3.pedidos ?? "";
     filters3.pagina = 0;
     listBarLegacy.searchCustomers();
   }
   function openColumns2() {
     const open2 = () => {
-      byId14("tools")?.querySelector(".t2abrir")?.click();
+      byId15("tools")?.querySelector(".t2abrir")?.click();
     };
-    const tools = byId14("tools");
+    const tools = byId15("tools");
     if (tools?.classList.contains("abierto") && tools.querySelector(".t2abrir")) {
       open2();
       return;
@@ -36287,17 +37834,17 @@
   }
   var customersConfig = () => ({
     que: () => t("listBar.customers.what"),
-    nuevo: () => byId14("pacnuevo"),
-    cuerpo: () => byId14("paclista"),
-    tabla: () => byId14("paclista"),
-    pie: () => byId14("pacpag"),
-    cuenta: () => byId14("paccuenta"),
+    nuevo: () => byId15("pacnuevo"),
+    cuerpo: () => byId15("paclista"),
+    tabla: () => byId15("paclista"),
+    pie: () => byId15("pacpag"),
+    cuenta: () => byId15("paccuenta"),
     conDatos: (element4) => Boolean(element4.querySelector(".dgrid, .vacio")),
     rapidos: [["pactipo", t("listBar.customers.type")], ["pacped", t("listBar.customers.orders")], ["pacmun", t("listBar.customers.town")]],
     q: () => listBarLegacy.customerFilters().q || "",
     // v2.249.0: the bar's search searches directly (before, it went through the hidden field and waited twice)
     buscarQ: (value27) => {
-      const input10 = byId14("pacq");
+      const input10 = byId15("pacq");
       if (input10) input10.value = value27;
       const filters3 = listBarLegacy.customerFilters();
       filters3.q = value27.trim();
@@ -36326,7 +37873,7 @@
   var SELECT_FILTERS = ["tipo", "prov", "muni", "esp", "est", "rep", "com"];
   var FLAG_FILTERS = ["urg", "mios", "sin"];
   var FIELD_IDS = ["ftipo", "fest", "fprov", "fmuni", "fesp", "fcom", "frep", "q"];
-  var byId15 = (id) => document.getElementById(id);
+  var byId16 = (id) => document.getElementById(id);
   function activeFilters() {
     const filters3 = listBarLegacy.accountFilters();
     return SELECT_FILTERS.filter((key) => filters3[key]).length + FLAG_FILTERS.filter((key) => filters3[key]).length + Object.values(filters3.campos ?? {}).filter(filterHasValue).length;
@@ -36334,10 +37881,10 @@
   function clearFilters2() {
     Object.assign(listBarLegacy.accountFilters(), { q: "", tipo: "", prov: "", muni: "", esp: "", est: "", urg: false, mios: false, sin: false, com: "", rep: "", campos: {} });
     FIELD_IDS.forEach((id) => {
-      const field20 = byId15(id);
+      const field20 = byId16(id);
       if (field20) field20.value = "";
     });
-    const tools = byId15("tools");
+    const tools = byId16("tools");
     if (tools?.classList.contains("abierto") && listBarLegacy.toolsContext() === "directorio") tools.classList.remove("abierto");
     listBarLegacy.loadAccountFilters();
     listBarLegacy.searchAccounts(true);
@@ -36358,19 +37905,19 @@
     const filters3 = listBarLegacy.accountFilters();
     if (isType(key)) {
       filters3.tipo = filters3.tipo === key ? "" : key;
-      const select3 = byId15("ftipo");
+      const select3 = byId16("ftipo");
       if (select3) select3.value = filters3.tipo;
     } else filters3[key] = !filters3[key];
     listBarLegacy.searchAccounts(true);
   }
   var directoryConfig = () => ({
     que: () => term("medico", { number: "p" }),
-    nuevo: () => byId15("nuevoBtn"),
+    nuevo: () => byId16("nuevoBtn"),
     textoNuevo: () => t("listBar.directory.add", { professional: term("medico") }),
-    cuerpo: () => byId15("lista"),
-    tabla: () => byId15("tabla"),
-    pie: () => byId15("dirpag"),
-    cuenta: () => byId15("cuenta"),
+    cuerpo: () => byId16("lista"),
+    tabla: () => byId16("tabla"),
+    pie: () => byId16("dirpag"),
+    cuenta: () => byId16("cuenta"),
     conDatos: (element4) => Boolean(element4.querySelector(".trow, .vacio")),
     rapidos: [["ftipo", t("listBar.directory.type")], ["fest", t("listBar.directory.state")], ["fcom", ""], ["fprov", t("listBar.directory.province")], ["fmuni", t("listBar.directory.municipality")], ["fesp", t("listBar.directory.speciality")]],
     q: () => listBarLegacy.accountFilters().q || "",
@@ -36385,12 +37932,12 @@
     activos: activeFilters,
     quitar: clearFilters2,
     filtros: () => {
-      byId15("dirtools")?.click();
+      byId16("dirtools")?.click();
     },
     columnas: () => {
       listBarLegacy.openAccountColumns();
     },
-    mapa: () => byId15("mapaBtn"),
+    mapa: () => byId16("mapaBtn"),
     mas: () => [["dircalidad", t("listBar.directory.quality")], ["cercaBtn", t("listBar.directory.nearby")]],
     kpis: indicators2,
     kpiOn: (key) => isType(key) ? listBarLegacy.accountFilters().tipo === key : Boolean(listBarLegacy.accountFilters()[key]),
@@ -36433,14 +37980,14 @@
   });
 
   // src/app/components/list-bar/configs/index.ts
-  var blocks2 = blocks();
+  var blocks3 = blocks2();
   var configs = {
     directorio: directoryConfig(),
     pacientes: customersConfig(),
     ventas: salesConfigs(),
     facturacion: billingConfigs(),
     productos: productsConfigs(),
-    ...Object.fromEntries(Object.entries(blocks2).map(([tab, block4]) => [tab, blockConfig(tab, block4)]))
+    ...Object.fromEntries(Object.entries(blocks3).map(([tab, block4]) => [tab, blockConfig(tab, block4)]))
   };
   function configOf(tab) {
     const config = configs[tab];
@@ -36532,7 +38079,7 @@
     band3.classList.toggle("hide", groups3.length < 2);
   }
   function convertBlocks(tab) {
-    const block4 = blocks2[tab], section2 = document.getElementById(`v-${tab}`), box5 = section2?.querySelector("#cfgcuerpo");
+    const block4 = blocks3[tab], section2 = document.getElementById(`v-${tab}`), box5 = section2?.querySelector("#cfgcuerpo");
     if (!block4 || !section2 || !box5) return;
     const items = box5.querySelectorAll(`.lista > .item[data-${block4.attr}]`);
     if (!items.length && (box5.querySelector(`.dgrid.blq-${tab}`) || !box5.querySelector(".cirpag, .evpag"))) return;
@@ -36576,10 +38123,10 @@
   function countUp3(box5) {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     box5.querySelectorAll("b[data-pln]").forEach((figure2) => {
-      const target = Number(figure2.dataset.pln), start2 = performance.now();
+      const target = Number(figure2.dataset.pln), start4 = performance.now();
       if (!target) return;
       const step = () => {
-        const progress = Math.min(1, (performance.now() - start2) / COUNT_UP_MS);
+        const progress = Math.min(1, (performance.now() - start4) / COUNT_UP_MS);
         figure2.textContent = formatNumber(Math.round(target * (1 - Math.pow(1 - progress, 3))));
         if (progress < 1) requestAnimationFrame(step);
       };
@@ -36819,25 +38366,25 @@
     }
   }
   function syncBody(tab, config) {
-    const body2 = config.cuerpo();
-    if (!body2) return;
-    if (body2.querySelector(":scope > .cargador")) {
-      const last = lastContent.get(body2);
+    const body3 = config.cuerpo();
+    if (!body3) return;
+    if (body3.querySelector(":scope > .cargador")) {
+      const last = lastContent.get(body3);
       if (last) {
-        body2.innerHTML = last;
-        body2.classList.add("platenua");
+        body3.innerHTML = last;
+        body3.classList.add("platenua");
         return;
       }
       if (tab !== "directorio") {
-        body2.innerHTML = tableSkeleton(tab, true);
+        body3.innerHTML = tableSkeleton(tab, true);
         return;
       }
-      body2.innerHTML = tableSkeleton(tab, false);
+      body3.innerHTML = tableSkeleton(tab, false);
       const head = document.getElementById("thead");
       if (head && !head.children.length) head.innerHTML = /<div class="plskh">[\s\S]*?<\/div>/.exec(tableSkeleton(tab, true))?.[0] ?? "";
-    } else if (config.conDatos(body2)) {
-      body2.classList.remove("platenua");
-      lastContent.set(body2, body2.innerHTML);
+    } else if (config.conDatos(body3)) {
+      body3.classList.remove("platenua");
+      lastContent.set(body3, body3.innerHTML);
     }
   }
   function skeletonPanels(section2, tab, config, bar2) {
@@ -36913,7 +38460,7 @@
     });
   }
   function blockChip(tab) {
-    const block4 = blocks2[tab];
+    const block4 = blocks3[tab];
     if (!block4) return;
     const chip2 = document.querySelector(`#v-${tab} > .pltool [data-plr="#plg-${tab}"]`), select3 = document.getElementById(`plg-${tab}`);
     if (!chip2 || !select3) return;
@@ -36940,7 +38487,7 @@
     if (label && label.textContent !== text5) label.textContent = text5;
   }
   function enableChip(chip2, tab) {
-    if (chip2.classList.contains("plnada") && !(blocks2[tab] && chip2.dataset.plr === `#plg-${tab}`)) chip2.classList.remove("plnada");
+    if (chip2.classList.contains("plnada") && !(blocks3[tab] && chip2.dataset.plr === `#plg-${tab}`)) chip2.classList.remove("plnada");
   }
   function emptyChip(chip2, tab) {
     const select3 = selectOf(chip2.dataset.plr);
@@ -36980,7 +38527,7 @@
     const section2 = document.getElementById(`v-${tab}`);
     const salesKey = tab === "ventas" ? sections.ventas?.() : null;
     if (section2 && salesKey) moveForeignFilters(section2, salesKey);
-    if (blocks2[tab] && configOf(tab)) convertBlocks(tab);
+    if (blocks3[tab] && configOf(tab)) convertBlocks(tab);
     if (!section2) return;
     const config = configOf(tab);
     if (!config) {
@@ -37238,7 +38785,7 @@
   }
   function startBlocks() {
     listenToBlocks();
-    Object.keys(blocks2).forEach(observe2);
+    Object.keys(blocks3).forEach(observe2);
     Object.keys(configs).forEach(watch);
   }
 
@@ -37371,11 +38918,11 @@
     ${Object.keys(settingsMoreLegacy.termDefaults()).map(termRow).join("")}</div>`;
   }
   function brandPreview() {
-    const preview2 = document.getElementById("mkprev2");
-    if (!preview2) return;
+    const preview3 = document.getElementById("mkprev2");
+    if (!preview3) return;
     const name = orFallback(document.getElementById("mknom")?.value, settingsMoreLegacy.appName());
     const logo = orFallback(document.getElementById("mklogo")?.src, "logo-app.png");
-    preview2.innerHTML = `<div class="mkcab"><img src="${escapeHtml(logo)}" alt=""><span class="mkbus">${t("settingsMore.brand.search")}</span><span class="mkav">${escapeHtml(initialsOf(settingsMoreLegacy.profileName()))}</span></div>
+    preview3.innerHTML = `<div class="mkcab"><img src="${escapeHtml(logo)}" alt=""><span class="mkbus">${t("settingsMore.brand.search")}</span><span class="mkav">${escapeHtml(initialsOf(settingsMoreLegacy.profileName()))}</span></div>
       <div class="mklogin"><img src="${escapeHtml(logo)}" alt=""><b>${escapeHtml(name)}</b><span>${t("settingsMore.brand.loginHint")}</span><i></i><i></i><em>${t("settingsMore.brand.enter")}</em></div>`;
   }
 
@@ -37461,7 +39008,7 @@
     settingsMoreLegacy.setBrand({ nombre: brand2.nombre, logo: brand2.logo });
     notices.toast(t("settingsMore.brand.saved"));
   }
-  async function save16(state2) {
+  async function save18(state2) {
     const select3 = document.getElementById("mketq");
     const label = select3?.value === OTHER ? orFallback(input4("mketqo")?.value.trim(), term("medico", { number: "p", capital: "C" })) : select3?.value ?? "";
     await saveBrand(state2);
@@ -37493,7 +39040,7 @@
     };
     const ok = document.getElementById("mkok");
     if (ok) ok.onclick = () => {
-      void save16(state2);
+      void save18(state2);
     };
   }
   function bindPreview2() {
@@ -37674,30 +39221,30 @@
     void settingsMoreLegacy.reloadCatalogs();
   }
   function bindValues(view, onData) {
-    const { body: body2, classifier } = view;
-    body2.querySelectorAll("[data-vtog]").forEach((button2) => {
+    const { body: body3, classifier } = view;
+    body3.querySelectorAll("[data-vtog]").forEach((button2) => {
       button2.onclick = async () => {
         const [id, active] = (button2.dataset.vtog ?? "").split("|");
         await legacyDb().rpc("guardar_valor", { p: { id, activo: active === "1" } });
         void view.refresh();
       };
     });
-    body2.querySelectorAll("[data-vren]").forEach((button2) => {
+    body3.querySelectorAll("[data-vren]").forEach((button2) => {
       button2.onclick = () => {
         void rename(view, button2);
       };
     });
-    body2.querySelectorAll("[data-vdest]").forEach((select3) => {
+    body3.querySelectorAll("[data-vdest]").forEach((select3) => {
       select3.onchange = () => {
         void changeDestination(select3);
       };
     });
-    body2.querySelectorAll("[data-vdel]").forEach((button2) => {
+    body3.querySelectorAll("[data-vdel]").forEach((button2) => {
       button2.onclick = () => {
         void removeValue(view, button2.dataset.vdel ?? "");
       };
     });
-    body2.querySelectorAll("[data-vdato]").forEach((button2) => {
+    body3.querySelectorAll("[data-vdato]").forEach((button2) => {
       button2.onclick = () => {
         const value27 = (classifier.valores ?? []).find((item) => item.id === button2.dataset.vdato);
         if (value27) onData(value27);
@@ -37705,9 +39252,9 @@
     });
   }
   function bindClassifier(classifier, repaint5, onData) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    const view = { classifier, body: body2, refresh: async () => {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    const view = { classifier, body: body3, refresh: async () => {
       await reloadClassifier(classifier);
       repaint5();
       void settingsMoreLegacy.reloadCatalogs();
@@ -37746,7 +39293,7 @@
     field9("dtcfg")?.classList.toggle("hide", !type);
     field9("dtlw")?.classList.toggle("hide", type !== LIST3);
   }
-  async function save17(value27, onSave) {
+  async function save19(value27, onSave) {
     const type = valueOf10("dtt"), options5 = valueOf10("dtl").split("\n").map((line3) => line3.trim()).filter(Boolean);
     if (type === LIST3 && !options5.length) {
       notices.toast(t("settingsMore.valueData.writeOne"), true);
@@ -37763,15 +39310,15 @@
     onSave();
   }
   function editValueData(value27, onSave) {
-    const body2 = field9("dlg2body");
-    if (!body2) return;
-    body2.innerHTML = editorHtml7(value27);
+    const body3 = field9("dlg2body");
+    if (!body3) return;
+    body3.innerHTML = editorHtml7(value27);
     const type = field9("dtt");
     if (type) type.onchange = showParts2;
     showParts2();
     const ok = field9("dtok");
     if (ok) ok.onclick = () => {
-      void save17(value27, onSave);
+      void save19(value27, onSave);
     };
     dialog6()?.showModal();
   }
@@ -37780,11 +39327,11 @@
   function openClassifier(id) {
     const classifier = settingsMoreLegacy.classifiers().find((item) => item.id === id);
     if (!classifier) return;
-    const paint20 = () => {
-      const body2 = document.getElementById("dbody");
-      if (!body2) return;
-      body2.innerHTML = classifierHtml(classifier, rightsOf(classifier));
-      bindClassifier(classifier, paint20, (value27) => {
+    const paint22 = () => {
+      const body3 = document.getElementById("dbody");
+      if (!body3) return;
+      body3.innerHTML = classifierHtml(classifier, rightsOf(classifier));
+      bindClassifier(classifier, paint22, (value27) => {
         editValueData(value27, () => {
           void reloadClassifier(classifier).then(() => {
             void settingsMoreLegacy.reloadCatalogs();
@@ -37793,7 +39340,7 @@
         });
       });
     };
-    paint20();
+    paint22();
     const box5 = document.getElementById("dlg");
     if (box5 && !box5.open) box5.showModal();
   }
@@ -37808,7 +39355,7 @@
   function roleHint(value27) {
     return settingsMoreLegacy.stateRoles().find((role) => role[0] === value27.papel)?.[2] ?? t("settingsMore.states.noRoleHint");
   }
-  function rowHtml11(value27) {
+  function rowHtml12(value27) {
     const options5 = settingsMoreLegacy.stateRoles().map(([key, label]) => `<option value="${key}" ${value27.papel === key ? "selected" : ""}>${label}</option>`).join("");
     const title2 = value27.papel === INITIAL ? `title="${t("settingsMore.states.initialTitle")}"` : "";
     return `<div class="ajfila estfila" data-estid="${value27.id}"><div><b>${escapeHtml(value27.valor)}</b>
@@ -37818,7 +39365,7 @@
   function pageHtml7(states) {
     return `<div class="card estw">
       <p class="sm">${t("settingsMore.states.intro", { aVisit: escapeHtml(term("visita", { article: "una" })) })}</p>
-      ${states.length ? states.map(rowHtml11).join("") : `<p class="vacio">${t("settingsMore.states.none")}</p>`}</div>`;
+      ${states.length ? states.map(rowHtml12).join("") : `<p class="vacio">${t("settingsMore.states.none")}</p>`}</div>`;
   }
   async function readStates() {
     const { data: classifier } = await legacyDb().from("clasificadores").select("id").eq("papel", "estado_comercial").limit(1);
@@ -37903,7 +39450,7 @@
     <p class="sm">${t("settingsMore.portfolio.sharedHint", words8())}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="rcok">${t("common.save")}</button></div>`;
   }
-  async function save18(box5) {
+  async function save20(box5) {
     const exclusive = Boolean(document.getElementById("rcexcl")?.checked);
     const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "cartera", p_valor: { exclusiva: exclusive } });
     if (error || result?.ok === false) {
@@ -37917,13 +39464,13 @@
   async function editPortfolioRules() {
     await cycleLegacy.loadSettings();
     const rules = cycleLegacy.setting("cartera");
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml8(rules?.exclusiva !== false);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml8(rules?.exclusiva !== false);
     box5.showModal();
     const ok = document.getElementById("rcok");
     if (ok) ok.onclick = () => {
-      void save18(box5);
+      void save20(box5);
     };
   }
 
@@ -37935,7 +39482,7 @@
         <div class="chips">${cardBaseLegacy.states().map((state2) => `<button type="button" class="chip ${marked.has(state2) ? "on" : ""}" data-vene="${escapeHtml(state2)}" aria-pressed="${String(marked.has(state2))}">${escapeHtml(state2)}</button>`).join("")}</div>
         <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>${t("common.cancel")}</button><button type="button" class="btn" data-venok>${t("common.save")}</button></div></div>`;
   }
-  async function save19(value27, item, box5, button2) {
+  async function save21(value27, item, box5, button2) {
     const chosen5 = [...box5.querySelectorAll('[data-vene][aria-pressed="true"]')].map((chip2) => chip2.dataset.vene ?? ""), all2 = cardBaseLegacy.states().length;
     button2.disabled = true;
     const { data: result, error } = await legacyDb().rpc("guardar_valor", { p: { id: value27.id, en_estados: chosen5.length === all2 ? [] : chosen5 } });
@@ -37950,9 +39497,9 @@
     box5.remove();
     notices.toast(value27.en_estados ? t("settingsMore.results.savedOnly", { name: value27.valor, states: chosen5.join(", ") }) : t("settingsMore.results.savedAll", { name: value27.valor }));
   }
-  function toggleBox(body2, item, value27) {
+  function toggleBox(body3, item, value27) {
     const open2 = item.nextElementSibling?.classList.contains("venbox");
-    body2.querySelectorAll(".venbox").forEach((other) => {
+    body3.querySelectorAll(".venbox").forEach((other) => {
       other.remove();
     });
     if (open2) return;
@@ -37972,13 +39519,13 @@
     };
     const ok = box5.querySelector("[data-venok]");
     if (ok) ok.onclick = () => {
-      void save19(value27, item, box5, ok);
+      void save21(value27, item, box5, ok);
     };
   }
   function decorateResults() {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.querySelectorAll("[data-vdest]").forEach((select3) => {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.querySelectorAll("[data-vdest]").forEach((select3) => {
       const item = select3.closest(".item");
       if (!item || item.querySelector("[data-ven]")) return;
       const id = select3.dataset.vdest;
@@ -37987,7 +39534,7 @@
       select3.insertAdjacentHTML("afterend", `<button type="button" class="btn sec" data-ven="${id ?? ""}" title="${t("settingsMore.results.buttonTitle")}">${escapeHtml(statesText(value27.en_estados))}</button>`);
       const button2 = item.querySelector("[data-ven]");
       if (button2) button2.onclick = () => {
-        toggleBox(body2, item, value27);
+        toggleBox(body3, item, value27);
       };
     });
   }
@@ -38212,7 +39759,7 @@
     return `<label class="opt mtpor"><input type="checkbox" data-mpp ${allowed2 ? "checked" : ""}> ${t("settingsMore.material.portal")}</label>
       <label class="mtcampo mtmax"><span class="sm">${t("settingsMore.material.max")}</span><input type="number" step="1" data-mpx value="${allowed2 ? allowed2.max : DEFAULT_MAX}" ${allowed2 ? "" : "disabled"}></label>`;
   }
-  function rowHtml12(material, allowed2, withPortal) {
+  function rowHtml13(material, allowed2, withPortal) {
     const counted2 = material.dato_tipo === NUMBER3;
     return `<div class="matfila2 ${material.activo ? "" : "off"}" data-mv="${material.id}" data-mvv="${escapeHtml(material.valor)}" data-mdt0="${counted2 ? NUMBER3 : ""}">
       <b class="mtnom">${escapeHtml(material.valor)}</b>
@@ -38264,7 +39811,7 @@
     }
     return true;
   }
-  async function save20(context, button2) {
+  async function save22(context, button2) {
     const rows2 = [...context.list.querySelectorAll(".matfila2")];
     const material = readLimits(rows2);
     if (!material) {
@@ -38310,7 +39857,7 @@
     });
     const button2 = document.getElementById("matguardar");
     if (button2) button2.onclick = () => {
-      void save20(context, button2);
+      void save22(context, button2);
     };
   }
   async function readData(classifierId, withPortal) {
@@ -38331,7 +39878,7 @@
     const list = document.querySelector("#cfgcuerpo .matlista");
     if (!list) return;
     list.classList.add("matlista2");
-    list.innerHTML = values2.map((value27) => rowHtml12(value27, allowed2.find((item) => item.valor === value27.valor), withPortal)).join("") || `<div class="sm">${t("settingsMore.material.none")}</div>`;
+    list.innerHTML = values2.map((value27) => rowHtml13(value27, allowed2.find((item) => item.valor === value27.valor), withPortal)).join("") || `<div class="sm">${t("settingsMore.material.none")}</div>`;
     if (values2.length) list.insertAdjacentHTML("afterend", `<div class="acts mtacts" style="justify-content:space-between;align-items:center">
       <span class="sm">${withPortal && !portal2?.material ? t("settingsMore.material.portalDefault") : ""}</span>
       <button class="btn" id="matguardar">${t("settingsMore.material.save")}</button></div>`);
@@ -38392,7 +39939,7 @@
   var iconClass = (action) => action === REMOVED ? "w" : action === ADDED ? "o" : "";
   var iconText = (action) => action === ADDED ? "+" : action === REMOVED ? "−" : "✎";
   var when = (date) => new Date(date).toLocaleString("es", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  function rowHtml13(entry2) {
+  function rowHtml14(entry2) {
     return `<div class="item" style="cursor:default">
       <span class="ic ${iconClass(entry2.accion)}">${iconText(entry2.accion)}</span>
       <span class="tx"><b>${escapeHtml(entry2.accion)} · ${escapeHtml(entityName2(entry2.entidad))}</b>
@@ -38431,7 +39978,7 @@
     const until2 = period.hasta;
     const entries = (data ?? []).filter((entry2) => !until2 || String(entry2.creado_en).slice(0, 10) <= until2);
     count2.textContent = formatNumber(entries.length) + (entries.length === LIMIT6 ? "+" : "");
-    list.innerHTML = entries.map(rowHtml13).join("") || `<div class="vacio">${t("settings.audit.empty")}</div>`;
+    list.innerHTML = entries.map(rowHtml14).join("") || `<div class="vacio">${t("settings.audit.empty")}</div>`;
     bindUndo(list, period);
   }
   async function paintAudit() {
@@ -38456,7 +40003,7 @@
   // src/app/screens/settings/audit/billing-log.ts
   var LIMIT7 = 200;
   var when2 = (date) => new Date(date).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
-  var rowHtml14 = (event) => `<div class="dr" style="cursor:default"><span>${when2(event.fecha)}</span><span><b>${escapeHtml(event.tipo)}</b></span>
+  var rowHtml15 = (event) => `<div class="dr" style="cursor:default"><span>${when2(event.fecha)}</span><span><b>${escapeHtml(event.tipo)}</b></span>
       <span>${escapeHtml(orFallback(event.numero, "—"))}</span><span>${escapeHtml(orFallback(event.usuario, "—"))}</span><span class="sm corta">${escapeHtml(settingsLegacy.billingEventDetail(event.detalle))}</span></div>`;
   async function paintBillingLog() {
     settingsLegacy.showLoading(document.getElementById("fcuerpo"), t("settings.billingLog.loading"));
@@ -38466,7 +40013,7 @@
     const head = [t("settings.billingLog.date"), t("settings.billingLog.event"), t("settings.billingLog.invoice"), t("settings.billingLog.person"), t("settings.billingLog.detail")];
     box5.innerHTML = `<div class="panel"><div class="cuenta">${t("settings.billingLog.intro")}</div>
     <div class="dgrid-wrap"><div class="dgrid evs"><div class="dh">${head.map((title2) => `<span>${title2}</span>`).join("")}</div>
-    ${(data ?? []).map(rowHtml14).join("") || `<div class="vacio">${t("settings.billingLog.empty")}</div>`}
+    ${(data ?? []).map(rowHtml15).join("") || `<div class="vacio">${t("settings.billingLog.empty")}</div>`}
     </div></div></div>`;
   }
 
@@ -38533,20 +40080,20 @@
     onCreated();
     settingsLegacy.reloadCatalogs();
   }
-  function paint9(values2, onCreated) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = formHtml7(values2);
-    const read4 = () => [...body2.querySelectorAll("#ncv [data-ncv]")].map((input10) => input10.value);
+  function paint11(values2, onCreated) {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = formHtml7(values2);
+    const read4 = () => [...body3.querySelectorAll("#ncv [data-ncv]")].map((input10) => input10.value);
     const more2 = document.getElementById("ncmas");
     if (more2) more2.onclick = () => {
-      paint9([...read4(), ""], onCreated);
+      paint11([...read4(), ""], onCreated);
     };
-    body2.querySelectorAll("[data-ncx]").forEach((button2) => {
+    body3.querySelectorAll("[data-ncx]").forEach((button2) => {
       button2.onclick = () => {
         const list = read4();
         list.splice(Number(button2.dataset.ncx), 1);
-        paint9(list, onCreated);
+        paint11(list, onCreated);
       };
     });
     const ok = document.getElementById("ncok2");
@@ -38555,7 +40102,7 @@
     };
   }
   function newClassifier(onCreated) {
-    paint9([""], onCreated);
+    paint11([""], onCreated);
     document.getElementById("dlg")?.showModal();
   }
 
@@ -38578,7 +40125,7 @@
               ${active > SHOWN_VALUES ? `<span class="sm">+${active - SHOWN_VALUES}</span>` : ""}</span>
           </button>`;
   }
-  function groupHtml(group, list, canEdit2) {
+  function groupHtml2(group, list, canEdit2) {
     const closed = folded2.has(group);
     return `
       <div class="grupo">
@@ -38608,7 +40155,7 @@
     <div class="dayhead2"><p class="sm">${t("settings.classifiers.intro", { visits: term("visita", { number: "p" }) })}
       ${canEdit2 ? "" : `<b>${t("settings.classifiers.readOnly")}</b>`}</p>
       ${full ? `<button class="btn" id="cnuevo">${t("settings.classifiers.newClassifier")}</button>` : ""}</div>
-    ${[...byGroup(settingsLegacy.classifiers())].map(([group, list]) => groupHtml(group, list, canEdit2)).join("")}`;
+    ${[...byGroup(settingsLegacy.classifiers())].map(([group, list]) => groupHtml2(group, list, canEdit2)).join("")}`;
     box5.querySelectorAll("[data-grupo]").forEach((button2) => {
       button2.onclick = () => {
         const group = button2.dataset.grupo ?? "";
@@ -38788,15 +40335,15 @@
     if (!plan3 || !leaflet || !box5 || box5.dataset.on) return;
     box5.dataset.on = "1";
     box5.style.height = "min(55vh,460px)";
-    const withStart = plan3.salida.lat !== null && plan3.salida.lat !== void 0, start2 = [plan3.salida.lat, plan3.salida.lon];
-    const map2 = leaflet.map("planmapa").setView(withStart ? start2 : plan3.paradas[0]?.xy ?? [0, 0], ZOOM);
+    const withStart = plan3.salida.lat !== null && plan3.salida.lat !== void 0, start4 = [plan3.salida.lat, plan3.salida.lon];
+    const map2 = leaflet.map("planmapa").setView(withStart ? start4 : plan3.paradas[0]?.xy ?? [0, 0], ZOOM);
     leaflet.tileLayer(TILES2, { maxZoom: MAX_ZOOM2, attribution: "© OpenStreetMap" }).addTo(map2);
     const pin = (point, text5, colour) => leaflet.marker(point, {
       icon: leaflet.divIcon({ className: "mpin", html: `<span style="background:${colour}">${text5}</span>`, iconSize: [PIN_SIZE, PIN_SIZE], iconAnchor: [PIN_SIZE / 2, PIN_SIZE / 2] })
     }).addTo(map2);
-    if (withStart) pin(start2, "S", START_COLOUR).bindPopup(t("routesMore.planView.start", { place: escapeHtml(plan3.salida.nombre ?? "") }));
+    if (withStart) pin(start4, "S", START_COLOUR).bindPopup(t("routesMore.planView.start", { place: escapeHtml(plan3.salida.nombre ?? "") }));
     plan3.paradas.forEach((stop, index) => pin(stop.xy, String(index + 1), STOP_COLOUR).bindPopup(`<b>${index + 1}. ${escapeHtml(stop.centro)}</b><br>${formatMinutes(stop.llegada)}–${formatMinutes(stop.fin)}<br>${stop.medicos.map((member) => escapeHtml(member.nombre)).join("<br>")}`));
-    const line3 = withStart ? [start2, ...plan3.paradas.map((stop) => stop.xy), start2] : plan3.paradas.map((stop) => stop.xy);
+    const line3 = withStart ? [start4, ...plan3.paradas.map((stop) => stop.xy), start4] : plan3.paradas.map((stop) => stop.xy);
     leaflet.polyline(line3, { color: STOP_COLOUR, weight: 3, dashArray: "6 6" }).addTo(map2);
     map2.fitBounds(line3, { padding: [PADDING2, PADDING2] });
     setTimeout(() => {
@@ -38810,13 +40357,13 @@
   var box3 = () => document.getElementById("rplan");
   var shownPlan = () => box3() ? routes2Legacy.plan() : null;
   function planAgendaButtons() {
-    const save44 = document.getElementById("planag"), start2 = document.getElementById("planempezar");
-    if (save44) save44.onclick = async () => {
+    const save46 = document.getElementById("planag"), start4 = document.getElementById("planempezar");
+    if (save46) save46.onclick = async () => {
       const plan3 = routes2Legacy.plan();
       if (!plan3) return;
-      save44.disabled = true;
+      save46.disabled = true;
       const result = await planToAgenda(plan3);
-      save44.disabled = false;
+      save46.disabled = false;
       if (!result) return;
       notices.toast(t("routesMore.planView.saved", { count: result.n, date: formatShortDate(result.fecha) }));
       agendaState.setMode("dia");
@@ -38824,13 +40371,13 @@
       routes2Legacy.setPlan(null);
       goTo("agenda");
     };
-    if (start2) {
-      start2.textContent = t("routesMore.planView.startButton");
-      start2.onclick = () => {
+    if (start4) {
+      start4.textContent = t("routesMore.planView.startButton");
+      start4.onclick = () => {
         void startRoute();
       };
     }
-    if (save44) save44.textContent = t("routesMore.planView.saveButton");
+    if (save46) save46.textContent = t("routesMore.planView.saveButton");
   }
   var leftOutRow = (item, index) => `<div class="item ${index >= SHOWN_LEFT_OUT ? "extra" : ""}" style="cursor:default">
         <span class="ic w">!</span><span class="tx"><b>${escapeHtml(item.m.nombre)}</b>
@@ -38855,10 +40402,10 @@
     if (!routes2Legacy.plan() || !place5) return;
     const leftOut = place5.querySelector(".planfuera"), map2 = document.getElementById("planmapa");
     if (leftOut && map2) map2.insertAdjacentElement("afterend", leftOut);
-    const close4 = document.getElementById("plancerrar");
-    if (close4) {
-      close4.textContent = t("routesMore.planView.discard");
-      close4.title = t("routesMore.planView.discardTitle");
+    const close5 = document.getElementById("plancerrar");
+    if (close5) {
+      close5.textContent = t("routesMore.planView.discard");
+      close5.title = t("routesMore.planView.discardTitle");
     }
     const show3 = document.getElementById("planver");
     if (show3) show3.onclick = () => {
@@ -38967,9 +40514,9 @@
     <p class="sm">${t("routesMore.frequency.hint", { visit: term("visita") })}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="frok">${t("common.save")}</button></div>`;
   }
-  async function save21(body2) {
+  async function save23(body3) {
     const value27 = {};
-    body2.querySelectorAll("[data-frec]").forEach((input10) => {
+    body3.querySelectorAll("[data-frec]").forEach((input10) => {
       value27[input10.dataset.frec ?? ""] = Math.max(0, Number(input10.value) || 0);
     });
     const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "frecuencia", p_valor: value27 });
@@ -38989,13 +40536,13 @@
       ...Object.fromEntries(commercialStates.all().map((state2) => [state2.valor, SUGGESTED.get(state2.papel) ?? 0])),
       ...cycleLegacy.setting("frecuencia")
     };
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml8(days);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml8(days);
     box5.showModal();
     const ok = document.getElementById("frok");
     if (ok) ok.onclick = () => {
-      void save21(body2);
+      void save23(body3);
     };
   }
 
@@ -39253,18 +40800,18 @@
     home.innerHTML = routes2Legacy.iconOrEmpty("house");
     new library.Marker({ element: home }).setLngLat([plan3.casa[1], plan3.casa[0]]).addTo(map2);
   }
-  function ownMarker(library, map2, start2) {
+  function ownMarker(library, map2, start4) {
     const element4 = document.createElement("div");
     element4.className = "rmyo";
     element4.innerHTML = `<span class="haz"><svg viewBox="0 0 84 84"><path d="M42 42 L27 2.9 A42 42 0 0 1 57 2.9 Z" fill="#3F82C0" fill-opacity=".38"/></svg></span><span class="pun">${lineIcon(CAR_ICON)}</span>`;
-    return { element: element4, marker: new library.Marker({ element: element4 }).setLngLat([start2[1], start2[0]]).addTo(map2) };
+    return { element: element4, marker: new library.Marker({ element: element4 }).setLngLat([start4[1], start4[0]]).addTo(map2) };
   }
   function stopAnimation() {
     const frame = routes2Legacy.animation();
     if (frame) cancelAnimationFrame(frame);
     routes2Legacy.setAnimation(null);
   }
-  function bindPlayer(parts, bounds, move3) {
+  function bindPlayer(parts, bounds, move4) {
     const button2 = document.getElementById("rmplay"), slider = parts.slider, label = () => button2?.querySelector("span") ?? null;
     const stop = () => {
       stopAnimation();
@@ -39301,7 +40848,7 @@
         const travelling = parts.travel.some((segment) => minutes2 >= segment.a && minutes2 <= segment.b);
         minutes2 = Math.min(parts.scale.hi, minutes2 + elapsed * (travelling ? TRAVEL_SPEED : VISIT_SPEED));
         slider.value = String(minutes2);
-        move3(minutes2);
+        move4(minutes2);
         if (minutes2 < parts.scale.hi) routes2Legacy.setAnimation(requestAnimationFrame(step));
         else stop();
       };
@@ -39338,20 +40885,20 @@
     homeMarker(library, map2, plan3);
     const markers = stopMarkers(library, map2, plan3), first2 = points[0] ?? [0, 0], own = ownMarker(library, map2, first2), scale2 = trackScale(plan3);
     const parts = { map: map2, plan: plan3, travel, lines: lines4, markers, own: own.element, ownMarker: own.marker, slider, scale: scale2, start: first2, camera: { on: false, centre: null, last: 0 }, texts: texts2 };
-    const move3 = (minutes2) => {
+    const move4 = (minutes2) => {
       const point = dayPosition(parts, minutes2);
       if (point) follow(parts, point);
     };
     map2.on("load", () => {
       styleDayMap(map2, { type: "Feature", geometry: { type: "LineString", coordinates: lines4.flatMap((line3) => line3.l) } }, Boolean(legs));
-      move3();
+      move4();
     });
     paintTrack(plan3, scale2, slider);
     slider.oninput = () => {
-      move3();
+      move4();
     };
-    bindPlayer(parts, bounds, move3);
-    move3();
+    bindPlayer(parts, bounds, move4);
+    move4();
   }
 
   // src/app/screens/routes/today/index.ts
@@ -39429,7 +40976,7 @@
     const value27 = data[key];
     return Array.isArray(value27) ? value27 : [];
   };
-  function blocks3(data) {
+  function blocks4(data) {
     const day = t(DAY_KEYS.get(data.dia ?? "") ?? "routesMore.suggestions.today");
     const all2 = [
       ["hoy", "📅", t("routesMore.suggestions.attend", { day })],
@@ -39440,7 +40987,7 @@
     return all2.filter(([key]) => listOf2(data, key).length);
   }
   function suggestedHtml(data) {
-    const found = blocks3(data);
+    const found = blocks4(data);
     if (!found.length) return "";
     return `<h2>${t("routesMore.suggestions.title")}</h2>
     <p class="sm">${t("routesMore.suggestions.hint")}</p>
@@ -39552,15 +41099,15 @@
       <div class="dgrid-wrap"><table class="tabla avrol"><thead><tr><th>${t("orders.alerts.role")}</th>${ALERTS.map(([, label]) => `<th>${t(label)}</th>`).join("")}</tr></thead>
         <tbody>${roles.map((role) => `<tr><td>${escapeHtml(role)}</td>${ALERTS.map(([key]) => `<td style="text-align:center"><input type="checkbox" data-avr="${escapeHtml(role)}|${key}" ${(fixed2[role] ?? []).includes(key) ? "checked" : ""} aria-label="${t("orders.alerts.mandatoryLabel", { role: escapeHtml(role) })}"></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   }
-  async function save22(body2, admin) {
+  async function save24(body3, admin) {
     const own = {};
-    body2.querySelectorAll("[data-avp]").forEach((box5) => {
+    body3.querySelectorAll("[data-avp]").forEach((box5) => {
       if (!box5.disabled) own[box5.dataset.avp ?? ""] = box5.checked;
     });
     if (!await orderMailLegacy.saveAlertPreferences(own)) return;
     if (admin) {
       const mandatory = {};
-      body2.querySelectorAll("[data-avr]:checked").forEach((box5) => {
+      body3.querySelectorAll("[data-avr]:checked").forEach((box5) => {
         const [role = "", key = ""] = (box5.dataset.avr ?? "").split("|");
         (mandatory[role] ?? (mandatory[role] = [])).push(key);
       });
@@ -39578,9 +41125,9 @@
     const preferences = orderMailLegacy.alertPreferences(), admin = cardSectionsLegacy.can("administrar");
     const { data: settings2 } = admin ? await legacyDb().from("ajustes").select("valor").eq("clave", "avisos_pedidos").maybeSingle() : { data: null };
     const fixed2 = settings2?.valor?.obligatorios ?? {}, roles = admin ? orderMailLegacy.roleNames().filter((role) => !cardSectionsLegacy.roleCan(role, PORTAL_ROLE_CAPABILITY)) : [];
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = `<div class="fh"><div><h2>${t("orders.alerts.title")}</h2><div class="sm">${t("orders.alerts.subtitle")}</div></div>
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${t("orders.alerts.title")}</h2><div class="sm">${t("orders.alerts.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     ${ownHtml(mandatory, preferences)}
     ${admin ? rolesHtml(fixed2, roles) : ""}
@@ -39588,7 +41135,7 @@
     box5.showModal();
     const ok = document.getElementById("avpok");
     if (ok) ok.onclick = () => {
-      void save22(body2, admin);
+      void save24(body3, admin);
     };
   }
 
@@ -39702,9 +41249,9 @@
     repaintBlock(choice2);
   }
   function newDistributor(choice2) {
-    const body2 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
-    if (!body2 || !box5) return;
-    body2.innerHTML = `<div class="fh"><div><h2>${t("ordersMore.distributor.newTitle")}</h2><div class="sm">${t("ordersMore.distributor.newSubtitle")}</div></div>
+    const body3 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
+    if (!body3 || !box5) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${t("ordersMore.distributor.newTitle")}</h2><div class="sm">${t("ordersMore.distributor.newSubtitle")}</div></div>
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
     <label for="dsn">${t("ordersMore.distributor.name")}</label><input id="dsn" placeholder="${t("ordersMore.distributor.namePlaceholder")}">
     <div class="g2"><div><label for="dse">${t("ordersMore.distributor.email")}</label><input id="dse" type="email"></div><div><label for="dst">${t("ordersMore.distributor.phone")}</label><input id="dst" inputmode="tel"></div></div>
@@ -39777,7 +41324,7 @@
     }
     return { nombre: name, email, telefono: value11("dst") || null, nota: value11("dsnota") || null };
   }
-  async function save23(existing, button2) {
+  async function save25(existing, button2) {
     const row4 = readForm();
     if (!row4) return;
     button2.disabled = true;
@@ -39793,13 +41340,13 @@
     if (stillShown2()) void paintDistributors();
   }
   function editDistributor(existing) {
-    const body2 = document.getElementById("dlg2body");
-    if (!body2) return;
-    body2.innerHTML = editorHtml9(existing ?? {}, !existing);
+    const body3 = document.getElementById("dlg2body");
+    if (!body3) return;
+    body3.innerHTML = editorHtml9(existing ?? {}, !existing);
     secondWindow()?.showModal();
     const ok = document.getElementById("dsok");
     if (ok) ok.onclick = () => {
-      void save23(existing, ok);
+      void save25(existing, ok);
     };
   }
   function transfersHtml(data) {
@@ -39812,9 +41359,9 @@
     ${list}`;
   }
   async function showTransfers(id) {
-    const distributor = all.find((item) => item.id === id), body2 = document.getElementById("dlg2body");
-    if (!body2) return;
-    body2.innerHTML = `<div class="fh"><div><h2>${t("orders.transfers.title", { name: escapeHtml(distributor?.nombre ?? "") })}</h2><div class="sm">${t("orders.transfers.subtitle")}</div></div>
+    const distributor = all.find((item) => item.id === id), body3 = document.getElementById("dlg2body");
+    if (!body3) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${t("orders.transfers.title", { name: escapeHtml(distributor?.nombre ?? "") })}</h2><div class="sm">${t("orders.transfers.subtitle")}</div></div>
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div><div id="trfcuerpo"></div>`;
     customersLegacy.showLoading(document.getElementById("trfcuerpo"), t("orders.transfers.loading"));
     secondWindow()?.showModal();
@@ -39833,14 +41380,14 @@
       };
     });
   }
-  var rowHtml15 = (item) => `<div class="ajfila disfila${item.activo ? "" : " disoff"}" data-disid="${item.id}">
+  var rowHtml16 = (item) => `<div class="ajfila disfila${item.activo ? "" : " disoff"}" data-disid="${item.id}">
       <div><b>${escapeHtml(item.nombre)}${item.activo ? "" : ` <span class="pill">${t("orders.distributors.notUsed")}</span>`}</b>
         <span class="sm">${[item.email, item.telefono].filter((text5) => Boolean(text5)).map(escapeHtml).join(" · ") || t("orders.distributors.noContact")}${item.nota ? ` · ${escapeHtml(item.nota)}` : ""}</span></div>
       <div class="ajctl"><button type="button" class="btn sec" data-distrf="${item.id}">${t("orders.distributors.transfers")}</button><button type="button" class="btn sec" data-dised="${item.id}">${t("orders.distributors.edit")}</button>
         <button type="button" class="btn sec" data-disact="${item.id}">${t(item.activo ? "orders.distributors.stopUsing" : "orders.distributors.useAgain")}</button></div></div>`;
   function pageHtml9() {
     const used = all.filter((item) => item.activo), unused = all.filter((item) => !item.activo);
-    const list = all.length ? used.map(rowHtml15).join("") + (unused.length ? `<h3 class="dissub">${t("orders.distributors.noLongerUsed")}</h3>${unused.map(rowHtml15).join("")}` : "") : `<p class="vacio" id="disvacio">${t("orders.distributors.none")}</p>`;
+    const list = all.length ? used.map(rowHtml16).join("") + (unused.length ? `<h3 class="dissub">${t("orders.distributors.noLongerUsed")}</h3>${unused.map(rowHtml16).join("")}` : "") : `<p class="vacio" id="disvacio">${t("orders.distributors.none")}</p>`;
     return `<div class="card disw">
       <div class="discab"><p class="sm">${t("orders.distributors.hint")}</p>
         <button type="button" class="btn" id="disnuevo">${t("orders.distributors.new")}</button></div>
@@ -39964,7 +41511,7 @@
     if (row4.origen === "web") return ` · <span class="pweb">${t("orders.list.webTag")}</span>`;
     return row4.origen === "portal" ? ` · <span class="pweb">${t("orders.list.portalTag")}</span>` : "";
   }
-  function rowHtml16(row4, fields) {
+  function rowHtml17(row4, fields) {
     const amounts2 = permissions.canSeeAmounts(), reference2 = orFallback(row4.factura, row4.numero ?? "");
     return `<button class="dr" data-ped="${row4.id}" style="${row4.estado === STATES6.voided ? "opacity:.55" : ""}">
       <span>${formatShortDate(row4.fecha)}${reference2 ? `<span class="sm">${escapeHtml(reference2)}</span>` : ""}</span>
@@ -39981,7 +41528,7 @@
     return `<div class="dgrid-wrap"><div class="dgrid peds2 ${amounts2 ? "" : "sinimp"}">
     <div class="dh"><span>${t("orders.list.date")}</span><span>${t("orders.list.customer")}</span><span>${term("medico", { capital: "C" })}</span><span>${t("orders.list.salesperson")}</span><span>${t("orders.list.products")}</span>
       <span class="num">${t("orders.list.unitsShort")}</span>${amounts2 ? `<span class="num">${t("orders.list.baseShort")}</span><span class="num">${t("orders.list.totalShort")}</span>` : ""}<span>${t("orders.list.state")}</span><span>${t("orders.list.operations")}</span><span>${t("orders.list.notes")}</span>${customersLegacy.fieldHeaders(fields)}</div>
-    ${rows2.map((row4) => rowHtml16(row4, fields)).join("")}
+    ${rows2.map((row4) => rowHtml17(row4, fields)).join("")}
   </div></div>`;
   }
   function paintPages(list, total2) {
@@ -40001,7 +41548,7 @@
       }
     });
   }
-  function paint10(list, data) {
+  function paint12(list, data) {
     const rows2 = data.filas ?? [], fields = ordersLegacy.fieldColumns();
     ordersLegacy.setRows(rows2);
     const totals = document.getElementById("ptotales");
@@ -40029,7 +41576,7 @@
       list.innerHTML = `<div class="vacio">${t("orders.list.couldNotLoad", { error: error ? `: ${escapeHtml(error.message)}` : "" })}</div>`;
       return;
     }
-    paint10(list, result.data);
+    paint12(list, result.data);
     if (result.cache) showCacheNotice(list, result.fecha);
   }
 
@@ -40064,7 +41611,7 @@
 
   // src/app/screens/purchases/editor-view.ts
   var disabled = (editor) => editor.editable ? "" : "disabled";
-  function headerHtml8(editor) {
+  function headerHtml9(editor) {
     const { id, purchase } = editor;
     const title2 = id ? t("purchases.editor.title", { number: escapeHtml(purchase.numero) }) : t("purchases.editor.newTitle");
     return `<div class="fh"><div><h2>${title2} ${id ? purchasePill(purchase.estado) : ""}</h2>
@@ -40123,7 +41670,7 @@
   function editorHtml10(editor) {
     const { purchase } = editor, off = disabled(editor);
     return `
-      ${headerHtml8(editor)}
+      ${headerHtml9(editor)}
       ${supplierHtml(editor)}
       <label>${t("purchases.editor.products")}</label>
       <div id="cplin">${editor.lines.map((line3, index) => lineHtml(editor, line3, index)).join("")}</div>
@@ -40189,9 +41736,9 @@
   function receivePurchase(id, detail) {
     const pending = detail.lineas.filter((line3) => line3.unidades > (line3.recibidas ?? 0));
     const stores2 = purchasesLegacy.stores(), storeId = (stores2.find((store4) => store4.tipo === "central") ?? stores2[0])?.id;
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = `
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = `
     <div class="fh"><div><h2>${t("purchases.receive.title", { number: escapeHtml(detail.compra.numero) })}</h2>
       <div class="sm">${t("purchases.receive.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -40233,7 +41780,7 @@
       const product = purchasesLegacy.products().find((item) => item.id === target.value);
       if (product && product.coste !== null && product.coste !== void 0) {
         line3.coste_unitario = product.coste;
-        paint11(editor);
+        paint13(editor);
         return;
       }
     } else if (field20 === "unidades") line3.unidades = Number(target.value);
@@ -40257,12 +41804,12 @@
     const add2 = document.getElementById("cpmas");
     if (add2) add2.onclick = () => {
       editor.lines.push(newLine());
-      paint11(editor);
+      paint13(editor);
     };
     lines4?.querySelectorAll("[data-clx]").forEach((button2) => {
       button2.onclick = () => {
         editor.lines.splice(Number(button2.dataset.clx), 1);
-        paint11(editor);
+        paint13(editor);
       };
     });
     const supplier = document.getElementById("cpprov");
@@ -40282,7 +41829,7 @@
       lineas: lines4
     };
   }
-  async function save24(editor, state2) {
+  async function save26(editor, state2) {
     if (!value12("cpprov")) {
       notices.toast(t("purchases.editor.chooseSupplier"), true);
       return;
@@ -40328,10 +41875,10 @@
       if (button2) button2.onclick = action;
     };
     on6("cpguardar", () => {
-      void save24(editor);
+      void save26(editor);
     });
     on6("cpenviar", () => {
-      void save24(editor, STATES7.sent);
+      void save26(editor, STATES7.sent);
     });
     on6("cptransito", () => {
       void markInTransit(editor.purchase);
@@ -40343,10 +41890,10 @@
       if (editor.id && editor.detail) receivePurchase(editor.id, editor.detail);
     });
   }
-  function paint11(editor) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = editorHtml10(editor);
+  function paint13(editor) {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = editorHtml10(editor);
     paintTotals(editor);
     if (editor.editable) bindLines(editor);
     bindButtons(editor);
@@ -40362,7 +41909,7 @@
       editable: purchasesLegacy.canBuy() && EDITABLE_STATES.includes(purchase.estado),
       lines: detail ? detail.lineas.map((line3) => ({ ...line3 })) : [newLine()]
     };
-    paint11(editor);
+    paint13(editor);
     document.getElementById("dlg")?.showModal();
   }
 
@@ -40380,7 +41927,7 @@
       <div class="kpi"><b>${euros3(bought)}</b><span>${t("purchases.list.boughtThisYear")}</span></div>
     </div>`;
   }
-  function rowHtml17(row4) {
+  function rowHtml18(row4) {
     const expected = row4.fecha_prevista ? formatShortDate(row4.fecha_prevista) + (row4.retrasada ? t("purchases.list.lateTag") : "") : "—";
     const received = row4.recibidas && row4.recibidas < row4.unidades ? `${formatNumber(row4.recibidas)}/` : "";
     return `<button class="dr" data-comp="${row4.id}">
@@ -40395,7 +41942,7 @@
     const head = [["", "number"], ["", "supplier"], ["", "products"], ["", "date"], ["", "expected"], ["num", "units"], ["num", "amount"], ["", "state"]];
     return `<div class="dgrid-wrap"><div class="dgrid comps">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.list.${key}`)}</span>`).join("")}</div>
-      ${rows2.map(rowHtml17).join("")}
+      ${rows2.map(rowHtml18).join("")}
     </div></div>`;
   }
   async function paintPurchases() {
@@ -40422,7 +41969,7 @@
 
   // src/app/screens/purchases/suppliers.ts
   var joined2 = (values2) => values2.filter(Boolean).join(" · ");
-  function rowHtml18(supplier) {
+  function rowHtml19(supplier) {
     return `<button class="dr" data-prov="${supplier.id ?? ""}" style="${supplier.activo ? "" : "opacity:.55"}">
       <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined2([supplier.municipio, supplier.pais]))}</span></span>
       <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined2([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
@@ -40435,7 +41982,7 @@
     const head = [["", "supplier"], ["", "taxId"], ["", "contact"], ["num", "leadTime"], ["num", "purchases"], ["", "lastPurchase"], ["", "state"]];
     return `<div class="dgrid-wrap"><div class="dgrid provs">
     <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.suppliers.${key}`)}</span>`).join("")}</div>
-    ${suppliers.map(rowHtml18).join("")}
+    ${suppliers.map(rowHtml19).join("")}
   </div></div>`;
   }
   async function paintSuppliers() {
@@ -40491,7 +42038,7 @@
     if (active) values2.activo = active.checked;
     return values2;
   }
-  async function save25(supplier) {
+  async function save27(supplier) {
     const values2 = readValues(supplier);
     if (!values2.nombre) {
       notices.toast(t("purchases.supplierEditor.writeName"), true);
@@ -40509,13 +42056,13 @@
   }
   function editSupplier(existing) {
     const supplier = existing ?? { activo: true, plazo_dias: DEFAULT_LEAD_DAYS, pais: t("purchases.supplierEditor.defaultCountry") };
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml11(supplier, purchasesLegacy.canBuy());
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml11(supplier, purchasesLegacy.canBuy());
     box5.showModal();
     const ok = document.getElementById("pvok");
     if (ok) ok.onclick = () => {
-      void save25(supplier);
+      void save27(supplier);
     };
   }
 
@@ -40653,9 +42200,9 @@
     }
     paintCalls(section2);
     paintTitle();
-    const body2 = document.getElementById("vcuerpo");
-    if (ordersLegacy.section() === SALES2 && body2 && ordersLegacy.canAttribute() && !document.getElementById("cardsinatr")) {
-      body2.insertAdjacentHTML("afterbegin", '<div class="card hide" id="cardsinatr"></div>');
+    const body3 = document.getElementById("vcuerpo");
+    if (ordersLegacy.section() === SALES2 && body3 && ordersLegacy.canAttribute() && !document.getElementById("cardsinatr")) {
+      body3.insertAdjacentHTML("afterbegin", '<div class="card hide" id="cardsinatr"></div>');
       ordersLegacy.paintUnattributed();
     }
   }
@@ -40707,7 +42254,7 @@
 
   // src/app/screens/orders/sheet/bank-transfer.ts
   var PAID_FLAG_MS = 6e4;
-  function blockHtml4(detail) {
+  function blockHtml5(detail) {
     const order = detail.pedido, sent2 = order.email_pago_en;
     const status2 = sent2 ? t("orders.bankTransfer.sentOn", { date: formatShortDate(String(sent2).slice(0, 10)) }) : t("orders.bankTransfer.notSent");
     const send5 = detail.contacto?.email ? `<button type="button" class="btn sec chico" id="pdtrfmail">${t(sent2 ? "orders.bankTransfer.sendAgain" : "orders.bankTransfer.send")}</button>` : `<span class="sm">${t("orders.bankTransfer.noEmail", { customer: escapeHtml(term("paciente", { capital: "C" })) })}</span>`;
@@ -40721,7 +42268,7 @@
     if (!dialog11?.open || document.getElementById("pdtrfb") || !confirm2 || !customersLegacy.canSell()) return;
     const order = detail.pedido;
     if (order.estado !== STATES6.draft || !isBankTransfer(order.forma_pago)) return;
-    confirm2.closest(".acts")?.insertAdjacentHTML("beforebegin", blockHtml4(detail));
+    confirm2.closest(".acts")?.insertAdjacentHTML("beforebegin", blockHtml5(detail));
     const send5 = document.getElementById("pdtrfmail");
     if (send5) send5.onclick = async () => {
       send5.disabled = true;
@@ -40753,7 +42300,7 @@
     <div id="nfcampos">${orderSheetLegacy.fieldsForm(order.clasificadores ?? {})}</div>
     <div class="acts nfacts"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="nfok">${t("common.save")}</button></div>`;
   }
-  async function save26(id, button2) {
+  async function save28(id, button2) {
     const read4 = orderSheetLegacy.readFields(document.getElementById("nfcampos"));
     const missing2 = read4?.falta[0];
     if (missing2) {
@@ -40780,13 +42327,13 @@
     appLegacy.openOrder(id);
   }
   function editNonFiscal(detail) {
-    const body2 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml9(detail);
+    const body3 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml9(detail);
     box5.showModal();
     const ok = document.getElementById("nfok");
     if (ok) ok.onclick = () => {
-      void save26(detail.pedido.id, ok);
+      void save28(detail.pedido.id, ok);
     };
   }
 
@@ -40898,14 +42445,14 @@
     notices.toast(t("orders.sheet.voided"));
     reloadSales();
   }
-  function bind21(body2, detail) {
+  function bind21(body3, detail) {
     const id = detail.pedido.id, on6 = (elementId, action) => {
       const button2 = document.getElementById(elementId);
       if (button2) button2.onclick = () => {
         action(button2);
       };
     };
-    const customer = body2.querySelector("[data-vpac]");
+    const customer = body3.querySelector("[data-vpac]");
     if (customer) customer.onclick = () => {
       orderSheetLegacy.openCustomer(customer.dataset.vpac ?? "");
     };
@@ -40926,17 +42473,17 @@
     });
   }
   async function paintBase4(id) {
-    const body2 = document.getElementById("dbody");
-    customersLegacy.showLoading(body2, t("orders.sheet.opening"));
+    const body3 = document.getElementById("dbody");
+    customersLegacy.showLoading(body3, t("orders.sheet.opening"));
     dialog7()?.showModal();
     const { data, error } = await callRpc("pedido_detalle", { p_id: id });
-    if (!body2) return null;
+    if (!body3) return null;
     if (error || !data?.pedido) {
-      body2.innerHTML = `<div class="vacio">${escapeHtml(error ? error.message : t("orders.sheet.notFound"))}</div>`;
+      body3.innerHTML = `<div class="vacio">${escapeHtml(error ? error.message : t("orders.sheet.notFound"))}</div>`;
       return null;
     }
-    body2.innerHTML = sheetHtml4(data);
-    bind21(body2, data);
+    body3.innerHTML = sheetHtml4(data);
+    bind21(body3, data);
     return data;
   }
 
@@ -41071,7 +42618,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ].join("\n");
     return { subject: t("orders.distributor.mailSubject", { number: order.numero ?? "", name }), text: text5 };
   }
-  function blockHtml5(detail, distributor) {
+  function blockHtml6(detail, distributor) {
     const order = detail.pedido, mail = emailOf(detail);
     const who2 = t("orders.distributor.servedBy", { name: escapeHtml(distributor.nombre) }) + (order.distribuidor_codigo ? t("orders.distributor.customerCode", { code: escapeHtml(order.distribuidor_codigo) }) : "") + ` · ${t(order.factura_distribuidor ? "orders.distributor.theyInvoice" : "orders.distributor.weInvoice")}`;
     const sent2 = order.transfer_enviado_en ? t("orders.distributor.mailPreparedOn", { date: formatShortDate(String(order.transfer_enviado_en).slice(0, 10)) }) : t("orders.distributor.mailNotPrepared");
@@ -41149,7 +42696,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (order.factura_distribuidor) document.getElementById("pvemitir")?.remove();
     const place5 = document.getElementById("pdpago") ?? document.getElementById("dbody")?.querySelector(".acts:last-of-type");
     if (!place5) return;
-    place5.insertAdjacentHTML("beforebegin", blockHtml5(detail, distributor));
+    place5.insertAdjacentHTML("beforebegin", blockHtml6(detail, distributor));
     paintTransfer(detail, distributor);
     document.getElementById("pdmaild")?.addEventListener("click", () => {
       void legacyDb().rpc("marcar_transfer_enviado", { p_id: order.id }).then(({ data }) => {
@@ -41236,7 +42783,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!customer?.email) return `<span class="sm">${t("orders.operations.noEmail")}</span>`;
     return `<a class="btn sec" id="pdmailpago" data-ped="${order.id}" href="${mailtoLink(escapeHtml(customer.email), paymentSubject(order, total2, customer.nombre), paymentText2(order, total2, customer.nombre))}">${t("orders.operations.preparePaymentEmail")}</a>`;
   }
-  function blockHtml6(detail, allowed2) {
+  function blockHtml7(detail, allowed2) {
     const order = detail.pedido;
     return `<div class="blk" id="pdops" data-nosucio><h3>${t("orders.operations.title")}</h3>
     ${order.sin_cargo ? `<p class="sm">${t("orders.operations.freeDelivery")}</p>` : ""}${OPERATIONS.filter(([key]) => !(order.sin_cargo && key === "pago")).map(([key, label]) => operationHtml(order, key, t(label), allowed2)).join("")}
@@ -41268,13 +42815,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box5.closest(".opchk")?.classList.toggle("on", box5.checked);
     notices.toast(t(box5.checked ? "orders.operations.reportedToast" : "orders.operations.notReportedToast"));
   }
-  function bind22(body2, order) {
-    body2.querySelectorAll("[data-op]").forEach((box5) => {
+  function bind22(body3, order) {
+    body3.querySelectorAll("[data-op]").forEach((box5) => {
       box5.onchange = () => {
         void markOperation(order, box5);
       };
     });
-    const report = body2.querySelector("[data-reporte]");
+    const report = body3.querySelector("[data-reporte]");
     if (report) report.onchange = () => {
       void markReport(order.id, report);
     };
@@ -41292,10 +42839,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const order = detail.pedido;
     if (order.estado !== STATES6.confirmed || document.getElementById("pdops")) return;
     await cycleLegacy.loadSettings();
-    const body2 = document.getElementById("dbody"), actions = body2?.querySelector(".acts:last-of-type");
-    if (!body2 || !actions) return;
-    actions.insertAdjacentHTML("beforebegin", blockHtml6(detail, permissions.seesEverything() && permissions.salesLevel() >= SALES_LEVEL));
-    bind22(body2, order);
+    const body3 = document.getElementById("dbody"), actions = body3?.querySelector(".acts:last-of-type");
+    if (!body3 || !actions) return;
+    actions.insertAdjacentHTML("beforebegin", blockHtml7(detail, permissions.seesEverything() && permissions.salesLevel() >= SALES_LEVEL));
+    bind22(body3, order);
   }
 
   // src/app/screens/orders/tpv/model.ts
@@ -41330,8 +42877,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const known = ERRORS3.get(answer.error ?? "");
     return known ? t(known) : t("ordersMore.tpv.couldNotSend") + (answer.detalle ? `: ${answer.detalle}` : "");
   }
-  async function callTpv(body2) {
-    const { data, error } = await orderMailLegacy.invoke("cobro_tpv", body2);
+  async function callTpv(body3) {
+    const { data, error } = await orderMailLegacy.invoke("cobro_tpv", body3);
     let answer = data;
     const failure5 = error;
     if (!answer && failure5) {
@@ -41398,7 +42945,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       ${testLink ? `<a class="btn sec chico" id="tpvabrir" href="${escapeHtml(testLink)}" target="_blank" rel="noopener">${t("ordersMore.tpv.openTestPage")}</a>` : ""}
       ${canSend ? `<button type="button" class="btn ${payment ? "sec " : ""}chico" id="tpvenviar">${t(payment ? "ordersMore.tpv.sendAgain" : "ordersMore.tpv.sendLink")}</button>` : ""}</div>`;
   }
-  function blockHtml7(payment, state2, order, canSend) {
+  function blockHtml8(payment, state2, order, canSend) {
     const pill = TPV_PILLS.get(state2 ?? "");
     const testLink = payment?.entorno === "pruebas" && state2 === TPV_STATES.sent ? payment.url_pago ?? "" : "";
     return `<div class="tpvped" id="pdtpv">
@@ -41457,7 +43004,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const canSend = canSendFor(order);
     if (!payment && !canSend) return;
     const state2 = shownState(payment);
-    box5.insertAdjacentHTML("beforeend", blockHtml7(payment, state2, order, canSend));
+    box5.insertAdjacentHTML("beforeend", blockHtml8(payment, state2, order, canSend));
     bindSend(id, payment, state2);
     clearTimeout(watchTimer);
     if (payment && state2 === TPV_STATES.sent) watch3(id, payment, order);
@@ -41487,7 +43034,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   var receiptRow = (receipt) => `<div class="item"><span class="tx"><b>${escapeHtml(receipt.nombre)}</b><span class="sm">${formatShortDate(String(receipt.creado_en).slice(0, 10))} · ${formatNumber(Math.round(receipt.tamano / KILOBYTE))} KB</span></span>
       <button type="button" class="btn sec chico" data-jver="${receipt.id}">${t("orders.payment.see")}</button></div>`;
-  function blockHtml8(detail, receipts) {
+  function blockHtml9(detail, receipts) {
     const order = detail.pedido;
     return `<div class="blk" id="pdpago"><h3>${t("orders.payment.title")}</h3>
     ${order.origen === "web" ? `<p class="sm"><span class="pill p-est">${t("orders.payment.byWeb")}</span></p>` : ""}
@@ -41501,7 +43048,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!isOpen3() || detail.pedido.sin_cargo) return;
     const actions = document.getElementById("dbody")?.querySelector(".acts:last-of-type");
     if (!actions) return;
-    (document.getElementById("pdops") ?? actions).insertAdjacentHTML("beforebegin", blockHtml8(detail, receipts ?? []));
+    (document.getElementById("pdops") ?? actions).insertAdjacentHTML("beforebegin", blockHtml9(detail, receipts ?? []));
     document.getElementById("pdpago")?.querySelectorAll("[data-jver]").forEach((button2) => {
       button2.onclick = () => {
         void openReceipt(button2.dataset.jver ?? "");
@@ -41514,7 +43061,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/orders/sheet/index.ts
-  var STEADY_MAX_MS = 2500;
+  var STEADY_MAX_MS = 6e3;
   var optional2 = (part) => part.catch(() => void 0);
   async function paintOrder2(id) {
     const detail = await orderSheetLegacy.whileLoading(async () => {
@@ -41603,9 +43150,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   var prefersMotion = () => !matchMedia("(prefers-reduced-motion: reduce)").matches;
   function animate(elements, format) {
-    const start2 = performance.now();
+    const start4 = performance.now();
     const step = (now) => {
-      const progress = Math.min(1, (now - start2) / COUNT_MS), eased = 1 - (1 - progress) ** EASING_POWER;
+      const progress = Math.min(1, (now - start4) / COUNT_MS), eased = 1 - (1 - progress) ** EASING_POWER;
       elements.forEach((element4) => {
         if (element4.isConnected) element4.textContent = format(Number(element4.dataset.v) * eased, element4);
       });
@@ -42110,7 +43657,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/orders/editor/view.ts
   var isConfirmed = (order) => order?.estado === STATES6.confirmed;
   var withVat = (line3) => line3.importe !== null ? String(round22(line3.importe * (1 + (Number(line3.iva) || 0) / 100))) : "";
-  function headerHtml9(order) {
+  function headerHtml10(order) {
     const title2 = order ? t(isConfirmed(order) ? "ordersMore.editor.editOrder" : "ordersMore.editor.editDraft") : t("ordersMore.editor.newOrder");
     return `
       <div class="fh"><div><h2>${title2}</h2>
@@ -42213,7 +43760,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <button class="btn" id="pvalid">${t(confirmed ? "ordersMore.editor.saveChanges" : "ordersMore.editor.saveAndConfirm")}</button></div>`;
   }
   function editorHtml12(state2) {
-    return headerHtml9(state2.order) + dateChannelOriginHtml(state2) + customerZoneHtml(state2) + linesHtml(state2) + methodDiscountHtml(state2) + paymentHtml(state2) + serviceHtml(state2) + footerHtml(state2);
+    return headerHtml10(state2.order) + dateChannelOriginHtml(state2) + customerZoneHtml(state2) + linesHtml(state2) + methodDiscountHtml(state2) + paymentHtml(state2) + serviceHtml(state2) + footerHtml(state2);
   }
 
   // src/app/screens/orders/editor/index.ts
@@ -42228,7 +43775,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       handler(target);
     };
   };
-  function save27(state2, status2, button2, options5) {
+  function save29(state2, status2, button2, options5) {
     void saveOrder2(state2, status2, button2, { ...options5 ? { options: options5 } : {}, sendLink: sendLinkAndShow });
   }
   function contractPrices(state2) {
@@ -42237,7 +43784,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       state2.lines.forEach((line3) => {
         if (!line3.manual) autoAmount(line3);
       });
-      paint12(state2);
+      paint14(state2);
     });
   }
   function mountAccount(state2) {
@@ -42268,12 +43815,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       const line3 = newLine2();
       state2.lines.push(line3);
       autoAmount(line3);
-      paint12(state2);
+      paint14(state2);
     });
     document.getElementById("plineas")?.querySelectorAll("[data-lx]").forEach((button2) => {
       button2.onclick = () => {
         state2.lines.splice(Number(button2.dataset.lx), 1);
-        paint12(state2);
+        paint14(state2);
       };
     });
     const free = element("psincargo");
@@ -42282,7 +43829,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       state2.lines.forEach((line3) => {
         line3.descuento = state2.form.sin_cargo ? FULL_DISCOUNT2 : 0;
       });
-      paint12(state2);
+      paint14(state2);
     };
   }
   function bindPayment(state2) {
@@ -42303,12 +43850,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       const read4 = await orderEditorLegacy.readReceipt(file);
       if (!read4) return;
       state2.receipts.push(read4);
-      paint12(state2);
+      paint14(state2);
     };
     document.getElementById("dbody")?.querySelectorAll("[data-jx]").forEach((button2) => {
       button2.onclick = () => {
         state2.receipts.splice(Number(button2.dataset.jx), 1);
-        paint12(state2);
+        paint14(state2);
       };
     });
   }
@@ -42342,10 +43889,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function bindButtons2(state2) {
     const patient = (article) => term("paciente", { article });
     on3("pborr", (button2) => {
-      save27(state2, "Borrador", button2);
+      save29(state2, "Borrador", button2);
     });
     on3("pvalid", (button2) => {
-      save27(state2, "Confirmado", button2);
+      save29(state2, "Confirmado", button2);
     });
     on3("ptrfmail", (button2) => {
       if (!state2.customer) {
@@ -42356,7 +43903,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         notices.toast(t("ordersMore.save.missingIban"), true);
         return;
       }
-      save27(state2, "Borrador", button2, { afterSave: sendDetailsAfterSave });
+      save29(state2, "Borrador", button2, { afterSave: sendDetailsAfterSave });
     });
     on3("ptpvenv", (button2) => {
       void (async () => {
@@ -42368,7 +43915,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
           notices.toast(t("ordersMore.save.patientWithoutMobile", { Patient: term("paciente", { capital: "C" }) }), true);
           return;
         }
-        save27(state2, "Borrador", button2, { afterSave: sendLinkAndShow });
+        save29(state2, "Borrador", button2, { afterSave: sendLinkAndShow });
       })();
     });
   }
@@ -42376,11 +43923,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const note = element("pnota");
     if (!note || !orderEditorLegacy.orderFields().some((item) => item.en_ficha)) return;
     const put = () => {
-      const body2 = document.getElementById("dbody");
-      if (!body2 || body2.querySelector(".cpersform")) return;
+      const body3 = document.getElementById("dbody");
+      if (!body3 || body3.querySelector(".cpersform")) return;
       const values2 = state2.fieldValues ?? {};
       element("pnota")?.insertAdjacentHTML("afterend", orderSheetLegacy.fieldsForm(values2));
-      const form = body2.querySelector(".cpersform");
+      const form = body3.querySelector(".cpersform");
       const keep = (event) => {
         const input10 = event.target.closest("[data-cpk]");
         if (input10) values2[input10.dataset.cpk ?? ""] = input10.value;
@@ -42402,11 +43949,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       put();
     });
   }
-  function paint12(state2) {
+  function paint14(state2) {
     readForm2(state2);
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = editorHtml12(state2);
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = editorHtml12(state2);
     bindDistributor(state2.distributor);
     bindLines2(state2);
     bindPayment(state2);
@@ -42433,7 +43980,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     await orderEditorLegacy.loadContractPrices(accountIdOf(preset));
     openState = buildState(preset, distributor);
-    paint12(openState);
+    paint14(openState);
     document.getElementById("dlg")?.showModal();
   }
 
@@ -42441,8 +43988,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var AMOUNT_LABEL = /importe|precio|total|base|coste/i;
   var VAT_LABEL = /^IVA(\s*\(%\)|\s+del servicio(\s*\(%\))?|\s+%)?$|tipo de iva/i;
   function labelOf3(input10) {
-    const byId16 = input10.id ? document.querySelector(`label[for="${input10.id}"]`) ?? document.querySelector(`label[for="${input10.id}_sel"]`) : null;
-    return (byId16 ?? input10.closest("label"))?.textContent?.trim() ?? "";
+    const byId17 = input10.id ? document.querySelector(`label[for="${input10.id}"]`) ?? document.querySelector(`label[for="${input10.id}_sel"]`) : null;
+    return (byId17 ?? input10.closest("label"))?.textContent?.trim() ?? "";
   }
   function isVatPercentField(input10) {
     if (input10.dataset.ivaok) return input10.dataset.ivaok === "1";
@@ -42557,7 +44104,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const known = SAVE_ERRORS.get(code ?? "");
     return known ? t(known) : t("ordersMore.tpvSettings.couldNotSave") + (error ? `: ${escapeHtml(error.message ?? "")}` : "");
   }
-  async function save28() {
+  async function save30() {
     const settings2 = { activo: Boolean(field12("tpvact")?.checked), entorno: value16("tpvent"), comercio: value16("tpvcom"), terminal: value16("tpvter") };
     const { data: result, error } = await legacyDb().rpc("guardar_cobro_tpv", { p: settings2, p_clave: value16("tpvcla") || null });
     if (error || !result?.ok) {
@@ -42574,7 +44121,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return true;
   }
   async function tryIt() {
-    if (!await save28()) return;
+    if (!await save30()) return;
     const result = await callTpv({ accion: "probar" });
     if (!result.ok) {
       message3(escapeHtml(tpvErrorText(result)), true);
@@ -42605,7 +44152,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
     on6("tpvdemo", useTestData);
     on6("tpvok", (button2) => {
-      void tpvLegacy.whileWorking(button2, t("ordersMore.tpvSettings.saving"), save28);
+      void tpvLegacy.whileWorking(button2, t("ordersMore.tpvSettings.saving"), save30);
     });
     on6("tpvprobar", (button2) => {
       void tpvLegacy.whileWorking(button2, t("ordersMore.tpvSettings.trying"), tryIt);
@@ -42695,7 +44242,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const active = rows2.filter((row4) => row4.activo).length, inactive = rows2.length - active;
     return `<b>${formatNumber(active)}</b> ${t(active === 1 ? "products.catalog.oneActive" : "products.catalog.active")}${inactive ? t("products.catalog.inactive", { count: formatNumber(inactive) }) : ""}`;
   }
-  function rowHtml19(row4, fields) {
+  function rowHtml20(row4, fields) {
     const photo = row4.foto_url ? `background-image:url('${escapeHtml(row4.foto_url)}')` : "";
     return `<button class="dr" data-prod="${row4.id}" style="${row4.activo ? "" : "opacity:.55"}">
         <span><span class="pfoto" style="${photo}">${row4.foto_url ? "" : "◧"}</span></span>
@@ -42709,22 +44256,22 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const empty2 = `<div class="vacio">${t(productsLegacy.hasFieldFilters() ? "products.catalog.noneFiltered" : "products.catalog.none")}</div>`;
     return `<div class="dgrid-wrap"><div class="dgrid prods">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${key ? t(`products.catalog.${key}`) : ""}</span>`).join("")}${productsLegacy.fieldHeaders(fields)}</div>
-      ${rows2.map((row4) => rowHtml19(row4, fields)).join("") || empty2}
+      ${rows2.map((row4) => rowHtml20(row4, fields)).join("") || empty2}
     </div></div>`;
   }
   async function paintProducts() {
     const admin = cardSectionsLegacy.can("administrar");
     productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.catalog.loading"));
     const { data } = await callRpc("productos_lista", { p_todos: admin });
-    const body2 = document.getElementById("vcuerpo");
-    if (!body2) return;
+    const body3 = document.getElementById("vcuerpo");
+    if (!body3) return;
     const rows2 = (data ?? []).filter((row4) => orFallback(row4.tipo, "producto") === "producto" && productsLegacy.matchesFieldFilters(row4.clasificadores));
     const fields = productsLegacy.visibleFieldColumns();
-    body2.innerHTML = `<div class="panel">
+    body3.innerHTML = `<div class="panel">
     <div class="cuenta">${countHtml2(rows2)}</div>
     ${tableHtml4(rows2, fields)}</div>`;
-    productsLegacy.widenGrid(body2.querySelector(".dgrid.prods"), fields.length);
-    body2.querySelectorAll("[data-prod]").forEach((button2) => {
+    productsLegacy.widenGrid(body3.querySelector(".dgrid.prods"), fields.length);
+    body3.querySelectorAll("[data-prod]").forEach((button2) => {
       button2.onclick = () => {
         productsLegacy.editProduct(rows2.find((row4) => row4.id === button2.dataset.prod) ?? null);
       };
@@ -42810,7 +44357,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       void replenishUsed(deposit2, used, again);
     };
   }
-  async function save29(form, deposit2, action, button2) {
+  async function save31(form, deposit2, action, button2) {
     const payload12 = request(form, deposit2, action);
     if (typeof payload12 === "string") {
       notices.toast(payload12, true);
@@ -42844,7 +44391,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
     const ok = document.getElementById("depok");
     if (ok) ok.onclick = () => {
-      void save29(form, deposit2, action, ok);
+      void save31(form, deposit2, action, ok);
     };
   }
 
@@ -42898,12 +44445,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     if (!purchasesLegacy.products().length) await purchasesLegacy.loadProducts();
     const lines4 = (detail.lineas ?? []).filter((line3) => line3.unidades > 0);
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = sheetHtml5(detail, name, notice2, lines4);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = sheetHtml5(detail, name, notice2, lines4);
     if (!box5.open) box5.showModal();
     const deposit2 = { accountId, name, lines: lines4 };
-    body2.querySelectorAll("[data-dep]").forEach((button2) => {
+    body3.querySelectorAll("[data-dep]").forEach((button2) => {
       button2.onclick = () => {
         openDepositForm(deposit2, button2.dataset.dep ?? "reponer");
       };
@@ -42911,7 +44458,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/products/stock.ts
-  function rowHtml20(line3) {
+  function rowHtml21(line3) {
     const [label, kind] = stockState(line3);
     const unbatched = line3.sin_lote ? ` · <span style="color:var(--warn)">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line3.sin_lote) })}</span>` : "";
     const byStore = (line3.por_almacen ?? []).map((store4) => `${escapeHtml(store4.almacen)}: ${formatNumber(store4.unidades)}`).join(" · ") || "—";
@@ -42930,21 +44477,21 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.stock.loading"));
     await purchasesLegacy.loadStores();
     const { data, error } = await callRpc("stock_resumen", {});
-    const body2 = document.getElementById("vcuerpo");
-    if (!body2) return;
+    const body3 = document.getElementById("vcuerpo");
+    if (!body3) return;
     if (error) {
-      body2.innerHTML = `<div class="vacio">${escapeHtml(errorMessage(error))}</div>`;
+      body3.innerHTML = `<div class="vacio">${escapeHtml(errorMessage(error))}</div>`;
       return;
     }
     const list = (data ?? []).filter((line3) => Boolean(line3.activo) || Boolean(line3.stock));
     const head = [["", "product"], ["num", "stock"], ["", "byStore"], ["", "nextExpiry"], ["", "coverage"], ["num", "onTheWay"], ["", "state"]];
-    body2.innerHTML = `<div class="panel">
+    body3.innerHTML = `<div class="panel">
     <div class="cuenta">${t("products.stock.intro")}</div>
     <div class="dgrid-wrap"><div class="dgrid stock">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`products.stock.${key}`)}</span>`).join("")}</div>
-      ${list.map(rowHtml20).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
+      ${list.map(rowHtml21).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
     </div></div></div>`;
-    body2.querySelectorAll("[data-stk]").forEach((button2) => {
+    body3.querySelectorAll("[data-stk]").forEach((button2) => {
       button2.onclick = () => {
         const line3 = list.find((item) => item.id === button2.dataset.stk);
         if (line3) productsLegacy.openStock(line3);
@@ -43019,9 +44566,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function stockMovement(line3, kind, place5) {
     await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadStores(), purchasesLegacy.loadSuppliers()]);
-    const body2 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml11(line3, kind, place5);
+    const body3 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml11(line3, kind, place5);
     box5.showModal();
     const ok = document.getElementById("mvok");
     if (ok) ok.onclick = () => {
@@ -43034,7 +44581,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var PRICE_DECIMALS = 4;
   var money2 = (value27) => isPresent(value27) ? euros4(value27) : "—";
   var field13 = (id) => document.getElementById(id);
-  function rowHtml21(service) {
+  function rowHtml22(service) {
     const byDefault = service.por_defecto ? `<span class="pill p-est">${t("products.services.byDefault")}</span>` : '<span class="vac">—</span>';
     return `<button class="dr" data-serv="${service.id ?? ""}" style="${service.activo ? "" : "opacity:.55"}">
         <span><b>${escapeHtml(service.nombre ?? "")}</b></span><span class="num">${money2(service.precio)}</span>
@@ -43046,17 +44593,17 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const admin = cardSectionsLegacy.can("administrar");
     productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.services.loading"));
     const { data } = await callRpc("productos_lista", { p_todos: admin });
-    const body2 = document.getElementById("vcuerpo");
-    if (!body2) return;
+    const body3 = document.getElementById("vcuerpo");
+    if (!body3) return;
     const list = (data ?? []).filter((item) => item.tipo === "servicio");
     const head = [["", "products.services.service"], ["num", "products.catalog.withoutVat"], ["num", "products.catalog.vat"], ["num", "products.catalog.withVat"], ["", "products.services.inNewOrders"], ["", "products.catalog.state"]];
-    body2.innerHTML = `<div class="panel">
+    body3.innerHTML = `<div class="panel">
     <div class="cuenta"><b>${formatNumber(list.filter((item) => item.activo).length)}</b>${t("products.services.activeCount")}</div>
     <div class="dgrid-wrap"><div class="dgrid servs">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(key)}</span>`).join("")}</div>
-      ${list.map(rowHtml21).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
+      ${list.map(rowHtml22).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
     </div></div></div>`;
-    body2.querySelectorAll("[data-serv]").forEach((button2) => {
+    body3.querySelectorAll("[data-serv]").forEach((button2) => {
       button2.onclick = () => {
         editService(list.find((item) => item.id === button2.dataset.serv) ?? null);
       };
@@ -43109,7 +44656,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       ...active ? { activo: active.checked } : {}
     };
   }
-  async function save30(service) {
+  async function save32(service) {
     const name = field13("svn")?.value.trim() ?? "";
     if (!name) {
       notices.toast(t("products.services.writeName"), true);
@@ -43127,15 +44674,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function editService(existing) {
     const admin = cardSectionsLegacy.can("administrar"), service = existing ?? { iva: DEFAULT_VAT, activo: true };
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml13(service, admin);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml13(service, admin);
     box5.showModal();
     if (!admin) return;
     bindPrices();
     const ok = document.getElementById("svok");
     if (ok) ok.onclick = () => {
-      void save30(service);
+      void save32(service);
     };
   }
 
@@ -43169,9 +44716,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <p class="sm">${t("products.stores.caseHint", { theVisit: term("visita", { article: "el" }) })}</p>`;
   }
   function paintWindow() {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = windowHtml5();
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = windowHtml5();
     const ok = document.getElementById("almok");
     if (ok) ok.onclick = async () => {
       const member = chosenMember();
@@ -43197,11 +44744,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function paintStores() {
     await load2();
-    const body2 = document.getElementById("cfgcuerpo");
-    if (!body2) return;
+    const body3 = document.getElementById("cfgcuerpo");
+    if (!body3) return;
     const canHaveCase = members().filter((member) => cardSectionsLegacy.roleCan(member.rol ?? "", "almacen_propio"));
     const withoutCase = canHaveCase.filter((member) => !stores().some((store4) => store4.usuario_id === member.id));
-    body2.innerHTML = `
+    body3.innerHTML = `
     <div class="card cfgpanel"><h2>${t("products.stores.title")}</h2>
       <p class="sm">${t("products.stores.pageIntro")}</p>
       <div class="mattipos"><div><b>${t("products.stores.centralTitle")}</b><span>${t("products.stores.centralText")}</span></div>
@@ -43300,11 +44847,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function traceability(batchId) {
     const { data } = await callRpc("trazabilidad_lote", { p_lote: batchId });
     const batch = data?.lote ?? {}, movements = data?.movimientos ?? [];
-    const body2 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
-    if (!body2 || !box5) return;
+    const body3 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
+    if (!body3 || !box5) return;
     const details2 = batchDetails(batch);
     const head = [t("products.trace.date"), t("products.trace.movement"), t("products.trace.units"), t("products.trace.client"), term("medico", { capital: "C" }), t("products.trace.store")];
-    body2.innerHTML = `
+    body3.innerHTML = `
     <div class="fh"><div><h2>${t("products.trace.title", { number: escapeHtml(batch.numero_lote ?? "") })}</h2>
       <div class="sm">${details2}</div></div>
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
@@ -43359,14 +44906,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     notices.toast(t("products.sheet.saved"));
     void paintStock();
   }
-  function bind24(body2, line3) {
-    body2.querySelectorAll("[data-traz]").forEach((button2) => {
+  function bind24(body3, line3) {
+    body3.querySelectorAll("[data-traz]").forEach((button2) => {
       button2.onclick = () => {
         void traceability(button2.dataset.traz ?? "");
       };
     });
     for (const [attribute, kind] of [["aju", "ajuste"], ["tras", "traspaso"]]) {
-      body2.querySelectorAll(`[data-${attribute}]`).forEach((button2) => {
+      body3.querySelectorAll(`[data-${attribute}]`).forEach((button2) => {
         const [batchId = "", storeId = ""] = (button2.dataset[attribute] ?? "").split("|");
         button2.onclick = () => {
           void stockMovement(line3, kind, { batchId, storeId });
@@ -43377,18 +44924,18 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (entry2) entry2.onclick = () => {
       void stockMovement(line3, "inicial");
     };
-    const save44 = document.getElementById("stgu");
-    if (save44) save44.onclick = () => {
+    const save46 = document.getElementById("stgu");
+    if (save46) save46.onclick = () => {
       void saveSettings(line3);
     };
   }
   async function showStock(line3) {
     await purchasesLegacy.loadSuppliers();
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = sheetHtml6(line3, purchasesLegacy.canBuy());
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = sheetHtml6(line3, purchasesLegacy.canBuy());
     if (!box5.open) box5.showModal();
-    bind24(body2, line3);
+    bind24(body3, line3);
   }
 
   // src/app/screens/billing/index.ts
@@ -43485,7 +45032,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div class="kpi"><b>${euros5(total(pending, "total") - total(pending, "cobrado"))}</b><span>${t("billing.list.toCollect", { count: formatNumber(pending.length) })}</span></div>
       <div class="kpi ${overdue.length ? "warn" : ""}"><b>${euros5(total(overdue, "total") - total(overdue, "cobrado"))}</b><span>${t("billing.list.overdueTotal", { count: formatNumber(overdue.length) })}</span></div>`;
   }
-  function rowHtml22(row4) {
+  function rowHtml23(row4) {
     const note = row4.rectifica ? `<span class="sm">${t("billing.list.rectifies", { number: escapeHtml(row4.rectifica) })}</span>` : row4.rectificada_por ? `<span class="sm">${t("billing.list.rectifiedBy", { number: escapeHtml(row4.rectificada_por) })}</span>` : "";
     return `<button class="dr" data-fac="${row4.id}">
         <span><b>${escapeHtml(row4.numero)}</b>${note}</span>
@@ -43499,13 +45046,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const head = [["", "number"], ["", "date"], ["", "client"], ["", "nif"], ["num", "base"], ["num", "vatShort"], ["num", "total"], ["", "due"], ["", "payment"]];
     return `<div class="dgrid-wrap"><div class="dgrid facts">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.list.${key}`)}</span>`).join("")}</div>
-      ${rows2.map(rowHtml22).join("")}</div></div>`;
+      ${rows2.map(rowHtml23).join("")}</div></div>`;
   }
   function pageRows(rows2) {
     const size = accountListLegacy.pageSize();
     billingLegacy.setPage(Math.min(billingLegacy.page(), Math.max(0, Math.ceil(rows2.length / size) - 1)));
-    const start2 = billingLegacy.page() * size;
-    return rows2.slice(start2, start2 + size);
+    const start4 = billingLegacy.page() * size;
+    return rows2.slice(start4, start4 + size);
   }
   async function paintRows() {
     billingLegacy.showLoading(document.getElementById("flista"), t("billing.list.loading"));
@@ -43551,9 +45098,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   };
   var searchTimer3;
   function paintInvoices() {
-    const body2 = document.getElementById("fcuerpo");
-    if (!body2) return;
-    body2.innerHTML = shellHtml();
+    const body3 = document.getElementById("fcuerpo");
+    if (!body3) return;
+    body3.innerHTML = shellHtml();
     opportunitiesLegacy.mountPeriod(document.getElementById("fper"), { id: "facturas", valor: "mes", alCambiar: () => {
       void paintRows();
     } });
@@ -43580,7 +45127,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var typeName = (type) => t(TYPES2.find(([key]) => key === type)?.[1] ?? "billing.series.simplified");
   var input8 = (id) => document.getElementById(id);
   var valueOf12 = (id) => input8(id)?.value ?? "";
-  function rowHtml23(series) {
+  function rowHtml24(series) {
     const notes2 = `${series.por_defecto ? t("billing.series.byDefault") : ""}${series.activa ? "" : t("billing.series.inactive")}`;
     return `<button class="dr" data-ser="${series.id ?? ""}"><span><b>${escapeHtml(series.codigo)}</b><span class="sm">${escapeHtml(series.nombre)}${notes2}</span></span>
         <span>${escapeHtml(typeName(series.tipo))}</span><span class="mono">${escapeHtml(series.formato)}</span>
@@ -43593,18 +45140,18 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       ${admin ? `<button class="btn sec" id="sernueva" style="margin-left:8px">${t("billing.series.add")}</button>` : ""}</div>
     <div class="dgrid-wrap"><div class="dgrid sers">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.series.${key}`)}</span>`).join("")}</div>
-      ${list.map(rowHtml23).join("")}
+      ${list.map(rowHtml24).join("")}
     </div></div>
     <p class="sm" style="padding:10px 16px">${t("billing.series.formatHelp")}</p></div>`;
   }
   async function paintSeries() {
     billingLegacy.showLoading(document.getElementById("fcuerpo"), t("billing.series.loading"));
     const { data } = await callRpc("series_lista", {});
-    const body2 = document.getElementById("fcuerpo");
-    if (!body2) return;
+    const body3 = document.getElementById("fcuerpo");
+    if (!body3) return;
     const list = data ?? [], admin = cardSectionsLegacy.can("administrar");
-    body2.innerHTML = listHtml5(list, admin);
-    body2.querySelectorAll("[data-ser]").forEach((button2) => {
+    body3.innerHTML = listHtml5(list, admin);
+    body3.querySelectorAll("[data-ser]").forEach((button2) => {
       button2.onclick = () => {
         editSeries(list.find((series) => series.id === button2.dataset.ser) ?? null);
       };
@@ -43632,13 +45179,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${series.id ? check2("seac", series.activa !== false, "billing.series.active") : ""}
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.close")}</button>${admin ? `<button class="btn" id="seok">${t("common.save")}</button>` : ""}</div>`;
   }
-  function preview() {
+  function preview2() {
     const code = valueOf12("sec").trim().toUpperCase() || "X", year = Number(valueOf12("sea")) || FALLBACK_YEAR, next = Number(valueOf12("ses")) || 1;
     const text5 = valueOf12("sef").replace("{S}", code).replace("{AAAA}", String(year)).replace("{AA}", String(year % YEAR_DIGITS).padStart(2, "0")).replace(/\{(N+)\}/, (...[, digits]) => String(next).padStart(digits?.length ?? 0, "0"));
     const place5 = document.getElementById("serprev");
     if (place5) place5.textContent = text5;
   }
-  async function save31(series) {
+  async function save33(series) {
     const checked4 = (id) => Boolean(input8(id)?.checked), active = input8("seac");
     const { data: result, error } = await legacyDb().rpc("guardar_serie", { p: {
       id: series.id ?? null,
@@ -43663,18 +45210,18 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function editSeries(existing) {
     const admin = cardSectionsLegacy.can("administrar");
     const series = existing ?? { codigo: "", nombre: "", tipo: "ordinaria", formato: "{S}{AA}{NNNN}", siguiente: 1, anio: Number(todayIso().slice(0, 4)), reinicio_anual: true };
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml14(series, admin);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml14(series, admin);
     box5.showModal();
     for (const id of ["sec", "sef", "ses", "sea"]) {
       const field20 = input8(id);
-      if (field20) field20.oninput = preview;
+      if (field20) field20.oninput = preview2;
     }
-    preview();
+    preview2();
     const ok = document.getElementById("seok");
     if (ok) ok.onclick = () => {
-      void save31(series);
+      void save33(series);
     };
   }
 
@@ -43720,7 +45267,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <label for="vfe">${t("billing.verifactu.environment")}</label><select id="vfe"><option value="pruebas" ${settings2.entorno === "pruebas" ? "selected" : ""}>${t("billing.verifactu.testing")}</option><option value="produccion" ${settings2.entorno === "produccion" ? "selected" : ""}>${t("billing.verifactu.production")}</option></select>
         <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">${t("common.save")}</button></div></div>`;
   }
-  async function save32(current) {
+  async function save34(current) {
     const next = {
       activo: Boolean(document.getElementById("vfa")?.checked),
       modalidad: document.querySelector("[name=vfm]:checked")?.value ?? DEFAULTS.modalidad,
@@ -43747,9 +45294,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     await billingLegacy.loadSettings();
     const settings2 = { ...DEFAULTS, ...billingLegacy.setting("verifactu") };
     const [{ data: chain }, { data: events3 }] = await Promise.all([callRpc("verificar_cadena", {}), callRpc("eventos_facturacion_lista", { lim: 1 })]);
-    const body2 = document.getElementById("fcuerpo");
-    if (!body2) return;
-    body2.innerHTML = `
+    const body3 = document.getElementById("fcuerpo");
+    if (!body3) return;
+    body3.innerHTML = `
     ${heroHtml(settings2)}
     ${stepsHtml2(settings2, chain ?? {})}
     <div class="vfgrid">
@@ -43758,7 +45305,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     </div>`;
     const ok = document.getElementById("vfok");
     if (ok) ok.onclick = () => {
-      void save32(settings2);
+      void save34(settings2);
     };
   }
 
@@ -43826,7 +45373,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div><label for="cbn">${t("billing.payment.note")}</label><input id="cbn" placeholder="${t("billing.payment.optional")}"></div></div>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="cbok">${t("billing.payment.register")}</button></div>`;
   }
-  async function save33(invoice2, box5) {
+  async function save35(invoice2, box5) {
     const amount3 = Number(value18("cbi"));
     if (!amount3) {
       notices.toast(t("billing.payment.writeAmount"), true);
@@ -43849,19 +45396,19 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     refreshInvoices();
   }
   function registerPayment(invoice2, pending) {
-    const body2 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml12(invoice2, pending);
+    const body3 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml12(invoice2, pending);
     box5.showModal();
     const ok = document.getElementById("cbok");
     if (ok) ok.onclick = () => {
-      void save33(invoice2, box5);
+      void save35(invoice2, box5);
     };
   }
 
   // src/app/screens/billing/rectify.ts
   var failure3 = (error, result) => orFallback(errorMessage2(error), result?.error ?? "");
-  var partial = (body2) => body2.querySelector("[name=rft]:checked")?.value === "parcial";
+  var partial = (body3) => body3.querySelector("[name=rft]:checked")?.value === "parcial";
   function formHtml13(invoice2) {
     const lines4 = invoice2.lineas.map((line3, index) => `<div class="g2" style="align-items:center"><div>${escapeHtml(line3.descripcion)} <span class="sm">${t("billing.rectify.units", { units: formatNumber(line3.unidades) })}</span></div>
       <div><input type="number" min="0" max="${line3.unidades}" data-rfi="${index}" value="0" aria-label="${t("billing.rectify.unitsLabel")}"></div></div>`).join("");
@@ -43877,16 +45424,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn dang" id="rfok">${t("billing.rectify.issue")}</button></div>`;
   }
   var reasonOf3 = () => document.getElementById("rfm")?.value.trim() ?? "";
-  function chosenLines(body2) {
-    return [...body2.querySelectorAll("[data-rfi]")].map((input10) => ({ indice: Number(input10.dataset.rfi), unidades: Number(input10.value) || 0 })).filter((line3) => line3.unidades > 0);
+  function chosenLines(body3) {
+    return [...body3.querySelectorAll("[data-rfi]")].map((input10) => ({ indice: Number(input10.dataset.rfi), unidades: Number(input10.value) || 0 })).filter((line3) => line3.unidades > 0);
   }
-  async function issue(invoice2, body2, button2) {
+  async function issue(invoice2, body3, button2) {
     const reason = reasonOf3();
     if (!reason) {
       notices.toast(t("billing.rectify.writeReason"), true);
       return;
     }
-    const lines4 = partial(body2) ? chosenLines(body2) : null;
+    const lines4 = partial(body3) ? chosenLines(body3) : null;
     if (lines4?.length === 0) {
       notices.toast(t("billing.rectify.writeUnits"), true);
       return;
@@ -43909,13 +45456,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     refreshInvoices();
   }
   function rectifyInvoice(invoice2) {
-    const body2 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml13(invoice2);
+    const body3 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml13(invoice2);
     box5.showModal();
-    body2.querySelectorAll("[name=rft]").forEach((radio) => {
+    body3.querySelectorAll("[name=rft]").forEach((radio) => {
       radio.onchange = () => {
-        const some = partial(body2), cancel3 = document.getElementById("rfan");
+        const some = partial(body3), cancel3 = document.getElementById("rfan");
         document.getElementById("rflin")?.classList.toggle("hide", !some);
         if (cancel3) {
           cancel3.disabled = some;
@@ -43925,7 +45472,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
     const ok = document.getElementById("rfok");
     if (ok) ok.onclick = () => {
-      void issue(invoice2, body2, ok);
+      void issue(invoice2, body3, ok);
     };
   }
 
@@ -43936,7 +45483,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return invoice2.vencimiento && invoice2.vencimiento < todayIso() ? PAYMENT.overdue : PAYMENT.pending;
   }
   var address = (party, withProvince) => escapeHtml([party.direccion, party.cp, party.municipio, withProvince ? party.provincia : null].filter(Boolean).join(", "));
-  function headerHtml10(invoice2) {
+  function headerHtml11(invoice2) {
     const when5 = `${formatLongDate(invoice2.fecha)}${invoice2.vencimiento ? t("billing.sheet.dueOn", { date: formatShortDate(invoice2.vencimiento) }) : ""}${invoice2.forma_pago ? ` · ${escapeHtml(invoice2.forma_pago)}` : ""}`;
     return `<div class="fh"><div><h2>${t(invoice2.rectifica_id ? "billing.sheet.rectifying" : "billing.sheet.invoice")} ${escapeHtml(invoice2.numero)} ${paymentPill2(paymentState(invoice2))}</h2>
       <div class="sm">${when5}</div></div>
@@ -43994,14 +45541,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const button2 = document.getElementById(id);
     if (button2) button2.onclick = action;
   };
-  function bind25(body2, detail, invoice2, pending) {
+  function bind25(body3, detail, invoice2, pending) {
     const rectifies = detail.rectifica?.numero;
-    body2.querySelectorAll("[data-vfac]").forEach((button2) => {
+    body3.querySelectorAll("[data-vfac]").forEach((button2) => {
       button2.onclick = () => {
         billingLegacy.openInvoice(button2.dataset.vfac ?? "");
       };
     });
-    body2.querySelectorAll("[data-bcob]").forEach((button2) => {
+    body3.querySelectorAll("[data-bcob]").forEach((button2) => {
       button2.onclick = async () => {
         if (!await notices.confirm(t("billing.sheet.removePaymentText"), { titulo: t("billing.sheet.removePaymentTitle"), ok: t("billing.sheet.removePayment"), peligro: true })) return;
         await legacyDb().rpc("borrar_cobro", { p_id: button2.dataset.bcob });
@@ -44030,18 +45577,18 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       });
     });
   }
-  async function paint13(id) {
+  async function paint15(id) {
     const { data: detail } = await callRpc("factura_detalle", { p_id: id });
     const invoice2 = detail?.factura;
     if (!detail || !invoice2) {
       notices.toast(t("billing.sheet.couldNotOpen"), true);
       return;
     }
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
     const pending = Number((invoice2.total - invoice2.cobrado).toFixed(2));
-    body2.innerHTML = `
-    ${headerHtml10(invoice2)}
+    body3.innerHTML = `
+    ${headerHtml11(invoice2)}
     ${noticesHtml2(detail, invoice2)}
     ${partiesHtml(invoice2)}
     ${linesHtml2(invoice2)}
@@ -44049,10 +45596,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${recordHtml(invoice2)}
     ${actionsHtml8(invoice2, pending)}`;
     if (!box5.open) box5.showModal();
-    bind25(body2, detail, invoice2, pending);
+    bind25(body3, detail, invoice2, pending);
   }
   function showInvoice(id) {
-    return billingLegacy.withLoading(() => paint13(id));
+    return billingLegacy.withLoading(() => paint15(id));
   }
 
   // src/app/screens/platform/index.ts
@@ -44131,7 +45678,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const planned = change ? t("platform.billing.planned", { plan: platformLegacy.planName(change.plan ?? plan3.plan) }) + (change.usuarios ? t("platform.billing.plannedUsers", { users: change.usuarios }) : "") + (change.desde ? t("platform.billing.plannedOn", { date: platformLegacy.shortDate(change.desde) }) : "") : "";
     return [plan3.baja_al_final ? t("platform.billing.leaving") : "", planned, plan3.compromiso_hasta ? t("platform.billing.commitment", { date: platformLegacy.shortDate(plan3.compromiso_hasta) }) : ""].filter(Boolean);
   }
-  function rowHtml24({ organization, plan: plan3, state: state2 }) {
+  function rowHtml25({ organization, plan: plan3, state: state2 }) {
     const monthly = platformLegacy.monthlyAmount(plan3), users = plan3.plan === "medida" ? "" : (plan3.usuarios ? t("platform.billing.hired", { count: plan3.usuarios }) : "") + t(plan3.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly");
     return `<tr><td><b>${escapeHtml(organization.nombre)}</b><div class="sm">${t("platform.billing.activeUsers", { count: organization.usuarios })}${plan3.origen === "web" ? t("platform.billing.fromWeb") : ""}</div></td>
           <td>${escapeHtml(platformLegacy.planName(plan3.plan))}<div class="sm">${users}</div></td>
@@ -44146,7 +45693,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const shown5 = rows2.filter((row4) => shownIn(filter, row4));
     const head = ["company", "plan", "state", "perMonth", "pending"].map((key) => `<th>${t(`platform.billing.${key}`)}</th>`).join("");
     box5.innerHTML = shown5.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr>${head}<th></th></tr></thead><tbody>
-      ${shown5.map(rowHtml24).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.billing.empty")}</div>`;
+      ${shown5.map(rowHtml25).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.billing.empty")}</div>`;
   }
   function pageHtml11(rows2, error) {
     const count2 = (state2) => rows2.filter((row4) => row4.state[0] === state2).length;
@@ -44166,9 +45713,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <p class="sm">${t("platform.billing.footer")}</p></div>`;
   }
   async function paintBilling() {
-    const start2 = panelBox();
-    if (!start2) return;
-    start2.innerHTML = platformLegacy.skeleton();
+    const start4 = panelBox();
+    if (!start4) return;
+    start4.innerHTML = platformLegacy.skeleton();
     const { data, error } = await callRpc("organizaciones_lista", {});
     if (!stillOnTab("cobros")) return;
     const box5 = panelBox();
@@ -44229,9 +45776,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (ok) void paintPlatformErrors();
   }
   async function paintPlatformErrors() {
-    const start2 = panelBox();
-    if (!start2) return;
-    start2.innerHTML = '<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>';
+    const start4 = panelBox();
+    if (!start4) return;
+    start4.innerHTML = '<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>';
     const { data, error } = await callRpc("errores_resumen", { p_dias: platformState.platformErrors.dias });
     const box5 = panelBox();
     if (!box5) return;
@@ -44250,8 +45797,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         if (group) void markGroup(group, field20.value);
       };
     });
-    const save44 = document.getElementById("egdesc");
-    if (save44) save44.onclick = () => {
+    const save46 = document.getElementById("egdesc");
+    if (save46) save46.onclick = () => {
       downloadJson({ generado: (/* @__PURE__ */ new Date()).toISOString(), version: platformLegacy.appVersion(), errores: all2 }, `errores_${todayIso()}.json`);
     };
   }
@@ -44291,8 +45838,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         notices.toast(t("platform.errors.stateChanged"));
       };
     });
-    const save44 = document.getElementById("erdesc");
-    if (save44) save44.onclick = () => {
+    const save46 = document.getElementById("erdesc");
+    if (save46) save46.onclick = () => {
       downloadJson(list, `errores_${todayIso()}.json`);
     };
   }
@@ -44412,7 +45959,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/platform/org-extras.ts
   var checked3 = (id) => document.getElementById(id)?.checked ?? false;
-  async function save34(organization, repaint5) {
+  async function save36(organization, repaint5) {
     const extras = [checked3("oxopor") ? "oportunidades" : "", checked3("oxport") ? "portal" : ""].filter(Boolean);
     const { data: result, error } = await legacyDb().rpc("guardar_extras_organizacion", { p_org: organization.id, p_extras: extras });
     if (error || !result?.ok) {
@@ -44425,10 +45972,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     void repaint5();
   }
   function editExtras(organization, repaint5) {
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
     const active = planOf3(organization).extras ?? [];
-    body2.innerHTML = `<div class="fh"><div><h2>${t("platform.extras.title", { name: escapeHtml(organization.nombre) })}</h2><div class="sm">${t("platform.extras.subtitle")}</div></div>
+    body3.innerHTML = `<div class="fh"><div><h2>${t("platform.extras.title", { name: escapeHtml(organization.nombre) })}</h2><div class="sm">${t("platform.extras.subtitle")}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       <label class="chk"><input type="checkbox" id="oxopor" ${active.includes("oportunidades") ? "checked" : ""}> <span><b>${t("platform.extras.opportunities")}</b>
         <span class="sm">${t("platform.extras.opportunitiesText", { professional: term("medico") })}</span></span></label>
@@ -44438,7 +45985,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box5.showModal();
     const ok = document.getElementById("oxok");
     if (ok) ok.onclick = () => {
-      void save34(organization, repaint5);
+      void save36(organization, repaint5);
     };
   }
 
@@ -44508,9 +46055,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     void repaint5();
   }
   function openNewOrganization(repaint5) {
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml14();
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml14();
     const ok = document.getElementById("ocrear");
     if (ok) ok.onclick = () => {
       void create3(ok, repaint5);
@@ -44558,7 +46105,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (plan3 === MEDIDA2) result.compromiso_hasta = value20("opcomp") || null;
     return result;
   }
-  async function save35(organization, button2, repaint5) {
+  async function save37(organization, button2, repaint5) {
     button2.disabled = true;
     const { data: result, error } = await legacyDb().rpc("guardar_plan_organizacion", { p_org: organization.id, p: payload7() });
     button2.disabled = false;
@@ -44572,9 +46119,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     void repaint5();
   }
   function editPlan(organization, repaint5) {
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = formHtml15(organization);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = formHtml15(organization);
     const state2 = field15("opest");
     if (state2) state2.onchange = () => {
       field15("opfinw")?.classList.toggle("hide", value20("opest") !== TRIAL2);
@@ -44585,7 +46132,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     paintLosses(organization);
     const ok = document.getElementById("opok");
     if (ok) ok.onclick = () => {
-      void save35(organization, ok, repaint5);
+      void save37(organization, ok, repaint5);
     };
     box5.showModal();
   }
@@ -44607,7 +46154,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <button class="btn sec chico" type="button" data-orgexp="${organization.id}">${t("platform.orgs.download")}</button>
         ${toggle4}${remove9}</span>`;
   }
-  function rowHtml25(organization) {
+  function rowHtml26(organization) {
     const domains = organization.dominios ?? [];
     return `<div class="item" style="cursor:default">
       <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
@@ -44667,9 +46214,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
   }
   async function paintOrganizations() {
-    const start2 = document.getElementById("cfgcuerpo");
-    if (!start2) return;
-    start2.innerHTML = `<div class="card"><div class="sm">${t("common.loading")}</div></div>`;
+    const start4 = document.getElementById("cfgcuerpo");
+    if (!start4) return;
+    start4.innerHTML = `<div class="card"><div class="sm">${t("common.loading")}</div></div>`;
     const { data, error } = await legacyDb().rpc("organizaciones_lista");
     const box5 = document.getElementById("cfgcuerpo");
     if (!box5) return;
@@ -44677,7 +46224,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box5.innerHTML = `<div class="card"><div class="fh"><div><h2>${t("platform.orgs.title")}</h2>
       <div class="sm">${t("platform.orgs.subtitle")}</div></div>
       <button class="btn" id="orgnueva">${t("platform.orgs.new")}</button></div>
-    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map(rowHtml25).join("")}</div>`}</div>`;
+    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map(rowHtml26).join("")}</div>`}</div>`;
     bind26(box5, list);
   }
 
@@ -44693,7 +46240,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return escapeHtml(orFallback(data.nombre, request2.persona ?? "")) + (data.correo ? ` · <a href="mailto:${escapeHtml(data.correo)}">${escapeHtml(data.correo)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + `
           · ${how ? t(how) : ""}${data.horario ? ` (${escapeHtml(data.horario)})` : ""}`;
   }
-  function rowHtml26(request2, index) {
+  function rowHtml27(request2, index) {
     const data = request2.datos ?? {}, needs = data.necesita_txt ?? [];
     return `<div class="presufila${request2.estado === "Cerrada" ? " cerrada" : ""}">
         <div class="presucab"><b>${escapeHtml(request2.organizacion)}</b> <span class="pill p-est">${escapeHtml(platformLegacy.planName(request2.plan))}</span>
@@ -44708,7 +46255,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
           <input data-psnota="${index}" placeholder="${t("platform.requests.notePlaceholder")}" value="${escapeHtml(request2.nota ?? "")}">
           <button type="button" class="btn sec" data-psok="${index}">${t("common.save")}</button></div></div>`;
   }
-  async function save36(box5, request2, index) {
+  async function save38(box5, request2, index) {
     const field20 = (attribute) => box5.querySelector(`[data-${attribute}="${index}"]`)?.value ?? "";
     const { data: result } = await callRpc("marcar_solicitud_plan", { p_id: request2.id, p_estado: field20("psest"), p_nota: field20("psnota") });
     const ok = Boolean(result?.ok);
@@ -44716,9 +46263,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (ok) void paintRequests();
   }
   async function paintRequests() {
-    const start2 = panelBox();
-    if (!start2) return;
-    start2.innerHTML = '<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>';
+    const start4 = panelBox();
+    if (!start4) return;
+    start4.innerHTML = '<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>';
     const { data, error } = await callRpc("solicitudes_plan_lista", {});
     const box5 = panelBox();
     if (!box5) return;
@@ -44726,11 +46273,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box5.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.requests.title")}</h2>
     <p class="sm">${t("platform.requests.subtitle")}</p>
     ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
-    <div class="presulista">${list.map(rowHtml26).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
+    <div class="presulista">${list.map(rowHtml27).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
     box5.querySelectorAll("[data-psok]").forEach((button2) => {
       button2.onclick = () => {
         const index = button2.dataset.psok ?? "", request2 = list[Number(index)];
-        if (request2) void save36(box5, request2, index);
+        if (request2) void save38(box5, request2, index);
       };
     });
   }
@@ -44747,7 +46294,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function contactHtml2(data) {
     return escapeHtml(data.nombre ?? "") + (data.email ? ` · <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + (data.nif ? ` · ${escapeHtml(data.nif)}` : "");
   }
-  function rowHtml27(signup) {
+  function rowHtml28(signup) {
     const data = signup.datos ?? {}, [label, pill, text5] = stateOf3(signup);
     const plan3 = t("platform.signups.plan", { plan: platformLegacy.planName(data.plan), users: nonZeroOr(data.usuarios, DEFAULT_USERS), payment: t(data.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly") });
     return `<div class="pdalta"><div class="pdaltacab"><b>${escapeHtml(orFallback(orFallback(signup.organizacion, data.empresa ?? ""), t("platform.signups.noName")))}</b> <span class="pill ${pill}">${label}</span>
@@ -44767,13 +46314,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="card cfgpanel">
     ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
     ${platformLegacy.kpis(figures)}
-    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml27).join("")}` : ""}
-    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done2.map(rowHtml27).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
+    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml28).join("")}` : ""}
+    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done2.map(rowHtml28).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
   }
   async function paintSignups() {
-    const start2 = panelBox();
-    if (!start2) return;
-    start2.innerHTML = platformLegacy.skeleton();
+    const start4 = panelBox();
+    if (!start4) return;
+    start4.innerHTML = platformLegacy.skeleton();
     const { data, error } = await callRpc("altas_lista", {});
     if (!stillOnTab("altas")) return;
     const box5 = panelBox();
@@ -44843,9 +46390,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     else card4.insertAdjacentHTML("beforeend", routesHtml(use));
   }
   async function paintStatus() {
-    const start2 = panelBox();
-    if (!start2) return;
-    start2.innerHTML = platformLegacy.skeleton();
+    const start4 = panelBox();
+    if (!start4) return;
+    start4.innerHTML = platformLegacy.skeleton();
     const routes2 = Promise.resolve(callRpc("rutas_uso_resumen", {})).catch(() => ({ data: null }));
     const { data, error } = await callRpc("estado_plataforma", {});
     if (!stillOnTab("estado")) return;
@@ -45932,9 +47479,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (saved3) notices.toast(t(on6 ? "portal.settings.prepaymentOn" : "portal.settings.prepaymentOff"));
   }
   async function paintPortalSettings() {
-    const start2 = document.getElementById("cfgcuerpo");
-    if (!start2) return;
-    start2.innerHTML = `<div class="card">${portalPageLegacy.skeletonCard(t("common.loading"))}</div>`;
+    const start4 = document.getElementById("cfgcuerpo");
+    if (!start4) return;
+    start4.innerHTML = `<div class="card">${portalPageLegacy.skeletonCard(t("common.loading"))}</div>`;
     const [{ data: catalog2 }, { data: allowed2 }, setting] = await Promise.all([
       legacyDb().rpc("catalogo_papel", { p_papel: "material_visita" }),
       callRpc("portal_material_permitido", {}),
@@ -45946,8 +47493,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div class="sm">${t("portal.settings.subtitle", { theProfessionals: term("medico", { number: "p", article: "el" }) })}</div></div></div>
     ${materialHtml(catalog2 ?? [], Array.isArray(allowed2) ? allowed2 : [], Boolean(setting.material))}</div>
   ${prepaymentHtml(Boolean(setting.pago_anticipado))}`;
-    const save44 = document.getElementById("cfpok");
-    if (save44) save44.onclick = () => {
+    const save46 = document.getElementById("cfpok");
+    if (save46) save46.onclick = () => {
       void saveMaterial(box5, setting);
     };
     const savePay = document.getElementById("cfpantok");
@@ -46345,10 +47892,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     viewIndex = Math.max(0, VIEWS.findIndex((view) => view.key === localStorage.getItem(STORAGE_KEY)));
   } catch {
   }
-  function paint14() {
-    const body2 = document.getElementById("tvcuerpo"), view = VIEWS[viewIndex];
-    if (!body2 || !shown2 || !view) return;
-    body2.innerHTML = view.paint(shown2);
+  function paint16() {
+    const body3 = document.getElementById("tvcuerpo"), view = VIEWS[viewIndex];
+    if (!body3 || !shown2 || !view) return;
+    body3.innerHTML = view.paint(shown2);
     const subtitle3 = document.getElementById("tvsub");
     if (subtitle3) subtitle3.textContent = t(view.subtitle, { ...words10(), from: formatShortDate(shown2.desde), to: formatShortDate(shown2.hasta), days: shown2.dias ?? DEFAULT_DAYS2 });
     const position = document.getElementById("tvpos");
@@ -46370,7 +47917,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     shown2 = data;
     if (!data?.resumen) return;
     box5.insertAdjacentHTML("afterbegin", cardHtml8(data.dias ?? DEFAULT_DAYS2));
-    paint14();
+    paint16();
   }
   function listenToVisitOrdersViews() {
     document.addEventListener("click", (event) => {
@@ -46381,7 +47928,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         localStorage.setItem(STORAGE_KEY, VIEWS[viewIndex]?.key ?? "");
       } catch {
       }
-      paint14();
+      paint16();
     });
   }
 
@@ -46576,8 +48123,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       await saveConfig(config);
       onSaved();
     };
-    const close4 = popover.querySelector(".x");
-    if (close4) close4.onclick = () => {
+    const close5 = popover.querySelector(".x");
+    if (close5) close5.onclick = () => {
       popover.remove();
     };
     const on6 = (id, action) => {
@@ -46790,7 +48337,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const box5 = dialog8();
     if (box5) box5.dataset.sucio = "1";
   };
-  function rowHtml28(setting, index, kpi) {
+  function rowHtml29(setting, index, kpi) {
     const filter = filterText3(setting.f);
     return `<label class="anpf"><span class="vfswitch mini"><input type="checkbox" data-anon="${index}" ${setting.on ? "checked" : ""}><span class="sw"></span></span>
             <span class="tx"><b>${escapeHtml(setting.t || kpiTitle(kpi))}</b><span class="sm">${escapeHtml(filter || kpiHelp(kpi))}</span></span>
@@ -46799,39 +48346,39 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function areaHtml(family, draft, kpis) {
     const rows2 = draft.map((setting, index) => [setting, index]).map(([setting, index]) => {
       const kpi = kpis.find((item) => item.id === setting.id);
-      return kpi && kpi.fam === family && kpiVisible(kpi) ? rowHtml28(setting, index, kpi) : "";
+      return kpi && kpi.fam === family && kpiVisible(kpi) ? rowHtml29(setting, index, kpi) : "";
     }).join("");
     return `<div class="blk anpers"><h3>${escapeHtml(familyName(family))}</h3>
         ${rows2}</div>`;
   }
-  function paint15(draft, kpis, onSaved) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = `<div class="fh"><div><h2>${t("panels.customise.title")}</h2>
+  function paint17(draft, kpis, onSaved) {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${t("panels.customise.title")}</h2>
         <div class="sm">${t("panels.customise.subtitle")}</div></div>
         <button class="x" data-cerrar aria-label="${t("panels.customise.close")}">✕</button></div>
       ${FAMILIES.filter(([family]) => familyVisible(family)).map(([family]) => areaHtml(family, draft, kpis)).join("")}
       <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="anres0">${t("panels.customise.reset")}</button><button class="btn" id="anpok">${t("panels.customise.save")}</button></div>`;
-    body2.querySelectorAll("[data-anon]").forEach((box5) => {
+    body3.querySelectorAll("[data-anon]").forEach((box5) => {
       box5.onchange = () => {
         const setting = draft[Number(box5.dataset.anon)];
         if (setting) setting.on = box5.checked;
         markChanged();
       };
     });
-    body2.querySelectorAll("[data-andel]").forEach((button2) => {
+    body3.querySelectorAll("[data-andel]").forEach((button2) => {
       button2.onclick = (event) => {
         event.preventDefault();
         draft.splice(Number(button2.dataset.andel), 1);
         markChanged();
-        paint15(draft, kpis, onSaved);
+        paint17(draft, kpis, onSaved);
       };
     });
     const reset4 = document.getElementById("anres0");
     if (reset4) reset4.onclick = () => {
       draft.splice(0, draft.length, ...defaultSettings());
       markChanged();
-      paint15(draft, kpis, onSaved);
+      paint17(draft, kpis, onSaved);
     };
     const ok = document.getElementById("anpok");
     if (ok) ok.onclick = async () => {
@@ -46851,7 +48398,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function customise(onSaved) {
     analyticsState.config = analyticsState.config ?? loadConfig();
     const draft = analyticsState.config.kpis.map((setting) => ({ ...setting }));
-    paint15(draft, catalogue(), onSaved);
+    paint17(draft, catalogue(), onSaved);
     dialog8()?.showModal();
   }
 
@@ -46879,8 +48426,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ]);
     return { sales, top, activity, funnel: funnel2 };
   }
-  var card2 = (title2, body2, read4, wide = false) => `<div class="card ancard${wide ? " ancha" : ""}"><h2>${title2}</h2>
-      ${body2}
+  var card2 = (title2, body3, read4, wide = false) => `<div class="card ancard${wide ? " ancha" : ""}"><h2>${title2}</h2>
+      ${body3}
       <p class="leer">${read4}</p></div>`;
   function salesCards(charts, months2, bySales) {
     const units2 = charts.sales.totales?.unidades ?? 0, products3 = charts.sales.por_producto ?? [], top = charts.top.filter((row4) => row4.clave !== "sin");
@@ -46994,14 +48541,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
   }
   async function paintSummary2() {
-    const body2 = document.getElementById("anres");
-    if (!body2) return;
+    const body3 = document.getElementById("anres");
+    if (!body3) return;
     if (!salesTeam.members().length && permissions.seesEverything()) await salesTeam.load();
     analyticsState.config = loadConfig();
     document.querySelectorAll('#v-analitica .htpropios [data-anp="resumen"]').forEach((item) => {
       item.remove();
     });
-    body2.innerHTML = summaryHtml7(analyticsState.config.comp);
+    body3.innerHTML = summaryHtml7(analyticsState.config.comp);
     bindSummary();
     paintFigures();
     moveFilters();
@@ -47248,10 +48795,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       notices.toast(t("visit.photos.couldNotOpen"), true);
       return;
     }
-    const photos = data ?? [], body2 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
-    if (!body2 || !box5) return;
-    body2.innerHTML = galleryHtml(photos);
-    body2.querySelectorAll("[data-vfdel]").forEach((button2) => {
+    const photos = data ?? [], body3 = document.getElementById("dlg2body"), box5 = document.getElementById("dlg2");
+    if (!body3 || !box5) return;
+    body3.innerHTML = galleryHtml(photos);
+    body3.querySelectorAll("[data-vfdel]").forEach((button2) => {
       button2.onclick = () => {
         void deletePhoto(button2.dataset.vfdel ?? "", activityId, accountId);
       };
@@ -47283,7 +48830,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     return URL.createObjectURL(new Blob([bytes], { type: material.tipo }));
   }
-  function close2() {
+  function close3() {
     showing?.urls.forEach((url) => {
       URL.revokeObjectURL(url);
     });
@@ -47308,7 +48855,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     visitLegacy.materialFiles().set(material.id, data.datos);
     return data.datos;
   }
-  async function paint16() {
+  async function paint18() {
     const current = showing;
     if (!current) return;
     const material = current.list[current.index], box5 = document.getElementById("prescuerpo");
@@ -47324,12 +48871,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     current.urls.push(url);
     box5.innerHTML = material.tipo === "application/pdf" ? `<iframe class="prespdf" src="${url}" title="${escapeHtml(material.nombre)}"></iframe>` : `<img class="presimg" src="${url}" alt="${escapeHtml(material.nombre)}">`;
   }
-  function move2(step) {
+  function move3(step) {
     if (!showing) return;
     const index = showing.index + step;
     if (index < 0 || index >= showing.list.length) return;
     showing.index = index;
-    void paint16();
+    void paint18();
   }
   function dialog9() {
     if (!document.getElementById("presenta")) document.body.insertAdjacentHTML("beforeend", `<dialog id="presenta" class="presdlg" aria-label="${t("visit.presentation.label")}"></dialog>`);
@@ -47346,23 +48893,23 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       const button2 = document.getElementById(id);
       if (button2) button2.onclick = action;
     };
-    on6("prescerrar", close2);
+    on6("prescerrar", close3);
     on6("presant", () => {
-      move2(-1);
+      move3(-1);
     });
     on6("pressig", () => {
-      move2(1);
+      move3(1);
     });
     box5.oncancel = (event) => {
       event.preventDefault();
-      close2();
+      close3();
     };
     box5.onkeydown = (event) => {
-      if (event.key === "ArrowRight") move2(1);
-      if (event.key === "ArrowLeft") move2(-1);
+      if (event.key === "ArrowRight") move3(1);
+      if (event.key === "ArrowLeft") move3(-1);
     };
     box5.showModal();
-    void paint16();
+    void paint18();
   }
   function presentProduct(productId) {
     const list = materialsOf(productId);
@@ -47443,10 +48990,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div class="opciones">${group.valores.map((value27) => button(index, group, value27, false)).join("")}</div>`).join("")}`;
   }
   function sampleRow(sample) {
-    const available = sample.en_plazo && sample.quedan;
+    const available2 = sample.en_plazo && sample.quedan;
     const text5 = !sample.en_plazo ? t("visit.samples.expired", { date: formatShortDate(sample.hasta ?? "") }) : t("visit.samples.left", { left: sample.quedan, max: sample.max }) + (sample.hasta ? t("visit.samples.until", { date: formatShortDate(sample.hasta) }) : "");
-    return `<div class="vmrow ${available ? "" : "agotada"}"><span><b>${escapeHtml(sample.nombre)}</b><span class="sm">${text5}</span></span>
-      <input type="number" min="0" max="${sample.en_plazo ? sample.quedan : 0}" step="1" value="0" data-vmprod="${sample.producto_id}" aria-label="${t("visit.samples.of", { name: escapeHtml(sample.nombre) })}" ${available ? "" : "disabled"}></div>`;
+    return `<div class="vmrow ${available2 ? "" : "agotada"}"><span><b>${escapeHtml(sample.nombre)}</b><span class="sm">${text5}</span></span>
+      <input type="number" min="0" max="${sample.en_plazo ? sample.quedan : 0}" step="1" value="0" data-vmprod="${sample.producto_id}" aria-label="${t("visit.samples.of", { name: escapeHtml(sample.nombre) })}" ${available2 ? "" : "disabled"}></div>`;
   }
   function samplesHtml(samples3, name) {
     if (!samples3.length) return "";
@@ -47502,9 +49049,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     operationId = null;
   };
   var value22 = (id) => document.getElementById(id)?.value ?? "";
-  function details(body2, marked, index) {
+  function details(body3, marked, index) {
     return marked.map((key) => {
-      const field20 = body2.querySelector(`[data-dato="${CSS.escape(key)}"]`), extra = field20 ? field20.value.trim() : "";
+      const field20 = body3.querySelector(`[data-dato="${CSS.escape(key)}"]`), extra = field20 ? field20.value.trim() : "";
       const info = index.get(key);
       return { clasificador: info?.group ?? "", valor: info?.value.valor ?? "", ...extra ? { dato: extra } : {} };
     });
@@ -47536,9 +49083,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function saveVisit(visit2, button2) {
     const { id, account, index, resultsKey } = visit2;
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    const marked = [...body2.querySelectorAll("[data-vk][aria-pressed=true]")].map((item) => item.dataset.vk ?? "");
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    const marked = [...body3.querySelectorAll("[data-vk][aria-pressed=true]")].map((item) => item.dataset.vk ?? "");
     const isResult = (key) => index.get(key)?.group === resultsKey;
     const results = marked.filter(isResult).map((key) => index.get(key)?.value.valor ?? "");
     if (!results.length) {
@@ -47547,7 +49094,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     button2.disabled = true;
     button2.textContent = t("visit.edit.saving");
-    const { data, error } = await visitLegacy.writeRpc("registrar_actividad", { p: payload8(id, results, details(body2, marked, index)) });
+    const { data, error } = await visitLegacy.writeRpc("registrar_actividad", { p: payload8(id, results, details(body3, marked, index)) });
     button2.disabled = false;
     button2.textContent = t("visit.record.save", { visit: term("visita") });
     if (error) {
@@ -47564,21 +49111,21 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/visit/record/index.ts
   var REPORTING = /reporting/i;
-  function bindResults(body2, visit2) {
-    body2.querySelectorAll("[data-vk]").forEach((button2) => {
+  function bindResults(body3, visit2) {
+    body3.querySelectorAll("[data-vk]").forEach((button2) => {
       button2.onclick = () => {
         const key = button2.dataset.vk ?? "", on6 = pressed(button2);
         if (visit2.index.get(key)?.group === visit2.resultsKey) {
           const negative = button2.dataset.neg === "1";
-          body2.querySelectorAll("[data-res]").forEach((other) => {
+          body3.querySelectorAll("[data-res]").forEach((other) => {
             if ((negative || other.dataset.neg === "1") && other !== button2) {
               other.setAttribute("aria-pressed", "false");
-              body2.querySelector(`[data-box="${CSS.escape(other.dataset.vk ?? "")}"]`)?.classList.add("hide");
+              body3.querySelector(`[data-box="${CSS.escape(other.dataset.vk ?? "")}"]`)?.classList.add("hide");
             }
           });
         }
         button2.setAttribute("aria-pressed", String(!on6));
-        const box5 = body2.querySelector(`[data-box="${CSS.escape(key)}"]`);
+        const box5 = body3.querySelector(`[data-box="${CSS.escape(key)}"]`);
         if (box5) {
           box5.classList.toggle("hide", on6);
           if (!on6) {
@@ -47592,12 +49139,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
     const more2 = document.getElementById("vtodos");
     if (more2) more2.onclick = () => {
-      body2.classList.add("vertodos");
+      body3.classList.add("vertodos");
       more2.remove();
     };
   }
-  function bindModeAndProducts(body2, draft) {
-    const modes = body2.querySelectorAll("[data-vmodo]");
+  function bindModeAndProducts(body3, draft) {
+    const modes = body3.querySelectorAll("[data-vmodo]");
     modes.forEach((button2) => {
       button2.onclick = () => {
         draft.modo = button2.dataset.vmodo ?? "presencial";
@@ -47607,23 +49154,23 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         });
       };
     });
-    body2.querySelectorAll("[data-vprod]").forEach((button2) => {
+    body3.querySelectorAll("[data-vprod]").forEach((button2) => {
       button2.onclick = () => {
         togglePressed(button2);
-        draft.productos = [...body2.querySelectorAll("[data-vprod][aria-pressed=true]")].map((item) => item.dataset.vprod ?? "");
+        draft.productos = [...body3.querySelectorAll("[data-vprod][aria-pressed=true]")].map((item) => item.dataset.vprod ?? "");
       };
     });
-    body2.querySelectorAll("[data-vpres]").forEach((button2) => {
+    body3.querySelectorAll("[data-vpres]").forEach((button2) => {
       button2.onclick = () => {
         presentProduct(button2.dataset.vpres ?? "");
       };
     });
   }
   function bindPhotos(draft) {
-    const paint20 = () => {
+    const paint22 = () => {
       paintPhotos(document.getElementById("vfotos"), draft.fotos, (index) => {
         draft.fotos.splice(index, 1);
-        paint20();
+        paint22();
       });
     };
     const input10 = document.getElementById("vfotof");
@@ -47637,19 +49184,19 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         if (photo) draft.fotos.push(photo);
       }
       input10.value = "";
-      paint20();
+      paint22();
     };
   }
-  function bindSamples(body2, samples3, draft) {
+  function bindSamples(body3, samples3, draft) {
     if (!samples3.length) return;
     let pad3 = null;
-    const items = () => [...body2.querySelectorAll("[data-vmprod]")].map((input10) => ({ producto_id: input10.dataset.vmprod ?? "", unidades: Math.max(0, Math.floor(Number(input10.value) || 0)), max: Number(input10.max) })).filter((item) => item.unidades > 0);
+    const items = () => [...body3.querySelectorAll("[data-vmprod]")].map((input10) => ({ producto_id: input10.dataset.vmprod ?? "", unidades: Math.max(0, Math.floor(Number(input10.value) || 0)), max: Number(input10.max) })).filter((item) => item.unidades > 0);
     const show3 = () => {
       const any = items().length > 0, canvas = document.getElementById("vmcanvas");
       document.getElementById("vmfirma")?.classList.toggle("hide", !any);
       if (any && !pad3 && canvas) pad3 = visitLegacy.signaturePad(canvas);
     };
-    body2.querySelectorAll("[data-vmprod]").forEach((input10) => {
+    body3.querySelectorAll("[data-vmprod]").forEach((input10) => {
       input10.addEventListener("input", show3);
     });
     const clear = document.getElementById("vmborrar");
@@ -47692,23 +49239,23 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const first2 = box5.querySelector(".chips, [data-res]"), container = first2?.classList.contains("chips") ? first2 : first2?.parentElement;
     container?.insertAdjacentHTML("afterend", `<p class="sm srnota">${t("visit.record.noReporting", { professional: term("medico", { article: "este", articleCapital: "C" }), visit: term("visita") })}</p>`);
   }
-  function paint17(id, data, date) {
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
+  function paint19(id, data, date) {
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
     const index = /* @__PURE__ */ new Map(), resultsKey = splitGroups(data.groups).results.clave;
-    body2.classList.remove("vertodos");
-    body2.innerHTML = visitHtml2(data, index);
+    body3.classList.remove("vertodos");
+    body3.innerHTML = visitHtml2(data, index);
     const draft = { id, modo: "presencial", fotos: [], ...data.products.length ? { productos: [] } : {} };
     visitLegacy.setCurrent(draft);
     const visit2 = { id, account: data.account, index, resultsKey };
-    bindResults(body2, visit2);
-    bindModeAndProducts(body2, draft);
+    bindResults(body3, visit2);
+    bindModeAndProducts(body3, draft);
     bindPhotos(draft);
-    bindSamples(body2, data.samples, draft);
+    bindSamples(body3, data.samples, draft);
     applyDateRules(date);
-    const save44 = document.getElementById("vguardar");
-    if (save44) save44.onclick = () => {
-      void saveVisit(visit2, save44);
+    const save46 = document.getElementById("vguardar");
+    if (save46) save46.onclick = () => {
+      void saveVisit(visit2, save46);
     };
     box5.showModal();
     if (data.noReporting) hideReporting(box5);
@@ -47722,7 +49269,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         notices.toast(t("visit.record.couldNotOpen", { reason: t(data === "online" ? "visit.record.cardUnreadable" : "visit.record.noCopy") }), true);
         return;
       }
-      paint17(id, data, date);
+      paint19(id, data, date);
     });
   }
 
@@ -47753,9 +49300,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function editSamples() {
     const [, products3] = await Promise.all([cycleLegacy.loadSettings(), visitLegacy.reloadProducts()]);
     const setting = { producto_id: null, restar_stock: false, ...cycleLegacy.setting("muestras") };
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = samplesHtml2(setting, products3);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = samplesHtml2(setting, products3);
     box5.showModal();
     const ok = document.getElementById("muok");
     if (ok) ok.onclick = () => {
@@ -47845,7 +49392,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/commissions/scheme-people.ts
   var block = (inner) => `<div class="blk" id="esqpers"><h3>${t("commissions.people.title")}</h3>${inner}</div>`;
-  function rowHtml29(item, admin) {
+  function rowHtml30(item, admin) {
     const state2 = assignmentState(item), today2 = todayIso();
     const since2 = item.desde <= ALL_HISTORY ? t("commissions.people.allHistory") : t("commissions.people.since", { date: formatShortDate(item.desde) });
     return `<div class="esqfila"><span class="candado" title="${t("commissions.people.locked")}">🔒</span>
@@ -47914,7 +49461,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const list = document.getElementById("esqlista");
     if (!list) return;
     const assignments = (data ?? []).filter((item) => item.esquema_id === schemeId), admin = cardSectionsLegacy.can("administrar");
-    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml29(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
+    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml30(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
     ${admin ? addHtml2() : ""}`;
     if (admin) bind29(schemeId, list, () => {
       void paintList5(schemeId);
@@ -48001,9 +49548,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       });
     }
     paint() {
-      const body2 = document.getElementById("dbody");
-      if (!body2) return;
-      body2.innerHTML = this.html();
+      const body3 = document.getElementById("dbody");
+      if (!body3) return;
+      body3.innerHTML = this.html();
       const calculation = document.getElementById("ecalc");
       if (calculation) calculation.onchange = () => {
         this.read();
@@ -48018,7 +49565,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         this.addTier();
         this.paint();
       };
-      body2.querySelectorAll("[data-tx]").forEach((button2) => {
+      body3.querySelectorAll("[data-tx]").forEach((button2) => {
         button2.onclick = () => {
           this.read();
           this.tiers.splice(Number(button2.dataset.tx), 1);
@@ -48026,9 +49573,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         };
       });
       void paintSchemePeople(this.id);
-      const save44 = document.getElementById("eguardaresq");
-      if (save44) save44.onclick = () => {
-        void this.save(save44);
+      const save46 = document.getElementById("eguardaresq");
+      if (save46) save46.onclick = () => {
+        void this.save(save46);
       };
     }
     addTier() {
@@ -48077,7 +49624,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/commissions/settlements.ts
   var settlementFilters = { person: "", month: "" };
-  var rowHtml30 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
+  var rowHtml31 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
       <span class="ic ${item.estado === SETTLEMENT.paid ? "o" : ""}">${item.estado === SETTLEMENT.draft ? "○" : "✓"}</span>
       <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${t("commissions.page.settlementLine", { period: formatMonth(item.periodo), units: formatNumber(item.unidades), amount: formatCurrency(item.importe), state: escapeHtml(item.estado) })}</span></span>
       <span class="acts" style="margin:0">
@@ -48112,11 +49659,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     repaint5();
   }
   function paintSettlements(list, all2, repaint5) {
-    const paint20 = () => {
+    const paint22 = () => {
       const shown5 = all2.filter((item) => (!settlementFilters.person || item.usuario_id === settlementFilters.person) && (!settlementFilters.month || item.periodo === settlementFilters.month));
       const result = document.getElementById("liqres");
       if (result) result.textContent = summary4(shown5);
-      list.innerHTML = shown5.map(rowHtml30).join("") || `<div class="vacio">${t(all2.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
+      list.innerHTML = shown5.map(rowHtml31).join("") || `<div class="vacio">${t(all2.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
       list.querySelectorAll("[data-liq]").forEach((button2) => {
         button2.onclick = () => {
           void settle2(button2, repaint5);
@@ -48126,13 +49673,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const person = document.getElementById("liqfu"), month = document.getElementById("liqfp");
     if (person) person.onchange = () => {
       settlementFilters.person = person.value;
-      paint20();
+      paint22();
     };
     if (month) month.onchange = () => {
       settlementFilters.month = month.value;
-      paint20();
+      paint22();
     };
-    paint20();
+    paint22();
   }
   function resultText2(period, done2, closed, failed4) {
     const doneText2 = done2 === 1 ? t("commissions.calculate.oneDone") : t("commissions.calculate.done", { count: done2 });
@@ -48140,7 +49687,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return doneText2 + t("commissions.calculate.ofPeriod", { period: formatMonth(period) }) + kept + (failed4 ? t("commissions.calculate.failed", { count: failed4 }) : "");
   }
   async function toCalculate(period) {
-    const start2 = `${period}-01`, end = monthEnd(period), ids = new Set(schemes2().map((scheme) => scheme.id));
+    const start4 = `${period}-01`, end = monthEnd(period), ids = new Set(schemes2().map((scheme) => scheme.id));
     const [{ data: assignments, error }, { data: existing }] = await Promise.all([
       legacyDb().from("asignaciones_comision").select("usuario_id,esquema_id,desde,hasta"),
       callRpc("liquidaciones_lista", { p_periodo: period })
@@ -48150,7 +49697,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return null;
     }
     const closed = new Set((existing ?? []).filter((item) => item.estado !== SETTLEMENT.draft).map((item) => item.usuario_id));
-    const users = [...new Set((assignments ?? []).filter((item) => ids.has(item.esquema_id) && (!item.desde || item.desde <= end) && (!item.hasta || item.hasta >= start2)).map((item) => item.usuario_id))];
+    const users = [...new Set((assignments ?? []).filter((item) => ids.has(item.esquema_id) && (!item.desde || item.desde <= end) && (!item.hasta || item.hasta >= start4)).map((item) => item.usuario_id))];
     if (!users.length) {
       notices.toast(t("commissions.calculate.nobody", { period: formatMonth(period) }), true);
       return null;
@@ -48223,14 +49770,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       legacyDb().rpc("liquidaciones_lista", { p_periodo: null })
     ]);
     commissionsLegacy.setSchemes(found ?? []);
-    const body2 = document.getElementById("admcuerpo");
-    if (!body2) return;
-    body2.innerHTML = pageHtml15(settlements ?? []);
+    const body3 = document.getElementById("admcuerpo");
+    if (!body3) return;
+    body3.innerHTML = pageHtml15(settlements ?? []);
     const add2 = document.getElementById("esqnuevo");
     if (add2) add2.onclick = () => {
       editScheme(null, repaint4);
     };
-    body2.querySelectorAll("[data-esq]").forEach((button2) => {
+    body3.querySelectorAll("[data-esq]").forEach((button2) => {
       button2.onclick = () => {
         editScheme(button2.dataset.esq ?? null, repaint4);
       };
@@ -48313,7 +49860,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (currentScreen() === "pacientes") customersLegacy.repaintList();
   }
   function bind30(id, customer, professional) {
-    const body2 = sheetBody(), on6 = (elementId, action) => {
+    const body3 = sheetBody(), on6 = (elementId, action) => {
       const button2 = document.getElementById(elementId);
       if (button2) button2.onclick = action;
     };
@@ -48321,12 +49868,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       customersLegacy.setShownCustomer(null);
       sheetBox()?.close();
     });
-    body2?.querySelectorAll("[data-fpped]").forEach((button2) => {
+    body3?.querySelectorAll("[data-fpped]").forEach((button2) => {
       button2.onclick = () => {
         appLegacy.openOrder(button2.dataset.fpped ?? "");
       };
     });
-    const shownProfessional = body2?.querySelector("[data-fpmed]");
+    const shownProfessional = body3?.querySelector("[data-fpmed]");
     if (shownProfessional) shownProfessional.onclick = () => {
       customersLegacy.setShownCustomer(null);
       agendaActions.openAccount(shownProfessional.dataset.fpmed ?? "");
@@ -48353,27 +49900,27 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function paintSheet(id) {
     customersLegacy.setShownCustomer(id);
     customersLegacy.forgetShownAccount();
-    const body2 = sheetBody(), box5 = sheetBox();
-    if (!body2 || !box5) return;
-    body2.innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
+    const body3 = sheetBody(), box5 = sheetBox();
+    if (!body3 || !box5) return;
+    body3.innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
     if (!box5.open) box5.showModal();
     const { data } = await callRpc("contacto_detalle", { p_id: id });
     if (customersLegacy.shownCustomer() !== id) return;
     if (!data?.contacto) {
-      body2.innerHTML = `<div class="vacio">${t("customers.sheet.notFound", { thePatient: term("paciente", { article: "el" }) })}</div>`;
+      body3.innerHTML = `<div class="vacio">${t("customers.sheet.notFound", { thePatient: term("paciente", { article: "el" }) })}</div>`;
       return;
     }
     const canSell2 = customersLegacy.canSell();
-    body2.innerHTML = sheetHtml7(data, data.contacto, canSell2);
+    body3.innerHTML = sheetHtml7(data, data.contacto, canSell2);
     bind30(id, data.contacto, data.medico);
   }
   async function addStatusButtons(id) {
-    const body2 = sheetBody();
-    if (!body2 || customersLegacy.shownCustomer() !== id || document.getElementById("cbajablk") || !customersLegacy.canSell()) return;
+    const body3 = sheetBody();
+    if (!body3 || customersLegacy.shownCustomer() !== id || document.getElementById("cbajablk") || !customersLegacy.canSell()) return;
     const { data: customer } = await legacyDb().from("contactos").select("archivado_en").eq("id", id).maybeSingle();
     if (!customer || customersLegacy.shownCustomer() !== id) return;
     const toggle4 = customer.archivado_en ? `<button type="button" class="btn sec chico" data-calta="${id}">${t("customers.sheet.reactivate")}</button>` : `<button type="button" class="btn sec chico" data-cbaja="${id}">${t("customers.sheet.deactivate")}</button>`;
-    body2.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="cbajablk"><div class="acts">
+    body3.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="cbajablk"><div class="acts">
       ${toggle4}
       ${permissions.salesLevel() >= FULL_SALES_LEVEL ? `<button type="button" class="btn sec dang chico" data-celim="${id}">${t("customers.sheet.delete", { thePatient: escapeHtml(term("paciente", { article: "el" })) })}</button>` : ""}</div></div>`);
   }
@@ -48391,12 +49938,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var SEARCH_WAIT_MS11 = 300;
   var empty = '<span class="vac">—</span>';
   var shown3 = (value27) => value27 ? escapeHtml(value27) : empty;
-  function headerHtml11(fields) {
+  function headerHtml12(fields) {
     const titles = [t("customers.list.customer"), t("customers.list.type"), t("customers.list.taxId"), t("customers.list.phone"), t("customers.list.email"), t("customers.list.town")];
     return `<div class="dh">${titles.map((title2) => `<span>${title2}</span>`).join("")}
       <span>${words9().Professional}</span><span>${t("customers.list.salesRep")}</span><span class="num">${t("customers.list.orders")}</span><span class="num">${t("customers.list.units")}</span><span>${t("customers.list.lastOrder")}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
   }
-  function rowHtml31(row4, fields) {
+  function rowHtml32(row4, fields) {
     const company = row4.tipo === TYPES.company, values2 = row4.clasificadores ?? {};
     return `<button class="dr" data-pac="${row4.id}">
       <span><b>${escapeHtml(row4.nombre)}</b></span>
@@ -48413,8 +49960,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     count2.innerHTML = `<b>${formatNumber(page.total)}</b> ${page.total === 1 ? t("customers.list.oneCustomer") : t("customers.list.customers")}`;
     const rows2 = page.filas ?? [], fields = customersLegacy.visibleFieldColumns();
     list.innerHTML = rows2.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
-    ${headerHtml11(fields)}
-    ${rows2.map((row4) => rowHtml31(row4, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
+    ${headerHtml12(fields)}
+    ${rows2.map((row4) => rowHtml32(row4, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
     customersLegacy.widenGrid(list.querySelector(".dgrid.pacs"), fields.length);
     list.querySelectorAll("[data-pac]").forEach((button2) => {
       button2.onclick = () => {
@@ -48466,7 +50013,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       </div>`;
   }
   var searchTimer5;
-  function bindFilters2(body2) {
+  function bindFilters2(body3) {
     const filters3 = customersLegacy.filters(), again = () => {
       filters3.pagina = 0;
       void listCustomers();
@@ -48495,7 +50042,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     onSelect("pacmun", (value27) => {
       filters3.municipio = value27;
     });
-    customersLegacy.bindFieldFilters(body2, filters3.campos ?? {}, again);
+    customersLegacy.bindFieldFilters(body3, filters3.campos ?? {}, again);
     const professional = document.getElementById("pacmedx");
     if (professional) professional.onclick = () => {
       filters3.medico = null;
@@ -48506,16 +50053,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function paintCustomers() {
     const [{ data: towns }, list] = await Promise.all([legacyDb().rpc("municipios_clientes"), legacyDb().rpc("clientes_lista", listParams())]);
-    const body2 = document.getElementById("vcuerpo");
-    if (!body2) return;
-    body2.innerHTML = `
+    const body3 = document.getElementById("vcuerpo");
+    if (!body3) return;
+    body3.innerHTML = `
     <div class="panel">
       ${filtersHtml4(towns ?? [])}
       <div class="cuenta" id="paccuenta">${t("customers.list.loading")}</div>
       <div id="paclista"></div>
       <div id="pacpag"></div>
     </div>`;
-    bindFilters2(body2);
+    bindFilters2(body3);
     await listCustomers(Promise.resolve(list));
   }
   function loadCustomers() {
@@ -48644,7 +50191,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="acts" style="margin-top:8px"><button type="button" class="btn sec" id="kosolo">${t("opportunities.callRecord.callOnly")}</button></div>
   </details>`;
   }
-  function onClick4(event) {
+  function onClick6(event) {
     const target = event.target;
     const reason = target.closest("[data-kom]"), result = target.closest("[data-kor]"), days = target.closest("[data-kold]");
     const reasons = document.getElementById("kolmot"), results = document.getElementById("kolres");
@@ -48671,7 +50218,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       results.innerHTML = chipsHtml(catalog("resultado_llamada"), chosen4.resultado, "data-kor");
     });
     const block4 = document.getElementById("kollam");
-    if (block4) block4.onclick = onClick4;
+    if (block4) block4.onclick = onClick6;
   }
   function readCallRecord() {
     if (!document.getElementById("kollam")) return null;
@@ -49021,7 +50568,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (error) return t("opportunities.editor.couldNotSaveError", { error: error.message ?? "" });
     return t(result?.motivo === "extra" ? "opportunities.editor.noExtra" : "opportunities.editor.couldNotSave");
   }
-  async function save37(draft, result) {
+  async function save39(draft, result) {
     const { data, error } = await legacyDb().rpc("guardar_llamada", { p: payload10(draft, result) });
     if (error || !data || data.ok === false) {
       notices.toast(failure4(error, data), true);
@@ -49038,7 +50585,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     button2.disabled = true;
     let saved3 = null;
     if (draft.recording) {
-      saved3 = await save37(draft, "");
+      saved3 = await save39(draft, "");
       if (!saved3) {
         button2.disabled = false;
         return;
@@ -49067,7 +50614,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     button2.disabled = true;
-    const saved3 = await save37(draft, draft.result);
+    const saved3 = await save39(draft, draft.result);
     button2.disabled = false;
     if (!saved3) return;
     closeWindow2();
@@ -49076,7 +50623,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function saveChanges(draft) {
     const result = draft.closed ? orFallback(draft.source.resultado, ORDER_DONE) : draft.noSale ? draft.result : "";
-    if (!await save37(draft, result)) return;
+    if (!await save39(draft, result)) return;
     closeWindow2();
     notices.toast(t("opportunities.editor.saved"));
     refreshList();
@@ -49108,8 +50655,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (client2?.cuenta_id) return { id: client2.cuenta_id, nombre: orFallback(client2.medico, term("medico", { capital: "C" })) };
     return null;
   }
-  function draftOf2(start2, previous) {
-    const now = (/* @__PURE__ */ new Date()).toISOString(), source = { fecha: now, ...start2 };
+  function draftOf2(start4, previous) {
+    const now = (/* @__PURE__ */ new Date()).toISOString(), source = { fecha: now, ...start4 };
     if (!source.fecha) source.fecha = now;
     const recording = permissions.hasOpportunities(), client2 = clientOf(source);
     const lines4 = (source.interes ?? []).map((line3) => ({ producto_id: line3.producto_id, unidades: line3.unidades }));
@@ -49164,13 +50711,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       document.getElementById("nvnoz")?.classList.toggle("hide", !draft.noSale);
     };
   }
-  async function editOpportunity(start2, previous = null) {
+  async function editOpportunity(start4, previous = null) {
     await opportunitiesLegacy.loadProducts();
     if (permissions.hasOpportunities()) await loadOpportunityCatalogs();
-    const draft = draftOf2(start2, previous);
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml15(draft);
+    const draft = draftOf2(start4, previous);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml15(draft);
     box5.showModal();
     paintClient(draft);
     if (draft.recording) {
@@ -49216,7 +50763,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const max = Math.max(1, ...items.map((item) => item.t));
     return `<div class="barrash">${items.map((item) => ratioRow(item, max)).join("")}</div>`;
   };
-  var card3 = (id, title2, body2, read4) => `<div class="card ancard" id="${id}"><h2>${title2}</h2>${body2}<p class="leer">${read4}</p></div>`;
+  var card3 = (id, title2, body3, read4) => `<div class="card ancard" id="${id}"><h2>${title2}</h2>${body3}<p class="leer">${read4}</p></div>`;
   var ratiosOr = (list, toRatio, empty2) => (list ?? []).length ? ratioBars((list ?? []).map(toRatio)) : opportunitiesLegacy.emptyChart(empty2);
   var words13 = () => ({
     professional: term("medico"),
@@ -49242,7 +50789,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (call2.proxima_fecha < today2) return "background:#FDECEC;color:var(--dang)";
     return call2.proxima_fecha === today2 ? "background:#FFF4E5;color:var(--warn)" : "";
   }
-  function rowHtml32(call2, today2) {
+  function rowHtml33(call2, today2) {
     const phone = orFallback(call2.tel_cliente, orFallback(call2.telefono, ""));
     const details2 = `${whenHtml(call2, today2)}${escapeHtml(orFallback(call2.resultado, ""))}${call2.proxima_accion ? ` · ${escapeHtml(call2.proxima_accion)}` : ""}${call2.medico ? t("opportunities.list.fromReference", { name: escapeHtml(call2.medico) }) : ""}`;
     return `<div class="item" style="cursor:default">
@@ -49258,7 +50805,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!box5) return;
     box5.innerHTML = !list.length ? "" : `<div class="card" id="llsegs"><h2>${t("opportunities.list.callAgainTitle")}<span class="n">${list.length}</span></h2>
       <p class="sm" style="padding:0 16px">${t("opportunities.list.callAgainHint")}</p>
-      <div class="lista">${list.slice(0, SHOWN6).map((call2) => rowHtml32(call2, today2)).join("")}</div></div>`;
+      <div class="lista">${list.slice(0, SHOWN6).map((call2) => rowHtml33(call2, today2)).join("")}</div></div>`;
     box5.querySelectorAll("[data-llseg]").forEach((button2) => {
       button2.onclick = () => {
         const call2 = list.find((item) => item.id === button2.dataset.llseg);
@@ -49292,7 +50839,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, ORDER_DONE)) : `<span class="pill p-warn">${t("opportunities.list.notClosed")}</span>`;
     return `${ends}${item.pedido ? `<span class="sm">${t("opportunities.list.order", { number: escapeHtml(item.pedido) })}</span>` : ""}`;
   }
-  function rowHtml33(item) {
+  function rowHtml34(item) {
     const when5 = new Date(item.fecha).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
     const reference2 = typeof item.medico === "string" ? item.medico : "";
     return `<button class="dr" data-ll="${item.id}"><span>${when5}<span class="sm">${escapeHtml(orFallback(item.origen, orFallback(item.direccion, "")))}</span></span>
@@ -49306,13 +50853,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const heads = [t("opportunities.list.date"), t("opportunities.list.client"), t("opportunities.list.wants"), term("medico", { capital: "C" }), t("opportunities.list.ends"), t("opportunities.list.next"), t("opportunities.list.attended")];
     return `<div class="dgrid-wrap"><div class="dgrid llam opor">
       <div class="dh">${heads.map((head) => `<span>${head}</span>`).join("")}</div>
-      ${shown5.map(rowHtml33).join("")}</div></div>`;
+      ${shown5.map(rowHtml34).join("")}</div></div>`;
   }
   function paintList6(list, rows2) {
     const size = accountListLegacy.pageSize();
     opportunitiesLegacy.setPage(Math.min(opportunitiesLegacy.page(), Math.max(0, Math.ceil(rows2.length / size) - 1)));
-    const start2 = opportunitiesLegacy.page() * size;
-    list.innerHTML = rows2.length ? tableHtml8(rows2.slice(start2, start2 + size)) : `<div class="vacio">${t("opportunities.list.empty")}</div>`;
+    const start4 = opportunitiesLegacy.page() * size;
+    list.innerHTML = rows2.length ? tableHtml8(rows2.slice(start4, start4 + size)) : `<div class="vacio">${t("opportunities.list.empty")}</div>`;
     list.querySelectorAll("[data-ll]").forEach((button2) => {
       button2.onclick = () => {
         void editOpportunity(rows2.find((item) => item.id === button2.dataset.ll) ?? null);
@@ -49517,7 +51064,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
            <br><span class="acts" style="margin:4px 0 0"><button class="btn sec chico" data-acc="hecha|${row4.id}">${t("quality.followUp.done")}</button>
            <button class="btn sec chico" data-acc="aplazar|${row4.id}">${t("quality.followUp.postpone")}</button></span>`;
   }
-  function rowHtml34(row4) {
+  function rowHtml35(row4) {
     const last = row4.ultima_visita ? t("quality.followUp.last", { date: formatShortDate(row4.ultima_visita), result: escapeHtml(orFallback(row4.ultimo_resultado, "")) }) : t("quality.followUp.notVisited");
     return `
     <button class="fila" data-id="${row4.id}">
@@ -49563,7 +51110,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     list.innerHTML = "";
-    list.insertAdjacentHTML("beforeend", rows2.map(rowHtml34).join(""));
+    list.insertAdjacentHTML("beforeend", rows2.map(rowHtml35).join(""));
   }
   async function paintFollowUp(restart2) {
     const list = document.getElementById("slista"), count2 = document.getElementById("scuenta");
@@ -49598,7 +51145,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/quality/page.ts
   var MODES3 = [["todos", "quality.page.showAll"], ["visitados", "quality.page.showVisited"], ["sin_visitar", "quality.page.showNotVisited"], ["con_accion", "quality.page.showWithAction"], ["atrasados", "quality.page.showLate"]];
   var canSeeDuplicates = () => cardSectionsLegacy.can("administrar") || permissions.canReviewDuplicates();
-  function headerHtml12() {
+  function headerHtml13() {
     const duplicates = canSeeDuplicates() ? `<button class="btn sec" id="caldup">${icon("copy")} ${t("quality.page.duplicates")}</button>` : "";
     return `<button class="cfgvolver visible" id="calvolver" type="button">‹ ${escapeHtml(accountListLegacy.contactsLabel())}</button>
     <div class="saludo"><div><h1>${t("quality.page.title")}</h1><div class="fecha">${t("quality.page.subtitle", { professional: term("medico") })}</div></div>
@@ -49606,7 +51153,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function pageHtml17() {
     const modes = MODES3.map(([value27, key]) => `<option value="${value27}">${t(key)}</option>`).join("");
-    return `${headerHtml12()}
+    return `${headerHtml13()}
     <div class="kpis" id="segkpis"><div class="skel"></div></div>
     <div class="panel">
       <div class="filtros">
@@ -49720,9 +51267,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/manual/portal-info.ts
   var SETTINGS_FOR_EVERYONE = ["horario", "kpis", "prefs"];
   function openDialog2(html) {
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = html;
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = html;
     box5.showModal();
   }
   function closeAndGo(buttonId, screen3, section2) {
@@ -49732,10 +51279,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       manualLegacy.go(screen3, section2);
     };
   }
-  var close3 = `<button class="x" data-cerrar aria-label="${t("common.close")}">✕</button>`;
+  var close4 = `<button class="x" data-cerrar aria-label="${t("common.close")}">✕</button>`;
   function showFirstStep(step) {
     const [stepIcon, title2, text5, screen3] = step, about = findSection(screen3)?.para;
-    openDialog2(`<div class="fh"><div><h2>${stepIcon} ${escapeHtml(title2)}</h2><div class="sm">${t("manual.portal.firstSteps")}</div></div>${close3}</div>
+    openDialog2(`<div class="fh"><div><h2>${stepIcon} ${escapeHtml(title2)}</h2><div class="sm">${t("manual.portal.firstSteps")}</div></div>${close4}</div>
       <p>${escapeHtml(text5)}</p>${about ? `<p class="sm">${escapeHtml(about)}</p>` : ""}
       <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("manual.portal.notNow")}</button>
         ${screen3 === "config" || manualLegacy.canOpenModule(screen3) ? `<button class="btn" id="mangoir">${t("manual.portal.takeMe")}</button>` : ""}</div>`);
@@ -49755,7 +51302,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!section2) return;
     const destination2 = manualLegacy.isModule(id) || ["manual", "config"].includes(id) ? id : null, settings2 = manualLegacy.settingsOf(id);
     const canSettings = canGoToSettings(settings2), canOpen = canOpenScreen(destination2);
-    openDialog2(`<div class="fh"><div><h2>${sectionIcon(id)} ${escapeHtml(section2.t)}</h2><div class="sm">${escapeHtml(section2.para)}</div></div>${close3}</div>
+    openDialog2(`<div class="fh"><div><h2>${sectionIcon(id)} ${escapeHtml(section2.t)}</h2><div class="sm">${escapeHtml(section2.para)}</div></div>${close4}</div>
     ${listsHtml(section2)}
     <div class="acts" style="justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn sec" data-cerrar>${t("common.close")}</button>
       ${canSettings ? `<button class="btn sec" id="manircfg">${t("manual.portal.goToSettings")}</button>` : ""}
@@ -50096,12 +51643,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }).join("")}</div>`;
   }
   var pageBox = () => document.getElementById("cfgcuerpo");
-  function paint18(html) {
+  function paint20(html) {
     const box5 = pageBox();
     if (box5) box5.innerHTML = html;
     return box5;
   }
-  function onClick5(id, action) {
+  function onClick7(id, action) {
     const element4 = document.getElementById(id);
     if (element4) element4.onclick = action;
   }
@@ -50149,7 +51696,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (next) next.disabled = Boolean(missing2.length || repeated.length);
   }
   function paintColumnsStep() {
-    const box5 = paint18(pageHtml19());
+    const box5 = paint20(pageHtml19());
     box5?.querySelectorAll("[data-impc]").forEach((select3) => {
       select3.onchange = () => {
         wizard.mapping[Number(select3.dataset.impc)] = select3.value;
@@ -50157,8 +51704,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         check();
       };
     });
-    onClick5("impvolver", steps2.file);
-    onClick5("impsig", steps2.review);
+    onClick7("impvolver", steps2.file);
+    onClick7("impsig", steps2.review);
     check();
   }
 
@@ -50224,7 +51771,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function paintImport() {
     wizard.book = null;
     const types2 = entityTypes().map((type) => `<button class="imptipo" type="button" data-impt="${type.key}"><span class="imptic">${icon(type.icon)}</span><b>${escapeHtml(type.name)}</b><span class="sm">${escapeHtml(type.hint)}</span></button>`).join("");
-    const box5 = paint18(`<div class="card cfgpanel impcaja">${stepsHtml3(1)}
+    const box5 = paint20(`<div class="card cfgpanel impcaja">${stepsHtml3(1)}
     <h2 style="padding:0 0 4px">${t("importing.start.title")}</h2>
     <p class="sm">${t("importing.start.text")}</p>
     <div class="imptipos">${types2}</div></div>`);
@@ -50236,14 +51783,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
   }
   function paintFileStep() {
-    paint18(`<div class="card cfgpanel impcaja">${stepsHtml3(2)}
+    paint20(`<div class="card cfgpanel impcaja">${stepsHtml3(2)}
     <h2 style="padding:0 0 4px">${t("importing.file.title", { name: escapeHtml(entityName3(wizard.entity).toLowerCase()) })}</h2>
     <p class="sm">${t("importing.file.text")}${wizard.entity === "ventas" ? t("importing.file.salesText") : ""}</p>
     <label class="impzona" id="impzona"><input type="file" id="impfile" accept=".xlsx,.xls,.csv,.txt" hidden>
       ${icon("file-spreadsheet")}<b>${t("importing.file.drop")}</b><span class="sm">${t("importing.file.maxRows")}</span></label>
     <div id="imphojas"></div>
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button></div></div>`);
-    onClick5("impvolver", steps2.start);
+    onClick7("impvolver", steps2.start);
     const zone = document.getElementById("impzona"), input10 = document.getElementById("impfile");
     if (!zone || !input10) return;
     zone.ondragover = (event) => {
@@ -50280,7 +51827,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <div class="acts"><button class="btn" type="button" id="imphojaok">${t("importing.file.next")}</button></div>`;
     zoneText(zone, file.name);
     zone.classList.remove("leyendo");
-    onClick5("imphojaok", () => {
+    onClick7("imphojaok", () => {
       void readSheet(document.getElementById("imphoja")?.value ?? "");
     });
   }
@@ -50397,17 +51944,17 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function sendInBatches(rows2, options5, onProgress) {
     const total2 = { creados: 0, actualizados: 0, omitidos: 0, errores: [], filas: [] };
-    for (let start2 = 0; start2 < rows2.length; start2 += BATCH) {
+    for (let start4 = 0; start4 < rows2.length; start4 += BATCH) {
       const { data, error } = await callRpc("importar_lote", {
         p_imp: options5.importId,
         p_entidad: options5.entity,
-        p_filas: rows2.slice(start2, start2 + BATCH),
+        p_filas: rows2.slice(start4, start4 + BATCH),
         p_modo: options5.mode,
         p_simular: options5.simulate
       });
       if (error || !data?.ok) throw new Error(error ? error.message ?? "" : data?.error ?? t("importing.run.noAnswer"));
       add(total2, data);
-      onProgress(Math.min(rows2.length, start2 + BATCH), rows2.length);
+      onProgress(Math.min(rows2.length, start4 + BATCH), rows2.length);
     }
     return total2;
   }
@@ -50421,7 +51968,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return { clave: customFieldKey(name), nombre: name, valores: values2.length <= MAX_CLASSIFIER_VALUES ? values2 : [] };
     });
   }
-  async function start(rowCount) {
+  async function start3(rowCount) {
     const mapping = {};
     wizard.headers.forEach((header4, index) => {
       mapping[header4] = wizard.mapping[index] ?? "no";
@@ -50445,14 +51992,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (counter2) counter2.textContent = t("importing.run.progress", { done: formatNumber(done2), total: formatNumber(total2) });
   }
   async function runImport(rows2, mode) {
-    const importId = await start(rows2.length);
+    const importId = await start3(rows2.length);
     if (!importId) {
       notices.toast(t("importing.run.couldNotStart"), true);
       return;
     }
     const fields = customFields();
     if (fields.length) await callRpc("importar_campos", { p_entidad: wizard.entity, p_campos: fields });
-    paint18(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows2.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+    paint20(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows2.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
     let result;
     try {
       result = await sendInBatches(rows2, { entity: wizard.entity, mode, simulate: false, importId }, showRunProgress);
@@ -50463,13 +52010,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     await callRpc("importar_terminar", { p_imp: importId });
     importLegacy.countWrite();
     if (!pageBox()) return;
-    paint18(finishedHtml(result));
+    paint20(finishedHtml(result));
     const destination2 = DESTINATIONS[wizard.entity];
-    onClick5("impdes", () => {
+    onClick7("impdes", () => {
       void undoImport(importId);
     });
-    onClick5("impotra", steps2.start);
-    onClick5("impver", () => {
+    onClick7("impotra", steps2.start);
+    onClick7("impver", () => {
       if (destination2 === "ventas") goToOrders("ventas");
       else goTo(destination2);
     });
@@ -50489,7 +52036,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/import/history.ts
   var UNDONE = "Deshecha";
-  function rowHtml35(item, names) {
+  function rowHtml36(item, names) {
     const date = new Date(item.creado_en).toLocaleString(t("dates.locale"), { dateStyle: "short", timeStyle: "short" });
     const line3 = t("importing.history.line", {
       date,
@@ -50507,9 +52054,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function paintImports() {
     const { data } = await callRpc("importaciones_lista", {});
     const names = new Map(entityTypes().map((type) => [type.key, type.name]));
-    const box5 = paint18(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
+    const box5 = paint20(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
     <p class="sm">${t("importing.history.text")}</p>
-    <div class="errlista">${(data ?? []).map((item) => rowHtml35(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
+    <div class="errlista">${(data ?? []).map((item) => rowHtml36(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
     box5?.querySelectorAll("[data-impdes]").forEach((button2) => {
       button2.onclick = () => {
         void undoImport(button2.dataset.impdes ?? "");
@@ -50558,14 +52105,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         if (run) run.textContent = t("importing.review.run", { count: formatNumber(counts.created + (mode === "actualizar" ? counts.existing : 0)), unit: counts.unit });
       };
     });
-    onClick5("impvolver", steps2.columns);
+    onClick7("impvolver", steps2.columns);
     if (run) run.onclick = () => {
       void runImport(rows2, wizard.entity === "ventas" ? "omitir" : mode);
     };
   }
   async function paintReviewStep() {
     const rows2 = rowsToImport();
-    paint18(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+    paint20(`<div class="card cfgpanel impcaja">${stepsHtml3(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
     let check2;
     try {
       check2 = await sendInBatches(rows2, { entity: wizard.entity, mode: "actualizar", simulate: true, importId: null }, showProgress);
@@ -50575,7 +52122,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     const counts = countsOf(check2);
-    paint18(pageHtml20(check2, counts));
+    paint20(pageHtml20(check2, counts));
     bind33(rows2, counts);
   }
 
@@ -50639,7 +52186,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       nota: textOrNull2("conn")
     };
   }
-  async function save38(existing, account, button2) {
+  async function save40(existing, account, button2) {
     const title2 = field18("cont").trim();
     if (!title2 || !account) {
       notices.toast(t("tenders.editor.missing"), true);
@@ -50669,9 +52216,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function editTender(existing) {
     const tender = existing ?? { estado: STATES3.studying, responsable_id: salesTeam.currentUserId() };
     const people = await team();
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml16(tender, existing, people);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml16(tender, existing, people);
     if (!box5.open) box5.showModal();
     let account = existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : null;
     editorLegacy.pickAccount(document.getElementById("concta"), account, (picked) => {
@@ -50679,7 +52226,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }, t("tenders.editor.soldToPlaceholder"));
     const ok = document.getElementById("conok");
     if (ok) ok.onclick = () => {
-      void save38(existing, account, ok);
+      void save40(existing, account, ok);
     };
     const erase = document.getElementById("conborrar");
     if (erase && existing) erase.onclick = () => {
@@ -50697,7 +52244,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <p class="sm">${t("tenders.warnings.hint")}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("tenders.warnings.cancel")}</button><button class="btn" id="convok">${t("tenders.warnings.save")}</button></div>`;
   }
-  async function save39(box5) {
+  async function save41(box5) {
     const typed2 = document.getElementById("convd")?.value ?? "";
     const days = newestFirst([...new Set(typed2.split(/[^0-9]+/).map(Number).filter((day) => day > 0 && day <= MAX_DAYS2))]);
     const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "avisos_vencimiento", p_valor: { dias: days } });
@@ -50710,13 +52257,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     notices.toast(t("tenders.warnings.saved"));
   }
   function editWarnings() {
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = warningsHtml();
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = warningsHtml();
     if (!box5.open) box5.showModal();
     const ok = document.getElementById("convok");
     if (ok) ok.onclick = () => {
-      void save39(box5);
+      void save41(box5);
     };
   }
 
@@ -50749,7 +52296,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const wonText = won ? won === 1 ? t("tenders.list.oneWon") : t("tenders.list.won", { count: won }) : "";
     return ` · ${lots.length === 1 ? t("tenders.list.oneLot") : t("tenders.list.lots", { count: lots.length })}${wonText}`;
   }
-  function rowHtml36(tender, view, warnDays) {
+  function rowHtml37(tender, view, warnDays) {
     const extra = view === "contratos" ? contractPill(tender, warnDays) : view === "marcha" ? deadlinePill(tender) : "";
     return `<button type="button" class="item conrow" data-con="${tender.id}"><span class="tx"><b>${escapeHtml(tender.titulo)}</b>
       <span class="sm">${escapeHtml(tenderLine(tender))}${lotsText(tender)}${tender.importe_licitacion ? ` · ${formatCurrency(tender.importe_licitacion)}` : ""}</span></span>
@@ -50765,7 +52312,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="connuevo">${t("tenders.list.newTender")}</button>
       ${cardSectionsLegacy.can("administrar") ? `<button type="button" class="btn sec" id="conavisos">${t("tenders.list.warnings")}</button>` : ""}</div>
     ${view === "contratos" ? contractsHint(days) : ""}
-    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml36(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
+    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml37(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
   async function paintTenders(view) {
     if (!document.getElementById("cfgcuerpo")) return;
@@ -50996,9 +52543,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     const products3 = await portalLegacy.products(), lots = sortedLots(tender);
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = sheetHtml8(tender, lots, products3);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = sheetHtml8(tender, lots, products3);
     if (!box5.open) box5.showModal();
     bind34(tender, lots, { tenderId: id, products: products3, reopen: () => {
       void showTender(id);
@@ -51059,7 +52606,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       nota: trimmedOrNull("eqn")
     };
   }
-  async function save40(existing, account, button2) {
+  async function save42(existing, account, button2) {
     if (!account || !value25("eqp")) {
       notices.toast(t("equipment.editor.missing"), true);
       return;
@@ -51102,7 +52649,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
     const ok = document.getElementById("eqok");
     if (ok) ok.onclick = () => {
-      void save40(existing, chosen5.account, ok);
+      void save42(existing, chosen5.account, ok);
     };
     const retireButton = field19("eqretirar");
     if (retireButton && existing) retireButton.onclick = () => {
@@ -51116,9 +52663,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function editEquipment(existing, account) {
     await equipmentLegacy.loadProducts();
     const list = await products2(), item = existing ?? newItem(list);
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml17(item, existing, list);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml17(item, existing, list);
     if (!box5.open) box5.showModal();
     bind35(existing, { account: existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : account ?? null });
   }
@@ -51129,13 +52676,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var SEARCH_WAIT_MS14 = 300;
   var listState = { query: "" };
   var plain = (text5) => String(text5 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  function rowHtml37(item) {
+  function rowHtml38(item) {
     const details2 = [item.serie ? t("equipment.list.serial", { serial: item.serie }) : "", item.cuentas?.nombre, item.ubicacion, item.contrato].filter(Boolean).join(" · ");
     return `<button type="button" class="item conrow" data-eq="${item.id}"><span class="tx"><b>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</b>
       <span class="sm">${escapeHtml(details2)}${t("equipment.list.since", { date: formatShortDate(item.instalado ?? "") })}</span></span>
     <span class="cirest">${reviewPill(item)}${expiryPill(item)}</span></button>`;
   }
-  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml37).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
+  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml38).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
   function upcoming(list) {
     const installed = list.filter((item) => item.estado === STATES.installed), limit = addDays(todayIso(), SOON_DAYS2), warning = warningLimit();
     const reviews = installed.filter((item) => item.proxima_revision && item.proxima_revision <= limit).sort((first2, second) => String(first2.proxima_revision).localeCompare(String(second.proxima_revision)));
@@ -51153,7 +52700,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${reviews.length ? block2(t("equipment.list.reviewsSoon"), reviews) : ""}
     ${expiring.length ? block2(t("equipment.list.expiring"), expiring) : ""}
     <section class="card cirbloque"><div class="cicbcab"><h2>${t("equipment.list.all", { count: formatNumber(list.length) })}</h2><input id="eqq" type="search" placeholder="${t("equipment.list.searchPlaceholder")}" value="${escapeHtml(listState.query)}" aria-label="${t("equipment.list.searchLabel")}"></div>
-      ${found.length ? `<div class="lista">${found.map(rowHtml37).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
+      ${found.length ? `<div class="lista">${found.map(rowHtml38).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
   var searchTimer8;
   function bind36(box5, wasSearching) {
@@ -51275,13 +52822,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     relatedLegacy.openEquipment(id);
   }
   function bind37(id, item) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
     const on6 = (elementId, action) => {
       const button2 = document.getElementById(elementId);
       if (button2) button2.onclick = action;
     };
-    body2.querySelectorAll("[data-cfi]").forEach((button2) => {
+    body3.querySelectorAll("[data-cfi]").forEach((button2) => {
       button2.onclick = () => {
         document.getElementById("dlg")?.close();
         agendaActions.openAccount(button2.dataset.cfi ?? "");
@@ -51297,7 +52844,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     on6("eqrevmas", () => {
       openReviewForm(id);
     });
-    body2.querySelectorAll("[data-rvq]").forEach((button2) => {
+    body3.querySelectorAll("[data-rvq]").forEach((button2) => {
       button2.onclick = () => {
         void deleteReview(id, button2.dataset.rvq ?? "");
       };
@@ -51312,9 +52859,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       notices.toast(t("equipment.sheet.notFound"), true);
       return;
     }
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = sheetHtml9(item, reviews ?? []);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = sheetHtml9(item, reviews ?? []);
     if (!box5.open) box5.showModal();
     bind37(id, item);
   }
@@ -51369,7 +52916,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
   }
   var failureText11 = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
-  async function save41(existing, choice2, state2, button2) {
+  async function save43(existing, choice2, state2, button2) {
     if (!value26("cirf") || !choice2.hos || !choice2.cir) {
       notices.toast(t("surgeries.editor.missing"), true);
       return;
@@ -51404,20 +52951,20 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
     const ok = document.getElementById("cirok");
     if (ok) ok.onclick = () => {
-      void save41(existing, choice2, STATES2.scheduled, ok);
+      void save43(existing, choice2, STATES2.scheduled, ok);
     };
     const cancel3 = document.getElementById("ciranular");
     if (cancel3) cancel3.onclick = async () => {
       if (!await notices.confirm(t("surgeries.editor.cancelText"), { titulo: t("surgeries.editor.cancelTitle"), ok: t("surgeries.editor.cancelSurgery"), peligro: true })) return;
-      await save41(existing, choice2, STATES2.cancelled, cancel3);
+      await save43(existing, choice2, STATES2.cancelled, cancel3);
     };
   }
   async function editSurgery(existing) {
     const surgery = existing ?? { fecha: addDays(todayIso(), 1), origen: "deposito", asistente_id: salesTeam.currentUserId() };
     const people = await team2();
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml18(surgery, existing, people);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml18(surgery, existing, people);
     if (!box5.open) box5.showModal();
     const choice2 = {
       hos: existing ? { id: existing.hospital_id ?? "", nombre: existing.hospital ?? "" } : null,
@@ -51531,9 +53078,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         paintSerials(box5, input10);
       };
     });
-    const save44 = document.getElementById("cirusok");
-    if (save44) save44.onclick = () => {
-      void saveUsed(surgery, stock, box5, save44);
+    const save46 = document.getElementById("cirusok");
+    if (save46) save46.onclick = () => {
+      void saveUsed(surgery, stock, box5, save46);
     };
   }
 
@@ -51630,9 +53177,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       notices.toast(t("surgeries.sheet.notFound"), true);
       return;
     }
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = sheetHtml10(detail, notice2);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = sheetHtml10(detail, notice2);
     if (!box5.open) box5.showModal();
     bind39(id, detail);
     if (document.getElementById("cirusar")) paintUse(detail.cirugia, detail.stock ?? []);
@@ -51674,9 +53221,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <p class="sm">${t("cycle.editor.zeroHint", words())}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
   }
-  async function save42(body2, box5) {
+  async function save44(body3, box5) {
     const value27 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
-    body2.querySelectorAll("[data-cobj]").forEach((input10) => {
+    body3.querySelectorAll("[data-cobj]").forEach((input10) => {
       value27[input10.dataset.cobj ?? ""] = visits(input10.value);
     });
     const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value27 });
@@ -51692,13 +53239,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function editCycle() {
     await cycleLegacy.loadSettings();
     const current = { ...DEFAULTS2, ...cycleLegacy.setting("ciclo_visitas") };
-    const body2 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
-    if (!body2 || !box5) return;
-    body2.innerHTML = editorHtml19(current);
+    const body3 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
+    if (!body3 || !box5) return;
+    body3.innerHTML = editorHtml19(current);
     if (!box5.open) box5.showModal();
     const ok = document.getElementById("cicok");
     if (ok) ok.onclick = () => {
-      void save42(body2, box5);
+      void save44(body3, box5);
     };
   }
 
@@ -51720,7 +53267,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <span class="cicfal"><b>${t("cycle.current.progress", { done: item.hechas, goal: item.objetivo })}</b><span class="sm">${item.faltan === 1 ? t("cycle.current.oneMissing") : t("cycle.current.missing", { count: item.faltan })}</span></span>
         ${item.proxima_cita ? `<span class="pill p-per">${t("cycle.current.appointmentOn", { date: formatShortDate(item.proxima_cita) })}</span>` : `<button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button>`}</div>`;
   }
-  function headerHtml13(data, selector) {
+  function headerHtml14(data, selector) {
     const left = data.quedan_dias === 1 ? t("cycle.current.oneDayLeft") : t("cycle.current.daysLeft", { count: formatNumber(data.quedan_dias) });
     return `<div class="ciccab"><div><b>${escapeHtml(rangeText(data))}</b>
       <span class="sm">${left} · ${t("cycle.current.allCount", words())}</span></div>
@@ -51742,7 +53289,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function pageHtml23(data, selector) {
     const classified = sum((data.resumen ?? []).map((item) => item.cuentas));
-    return `<div class="cicpag">${headerHtml13(data, selector)}
+    return `<div class="cicpag">${headerHtml14(data, selector)}
     ${unclassifiedHtml(data.sin_clase ?? 0)}
     ${classified ? `<div class="cicres">${CLASSES.map((letter) => classCard(letter, data)).join("")}</div>
     ${missingHtml(data)}` : `<div class="vacio">${t("cycle.current.nobodyClassified", words())}</div>`}</div>`;
@@ -51797,7 +53344,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/cycle/classify.ts
   var SHOWN7 = 300;
   var SEARCH_WAIT_MS15 = 350;
-  function rowHtml38(item) {
+  function rowHtml39(item) {
     return `<div class="item cicrow" data-cfila="${item.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
           <span class="sm">${escapeHtml([item.especialidad, item.municipio, item.estado_comercial].filter(Boolean).join(" · "))}</span></span>
@@ -51806,7 +53353,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function listHtml6(rows2) {
     if (!rows2.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
-    return `<section class="card cicbloque"><div class="lista">${rows2.map(rowHtml38).join("")}</div></section>${rows2.length >= SHOWN7 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
+    return `<section class="card cicbloque"><div class="lista">${rows2.map(rowHtml39).join("")}</div></section>${rows2.length >= SHOWN7 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
   }
   function pageHtml24(rows2, selector) {
     const filters3 = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value27 = "", label = ""]) => `<button type="button" data-cl="${value27}" class="${value27 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value27 === cycleState.classifyFilter)}">${label}</button>`).join("");
@@ -51933,7 +53480,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/cycle/team.ts
   var ofText = (done2, goal) => t("cycle.current.progress", { done: formatNumber(done2), goal: formatNumber(goal) });
-  function rowHtml39(member) {
+  function rowHtml40(member) {
     const classified = member.a + member.b + member.c, percent5 = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
     const progress = percent5 === null ? "—" : `<span class="cicbarc">${progressBar(percent5)}${ofText(member.hechas, member.objetivo)} · ${percent5}%</span>`;
     return `<tr><td><button type="button" class="lnk" data-cde="${member.id}"><b>${escapeHtml(member.nombre)}</b></button><span class="sm"> · ${escapeHtml(member.rol)}</span></td><td>${formatNumber(member.cartera)}</td><td>${formatNumber(member.a)}</td><td>${formatNumber(member.b)}</td><td>${formatNumber(member.c)}</td>
@@ -51944,7 +53491,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!members2.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
     const head = [t("cycle.team.person"), t("cycle.team.portfolio"), "A", "B", "C", t("cycle.team.noClass"), t("cycle.team.upToDate"), t("cycle.team.cycleVisits", words())];
     return `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr>${head.map((title2) => `<th>${title2}</th>`).join("")}</tr></thead>
-      <tbody>${members2.map(rowHtml39).join("")}</tbody></table></div></div>
+      <tbody>${members2.map(rowHtml40).join("")}</tbody></table></div></div>
       <p class="sm">${t("cycle.team.countHint", words())}</p>`;
   }
   async function paintCycleTeam() {
@@ -52065,7 +53612,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <button class="btn sec" id="kres">${t("ordersMore.indicators.restore")}</button>
         <button class="btn" id="kok">${t("ordersMore.indicators.save")}</button></div>`;
   }
-  async function save43(list, button2) {
+  async function save45(list, button2) {
     button2.disabled = true;
     button2.textContent = t("ordersMore.indicators.saving");
     const saved3 = await indicatorSettingsLegacy.save(list.map((item) => ({ id: item.id, on: item.on, t: item.t, ...item.filtro ? { filtro: item.filtro } : {} })));
@@ -52076,9 +53623,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     notices.toast(t("ordersMore.indicators.saved"));
     indicatorSettingsLegacy.reloadHome();
   }
-  function bind42(body2, state2) {
+  function bind42(body3, state2) {
     const readNames = () => {
-      body2.querySelectorAll("[data-kt]").forEach((input10) => {
+      body3.querySelectorAll("[data-kt]").forEach((input10) => {
         const item = state2.list[Number(input10.dataset.kt)];
         if (item) item.t = input10.value.trim();
       });
@@ -52087,9 +53634,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       readNames();
       work();
       markChanged2();
-      paint19(state2);
+      paint21(state2);
     };
-    body2.querySelectorAll("[data-kon]").forEach((button2) => {
+    body3.querySelectorAll("[data-kon]").forEach((button2) => {
       button2.onclick = () => {
         change(() => {
           const item = state2.list[Number(button2.dataset.kon)];
@@ -52097,7 +53644,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         });
       };
     });
-    body2.querySelectorAll("[data-kmv]").forEach((button2) => {
+    body3.querySelectorAll("[data-kmv]").forEach((button2) => {
       button2.onclick = () => {
         readNames();
         const [from2 = 0, direction = 0] = (button2.dataset.kmv ?? "").split("|").map(Number), to = from2 + direction;
@@ -52106,10 +53653,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         state2.list[from2] = second;
         state2.list[to] = first2;
         markChanged2();
-        paint19(state2);
+        paint21(state2);
       };
     });
-    body2.querySelectorAll("[data-kdel]").forEach((button2) => {
+    body3.querySelectorAll("[data-kdel]").forEach((button2) => {
       button2.onclick = () => {
         change(() => {
           state2.list.splice(Number(button2.dataset.kdel), 1);
@@ -52120,22 +53667,22 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (restore) restore.onclick = () => {
       state2.list = indicatorCatalog.definitions().map((definition) => ({ id: definition.id, on: indicatorSettingsLegacy.defaults().includes(definition.id), t: "" }));
       markChanged2();
-      paint19(state2);
+      paint21(state2);
     };
     const ok = document.getElementById("kok");
     if (ok) ok.onclick = () => {
       readNames();
-      void save43(state2.list, ok);
+      void save45(state2.list, ok);
     };
   }
-  function paint19(state2) {
-    const body2 = document.getElementById("dbody");
-    if (!body2) return;
-    body2.innerHTML = windowHtml6(state2.list);
-    bind42(body2, state2);
+  function paint21(state2) {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = windowHtml6(state2.list);
+    bind42(body3, state2);
   }
   function openIndicatorSettings() {
-    paint19({ list: startingList() });
+    paint21({ list: startingList() });
     dialog10()?.showModal();
   }
 
@@ -52148,6 +53695,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     t,
     setLanguage,
     setVocabulary,
+    nav: api_exports,
     core: services_exports,
     legacyC: legacy_c_exports,
     layers: layers_exports,
@@ -52205,10 +53753,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   listenToCentreDocs();
 })();
 // @ts-check
-// nucleo/dispositivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
-// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+// nucleo/dispositivo.js · ES_MOVIL está en src/app/core/startup (v2.426.0). El nombre se queda: lo usa medio legado.
 
-const ES_MOVIL = () => matchMedia('(max-width: 760px)').matches;
+const ES_MOVIL = () => window.delcos.nav.isMobileWidth();
 // @ts-check
 // nucleo/en_vivo.js · los avisos en vivo están en src/app/core/live.ts (v2.425.0). El nombre y el canal abierto (VIVO) se quedan.
 // Normas: docs/normas_codigo.md.
@@ -52237,955 +53784,89 @@ function aplicarIdioma(id) { return window.delcos.core.language.applyLanguage(id
 const IDIOMAS = window.delcos.core.language.LANGUAGES;
 
 const LOCALES = window.delcos.core.language.LOCALES;
-// nucleo/menu.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
-// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+// nucleo/menu.js · el menú está en src/app/core/navigation/menu (v2.426.0). Aquí quedan el estado que leen y cambian otras partes
+// (MENU_FIRMA, FAB_RZ), los objetos compartidos (los mismos que en src/app) y los nombres que usan el legado, los puentes y las pruebas.
 
-function menuGrupos() {
-  const p = menuPrefs(), conocidos = new Set([...MENU_GRUPOS.flatMap(g => g.items), ...MENU_FIJO.items]);
-  const gs = MENU_GRUPOS.map(g => ({ id: g.id, t: g.t, items: [...g.items] }));
-  gs.forEach(g => { const o = (p.items || {})[g.id]; if (Array.isArray(o)) g.items = [...o.filter(k => g.items.includes(k)), ...g.items.filter(k => !o.includes(k))]; });
-  const orden = Array.isArray(p.orden) ? p.orden : [];
-  gs.sort((a, b) => ((orden.indexOf(a.id) + 1) || 99) - ((orden.indexOf(b.id) + 1) || 99));
-  const otros = [...document.querySelectorAll('#nav button[data-t]')].map(b => b.dataset.t).filter(k => !conocidos.has(k));
-  if (otros.length) gs.push({ id: 'otros', t: 'Otros', items: otros });
-  // v2.337.0 (Eric): Inicio siempre el primero, se ordene como se ordene el resto
-  gs.forEach(g => { g.items = g.items.filter(k => k !== 'inicio'); });
-  if (gs.length && conocidos.has('inicio')) gs[0].items.unshift('inicio');
-  return gs;
-}
+const MENU_GRUPOS = window.delcos.nav.MENU_GROUPS;
 
-// Aviso con el nombre al pasar el ratón por un icono (barra plegada)
-function menuTip(b) {
-  let t = $('mltip');
-  if (!b || !document.body.classList.contains('menupleg') || !document.body.classList.contains('menulat')) { if (t) t.classList.remove('ver'); return; }
-  if (!t) { document.body.insertAdjacentHTML('beforeend', '<div id="mltip" role="tooltip"></div>'); t = $('mltip'); }
-  const r = b.getBoundingClientRect();
-  t.textContent = b.dataset.tip || ''; t.style.top = (r.top + r.height / 2) + 'px'; t.style.left = (r.right + 10) + 'px'; t.classList.add('ver');
-}
+const MENU_FIJO = window.delcos.nav.MENU_FIXED;
 
-function movNombre(t) {
-  const b = document.querySelector(`nav.main [data-t="${t}"]`); if (!b) return t;
-  const x = txTexto(b); return ((x && x.get()) || b.textContent).replace('Pronto', '').trim();
-}
-
-function movDisponibles() {
-  const vistos = new Set();
-  return [...document.querySelectorAll('nav.main [data-t]')].filter(x => {
-    const t = x.dataset.t;
-    if (vistos.has(t) || x.classList.contains('hide') || x.disabled || x.classList.contains('bloq') || x.classList.contains('mlplan') || MENU_FUERA.includes(t)) return false;
-    vistos.add(t); return true;
-  }).map(x => x.dataset.t).sort((x, y) => movOrden(x) - movOrden(y));
-}
-
-function movOrden(t) {   // como el menú del ordenador: Tu día, Cartera, Ventas…
-  let l = []; try { l = menuGrupos().flatMap(g => g.items); } catch (e) {}
-  const i = l.indexOf(t); return i < 0 ? 999 : i;
-}
-
-function movBarra() {
-  const disp = movDisponibles(), p = menuPrefs().barra;
-  let l = (Array.isArray(p) && p.length ? p : MOV_BARRA_DEF).filter(t => disp.includes(t) && t !== 'inicio');
-  if (disp.includes('inicio')) l.unshift('inicio');   // v2.337.0: Inicio siempre el primero
-  l = l.slice(0, 4);
-  if (!l.length) l = MOV_BARRA_DEF.filter(t => disp.includes(t));
-  return l;
-}
-
-function movPersonalizar() {
-  // v2.337.0 (Eric): agrupadas: primero la barra de abajo, después «Más» y al final las ocultas. Al cambiar una de grupo va directa a su
-  // grupo (al final; a la barra, si está llena, la última pasa a ser la primera de «Más»). Se ordenan arrastrando (dedo o ratón, por el
-  // asa ⠿; se puede soltar también en otro grupo) o con las flechas, dentro de su grupo. Inicio, siempre la primera de la barra.
-  const disp = movDisponibles(), p = menuPrefs(), FIJA = disp.includes('inicio') ? 'inicio' : null;
-  const barra0 = movBarra().filter(t => t !== FIJA), resto = movMasOrden(disp.filter(t => !barra0.includes(t) && t !== FIJA));
-  const G = { barra: [...barra0], mas: resto.filter(t => !(p.ocultos || []).includes(t)), oculta: resto.filter(t => (p.ocultos || []).includes(t)) };
-  const MAXB = FIJA ? 3 : 4;
-  const GRUPOS = [['barra', 'Barra de abajo', 'Hasta 4'], ['mas', 'En «Más»', ''], ['oculta', 'Ocultas', 'Tampoco salen en el menú del ordenador']];
-  const ZONAS = [['barra', 'Barra'], ['mas', 'Más'], ['oculta', 'Oculta']];
-  const ajustar = () => { while (G.barra.length > MAXB) G.mas.unshift(G.barra.pop()); };
-  const fila = (t, z, i, n) => `<div class="movp movp-${z}" data-mpt="${t}">
-      <span class="movpdrag" data-mpd="${t}" aria-hidden="true" title="Arrastrar">⠿</span>
-      <span class="movpmv"><button type="button" class="kmv" data-mpm="-1|${t}" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" class="kmv" data-mpm="1|${t}" aria-label="Bajar" ${i === n - 1 ? 'disabled' : ''}>↓</button></span>
-      <span class="movpico">${ICO_MOD[t] || '•'}</span><span class="movpn">${esc(movNombre(t))}</span>
-      <div class="segs" role="group" aria-label="Dónde va">${ZONAS.map(([k, x]) => `<button type="button" data-mpz="${k}|${t}" class="${z === k ? 'on' : ''}">${x}</button>`).join('')}</div></div>`;
-  const pinta = () => {
-    $('dlg2body').innerHTML = `<div class="fh"><div><h2>Personalizar menú</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-      <p class="sm">Arrastra por ⠿ (o usa las flechas) para cambiar el orden. Si pasas una pantalla a otro grupo, se coloca sola al final de ese grupo.</p>
-      ${GRUPOS.map(([z, n, x]) => `<div class="movpg"><h3>${n} <span class="sm">· ${G[z].length + (z === 'barra' && FIJA ? 1 : 0)}${x ? ' · ' + x : ''}</span></h3>
-        ${z === 'barra' && FIJA ? `<div class="movp movp-barra movpfijo"><span class="movpico">${ICO_MOD[FIJA] || '•'}</span><span class="movpn">${esc(movNombre(FIJA))}</span><span class="sm">Siempre la primera</span></div>` : ''}
-        <div class="movpl" data-mpg="${z}">${G[z].map((t, i) => fila(t, z, i, G[z].length)).join('') || '<div class="movpvac sm">Suelta aquí una pantalla</div>'}</div></div>`).join('')}
-      <div class="acts"><button type="button" class="btn sec" id="movpdef">Restablecer</button><button type="button" class="btn" id="movpok">Guardar</button></div>`;
-  };
-  pinta();
-  const d = $('dlg2'), cuerpo = $('dlg2body');
-  const grupoDe = t => Object.keys(G).find(z => G[z].includes(t));
-  const clic = async e => {
-    const mv = e.target.closest('[data-mpm]'), zn = e.target.closest('[data-mpz]');
-    if (mv) {
-      const [dir, t] = mv.dataset.mpm.split('|'), l = G[grupoDe(t)], i = l.indexOf(t), j = i + +dir;
-      if (j < 0 || j >= l.length) return;
-      [l[i], l[j]] = [l[j], l[i]]; pinta(); return;
-    }
-    if (zn) {
-      const [z, t] = zn.dataset.mpz.split('|'), de = grupoDe(t);
-      if (z === de) return;
-      if (de === 'barra' && !FIJA && G.barra.length <= 1) { toast('La barra de abajo necesita al menos una pantalla', true); return; }
-      G[de] = G[de].filter(x => x !== t);
-      if (z === 'barra' && G.barra.length >= MAXB) G.mas.unshift(G.barra.pop());
-      G[z].push(t); pinta(); return;
-    }
-    if (e.target.closest('#movpdef')) {
-      G.barra = MOV_BARRA_DEF.filter(t => disp.includes(t) && t !== FIJA); G.mas = disp.filter(t => !G.barra.includes(t) && t !== FIJA); G.oculta = []; pinta(); return;
-    }
-    const ok = e.target.closest('#movpok'); if (!ok) return;
-    const ocultos = [...new Set([...(p.ocultos || []).filter(t => !disp.includes(t)), ...G.oculta])];
-    const barra = FIJA ? [FIJA, ...G.barra] : [...G.barra];
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { menu: Object.assign({}, menuPrefs(), { barra, mas: [...G.mas, ...G.oculta], ocultos }) });
-    ok.disabled = true;
-    const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-    ok.disabled = false;
-    if (error) { toast('No se ha podido guardar el menú', true); return; }
-    PERFIL.preferencias = data || prefs;
-    d.close();
-    pintarBnav(); MENU_FIRMA = ''; try { montarMenuLateral(); } catch (er) {}
-    toast('Menú guardado');
-  };
-  // Arrastrar con el dedo o el ratón (eventos de puntero: el arrastrar del navegador no funciona con el dedo)
-  let arr = null;
-  const abajo = e => {
-    const h = e.target.closest('[data-mpd]'); if (!h) return;
-    const row = h.closest('.movp'); e.preventDefault();
-    const r = row.getBoundingClientRect();
-    arr = { row, dy: e.clientY - r.top, id: e.pointerId, h };
-    arr.hueco = document.createElement('div'); arr.hueco.className = 'movphueco'; arr.hueco.style.height = r.height + 'px';
-    row.before(arr.hueco);
-    row.classList.add('movparr'); row.style.width = r.width + 'px'; row.style.top = r.top + 'px'; row.style.left = r.left + 'px';
-    try { h.setPointerCapture(e.pointerId); } catch (er) {}
-  };
-  const mueve = e => {
-    if (!arr || e.pointerId !== arr.id) return;
-    arr.row.style.top = (e.clientY - arr.dy) + 'px';
-    const filas = [...cuerpo.querySelectorAll('.movpl > .movp:not(.movparr), .movpl > .movpvac')];
-    const destino = filas.find(f => { const r = f.getBoundingClientRect(); return e.clientY < r.top + r.height / 2; });
-    if (destino) destino.before(arr.hueco);
-    else { const ls = cuerpo.querySelectorAll('.movpl'); ls[ls.length - 1].appendChild(arr.hueco); }
-    const sc = d.getBoundingClientRect(); if (e.clientY < sc.top + 60) d.scrollTop -= 12; else if (e.clientY > sc.bottom - 60) d.scrollTop += 12;
-  };
-  const suelta = e => {
-    if (!arr || e.pointerId !== arr.id) return;
-    const { row, hueco } = arr; arr = null;
-    hueco.replaceWith(row); row.classList.remove('movparr'); row.style.width = row.style.top = row.style.left = '';
-    const t = row.dataset.mpt;
-    cuerpo.querySelectorAll('.movpl').forEach(l => { G[l.dataset.mpg] = [...l.querySelectorAll(':scope > .movp')].map(x => x.dataset.mpt); });
-    if (!FIJA && !G.barra.length) { Object.keys(G).forEach(z => { G[z] = G[z].filter(x => x !== t); }); G.barra = [t]; toast('La barra de abajo necesita al menos una pantalla', true); }
-    ajustar(); pinta();
-  };
-  const evs = [['click', clic], ['pointerdown', abajo], ['pointermove', mueve], ['pointerup', suelta], ['pointercancel', suelta]];
-  evs.forEach(([n, f]) => cuerpo.addEventListener(n, f));
-  d.addEventListener('close', () => evs.forEach(([n, f]) => cuerpo.removeEventListener(n, f)), { once: true });
-  d.showModal();
-}
-
-// Orden de «Más»: el que eligió la persona y, detrás, lo nuevo en el orden del menú
-function movMasOrden(l) {
-  const o = menuPrefs().mas || [];
-  return [...l].sort((x, y) => { const a = o.indexOf(x), b = o.indexOf(y); return (a < 0 ? 900 + movOrden(x) : a) - (b < 0 ? 900 + movOrden(y) : b); });
-}
-
-function aplicarPermisosMenuPaso1() {
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    const t = b.dataset.t; if (!(t in MODULO_AREA)) return;
-    const bloqueado = puedeModuloV2400(t) && !planIncluye(t);
-    b.classList.toggle('bloq', bloqueado);
-    if (bloqueado) { b.classList.remove('hide'); if (!b.querySelector('.cand')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>'); }
-    else { const c = b.querySelector('.cand'); if (c) c.remove(); }
-  });
-}
-
-function aplicarPermisosMenuPaso2() {
- iconosMenu();
-}
-
-function aplicarPermisosMenuPaso3() {
- ordenarMenu(); const c = document.querySelector('nav.main [data-t="seguimiento"]'); if (c) c.classList.add('hide');
-}
-
-function aplicarPermisosMenuBase() {
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    if (b.dataset.t in MODULO_AREA) b.classList.toggle('hide', !puedeModulo(b.dataset.t));
-  });
-  if (typeof pintarBnav === 'function') pintarBnav();
-}
-
-function ordenarCabeceraMovil(sec) {
-  if (!ES_MOVIL() || !sec) return;
-  const sal = sec.querySelector(':scope > .saludo'); if (!sal || sal.dataset.movil) return;
-  const acts = sal.querySelector('.acts'); if (!acts) return;
-  sal.dataset.movil = '1';
-  const hijos = [...acts.children];
-  // Acción principal «+ …» como botón flotante
-  const principal = hijos.find(b => b.tagName === 'BUTTON' && !b.classList.contains('sec') && /^\s*\+/.test(b.textContent));
-  if (principal) {
-    principal.classList.add('fab'); principal.setAttribute('aria-label', principal.textContent.replace('+', '').trim());
-    // v2.95.0: el «+» es el icono de la biblioteca, no un carácter
-    principal.dataset.txt = principal.textContent.replace('+', '').trim(); principal.innerHTML = svgIco(ICON_NOM.plus);
-    sec.appendChild(principal);
-  }
-  // El resto, como fila de controles compactos del mismo tamaño
-  // Se mantiene la fila aunque quede vacía: otras partes añaden controles después (vista de agenda, equipo…)
-  acts.classList.add('chips'); [...acts.children].forEach(b => b.classList.add('chip'));
-}
-
-function ordenarMenu() {
-  const nav = document.querySelector('nav.main .in') || document.querySelector('nav.main'); if (!nav) return;
-  ORDEN_MENU.forEach(t => { const b = nav.querySelector(`:scope > [data-t="${t}"]`); if (b) nav.appendChild(b); });
-  const cal = nav.querySelector('[data-t="seguimiento"]'); if (cal) cal.classList.add('hide', 'fuera');
-  const dir = nav.querySelector('[data-t="directorio"]');
-  if (dir) [...dir.childNodes].forEach(n => { if (n.nodeType === 3 && /Directorio/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace('Directorio', `${TT('medico', 'p', '', 'l', 'C')}`); });
-}
-
-function candadoSecciones() {
-  Object.keys(PLAN_SECCIONES).forEach(t => document.querySelectorAll(`nav.main [data-t="${t}"], .bmasgrid [data-bm="${t}"]`).forEach(b => {
-    const bloq = !planIncluyeSeccion(t);
-    b.classList.toggle('bloq', bloq);
-    const c = b.querySelector('.cand');
-    if (bloq && !c && b.matches('nav.main [data-t]')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>');
-    if (!bloq && c) c.remove();
-  }));
-}
-
-// «Personalizar menú»: candado, interruptor apagado y bloqueado, y la cuenta «N de M» sin lo que no entra
-function personalizarCandados() {
-  const caja = $('mlpanel'); if (!caja) return;
-  caja.querySelectorAll('.mlpi[data-k]').forEach(f => {
-    const b = document.querySelector(`#nav button[data-t="${f.dataset.k}"]`); if (!fueraDePlan(b)) return;
-    f.classList.add('off', 'fueraplan'); f.title = `No está incluido en tu plan ${PLAN_NOMBRE()}`;
-    const v = f.querySelector('[data-vk]'); if (v) { v.checked = false; v.disabled = true; }
-    if (!f.querySelector('.mlpcand')) f.querySelector('.mlpn').insertAdjacentHTML('afterend', `<span class="mlpcand" aria-label="No incluido en tu plan"></span>`);
-  });
-  caja.querySelectorAll('.mlpg').forEach(g => {
-    const fs = [...g.querySelectorAll('.mlpi[data-k]')], c = g.querySelector('.mlpcnt');
-    if (c) c.textContent = `${fs.filter(f => !f.classList.contains('off')).length} de ${fs.filter(f => !f.classList.contains('fueraplan')).length}`;
-  });
-}
-
-function aplicarNombresMenu() {
-  const mn = menuNombres();
-  document.querySelectorAll('nav.main [data-t], #bnav [data-t], .bmasgrid [data-bm]').forEach(b => {
-    const t = b.dataset.t || b.dataset.bm; if (!t || t === 'directorio' || /^pd-/.test(t)) return;
-    const x = txTexto(b); if (!x) return;
-    if (!b.dataset.txdef) b.dataset.txdef = x.get();
-    const n = mn[t] || b.dataset.txdef;
-    if (x.get() !== n) x.set(n);
-  });
-  // El título de la pantalla abierta
-  const t = typeof TAB !== 'undefined' ? TAB : null, b = t && document.querySelector(`nav.main [data-t="${t}"]`);
-  if (t && t !== 'directorio' && b && b.dataset.txdef) {
-    const h = document.querySelector(`#v-${t} .saludo h1, #v-${t} .pagcab h1`) || (t === 'ventas' && document.querySelector('#v-ventas .saludo h1'));
-    const tn = h && [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim());
-    const n = mn[t] || b.dataset.txdef;
-    if (tn && (tn.nodeValue.trim() === b.dataset.txdef || Object.values(mn).includes(tn.nodeValue.trim())) && tn.nodeValue.trim() !== n) tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), n);
-  }
-}
-
-/* ============================================================
-   v2.338.0 · Ventanas completas en el móvil (D-024; petición de Eric, 20/10/2026): #dlg, #dlg2 y #ficha ocupan toda la pantalla menos el
-   menú de abajo, sin esquinas y con su alto final desde que se abren (antes el pedido crecía en blanco mientras cargaba). --bnavh es el
-   alto del menú de abajo, medido.
-   ============================================================ */
-function medirBnav() {
-  const b = $('bnav'), h = b && getComputedStyle(b).display !== 'none' ? Math.round(b.getBoundingClientRect().height) : 0;
-  document.documentElement.style.setProperty('--bnavh', h + 'px');
-}
-
-/* v2.343.0 · El «+» flotante del móvil vuelve a la cabecera al pasar a tamaño de ordenador (aviso de Eric: «+ Añadir médico» se
-   quedaba debajo de la tabla tras usar el simulador de móvil o estrechar la ventana sin recargar). */
-function fabAOrdenador() {
-  if (ES_MOVIL()) return;
-  document.querySelectorAll('main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]').forEach(f => {
-    const sec = f.closest('main > section'), acts = sec && sec.querySelector(':scope > .saludo .acts'); if (!acts) return;
-    const txt = f.dataset.txt || f.getAttribute('aria-label') || 'Añadir';
-    f.classList.remove('fab', 'plfuera'); delete f.dataset.plfab; delete f.dataset.txt;
-    f.innerHTML = plIco('plus') + ' ' + esc(txt.replace(/^\s*\+\s*/, ''));
-    acts.appendChild(f);
-  });
-}
-
-const ORDEN_MENU = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'informe'];
-
-/* ---------------- v2.132.0 · Menú lateral de escritorio (elegido por Eric: barra a la izquierda, agrupada por áreas) ----------------
-   Los botones siguen siendo los de siempre (nav.main #nav [data-t]): aquí solo se reparten en bloques, se pliega la barra a iconos
-   (por defecto en pantallas de menos de 1440 px; se recuerda en el dispositivo) y cada persona ordena los bloques y oculta secciones
-   («Personalizar menú», guardado en preferencias.menu). Solo en escritorio (≥ 900 px); el móvil sigue con su barra inferior.
-   Un botón nuevo en #nav que no esté en ningún bloque sale en «Otros». «Plataforma» (panel de delcos) va siempre al final, fijo. */
-const MENU_GRUPOS = [
-  { id: 'dia', t: 'Tu día', items: ['inicio', 'agenda', 'rutas'] },
-  { id: 'cartera', t: 'Cartera', items: ['directorio', 'pacientes', 'seguimiento'] },
-  { id: 'ventas', t: 'Ventas', items: ['ventas', 'productos', 'facturacion'] },
-  { id: 'resultados', t: 'Resultados', items: ['analitica', 'informe'] },
-  { id: 'equipo', t: 'Equipo', items: ['usuarios'] }];
-
-const MENU_FIJO = { id: 'plataforma', t: 'Plataforma', items: ['delcos'] };
-
-const MENU_PLEGAR_BAJO = 1440;
-
-const menuPrefs = () => ((typeof PERFIL !== 'undefined' && PERFIL && PERFIL.preferencias) || {}).menu || {};
-
-const menuEscritorio = () => innerWidth >= 900;
-
-const menuPlegado = () => { try { const v = localStorage.getItem('dlc-menu-plegado'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return innerWidth < MENU_PLEGAR_BAJO; };
+const MENU_FUERA = window.delcos.nav.MENU_OUT;
 
 let MENU_FIRMA = '';
 
-// (v2.183.0: aquí iba la primera versión de menuPersonalizar; se redefine entera más abajo)
-// Se monta al arrancar y se rehace si cambian los botones (permisos, módulos, portal), el tamaño de la pantalla o la sesión
-let MENU_RAF = 0;
-
-const menuRehacer = () => { if (MENU_RAF) return; MENU_RAF = requestAnimationFrame(() => { MENU_RAF = 0; montarMenuLateral(); }); };
-
-const menuNombres = () => (AJUSTES && AJUSTES.menu_nombres) || {};
-
-/* ============================================================
-   v2.335.0 · Menú (peticiones de Eric, 20/10/2026)
-   - «Usuarios» fuera del menú (está en Configuración → Equipo → Usuarios): en el menú de escritorio y en «Más» del móvil.
-   - Móvil: «Personalizar menú» en «Más» (movPersonalizar): qué pantallas van en la barra de abajo (hasta 4; preferencias.menu.barra)
-     y cuáles salen en «Más» (las mismas que se ocultan en el menú de escritorio: preferencias.menu.ocultos). Lo oculto no sale en «Más».
-   ============================================================ */
-const MOV_BARRA_DEF = ['inicio', 'agenda', 'rutas', 'directorio'];
-
-const MENU_FUERA = ['usuarios'];
-
 let FAB_RZ = 0;
 
-function menuPersonalizarBase() {
-  let caja = $('mlpanel'); if (caja) { if (caja.__cerrar) caja.__cerrar(); else caja.remove(); return; }
-  const prefs0 = PERFIL.preferencias, p = menuPrefs();
-  const estado = { orden: menuGrupos().filter(g => g.id !== 'otros').map(g => g.id), items: {}, ocultos: [...(p.ocultos || [])] };
-  menuGrupos().forEach(g => { estado.items[g.id] = [...g.items]; });
-  const boton = k => document.querySelector(`#nav button[data-t="${k}"]`);
-  const nombre = k => { const b = boton(k); return b ? (b.dataset.tip || (b.querySelector('.mllab') || b).textContent.trim()) : ''; };
-  const icono = k => { const b = boton(k), s = b && b.querySelector('svg'); return s ? s.outerHTML : ''; };
-  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && k !== 'inicio' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
-  const tit = id => (MENU_GRUPOS.find(x => x.id === id) || { t: 'Otros' }).t;
-  const bloques = () => estado.orden.filter(id => (estado.items[id] || []).some(disponible));
-  // Vista previa: el menú se monta con lo que hay en el panel; al cerrar sin guardar vuelve a lo guardado
-  const previa = () => {
-    PERFIL.preferencias = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: [...estado.orden], items: JSON.parse(JSON.stringify(estado.items)), ocultos: [...estado.ocultos] }) });
-    MENU_FIRMA = ''; montarMenuLateral();
-  };
-  let guardado = false;
-  const fuera = ev => { if (!ev.target.closest('#mlpanel, #mlpers')) cerrar(); };
-  const tecla = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); cerrar(); } };
-  const cerrar = () => {
-    const c = $('mlpanel'); if (!c) return;
-    c.remove(); document.removeEventListener('click', fuera, true); document.removeEventListener('keydown', tecla, true);
-    if (!guardado) { PERFIL.preferencias = prefs0; MENU_FIRMA = ''; montarMenuLateral(); }
-    const b = $('mlpers'); if (b) b.focus();
-  };
-  document.body.insertAdjacentHTML('beforeend', '<div id="mlpanel" class="mlp2" role="dialog" aria-label="Personalizar menú"></div>');
-  caja = $('mlpanel'); caja.__cerrar = cerrar;
-  const asa = (txt, attrs) => `<button type="button" class="mlpasa" ${attrs} aria-label="Mover ${esc(txt)} (flechas arriba y abajo)" title="Arrastra para ordenar">${svgIco(ICON_NOM['grip-vertical'])}</button>`;
-  const pinta = foco => {
-    caja.innerHTML = `<div class="mlph"><div><b>Personalizar menú</b><span class="sm">Arrastra para ordenar y elige qué secciones ves. Solo cambia tu menú.</span></div>
-        <button type="button" class="x" id="mlpx" aria-label="Cerrar">✕</button></div>
-      ${boton('inicio') ? `<div class="mlpi mlpfijo"><span class="mlpico">${icono('inicio')}</span><span class="mlpn">${esc(nombre('inicio'))}</span><span class="sm">Siempre el primero</span></div>` : ''}
-      <div class="mlpl">${bloques().map(id => {
-        const its = estado.items[id].filter(disponible), vis = its.filter(k => !estado.ocultos.includes(k)).length;
-        return `<section class="mlpg" data-g="${id}">
-          <div class="mlpgh">${asa('el bloque ' + tit(id), `data-ag="${id}"`)}<b>${esc(tit(id))}</b><span class="mlpcnt">${vis} de ${its.length}</span></div>
-          <div class="mlpis">${its.map(k => { const on = !estado.ocultos.includes(k);
-            return `<div class="mlpi${on ? '' : ' off'}" data-k="${k}" data-g="${id}">${asa(nombre(k), `data-ak="${k}" data-g="${id}"`)}
-              <span class="mlpico">${icono(k)}</span><span class="mlpn">${esc(nombre(k))}</span>
-              <label class="vfswitch mini"><input type="checkbox" role="switch" data-vk="${k}" ${on ? 'checked' : ''} aria-label="Ver ${esc(nombre(k))} en el menú"><span class="sw"></span></label></div>`; }).join('')}</div></section>`; }).join('')}</div>
-      <div class="mlpacts"><button type="button" class="btn sec mlpdef" id="mlpdef">${svgIco(ICON_NOM['rotate-ccw'])} Restablecer</button><button type="button" class="btn" id="mlpok">Guardar</button></div>`;
-    if (foco) { const f = caja.querySelector(foco); if (f) f.focus(); }
-  };
-  // Mover un bloque entre bloques, o una sección dentro de su bloque
-  const moverBloque = (id, destino, antes) => {
-    if (id === destino) return; const o = estado.orden.filter(x => x !== id), i = o.indexOf(destino); o.splice(antes ? i : i + 1, 0, id); estado.orden = o;
-  };
-  const moverItem = (g, k, destino, antes) => {
-    if (k === destino) return; const l = estado.items[g].filter(x => x !== k), i = l.indexOf(destino); l.splice(antes ? i : i + 1, 0, k); estado.items[g] = l;
-  };
-  pinta(); previa();
-  caja.addEventListener('click', async e => {
-    if (e.target.closest('#mlpx')) { cerrar(); return; }
-    if (e.target.closest('#mlpdef')) { estado.orden = MENU_GRUPOS.map(x => x.id); MENU_GRUPOS.forEach(x => { estado.items[x.id] = [...x.items]; }); estado.ocultos = []; pinta(); previa(); return; }
-    const ok = e.target.closest('#mlpok');
-    if (ok) {
-      const prefs = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: estado.orden, items: estado.items, ocultos: estado.ocultos }) });   // v2.336.0: conserva la barra del móvil
-      ok.disabled = true;
-      const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-      ok.disabled = false;
-      if (error) { toast('No se ha podido guardar el menú', true); return; }
-      PERFIL.preferencias = data || prefs; guardado = true; cerrar(); MENU_FIRMA = ''; montarMenuLateral(); toast('Menú guardado');
-    }
-  });
-  caja.addEventListener('change', e => {
-    const v = e.target.closest('[data-vk]'); if (!v) return; const k = v.dataset.vk;
-    estado.ocultos = v.checked ? estado.ocultos.filter(x => x !== k) : [...new Set([...estado.ocultos, k])];
-    const fila = v.closest('.mlpi'); fila.classList.toggle('off', !v.checked);
-    const g = fila.closest('.mlpg'), its = estado.items[g.dataset.g].filter(disponible);
-    g.querySelector('.mlpcnt').textContent = `${its.filter(x => !estado.ocultos.includes(x)).length} de ${its.length}`;
-    previa();
-  });
-  // Teclado: con el foco en un asa, ↑ ↓ mueven
-  caja.addEventListener('keydown', e => {
-    const a = e.target.closest('.mlpasa'); if (!a || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
-    e.preventDefault(); const d = e.key === 'ArrowUp' ? -1 : 1;
-    if (a.dataset.ag) { const bs = bloques(), i = bs.indexOf(a.dataset.ag), o = bs[i + d]; if (!o) return; moverBloque(a.dataset.ag, o, d < 0); pinta(`[data-ag="${a.dataset.ag}"]`); }
-    else { const g = a.dataset.g, its = estado.items[g].filter(disponible), i = its.indexOf(a.dataset.ak), o = its[i + d]; if (!o) return; moverItem(g, a.dataset.ak, o, d < 0); pinta(`[data-ak="${a.dataset.ak}"]`); }
-    previa();
-  });
-  // Arrastrar y soltar, solo desde el asa: al pulsarla, su fila (o su bloque) pasa a ser arrastrable
-  let arr = null;
-  caja.addEventListener('pointerdown', e => {
-    caja.querySelectorAll('[draggable="true"]').forEach(x => x.removeAttribute('draggable'));
-    const a = e.target.closest('.mlpasa'); if (!a) return;
-    const el = a.dataset.ag ? a.closest('.mlpg') : a.closest('.mlpi'); if (el) el.setAttribute('draggable', 'true');
-  });
-  caja.addEventListener('dragstart', e => {
-    const el = e.target.closest('[draggable="true"]'); if (!el) { e.preventDefault(); return; }
-    arr = el.classList.contains('mlpi') ? { tipo: 'i', k: el.dataset.k, g: el.dataset.g, el } : { tipo: 'g', g: el.dataset.g, el };
-    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', arr.k || arr.g); } catch (er) {}
-    requestAnimationFrame(() => { if (arr) arr.el.classList.add('arrastrando'); });
-  });
-  const limpiar = () => caja.querySelectorAll('.soltar-antes, .soltar-despues').forEach(x => x.classList.remove('soltar-antes', 'soltar-despues'));
-  caja.addEventListener('dragover', e => {
-    if (!arr) return;
-    const dest = arr.tipo === 'i' ? e.target.closest(`.mlpi[data-g="${arr.g}"]`) : e.target.closest('.mlpg');
-    limpiar(); if (!dest || dest === arr.el) return;
-    e.preventDefault(); const r = dest.getBoundingClientRect();
-    dest.classList.add(e.clientY < r.top + r.height / 2 ? 'soltar-antes' : 'soltar-despues');
-  });
-  caja.addEventListener('drop', e => {
-    if (!arr) return; e.preventDefault();
-    const dest = caja.querySelector('.soltar-antes, .soltar-despues'); if (!dest) return;
-    const antes = dest.classList.contains('soltar-antes');
-    if (arr.tipo === 'i') moverItem(arr.g, arr.k, dest.dataset.k, antes); else moverBloque(arr.g, dest.dataset.g, antes);
-    arr = null; pinta(); previa();
-  });
-  caja.addEventListener('dragend', () => { arr = null; limpiar(); caja.querySelectorAll('.arrastrando').forEach(x => x.classList.remove('arrastrando')); });
-  setTimeout(() => { document.addEventListener('click', fuera, true); document.addEventListener('keydown', tecla, true); }, 0);
-  const f = caja.querySelector('.mlpasa'); if (f) f.focus();
-}
+const menuPrefs = () => window.delcos.nav.menuPrefs();
 
-function menuPersonalizar(...a) {
-  const r = menuPersonalizarBase.apply(this, a);
-  const caja = $('mlpanel');
-  if (caja && !caja.__candados) {
-    caja.__candados = true; personalizarCandados();
-    new MutationObserver(() => personalizarCandados()).observe(caja, { childList: true });
-    caja.addEventListener('change', () => personalizarCandados());
-  }
-  return r;
-}
+const menuEscritorio = () => window.delcos.nav.isDesktopMenu();
 
-function abrirMasMovilBase2() {
-  abrirMasMovilBase();
-  const s = $('bmas'); if (!s) return;
-  s.querySelectorAll('.bmasbox > .sm').forEach(x => x.remove());
-  s.querySelectorAll('[data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluye(t)) { b.classList.add('bloq'); b.onclick = () => { s.classList.add('hide'); avisoPlan(t); }; } });
-  document.body.classList.add('masabierto');
-  const obs = new MutationObserver(() => { if (s.classList.contains('hide')) { document.body.classList.remove('masabierto'); obs.disconnect(); } });
-  obs.observe(s, { attributes: true, attributeFilter: ['class'] });
-}
+const menuPlegado = () => window.delcos.nav.isMenuFolded();
 
-function abrirMasMovilBase3(...a) {
-  const r = abrirMasMovilBase2.apply(this, a);
-  document.querySelectorAll('.bmasgrid [data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluyeSeccion(t)) {
-    b.classList.add('bloq'); b.onclick = () => { const s = $('bmas'); if (s) s.classList.add('hide'); document.body.classList.remove('masabierto'); avisoPlan(t); }; } });
-  return r;
-}
+const menuRehacer = () => window.delcos.nav.redoMenu();
 
-function abrirMasMovilBase4(...a) {
-  const r = abrirMasMovilBase3.apply(this, a);
-  document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
-  return r;
-}
+const menuNombres = () => window.delcos.nav.menuNames();
 
-function abrirMasMovilBase5(...a) {
-  const r = abrirMasMovilBase4.apply(this, a);
-  const t = tabDelMenu();
-  document.querySelectorAll('#bmas [data-bm]').forEach(b => { const on = b.dataset.bm === t; if (b.classList.contains('on') !== on) b.classList.toggle('on', on); });
-  return r;
-}
-
-function abrirMasMovil(...a) {
-  const r = abrirMasMovilBase5.apply(this, a);
-  const s = $('bmas'), g = s && s.querySelector('.bmasgrid'); if (!g) return r;
-  const barra = movBarra(), ocultos = menuPrefs().ocultos || [];
-  const quiero = movMasOrden(movDisponibles().filter(t => !barra.includes(t) && !ocultos.includes(t)));
-  const cerrar = () => { s.classList.remove('abierto'); setTimeout(() => s.classList.add('hide'), 180); };
-  g.querySelectorAll('[data-bm]').forEach(x => { if (!quiero.includes(x.dataset.bm)) x.remove(); });
-  quiero.forEach(t => {
-    if (g.querySelector(`[data-bm="${t}"]`)) return;
-    g.insertAdjacentHTML('beforeend', `<button data-bm="${t}" class="${tabDelMenu() === t ? 'on' : ''}"><span>${ICO_MOD[t] || '•'}</span>${esc(movNombre(t))}</button>`);
-    g.querySelector(`[data-bm="${t}"]`).onclick = () => { cerrar(); ir(t); };
-  });
-  quiero.forEach(t => { const x = g.querySelector(`[data-bm="${t}"]`); if (x) g.appendChild(x); });   // en el orden elegido
-  if (!s.querySelector('#bmaspers')) {
-    g.insertAdjacentHTML('afterend', '<div class="acts bmaspers"><button type="button" class="btn sec chico" id="bmaspers">Personalizar menú</button></div>');
-    $('bmaspers').onclick = () => { cerrar(); movPersonalizar(); };
-  }
-  return r;
-}
-// nucleo/navegacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
-// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
-
-function volverTrasF5(v) {
-  if (v.c) CFG_SEC = v.c;
-  if (v.s) CFG_SUB = v.s;
-  if (v.p) Object.assign(PAG_TAB, v.p);
-  if (['config', 'perfil', 'empresa', 'plan'].includes(v.t) || puedeModulo(v.t)) ir(v.t);
-}
-
-/* v2.137.0 · Entorno de pruebas sin franja (petición de Eric: tapaba la cabecera y no hace falta algo tan grande). Junto al logo, un
-   indicador pequeño «Pruebas»; los botones «Traer los datos de producción» y «Volver a los datos de partida», con sus fechas y el
-   estado de la copia, pasan a Organización → Entorno de pruebas. */
-async function volverDatosPartida() {
-  if (!await preguntar('Se borrará todo lo creado o cambiado en el entorno de pruebas y los datos volverán a como se copiaron de producción. No se puede deshacer.',
-    { titulo: '¿Volver a los datos de partida?', ok: 'Sí, volver', peligro: true })) return;
-  pantallaCarga('Volviendo a los datos de partida…');
-  let { data: r, error } = await RPC_ORIG('pruebas_resetear_responsable', { p_confirmacion: 'RESTABLECER' });
-  if (error && /pruebas_resetear_responsable|PGRST202|not find/i.test(error.message || '')) ({ data: r, error } = await RPC_ORIG('pruebas_resetear', { p_confirmacion: 'RESTABLECER' }));
-  if (error || !r || !r.ok) {
-    quitarCarga();
-    toast(r && r.error === 'permiso' ? 'Solo la persona responsable del entorno puede hacerlo' : r && r.error === 'sin_maestro' ? 'Faltan los datos de partida' : 'No se ha podido: ' + ((error && error.message) || (r && r.error) || ''), true);
-    return;
-  }
-  limpiarDatosLocales(); location.reload();
-}
-
-/* ============================================================
-   v2.267.0 · Carga visible y arreglos del móvil (avisos de Eric, 11/10/2026).
-   - Al cambiar de pantalla, una línea de luz cruza la parte alta de punta a punta (como un cometa, con los colores de la marca).
-   - Los esqueletos llevan su cargador pequeño en cada bloque (y el brillo es más visible): se ve que está cargando.
-   - Inicio en el móvil: el engranaje y «Actualizar» están en su sitio desde el primer momento (antes aparecían tarde, primero en
-     otra línea y después junto al título) y el saludo no se corta.
-   - Menú del móvil: Oportunidades, Compras y Proveedores se marcan ellas (antes se marcaba Pedidos); «Usuarios y roles» pasa a
-     «Usuarios» (los roles están en Configuración).
-   - El «+» de las listas vuelve a ser el botón redondo después de girar el móvil (antes se quedaba como un botón de texto grande).
-   ============================================================ */
-// ---- La línea de luz al cambiar de pantalla
-function cometa() {
-  let c = $('cometa');
-  if (!c) { document.body.insertAdjacentHTML('beforeend', '<div id="cometa" class="cometa" aria-hidden="true"><i></i></div>'); c = $('cometa'); }
-  c.classList.remove('va'); void c.offsetWidth; c.classList.add('va');
-}
-
-function tabDelMenu() { return TAB === 'ventas' && typeof PEDSEC !== 'undefined' && SUBSEC_MENU[pedsecVista()] ? SUBSEC_MENU[pedsecVista()] : TAB; }
-
-// 2. «Estable»: sin consultas pendientes y sin cambios en el elemento durante 120 ms (como mucho, el tiempo indicado)
-function estable(el, max = 4000, desde) {
-  return new Promise(res => {
-    // Las esperas se miden con el cronómetro interno del navegador (siempre avanza; el reloj puede saltar)
-    const t0 = desde || Date.now() - 5, p0 = performance.now(); let ultimo = p0 - 5, fin = false;
-    // Cuentan los cambios dentro del elemento (no los de su propia clase, que son los del mecanismo de carga)
-    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el && !cambioDeCifra(m))) ultimo = performance.now(); });   // v2.269.0
-    mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
-    const listo = () => { if (fin) return; fin = true; mo.disconnect(); res(); };
-    // Pantalla ya cargada: si al terminar la tarea actual no hay consultas ni cambios, se muestra al momento
-    // Una pantalla con esqueletos de carga (recuadros «Cargando…») todavía no está lista
-    const conEsqueletos = () => !!el.querySelector('.skel, .ksk, .cargandolocal');
-    setTimeout(() => { if (pendientesDesde(t0) === 0 && ultimo <= p0 && !conEsqueletos()) listo(); }, 0);
-    const w = setInterval(() => {
-      if (fin) { clearInterval(w); return; }
-      // Solo las consultas lanzadas desde que empezó (las que ya estaban en curso, como la campana, no cuentan)
-      // …y con un respiro de 120 ms desde el último cambio y desde la última consulta terminada (las encadenadas no se toman por el final)
-      const ya = performance.now();
-      if ((pendientesDesde(t0) === 0 && ya - Math.max(ultimo, RED_ULTIMO_FIN) >= 50 && !conEsqueletos()) || ya - p0 > max) { clearInterval(w); listo(); }   // v2.269.0: 50 ms (antes 120)
-    }, 15);
-  });
-}
-
-function pantallaTrasF5() {
-  let v = null;
-  try { v = JSON.parse(sessionStorage.getItem('dlc-f5') || 'null'); sessionStorage.removeItem('dlc-f5'); } catch (x) { v = null; }
-  // Solo si se acaba de pulsar (una recarga horas después, o desde el botón del navegador, entra por el inicio)
-  return v && v.t && Date.now() - (v.h || 0) < 60000 ? v : null;
-}
-
-function nombrePantalla(t) {
-  const b = document.querySelector(`nav.main [data-t="${t}"]`);
-  const n = (b && b.textContent.trim()) || (typeof PAGINAS !== 'undefined' && PAGINAS[t] && PAGINAS[t].t) || (t === 'config' ? 'Configuración' : '');
-  return n || 'donde estabas';
-}
-
-/* ============================================================
-   v2.269.0 · Cargas rápidas, filtros que se mantienen y notas en Pedidos (petición de Eric, 11/10/2026; necesita el SQL 144).
-   - Las pantallas se enseñan antes: «estable» espera 50 ms sin cambios (antes 120), mira cada 15 ms (antes 30) y no espera a las
-     cifras que cuentan (Analítica esperaba ~1 s oculta a que terminaran sus indicadores). Con el SQL 144
-     las consultas lentas bajan a 20-60 ms.
-   - Los indicadores de una lista solo se piden en su pantalla (los de Clientes se pedían también en Pedidos, Compras, Productos…).
-   - Los filtros de las listas (los de la fila de filtros y los propios del panel «Filtros») se recuerdan: si la pantalla se vuelve a pintar (al guardar un pedido,
-     al volver a ella…) salen con lo que tenías puesto, hasta que los quites tú.
-   - Pedidos: columna «Notas».
-   ============================================================ */
-// Una cifra que se anima al contar (solo cambia su texto, y son números) no es «la pantalla sigue cargando»: antes, en Analítica,
-// la pantalla esperaba oculta ~1 s a que terminaran de contar los indicadores
-function cambioDeCifra(m) {
-  if (m.type !== 'childList') return false;
-  const ns = [...m.addedNodes, ...m.removedNodes];
-  return ns.length > 0 && ns.every(n => n.nodeType === 3) && /^[\d.,\s%€+\-−]*$/.test(m.target.textContent || '');
-}
-
-function refrescarDebajo() {
-  if (document.querySelector('dialog[open]')) { DATOS_CAMBIADOS = true; return; }
-  DATOS_CAMBIADOS = false;
-  if (TAB === 'agenda' && $('agcuerpo')) agRefrescoQuieto(null, { cifras: false });
-  else if (TAB === 'directorio' && typeof buscar === 'function') buscar(true);
-}
-
-// v2.92.0: la pantalla recién revelada llega con un fundido corto (las repintadas posteriores no se animan)
-function llegar(el) {
-  if (!el || !el.matches('main > section')) return;
-  el.classList.remove('llega'); void el.offsetWidth; el.classList.add('llega');
-  clearTimeout(el._llega); el._llega = setTimeout(() => el.classList.remove('llega'), 700);
-}
-
-function subirAccionPagina() {
-  if (typeof PAGINAS === 'undefined' || !PAGINAS[TAB]) return;
-  const sec = $('v-' + TAB), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
-  ACCION_PAGINA.forEach(id => {
-    const b = $(id); if (!b || !sec.contains(b) || b.closest('.saludo')) return;
-    let acts = sal.querySelector(':scope > .acts');
-    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts htacts"></div>'); acts = sal.querySelector(':scope > .acts'); }
-    acts.appendChild(b);
-  });
-}
-
-function vistaBoton(v, d0) {
-  const d = d0 || (v && v.dlg); if (!d || !d.open || !VUELTA.length || d.querySelector('.vueltabtn')) return;
-  const fh = d.querySelector('.fh'); if (!fh) return;
-  const ant = VUELTA[VUELTA.length - 1];
-  const t = fh.firstElementChild, dentro = t && t.tagName !== 'BUTTON' && !t.matches('h2') ? t : fh;
-  dentro.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico vueltabtn" title="Volver a ${esc(VISTA_TITULO[ant.fn] || 'la ventana anterior')}">‹ Volver</button>`);
-}
+function menuGrupos() { return window.delcos.nav.menuGroups(); }
+function menuTip(b) { return window.delcos.nav.menuTip(b); }
+function movNombre(t) { return window.delcos.nav.mobileName(t); }
+function movBarra() { return window.delcos.nav.bottomBar(); }
+function aplicarPermisosMenuPaso1() { return window.delcos.nav.lockModules(); }
+function aplicarPermisosMenuPaso2() { iconosMenu(); }
+function aplicarPermisosMenuPaso3() { return window.delcos.nav.orderAfterPermissions(); }
+function aplicarPermisosMenuBase() { return window.delcos.nav.showAllowedModules(); }
+function ordenarCabeceraMovil(sec) { return window.delcos.nav.mobileHeader(sec); }
+function ordenarMenu() { return window.delcos.nav.orderMenu(); }
+function candadoSecciones() { return window.delcos.nav.lockSections(); }
+function aplicarNombresMenu() { return window.delcos.nav.applyMenuNames(); }
+function medirBnav() { return window.delcos.nav.measureBottomBar(); }
+function fabAOrdenador() { return window.delcos.nav.fabToDesktop(); }
+function menuPersonalizar() { return window.delcos.nav.customiseDesktopMenu(); }
+function abrirMasMovil() { return window.delcos.nav.openMoreMenu(); }
+// nucleo/navegacion.js · páginas, revelado, enlaces, «‹ Volver» y arranque están en src/app/core/navigation y core/startup (v2.426.0).
+// Aquí quedan el estado que leen y cambian otras partes, los objetos compartidos (los mismos que en src/app) y los nombres que usan el
+// legado, los puentes, «‹ Volver» y las pruebas.
 
 let TAB_ANTERIOR = 'inicio';
 
 let APP_VISIBLE = false;
 
-const PAGINAS = {
-  perfil: { t: 'Mi perfil', d: 'Tus datos, idioma, qué abrir al entrar y tus notificaciones', tabs: [['datos', 'Mis datos', () => pintarPerfil()], ['notif', 'Notificaciones', () => pintarNotif()]] },
-  empresa: { t: 'Empresa', d: 'Marca, correo de la empresa y copias de seguridad', admin: true, tabs: [['marca', 'Marca y logo', () => pintarMarca()], ['correo', 'Correo y firma', () => pintarCorreo()], ['copias', 'Copias de seguridad', () => pintarCopias()]] },
-  plan: { t: 'Plan y suscripción', d: '', admin: true, tabs: [['plan', 'Plan', () => pintarPaginaPlan()]] }
-};
+const PAGINAS = window.delcos.nav.PAGES;
 
 let VIA_IR = null;
-
-// 3. Pantallas: se preparan ocultas y se muestran de golpe
-let REVELADO = 0;
 
 let CLIC_PESTANA = null;
 
 let IR_DESDE_MENU = false;
 
-/* v2.144.0 · Páginas propias: la acción principal («+ Nuevo usuario», «+ Nueva organización») sube a la derecha de la cabecera, como
-   «+ Nueva venta» en el resto de pantallas (regla de Eric: misma posición en todas). Antes iba dentro de la tarjeta, junto al buscador. */
-const ACCION_PAGINA = ['usrnuevo', 'orgnueva'];
-
 let ACCION_PAG_PEND = false;
 
-// ---- Menú del móvil: la sección que se ve, no la página que la contiene
-const SUBSEC_MENU = { llamadas: 'oportunidades', compras: 'compras', proveedores: 'proveedores' };
+const VUELTA = window.delcos.nav.BACK_STACK;
 
-/* ============================================================
-   v2.300.0 · Volver siempre al punto de partida (petición de Eric). Cuando desde una ventana se abre otra (una cita → la
-   ficha del centro → la ficha de un profesional…), la de antes se apunta en una pila. Al cerrar la de dentro (con su ✕,
-   con «‹ Volver» o al guardar y cerrarse), se vuelve a abrir la anterior con sus datos al día, en vez de dejar a la persona
-   en la pantalla de debajo. Cerrar la primera cierra del todo. Cambiar de pantalla vacía la pila.
-   ============================================================ */
-const VUELTA = [];
+const VISTA_TITULO = window.delcos.nav.VIEW_TITLES;
 
-const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha: 'la ficha', verPedido: 'el pedido', verFactura: 'la factura', verEvento: 'el evento',
-  verCirugia: 'la intervención', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
+const vistaDlg = () => window.delcos.nav.openView();
 
-const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
+const vistaIgual = (a, b) => window.delcos.nav.sameView(a, b);
 
-const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
-
-/** Paginador para listas que se piden al servidor por páginas. */
-function paginadorBase(el, total, pagina, alCambiar, alCambiarTam) {
-  if (!el) return;
-  const tam = tamPagina();
-  if (total <= TAMANOS[0]) { el.innerHTML = ''; return; }
-  el.innerHTML = pagHTML(total, pagina, tam);
-  el.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => alCambiar(+b.dataset.pg));
-  el.querySelector('[data-pgtam]').onchange = e => { fijarTam(+e.target.value); alCambiarTam(); };
-}
-
-async function arrancarBase() {
-  marca('inicio del arranque');
-  let guardado = null;
-  try { guardado = JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) {}
-  // v2.69.0: el perfil guardado solo sirve si ya trae sus capacidades y están los roles (si no, se espera al de la red)
-  if (guardado && !Array.isArray(guardado.capacidades)) guardado = null;
-  if (guardado && ROLES_DEF.length && ESTADOS_DEF.length && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) {
-    mostrarApp(guardado);
-    marca('app visible con el perfil guardado');
-  }
-
-  const { data: { session } } = await db.auth.getSession();
-  marca('sesión comprobada');
-  if (!session) { if (!navigator.onLine && guardado && APP_VISIBLE) return;   // v2.259.0: sin conexión se sigue con el perfil guardado
-    localStorage.removeItem(PKEY); mostrarLogin(); return; }
-
-  const rolesListos = cargarRoles().catch(() => false);
-  let { data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single();
-  // Un fallo de conexión no cierra la sesión: se reintenta y, si sigue fallando, se entra con el perfil guardado
-  for (let i = 0; i < 2 && error && error.code !== 'PGRST116'; i++) {
-    await new Promise(r => setTimeout(r, 1500));
-    ({ data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single());
-  }
-  if (error && error.code !== 'PGRST116' && guardado) { perfil = guardado; error = null; }
-  marca('perfil recibido');
-  if (error || !perfil || !perfil.activo) {
-    // v2.117.0: si su empresa está bloqueada (prueba terminada o desactivada), se dice eso
-    const { data: acc } = await Promise.resolve(RPC_ORIG('acceso_organizacion', {})).catch(() => ({ data: null }));
-    localStorage.removeItem(PKEY);
-    await db.auth.signOut();
-    mostrarLogin(acc && acc.bloqueada ? (acc.motivo === 'prueba_terminada'
-        ? `La prueba de ${acc.organizacion} terminó el ${fechaCorta(acc.prueba_hasta)}. Tus datos se conservan: escríbenos para seguir.`
-        : `${acc.organizacion} está desactivada. Tus datos se conservan: escríbenos para volver a activarla.`)
-      : perfil && !perfil.activo ? 'Tu usuario está desactivado.'
-      : 'Tu usuario no tiene perfil en la plataforma. Avisa a administración.');
-    return;
-  }
-  try { localStorage.setItem(PKEY, JSON.stringify(perfil)); } catch (e) {}
-  if (!(await rolesListos) && !(ROLES_DEF.length && ESTADOS_DEF.length)) await cargarRoles().catch(() => false);
-  const cambio = !guardado || JSON.stringify(guardado) !== JSON.stringify(perfil);
-  if (!APP_VISIBLE) mostrarApp(perfil);
-  else if (cambio) { mostrarApp(perfil); if (TAB === 'inicio') cargarInicio(); }
-  db.rpc('registrar_acceso', { p_evento: 'Entrada', p_agente: navigator.userAgent }).catch(() => {});
-}
-
-async function volverAMiSesionBase() {
-  const s = suplantando(); if (!s) return;
-  const { error } = await db.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
-  localStorage.removeItem(SKEY);
-  limpiarDatosLocales();
-  if (error) { await db.auth.signOut(); toast('Tu sesión había caducado: vuelve a entrar', true); }
-  location.reload();
-}
-
-async function volverAMiSesion() {
-  const s = suplantando();
-  pantallaCarga('Volviendo a tu sesión' + (s ? ', ' + nombrePila(s.nombre) : '') + '…');
-  await volverAMiSesionBase();
-}
-
-// Con el enlace de recuperación la plataforma no arranca ni se pinta
-async function arrancar(...a) { if (RECUPERANDO) { pantallaRecuperacion(); return; } return arrancarBase.apply(this, a); }
-
-/* ============================================================
-   v2.250.0 · Ventas sin paginadores repetidos (listas sin fantasmas, segundo grupo). Las listas de Ventas (Pedidos,
-   Oportunidades, Compras, Proveedores, Facturas, Catálogo, Servicios y Stock) ya llegaban de una vez (v2.238) y no se
-   recolocan al buscar, filtrar, pulsar un indicador, pasar de página u ordenar (prueba ventas2250). Lo que sí fallaba: en
-   Facturas y Oportunidades el paginador se crea dentro de la lista y la plantilla lo saca al pie de la tabla; al volver a
-   pintar se creaba otro y quedaban dos (con el mismo id). Ahora, antes de pintar un paginador se quita el anterior con su nombre.
-   ============================================================ */
-function paginador(el, ...a) {
-  if (el && el.id) document.querySelectorAll('#' + el.id).forEach(x => { if (x !== el) x.remove(); });
-  return paginadorBase.call(this, el, ...a);
-}
-
-function irEnlaceBase(e) {
-  if (!e) return;
-  const [t, id] = String(e).split(':');
-  if (t === 'ficha' && id) abrirFicha(id); else if (t === 'pedido' && id) verPedido(id);
-  else if (t === 'informe') ir('informe'); else if (t === 'directorio') ir('directorio');
-}
-
-function irEnlaceBase2(e) {
-  const [t] = String(e || '').split(':');
-  if (t === 'agenda') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); }
-  else if (t === 'llamadas') { PEDSEC = 'llamadas'; ir('ventas'); }
-  else if (t === 'ventas') { PEDSEC = 'ventas'; ir('ventas'); }
-  else if (t === 'stock') { PSEC = 'stock'; ir('productos'); }
-  else if (t === 'facturacion') ir('facturacion');
-  else if (t === 'duplicados') ir('duplicados');
-  else irEnlaceBase(e);
-}
-
-function cargarPaginaBase(t) {
-  const P = PAGINAS[t];
-  if (P.permiso && !P.permiso()) { ir('inicio'); return; }   // v2.121.0: páginas con su propio permiso (Organización)
-  if (P.admin && !puede('administrar')) { ir('inicio'); return; }
-  let sec = $('v-' + t);
-  if (!sec) { document.querySelector('main').insertAdjacentHTML('beforeend', `<section id="v-${t}"></section>`); sec = $('v-' + t); }
-  // Solo puede haber un contenedor de contenido a la vez: Configuración y las otras páginas se vacían (se repintan al volver)
-  if ($('v-config')) $('v-config').innerHTML = '';
-  Object.keys(PAGINAS).forEach(o => { if (o !== t && $('v-' + o)) $('v-' + o).innerHTML = ''; });
-  const tab = P.tabs.some(x => x[0] === PAG_TAB[t]) ? PAG_TAB[t] : P.tabs[0][0];
-  sec.innerHTML = `${t === 'plan' ? '' : `<div class="saludo"><div><h1>${esc(P.t)}</h1><div class="fecha">${esc(P.d)}</div></div></div>`}
-    ${P.tabs.length > 1 ? `<div class="cfgsubs pagtabs">${P.tabs.map(([k, n]) => `<button data-ptab="${k}" class="${k === tab ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>` : ''}
-    <div id="cfgcuerpo" class="pagcuerpo"></div>`;
-  sec.querySelectorAll('.pagtabs [data-ptab]').forEach(b => b.onclick = () => { PAG_TAB[t] = b.dataset.ptab; cargarPagina(t); });
-  Promise.resolve().then(P.tabs.find(x => x[0] === tab)[2]);
-}
-
-function revelarBase(el, max, desde) {
-  if (!el) return; const turno = ++REVELADO;
-  el.classList.add('preparando');
-  estable(el, max, desde).then(() => { if (turno === REVELADO || !el.matches('main > section')) { el.classList.remove('preparando'); llegar(el); } });
-}
-
-// Enlaces nuevos de los avisos
-function irEnlaceBase3(e) {
-  const [t, id] = String(e || '').split(':');
-  if (t === 'cliente' && id) return nuevaVenta({ contacto_id: id });
-  if (t === 'cita') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); return ir('agenda'); }
-  return irEnlaceBase2(e);
-}
-
-function cargarPaginaBase2(t, ...a) {
-  const r = cargarPaginaBase.call(this, t, ...a);
-  if (t === 'delcos' && MODO_PLATAFORMA) {
-    const sec = $('v-delcos'), tab = PAG_TAB.delcos || 'orgs', s = PANEL_SECCIONES.find(x => x[1] === tab);
-    if (sec && s) { const h = sec.querySelector('.saludo h1'), d = sec.querySelector('.saludo .fecha'); if (h) h.textContent = s[2]; if (d) d.textContent = PANEL_DESC[tab] || ''; }
-  }
-  return r;
-}
-
-function irEnlaceBase4(e) {
-  const [t, id] = String(e || '').split(':');
-  if (t === 'cirugia' && id) { verCirugia(id); return; }
-  return irEnlaceBase3.call(this, e);
-}
-
-function irEnlaceBase5(e) {
-  const [t, id] = String(e || '').split(':');
-  if (t === 'concurso' && id) { verConcurso(id); return; }
-  return irEnlaceBase4.call(this, e);
-}
-
-function irEnlaceBase6(e) {
-  const [t, id] = String(e || '').split(':');
-  if (t === 'equipo' && id) { verEquipo(id); return; }
-  return irEnlaceBase5.call(this, e);
-}
-
-function irEnlace(e) {
-  const [t] = String(e || '').split(':');
-  if (t === 'plan') { ir('plan'); return; }
-  if (t === 'delcos' && puede('gestionar_plataforma')) { ir('delcos'); return; }
-  return irEnlaceBase6.call(this, e);
-}
-
-// Al llegar, sin cargador que tape la pantalla: se ve la plantilla con su esqueleto
-function revelarBase2(el, max, desde) {
-  const tab = el && el.id && el.id.slice(2);
-  if (el && PL[tab] && el.matches('main > section')) { el.classList.remove('preparando'); plSync(tab); llegar(el); return; }
-  return revelarBase(el, max, desde);
-}
-
-function revelarBase3(el, max, desde) {
-  const tab = el && el.id && el.id.slice(2), listo = LISTA_PARA[tab];
-  if (!listo || !el.matches || !el.matches('main > section')) return revelarBase2(el, max, desde);
-  // Inicio con su esqueleto: sin cargador encima
-  if (tab === 'inicio' && !ES_MEDICO()) { inicioEsqueleto(); el.classList.remove('preparando'); llegar(el); return; }
-  const turno = ++REVELADO, t0 = performance.now(), tope = LISTA_ESPERA[tab] || 6000;
-  el.classList.add('preparando'); el.__t0 = t0; el.__cinta = 0;
-  const mirar = () => estable(el, Math.max(300, tope - (performance.now() - t0)), desde).then(() => {
-    if (turno !== REVELADO) return;
-    if (listo(el) || performance.now() - t0 > tope) { el.classList.remove('preparando'); llegar(el); }
-    else setTimeout(mirar, 60);
-  });
-  mirar();
-}
-
-// Revelado de las pantallas con secciones: la primera llegada, de una vez (como siempre), con la plantilla ya puesta
-function revelarBase4(el, max, desde) {
-  const tab = el && el.id && el.id.slice(2);
-  if (PL_SECC[tab] && el.matches && el.matches('main > section')) {
-    // Primera llegada de una pantalla en rejilla: de una vez, con el cargador (el esqueleto queda para cuando se vuelve a buscar)
-    const t0 = Date.now(); el.classList.add('preparando');
-    // La sección puede decidirse un momento después (al pintarse): se vuelve a mirar
-    setTimeout(() => { if (plCfg(tab)) plSync(tab);
-      // La v2.236 trataba como plantilla toda pantalla de PL: mientras se llama al revelado de siempre, esta no está en PL
-      const keep = PL[tab]; delete PL[tab]; try { revelarBase3(el, max, desde || t0); } finally { PL[tab] = keep; } }, 0);
-    return;
-  }
-  return revelarBase3(el, max, desde);
-}
-
-/* ============================================================
-   v2.251.0 · Pestañas sin fantasmas en Eventos, Intervenciones, Concursos y Parque (listas sin fantasmas, tercer grupo). Las cuatro
-   listas de bloques llegan de una vez y no se recolocan al buscar, filtrar, pulsar un bloque u ordenar (prueba bloques2251),
-   pero al cambiar de pestaña (Concursos: En marcha, Contratos, Cerrados) la página entera se volvía a montar y, mientras
-   llegaban los datos, la cabecera se quedaba sin su botón, el filtro de bloques desaparecía y la barra se movía. Ahora:
-   - Cambiar entre pestañas que son listas no vuelve a montar la página: la pestaña se marca al momento, la lista de antes se
-     atenúa y la nueva la sustituye de una vez cuando llegan sus datos (a Informe de gastos de Eventos, que no es una lista, se
-     sigue llegando montando la página entera).
-   - El filtro de bloques se queda en su sitio, desactivado, si la pestaña tiene un solo bloque (antes desaparecía y el buscador
-     se ensanchaba).
-   ============================================================ */
-function cargarPagina(t, ...a) {
-  const P = PAGINAS[t], sec = $('v-' + t), caja = sec && sec.querySelector('#cfgcuerpo'), tabs = sec && sec.querySelector(':scope > .pagtabs');
-  if (!P || !BLQ[t] || TAB !== t || !caja || !tabs || !sec.classList.contains('plantilla')) return cargarPaginaBase2.call(this, t, ...a);
-  const tab = P.tabs.some(x => x[0] === PAG_TAB[t]) ? PAG_TAB[t] : P.tabs[0][0];
-  tabs.querySelectorAll('[data-ptab]').forEach(b => b.classList.toggle('on', b.dataset.ptab === tab));
-  // Solo entre pestañas que son listas (Informe de gastos de Eventos no lo es: esa página se vuelve a montar entera, como antes)
-  if (PL_SECC[t] && !PL_SECC[t]()) return cargarPaginaBase2.call(this, t, ...a);
-  caja.classList.add('pagcambia');
-  return Promise.resolve().then(P.tabs.find(x => x[0] === tab)[2]).finally(() => { const c = $('cfgcuerpo'); if (c) c.classList.remove('pagcambia'); });
-}
-
-/* ============================================================
-   v2.256.0 · Fichas sin fantasmas. La ficha de una cuenta se enseña cuando está entera (revelado de las ventanas), pero se rendía a
-   los 1,5 s: con la red lenta, los bloques que llegan después (historial de visitas, campos, muestras, ciclo…) aparecían ya abierta
-   y empujaban lo de debajo. Ahora la ficha espera hasta 5 s a tener todos sus bloques. Pedido, factura, evento y ficha de centro ya
-   se abrían de una vez (prueba fichas2256).
-   ============================================================ */
-function revelar(el, max, desde) {
-  if (el && el.id === 'fbody') max = Math.max(max || 0, 5000);
-  return revelarBase4.call(this, el, max, desde);
-}
-
-// Cambio de pestaña: la vista anterior se queda fija hasta que llegan los datos y la pantalla deja de cambiar
-function congelar(sec) {
-  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
-  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
-  const t0 = Date.now() - 2;
-  // La copia conserva sus identificadores (así mantiene exactamente su aspecto); al estar al final de la página,
-  // la plataforma sigue encontrando siempre los elementos reales, que van antes
-  const c = sec.cloneNode(true);
-  c.classList.add('congelada', 'atenuada'); c.classList.remove('cargando', 'cargando-pend', 'preparando');
-  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, zIndex: 45, background: 'var(--bg, #F3F8FC)' });
-  // La pestaña pulsada se marca activa al momento en la copia
-  const b = CLIC_PESTANA;
-  if (b && sec.contains(b)) {
-    const attrs = [...b.attributes].filter(a => a.name.startsWith('data-') && a.name !== 'data-expl');
-    const sel = attrs.length ? attrs.map(a => `[${a.name}="${CSS.escape(a.value)}"]`).join('') : null;
-    const cb = sel && c.querySelector(sel);
-    if (cb) { [...cb.parentElement.children].forEach(x => { x.setAttribute('aria-pressed', String(x === cb)); x.classList.toggle('on', x === cb); if (x !== cb && x.classList.contains('btn') && !x.classList.contains('sec')) x.classList.add('sec'); }); cb.classList.remove('sec'); }
-  }
-  c.insertAdjacentHTML('afterbegin', '<div class="barraprog"><i></i></div>');
-  // Se coloca justo debajo de la fila de botones que se ha pulsado (pestañas, modos de la agenda…)
-  if (b && sec.contains(b)) { const fila = b.closest('.subnav, .cfgsubs, .acts, .segs') || b.parentElement; const rb = fila.getBoundingClientRect(); c.querySelector('.barraprog').style.top = Math.round(rb.bottom - r.top + 4) + 'px'; }
-  document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
-  setTimeout(() => estable(sec, 3000, t0).then(() => { c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }), 0);
-}
-
-// Menú: «Usuarios y roles» (quien administra) y «Panel delcos» (quien gestiona la plataforma)
-function menuPaginas2131Base() {
-  const nav = document.querySelector('nav.main .in'); if (!nav || ES_MEDICO()) return;
-  const pon = (t, txt, ve) => {
-    let b = nav.querySelector(`[data-t="${t}"]`);
-    if (!b && ve) { nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false">${txt}</button>`); b = nav.querySelector(`[data-t="${t}"]`); }
-    if (b) { b.classList.toggle('hide', !ve); if (!b.closest('.mlbs') && b !== nav.lastElementChild) nav.appendChild(b); }   // v2.132.0: si ya está en su bloque del menú lateral, se queda
-  };
-  pon('usuarios', 'Usuarios y roles', puede('administrar'));
-  pon('delcos', 'Panel delcos', puede('gestionar_plataforma'));
-}
-
-function menuPaginas2131(...a) {
-  const r = menuPaginas2131Base.apply(this, a);
-  const b = document.querySelector('nav.main [data-t="usuarios"]');
-  if (b) { const x = typeof txTexto === 'function' ? txTexto(b) : null; if (x && /roles/i.test(x.get())) x.set('Usuarios'); else if (!x && /roles/i.test(b.textContent)) b.textContent = 'Usuarios'; if (b.dataset.txdef) b.dataset.txdef = 'Usuarios'; }
-  return r;
-}
+function volverTrasF5(v) { return window.delcos.nav.returnAfterReload(v); }
+function volverDatosPartida() { return window.delcos.nav.backToTestData(); }
+function cometa() { return window.delcos.nav.comet(); }
+function estable(el, max, desde) { return window.delcos.nav.steady(el, max, desde); }
+function pantallaTrasF5() { return window.delcos.nav.screenAfterReload(); }
+function nombrePantalla(t) { return window.delcos.nav.screenName(t); }
+function refrescarDebajo() { return window.delcos.nav.refreshBelow(); }
+function llegar(el) { return window.delcos.nav.arrive(el); }
+function subirAccionPagina() { return window.delcos.nav.raisePageAction(); }
+function vistaBoton(v, d0) { return window.delcos.nav.backButton(v, d0); }
+function volverAMiSesion() { return window.delcos.nav.backToMySession(); }
+function arrancar() { return window.delcos.nav.start(); }
+function paginador(el, total, pagina, alCambiar, alCambiarTam) { return window.delcos.nav.pager(el, { total, page: pagina }, { onPage: alCambiar, onSize: alCambiarTam }); }
+function irEnlace(e) { return window.delcos.nav.followLink(e); }
+function cargarPagina(t) { return window.delcos.nav.loadPage(t); }
+function revelar(el, max, desde) { return window.delcos.nav.reveal(el, max, desde); }
+function congelar(sec) { return window.delcos.nav.freeze(sec); }
+function menuPaginas2131() { return window.delcos.nav.pageButtons(); }
 // nucleo/notificaciones.js · la campana está en src/app/core/live.ts (v2.425.0). El nombre se queda: el arranque, los avisos y las pruebas
 // lo usan. Normas: docs/normas_codigo.md.
 
@@ -58799,16 +59480,5 @@ const PAG_GUARDA_RE = /^guardar(\s|$)/i, PAG_GUARDA_NO = '#coprueba, #copruebaar
 window.delcos.layers.installPageSave();
 // @ts-check
 // nucleo/arranque.js · lo que se ejecuta al abrir la app, en este orden. Va lo último de src/orden.json: cuando se ejecuta, todas las
-// funciones ya tienen su forma final (antes, estas llamadas estaban repartidas por legado y el primer pintado usaba versiones a medias
-// de las funciones que se envolvían más abajo). Plan de migración, bloque 6.
-mejorarCampos(document);   // antes en 035
-aplicarMarca();   // antes en 041
-aplicarMarca();   // antes en 043
-if (RECUPERANDO) pantallaRecuperacion();   // antes en 046
-pintarBnav();   // antes en 069
-pintarConexion();   // antes en 069
-vaciarCola();   // antes en 069
-arrancar();   // antes en 069
-if (typeof PERFIL !== 'undefined' && PERFIL) menuOrganizacion();   // antes en 072
-// Vuelta de Stripe (v2.167.0): si la app ya ha entrado (perfil guardado), se va a «Plan y suscripción»
-if (PAGO_IR_PLAN && typeof PERFIL !== 'undefined' && PERFIL) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);   // antes en 076
+// funciones ya tienen su forma final. La lista está en src/app/core/startup (openApp, v2.426.0).
+window.delcos.nav.openApp();

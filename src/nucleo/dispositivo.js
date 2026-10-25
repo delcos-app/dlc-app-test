@@ -1,5 +1,4 @@
 // @ts-check
-// nucleo/dispositivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
-// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+// nucleo/dispositivo.js · ES_MOVIL está en src/app/core/startup (v2.426.0). El nombre se queda: lo usa medio legado.
 
-const ES_MOVIL = () => matchMedia('(max-width: 760px)').matches;
+const ES_MOVIL = () => window.delcos.nav.isMobileWidth();

@@ -6,6 +6,7 @@ import * as components from './components';
 import { createRouter, type Router } from './core/router';
 import { navigate } from './core/navigation';
 import { setLanguage, setVocabulary, t } from './i18n';
+import * as nav from './core/navigation/api';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
@@ -65,6 +66,8 @@ export interface DelcosCore {
   readonly t: typeof t;
   readonly setLanguage: typeof setLanguage;
   readonly setVocabulary: typeof setVocabulary;
+  /** Navigation core (src/app/core/navigation, core/startup), called by the legacy adapters in src/nucleo (v2.426.0). */
+  readonly nav: typeof nav;
   /** Core services (src/app/core, src/app/services), called by the legacy adapters in src/nucleo and src/servicios. */
   readonly core: typeof coreServices;
   /** The legacy layers 050–079 folded into src/app/core/legacy-c (v2.425.0): their start functions and the adapters they call. */
@@ -127,6 +130,7 @@ window.delcos = {
   t,
   setLanguage,
   setVocabulary,
+  nav,
   core: coreServices,
   legacyC,
   layers,
