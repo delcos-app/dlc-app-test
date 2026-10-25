@@ -384,23 +384,6 @@ async function fichaAccesoCartera(id) {
 }
 
 // Ficha: historial de cambios (de la ficha y de sus consultas), plegado al final; solo administración
-async function fichaHistorial(id) {
-  if (!puede('administrar') || FICHA_ID !== id || !$('fbody') || $('fhist')) return;
-  const { data } = await RPC_ORIG('historial_entidad', { p_entidad: 'cuentas', p_id: id, lim: 100 });
-  const l = Array.isArray(data) ? data : [];
-  if (FICHA_ID !== id || !$('fbody') || $('fhist')) return;
-  const lineas = a => a.accion === 'Edición' && a.detalle && typeof a.detalle === 'object'
-    ? Object.keys(a.detalle).filter(k => Array.isArray(a.detalle[k]) && a.detalle[k].length === 2)
-        .map(k => `<span class="sm">${esc(campoTxt(k))}: ${esc(textoValor(a.detalle[k][0]).slice(0, 40) || '—')} → ${esc(textoValor(a.detalle[k][1]).slice(0, 40) || '—')}</span>`).join('')
-    : `<span class="sm">${esc(resumenDetalle(a.detalle))}</span>`;
-  $('fbody').insertAdjacentHTML('beforeend', `<details class="blk" id="fhist"><summary>Historial de cambios <span class="n">${num(l.length)}</span></summary>
-    <div class="lista">${l.map(a => `<div class="item" style="cursor:default"><span class="tx">
-        <b>${esc(a.accion)}${a.entidad === 'ubicaciones' ? ' · ' + TT('consulta', 's', '', 'l', 'l') : ''}</b>
-        <span class="sm">${esc(a.usuario)} · ${new Date(a.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-        ${lineas(a)}</span>${a.deshacible ? `<button type="button" class="btn sec" data-fhx="${a.id}">Deshacer</button>` : ''}</div>`).join('')
-      || '<div class="sm">Sin cambios registrados.</div>'}</div></details>`);
-  $('fhist').querySelectorAll('[data-fhx]').forEach(b => b.onclick = () => deshacerUno(+b.dataset.fhx, () => abrirFicha(id)));
-}
 
 /* v2.128.0 · Portal del centro (parte del extra «Portal»). Un centro (ficha de tipo Centro) con acceso entra en «Mi centro»: pide la
    reposición de los productos que tiene dados de alta, al precio que le pone su comercial; el pedido llega como borrador para confirmar.
@@ -627,32 +610,6 @@ function formPrivada(box, i) {
 }
 
 // ——— En la ficha del equipo: lo que ha enviado desde su portal ———
-async function fichaPropuesta(id) {
-  if (ES_MEDICO() || FICHA_ID !== id || !$('fbody') || $('fprop')) return;
-  const { data: p } = await RPC_ORIG('ficha_propuesta', { p_cuenta: id });
-  if (!p || FICHA_ID !== id || !$('fbody') || $('fprop')) return;
-  const d = p.datos || {}, rf = await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id), m = (rf && rf.data && rf.data.medico) || {};
-  const fila = (t, ahora, nuevo) => nuevo && nuevo !== ahora ? `<div class="fpdif"><span class="sm">${t}</span><span>${ahora ? `<s>${esc(ahora)}</s> → ` : ''}<b>${esc(nuevo)}</b></span></div>` : '';
-  const horario = dd => PM_DIAS.filter(k => dd && dd[k]).map(k => `${PM_DIAN[k].slice(0, 3)} ${esc(dd[k])}`).join(' · ') || 'Sin horario';
-  const html = `<section class="blk fprop" id="fprop"><h3>Datos enviados desde su portal <span class="pill p-warn">Por revisar</span></h3>
-    <p class="sm">${esc(p.quien || TT('medico', 's', 'el', 'l', 'C'))} los envió el ${horaCorta(p.modificado_en)}. Pásalos a la ficha con «Editar la ficha» y márcalos como revisados.</p>
-    ${fila('Teléfono', m.telefono, d.telefono)}${fila('Correo', m.email, d.email)}
-    ${(d.consultas || []).map(c => `<div class="fpcon"><b>${esc(c.nombre || TT('consulta', 's', '', 'l', 'C'))}</b> ${c.centro_id || c.ubicacion_id ? '' : '<span class="pill p-per">Centro nuevo</span>'}
-      <span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span><span class="sm">${horario(c.dias)}</span></div>`).join('')}
-    ${d.visitas && (d.visitas.como || d.visitas.momento) ? `<div class="fpdif"><span class="sm">${TT('visita', 'p', '', 'l', 'C')}</span><span>${esc([d.visitas.como, d.visitas.momento].filter(Boolean).join(' · '))}</span></div>` : ''}
-    ${d.notas ? `<div class="fpdif"><span class="sm">Notas</span><span>${esc(d.notas)}</span></div>` : ''}
-    <div class="acts" style="justify-content:flex-start;margin:8px 0 0">${$('fbody').querySelector('[data-act=editar]') ? '<button type="button" class="btn sec" id="fpropedit">Editar la ficha</button>' : ''}
-      <button type="button" class="btn" id="fpropok">Marcar como revisado</button></div></section>`;
-  // Debajo de la cabecera de la ficha (nombre y botones), antes del primer bloque
-  const ref = [...$('fbody').children].find(x => x.matches('.blk, section, .card') && x.id !== 'fprop');
-  if (ref) ref.insertAdjacentHTML('beforebegin', html); else $('fbody').insertAdjacentHTML('beforeend', html);
-  if ($('fpropedit')) $('fpropedit').onclick = () => { const e = $('fbody').querySelector('[data-act=editar]'); if (e) e.click(); };
-  $('fpropok').onclick = async () => {
-    const { data: r } = await db.rpc('revisar_propuesta', { p_id: p.id });
-    if (!r || !r.ok) { toast(r && r.error === 'permiso' ? 'No tienes permiso para revisarlo' : 'No se ha podido marcar', true); return; }
-    toast('Marcado como revisado'); const b = $('fprop'); if (b) b.remove();
-  };
-}
 
 async function cargarCentro2282() {
   const v = $('v-informe');

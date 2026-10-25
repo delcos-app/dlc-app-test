@@ -2,52 +2,8 @@
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
 // Ficha · Comercial asignado (administración) y pacientes que vienen de este prescriptor
-async function fichaComercialYPacientes(id) {
-  if (FICHA_ID !== id || !$('fbody').querySelector('.fh')) return;
-  const esAdmin = puede('administrar');
-  if (esAdmin) {
-    $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="fcomblk"><h3>Comercial asignado</h3>
-      <div style="display:flex;gap:8px"><select id="fcomsel" style="flex:1"><option>Cargando…</option></select>
-        <button class="btn sec" id="fcomok">Guardar</button></div>
-      <div class="sm" style="margin-top:6px">Las ventas nuevas se atribuyen al comercial asignado en ese momento. Las anteriores no cambian.</div></div>`);
-    const [{ data: us }, { data: act }] = await Promise.all([db.rpc('usuarios_lista'), RPC_ORIG('responsable_de_cuenta', { p_medico: id })]);
-    if (FICHA_ID !== id || !$('fcomsel')) return;
-    $('fcomsel').innerHTML = '<option value="">Sin comercial</option>' + (us || []).filter(u => u.activo && (rolPuede(u.rol, 'cartera') || (act && act.id === u.id)))
-      .map(u => `<option value="${u.id}" ${act && act.id === u.id ? 'selected' : ''}>${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('');
-    $('fcomok').onclick = async ev => {
-      ev.target.disabled = true;
-      const { data: r, error } = await db.rpc('asignar_responsable_cuenta', { p_medico: id, p_usuario: $('fcomsel').value || null });
-      ev.target.disabled = false;
-      if (error || (r && r.ok === false)) { toast('No se ha podido asignar', true); return; }
-      toast('Comercial asignado'); abrirFicha(id);
-    };
-  }
-  if (esAdmin || ((PERFIL.areas || {}).V || 0) >= 1) {
-    const { data } = await db.rpc('clientes_lista', { q: null, p_medico: id, lim: 5, desplaz: 0 });
-    if (FICHA_ID !== id || !data || !data.total) return;
-    ($('fventasc') || $('fbody')).insertAdjacentHTML('beforeend', `<div class="blk"><h3>${TT('paciente', 'p', '', 'l', 'C')}<span class="n" style="margin-left:6px">${num(data.total)}</span></h3>
-      ${data.filas.map(x => `<button class="item" data-fmpac="${x.id}"><span class="tx"><b>${esc(x.nombre)}</b>
-        <span class="sm">${num(x.unidades)} uds. · ${num(x.pedidos)} pedidos${x.ultimo_pedido ? ' · último ' + fechaCorta(x.ultimo_pedido) : ''}</span></span></button>`).join('')}
-      ${data.total > 5 ? `<button class="verlo" id="fmpactodos" style="border-radius:8px;margin-top:6px">Ver los ${num(data.total)} ${TT('paciente', 'p', '', 'l', 'l')}</button>` : ''}</div>`);
-    $('fbody').querySelectorAll('[data-fmpac]').forEach(b => b.onclick = () => fichaPaciente(b.dataset.fmpac));
-    const nombre = ($('fbody').querySelector('.fh h2') || {}).textContent || '';
-    if ($('fmpactodos')) $('fmpactodos').onclick = () => {
-      $('ficha').close(); Object.assign(PAC, { q: '', medico: id, medicoNombre: nombre.replace(/^Urgente\s*/, ''), pagina: 0 }); ir('pacientes');
-    };
-  }
-}
 
 // v2.113.0 · Ficha · Cuántos clientes tiene (vinculados o que han comprado con ella). Solo números: también lo ve el comercial
-async function fichaClientes(id) {
-  if (FICHA_ID !== id || !$('fventasc') || $('fclientes')) return;
-  const { data: c } = await RPC_ORIG('clientes_de_cuenta', { p_cuenta: id });
-  if (!c || !c.ok || FICHA_ID !== id || !$('fventasc') || $('fclientes')) return;
-  const bloque = `<div class="blk" id="fclientes"><h3>${TT('paciente', 'p', '', 'l', 'C')} asociados</h3>
-    <div class="uper">${[['Asociados', c.total], ['Con pedidos', c.con_pedido], ['Sin pedidos', c.sin_pedido]].map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
-    ${c.total ? '' : `<div class="sm">Todavía no tiene ${TT('paciente', 'p', '', 'l', 'l')} asociados.</div>`}</div>`;
-  const u = $('fundades');
-  if (u) u.insertAdjacentHTML('afterend', bloque); else $('fventasc').insertAdjacentHTML('afterbegin', bloque);
-}
 
 function selectorPaciente(el, o) {
   let valor = o.valor || null;

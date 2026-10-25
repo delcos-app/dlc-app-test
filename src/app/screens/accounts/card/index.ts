@@ -8,9 +8,11 @@
 import { accountCardLegacy } from '../../../legacy/bridge';
 import { paintBase as paintBaseBlocks } from './base';
 import { archiveButtons, centreProfessionals, cycle } from './sections-account';
+import { changeHistory, portalProposal } from './sections-admin';
 import { timetableNotice, units } from './sections-base';
-import { presentedProducts, visitPhotos } from './sections-history';
+import { presentedProducts, visitMaterial, visitPhotos } from './sections-history';
 import { deposit, equipment, events, samples, surgeries, tenders } from './sections-related';
+import { associatedClients, salesRepAndPatients } from './sections-sales';
 
 /** A section: `wait` false runs it without waiting (it fills its block when its data arrives). */
 interface Section { readonly name: string; readonly run: (id: string) => Promise<void>; readonly wait?: boolean }
@@ -20,11 +22,11 @@ const LOADING_LIMIT_MS = 8000;
 /** Painted while the card shows «cargando» (in the legacy order). */
 const BASE: readonly Section[] = [
   { name: 'base', run: paintBaseBlocks },
-  { name: 'salesAndPatients', run: id => accountCardLegacy.base.salesAndPatients(id) },
+  { name: 'salesRepAndPatients', run: salesRepAndPatients },
   { name: 'timetableNotice', run: timetableNotice },
-  { name: 'materialAndVisits', run: id => accountCardLegacy.base.materialAndVisits(id) },
+  { name: 'visitMaterial', run: visitMaterial },
   { name: 'units', run: units },
-  { name: 'clients', run: id => accountCardLegacy.base.clients(id) },
+  { name: 'associatedClients', run: associatedClients },
 ];
 
 /** Right after the base, while the centre of the appointment (if the card was opened from one) still counts. */
@@ -36,7 +38,7 @@ const CUSTOM_FIELDS: Section = {
 
 /** After that, in order. */
 const SECTIONS: readonly Section[] = [
-  { name: 'history', run: id => accountCardLegacy.history(id), wait: false },
+  { name: 'changeHistory', run: changeHistory, wait: false },
   { name: 'portal', run: id => accountCardLegacy.portal(id), wait: false },
   { name: 'centreProducts', run: id => accountCardLegacy.centreProducts(id), wait: false },
   { name: 'visitPhotos', run: visitPhotos },
@@ -48,7 +50,7 @@ const SECTIONS: readonly Section[] = [
   { name: 'surgeries', run: surgeries },
   { name: 'tenders', run: tenders },
   { name: 'equipment', run: equipment },
-  { name: 'proposal', run: id => accountCardLegacy.proposal(id) },
+  { name: 'portalProposal', run: portalProposal },
   { name: 'centreProfessionals', run: centreProfessionals },
   { name: 'archiveButtons', run: archiveButtons },
 ];

@@ -291,12 +291,10 @@ export const accountCardLegacy = {
   planIncludes: (section: string): boolean => planIncluyeSeccion(section),
   canEditType: (type: string | null | undefined): boolean => puedeEditarTipo(type),
   /** The base sections, in their legacy order (each one paints a block of the card). */
-  base: { salesAndPatients: fichaComercialYPacientes, materialAndVisits: fichaMaterialVisitas, clients: fichaClientes, access: fichaAcceso },
+  base: { access: fichaAcceso },
   customFields: (id: string, container: Element | null): Promise<void> => bloqueCampos('cuentas', id, container),
-  history: (id: string): Promise<void> => fichaHistorial(id),
   portal: (id: string): Promise<void> => fichaPortal(id),
   centreProducts: (id: string): Promise<void> => fichaProductosCentro(id),
-  proposal: (id: string): Promise<void> => fichaPropuesta(id),
   cycle: (id: string): Promise<void> => cicFicha(id),
 };
 
@@ -333,4 +331,20 @@ export const cardBaseLegacy = {
   chooseUnitsSeries: (series: string): void => { UDS_SERIE = series; try { localStorage.setItem('dlc-uds-serie', series); } catch { /* not remembered */ } },
   missingTimetable: (id: string): Promise<boolean> => faltaHorario(id),
   openEditor: (id: string): void => { void abrirEditor(id); },
+};
+
+/** What the sales, history and proposal sections of the card use from legacy. */
+export const cardSectionsLegacy = {
+  can: (capability: string): boolean => puede(capability),
+  /** Sales level of the user (area V). */
+  salesArea: (): number => (PERFIL as { areas?: Record<string, number> }).areas?.V ?? 0,
+  roleCan: (role: string, capability: string): boolean => rolPuede(role, capability),
+  openPatient: (id: string): void => { void fichaPaciente(id); },
+  /** Opens Pacientes filtered by this account. */
+  patientsOf: (accountId: string, name: string): void => { Object.assign(PAC, { q: '', medico: accountId, medicoNombre: name, pagina: 0 }); goTo('pacientes'); },
+  visitDetails: (visit: object): string => detTxt(visit),
+  fieldName: (field: string): string => campoTxt(field),
+  valueText: (value: unknown): string => textoValor(value),
+  detailSummary: (detail: unknown): string => resumenDetalle(detail),
+  undo: (id: number, then: () => void): void => { void deshacerUno(id, then); },
 };

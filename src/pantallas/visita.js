@@ -2,16 +2,6 @@
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
 // Ficha · Material entregado y datos bajo cada visita del historial
-async function fichaMaterialVisitas(id) {
-  if (FICHA_ID !== id) return;
-  // Material y datos bajo cada visita del historial
-  $('fbody').querySelectorAll('[data-editv]').forEach(b => {
-    let v; try { v = JSON.parse(b.dataset.editv); } catch (e) { return; }
-    const t = detTxt(v); if (!t) return;
-    const span = b.parentElement.querySelector(':scope > span');
-    if (span && !span.querySelector('.vdet')) span.insertAdjacentHTML('beforeend', `<div class="sm vdet">📎 ${esc(t)}</div>`);
-  });
-}
 
 function fichaVisitaHTML(m, cons, vis) {
   const fila = (ico, html, cls) => `<div class="fvfila ${cls || ''}"><span class="fvico">${svgIco(ICON_NOM[ico] || '')}</span><div>${html}</div></div>`;

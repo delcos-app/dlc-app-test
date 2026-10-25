@@ -504,6 +504,43 @@
       unitsSummary: "{count} {prescriptions} · última el {date} · ",
       noPrescriptions: "Todavía sin {prescriptions} registradas."
     },
+    sales: {
+      repTitle: "Comercial asignado",
+      loading: "Cargando…",
+      save: "Guardar",
+      repNote: "Las ventas nuevas se atribuyen al comercial asignado en ese momento. Las anteriores no cambian.",
+      noRep: "Sin comercial",
+      couldNotAssign: "No se ha podido asignar",
+      assigned: "Comercial asignado",
+      patientLine: "{units} uds. · {orders} pedidos",
+      lastOrder: " · último {date}",
+      seeAll: "Ver los {count} {patients}",
+      associatedTitle: "{patients} asociados",
+      associated: "Asociados",
+      withOrders: "Con pedidos",
+      withoutOrders: "Sin pedidos",
+      noneAssociated: "Todavía no tiene {patients} asociados."
+    },
+    history: {
+      title: "Historial de cambios",
+      undo: "Deshacer",
+      none: "Sin cambios registrados."
+    },
+    proposal: {
+      title: "Datos enviados desde su portal",
+      toReview: "Por revisar",
+      sent: "{who} los envió el {date}. Pásalos a la ficha con «Editar la ficha» y márcalos como revisados.",
+      phone: "Teléfono",
+      email: "Correo",
+      newCentre: "Centro nuevo",
+      noTimetable: "Sin horario",
+      notes: "Notas",
+      edit: "Editar la ficha",
+      reviewed: "Marcar como revisado",
+      noPermission: "No tienes permiso para revisarlo",
+      couldNotMark: "No se ha podido marcar",
+      marked: "Marcado como revisado"
+    },
     card: {
       stateTitle: "Estado",
       photo: "1 foto",
@@ -1376,12 +1413,10 @@
     planIncludes: (section) => planIncluyeSeccion(section),
     canEditType: (type) => puedeEditarTipo(type),
     /** The base sections, in their legacy order (each one paints a block of the card). */
-    base: { salesAndPatients: fichaComercialYPacientes, materialAndVisits: fichaMaterialVisitas, clients: fichaClientes, access: fichaAcceso },
+    base: { access: fichaAcceso },
     customFields: (id, container) => bloqueCampos("cuentas", id, container),
-    history: (id) => fichaHistorial(id),
     portal: (id) => fichaPortal(id),
     centreProducts: (id) => fichaProductosCentro(id),
-    proposal: (id) => fichaPropuesta(id),
     cycle: (id) => cicFicha(id)
   };
   var relatedLegacy = {
@@ -1437,6 +1472,27 @@
     missingTimetable: (id) => faltaHorario(id),
     openEditor: (id) => {
       void abrirEditor(id);
+    }
+  };
+  var cardSectionsLegacy = {
+    can: (capability) => puede(capability),
+    /** Sales level of the user (area V). */
+    salesArea: () => PERFIL.areas?.V ?? 0,
+    roleCan: (role, capability) => rolPuede(role, capability),
+    openPatient: (id) => {
+      void fichaPaciente(id);
+    },
+    /** Opens Pacientes filtered by this account. */
+    patientsOf: (accountId, name) => {
+      Object.assign(PAC, { q: "", medico: accountId, medicoNombre: name, pagina: 0 });
+      goTo("pacientes");
+    },
+    visitDetails: (visit) => detTxt(visit),
+    fieldName: (field) => campoTxt(field),
+    valueText: (value2) => textoValor(value2),
+    detailSummary: (detail) => resumenDetalle(detail),
+    undo: (id, then) => {
+      void deshacerUno(id, then);
     }
   };
 
@@ -1662,6 +1718,93 @@
       ${permissions.levelOf("M") >= DELETE_LEVEL ? `<button type="button" class="btn sec dang chico" data-felim="${id}">${t("accounts.card.delete")}</button>` : ""}</div></div>`);
   }
 
+  // src/app/screens/accounts/card/sections-admin.ts
+  var HISTORY_LIMIT = 100;
+  var VALUE_LENGTH = 40;
+  var EDIT = "Edición";
+  function changeLines(entry) {
+    const detail = entry.detalle;
+    if (entry.accion !== EDIT || !detail || typeof detail !== "object") return `<span class="sm">${escapeHtml(cardSectionsLegacy.detailSummary(detail))}</span>`;
+    const value2 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
+    return Object.entries(detail).filter((pair) => Array.isArray(pair[1]) && pair[1].length === 2).map(([field, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field))}: ${value2(before)} → ${value2(after)}</span>`).join("");
+  }
+  function historyRow(entry) {
+    const when = new Date(entry.creado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return `<div class="item" style="cursor:default"><span class="tx">
+        <b>${escapeHtml(entry.accion)}${entry.entidad === "ubicaciones" ? ` · ${term("consulta")}` : ""}</b>
+        <span class="sm">${escapeHtml(entry.usuario)} · ${when}</span>
+        ${changeLines(entry)}</span>${entry.deshacible ? `<button type="button" class="btn sec" data-fhx="${entry.id}">${t("accounts.history.undo")}</button>` : ""}</div>`;
+  }
+  async function changeHistory(id) {
+    if (!cardSectionsLegacy.can("administrar") || !stillShown(id) || !document.getElementById("fbody") || document.getElementById("fhist")) return;
+    const { data } = await callRpc("historial_entidad", { p_entidad: "cuentas", p_id: id, lim: HISTORY_LIMIT });
+    const list = Array.isArray(data) ? data : [], body2 = document.getElementById("fbody");
+    if (!stillShown(id) || !body2 || document.getElementById("fhist")) return;
+    body2.insertAdjacentHTML("beforeend", `<details class="blk" id="fhist"><summary>${t("accounts.history.title")} <span class="n">${formatNumber(list.length)}</span></summary>
+    <div class="lista">${list.map(historyRow).join("") || `<div class="sm">${t("accounts.history.none")}</div>`}</div></details>`);
+    document.querySelectorAll("#fhist [data-fhx]").forEach((button) => {
+      button.onclick = () => {
+        cardSectionsLegacy.undo(Number(button.dataset.fhx), () => {
+          agendaActions.openAccount(id);
+        });
+      };
+    });
+  }
+  var PORTAL_DAYS = ["L", "M", "X", "J", "V", "S"];
+  function timetableText(days) {
+    const names = t("dates.weekdaysLong").split(",");
+    return PORTAL_DAYS.map((day, index) => days?.[day] ? `${capitalise(names[index] ?? "").slice(0, 3)} ${escapeHtml(days[day])}` : "").filter(Boolean).join(" · ") || t("accounts.proposal.noTimetable");
+  }
+  var difference = (label, now, proposed) => proposed && proposed !== now ? `<div class="fpdif"><span class="sm">${label}</span><span>${now ? `<s>${escapeHtml(now)}</s> → ` : ""}<b>${escapeHtml(proposed)}</b></span></div>` : "";
+  function proposalHtml(proposal, account, canEdit) {
+    const data = proposal.datos ?? {}, visits = data.visitas;
+    const sentAt = new Date(proposal.modificado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    const consultations = (data.consultas ?? []).map((item) => `<div class="fpcon"><b>${escapeHtml(orFallback(item.nombre, term("consulta", { capital: "C" })))}</b> ${item.centro_id || item.ubicacion_id ? "" : `<span class="pill p-per">${t("accounts.proposal.newCentre")}</span>`}
+      <span class="sm">${escapeHtml([item.direccion, item.municipio].filter(Boolean).join(" · "))}</span><span class="sm">${timetableText(item.dias)}</span></div>`).join("");
+    const visitWay = visits && (visits.como || visits.momento) ? `<div class="fpdif"><span class="sm">${term("visita", { number: "p", capital: "C" })}</span><span>${escapeHtml([visits.como, visits.momento].filter(Boolean).join(" · "))}</span></div>` : "";
+    return `<section class="blk fprop" id="fprop"><h3>${t("accounts.proposal.title")} <span class="pill p-warn">${t("accounts.proposal.toReview")}</span></h3>
+    <p class="sm">${t("accounts.proposal.sent", { who: escapeHtml(orFallback(proposal.quien, term("medico", { article: "el", capital: "C" }))), date: sentAt })}</p>
+    ${difference(t("accounts.proposal.phone"), account.telefono, data.telefono)}${difference(t("accounts.proposal.email"), account.email, data.email)}
+    ${consultations}
+    ${visitWay}
+    ${data.notas ? `<div class="fpdif"><span class="sm">${t("accounts.proposal.notes")}</span><span>${escapeHtml(data.notas)}</span></div>` : ""}
+    <div class="acts" style="justify-content:flex-start;margin:8px 0 0">${canEdit ? `<button type="button" class="btn sec" id="fpropedit">${t("accounts.proposal.edit")}</button>` : ""}
+      <button type="button" class="btn" id="fpropok">${t("accounts.proposal.reviewed")}</button></div></section>`;
+  }
+  async function markReviewed(proposal) {
+    const { data: result } = await legacyDb().rpc("revisar_propuesta", { p_id: proposal.id });
+    if (!result?.ok) {
+      notices.toast(t(result?.error === "permiso" ? "accounts.proposal.noPermission" : "accounts.proposal.couldNotMark"), true);
+      return;
+    }
+    notices.toast(t("accounts.proposal.marked"));
+    document.getElementById("fprop")?.remove();
+  }
+  var canShowProposal = (id) => stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById("fprop");
+  async function portalProposal(id) {
+    if (permissions.isProfessionalPortal() || !canShowProposal(id)) return;
+    const { data: proposal } = await callRpc("ficha_propuesta", { p_cuenta: id });
+    if (!proposal || !canShowProposal(id)) return;
+    const card = await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`), body2 = document.getElementById("fbody");
+    if (!body2) return;
+    const edit = body2.querySelector("[data-act=editar]");
+    const html = proposalHtml(proposal, card.data?.medico ?? {}, Boolean(edit));
+    const first = [...body2.children].find((child) => child.matches(".blk, section, .card") && child.id !== "fprop");
+    if (first) first.insertAdjacentHTML("beforebegin", html);
+    else body2.insertAdjacentHTML("beforeend", html);
+    bindProposal(body2, proposal);
+  }
+  function bindProposal(body2, proposal) {
+    const editButton = document.getElementById("fpropedit");
+    if (editButton) editButton.onclick = () => {
+      body2.querySelector("[data-act=editar]")?.click();
+    };
+    const ok = document.getElementById("fpropok");
+    if (ok) ok.onclick = () => {
+      void markReviewed(proposal);
+    };
+  }
+
   // src/app/screens/accounts/card/sections-base.ts
   async function timetableNotice(id) {
     const header = document.querySelector("#fbody .fh");
@@ -1748,6 +1891,22 @@
       const presented = (visit.productos ?? []).map((product) => names.get(product)).filter((name) => Boolean(name));
       if (place && presented.length && !row2?.querySelector(".vprodtx")) place.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
     });
+  }
+  function visitMaterial(id) {
+    if (!stillShown(id)) return Promise.resolve();
+    document.querySelectorAll("#fbody [data-editv]").forEach((button) => {
+      let visit;
+      try {
+        visit = JSON.parse(button.dataset.editv ?? "");
+      } catch {
+        return;
+      }
+      const text = cardSectionsLegacy.visitDetails(visit);
+      if (!text) return;
+      const place = button.parentElement?.querySelector(":scope > span");
+      if (place && !place.querySelector(".vdet")) place.insertAdjacentHTML("beforeend", `<div class="sm vdet">📎 ${escapeHtml(text)}</div>`);
+    });
+    return Promise.resolve();
   }
 
   // src/app/screens/accounts/card/sections-related.ts
@@ -1869,15 +2028,86 @@
     };
   }
 
+  // src/app/screens/accounts/card/sections-sales.ts
+  var SHOWN_PATIENTS = 5;
+  async function fillSalesReps(id) {
+    const [{ data: users }, { data: current }] = await Promise.all([legacyDb().rpc("usuarios_lista"), callRpc("responsable_de_cuenta", { p_medico: id })]);
+    const select = document.getElementById("fcomsel");
+    if (!stillShown(id) || !select) return;
+    const options = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
+    select.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options}`;
+    const save3 = document.getElementById("fcomok");
+    if (save3) save3.onclick = async () => {
+      save3.disabled = true;
+      const { data: result, error } = await legacyDb().rpc("asignar_responsable_cuenta", { p_medico: id, p_usuario: select.value || null });
+      save3.disabled = false;
+      if (error || result?.ok === false) {
+        notices.toast(t("accounts.sales.couldNotAssign"), true);
+        return;
+      }
+      notices.toast(t("accounts.sales.assigned"));
+      agendaActions.openAccount(id);
+    };
+  }
+  async function patients(id) {
+    const { data } = await legacyDb().rpc("clientes_lista", { q: null, p_medico: id, lim: SHOWN_PATIENTS, desplaz: 0 });
+    if (!stillShown(id) || !data?.total) return;
+    const plural2 = term("paciente", { number: "p" });
+    const rows = data.filas.map((row2) => `<button class="item" data-fmpac="${row2.id}"><span class="tx"><b>${escapeHtml(row2.nombre)}</b>
+        <span class="sm">${t("accounts.sales.patientLine", { units: formatNumber(row2.unidades), orders: formatNumber(row2.pedidos) })}${row2.ultimo_pedido ? t("accounts.sales.lastOrder", { date: formatShortDate(row2.ultimo_pedido) }) : ""}</span></span></button>`).join("");
+    (document.getElementById("fventasc") ?? document.getElementById("fbody"))?.insertAdjacentHTML("beforeend", `<div class="blk"><h3>${term("paciente", { number: "p", capital: "C" })}<span class="n" style="margin-left:6px">${formatNumber(data.total)}</span></h3>
+      ${rows}
+      ${data.total > SHOWN_PATIENTS ? `<button class="verlo" id="fmpactodos" style="border-radius:8px;margin-top:6px">${t("accounts.sales.seeAll", { count: formatNumber(data.total), patients: plural2 })}</button>` : ""}</div>`);
+    document.querySelectorAll("#fbody [data-fmpac]").forEach((button) => {
+      button.onclick = () => {
+        cardSectionsLegacy.openPatient(button.dataset.fmpac ?? "");
+      };
+    });
+    const all = document.getElementById("fmpactodos");
+    if (all) all.onclick = () => {
+      const urgent = t("accounts.base.urgent"), title = document.querySelector("#fbody .fh h2")?.textContent ?? "";
+      const name = title.startsWith(urgent) ? title.slice(urgent.length).trimStart() : title;
+      document.getElementById("ficha")?.close();
+      cardSectionsLegacy.patientsOf(id, name);
+    };
+  }
+  async function salesRepAndPatients(id) {
+    const body2 = document.getElementById("fbody");
+    if (!stillShown(id) || !body2?.querySelector(".fh")) return;
+    const admin = cardSectionsLegacy.can("administrar");
+    if (admin) {
+      body2.insertAdjacentHTML("beforeend", `<div class="blk" id="fcomblk"><h3>${t("accounts.sales.repTitle")}</h3>
+      <div style="display:flex;gap:8px"><select id="fcomsel" style="flex:1"><option>${t("accounts.sales.loading")}</option></select>
+        <button class="btn sec" id="fcomok">${t("accounts.sales.save")}</button></div>
+      <div class="sm" style="margin-top:6px">${t("accounts.sales.repNote")}</div></div>`);
+      await fillSalesReps(id);
+      if (!stillShown(id) || !document.getElementById("fcomsel")) return;
+    }
+    if (admin || cardSectionsLegacy.salesArea() >= 1) await patients(id);
+  }
+  async function associatedClients(id) {
+    if (!stillShown(id) || !document.getElementById("fventasc") || document.getElementById("fclientes")) return;
+    const { data } = await callRpc("clientes_de_cuenta", { p_cuenta: id });
+    const sales = document.getElementById("fventasc");
+    if (!data?.ok || !stillShown(id) || !sales || document.getElementById("fclientes")) return;
+    const figures = [[t("accounts.sales.associated"), data.total], [t("accounts.sales.withOrders"), data.con_pedido], [t("accounts.sales.withoutOrders"), data.sin_pedido]];
+    const block = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
+    <div class="uper">${figures.map(([label, value2]) => `<div><b>${formatNumber(value2)}</b><span>${label}</span></div>`).join("")}</div>
+    ${data.total ? "" : `<div class="sm">${t("accounts.sales.noneAssociated", { patients: term("paciente", { number: "p" }) })}</div>`}</div>`;
+    const units2 = document.getElementById("fundades");
+    if (units2) units2.insertAdjacentHTML("afterend", block);
+    else sales.insertAdjacentHTML("afterbegin", block);
+  }
+
   // src/app/screens/accounts/card/index.ts
   var LOADING_LIMIT_MS = 8e3;
   var BASE = [
     { name: "base", run: paintBase },
-    { name: "salesAndPatients", run: (id) => accountCardLegacy.base.salesAndPatients(id) },
+    { name: "salesRepAndPatients", run: salesRepAndPatients },
     { name: "timetableNotice", run: timetableNotice },
-    { name: "materialAndVisits", run: (id) => accountCardLegacy.base.materialAndVisits(id) },
+    { name: "visitMaterial", run: visitMaterial },
     { name: "units", run: units },
-    { name: "clients", run: (id) => accountCardLegacy.base.clients(id) }
+    { name: "associatedClients", run: associatedClients }
   ];
   var ACCESS = { name: "access", run: (id) => accountCardLegacy.base.access(id) };
   var CUSTOM_FIELDS = {
@@ -1886,7 +2116,7 @@
     run: (id) => accountCardLegacy.customFields(id, document.getElementById("fzcampos") ?? document.querySelector("#ficha .fbody, #ficha #fbody") ?? document.getElementById("ficha")?.firstElementChild ?? null)
   };
   var SECTIONS = [
-    { name: "history", run: (id) => accountCardLegacy.history(id), wait: false },
+    { name: "changeHistory", run: changeHistory, wait: false },
     { name: "portal", run: (id) => accountCardLegacy.portal(id), wait: false },
     { name: "centreProducts", run: (id) => accountCardLegacy.centreProducts(id), wait: false },
     { name: "visitPhotos", run: visitPhotos },
@@ -1898,7 +2128,7 @@
     { name: "surgeries", run: surgeries },
     { name: "tenders", run: tenders },
     { name: "equipment", run: equipment },
-    { name: "proposal", run: (id) => accountCardLegacy.proposal(id) },
+    { name: "portalProposal", run: portalProposal },
     { name: "centreProfessionals", run: centreProfessionals },
     { name: "archiveButtons", run: archiveButtons }
   ];
@@ -3697,9 +3927,9 @@
     const max = Math.max(1, ...last, ...current), width = 196, height = 46;
     const x = (i) => i / (dayOfMonth - 1) * width, y = (value2) => height - value2 / max * height;
     const line = (values) => values.map((value2, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value2).toFixed(1)}`).join("");
-    const end = current[current.length - 1] ?? 0, difference = end - (last[last.length - 1] ?? 0);
+    const end = current[current.length - 1] ?? 0, difference2 = end - (last[last.length - 1] ?? 0);
     return {
-      summary: t(difference >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference }),
+      summary: t(difference2 >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference: difference2 }),
       visual: `<svg class="kvlin" viewBox="0 0 ${width} ${height + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${line(last)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
         <path class="l" d="${line(current)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
         <text x="0" y="${height + 11}">1</text><text x="${width}" y="${height + 11}" text-anchor="end" class="hoy">${t("home.indicators.today")}</text>
@@ -4564,7 +4794,7 @@
     if (isOpen(item.estado) && isPresent(info.llegada) && info.llegada < DAY_MINUTES2) return t("agenda.sheet.around", { time: formatMinutes(info.llegada) });
     return t("agenda.sheet.noTime");
   }
-  function timetableText(item, info) {
+  function timetableText2(item, info) {
     const windows = info.ventanas ?? weekPlanner.attendanceWindows(item.dias, item.fecha);
     if (!windows) return "";
     if (!windows.length) return t("agenda.sheet.notAttending");
@@ -4572,7 +4802,7 @@
   }
   var row = (label, value2) => `<div class="vcfila"><span>${label}</span><b>${value2}</b></div>`;
   function dataHtml(item, info) {
-    const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText(item, info), origin = yourDayLegacy.originText(item);
+    const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText2(item, info), origin = yourDayLegacy.originText(item);
     return `<div class="vcdatos">
       ${row(t("agenda.sheet.when"), `${escapeHtml(capitalise(formatLongDate(item.fecha)))} · ${escapeHtml(timeText2(item, info))}`)}
       ${row(t("agenda.sheet.where"), escapeHtml(where || t("agenda.sheet.noCentre")))}

@@ -1,5 +1,5 @@
 /** Sections of the visit history in the account card: photos of each visit and the products presented. */
-import { icon, legacyDb, relatedLegacy } from '../../../legacy/bridge';
+import { cardSectionsLegacy, icon, legacyDb, relatedLegacy } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { historyRows, stillShown } from './card-tools';
@@ -34,4 +34,17 @@ export async function presentedProducts(id: string): Promise<void> {
     const presented = (visit.productos ?? []).map(product => names.get(product)).filter((name): name is string => Boolean(name));
     if (place && presented.length && !row?.querySelector('.vprodtx')) place.insertAdjacentHTML('beforeend', `<div class="sm vprodtx">${t('accounts.card.presented', { list: presented.map(escapeHtml).join(', ') })}</div>`);
   });
+}
+
+/** The material and data recorded in each visit, under it (from the visit data of its «Editar» button). */
+export function visitMaterial(id: string): Promise<void> {
+  if (!stillShown(id)) return Promise.resolve();
+  document.querySelectorAll<HTMLElement>('#fbody [data-editv]').forEach(button => {
+    let visit: object;
+    try { visit = JSON.parse(button.dataset.editv ?? '') as object; } catch { return; }
+    const text = cardSectionsLegacy.visitDetails(visit); if (!text) return;
+    const place = button.parentElement?.querySelector(':scope > span');
+    if (place && !place.querySelector('.vdet')) place.insertAdjacentHTML('beforeend', `<div class="sm vdet">📎 ${escapeHtml(text)}</div>`);
+  });
+  return Promise.resolve();
 }

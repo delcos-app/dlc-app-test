@@ -245,15 +245,10 @@ declare function guardarAvisoRevisita(value: { on: boolean; dias: number }): Pro
 declare let FICHA_ID: string | null;
 declare let FICHA_PAC: unknown;
 declare function puedeEditarTipo(type: string | null | undefined): boolean;
-declare function fichaComercialYPacientes(id: string): Promise<void>;
-declare function fichaMaterialVisitas(id: string): Promise<void>;
-declare function fichaClientes(id: string): Promise<void>;
 declare function fichaAcceso(id: string): Promise<void>;
 declare function bloqueCampos(table: string, id: string, container: Element | null): Promise<void>;
-declare function fichaHistorial(id: string): Promise<void>;
 declare function fichaPortal(id: string): Promise<void>;
 declare function fichaProductosCentro(id: string): Promise<void>;
-declare function fichaPropuesta(id: string): Promise<void>;
 declare function cicFicha(id: string): Promise<void>;
 declare function verFotosVisita(activityId: string, accountId: string): Promise<void>;
 declare function verEvento(id: string): Promise<void>;
@@ -286,3 +281,12 @@ declare function sparkUnidades(units: AccountUnits, series: string): string;
 declare function leyendaUnidades(series: string): string;
 declare function faltaHorario(id: string): Promise<boolean>;
 declare function abrirEditor(id: string): Promise<void>;
+interface HistoryEntry { id: number; accion: string; entidad?: string | null; usuario?: string | null; creado_en: string; detalle?: unknown; deshacible?: boolean | null }
+declare const PAC: { q: string; medico: string | null; medicoNombre: string; pagina: number };
+declare function rolPuede(role: string, capability: string): boolean;
+declare function fichaPaciente(id: string): Promise<void>;
+declare function detTxt(visit: object): string;
+declare function campoTxt(field: string): string;
+declare function textoValor(value: unknown): string;
+declare function resumenDetalle(detail: unknown): string;
+declare function deshacerUno(id: number, then: () => void): Promise<void>;
