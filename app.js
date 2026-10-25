@@ -828,6 +828,93 @@
     }
   };
 
+  // src/app/i18n/es/list-bar.ts
+  var listBar = {
+    bar: {
+      searchIn: "Buscar en {what}",
+      filters: "Filtros",
+      removeFilters: "Eliminar filtros",
+      columns: "Columnas",
+      onMap: "Ver en el mapa",
+      moreActions: "Más acciones",
+      all: "Todos",
+      /** The quick filter of the period: shown with its value but never marked as a filter */
+      period: "Periodo",
+      nothingYet: "Todavía no hay nada aquí.",
+      removeThisFilter: "Quitar este filtro"
+    },
+    directory: {
+      add: "Añadir {professional}",
+      search: "Buscar cuentas",
+      type: "Tipo",
+      state: "Estado",
+      province: "Provincia",
+      municipality: "Municipio",
+      speciality: "Especialidad",
+      quality: "Calidad del dato",
+      nearby: "Cerca de mí",
+      centres: "Centros",
+      inTotal: "en total",
+      urgent: "Urgentes",
+      markedUrgent: "marcados como urgentes",
+      neverVisited: "Sin visitar nunca",
+      withoutVisits: "todavía sin {visits}",
+      mine: "De mi cartera",
+      assignedToYou: "asignados a ti"
+    },
+    customers: {
+      what: "clientes",
+      type: "Tipo",
+      orders: "Pedidos",
+      town: "Población",
+      customers: "Clientes",
+      inTotal: "en total",
+      withOrders: "Con pedidos",
+      boughtOnce: "han comprado alguna vez",
+      withoutOrders: "Sin pedidos",
+      noPurchases: "todavía sin compras",
+      companies: "Empresas",
+      companiesDetail: "centros, tiendas y otras"
+    },
+    sales: {
+      orders: "pedidos",
+      opportunities: "oportunidades",
+      purchaseOrders: "pedidos de compra",
+      suppliers: "proveedores",
+      invoices: "facturas",
+      products: "productos",
+      services: "servicios",
+      chooseAlerts: "Elegir qué avisos ver"
+    },
+    blocks: {
+      events: "eventos",
+      surgeries: "intervenciones",
+      tenders: "concursos",
+      equipment: "equipos",
+      when: "Cuándo",
+      block: "Bloque",
+      allEvents: "Eventos",
+      allSurgeries: "Intervenciones",
+      allTenders: "Concursos",
+      allEquipment: "Todos los equipos",
+      event: "Evento",
+      date: "Fecha",
+      type: "Tipo",
+      place: "Lugar",
+      attendees: "Asistentes",
+      spending: "Gasto",
+      surgery: "Intervención",
+      teamAndPlace: "Equipo y lugar",
+      state: "Estado",
+      tender: "Concurso",
+      customerBodyLots: "Cliente, organismo y lotes",
+      stateAndDeadlines: "Estado y plazos",
+      equipmentName: "Equipo",
+      serialCentreContract: "Serie, centro y contrato",
+      reviewAndExpiry: "Revisión y vencimientos"
+    }
+  };
+
   // src/app/i18n/es/settings-rest.ts
   var settingsRest = {
     users: {
@@ -6439,6 +6526,7 @@
     accountsEditor,
     panels,
     settingsRest,
+    listBar,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -6772,7 +6860,7 @@
       <div class="donutley">${rows2.map((row4, index) => `<div><i style="background:${CHART_COLOURS[index % COLOURS] ?? ""}"></i><span>${escapeHtml(row4.nombre)}</span><b>${formatNumber(row4.total)}</b><span class="sm">${Math.round((Number(row4.total) || 0) / total2 * 100)}%</span></div>`).join("")}</div></div>`;
   }
   async function channelChart() {
-    const funnel2 = [...document.querySelectorAll("#v-analitica .ancard")].find((card3) => (card3.querySelector("h2")?.textContent ?? "").includes("Embudo comercial"));
+    const funnel2 = [...document.querySelectorAll("#v-analitica .ancard")].find((card4) => (card4.querySelector("h2")?.textContent ?? "").includes("Embudo comercial"));
     if (!funnel2 || document.getElementById("ancanal")) return;
     funnel2.insertAdjacentHTML("afterend", `<div class="card ancard" id="ancanal"><h2>${t("components.charts.channelTitle")}</h2><div class="cargandolocal" style="min-height:160px"></div>
     <p class="leer"><b>${t("components.charts.howToRead")}</b> ${t("components.charts.channelHint", { aProfessional: term("medico", { article: "un" }) })}</p></div>`);
@@ -7098,13 +7186,13 @@
     };
   }
   function bindSearch(block4, { field: field19, state: state2, onChange }) {
-    const search6 = block4.querySelector("input[data-clbus]");
-    if (!search6) return;
+    const search7 = block4.querySelector("input[data-clbus]");
+    if (!search7) return;
     let timer2;
-    search6.oninput = () => {
+    search7.oninput = () => {
       clearTimeout(timer2);
       timer2 = setTimeout(() => {
-        const text5 = search6.value.trim();
+        const text5 = search7.value.trim();
         if (text5) state2[field19.clave] = { contiene: text5 };
         else Reflect.deleteProperty(state2, field19.clave);
         onChange();
@@ -7236,12 +7324,12 @@
   var NEW_KINDS = "input[type=month]:not([data-sel]), input[type=datetime-local]:not([data-sel])";
   var DECIMAL_TEXT = /€|precio|importe|coste|portes|env[ií]o|descuento|pvp|cobro|total|base/;
   var valueProperty = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
-  function wrapPicked(input10, className, icon2) {
+  function wrapPicked(input10, className, icon3) {
     const wrapper = document.createElement("span");
     wrapper.className = className;
     input10.parentNode?.insertBefore(wrapper, input10);
     wrapper.appendChild(input10);
-    wrapper.insertAdjacentHTML("beforeend", `<span class="selico" aria-hidden="true">${icon2}</span>`);
+    wrapper.insertAdjacentHTML("beforeend", `<span class="selico" aria-hidden="true">${icon3}</span>`);
     input10.dataset.ro = input10.readOnly ? "1" : "";
     input10.readOnly = true;
     input10.setAttribute("inputmode", "none");
@@ -8857,11 +8945,11 @@
     <section class="blk fventas" id="fventas"><h3>${t("accounts.base.salesTitle", { patients: term("paciente", { number: "p" }) })}</h3><div id="fventasc"></div></section>`;
   }
   async function paintBase(id) {
-    const box3 = body(), card3 = document.getElementById("ficha");
-    if (!box3 || !card3) return;
+    const box3 = body(), card4 = document.getElementById("ficha");
+    if (!box3 || !card4) return;
     accountCardLegacy.setShownId(id);
     box3.innerHTML = SKELETON;
-    card3.showModal();
+    card4.showModal();
     const result = await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`);
     const data = result.data, account = data?.medico;
     if (!data || !account) {
@@ -8871,7 +8959,7 @@
     box3.innerHTML = cardHtml({ ...data, medico: account }, Boolean(result.cache));
     const close4 = document.getElementById("fx");
     if (close4) close4.onclick = () => {
-      card3.close();
+      card4.close();
     };
     box3.querySelectorAll("[data-editv]").forEach((button2) => {
       button2.onclick = () => {
@@ -9148,10 +9236,10 @@
     if (permissions.isProfessionalPortal() || !canShowProposal(id)) return;
     const { data: proposal } = await callRpc("ficha_propuesta", { p_cuenta: id });
     if (!proposal || !canShowProposal(id)) return;
-    const card3 = await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`), body2 = document.getElementById("fbody");
+    const card4 = await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`), body2 = document.getElementById("fbody");
     if (!body2) return;
     const edit = body2.querySelector("[data-act=editar]");
-    const html = proposalHtml(proposal, card3.data?.medico ?? {}, Boolean(edit));
+    const html = proposalHtml(proposal, card4.data?.medico ?? {}, Boolean(edit));
     const first2 = [...body2.children].find((child) => child.matches(".blk, section, .card") && child.id !== "fprop");
     if (first2) first2.insertAdjacentHTML("beforebegin", html);
     else body2.insertAdjacentHTML("beforeend", html);
@@ -9736,10 +9824,10 @@
     const link2 = place4.querySelector("[data-cpenlazar]");
     if (link2) link2.onclick = () => {
       void paintCentrePicker(box3, index, "buscar");
-      const search6 = place4.querySelector(".cpq");
-      if (search6) {
-        search6.value = centre.nombre ?? "";
-        search6.dispatchEvent(new Event("input"));
+      const search7 = place4.querySelector(".cpq");
+      if (search7) {
+        search7.value = centre.nombre ?? "";
+        search7.dispatchEvent(new Event("input"));
       }
     };
   }
@@ -9762,12 +9850,12 @@
         <button type="button" class="btn sec" data-cpnuevo>${t("accountsEditor.picker.newCentre")}</button><button type="button" class="btn sec" data-cpprivada>${t("accountsEditor.picker.private", { privateConsultation: privateConsultation() })}</button></div></div>`;
   }
   function bindSearch2(place4, box3, index) {
-    const search6 = place4.querySelector(".cpq"), results = place4.querySelector(".cpres");
-    if (!search6 || !results) return null;
+    const search7 = place4.querySelector(".cpq"), results = place4.querySelector(".cpres");
+    if (!search7 || !results) return null;
     let timer2, asked = 0;
-    search6.oninput = () => {
+    search7.oninput = () => {
       clearTimeout(timer2);
-      const mine = ++asked, text5 = search6.value.trim();
+      const mine = ++asked, text5 = search7.value.trim();
       if (text5.length < 2) {
         results.innerHTML = "";
         return;
@@ -9790,7 +9878,7 @@
         })();
       }, SEARCH_WAIT_MS2);
     };
-    return search6;
+    return search7;
   }
   async function paintCentrePicker(box3, index, mode) {
     const place4 = box3.querySelector(`[data-cp="${index}"]`);
@@ -9801,7 +9889,7 @@
       return;
     }
     place4.innerHTML = searchHtml();
-    const search6 = bindSearch2(place4, box3, index);
+    const search7 = bindSearch2(place4, box3, index);
     const on6 = (selector, action) => {
       const button2 = place4.querySelector(selector);
       if (button2) button2.onclick = () => {
@@ -9809,7 +9897,7 @@
       };
     };
     on6("[data-cpnuevo]", () => {
-      centreForm(box3, index, { nombre: search6?.value.trim() ?? "" });
+      centreForm(box3, index, { nombre: search7?.value.trim() ?? "" });
     });
     on6("[data-cpprivada]", () => {
       setCentre(box3, index, { nombre: privateConsultation("U") });
@@ -9819,7 +9907,7 @@
     on6("[data-cpaqui]", (button2) => {
       accountsEditorLegacy.imHere(box3, index, button2);
     });
-    if (mode === "buscar") search6?.focus();
+    if (mode === "buscar") search7?.focus();
   }
   function paintNewPickers(list) {
     [...list.children].forEach((box3) => {
@@ -10145,8 +10233,8 @@
   function rowHtml(row4, onAccessLoaded) {
     const cells = visibleColumns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row4, column.k, onAccessLoaded)}</span>`).join("");
     const place4 = [row4.centro_nombre, row4.municipio].filter(Boolean).join(" · ");
-    const card3 = `<span class="plcard"><b>${row4.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row4.nombre ?? "")}</b><span class="plc2">${escapeHtml(place4)}</span><span class="plc3">${cell(row4, "estado_comercial", onAccessLoaded)}</span></span>`;
-    return `<button class="trow" data-id="${row4.id}">${cells}${card3}</button>`;
+    const card4 = `<span class="plcard"><b>${row4.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row4.nombre ?? "")}</b><span class="plc2">${escapeHtml(place4)}</span><span class="plc3">${cell(row4, "estado_comercial", onAccessLoaded)}</span></span>`;
+    return `<button class="trow" data-id="${row4.id}">${cells}${card4}</button>`;
   }
   function paintChips() {
     const box3 = document.getElementById("chips");
@@ -10887,9 +10975,9 @@
     place: term("consulta", { capital: "C" })
   });
   var helpButton = (title2, text5) => `<button type="button" class="ai" data-ayuda-tit="${escapeHtml(title2)}" data-ayuda-txt="${escapeHtml(text5)}" aria-label="${t("portal.whatIsIt")}">i</button>`;
-  function skeleton(card3) {
+  function skeleton(card4) {
     const box3 = '<div class="card ancard pmsk"><span class="plsk"></span></div>';
-    return card3 ? `<div class="pmfila">${box3}${box3}</div><div class="pmfila">${box3}</div>` : `<div class="pmfila pm3">${box3}${box3}${box3}</div><div class="pmfila pm3">${box3}${box3}${box3}</div>`;
+    return card4 ? `<div class="pmfila">${box3}${box3}</div><div class="pmfila">${box3}</div>` : `<div class="pmfila pm3">${box3}${box3}${box3}</div><div class="pmfila pm3">${box3}${box3}${box3}</div>`;
   }
   var FAILURES2 = /* @__PURE__ */ new Map([
     ["permiso", "portal.failures.permission"],
@@ -11158,16 +11246,16 @@
     }
   }
   async function paintBase2(id) {
-    const card3 = document.getElementById("ficha");
-    card3?.classList.add("cargando");
-    const limit = setTimeout(() => card3?.classList.remove("cargando"), LOADING_LIMIT_MS);
+    const card4 = document.getElementById("ficha");
+    card4?.classList.add("cargando");
+    const limit = setTimeout(() => card4?.classList.remove("cargando"), LOADING_LIMIT_MS);
     try {
       accountCardLegacy.forgetPatients();
       for (const section2 of BASE) await section2.run(id);
       if (document.getElementById("fventas") && !document.getElementById("fventasc")?.children.length) document.getElementById("fventas")?.remove();
     } finally {
       clearTimeout(limit);
-      requestAnimationFrame(() => card3?.classList.remove("cargando"));
+      requestAnimationFrame(() => card4?.classList.remove("cargando"));
     }
   }
   async function openAccountCard(id) {
@@ -11679,9 +11767,9 @@
         return;
       }
       if (currentScreen() !== "duplicados" || !target) return;
-      const comparison = target.closest("[data-dcmp]"), card3 = target.closest("[data-dver]"), different = target.closest("[data-ddes]");
+      const comparison = target.closest("[data-dcmp]"), card4 = target.closest("[data-dver]"), different = target.closest("[data-ddes]");
       if (comparison) compare(comparison);
-      if (card3) agendaActions.openAccount(card3.dataset.dver ?? "");
+      if (card4) agendaActions.openAccount(card4.dataset.dver ?? "");
       if (different) void markDifferent(different);
     });
   }
@@ -12144,8 +12232,8 @@
     Object.assign(filters, { q: "", prov: "", muni: "", esp: "", est: "", com: "", urg: false, mios: false, sin: false, orden: "nombre", pagina: 0 });
     if (filter.q) {
       filters.q = filter.q;
-      const search6 = document.getElementById("q");
-      if (search6) search6.value = filter.q;
+      const search7 = document.getElementById("q");
+      if (search7) search7.value = filter.q;
     }
     SELECT_KEYS.forEach((key) => {
       const chosen5 = filter[key];
@@ -12239,11 +12327,11 @@
     if (!body2 || !dialog10) return;
     body2.innerHTML = pageHtml2(name, data ?? [], query);
     let timer2;
-    const search6 = document.getElementById("cbusca");
-    if (search6) search6.oninput = () => {
+    const search7 = document.getElementById("cbusca");
+    if (search7) search7.oninput = () => {
       clearTimeout(timer2);
       timer2 = setTimeout(() => {
-        void paint4(userId, name, search6.value.trim());
+        void paint4(userId, name, search7.value.trim());
       }, SEARCH_WAIT_MS4);
     };
     body2.querySelectorAll("[data-cficha]").forEach((button2) => {
@@ -12709,20 +12797,20 @@
     body2.querySelectorAll(".agtamb").forEach((element4) => {
       element4.remove();
     });
-    const cards = [...body2.querySelectorAll(".tdu[data-tdu]")];
-    if (!cards.length) return;
-    const byId = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    const cards2 = [...body2.querySelectorAll(".tdu[data-tdu]")];
+    if (!cards2.length) return;
+    const byId4 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
     const already = withAppointmentToday(), used = /* @__PURE__ */ new Set();
     suggestions.centros.forEach((group) => {
       const people = (group.cuentas ?? group.medicos ?? []).filter((person) => !already.has(person.id));
       if (!people.length) return;
-      const card3 = cards.find((element4) => {
-        const appointment = byId.get(element4.dataset.tdu ?? "");
+      const card4 = cards2.find((element4) => {
+        const appointment = byId4.get(element4.dataset.tdu ?? "");
         return appointment !== void 0 && !used.has(element4) && isSameCentre(group, appointment);
       });
-      if (!card3) return;
-      used.add(card3);
-      (card3.querySelector(".tdu-pie") ?? card3.lastElementChild)?.insertAdjacentHTML("beforebegin", blockHtml3(group, people, isoDate));
+      if (!card4) return;
+      used.add(card4);
+      (card4.querySelector(".tdu-pie") ?? card4.lastElementChild)?.insertAdjacentHTML("beforebegin", blockHtml3(group, people, isoDate));
     });
   }
   function listenToSameCentre() {
@@ -13928,17 +14016,17 @@
       };
     });
   }
-  function bindSearch3(input10, onText, search6, initial) {
+  function bindSearch3(input10, onText, search7, initial) {
     if (!input10) return;
     let timer2;
     input10.oninput = () => {
       onText(input10.value);
       clearTimeout(timer2);
       timer2 = setTimeout(() => {
-        void search6(input10.value.trim());
+        void search7(input10.value.trim());
       }, WAIT_MS);
     };
-    if (initial) void search6(initial);
+    if (initial) void search7(initial);
   }
   function bindSearches(state2) {
     bindSearch3(document.getElementById("rbuscacen"), (text5) => {
@@ -14200,8 +14288,8 @@
     setDraft: (draft) => {
       RN = draft;
     },
-    setCards: (cards) => {
-      RN_LISTA = cards;
+    setCards: (cards2) => {
+      RN_LISTA = cards2;
     },
     setRoutes: (list) => {
       RUTAS = list;
@@ -14514,8 +14602,8 @@
     agendaState.setSelectedDate(dates.find((day) => !result.saltados.includes(day)) ?? dates[0] ?? todayIso());
     goTo("agenda");
   }
-  async function copyToAgenda(card3, button2) {
-    const route = card3.r, members2 = card3.ms.filter(hasLocation);
+  async function copyToAgenda(card4, button2) {
+    const route = card4.r, members2 = card4.ms.filter(hasLocation);
     if (!members2.length) {
       notices.toast(t("routes.agenda.noLocated", { professionals: term("medico", { number: "p" }) }), true);
       return;
@@ -15204,13 +15292,13 @@
     const nextDay = routesLegacy.nextWorkingDay(), day = WEEKDAYS4[Math.max(0, fromIsoDate(nextDay).getDay() - 1)] ?? "L";
     return { id: null, nombre: "", auto: true, ms: [], rep: { tipo: "semanal", dia: day, desde: nextDay }, salida: "09:00", vuelta: "", fijas: {}, ordenManual: false, paso: step, centros: [], ...searchState() };
   }
-  function draftOf(card3, step) {
-    const route = card3.r;
+  function draftOf(card4, step) {
+    const route = card4.r;
     return {
       id: route.id,
       nombre: route.nombre,
       auto: false,
-      ms: card3.ms.slice(),
+      ms: card4.ms.slice(),
       rep: route.repeticion ?? null,
       salida: route.salida ? String(route.salida).slice(0, 5) : "09:00",
       vuelta: route.vuelta ? String(route.vuelta).slice(0, 5) : "",
@@ -15221,9 +15309,9 @@
       ...searchState()
     };
   }
-  var newDraft = (card3, step) => card3 ? draftOf(card3, step) : freshDraft(step);
-  function openRoute(card3, step = 1) {
-    routesLegacy.setDraft(newDraft(card3, step));
+  var newDraft = (card4, step) => card4 ? draftOf(card4, step) : freshDraft(step);
+  function openRoute(card4, step = 1) {
+    routesLegacy.setDraft(newDraft(card4, step));
     if (currentScreen() !== "rutas") goTo("rutas");
     else paintWizard();
   }
@@ -15275,31 +15363,31 @@
   wizardHooks.repaint = paintWizard;
 
   // src/app/screens/routes/list.ts
-  function routeFacts(card3) {
-    const route = card3.r, members2 = card3.ms, repeat = route.repeticion ?? null;
+  function routeFacts(card4) {
+    const route = card4.r, members2 = card4.ms, repeat = route.repeticion ?? null;
     const hours2 = hoursOf(members2, referenceDate(repeat, route.nombre), { start: route.salida, back: route.vuelta, fixed: route.fijas }), next = nextDateOf(repeat);
     const stops = new Set(members2.filter(hasLocation).map((member) => `${Number(member.lat).toFixed(5)},${Number(member.lon).toFixed(5)}`)).size;
     const who2 = `${formatNumber(members2.length)} ${term("medico", { number: members2.length === 1 ? "s" : "p" })} · ${stops} ${t(stops === 1 ? "routes.list.oneStop" : "routes.list.stops")}${hours2.km >= 1 ? t("routes.list.kilometres", { km: Math.round(hours2.km) }) : ""}`;
     const when5 = members2.length ? t("routes.list.fromTo", { start: route.salida ? String(route.salida).slice(0, 5) : "09:00", end: formatMinutes(hours2.fin) }) : t("routes.list.nobodyYet");
     return { stops: who2, hours: `${when5}${next ? t("routes.list.next", { date: escapeHtml(formatShortDate(next)) }) : ""}${route.mia ? "" : t("routes.list.owner", { name: escapeHtml(route.duenyo ?? "") })}` };
   }
-  function cardHtml3(card3, index) {
-    const route = card3.r, facts = routeFacts(card3), editable = Boolean(route.mia) || cardSectionsLegacy.can("administrar");
+  function cardHtml3(card4, index) {
+    const route = card4.r, facts = routeFacts(card4), editable = Boolean(route.mia) || cardSectionsLegacy.can("administrar");
     const actions = editable ? `<button class="btn sec chico" type="button" data-rned="${index}">${routeIcon("pencil")} ${t("routes.list.edit")}</button>
           <button class="btn sec chico rnico" type="button" data-rnbor="${index}" aria-label="${t("routes.list.removeRoute", { name: escapeHtml(route.nombre) })}" title="${t("routes.list.remove")}">${routeIcon("bin")}</button>` : `<button class="btn sec chico" type="button" data-rnver="${index}">${t("routes.list.see")}</button>`;
-    return `<article class="rncard" data-rni="${index}"><div class="rncro">${routeSketch(card3.ms)}<span class="rndia">${escapeHtml(whenText(route.repeticion ?? null))}</span></div>
+    return `<article class="rncard" data-rni="${index}"><div class="rncro">${routeSketch(card4.ms)}<span class="rndia">${escapeHtml(whenText(route.repeticion ?? null))}</span></div>
         <div class="rntx"><b>${escapeHtml(route.nombre)}</b>
           <span class="sm">${facts.stops}</span>
           <span class="sm">${facts.hours}</span></div>
         <div class="rnacts"><button class="btn chico" type="button" data-rnag="${index}">${t("routes.list.toAgenda")}</button>
           ${actions}</div></article>`;
   }
-  function pageHtml3(cards) {
+  function pageHtml3(cards2) {
     return `
     <div class="saludo"><div><h1>${t("routes.list.title")}</h1><div class="fecha">${t("routes.list.subtitle")}</div></div>
       <div class="acts" style="margin:0"><button class="btn" id="rnueva">${t("routes.list.newRoute")}</button></div></div>
-    <div class="rngrid" id="rngrid">${cards.map(cardHtml3).join("")}
-      <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>${t("routes.list.newRouteCard")}</b><span class="sm">${t(cards.length ? "routes.list.newRouteHint" : "routes.list.firstRouteHint")}</span></span></button></div>
+    <div class="rngrid" id="rngrid">${cards2.map(cardHtml3).join("")}
+      <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>${t("routes.list.newRouteCard")}</b><span class="sm">${t(cards2.length ? "routes.list.newRouteHint" : "routes.list.firstRouteHint")}</span></span></button></div>
     <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
   }
   async function removeRoute(route) {
@@ -15313,12 +15401,12 @@
     appLegacy.forgetCache();
     routesLegacy.reload();
   }
-  function bind9(view, cards) {
+  function bind9(view, cards2) {
     const each = (attribute, action) => {
       view.querySelectorAll(`[data-${attribute}]`).forEach((button2) => {
         button2.onclick = () => {
-          const card3 = cards[Number(button2.getAttribute(`data-${attribute}`))];
-          if (card3) action(card3, button2);
+          const card4 = cards2[Number(button2.getAttribute(`data-${attribute}`))];
+          if (card4) action(card4, button2);
         };
       });
     };
@@ -15328,17 +15416,17 @@
         openRoute(null);
       };
     });
-    each("rned", (card3) => {
-      openRoute(card3, 3);
+    each("rned", (card4) => {
+      openRoute(card4, 3);
     });
-    each("rnver", (card3) => {
-      openRoute(card3, 3);
+    each("rnver", (card4) => {
+      openRoute(card4, 3);
     });
-    each("rnag", (card3, button2) => {
-      void copyToAgenda(card3, button2);
+    each("rnag", (card4, button2) => {
+      void copyToAgenda(card4, button2);
     });
-    each("rnbor", (card3) => {
-      void removeRoute(card3.r);
+    each("rnbor", (card4) => {
+      void removeRoute(card4.r);
     });
   }
   async function paintRoutes() {
@@ -15350,11 +15438,11 @@
     const { data } = await legacyDb().rpc("rutas_visibles");
     const routes2 = data ?? [];
     routesLegacy.setRoutes(routes2);
-    const cards = await Promise.all(routes2.map(async (route) => ({ r: route, ms: await routeMembers(route) })));
-    routesLegacy.setCards(cards);
+    const cards2 = await Promise.all(routes2.map(async (route) => ({ r: route, ms: await routeMembers(route) })));
+    routesLegacy.setCards(cards2);
     if (!view) return;
-    view.innerHTML = pageHtml3(cards);
-    bind9(view, cards);
+    view.innerHTML = pageHtml3(cards2);
+    bind9(view, cards2);
   }
 
   // src/app/screens/routes/page.ts
@@ -16599,13 +16687,13 @@
     const title2 = setting.t ? setting.t : definition.t;
     const classes = `kpi ${definition.cls ? definition.cls(context.kpis) : ""} ${definition.h ? "click" : ""}${context.panel ? " kv" : ""}`;
     const action = definition.h ? ` data-k="${definition.h}"` : "";
-    const icon2 = indicatorCatalog.icon(definition.id), description = indicatorCatalog.description(definition.id);
+    const icon3 = indicatorCatalog.icon(definition.id), description = indicatorCatalog.description(definition.id);
     const help = helpButton2(indicatorCatalog.help(definition.id), title2);
     const raw = definition.v(context.kpis);
     const body2 = context.panel ? liveBody(definition.id, capitalise(title2).trim(), raw, context) : `
        ${help}
        <b>${typeof raw === "string" ? raw : formatNumber(raw)}</b><span>${escapeHtml(capitalise(title2))}</span>`;
-    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon2 ? `<span class="kico" aria-hidden="true">${icon2}</span>` : ""}${context.panel ? help : ""}${body2}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
+    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon3 ? `<span class="kico" aria-hidden="true">${icon3}</span>` : ""}${context.panel ? help : ""}${body2}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
   }
   function liveBody(id, title2, raw, context) {
     const { summary: summary5, visual } = chartFor(id, context.kpis, context.panel, context.charts);
@@ -16751,13 +16839,13 @@
       const count2 = [...summary5.querySelectorAll("span, b")].find((element4) => /^\d+$/.test((element4.textContent ?? "").trim()));
       if (count2 && items.length) count2.textContent = String(left);
     });
-    const card3 = box3.querySelector("details.alerta2")?.closest(".card") ?? null;
-    const total2 = card3?.querySelector("h2 .n");
-    if (total2 && card3) total2.textContent = String(card3.querySelectorAll("details.alerta2").length);
+    const card4 = box3.querySelector("details.alerta2")?.closest(".card") ?? null;
+    const total2 = card4?.querySelector("h2 .n");
+    if (total2 && card4) total2.textContent = String(card4.querySelectorAll("details.alerta2").length);
     const all2 = miscLegacy.hiddenAlerts() ?? [];
-    if (all2.length && card3 && !card3.querySelector(".alocultas")) {
-      card3.insertAdjacentHTML("beforeend", `<button class="kcfg alocultas" style="margin:4px 16px 12px">${t("homeMore.hidden.seeHidden", { count: all2.length })}</button>`);
-      const button2 = card3.querySelector(".alocultas");
+    if (all2.length && card4 && !card4.querySelector(".alocultas")) {
+      card4.insertAdjacentHTML("beforeend", `<button class="kcfg alocultas" style="margin:4px 16px 12px">${t("homeMore.hidden.seeHidden", { count: all2.length })}</button>`);
+      const button2 = card4.querySelector(".alocultas");
       if (button2) button2.onclick = () => {
         void showHiddenAlerts();
       };
@@ -16789,9 +16877,9 @@
   var VISITED2 = "Visitada";
   var SIMILAR_CAP = 200;
   var SHOWN_URGENT = 6;
-  function paintCard(element4, card3) {
+  function paintCard(element4, card4) {
     if (!element4) return;
-    element4.innerHTML = `<h2>${card3.title}${card3.count !== null ? `<span class="n">${formatNumber(card3.count)}</span>` : ""}</h2>` + (card3.items.length ? `<div class="lista">${card3.items.join("")}</div>` : `<div class="vacio">${card3.empty}</div>`) + (card3.footer && card3.items.length ? card3.footer : "");
+    element4.innerHTML = `<h2>${card4.title}${card4.count !== null ? `<span class="n">${formatNumber(card4.count)}</span>` : ""}</h2>` + (card4.items.length ? `<div class="lista">${card4.items.join("")}</div>` : `<div class="vacio">${card4.empty}</div>`) + (card4.footer && card4.items.length ? card4.footer : "");
   }
   function duplicatesText(pending, similar) {
     return [
@@ -17868,11 +17956,11 @@
     const data = { day, today, mine: all2.filter((item) => item.usuario_id === owner), others: all2.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
     const { context, summary: summary5, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-    const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary5.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    const cards2 = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary5.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
     body2.innerHTML = `${headerHtml4(summary5)}
     ${workingDayHtml(summary5, summary5.workingDay ? formatDuration(Date.now() - summary5.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
-    ${cards}
+    ${cards2}
     ${othersHtml(data.others)}`;
     bindHeader2(data, context.open);
     refreshMetrics();
@@ -17885,16 +17973,16 @@
   function markQueuedVisits() {
     const day = legacyAgenda.selectedDate();
     const queued = yourDayLegacy.queuedVisits().filter((item) => item.fn === "registrar_actividad" && item.payload?.p?.fecha === day);
-    const byId = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
-    document.querySelectorAll("#agcuerpo .tdu[data-tdu]").forEach((card3) => {
-      const item = byId.get(card3.dataset.tdu ?? "");
+    const byId4 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    document.querySelectorAll("#agcuerpo .tdu[data-tdu]").forEach((card4) => {
+      const item = byId4.get(card4.dataset.tdu ?? "");
       if (!item) return;
       const pending = queued.some((entry) => entry.payload?.p?.cuenta_id === item.cuenta_id);
-      if (card3.classList.contains("tdpend") !== pending) card3.classList.toggle("tdpend", pending);
-      const mark2 = card3.querySelector(".tdpendm");
-      if (pending && !mark2) card3.querySelector(".tdu-pie")?.insertAdjacentHTML("afterbegin", `<span class="tdpendm">${t("agenda.yourDay.queued")}</span>`);
+      if (card4.classList.contains("tdpend") !== pending) card4.classList.toggle("tdpend", pending);
+      const mark2 = card4.querySelector(".tdpendm");
+      if (pending && !mark2) card4.querySelector(".tdu-pie")?.insertAdjacentHTML("afterbegin", `<span class="tdpendm">${t("agenda.yourDay.queued")}</span>`);
       if (!pending && mark2) mark2.remove();
-      card3.querySelectorAll('[data-td^="visita|"]').forEach((button2) => {
+      card4.querySelectorAll('[data-td^="visita|"]').forEach((button2) => {
         if (button2.classList.contains("hide") !== pending) button2.classList.toggle("hide", pending);
       });
     });
@@ -19116,8 +19204,8 @@
     });
     if (!document.getElementById("perfilcab")) return;
     void paintProfile();
-    const card3 = document.getElementById("miperfil"), place4 = document.getElementById("perfilcab");
-    if (card3 && place4) place4.replaceWith(card3);
+    const card4 = document.getElementById("miperfil"), place4 = document.getElementById("perfilcab");
+    if (card4 && place4) place4.replaceWith(card4);
     else place4?.remove();
   }
   function securityHtml() {
@@ -19270,10 +19358,10 @@
     };
     navigator.geolocation.getCurrentPosition((position) => {
       done2();
-      const search6 = field5(box3, "pg", key), address2 = field5(box3, "pd", key), shown5 = status(box3, key);
-      if (search6) {
-        search6.dataset.lat = position.coords.latitude.toFixed(GPS_DECIMALS);
-        search6.dataset.lon = position.coords.longitude.toFixed(GPS_DECIMALS);
+      const search7 = field5(box3, "pg", key), address2 = field5(box3, "pd", key), shown5 = status(box3, key);
+      if (search7) {
+        search7.dataset.lat = position.coords.latitude.toFixed(GPS_DECIMALS);
+        search7.dataset.lon = position.coords.longitude.toFixed(GPS_DECIMALS);
       }
       if (address2) address2.value = t("settings.preferences.myLocation");
       if (shown5) shown5.innerHTML = located2(t("settings.preferences.fromGps"));
@@ -19403,9 +19491,9 @@
   }
   function planLosses(from2, to, data) {
     if (from2 === to) return [];
-    const list = moduleLosses(from2, to, data), sections = planLegacy.sections();
-    Object.keys(sections).forEach((section2) => {
-      const plans = sections[section2] ?? [];
+    const list = moduleLosses(from2, to, data), sections2 = planLegacy.sections();
+    Object.keys(sections2).forEach((section2) => {
+      const plans = sections2[section2] ?? [];
       if (plans.includes(from2) && !plans.includes(to)) list.push(planLegacy.sectionTitle(section2) ?? section2);
     });
     list.push(...extraLosses(from2, to, data));
@@ -20908,8 +20996,8 @@
   async function linkedProfessional(id) {
     const { data: profile4 } = await legacyDb().from("perfiles").select("cuenta_id").eq("id", id).single();
     if (!profile4?.cuenta_id) return null;
-    const { data: card3 } = await legacyDb().rpc("ficha_cuenta", { p_id: profile4.cuenta_id });
-    return card3?.medico ? { id: card3.medico.id, nombre: card3.medico.nombre } : null;
+    const { data: card4 } = await legacyDb().rpc("ficha_cuenta", { p_id: profile4.cuenta_id });
+    return card4?.medico ? { id: card4.medico.id, nombre: card4.medico.nombre } : null;
   }
   function linkedHtml(linked) {
     return `<div class="blk" id="umedw"><h3>${t("settingsRest.editor.linkedCard", words4())}</h3>
@@ -21250,11 +21338,11 @@
     paintSummary(draft);
   }
   async function fillFrom2(professional) {
-    const { data: card3 } = await legacyDb().rpc("ficha_cuenta", { p_id: professional.id });
+    const { data: card4 } = await legacyDb().rpc("ficha_cuenta", { p_id: professional.id });
     const name = input2("nn"), email = input2("ne");
-    if (card3?.medico && name && email) {
-      if (!name.value) name.value = card3.medico.nombre ?? "";
-      if (!email.value && card3.medico.email) email.value = card3.medico.email;
+    if (card4?.medico && name && email) {
+      if (!name.value) name.value = card4.medico.nombre ?? "";
+      if (!email.value && card4.medico.email) email.value = card4.medico.email;
     }
   }
   function presetRole(preset) {
@@ -21320,11 +21408,11 @@
   };
   function guestRow(user, connections) {
     const connection = connections[user.id] ?? {}, last = whenOf(connection.ultima_conexion ?? connection.ultimo_acceso);
-    const card3 = user.cuenta_id ? `<button class="pill p-per" data-uinvf="${user.cuenta_id}" title="${t("settingsRest.users.openCard")}">${escapeHtml(user.medico ?? user.cuenta ?? t("settingsRest.users.yourCard"))}</button>` : `<span class="pill p-anu">${t("settingsRest.users.noCard")}</span>`;
+    const card4 = user.cuenta_id ? `<button class="pill p-per" data-uinvf="${user.cuenta_id}" title="${t("settingsRest.users.openCard")}">${escapeHtml(user.medico ?? user.cuenta ?? t("settingsRest.users.yourCard"))}</button>` : `<span class="pill p-anu">${t("settingsRest.users.noCard")}</span>`;
     return `<div class="usrinv ${user.activo ? "" : "off"}">
       <span class="usrav" style="background:${roleColour(user.rol)}">${escapeHtml(initialsOf(user.nombre))}</span>
       <span class="usrtx"><b>${escapeHtml(user.nombre)}</b><span class="sm">${escapeHtml(user.email ?? "")}</span>
-        <span class="usrchips">${card3}
+        <span class="usrchips">${card4}
           ${user.activo ? "" : `<span class="pill p-anu">${t("settingsRest.users.deactivated")}</span>`}
           <span class="sm usrinvult">${last ? escapeHtml(connectionText(connection)) : t("settingsRest.users.notYet")}</span></span>
         <span class="sm usrinvve">${escapeHtml(usersLegacy.guestSees(user))}</span></span>
@@ -21394,9 +21482,9 @@
   }
   function bindFilters(all2, connections) {
     const field19 = (id) => document.getElementById(id);
-    const search6 = field19("usrq"), role = field19("usrrol"), state2 = field19("usrest");
-    if (search6) search6.oninput = () => {
-      userFilters.q = search6.value;
+    const search7 = field19("usrq"), role = field19("usrrol"), state2 = field19("usrest");
+    if (search7) search7.oninput = () => {
+      userFilters.q = search7.value;
       paintList2(all2, connections);
     };
     if (role) role.onchange = () => {
@@ -21780,8 +21868,8 @@
     if (removed) void remove5(removed, list);
   }
   function bindTemplatesCard() {
-    const card3 = document.getElementById("plcorreo");
-    if (card3) card3.onclick = onCardClick;
+    const card4 = document.getElementById("plcorreo");
+    if (card4) card4.onclick = onCardClick;
   }
 
   // src/app/screens/settings/email/account.ts
@@ -22179,10 +22267,10 @@
         <input type="time" id="nsild" value="${escapeHtml(quiet.desde ?? QUIET_FROM)}" aria-label="${t("settingsExtra.notificationSettings.from")}"> ${t("settingsExtra.notificationSettings.toWord")} <input type="time" id="nsilh" value="${escapeHtml(quiet.hasta ?? QUIET_TO)}" aria-label="${t("settingsExtra.notificationSettings.to")}">
         <label class="ntffin"><input type="checkbox" id="nsilf" ${quiet.finde !== false ? "checked" : ""}> ${t("settingsExtra.notificationSettings.weekends")}</label></div></div>`;
   }
-  function rowHtml7([key, icon2, title2, description]) {
+  function rowHtml7([key, icon3, title2, description]) {
     const mode = modeOf(key), daily = settingsExtraLegacy.dailyNotifications().includes(key);
     const button2 = (value26, label) => `<button type="button" data-v="${value26}" class="${mode === value26 ? "on" : ""}" aria-pressed="${String(mode === value26)}">${label}</button>`;
-    return `<div class="ntfrow"><span class="ntfic">${icon2}</span><div><b>${escapeHtml(title2)}</b><span class="sm">${escapeHtml(description)}</span></div>
+    return `<div class="ntfrow"><span class="ntfic">${icon3}</span><div><b>${escapeHtml(title2)}</b><span class="sm">${escapeHtml(description)}</span></div>
         <div class="segs ntfseg" role="group" aria-label="${escapeHtml(title2)}" data-nk="${key}">${daily ? "" : button2("m", t("settingsExtra.notificationSettings.atOnceButton"))}${button2("r", t("settingsExtra.notificationSettings.inDigestButton"))}${button2("n", t("settingsExtra.notificationSettings.no"))}</div></div>`;
   }
   function groupsOf(types2) {
@@ -22476,15 +22564,15 @@
     Object.assign(popover.style, { left: `${left}px`, top: `${anchor.bottom + GAP2 + scrollY}px` });
   }
   function bindSearch4(popover) {
-    const search6 = popover.querySelector(".plpopq");
-    if (!search6) return;
-    search6.oninput = () => {
-      const wanted = listsLegacy.normalise(search6.value);
+    const search7 = popover.querySelector(".plpopq");
+    if (!search7) return;
+    search7.oninput = () => {
+      const wanted = listsLegacy.normalise(search7.value);
       popover.querySelectorAll("[data-ppi]").forEach((option7) => {
         option7.classList.toggle("hide", Boolean(wanted) && !listsLegacy.normalise(option7.textContent).includes(wanted));
       });
     };
-    if (!listsLegacy.touchScreen()) search6.focus();
+    if (!listsLegacy.touchScreen()) search7.focus();
   }
   function openPopover(button2, items) {
     closePopovers();
@@ -22997,9 +23085,9 @@
   }
   function bindAuto(section2, panel, grid, zone) {
     const kind = tableKind(grid), state2 = filtersOf(grid);
-    const search6 = zone.querySelector(".httexto");
-    if (search6) search6.oninput = () => {
-      state2.texto = search6.value;
+    const search7 = zone.querySelector(".httexto");
+    if (search7) search7.oninput = () => {
+      state2.texto = search7.value;
       applyColumnFilters(grid);
       counter(section2);
     };
@@ -23270,6 +23358,1268 @@
     });
   }
 
+  // src/app/components/list-bar/index.ts
+  var list_bar_exports = {};
+  __export(list_bar_exports, {
+    PAGE_SIZES: () => PAGE_SIZES,
+    blocks: () => blocks2,
+    chosenGroups: () => chosenGroups,
+    configOf: () => configOf,
+    configs: () => configs,
+    convertBlocks: () => convertBlocks,
+    filterBlocks: () => filterBlocks,
+    icon: () => icon2,
+    indicatorsHtml: () => indicatorsHtml,
+    loadIndicators: () => loadIndicators2,
+    observe: () => observe,
+    savePageSize: () => savePageSize,
+    sections: () => sections,
+    startBlocks: () => startBlocks,
+    startScreens: () => startScreens,
+    startSections: () => startSections,
+    storedPageSize: () => storedPageSize,
+    syncListBar: () => syncListBar,
+    toolbarHtml: () => toolbarHtml,
+    watch: () => watch
+  });
+
+  // src/app/legacy/listbar-bridge.ts
+  var listBarLegacy = {
+    pageSize: () => tamPagina(),
+    userId: () => PERFIL?.id ?? "",
+    /** First icon found among the names (line icons, then emoji ones). */
+    icon: (names) => svgIco(names.map((name) => ICON_NOM[name] ?? ICON_EMOJI[name]).find(Boolean) ?? ""),
+    lineIcon: (name) => svgIco(ICON_NOM[name] ?? ""),
+    cacheEpoch: () => typeof RC_EPOCA === "undefined" ? 0 : RC_EPOCA,
+    salesSection: () => typeof PEDSEC === "undefined" ? null : PEDSEC,
+    billingSection: () => typeof FSEC === "undefined" ? null : FSEC,
+    productsSection: () => typeof PSEC === "undefined" ? null : PSEC,
+    // eslint-disable-next-line id-length -- F is the legacy name of the Cuentas filters
+    accountFilters: () => F,
+    customerFilters: () => PAC,
+    searchAccounts: (reset2) => {
+      void buscar(reset2);
+    },
+    loadAccountFilters: () => {
+      void cargarFiltros();
+    },
+    searchCustomers: () => {
+      void listaPacientes();
+    },
+    openAccountColumns: () => {
+      abrirColumnas();
+    },
+    toolsContext: () => HERR_CTX,
+    /** What the «Filtros y columnas» panel chose per table (the bar's search writes its free text when the screen has no search). */
+    tableFilters: () => HT_ESTADO,
+    countRows: (name, params2) => RPC_ORIG(name, params2)
+  };
+
+  // src/app/components/list-bar/state.ts
+  var chosenGroups = {};
+  var indicatorCache = {};
+  var SALES_SECTIONS = { ventas: "pedidos", llamadas: "oport", compras: "compras", proveedores: "prov" };
+  var PRODUCT_SECTIONS = { catalogo: "prods", servicios: "servs", stock: "stock" };
+  var LIST2 = "lista";
+  function eventsSection() {
+    const on6 = document.querySelector("#v-eventos .pagtabs button.on");
+    return !on6 || on6 === document.querySelector("#v-eventos .pagtabs button") ? LIST2 : null;
+  }
+  var sections = {
+    ventas: () => {
+      const open2 = listBarLegacy.salesSection();
+      return open2 === null ? null : SALES_SECTIONS[open2] ?? null;
+    },
+    facturacion: () => listBarLegacy.billingSection() === "facturas" ? "facturas" : null,
+    productos: () => {
+      const open2 = listBarLegacy.productsSection();
+      return open2 === null ? null : PRODUCT_SECTIONS[open2] ?? "prods";
+    },
+    eventos: eventsSection,
+    cirugias: () => LIST2,
+    concursos: () => LIST2,
+    parque: () => LIST2
+  };
+
+  // src/app/components/list-bar/text.ts
+  var icon2 = (...names) => listBarLegacy.icon(names);
+  var textOf = (element4) => (element4?.textContent ?? "").trim().replace(/\s+/g, " ");
+  var smallText = (element4) => textOf(element4?.querySelector(".tx .sm, .sm"));
+  var selectOf = (id) => {
+    if (!id) return null;
+    return /^[#.]/.test(id) ? document.querySelector(id) : document.getElementById(id);
+  };
+  function labelOf(id) {
+    const select3 = selectOf(id);
+    if (!select3) return "";
+    const label = (select3.id ? document.querySelector(`label[for="${select3.id}"]`) : null) ?? select3.closest("div")?.querySelector(":scope > label");
+    return label ? (label.textContent ?? "").trim() : "";
+  }
+
+  // src/app/components/list-bar/configs/grid.ts
+  var COLUMNS_DELAY_MS = 80;
+  var byId = (id) => id ? document.getElementById(id) : null;
+  var gridOf2 = (tab) => document.querySelector(`#v-${tab} .dgrid`);
+  function searchText2(options4) {
+    const input10 = byId(options4.buscador);
+    if (input10) return input10.value || "";
+    const grid = gridOf2(options4.tab);
+    return grid ? listBarLegacy.tableFilters()[tableKind(grid)]?.texto ?? "" : "";
+  }
+  function search4(options4, value26) {
+    const input10 = byId(options4.buscador);
+    if (input10) {
+      input10.value = value26;
+      input10.dispatchEvent(new Event("input", { bubbles: true }));
+      return;
+    }
+    const grid = gridOf2(options4.tab);
+    if (!grid) return;
+    const state2 = listBarLegacy.tableFilters(), kind = tableKind(grid);
+    const filters = state2[kind] ?? { texto: "", facetas: {} };
+    state2[kind] = filters;
+    filters.texto = value26;
+    applyColumnFilters(grid);
+    const section2 = document.getElementById(`v-${options4.tab}`);
+    if (section2) counter(section2);
+  }
+  function openColumns(tab) {
+    const button2 = document.querySelector(`#v-${tab} .htbtn`);
+    if (!button2) return;
+    button2.click();
+    setTimeout(() => {
+      document.getElementById("tools")?.querySelector(".t2abrir")?.click();
+    }, COLUMNS_DELAY_MS);
+  }
+  function moreActions(options4) {
+    const extra = options4.extra ?? [];
+    return [...document.querySelectorAll(`#v-${options4.tab} > .saludo .acts > button.sec:not(.htbtn):not(.plmas)`)].filter((button2) => !button2.classList.contains("hide") && !extra.some(([id]) => id === button2.id)).map((button2) => {
+      if (!button2.id) button2.id = `plb${Math.random().toString(36).slice(2, 8)}`;
+      return [button2.id, ((button2.textContent ?? "").trim() || button2.title || (button2.getAttribute("aria-label") ?? "")).replace(/\s+/g, " ")];
+    }).concat(extra.filter(([id]) => document.getElementById(id)));
+  }
+  function gridCard(row4) {
+    const cells = [...row4.children].filter((cell5) => !cell5.classList.contains("plcard"));
+    const state2 = cells.find((cell5) => cell5.querySelector('.pill, .est, .cirest, [class*="estado"]'));
+    const rest = cells.slice(1).filter((cell5) => cell5 !== state2).map(textOf).filter((text5) => text5 && text5 !== "—").slice(0, 2);
+    return { a: textOf(cells[0]), b: rest.join(" · "), c: state2 ? state2.innerHTML : "" };
+  }
+  var gridConfig = (options4) => Object.assign({
+    rejilla: true,
+    nuevo: () => document.querySelector(`#v-${options4.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) ?? document.querySelector(`#v-${options4.tab} .fab`),
+    cuerpo: () => byId(options4.lista),
+    tabla: () => byId(options4.lista) ?? document.querySelector(`#v-${options4.tab} .dgrid-wrap`),
+    pie: () => byId(options4.pag),
+    cuenta: () => null,
+    conDatos: (element4) => Boolean(element4.querySelector(".dgrid, .vacio")),
+    rapidos: [],
+    q: () => searchText2(options4),
+    buscarQ: (value26) => {
+      search4(options4, value26);
+    },
+    activos: () => document.getElementById(`v-${options4.tab}`)?.querySelectorAll(".htchips .htchip").length ?? 0,
+    filtros: () => {
+      document.querySelector(`#v-${options4.tab} .htbtn`)?.click();
+    },
+    columnas: () => {
+      openColumns(options4.tab);
+    },
+    mapa: () => null,
+    mas: () => moreActions(options4),
+    kpis: null,
+    kpiOn: () => false,
+    kpiPulsar: () => void 0,
+    card: gridCard
+  }, options4);
+
+  // src/app/components/list-bar/configs/blocks.ts
+  var TIME = /^\d{1,2}:\d{2}$/;
+  var NUMBER2 = "num";
+  var bold = (row4) => `<b>${escapeHtml(textOf(row4.querySelector(".tx b")))}</b>`;
+  var statePill5 = (row4) => row4.querySelector(".cirest")?.innerHTML ?? "";
+  function eventCells(row4) {
+    const parts = smallText(row4).split(" · "), time = parts.find((part) => TIME.test(part));
+    const type = parts.find((part) => EVENT_TYPES.includes(part));
+    const attendees = parts.find((part) => part.includes("asistente")) ?? "";
+    const place4 = parts.filter((part, index) => index > 0 && part !== time && part !== type && part !== attendees).join(" · ");
+    return [
+      bold(row4),
+      escapeHtml((parts[0] ?? "") + (time ? ` · ${time}` : "")),
+      escapeHtml(type ?? "—"),
+      escapeHtml(place4 || "—"),
+      escapeHtml((/\d+/.exec(attendees) ?? ["0"])[0]),
+      escapeHtml(textOf(row4.querySelector(".evtot")) || "—")
+    ];
+  }
+  function surgeryCells(row4) {
+    const time = textOf(row4.querySelector(".cirf .sm"));
+    return [escapeHtml(textOf(row4.querySelector(".cirf b")) + (time ? ` · ${time}` : "")), bold(row4), escapeHtml(smallText(row4.querySelector(".tx"))), statePill5(row4)];
+  }
+  var plainCells = (row4) => [bold(row4), escapeHtml(smallText(row4.querySelector(".tx"))), statePill5(row4)];
+  var blocks = () => ({
+    eventos: {
+      attr: "ev",
+      que: t("listBar.blocks.events"),
+      grupo: t("listBar.blocks.when"),
+      def: t("listBar.blocks.allEvents"),
+      cols: [[t("listBar.blocks.event"), ""], [t("listBar.blocks.date"), ""], [t("listBar.blocks.type"), ""], [t("listBar.blocks.place"), ""], [t("listBar.blocks.attendees"), NUMBER2], [t("listBar.blocks.spending"), NUMBER2]],
+      celdas: eventCells
+    },
+    cirugias: {
+      attr: "cir",
+      que: t("listBar.blocks.surgeries"),
+      grupo: t("listBar.blocks.block"),
+      def: t("listBar.blocks.allSurgeries"),
+      cols: [[t("listBar.blocks.date"), ""], [t("listBar.blocks.surgery"), ""], [t("listBar.blocks.teamAndPlace"), ""], [t("listBar.blocks.state"), ""]],
+      celdas: surgeryCells
+    },
+    concursos: {
+      attr: "con",
+      que: t("listBar.blocks.tenders"),
+      grupo: t("listBar.blocks.block"),
+      def: t("listBar.blocks.allTenders"),
+      cols: [[t("listBar.blocks.tender"), ""], [t("listBar.blocks.customerBodyLots"), ""], [t("listBar.blocks.stateAndDeadlines"), ""]],
+      celdas: plainCells
+    },
+    parque: {
+      attr: "eq",
+      que: t("listBar.blocks.equipment"),
+      grupo: t("listBar.blocks.block"),
+      def: t("listBar.blocks.allEquipment"),
+      cols: [[t("listBar.blocks.equipmentName"), ""], [t("listBar.blocks.serialCentreContract"), ""], [t("listBar.blocks.reviewAndExpiry"), ""]],
+      celdas: plainCells
+    }
+  });
+  function blockConfig(tab, block4) {
+    return { lista: gridConfig({
+      tab,
+      que: () => block4.que,
+      bloques: block4,
+      rapidos: [[`#plg-${tab}`, block4.grupo]],
+      banda: `plgb-${tab}`,
+      activos: () => (chosenGroups[tab] ? 1 : 0) + (document.getElementById(`v-${tab}`)?.querySelectorAll(".htchips .htchip").length ?? 0)
+    }) };
+  }
+
+  // src/app/components/list-bar/configs/customers.ts
+  var COLUMNS_DELAY_MS2 = 80;
+  var TOTAL = "tot";
+  var COMPANIES = "emp";
+  var COMPANY = "Empresa";
+  var byId2 = (id) => document.getElementById(id);
+  async function indicators() {
+    const count2 = (filters) => Promise.resolve(listBarLegacy.countRows("clientes_lista", {
+      q: null,
+      p_medico: null,
+      lim: 1,
+      desplaz: 0,
+      p_tipo: null,
+      p_pedidos: null,
+      p_municipio: null,
+      ...filters
+    })).then((result) => result.data?.total ?? 0, () => 0);
+    const [total2, withOrders, without, companies] = await Promise.all([count2({}), count2({ p_pedidos: "con" }), count2({ p_pedidos: "sin" }), count2({ p_tipo: COMPANY })]);
+    return [
+      { k: TOTAL, t: t("listBar.customers.customers"), n: total2, s: t("listBar.customers.inTotal") },
+      { k: "con", t: t("listBar.customers.withOrders"), n: withOrders, s: t("listBar.customers.boughtOnce") },
+      { k: "sin", t: t("listBar.customers.withoutOrders"), n: without, s: t("listBar.customers.noPurchases") },
+      { k: COMPANIES, t: t("listBar.customers.companies"), n: companies, s: t("listBar.customers.companiesDetail") }
+    ];
+  }
+  function isOn(key) {
+    const filters = listBarLegacy.customerFilters();
+    if (key === TOTAL) return !filters.tipo && !filters.pedidos;
+    return key === COMPANIES ? filters.tipo === COMPANY : filters.pedidos === key;
+  }
+  function press(key) {
+    const filters = listBarLegacy.customerFilters();
+    if (key === TOTAL) {
+      filters.tipo = "";
+      filters.pedidos = "";
+    } else if (key === COMPANIES) filters.tipo = filters.tipo === COMPANY ? "" : COMPANY;
+    else filters.pedidos = filters.pedidos === key ? "" : key;
+    const type = byId2("pactipo");
+    if (type) type.value = filters.tipo ?? "";
+    const orders2 = byId2("pacped");
+    if (orders2) orders2.value = filters.pedidos ?? "";
+    filters.pagina = 0;
+    listBarLegacy.searchCustomers();
+  }
+  function openColumns2() {
+    const open2 = () => {
+      byId2("tools")?.querySelector(".t2abrir")?.click();
+    };
+    const tools = byId2("tools");
+    if (tools?.classList.contains("abierto") && tools.querySelector(".t2abrir")) {
+      open2();
+      return;
+    }
+    const button2 = document.querySelector("#v-pacientes .htbtn");
+    if (!button2) return;
+    button2.click();
+    setTimeout(open2, COLUMNS_DELAY_MS2);
+  }
+  function card(row4) {
+    const cells = row4.children, text5 = (index) => (cells[index]?.textContent ?? "").trim();
+    return { a: text5(0), b: [text5(5), text5(3)].filter((value26) => value26 && value26 !== "—").join(" · "), c: cells[1]?.innerHTML ?? "" };
+  }
+  var customersConfig = () => ({
+    que: () => t("listBar.customers.what"),
+    nuevo: () => byId2("pacnuevo"),
+    cuerpo: () => byId2("paclista"),
+    tabla: () => byId2("paclista"),
+    pie: () => byId2("pacpag"),
+    cuenta: () => byId2("paccuenta"),
+    conDatos: (element4) => Boolean(element4.querySelector(".dgrid, .vacio")),
+    rapidos: [["pactipo", t("listBar.customers.type")], ["pacped", t("listBar.customers.orders")], ["pacmun", t("listBar.customers.town")]],
+    q: () => listBarLegacy.customerFilters().q || "",
+    // v2.249.0: the bar's search searches directly (before, it went through the hidden field and waited twice)
+    buscarQ: (value26) => {
+      const input10 = byId2("pacq");
+      if (input10) input10.value = value26;
+      const filters = listBarLegacy.customerFilters();
+      filters.q = value26.trim();
+      filters.pagina = 0;
+      listBarLegacy.searchCustomers();
+    },
+    activos: () => {
+      const filters = listBarLegacy.customerFilters();
+      return [filters.tipo, filters.pedidos, filters.municipio, filters.medico].filter(Boolean).length + Object.keys(filters.campos ?? {}).length;
+    },
+    filtros: () => {
+      document.querySelector("#v-pacientes .htbtn")?.click();
+    },
+    columnas: openColumns2,
+    mapa: () => null,
+    mas: () => [],
+    kpis: indicators,
+    kpiOn: isOn,
+    kpiPulsar: press,
+    card
+  });
+
+  // src/app/components/list-bar/configs/directory.ts
+  var PERSON2 = "Persona";
+  var CENTRE9 = "Centro";
+  var SELECT_FILTERS = ["tipo", "prov", "muni", "esp", "est", "rep", "com"];
+  var FLAG_FILTERS = ["urg", "mios", "sin"];
+  var FIELD_IDS = ["ftipo", "fest", "fprov", "fmuni", "fesp", "fcom", "frep", "q"];
+  var byId3 = (id) => document.getElementById(id);
+  function activeFilters() {
+    const filters = listBarLegacy.accountFilters();
+    return SELECT_FILTERS.filter((key) => filters[key]).length + FLAG_FILTERS.filter((key) => filters[key]).length + Object.values(filters.campos ?? {}).filter(filterHasValue).length;
+  }
+  function clearFilters() {
+    Object.assign(listBarLegacy.accountFilters(), { q: "", tipo: "", prov: "", muni: "", esp: "", est: "", urg: false, mios: false, sin: false, com: "", rep: "", campos: {} });
+    FIELD_IDS.forEach((id) => {
+      const field19 = byId3(id);
+      if (field19) field19.value = "";
+    });
+    const tools = byId3("tools");
+    if (tools?.classList.contains("abierto") && listBarLegacy.toolsContext() === "directorio") tools.classList.remove("abierto");
+    listBarLegacy.loadAccountFilters();
+    listBarLegacy.searchAccounts(true);
+  }
+  async function indicators2() {
+    const count2 = (filters) => Promise.resolve(listBarLegacy.countRows("buscar_cuentas", { q: null, lim: 1, desplaz: 0, ...filters })).then((result) => result.data?.total ?? 0, () => 0);
+    const [people, centres, urgent, never, mine] = await Promise.all([count2({ f_tipo: PERSON2 }), count2({ f_tipo: CENTRE9 }), count2({ f_urgentes: true }), count2({ f_sin_visitar: true }), count2({ f_mios: true })]);
+    return [
+      { k: PERSON2, t: term("medico", { number: "p", capital: "C" }), n: people, s: t("listBar.directory.inTotal") },
+      { k: CENTRE9, t: t("listBar.directory.centres"), n: centres, s: t("listBar.directory.inTotal") },
+      { k: "urg", t: t("listBar.directory.urgent"), n: urgent, s: t("listBar.directory.markedUrgent") },
+      { k: "sin", t: t("listBar.directory.neverVisited"), n: never, s: t("listBar.directory.withoutVisits", { visits: term("visita", { number: "p" }) }) },
+      { k: "mios", t: t("listBar.directory.mine"), n: mine, s: t("listBar.directory.assignedToYou") }
+    ];
+  }
+  var isType = (key) => key === PERSON2 || key === CENTRE9;
+  function pressIndicator(key) {
+    const filters = listBarLegacy.accountFilters();
+    if (isType(key)) {
+      filters.tipo = filters.tipo === key ? "" : key;
+      const select3 = byId3("ftipo");
+      if (select3) select3.value = filters.tipo;
+    } else filters[key] = !filters[key];
+    listBarLegacy.searchAccounts(true);
+  }
+  var directoryConfig = () => ({
+    que: () => term("medico", { number: "p" }),
+    nuevo: () => byId3("nuevoBtn"),
+    textoNuevo: () => t("listBar.directory.add", { professional: term("medico") }),
+    cuerpo: () => byId3("lista"),
+    tabla: () => byId3("tabla"),
+    pie: () => byId3("dirpag"),
+    cuenta: () => byId3("cuenta"),
+    conDatos: (element4) => Boolean(element4.querySelector(".trow, .vacio")),
+    rapidos: [["ftipo", t("listBar.directory.type")], ["fest", t("listBar.directory.state")], ["fcom", ""], ["fprov", t("listBar.directory.province")], ["fmuni", t("listBar.directory.municipality")], ["fesp", t("listBar.directory.speciality")]],
+    q: () => listBarLegacy.accountFilters().q || "",
+    buscarQ: (value26) => {
+      listBarLegacy.accountFilters().q = value26;
+      listBarLegacy.searchAccounts(true);
+    },
+    buscaTxt: () => t("listBar.directory.search"),
+    // v2.304.0: the skeleton with the same five places
+    nKpis: 5,
+    // v2.296: an emptied custom field stayed as a key and counted as a filter without being seen in the panel
+    activos: activeFilters,
+    quitar: clearFilters,
+    filtros: () => {
+      byId3("dirtools")?.click();
+    },
+    columnas: () => {
+      listBarLegacy.openAccountColumns();
+    },
+    mapa: () => byId3("mapaBtn"),
+    mas: () => [["dircalidad", t("listBar.directory.quality")], ["cercaBtn", t("listBar.directory.nearby")]],
+    kpis: indicators2,
+    kpiOn: (key) => isType(key) ? listBarLegacy.accountFilters().tipo === key : Boolean(listBarLegacy.accountFilters()[key]),
+    kpiPulsar: pressIndicator,
+    card: null
+  });
+
+  // src/app/components/list-bar/configs/sales.ts
+  var PERIOD = () => t("listBar.bar.period");
+  var salesConfigs = () => ({
+    pedidos: gridConfig({
+      tab: "ventas",
+      que: () => t("listBar.sales.orders"),
+      lista: "pedlista",
+      pag: "pedpag",
+      buscador: "pq",
+      banda: "operativa",
+      extra: [["opcfg", t("listBar.sales.chooseAlerts")]],
+      rapidos: [["#pper select", PERIOD()], ["#pestado", ""], ["#pcanal", ""], ["#porigf", ""], ["#prepf", ""]]
+    }),
+    oport: gridConfig({
+      tab: "ventas",
+      que: () => t("listBar.sales.opportunities"),
+      lista: "lllista",
+      pag: "llpag",
+      buscador: "llq",
+      despues: "llres2",
+      rapidos: [["#llper select", PERIOD()], ["#llfres", ""]]
+    }),
+    compras: gridConfig({ tab: "ventas", que: () => t("listBar.sales.purchaseOrders") }),
+    prov: gridConfig({ tab: "ventas", que: () => t("listBar.sales.suppliers") })
+  });
+  var billingConfigs = () => ({
+    facturas: gridConfig({ tab: "facturacion", que: () => t("listBar.sales.invoices"), lista: "flista", pag: "fpag", buscador: "fq", rapidos: [["#fper select", PERIOD()], ["#fcob", ""]] })
+  });
+  var productsConfigs = () => ({
+    prods: gridConfig({ tab: "productos", que: () => t("listBar.sales.products") }),
+    servs: gridConfig({ tab: "productos", que: () => t("listBar.sales.services") }),
+    stock: gridConfig({ tab: "productos", que: () => t("listBar.sales.products") })
+  });
+
+  // src/app/components/list-bar/configs/index.ts
+  var blocks2 = blocks();
+  var configs = {
+    directorio: directoryConfig(),
+    pacientes: customersConfig(),
+    ventas: salesConfigs(),
+    facturacion: billingConfigs(),
+    productos: productsConfigs(),
+    ...Object.fromEntries(Object.entries(blocks2).map(([tab, block4]) => [tab, blockConfig(tab, block4)]))
+  };
+  function configOf(tab) {
+    const config = configs[tab];
+    if (!config) return null;
+    const section2 = sections[tab];
+    if (!section2) return config;
+    const key = section2();
+    return key ? config[key] ?? null : null;
+  }
+  var FIRST_SCREENS = ["directorio", "pacientes"];
+  var SECTION_SCREENS = ["ventas", "facturacion", "productos"];
+
+  // src/app/components/list-bar/blocks-table.ts
+  function moveActions(section2, box3) {
+    const greeting = section2.querySelector(":scope > .saludo");
+    let actions = greeting?.querySelector(":scope > .acts") ?? null;
+    if (greeting && !actions) {
+      greeting.insertAdjacentHTML("beforeend", '<div class="acts"></div>');
+      actions = greeting.querySelector(":scope > .acts");
+    }
+    const own = box3.querySelector(".evcab");
+    if (!own || !actions) return;
+    section2.querySelectorAll("[data-plmov]").forEach((button2) => {
+      button2.remove();
+    });
+    [...own.querySelectorAll("button")].forEach((button2) => {
+      button2.dataset.plmov = "1";
+      actions.appendChild(button2);
+    });
+    own.remove();
+  }
+  function collectRows(box3, block4) {
+    const rows2 = /* @__PURE__ */ new Map(), groups2 = [];
+    box3.querySelectorAll("section.card, .card").forEach((card4) => {
+      const heading = card4.querySelector("h2"), group = heading ? textOf(heading).replace(/\s*·\s*[\d.]+$/, "") : block4.def;
+      const items = [...card4.querySelectorAll(`.lista > .item[data-${block4.attr}]`)];
+      if (!items.length) return;
+      if (!groups2.includes(group)) groups2.push(group);
+      items.forEach((item) => {
+        const key = item.dataset[block4.attr] ?? "", known = rows2.get(key);
+        if (known) {
+          known.groups.add(group);
+          item.remove();
+        } else rows2.set(key, { row: item, groups: /* @__PURE__ */ new Set([group]) });
+      });
+    });
+    return { rows: rows2, groups: groups2 };
+  }
+  function tableOf(tab, block4, rows2, empty2) {
+    const wrap = document.createElement("div");
+    wrap.className = "dgrid-wrap";
+    wrap.innerHTML = `<div class="dgrid blq-${tab}"><div class="dh">${block4.cols.map(([title2, kind]) => `<span class="${kind}">${escapeHtml(title2)}</span>`).join("")}</div></div>`;
+    const grid = wrap.firstElementChild;
+    rows2.forEach(({ row: row4, groups: groups2 }) => {
+      const cells = block4.celdas(row4), click = row4.onclick;
+      row4.className = "dr";
+      row4.innerHTML = cells.map((cell5, index) => `<span class="${block4.cols[index]?.[1] ?? ""}">${cell5 || '<span class="vac">—</span>'}</span>`).join("");
+      row4.dataset.grupos = [...groups2].join("|");
+      row4.onclick = click;
+      grid.appendChild(row4);
+    });
+    if (!rows2.size) wrap.innerHTML = `<div class="vacio">${escapeHtml(empty2)}</div>`;
+    return wrap;
+  }
+  function paintChoice(section2, tab, block4, data) {
+    const { rows: rows2, groups: groups2 } = data;
+    if (chosenGroups[tab] && !groups2.includes(chosenGroups[tab])) chosenGroups[tab] = "";
+    let select3 = document.getElementById(`plg-${tab}`);
+    if (!select3) {
+      section2.insertAdjacentHTML("beforeend", `<div class="plgsel hide"><label for="plg-${tab}">${escapeHtml(block4.grupo)}</label><select id="plg-${tab}"></select></div>`);
+      select3 = document.getElementById(`plg-${tab}`);
+      const chooser = select3;
+      chooser.onchange = () => {
+        chosenGroups[tab] = chooser.value;
+        filterBlocks(tab);
+      };
+    }
+    select3.innerHTML = `<option value="">${t("listBar.bar.all")}</option>` + (groups2.length > 1 ? groups2.map((group) => `<option ${chosenGroups[tab] === group ? "selected" : ""}>${escapeHtml(group)}</option>`).join("") : "");
+    let band3 = document.getElementById(`plgb-${tab}`);
+    if (!band3) {
+      band3 = document.createElement("div");
+      band3.id = `plgb-${tab}`;
+      band3.className = "plgband";
+      section2.appendChild(band3);
+    }
+    const count2 = (group) => [...rows2.values()].filter((row4) => row4.groups.has(group)).length;
+    const what = (group) => escapeHtml(count2(group) === 1 ? `1 ${block4.que.replace(/s$/, "")}` : block4.que);
+    band3.innerHTML = groups2.length > 1 ? groups2.map((group) => `<button type="button" class="plk ${chosenGroups[tab] === group ? "on" : ""}" data-plg="${escapeHtml(group)}"><span class="plkt">${escapeHtml(group)}</span><b>${formatNumber(count2(group))}</b><small>${what(group)}</small></button>`).join("") : "";
+    band3.classList.toggle("hide", groups2.length < 2);
+  }
+  function convertBlocks(tab) {
+    const block4 = blocks2[tab], section2 = document.getElementById(`v-${tab}`), box3 = section2?.querySelector("#cfgcuerpo");
+    if (!block4 || !section2 || !box3) return;
+    const items = box3.querySelectorAll(`.lista > .item[data-${block4.attr}]`);
+    if (!items.length && (box3.querySelector(`.dgrid.blq-${tab}`) || !box3.querySelector(".cirpag, .evpag"))) return;
+    moveActions(section2, box3);
+    const data = collectRows(box3, block4), empty2 = box3.querySelector(".vacio");
+    const notes2 = [...box3.querySelectorAll(".cirpag > p.sm, .evpag > p.sm")];
+    const wrap = tableOf(tab, block4, data.rows, empty2 ? textOf(empty2) : t("listBar.bar.nothingYet"));
+    box3.innerHTML = "";
+    notes2.forEach((note) => {
+      box3.appendChild(note);
+    });
+    box3.appendChild(wrap);
+    paintChoice(section2, tab, block4, data);
+    filterBlocks(tab);
+  }
+  function filterBlocks(tab) {
+    const chosen5 = chosenGroups[tab] ?? "", section2 = document.getElementById(`v-${tab}`);
+    if (!section2) return;
+    section2.querySelectorAll(`.dgrid.blq-${tab} > .dr`).forEach((row4) => {
+      row4.classList.toggle("plgfuera", Boolean(chosen5) && !(row4.dataset.grupos ?? "").split("|").includes(chosen5));
+    });
+    section2.querySelectorAll("[data-plg]").forEach((button2) => {
+      button2.classList.toggle("on", button2.dataset.plg === chosen5);
+    });
+    const select3 = document.getElementById(`plg-${tab}`);
+    if (select3 && select3.value !== chosen5) select3.value = chosen5;
+    const count2 = section2.querySelector(".plcnt");
+    if (count2) count2.dataset.h = "";
+  }
+
+  // src/app/components/list-bar/indicators.ts
+  var DEFAULT_PLACES = 4;
+  var FRESH_MS = 6e4;
+  var COUNT_UP_MS = 700;
+  function bandHtml(tab) {
+    const config = configs[tab], cache = indicatorCache[tab];
+    if (!cache?.datos) return Array.from({ length: config.nKpis ?? DEFAULT_PLACES }, () => '<div class="plk plcarga"><span class="plkt"><i class="plsk" style="width:46%"></i></span><b><i class="plsk plskv"></i></b><small><i class="plsk" style="width:70%"></i></small></div>').join("");
+    return cache.datos.map((item) => `<button type="button" class="plk ${config.kpiOn(item.k) ? "on" : ""}" data-plk="${item.k}"><span class="plkt">${escapeHtml(item.t)}</span><b data-pln="${item.n}">${formatNumber(item.n)}</b><small>${escapeHtml(item.s)}</small></button>`).join("");
+  }
+  var indicatorsHtml = (tab) => configOf(tab)?.kpis ? bandHtml(tab) : "";
+  function countUp3(box3) {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    box3.querySelectorAll("b[data-pln]").forEach((figure2) => {
+      const target = Number(figure2.dataset.pln), start2 = performance.now();
+      if (!target) return;
+      const step = () => {
+        const progress = Math.min(1, (performance.now() - start2) / COUNT_UP_MS);
+        figure2.textContent = formatNumber(Math.round(target * (1 - Math.pow(1 - progress, 3))));
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      step();
+    });
+  }
+  var isFresh = (cache, epoch, signature) => Boolean(cache?.datos && cache.epoca === epoch && cache.firma === signature && Date.now() - (cache.t ?? 0) < FRESH_MS);
+  function loadIndicators2(tab) {
+    if (tab !== currentScreen()) return;
+    const config = configOf(tab);
+    if (!config?.kpis) return;
+    const epoch = listBarLegacy.cacheEpoch(), signature = config.kpiFirma ? config.kpiFirma() : "";
+    let cache = indicatorCache[tab];
+    if (cache?.pend) {
+      if (signature !== cache.firma) cache.otra = true;
+      return;
+    }
+    if (isFresh(cache, epoch, signature)) return;
+    cache = Object.assign(cache ?? {}, { pend: true, firma: signature, otra: false });
+    indicatorCache[tab] = cache;
+    const loading3 = cache;
+    config.kpis().then((data) => {
+      const first2 = !loading3.datos;
+      Object.assign(loading3, { datos: data, t: Date.now(), epoca: epoch, pend: false });
+      const box3 = document.querySelector(`#v-${tab} .plkpis`);
+      if (box3) {
+        box3.innerHTML = indicatorsHtml(tab);
+        if (first2) countUp3(box3);
+      }
+      if (loading3.otra) {
+        loading3.otra = false;
+        loadIndicators2(tab);
+      }
+    }, () => {
+      loading3.pend = false;
+    });
+  }
+
+  // src/app/components/list-bar/sync-header.ts
+  var toggleIfDifferent = (element4, name, on6) => {
+    if (element4.classList.contains(name) !== on6) element4.classList.toggle(name, on6);
+  };
+  function moreButton(section2, config) {
+    const actions = section2.querySelector(":scope > .saludo")?.querySelector(".acts");
+    if (!actions) return;
+    if (!actions.querySelector(".plmas")) actions.insertAdjacentHTML("afterbegin", `<button type="button" class="btn sec chico plmas" aria-label="${t("listBar.bar.moreActions")}" title="${t("listBar.bar.moreActions")}">${icon2("ellipsis", "⋯")}</button>`);
+    const more2 = actions.querySelector(".plmas");
+    if (more2) toggleIfDifferent(more2, "plno", !config.mas().length);
+  }
+  function headerActions(section2, config) {
+    moreButton(section2, config);
+    const main = config.nuevo?.(), text5 = config.textoNuevo?.();
+    if (!main || !text5) return;
+    if (!isMobile() && !main.classList.contains("fab") && (main.textContent ?? "").trim() !== text5) main.innerHTML = `${icon2("plus")} ${escapeHtml(text5)}`;
+    if (isMobile() && !main.dataset.plfab) {
+      main.dataset.plfab = "1";
+      main.classList.add("fab");
+      main.dataset.txt = text5;
+      main.setAttribute("aria-label", text5);
+      main.innerHTML = icon2("plus");
+      section2.appendChild(main);
+    }
+  }
+  function sectionFab(section2, key) {
+    const main = [...section2.querySelectorAll(":scope > .saludo .acts > .btn:not(.sec):not(.htbtn), :scope > .fab")].find((button2) => /^\s*\+/.test(button2.dataset.txt ? "+" : button2.textContent ?? "") && (button2.classList.contains("fab") ? button2.dataset.plsec === key || !button2.dataset.plsec : true));
+    if (!main) return;
+    if (!main.classList.contains("fab")) {
+      main.dataset.txt = (main.textContent ?? "").replace("+", "").trim();
+      main.classList.add("fab");
+      main.setAttribute("aria-label", main.dataset.txt);
+      main.innerHTML = icon2("plus");
+      section2.appendChild(main);
+    }
+    main.dataset.plsec = key;
+    section2.querySelectorAll(":scope > .fab").forEach((fab) => {
+      toggleIfDifferent(fab, "plfuera", fab !== main);
+    });
+  }
+  function newBand(tab, config) {
+    const box3 = document.createElement("div");
+    box3.className = `plkpis${config.banda ? " plbanda" : ""}`;
+    if (config.kpis) box3.innerHTML = indicatorsHtml(tab);
+    return box3;
+  }
+  function band2(section2, tab, config, anchor) {
+    const existing = section2.querySelector(":scope > .plkpis");
+    if (!config.kpis && !config.banda) {
+      existing?.remove();
+      return;
+    }
+    const box3 = existing ?? newBand(tab, config);
+    if (!box3.isConnected) {
+      if (anchor) anchor.after(box3);
+      else section2.prepend(box3);
+    }
+    if (config.kpis) {
+      loadIndicators2(tab);
+      box3.querySelectorAll("[data-plk]").forEach((button2) => {
+        toggleIfDifferent(button2, "on", config.kpiOn(button2.dataset.plk ?? ""));
+      });
+    }
+    if (config.banda) {
+      const own = document.getElementById(config.banda);
+      if (own && own.parentElement !== box3) box3.appendChild(own);
+    }
+  }
+  function syncHeader(section2, tab, config, key) {
+    headerActions(section2, config);
+    if (config.rejilla && isMobile()) sectionFab(section2, key);
+    const anchor = section2.querySelector(":scope > .subnav") ?? section2.querySelector(":scope > .saludo");
+    band2(section2, tab, config, anchor);
+    return anchor;
+  }
+
+  // src/app/components/list-bar/toolbar.ts
+  function toolbarHtml(tab) {
+    const config = configOf(tab);
+    if (!config) return "";
+    const search7 = config.buscaTxt ? config.buscaTxt() : t("listBar.bar.searchIn", { what: config.que() });
+    const quick3 = config.rapidos.map(([id, name]) => {
+      const label = name || labelOf(id);
+      return `<button type="button" class="plchip" data-plr="${escapeHtml(id)}" data-plt="${escapeHtml(label)}">${escapeHtml(label)}</button>`;
+    }).join("");
+    return `<label class="plq">${icon2("search", "🔍")}<input type="search" class="plqi" placeholder="${escapeHtml(search7)}" aria-label="${escapeHtml(search7)}"></label>
+    <div class="plrap">${quick3}</div>
+    <button type="button" class="plbtn chico plfil">${icon2("sliders-horizontal")}<span>${t("listBar.bar.filters")}</span><span class="pln hide"></span></button>
+    ${config.quitar ? `<button type="button" class="btn sec chico dang plquitar hide">${listBarLegacy.lineIcon("x")} ${t("listBar.bar.removeFilters")}</button>` : ""}
+    <button type="button" class="plbtn chico plcol">${icon2("columns-3", "table", "list")}<span>${t("listBar.bar.columns")}</span></button>
+    ${config.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="${t("listBar.bar.onMap")}" aria-label="${t("listBar.bar.onMap")}">${icon2("map")}</button>` : ""}
+    <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
+  }
+  var counted = (count2, config) => `<b>${count2}</b> ${escapeHtml(config.que())}`;
+  function pagesTotal(section2) {
+    const pages = section2.querySelector(".pltab .pag > span, .pag > span");
+    return pages ? /de\s+([\d.]+)/.exec(pages.textContent ?? "") : null;
+  }
+  function screenCount(section2, config) {
+    const own = config.cuenta();
+    if (own && /\d/.test(own.textContent ?? "")) return own.innerHTML.replace(/<span class="sm">[\s\S]*?<\/span>/, "").trim();
+    const match = pagesTotal(section2), grid = section2.querySelector(".dgrid");
+    if (!match && !grid) return section2.querySelector(".pltab .vacio, .panel .vacio") ? counted("0", config) : "";
+    return counted(match?.[1] ?? formatNumber(grid?.querySelectorAll(":scope > .dr:not(.hide):not(.htfuera)").length ?? 0), config);
+  }
+  function blockCount(section2, config) {
+    const grid = section2.querySelector(".dgrid");
+    if (!grid) return section2.querySelector("#cfgcuerpo .vacio") ? counted("0", config) : "";
+    return counted(formatNumber(grid.querySelectorAll(":scope > .dr:not(.htfuera):not(.plgfuera)").length), config);
+  }
+  function countHtml(section2, config) {
+    const html = config.bloques ? blockCount(section2, config) : screenCount(section2, config);
+    return html.replace(/\sid="cercacerrar"/g, " data-cercavolver");
+  }
+
+  // src/app/components/list-bar/sync-bar.ts
+  function barOf2(section2, tab, key, anchor) {
+    let bar2 = section2.querySelector(":scope > .pltool");
+    if (bar2 && bar2.dataset.plsec !== key) {
+      bar2.remove();
+      bar2 = null;
+    }
+    if (!bar2) {
+      bar2 = document.createElement("div");
+      bar2.className = "pltool";
+      bar2.dataset.plsec = key;
+      bar2.innerHTML = toolbarHtml(tab);
+    }
+    if (!bar2.isConnected) {
+      const before = section2.querySelector(":scope > .plkpis") ?? anchor;
+      if (before) before.after(bar2);
+      else section2.prepend(bar2);
+    }
+    return bar2;
+  }
+  function shownSelect(chip2) {
+    const select3 = selectOf(chip2.dataset.plr);
+    if (!select3) return null;
+    const hiddenBox = select3.closest("#fcomwrap")?.classList.contains("hide") ?? false;
+    return !hiddenBox && select3.options.length > 1 ? select3 : null;
+  }
+  function syncChip(chip2) {
+    const select3 = shownSelect(chip2);
+    toggleIfDifferent(chip2, "hide", !select3);
+    if (!select3) return;
+    if (!chip2.dataset.plt) chip2.dataset.plt = labelOf(chip2.dataset.plr ?? "");
+    const name = chip2.dataset.plt, isPeriod = name === t("listBar.bar.period"), chosen5 = select3.selectedIndex > 0;
+    const text5 = chosen5 || isPeriod ? `${name}: ${(select3.options[select3.selectedIndex]?.text ?? "").replace(/\s*\(\d[\d.]*\)\s*$/, "")}` : name;
+    if (chip2.textContent !== text5) chip2.textContent = text5;
+    toggleIfDifferent(chip2, "on", chosen5 && !isPeriod);
+  }
+  function syncCounts(section2, bar2, config) {
+    const active = config.activos(), number2 = bar2.querySelector(".pln");
+    if (number2) {
+      const value26 = String(active || "");
+      if (number2.textContent !== value26) number2.textContent = value26;
+      toggleIfDifferent(number2, "hide", !active);
+    }
+    const remove8 = bar2.querySelector(".plquitar");
+    if (remove8) toggleIfDifferent(remove8, "hide", !active);
+    const count2 = bar2.querySelector(".plcnt"), html = countHtml(section2, config);
+    if (count2 && html && count2.dataset.h !== html) {
+      count2.dataset.h = html;
+      count2.innerHTML = html;
+    }
+  }
+  function syncBar(section2, tab, config, place4) {
+    const bar2 = barOf2(section2, tab, place4.key, place4.anchor);
+    const search7 = bar2.querySelector(".plqi");
+    if (search7 && document.activeElement !== search7 && search7.value !== config.q()) search7.value = config.q();
+    bar2.querySelectorAll("[data-plr]").forEach(syncChip);
+    syncCounts(section2, bar2, config);
+  }
+
+  // src/app/components/list-bar/sync-body.ts
+  var lastContent = /* @__PURE__ */ new WeakMap();
+  var SKELETON_PANEL = (tab) => `<div class="panel plskpanel"><div class="pltab">${tableSkeleton(tab, true)}</div></div>`;
+  function cardOf(config) {
+    const table = config.tabla(), pages = config.pie();
+    if (!table) return null;
+    if (table.parentElement && !table.parentElement.classList.contains("pltab")) {
+      const card4 = document.createElement("div");
+      card4.className = "pltab";
+      table.before(card4);
+      card4.appendChild(table);
+      if (pages) card4.appendChild(pages);
+    } else if (pages && pages.parentElement !== table.parentElement) table.parentElement?.appendChild(pages);
+    return table.closest(".pltab");
+  }
+  function wrapTable(section2, tab, config) {
+    const card4 = cardOf(config);
+    if (!config.rejilla || !card4) return;
+    section2.querySelectorAll(".kpis.vtot:not(.plres)").forEach((totals) => {
+      if (totals.closest(`#v-${tab}`) && !totals.closest(".plkpis")) totals.classList.add("plres");
+    });
+    if (config.despues) {
+      const after = document.getElementById(config.despues);
+      if (after && card4.nextElementSibling !== after) card4.after(after);
+    }
+  }
+  function syncBody(tab, config) {
+    const body2 = config.cuerpo();
+    if (!body2) return;
+    if (body2.querySelector(":scope > .cargador")) {
+      const last = lastContent.get(body2);
+      if (last) {
+        body2.innerHTML = last;
+        body2.classList.add("platenua");
+        return;
+      }
+      if (tab !== "directorio") {
+        body2.innerHTML = tableSkeleton(tab, true);
+        return;
+      }
+      body2.innerHTML = tableSkeleton(tab, false);
+      const head = document.getElementById("thead");
+      if (head && !head.children.length) head.innerHTML = /<div class="plskh">[\s\S]*?<\/div>/.exec(tableSkeleton(tab, true))?.[0] ?? "";
+    } else if (config.conDatos(body2)) {
+      body2.classList.remove("platenua");
+      lastContent.set(body2, body2.innerHTML);
+    }
+  }
+  function skeletonPanels(section2, tab, config, bar2) {
+    const customers2 = tab === "pacientes" ? document.getElementById("vcuerpo") : null;
+    if (customers2 && !customers2.children.length) customers2.innerHTML = SKELETON_PANEL(tab);
+    if (config.rejilla && !section2.querySelector(".dgrid, .pltab, .vacio") && !section2.querySelector(":scope > .plskpanel")) bar2?.insertAdjacentHTML("afterend", SKELETON_PANEL(tab));
+    if (section2.querySelector(".dgrid, .vacio")) section2.querySelectorAll(":scope > .plskpanel").forEach((panel) => {
+      panel.remove();
+    });
+  }
+  function cards(section2, config) {
+    const card4 = config.card;
+    if (!card4) return;
+    section2.querySelectorAll(".dgrid > .dr:not([data-plc])").forEach((row4) => {
+      row4.dataset.plc = "1";
+      const item = card4(row4);
+      row4.insertAdjacentHTML("beforeend", `<span class="plcard"><b>${escapeHtml(item.a)}</b><span class="plc2">${escapeHtml(item.b)}</span><span class="plc3">${item.c}</span>${item.d ? `<span class="plc4">${escapeHtml(item.d)}</span>` : ""}</span>`);
+    });
+  }
+  function syncTable(section2, tab, config) {
+    wrapTable(section2, tab, config);
+    syncBody(tab, config);
+    skeletonPanels(section2, tab, config, section2.querySelector(":scope > .pltool"));
+    cards(section2, config);
+  }
+
+  // src/app/components/list-bar/sync.ts
+  var PERIOD_FILTERS = ["pper", "pcanal", "pestado", "popf", "porigf", "prepf"];
+  var FOREIGN = {
+    pedidos: ["llper", "llfres"],
+    oport: PERIOD_FILTERS,
+    compras: ["llper", "llfres", ...PERIOD_FILTERS],
+    prov: ["llper", "llfres", ...PERIOD_FILTERS]
+  };
+  function moveForeignFilters(section2, key) {
+    const panel = section2.querySelector(":scope > .htpanel"), own = panel?.querySelector(".htpropios");
+    if (!panel || !own) return;
+    let aside = panel.querySelector(":scope > .plajenos");
+    if (!aside) {
+      aside = document.createElement("div");
+      aside.className = "plajenos hide";
+      panel.appendChild(aside);
+    }
+    const foreign = new Set(FOREIGN[key] ?? []);
+    [...own.children, ...aside.children].forEach((field19) => {
+      const select3 = field19.querySelector("select"), id = field19.id || (select3?.id ?? ""), isForeign = foreign.has(id);
+      if (isForeign && field19.parentElement !== aside) aside.appendChild(field19);
+      else if (!isForeign && field19.parentElement === aside) own.appendChild(field19);
+    });
+  }
+  function removeModel(section2) {
+    if (!section2.classList.contains("plantilla")) return;
+    section2.classList.remove("plantilla");
+    section2.querySelectorAll(":scope > .plkpis, :scope > .pltool, .plmas").forEach((element4) => {
+      element4.remove();
+    });
+  }
+  function tabsFirst(section2) {
+    const tabs = section2.querySelector(":scope > .pagtabs, :scope > .subnav"), band3 = section2.querySelector(":scope > .plkpis"), bar2 = section2.querySelector(":scope > .pltool");
+    if (tabs && bar2 && tabs.compareDocumentPosition(bar2) & Node.DOCUMENT_POSITION_PRECEDING) (band3 ?? bar2).before(tabs);
+  }
+  function waitingChips(section2, config) {
+    section2.querySelectorAll(":scope > .pltool [data-plr]").forEach((chip2) => {
+      if (selectOf(chip2.dataset.plr)) {
+        if (chip2.classList.contains("plespera")) chip2.classList.remove("plespera");
+        return;
+      }
+      const name = config.rapidos.find(([id]) => id === chip2.dataset.plr)?.[1];
+      if (!name) return;
+      if (chip2.classList.contains("hide")) chip2.classList.remove("hide");
+      if (!chip2.classList.contains("plespera")) chip2.classList.add("plespera");
+      if (chip2.textContent !== name) chip2.textContent = name;
+    });
+  }
+  function blockChip(tab) {
+    const block4 = blocks2[tab];
+    if (!block4) return;
+    const chip2 = document.querySelector(`#v-${tab} > .pltool [data-plr="#plg-${tab}"]`), select3 = document.getElementById(`plg-${tab}`);
+    if (!chip2 || !select3) return;
+    const nothing = select3.options.length < 2;
+    if (nothing && chip2.classList.contains("hide")) chip2.classList.remove("hide");
+    toggleIfDifferent(chip2, "plnada", nothing);
+    if (nothing && chip2.textContent !== block4.grupo) chip2.textContent = block4.grupo;
+  }
+  function professionalChip() {
+    const quick3 = document.querySelector("#v-pacientes > .pltool .plrap");
+    if (!quick3) return;
+    let chip2 = quick3.querySelector("[data-plmed]");
+    const filters = listBarLegacy.customerFilters();
+    if (!filters.medico) {
+      chip2?.remove();
+      return;
+    }
+    const text5 = `${term("medico", { capital: "C" })}: ${filters.medicoNombre || "—"}`;
+    if (!chip2) {
+      quick3.insertAdjacentHTML("afterbegin", `<button type="button" class="plchip on plmed" data-plmed title="${t("listBar.bar.removeThisFilter")}"><span></span><i aria-hidden="true">✕</i></button>`);
+      chip2 = quick3.querySelector("[data-plmed]");
+    }
+    const label = chip2?.querySelector("span");
+    if (label && label.textContent !== text5) label.textContent = text5;
+  }
+  function enableChip(chip2, tab) {
+    if (chip2.classList.contains("plnada") && !(blocks2[tab] && chip2.dataset.plr === `#plg-${tab}`)) chip2.classList.remove("plnada");
+  }
+  function emptyChip(chip2, tab) {
+    const select3 = selectOf(chip2.dataset.plr);
+    if (!select3?.options) return;
+    if (select3.closest("#fcomwrap")?.classList.contains("hide")) return;
+    if (select3.options.length > 1) {
+      enableChip(chip2, tab);
+      return;
+    }
+    if (chip2.classList.contains("hide")) chip2.classList.remove("hide");
+    if (!chip2.classList.contains("plnada")) chip2.classList.add("plnada");
+    const name = orFallback(chip2.dataset.plt, labelOf(chip2.dataset.plr ?? ""));
+    if (name && chip2.textContent !== name) chip2.textContent = name;
+  }
+  function emptyChips(section2, tab) {
+    section2.querySelectorAll(":scope > .pltool [data-plr]").forEach((chip2) => {
+      emptyChip(chip2, tab);
+    });
+  }
+  function syncModel(section2, tab, config) {
+    const key = sections[tab]?.() ?? tab;
+    section2.classList.add("plantilla");
+    section2.dataset.plsec = key;
+    const anchor = syncHeader(section2, tab, config, key);
+    syncBar(section2, tab, config, { key, anchor });
+    syncTable(section2, tab, config);
+  }
+  function afterSync(section2, tab) {
+    if (section2.classList.contains("plantilla")) tabsFirst(section2);
+    const config = configOf(tab);
+    if (config) waitingChips(section2, config);
+    blockChip(tab);
+    if (tab === "pacientes") professionalChip();
+    if (section2.classList.contains("plantilla")) emptyChips(section2, tab);
+  }
+  function syncListBar(tab) {
+    const section2 = document.getElementById(`v-${tab}`);
+    const salesKey = tab === "ventas" ? sections.ventas?.() : null;
+    if (section2 && salesKey) moveForeignFilters(section2, salesKey);
+    if (blocks2[tab] && configOf(tab)) convertBlocks(tab);
+    if (!section2) return;
+    const config = configOf(tab);
+    if (!config) {
+      removeModel(section2);
+    } else syncModel(section2, tab, config);
+    afterSync(section2, tab);
+  }
+
+  // src/app/components/list-bar/events.ts
+  var SEARCH_WAIT_MS6 = 300;
+  var MAP_SYNC_MS = 50;
+  var CUSTOM_PERIOD_MS = 60;
+  var searchTimer;
+  var screenOf2 = (section2) => section2.id.slice(2);
+  var listSection = (target) => target?.closest("main > section.plantilla") ?? null;
+  function openQuickFilter(section2, chip2, options4) {
+    if (document.querySelector(".plpop") && chip2.classList.contains("abierto")) {
+      closePopovers();
+      chip2.classList.remove("abierto");
+      return;
+    }
+    section2.querySelectorAll(".plchip.abierto").forEach((other) => {
+      other.classList.remove("abierto");
+    });
+    const select3 = selectOf(chip2.dataset.plr);
+    if (!select3) return;
+    chip2.classList.add("abierto");
+    const items = [...select3.options].map((option7, index) => ({
+      t: index === 0 && options4.firstAsAll ? orFallback(option7.text, t("listBar.bar.all")) : option7.text,
+      on: select3.selectedIndex === index,
+      fn: () => {
+        chip2.classList.remove("abierto");
+        select3.selectedIndex = index;
+        select3.dispatchEvent(new Event("change", { bubbles: true }));
+        options4.onChosen?.(option7);
+      }
+    }));
+    openPopover(chip2, items);
+  }
+  function openMore(button2, config) {
+    const items = config.mas().filter(([id]) => {
+      const action = document.getElementById(id);
+      return action && !action.classList.contains("hide");
+    }).map(([id, text5]) => ({ t: text5, fn: () => {
+      document.getElementById(id)?.click();
+    } }));
+    if (items.length) openPopover(button2, items);
+  }
+  function onScreenClick(event) {
+    const target = event.target;
+    if (!target.closest(".plpop") && !target.closest(".plchip, .plmas")) closePopovers();
+    const section2 = listSection(target);
+    if (!section2) return;
+    const tab = screenOf2(section2), config = configs[tab];
+    if (!config) return;
+    const indicator2 = target.closest("[data-plk]");
+    if (indicator2) {
+      config.kpiPulsar(indicator2.dataset.plk ?? "");
+      syncListBar(tab);
+      return;
+    }
+    const chip2 = target.closest("[data-plr]");
+    if (chip2) {
+      openQuickFilter(section2, chip2, { firstAsAll: true });
+      return;
+    }
+    const more2 = target.closest(".plmas");
+    if (more2) {
+      openMore(more2, config);
+      return;
+    }
+    barButton(target, tab, config);
+  }
+  function barButton(target, tab, config) {
+    if (target.closest(".plfil")) {
+      config.filtros();
+      return;
+    }
+    if (target.closest(".plquitar") && config.quitar) {
+      config.quitar();
+      syncListBar(tab);
+      return;
+    }
+    if (target.closest(".plcol")) {
+      config.columnas();
+      return;
+    }
+    if (target.closest(".plmapa")) {
+      config.mapa()?.click();
+      setTimeout(() => {
+        syncListBar(tab);
+      }, MAP_SYNC_MS);
+    }
+  }
+  function onSectionClick(event) {
+    const target = event.target, section2 = listSection(target);
+    if (!section2 || !sections[screenOf2(section2)]) return;
+    const config = configOf(screenOf2(section2));
+    if (!config) return;
+    const chip2 = target.closest("[data-plr]");
+    if (chip2) {
+      event.stopImmediatePropagation();
+      openQuickFilter(section2, chip2, { firstAsAll: false, onChosen: (option7) => {
+        if (/pers/i.test(option7.value) || /personaliz/i.test(option7.text)) setTimeout(() => {
+          config.filtros();
+        }, CUSTOM_PERIOD_MS);
+      } });
+      return;
+    }
+    const more2 = target.closest(".plmas");
+    if (more2) {
+      event.stopImmediatePropagation();
+      openMore(more2, config);
+      return;
+    }
+    if (target.closest(".plfil")) {
+      event.stopImmediatePropagation();
+      config.filtros();
+      return;
+    }
+    if (target.closest(".plcol")) {
+      event.stopImmediatePropagation();
+      config.columnas();
+    }
+  }
+  var searchInput = (event) => event.target?.closest("main > section.plantilla .plqi") ?? null;
+  function listenToScreens() {
+    document.addEventListener("click", onScreenClick);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && document.querySelector(".plpop")) closePopovers();
+    });
+    addEventListener("scroll", () => {
+      if (document.querySelector(".plpop")) closePopovers();
+    }, { passive: true });
+    document.addEventListener("input", (event) => {
+      const input10 = searchInput(event);
+      if (!input10) return;
+      const tab = input10.closest("section")?.id.slice(2) ?? "";
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        configs[tab]?.buscarQ(input10.value.trim());
+      }, SEARCH_WAIT_MS6);
+    });
+  }
+  function listenToSections() {
+    document.addEventListener("click", onSectionClick, true);
+    document.addEventListener("input", (event) => {
+      const input10 = searchInput(event);
+      if (!input10) return;
+      const tab = input10.closest("section")?.id.slice(2) ?? "";
+      if (!sections[tab]) return;
+      event.stopImmediatePropagation();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        configOf(tab)?.buscarQ(input10.value.trim());
+      }, SEARCH_WAIT_MS6);
+    }, true);
+  }
+  function listenToBlocks() {
+    document.addEventListener("click", (event) => {
+      const button2 = event.target?.closest("main > section.plantilla [data-plg]");
+      if (!button2) return;
+      const tab = button2.closest("section")?.id.slice(2) ?? "";
+      chosenGroups[tab] = chosenGroups[tab] === button2.dataset.plg ? "" : button2.dataset.plg;
+      filterBlocks(tab);
+      syncListBar(tab);
+    });
+  }
+
+  // src/app/components/list-bar/observer.ts
+  var BURST_WINDOW_MS = 100;
+  var BURST_MAX = 30;
+  var OPTIONS = { childList: true, subtree: true, characterData: true };
+  var observers = {};
+  var watched = {};
+  var countSync = () => {
+    const counter2 = window;
+    counter2.PL_N = (counter2.PL_N ?? 0) + 1;
+  };
+  function observe(tab) {
+    const section2 = document.getElementById(`v-${tab}`);
+    if (!section2 || observers[tab]) return;
+    let pending = false, burst = 0, burstStart = 0;
+    const observer = new MutationObserver(() => {
+      if (pending) return;
+      const now = performance.now();
+      if (now - burstStart > BURST_WINDOW_MS) {
+        burstStart = now;
+        burst = 0;
+      }
+      burst += 1;
+      if (burst > BURST_MAX) {
+        if (burst === BURST_MAX + 1) requestAnimationFrame(() => {
+          burst = 0;
+          burstStart = performance.now();
+          syncListBar(tab);
+        });
+        return;
+      }
+      pending = true;
+      queueMicrotask(() => {
+        pending = false;
+        countSync();
+        observer.disconnect();
+        try {
+          syncListBar(tab);
+        } finally {
+          observer.takeRecords();
+          observer.observe(section2, OPTIONS);
+        }
+      });
+    });
+    observers[tab] = observer;
+    observer.observe(section2, OPTIONS);
+  }
+  function watch(tab) {
+    const section2 = document.getElementById(`v-${tab}`);
+    if (!section2 || watched[tab] === section2) return;
+    const previous = observers[tab];
+    if (previous) {
+      previous.disconnect();
+      observers[tab] = void 0;
+    }
+    watched[tab] = section2;
+    observe(tab);
+  }
+
+  // src/app/components/list-bar/page-size.ts
+  var PAGE_SIZES = [20, 50, 100];
+  var DEFAULT_SIZE = 20;
+  var storageKey2 = () => `dlc-tam-${listBarLegacy.userId()}`;
+  function storedPageSize() {
+    let size = 0;
+    try {
+      size = Number(localStorage.getItem(storageKey2()));
+    } catch {
+    }
+    return PAGE_SIZES.includes(size) ? size : DEFAULT_SIZE;
+  }
+  function savePageSize(size) {
+    try {
+      localStorage.setItem(storageKey2(), String(size));
+    } catch {
+    }
+  }
+
+  // src/app/components/list-bar/index.ts
+  function startScreens() {
+    FIRST_SCREENS.forEach(observe);
+    listenToScreens();
+  }
+  function startSections() {
+    SECTION_SCREENS.forEach(observe);
+    listenToSections();
+  }
+  function startBlocks() {
+    listenToBlocks();
+    Object.keys(blocks2).forEach(observe);
+    Object.keys(configs).forEach(watch);
+  }
+
   // src/app/screens/settings/more/index.ts
   var more_exports = {};
   __export(more_exports, {
@@ -23525,10 +24875,10 @@
     };
   }
   function bindPreview2() {
-    const card3 = document.querySelector("#cfgcuerpo .conprevia > .card"), logo = document.getElementById("mklogo");
-    if (!card3 || !logo) return;
-    card3.addEventListener("input", brandPreview);
-    card3.addEventListener("change", () => {
+    const card4 = document.querySelector("#cfgcuerpo .conprevia > .card"), logo = document.getElementById("mklogo");
+    if (!card4 || !logo) return;
+    card4.addEventListener("input", brandPreview);
+    card4.addEventListener("change", () => {
       setTimeout(brandPreview, PREVIEW_WAIT_MS);
     });
     new MutationObserver(brandPreview).observe(logo, { attributes: true, attributeFilter: ["src"] });
@@ -23747,7 +25097,7 @@
   }
 
   // src/app/screens/settings/more/value-data.ts
-  var LIST2 = "lista";
+  var LIST3 = "lista";
   var field8 = (id) => document.getElementById(id);
   var valueOf6 = (id) => document.getElementById(id)?.value ?? "";
   var dialog5 = () => document.getElementById("dlg2");
@@ -23761,7 +25111,7 @@
     <select id="dtt"><option value="">${t("settingsMore.valueData.none")}</option>
       <option value="numero" ${type === "numero" ? "selected" : ""}>${t("settingsMore.valueData.number")}</option>
       <option value="texto" ${type === "texto" ? "selected" : ""}>${t("settingsMore.valueData.text")}</option>
-      <option value="lista" ${type === LIST2 ? "selected" : ""}>${t("settingsMore.valueData.list")}</option></select>
+      <option value="lista" ${type === LIST3 ? "selected" : ""}>${t("settingsMore.valueData.list")}</option></select>
     <div id="dtcfg">
       <label for="dte">${t("settingsMore.valueData.label")}</label><input id="dte" value="${escapeHtml(value26.dato_etiqueta ?? "")}" placeholder="${t("settingsMore.valueData.labelPlaceholder")}">
       <div id="dtlw"><label for="dtl">${t("settingsMore.valueData.options")} <span class="sm">${t("settingsMore.valueData.onePerLine")}</span></label>
@@ -23772,15 +25122,15 @@
   function showParts() {
     const type = valueOf6("dtt");
     field8("dtcfg")?.classList.toggle("hide", !type);
-    field8("dtlw")?.classList.toggle("hide", type !== LIST2);
+    field8("dtlw")?.classList.toggle("hide", type !== LIST3);
   }
   async function save15(value26, onSave) {
     const type = valueOf6("dtt"), options4 = valueOf6("dtl").split("\n").map((line3) => line3.trim()).filter(Boolean);
-    if (type === LIST2 && !options4.length) {
+    if (type === LIST3 && !options4.length) {
       notices.toast(t("settingsMore.valueData.writeOne"), true);
       return;
     }
-    const data = { id: value26.id, dato_tipo: type, dato_etiqueta: type ? valueOf6("dte").trim() : "", dato_opciones: type === LIST2 ? options4 : [] };
+    const data = { id: value26.id, dato_tipo: type, dato_etiqueta: type ? valueOf6("dte").trim() : "", dato_opciones: type === LIST3 ? options4 : [] };
     const { data: result, error } = await legacyDb().rpc("guardar_valor", { p: data });
     if (error || result?.ok === false) {
       notices.toast(t("settingsMore.couldNotSave"), true);
@@ -24235,18 +25585,18 @@
   // src/app/screens/settings/more/visit-material.ts
   var DEFAULT_MAX = 20;
   var MAX_LIMIT = 1e3;
-  var NUMBER2 = "numero";
+  var NUMBER3 = "numero";
   function portalHtml2(allowed2) {
     return `<label class="opt mtpor"><input type="checkbox" data-mpp ${allowed2 ? "checked" : ""}> ${t("settingsMore.material.portal")}</label>
       <label class="mtcampo mtmax"><span class="sm">${t("settingsMore.material.max")}</span><input type="number" step="1" data-mpx value="${allowed2 ? allowed2.max : DEFAULT_MAX}" ${allowed2 ? "" : "disabled"}></label>`;
   }
   function rowHtml11(material, allowed2, withPortal) {
-    const counted = material.dato_tipo === NUMBER2;
-    return `<div class="matfila2 ${material.activo ? "" : "off"}" data-mv="${material.id}" data-mvv="${escapeHtml(material.valor)}" data-mdt0="${counted ? NUMBER2 : ""}">
+    const counted2 = material.dato_tipo === NUMBER3;
+    return `<div class="matfila2 ${material.activo ? "" : "off"}" data-mv="${material.id}" data-mvv="${escapeHtml(material.valor)}" data-mdt0="${counted2 ? NUMBER3 : ""}">
       <b class="mtnom">${escapeHtml(material.valor)}</b>
       <label class="mtcampo"><span class="sm">${t("settingsMore.material.onVisit", { theVisit: term("visita", { article: "la" }) })}</span><select class="chico" data-mdt>
-        <option value="numero" ${counted ? "selected" : ""}>${t("settingsMore.material.count")}</option>
-        <option value="" ${counted ? "" : "selected"}>${t("settingsMore.material.mark")}</option></select></label>
+        <option value="numero" ${counted2 ? "selected" : ""}>${t("settingsMore.material.count")}</option>
+        <option value="" ${counted2 ? "" : "selected"}>${t("settingsMore.material.mark")}</option></select></label>
       ${withPortal ? portalHtml2(allowed2) : ""}
       <label class="vfswitch mini"><input type="checkbox" data-mact2="${material.id}" ${material.activo ? "checked" : ""}><span class="sw"></span><span class="sm">${t(material.activo ? "settingsMore.material.active" : "settingsMore.material.hidden")}</span></label>
       <span class="mterr sm" hidden></span></div>`;
@@ -24673,7 +26023,7 @@
     if (environment.refresco_estado === FAILED) return t("settings.testEnvironment.copyFailed") + (environment.refresco_error ? `: ${environment.refresco_error}` : "");
     return environment.refresco_error ? `· ${environment.refresco_error}` : "";
   }
-  function watch() {
+  function watch2() {
     watcher = setInterval(() => {
       void refreshStatus().then((environment) => {
         if (!environment || running(environment)) return;
@@ -24697,7 +26047,7 @@
     line3.classList.toggle("falta", environment.refresco_estado === FAILED);
     const bring = document.getElementById("prtraer");
     if (bring) bring.disabled = running(environment);
-    if (running(environment) && !watcher) watch();
+    if (running(environment) && !watcher) watch2();
     return environment;
   }
   async function startCopy() {
@@ -24930,12 +26280,12 @@
     const found = plan3.__recientes ?? {}, ids = Object.keys(found);
     if (!ids.length) return;
     markRecent(place4, plan3, found);
-    const card3 = place4.querySelector(".card");
-    if (card3 && !document.getElementById("planrec")) recentNotice(card3, ids);
+    const card4 = place4.querySelector(".card");
+    if (card4 && !document.getElementById("planrec")) recentNotice(card4, ids);
   }
-  function recentNotice(card3, ids) {
+  function recentNotice(card4, ids) {
     const who2 = ids.length === 1 ? t("routesMore.planView.oneRecent", { professional: term("medico") }) : t("routesMore.planView.recent", { count: ids.length, professionals: term("medico", { number: "p" }) });
-    card3.querySelector("h2")?.insertAdjacentHTML("afterend", `<div class="avisoh" id="planrec"><span>⚠ ${t("routesMore.planView.recentText", { who: who2, days: routes2Legacy.revisitNotice().dias })}</span>
+    card4.querySelector("h2")?.insertAdjacentHTML("afterend", `<div class="avisoh" id="planrec"><span>⚠ ${t("routesMore.planView.recentText", { who: who2, days: routes2Legacy.revisitNotice().dias })}</span>
       <button class="btn sec" id="planquitar">${t("routesMore.planView.removeThem")}</button></div>`);
     const remove8 = document.getElementById("planquitar");
     if (remove8) remove8.onclick = () => {
@@ -25457,7 +26807,7 @@
     const value26 = data[key];
     return Array.isArray(value26) ? value26 : [];
   };
-  function blocks(data) {
+  function blocks3(data) {
     const day = t(DAY_KEYS.get(data.dia ?? "") ?? "routesMore.suggestions.today");
     const all2 = [
       ["hoy", "📅", t("routesMore.suggestions.attend", { day })],
@@ -25468,7 +26818,7 @@
     return all2.filter(([key]) => listOf2(data, key).length);
   }
   function suggestedHtml(data) {
-    const found = blocks(data);
+    const found = blocks3(data);
     if (!found.length) return "";
     return `<h2>${t("routesMore.suggestions.title")}</h2>
     <p class="sm">${t("routesMore.suggestions.hint")}</p>
@@ -25531,7 +26881,7 @@
     choosePlan: () => choosePlan,
     companyPaymentState: () => companyPaymentState,
     configureAlerts: () => configureAlerts,
-    countUp: () => countUp3,
+    countUp: () => countUp4,
     dayHtml: () => dayHtml2,
     editOrder: () => editOrder,
     isBankTransfer: () => isBankTransfer,
@@ -25572,8 +26922,8 @@
   ];
   var PORTAL_ROLE_CAPABILITY = "portal_prescriptor";
   function ownHtml(mandatory, preferences) {
-    return `<div class="lista">${ALERTS.map(([key, label, icon2]) => `<label class="item" style="cursor:default"><input type="checkbox" data-avp="${key}" ${mandatory.includes(key) || preferences[key] !== false ? "checked" : ""} ${mandatory.includes(key) ? "disabled" : ""}>
-        <span class="tx"><b>${icon2} ${t(label)}</b>${mandatory.includes(key) ? `<span class="sm">${t("orders.alerts.mandatoryForRole")}</span>` : ""}</span></label>`).join("")}</div>`;
+    return `<div class="lista">${ALERTS.map(([key, label, icon3]) => `<label class="item" style="cursor:default"><input type="checkbox" data-avp="${key}" ${mandatory.includes(key) || preferences[key] !== false ? "checked" : ""} ${mandatory.includes(key) ? "disabled" : ""}>
+        <span class="tx"><b>${icon3} ${t(label)}</b>${mandatory.includes(key) ? `<span class="sm">${t("orders.alerts.mandatoryForRole")}</span>` : ""}</span></label>`).join("")}</div>`;
   }
   function rolesHtml(fixed2, roles) {
     return `<h3 style="margin:14px 0 4px">${t("orders.alerts.byRole")}</h3><p class="sm">${t("orders.alerts.byRoleHint")}</p>
@@ -26397,7 +27747,7 @@
   // src/app/screens/purchases/list.ts
   var LATE_STYLE = "color:var(--danger);font-weight:700";
   var loadingHtml2 = (text5) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text5)}</span></div>`;
-  function indicatorsHtml(rows2) {
+  function indicatorsHtml2(rows2) {
     const open2 = rows2.filter((row4) => OPEN_STATES.includes(row4.estado)), late = rows2.filter((row4) => row4.retrasada);
     const yearStart = `${todayIso().slice(0, 4)}-01-01`;
     const bought = sum(rows2.filter((row4) => row4.estado !== STATES6.cancelled && row4.fecha >= yearStart).map((row4) => Number(row4.importe) || 0));
@@ -26439,7 +27789,7 @@
     }
     const rows2 = data ?? [];
     box3.innerHTML = `<div class="panel">
-    ${indicatorsHtml(rows2)}
+    ${indicatorsHtml2(rows2)}
     ${tableHtml3(rows2)}</div>`;
     box3.querySelectorAll("[data-comp]").forEach((button2) => {
       button2.onclick = () => {
@@ -26548,12 +27898,12 @@
   }
 
   // src/app/screens/orders/page.ts
-  var SEARCH_WAIT_MS6 = 350;
+  var SEARCH_WAIT_MS7 = 350;
   var SALES = "ventas";
   var PURCHASES = "compras";
   var SUPPLIERS = "proveedores";
   var CALLS = "llamadas";
-  var searchTimer;
+  var searchTimer2;
   function baseHtml() {
     return `
     <div class="saludo"><div><h1>${t("orders.page.salesTitle")}</h1><div class="fecha">${t("orders.page.salesSubtitle")}</div></div>
@@ -26592,10 +27942,10 @@
       const select3 = document.getElementById(id);
       if (select3) select3.onchange = repaint5;
     });
-    const search6 = document.getElementById("pq");
-    if (search6) search6.oninput = () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(repaint5, SEARCH_WAIT_MS6);
+    const search7 = document.getElementById("pq");
+    if (search7) search7.oninput = () => {
+      clearTimeout(searchTimer2);
+      searchTimer2 = setTimeout(repaint5, SEARCH_WAIT_MS7);
     };
     await purchasesLegacy.loadProducts();
     repaint5();
@@ -27439,7 +28789,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     document.getElementById("pdtpv")?.remove();
     void tpvBlock(id);
   }
-  function watch2(id, payment, order) {
+  function watch3(id, payment, order) {
     watchTimer = setTimeout(async function look() {
       if (!stillOpen()) return;
       const { data: now } = await legacyDb().from("pagos_tpv").select("estado").eq("id", payment.id).maybeSingle();
@@ -27488,7 +28838,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     box3.insertAdjacentHTML("beforeend", blockHtml7(payment, state2, order, canSend));
     bindSend(id, payment, state2);
     clearTimeout(watchTimer);
-    if (payment && state2 === TPV_STATES.sent) watch2(id, payment, order);
+    if (payment && state2 === TPV_STATES.sent) watch3(id, payment, order);
   }
 
   // src/app/screens/orders/sheet/payment.ts
@@ -27612,9 +28962,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var GOOD_FRIDAY = -2;
   function markChosenCard() {
     const filter = document.getElementById("popf")?.value ?? "";
-    document.querySelectorAll("#operativa [data-pk]").forEach((card3) => {
-      card3.classList.toggle("on", card3.dataset.pk === filter);
-      card3.setAttribute("aria-pressed", String(card3.dataset.pk === filter));
+    document.querySelectorAll("#operativa [data-pk]").forEach((card4) => {
+      card4.classList.toggle("on", card4.dataset.pk === filter);
+      card4.setAttribute("aria-pressed", String(card4.dataset.pk === filter));
     });
   }
   function isHoliday(isoDate) {
@@ -27641,7 +28991,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     };
     requestAnimationFrame(step);
   }
-  function countUp3(elements, format) {
+  function countUp4(elements, format) {
     const show2 = () => {
       elements.forEach((element4) => {
         element4.textContent = format(Number(element4.dataset.v), element4);
@@ -28468,13 +29818,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/orders/editor/vat-field.ts
   var AMOUNT_LABEL = /importe|precio|total|base|coste/i;
   var VAT_LABEL = /^IVA(\s*\(%\)|\s+del servicio(\s*\(%\))?|\s+%)?$|tipo de iva/i;
-  function labelOf(input10) {
-    const byId = input10.id ? document.querySelector(`label[for="${input10.id}"]`) ?? document.querySelector(`label[for="${input10.id}_sel"]`) : null;
-    return (byId ?? input10.closest("label"))?.textContent?.trim() ?? "";
+  function labelOf2(input10) {
+    const byId4 = input10.id ? document.querySelector(`label[for="${input10.id}"]`) ?? document.querySelector(`label[for="${input10.id}_sel"]`) : null;
+    return (byId4 ?? input10.closest("label"))?.textContent?.trim() ?? "";
   }
   function isVatPercentField(input10) {
     if (input10.dataset.ivaok) return input10.dataset.ivaok === "1";
-    const label = labelOf(input10), key = `${input10.id} ${input10.dataset.f ?? ""} ${input10.name}`;
+    const label = labelOf2(input10), key = `${input10.id} ${input10.dataset.f ?? ""} ${input10.name}`;
     const isAmount = amountFieldPattern().test(key) || AMOUNT_LABEL.test(label);
     const isVat = input10.dataset.f === "iva" || /(^|[_-])iva$/i.test(input10.id) || /^[a-z]{0,3}iva$|^penvv$/i.test(input10.id) || VAT_LABEL.test(label);
     const result = !isAmount && isVat;
@@ -28719,7 +30069,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/products/catalog.ts
   var money = (value26) => isPresent(value26) ? euros3(value26) : "—";
   var activePill = (active) => `<span class="pill ${active ? "p-est" : "p-anu"}">${t(active ? "products.catalog.activeState" : "products.catalog.inactiveState")}</span>`;
-  function countHtml(rows2) {
+  function countHtml2(rows2) {
     const active = rows2.filter((row4) => row4.activo).length, inactive = rows2.length - active;
     return `<b>${formatNumber(active)}</b> ${t(active === 1 ? "products.catalog.oneActive" : "products.catalog.active")}${inactive ? t("products.catalog.inactive", { count: formatNumber(inactive) }) : ""}`;
   }
@@ -28749,7 +30099,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const rows2 = (data ?? []).filter((row4) => orFallback(row4.tipo, "producto") === "producto" && productsLegacy.matchesFieldFilters(row4.clasificadores));
     const fields = productsLegacy.visibleFieldColumns();
     body2.innerHTML = `<div class="panel">
-    <div class="cuenta">${countHtml(rows2)}</div>
+    <div class="cuenta">${countHtml2(rows2)}</div>
     ${tableHtml4(rows2, fields)}</div>`;
     productsLegacy.widenGrid(body2.querySelector(".dgrid.prods"), fields.length);
     body2.querySelectorAll("[data-prod]").forEach((button2) => {
@@ -28777,7 +30127,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <label for="depref">${t("products.deposit.reference")}</label><input id="depref" maxlength="120" placeholder="${t("products.deposit.referencePlaceholder")}">
       ${actsHtml(t("products.deposit.record"))}</div>`;
   }
-  function countHtml2(lines3) {
+  function countHtml3(lines3) {
     return `<div class="depbox"><b>${t("products.deposit.countTitle")}</b><span class="sm">${t("products.deposit.countHint")}</span>
       <div class="depitems">${lines3.map((line3, index) => `<label><span>${escapeHtml(line3.nombre)} <span class="sm">· ${batchOf(line3)} · ${t("products.deposit.had", { units: formatNumber(line3.unidades) })}</span></span>
         <input type="number" min="0" step="1" data-dcnt="${index}" value="${line3.unidades}" aria-label="${t("products.deposit.countedOf", { name: escapeHtml(line3.nombre) })}"></label>`).join("")}</div>
@@ -28856,7 +30206,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function openDepositForm(deposit2, action) {
     const form = document.getElementById("depform");
     if (!form) return;
-    form.innerHTML = action === "reponer" ? replenishHtml() : action === "consumo" ? useHtml(deposit2.lines) : countHtml2(deposit2.lines);
+    form.innerHTML = action === "reponer" ? replenishHtml() : action === "consumo" ? useHtml(deposit2.lines) : countHtml3(deposit2.lines);
     const origins = form.querySelectorAll("[data-o]");
     origins.forEach((button2) => {
       button2.onclick = () => {
@@ -29489,7 +30839,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var errorMessage2 = (error) => error?.message ?? "";
 
   // src/app/screens/billing/list.ts
-  var SEARCH_WAIT_MS7 = 300;
+  var SEARCH_WAIT_MS8 = 300;
   var emptyToNull = (value26) => value26 ? value26 : null;
   var field13 = (id) => document.getElementById(id);
   var total = (rows2, key) => sum(rows2.map((row4) => Number(row4[key]) || 0));
@@ -29577,7 +30927,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     billingLegacy.setPage(0);
     void paintRows();
   };
-  var searchTimer2;
+  var searchTimer3;
   function paintInvoices() {
     const body2 = document.getElementById("fcuerpo");
     if (!body2) return;
@@ -29585,10 +30935,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     opportunitiesLegacy.mountPeriod(document.getElementById("fper"), { id: "facturas", valor: "mes", alCambiar: () => {
       void paintRows();
     } });
-    const search6 = field13("fq"), payment = field13("fcob");
-    if (search6) search6.oninput = () => {
-      clearTimeout(searchTimer2);
-      searchTimer2 = setTimeout(restart, SEARCH_WAIT_MS7);
+    const search7 = field13("fq"), payment = field13("fcob");
+    if (search7) search7.oninput = () => {
+      clearTimeout(searchTimer3);
+      searchTimer3 = setTimeout(restart, SEARCH_WAIT_MS8);
     };
     if (payment) payment.onchange = restart;
     void paintRows();
@@ -29820,13 +31170,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function loadBilling() {
     const screen2 = document.getElementById("v-facturacion");
     if (!screen2) return Promise.resolve();
-    const admin = cardSectionsLegacy.can("administrar"), sections = SECTIONS2.filter(([, , adminOnly]) => admin || !adminOnly);
-    if (!sections.some(([key]) => key === billingLegacy.section())) billingLegacy.setSection("facturas");
+    const admin = cardSectionsLegacy.can("administrar"), sections2 = SECTIONS2.filter(([, , adminOnly]) => admin || !adminOnly);
+    if (!sections2.some(([key]) => key === billingLegacy.section())) billingLegacy.setSection("facturas");
     const current = billingLegacy.section();
     screen2.innerHTML = `
     <div class="saludo"><div><h1>${t("billing.page.title")}</h1><div class="fecha">${t("billing.page.subtitle")}</div></div>
       <div class="acts" style="margin:0"></div></div>
-    <div class="subnav">${sections.map(([key, label]) => `<button data-fsec="${key}" aria-pressed="${String(current === key)}">${t(label)}</button>`).join("")}</div>${readOnlyHtml()}
+    <div class="subnav">${sections2.map(([key, label]) => `<button data-fsec="${key}" aria-pressed="${String(current === key)}">${t(label)}</button>`).join("")}</div>${readOnlyHtml()}
     <div id="fcuerpo"></div>`;
     screen2.querySelectorAll("[data-fsec]").forEach((button2) => {
       button2.onclick = () => {
@@ -30425,13 +31775,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     if (!document.getElementById("orgvista")) document.body.insertAdjacentHTML("afterbegin", '<div id="orgvista" class="orgvista" role="status"></div>');
-    const band2 = document.getElementById("orgvista");
-    if (!band2) return;
+    const band3 = document.getElementById("orgvista");
+    if (!band3) return;
     const blocked = viewed.bloqueada ? ` <span class="pill p-warn">${t(viewed.bloqueada === "desactivada" ? "platform.view.deactivated" : "platform.view.trialEnded")}</span>` : "";
-    band2.innerHTML = `<span>${t("platform.view.seeing", { name: `<b>${escapeHtml(viewed.nombre)}</b>${blocked}` })}</span>
+    band3.innerHTML = `<span>${t("platform.view.seeing", { name: `<b>${escapeHtml(viewed.nombre)}</b>${blocked}` })}</span>
     <button type="button" class="btn sec" id="orgvistasal">${t("platform.view.leave")}</button>`;
     document.body.classList.add("con-vista");
-    document.documentElement.style.setProperty("--alto-franja", `${band2.offsetHeight}px`);
+    document.documentElement.style.setProperty("--alto-franja", `${band3.offsetHeight}px`);
     const exit = document.getElementById("orgvistasal");
     if (exit) exit.onclick = () => {
       void leave(exit);
@@ -30712,7 +32062,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/platform/requests.ts
   var STATES8 = ["Nueva", "En curso", "Cerrada"];
   var CONTACT = /* @__PURE__ */ new Map([["correo", "platform.requests.byEmail"], ["llamada", "platform.requests.byPhone"], ["video", "platform.requests.byVideo"]]);
-  var statePill5 = (state2) => state2 === "Nueva" ? "p-warn" : state2 === "En curso" ? "p-est" : "p-anu";
+  var statePill6 = (state2) => state2 === "Nueva" ? "p-warn" : state2 === "En curso" ? "p-est" : "p-anu";
   function figuresText(data) {
     return (data.usuarios ? t("platform.requests.users", { count: formatNumber(data.usuarios) }) : "") + (data.portal ? t("platform.requests.portal", { count: formatNumber(data.portal) }) : "") + (data.cuando ? ` · ${escapeHtml(data.cuando)}` : "");
   }
@@ -30725,7 +32075,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const data = request2.datos ?? {}, needs = data.necesita_txt ?? [];
     return `<div class="presufila${request2.estado === "Cerrada" ? " cerrada" : ""}">
         <div class="presucab"><b>${escapeHtml(request2.organizacion)}</b> <span class="pill p-est">${escapeHtml(platformLegacy.planName(request2.plan))}</span>
-          <span class="pill ${statePill5(request2.estado)}">${escapeHtml(request2.estado)}</span>
+          <span class="pill ${statePill6(request2.estado)}">${escapeHtml(request2.estado)}</span>
           <span class="sm">${t(request2.tipo === "contrato" ? "platform.requests.contract" : "platform.requests.quote")} · ${shortDateTime3(request2.creado_en)}</span></div>
         ${needs.length ? `<div class="chips">${needs.map((need) => `<span class="chip">${escapeHtml(need)}</span>`).join("")}</div>` : ""}
         ${data.programa ? `<div class="sm">${t("platform.requests.program", { program: `<b>${escapeHtml(data.programa)}</b>` })}</div>` : ""}
@@ -30864,11 +32214,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       ${companies.map((item) => `<tr><td>${escapeHtml(item.nombre)}</td><td class="num" style="${item.hoy >= item.cupo ? "color:var(--warn);font-weight:700" : ""}">${formatNumber(item.hoy)}</td><td class="num">${formatNumber(item.cupo)}</td><td class="num">${formatNumber(item.mes)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.status.noRoutes")}</div>`}`;
   }
   function addRoutes(box3, use) {
-    const card3 = box3.querySelector(".card.cfgpanel");
-    if (!card3) return;
-    const footer2 = [...card3.querySelectorAll(":scope > p.sm")].pop();
+    const card4 = box3.querySelector(".card.cfgpanel");
+    if (!card4) return;
+    const footer2 = [...card4.querySelectorAll(":scope > p.sm")].pop();
     if (footer2) footer2.insertAdjacentHTML("beforebegin", routesHtml(use));
-    else card3.insertAdjacentHTML("beforeend", routesHtml(use));
+    else card4.insertAdjacentHTML("beforeend", routesHtml(use));
   }
   async function paintStatus() {
     const start2 = panelBox();
@@ -31316,7 +32666,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var isValidRange = (range2) => VALID_TIME.test(range2[0] ?? "") && VALID_TIME.test(range2[1] ?? "") && (range2[1] ?? "") > (range2[0] ?? "");
 
   // src/app/screens/portal/form.ts
-  var SEARCH_WAIT_MS8 = 250;
+  var SEARCH_WAIT_MS9 = 250;
   var MIN_SEARCH2 = 2;
   var HOW_OPTIONS = ["portal.form.howBooked", "portal.form.howEndOfDay", "portal.form.howAnyGap", "portal.form.howPhone", "portal.form.howWriteFirst"];
   var DAY_NAMES2 = /* @__PURE__ */ new Map([["L", "portal.form.monday"], ["M", "portal.form.tuesday"], ["X", "portal.form.wednesday"], ["J", "portal.form.thursday"], ["V", "portal.form.friday"], ["S", "portal.form.saturday"]]);
@@ -31401,7 +32751,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div id="pmclist" class="pmclist">${placesHtml(places)}</div>
       <div class="pmcadd"><input id="pmcq" type="search" placeholder="${t("portal.form.searchPlaceholder")}" aria-label="${t("portal.form.searchLabel")}"><div id="pmcres" class="pmcres"></div></div></div>`;
   }
-  var searchTimer3;
+  var searchTimer4;
   function paintForm() {
     const box3 = document.getElementById("pmficha"), form = portalState.form;
     if (!box3 || !form) return;
@@ -31413,12 +32763,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${contactCard()}
     ${placesCard(form.consultas)}
     <div class="pmpie"><span class="sm" id="pmest">${escapeHtml(stateText())}</span><button type="button" class="btn" id="pmenviar">${t("portal.form.send")}</button></div>`;
-    const search6 = document.getElementById("pmcq");
-    if (search6) search6.oninput = () => {
-      clearTimeout(searchTimer3);
-      searchTimer3 = setTimeout(() => {
+    const search7 = document.getElementById("pmcq");
+    if (search7) search7.oninput = () => {
+      clearTimeout(searchTimer4);
+      searchTimer4 = setTimeout(() => {
         void searchCentre();
-      }, SEARCH_WAIT_MS8);
+      }, SEARCH_WAIT_MS9);
     };
     const send4 = document.getElementById("pmenviar");
     if (send4) send4.onclick = () => {
@@ -31695,7 +33045,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
             <span class="sm">${escapeHtml(lines3)}${order.total !== null && order.total !== void 0 ? ` · ${euros6(order.total)}` : ""}</span>${orderExtras(order)}</span>
             <span class="pcpst"><span class="pill ${portalPageLegacy.centreStateClass(order.estado)}">${escapeHtml(order.estado)}</span>${order.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${order.id}">${t("portal.centre.proforma")}</button>` : ""}</span></div>`;
   }
-  function indicators(orders2, bought, products3) {
+  function indicators3(orders2, bought, products3) {
     const running2 = orders2.filter((order) => order.estado !== CANCELLED2 && order.estado !== PREPARED).length, last = orders2[0] ? String(orders2[0].fecha).slice(0, 10) : null;
     const units2 = sum((bought ?? []).map((item) => Number(item.unidades) || 0));
     return `<div class="pmk">
@@ -31710,7 +33060,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <button type="button" class="btn" data-pmir="ficha">${t("portal.centre.completeCardButton")}</button></div>` : "";
     const chart2 = bought.length ? portalPageLegacy.barChart(bought.map((item) => ({ n: item.producto, v: item.unidades })), (value26) => t("portal.centre.unitsShort", { units: formatNumber(value26) })) : portalPageLegacy.emptyChart(t("portal.centre.boughtEmpty"));
     return `${owesHtml(orders2)}${missing2}
-    ${indicators(orders2, bought, products3)}
+    ${indicators3(orders2, bought, products3)}
     <div class="pmfila">
       <div class="card ancard pcpeds"><h2>${ordersTitle} ${helpButton(ordersTitle, t("portal.centre.ordersHelp"))}</h2>
         ${orders2.length ? `<div class="lista">${orders2.slice(0, SHOWN_ORDERS).map(orderRow).join("")}</div>` : `<p class="sm">${t("portal.centre.noOrders")}</p>`}</div>
@@ -31730,12 +33080,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function paintCentre() {
     if (!document.getElementById("mdcuerpo")) return;
-    const [{ data: products3 }, { data: answer }, { data: card3 }] = await Promise.all([
+    const [{ data: products3 }, { data: answer }, { data: card4 }] = await Promise.all([
       callRpc("productos_portal", {}),
       callRpc("mis_pedidos_portal", {}),
       portalState.form ? Promise.resolve({ data: null }) : callRpc("portal_mi_ficha", {})
     ]);
-    if (card3?.ok) loadForm(card3);
+    if (card4?.ok) loadForm(card4);
     const summary5 = document.getElementById("mdcuerpo");
     if (!summary5) return;
     const list = Array.isArray(products3) ? products3 : [];
@@ -31872,12 +33222,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function paintReport() {
     const range2 = portalPageLegacy.periodOf(document.getElementById("mdper"));
-    const [{ data }, { data: figures }, { data: card3 }] = await Promise.all([
+    const [{ data }, { data: figures }, { data: card4 }] = await Promise.all([
       callRpc("informe_cuenta", { p_desde: range2.desde, p_hasta: range2.hasta }),
       callRpc("constancia_pacientes", { p_meses: 12 }),
       portalState.form ? Promise.resolve({ data: null }) : callRpc("portal_mi_ficha", {})
     ]);
-    if (card3?.ok) loadForm(card3);
+    if (card4?.ok) loadForm(card4);
     const summary5 = document.getElementById("mdcuerpo");
     if (!summary5) return;
     if (!data?.ok) {
@@ -32731,9 +34081,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (series.every((item) => !Object.keys(item).length)) cache.delete(key);
     return series;
   }
-  function countFigures(cards) {
+  function countFigures(cards2) {
     const numbers = [];
-    cards.forEach(({ el, k }) => {
+    cards2.forEach(({ el, k }) => {
       el.classList.add("anv");
       const value26 = el.querySelector(".ankval");
       if (!value26 || k.fmt === "txt") return;
@@ -32744,38 +34094,38 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       value26.dataset.dec = String(match[1] ? match[1].length - 1 : 0);
       numbers.push(value26);
     });
-    countUp3(numbers, (number2, element4) => (element4.dataset.f ?? "").replace(/-?[\d.]+(,\d+)?/, number2.toLocaleString("es-ES", { minimumFractionDigits: Number(element4.dataset.dec), maximumFractionDigits: Number(element4.dataset.dec) })));
+    countUp4(numbers, (number2, element4) => (element4.dataset.f ?? "").replace(/-?[\d.]+(,\d+)?/, number2.toLocaleString("es-ES", { minimumFractionDigits: Number(element4.dataset.dec), maximumFractionDigits: Number(element4.dataset.dec) })));
   }
-  function drawLine(card3, series, months2) {
-    const zone = card3.el.querySelector(".avz");
+  function drawLine(card4, series, months2) {
+    const zone = card4.el.querySelector(".avz");
     if (!zone) return;
-    const values2 = series.map((item) => Number(item[card3.x.id]) || 0);
+    const values2 = series.map((item) => Number(item[card4.x.id]) || 0);
     zone.innerHTML = sixMonthLine(values2, months2);
     if (values2.every((value26) => !value26)) {
       zone.classList.add("avcero");
       zone.title = t("panels.kpis.noDataSixMonths");
       return;
     }
-    zone.title = months2.map(([first2], index) => `${SHORT_MONTHS[Number(first2.slice(5, 7)) - 1] ?? ""}: ${formatValue(values2[index], card3.k.fmt).replace(/<[^>]+>/g, "")}`).join(" · ");
+    zone.title = months2.map(([first2], index) => `${SHORT_MONTHS[Number(first2.slice(5, 7)) - 1] ?? ""}: ${formatValue(values2[index], card4.k.fmt).replace(/<[^>]+>/g, "")}`).join(" · ");
   }
-  async function drawLines(cards, request2) {
+  async function drawLines(cards2, request2) {
     const today = todayIso(), range2 = analyticsLegacy.period("anper"), to = !range2.hasta || range2.hasta > today ? today : range2.hasta, months2 = lastMonths(to);
-    const withLine = cards.filter(({ k }) => !k.hoy && k.fmt !== "txt");
+    const withLine = cards2.filter(({ k }) => !k.hoy && k.fmt !== "txt");
     withLine.forEach(({ el }) => {
       el.insertAdjacentHTML("beforeend", '<div class="avz" aria-hidden="true"></div>');
     });
     const groups2 = /* @__PURE__ */ new Map();
-    withLine.forEach((card3) => {
-      const filter = ownFilter(card3.x, card3.k), key = JSON.stringify(filter), group = groups2.get(key) ?? { f: filter, fams: /* @__PURE__ */ new Set(), cards: [] };
-      group.fams.add(card3.k.fam);
-      group.cards.push(card3);
+    withLine.forEach((card4) => {
+      const filter = ownFilter(card4.x, card4.k), key = JSON.stringify(filter), group = groups2.get(key) ?? { f: filter, fams: /* @__PURE__ */ new Set(), cards: [] };
+      group.fams.add(card4.k.fam);
+      group.cards.push(card4);
       groups2.set(key, group);
     });
     await Promise.all([...groups2.values()].map(async (group) => {
       const series = await seriesOf(months2, group.f, [...group.fams].sort());
       if (areas()?.dataset.pedido !== request2) return;
-      group.cards.forEach((card3) => {
-        drawLine(card3, series, months2);
+      group.cards.forEach((card4) => {
+        drawLine(card4, series, months2);
       });
     }));
   }
@@ -32796,12 +34146,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       };
     });
     paintRange(from2, to);
-    const kpis = catalogue(), cards = [...box3.querySelectorAll(".ankpi[data-anu]")].flatMap((el) => {
+    const kpis = catalogue(), cards2 = [...box3.querySelectorAll(".ankpi[data-anu]")].flatMap((el) => {
       const setting = analyticsState.config?.kpis.find((item) => item.u === el.dataset.anu), kpi = setting ? kpis.find((item) => item.id === setting.id) : void 0;
       return setting && kpi ? [{ el, x: setting, k: kpi }] : [];
     });
-    countFigures(cards);
-    await drawLines(cards, request2);
+    countFigures(cards2);
+    await drawLines(cards2, request2);
   }
   async function loadKpis() {
     const range2 = document.getElementById("anper") ? analyticsLegacy.period("anper") : null;
@@ -32906,13 +34256,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ]);
     return { sales, top, activity, funnel: funnel2 };
   }
-  var card = (title2, body2, read4, wide = false) => `<div class="card ancard${wide ? " ancha" : ""}"><h2>${title2}</h2>
+  var card2 = (title2, body2, read4, wide = false) => `<div class="card ancard${wide ? " ancha" : ""}"><h2>${title2}</h2>
       ${body2}
       <p class="leer">${read4}</p></div>`;
   function salesCards(charts, months2, bySales) {
     const units2 = charts.sales.totales?.unidades ?? 0, products3 = charts.sales.por_producto ?? [], top = charts.top.filter((row4) => row4.clave !== "sin");
     const amounts2 = permissions.canSeeAmounts() ? months2.map((month) => Number(bySales.get(month)?.importe ?? 0)) : null;
-    return card(t("panels.charts.salesTrend"), units2 ? monthBars(months2, months2.map((month) => bySales.get(month)?.unidades ?? 0), amounts2, t("panels.charts.salesSeries").split(",")) : emptyChart(t("panels.charts.salesEmpty")), t("panels.charts.salesRead"), true) + card(t("panels.charts.byProduct"), products3.length ? shareBars(products3.map((row4) => ({ n: row4.nombre, v: Number(row4.unidades) || 0 }))) : emptyChart(t("panels.charts.byProductEmpty")), t("panels.charts.byProductRead")) + card(t("panels.charts.topProfessionals", words9()), top.length ? rankingBars(top.map((row4) => ({ n: row4.nombre, v: row4.unidades })), formatNumber) : emptyChart(t("panels.charts.topEmpty", words9())), t("panels.charts.topRead", words9()));
+    return card2(t("panels.charts.salesTrend"), units2 ? monthBars(months2, months2.map((month) => bySales.get(month)?.unidades ?? 0), amounts2, t("panels.charts.salesSeries").split(",")) : emptyChart(t("panels.charts.salesEmpty")), t("panels.charts.salesRead"), true) + card2(t("panels.charts.byProduct"), products3.length ? shareBars(products3.map((row4) => ({ n: row4.nombre, v: Number(row4.unidades) || 0 }))) : emptyChart(t("panels.charts.byProductEmpty")), t("panels.charts.byProductRead")) + card2(t("panels.charts.topProfessionals", words9()), top.length ? rankingBars(top.map((row4) => ({ n: row4.nombre, v: row4.unidades })), formatNumber) : emptyChart(t("panels.charts.topEmpty", words9())), t("panels.charts.topRead", words9()));
   }
   function funnelHtml(funnel2) {
     const order = commercialStates.all().filter((state2) => state2.papel !== "negativo").map((state2) => state2.valor), negative = panelsLegacy.stateWithRole("negativo");
@@ -32933,8 +34283,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const activity = charts.activity.length || units2 ? monthBars(months2, months2.map((month) => byActivity.get(month)?.visitas ?? 0), months2.map((month) => bySales.get(month)?.unidades ?? 0), [term("visita", { number: "p", capital: "C" }), t("panels.charts.unitsSold")]) : emptyChart(t("panels.charts.activityEmpty", words9()));
     return `
     ${panelsLegacy.canUseModule("ventas") ? salesCards(charts, months2, bySales) : ""}
-    ${card(t("panels.charts.funnel"), funnelHtml(charts.funnel), t("panels.charts.funnelRead", words9()))}
-    ${card(t("panels.charts.activity"), activity, t("panels.charts.activityRead", words9()), true)}`;
+    ${card2(t("panels.charts.funnel"), funnelHtml(charts.funnel), t("panels.charts.funnelRead", words9()))}
+    ${card2(t("panels.charts.activity"), activity, t("panels.charts.activityRead", words9()), true)}`;
   }
   async function paintCharts(from2, to) {
     const element4 = box2();
@@ -33405,16 +34755,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/visit/record/data.ts
-  var CENTRE9 = "Centro";
+  var CENTRE10 = "Centro";
   async function cardAndResults(id) {
-    const [card3, results] = await Promise.all([
+    const [card4, results] = await Promise.all([
       cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`),
       cachedRpc("clasificadores_actividad", { p_cuenta: id }, `clasact-${id}`)
     ]);
     let groups2 = results.data;
     if (groups2 && !results.cache) visitLegacy.saveCopy("clasact", groups2);
     groups2 ?? (groups2 = visitLegacy.readCopy("clasact"));
-    return { card: card3.data, groups: groups2 ?? [] };
+    return { card: card4.data, groups: groups2 ?? [] };
   }
   async function accountFlags(id) {
     try {
@@ -33424,21 +34774,21 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
   }
   async function samplesLeft(id, type) {
-    if (!navigator.onLine || type === CENTRE9) return [];
+    if (!navigator.onLine || type === CENTRE10) return [];
     const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
     return Array.isArray(data) ? data : [];
   }
   async function loadVisitData(id) {
     const coverage = accountCardLegacy.planIncludes("cobertura");
-    const [{ card: card3, groups: groups2 }, flags, products3, missingTimetable2] = await Promise.all([
+    const [{ card: card4, groups: groups2 }, flags, products3, missingTimetable2] = await Promise.all([
       cardAndResults(id),
       accountFlags(id),
       coverage ? visitLegacy.promotedProducts().catch(() => []) : Promise.resolve([]),
       missingTimetable(id).catch(() => false)
     ]);
-    if (!card3?.medico) return navigator.onLine ? "online" : "offline";
+    if (!card4?.medico) return navigator.onLine ? "online" : "offline";
     const samples3 = await samplesLeft(id, flags?.tipo).catch(() => []);
-    return { account: card3.medico, consultations: card3.consultas ?? [], groups: groups2, samples: samples3, products: products3, noReporting: Boolean(flags?.sin_reporting), missingTimetable: missingTimetable2 };
+    return { account: card4.medico, consultations: card4.consultas ?? [], groups: groups2, samples: samples3, products: products3, noReporting: Boolean(flags?.sin_reporting), missingTimetable: missingTimetable2 };
   }
 
   // src/app/screens/visit/record/form.ts
@@ -34314,16 +35664,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
           <span class="sm">${t("customers.sheet.orderLine", { units: formatNumber(order.unidades), total: portalLegacy.euros(Number(order.total)) })}${order.medico ? ` · ${escapeHtml(order.medico)}` : ""}</span></span>
         ${customersLegacy.orderPill(order.estado)}</button>`;
   function sheetHtml7(detail, customer, canSell) {
-    const orders2 = detail.pedidos ?? [], counted = orders2.filter((order) => !NOT_COUNTED4.includes(order.estado));
+    const orders2 = detail.pedidos ?? [], counted2 = orders2.filter((order) => !NOT_COUNTED4.includes(order.estado));
     return `
     <div class="fh"><div><h2>${escapeHtml(customer.nombre)}</h2><div class="sm">${words6().Patient}${customer.nif ? t("customers.sheet.taxId", { taxId: escapeHtml(customer.nif) }) : ""}</div></div>
       <button class="x" id="fpx" aria-label="${t("common.close")}">✕</button></div>
     ${canSell ? `<div class="acts"><button class="btn" id="fpnped">${t("customers.sheet.newOrder")}</button>
       <button class="btn sec" id="fpedit">${t("customers.sheet.editData")}</button></div>` : ""}
     <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,minmax(0,1fr))">
-      <div class="kpi"><b>${formatNumber(counted.length)}</b><span>${t("customers.sheet.orders")}</span></div>
+      <div class="kpi"><b>${formatNumber(counted2.length)}</b><span>${t("customers.sheet.orders")}</span></div>
       <div class="kpi"><b>${formatNumber(detail.total_unidades)}</b><span>${t("customers.sheet.units")}</span></div>
-      <div class="kpi"><b>${portalLegacy.euros(sum(counted.map((order) => Number(order.total) || 0)))}</b><span>${t("customers.sheet.withVat")}</span></div></div>
+      <div class="kpi"><b>${portalLegacy.euros(sum(counted2.map((order) => Number(order.total) || 0)))}</b><span>${t("customers.sheet.withVat")}</span></div></div>
     ${professionalHtml(detail.medico, canSell)}
     ${contactHtml3(customer)}
     <div class="blk"><h3>${t("customers.sheet.ordersTitle")}</h3>
@@ -34415,7 +35765,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/customers/list.ts
-  var SEARCH_WAIT_MS9 = 300;
+  var SEARCH_WAIT_MS10 = 300;
   var empty = '<span class="vac">—</span>';
   var shown3 = (value26) => value26 ? escapeHtml(value26) : empty;
   function headerHtml10(fields) {
@@ -34492,19 +35842,19 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         ${filters.medico ? `<div><label>${words6().Professional}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${escapeHtml(filters.medicoNombre)} ✕</button></div></div>` : ""}
       </div>`;
   }
-  var searchTimer4;
+  var searchTimer5;
   function bindFilters2(body2) {
     const filters = customersLegacy.filters(), again = () => {
       filters.pagina = 0;
       void listCustomers();
     };
-    const search6 = document.getElementById("pacq");
-    if (search6) search6.oninput = () => {
-      clearTimeout(searchTimer4);
-      searchTimer4 = setTimeout(() => {
-        filters.q = search6.value.trim();
+    const search7 = document.getElementById("pacq");
+    if (search7) search7.oninput = () => {
+      clearTimeout(searchTimer5);
+      searchTimer5 = setTimeout(() => {
+        filters.q = search7.value.trim();
         again();
-      }, SEARCH_WAIT_MS9);
+      }, SEARCH_WAIT_MS10);
     };
     const onSelect = (id, set) => {
       const select3 = document.getElementById(id);
@@ -34815,7 +36165,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/opportunities/editor/client.ts
-  var SEARCH_WAIT_MS10 = 250;
+  var SEARCH_WAIT_MS11 = 250;
   var ORDERS_SHOWN = 20;
   var CALLS_SHOWN = 5;
   var phoneOf2 = (client) => orFallback(client.movil, orFallback(client.telefono, orFallback(client.tel, "")));
@@ -34880,8 +36230,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     paintClient(draft);
   }
   var resultHtml = (client) => `<button type="button" class="item" data-nvc="${client.id}"><span class="tx"><b>${escapeHtml(orFallback(client.nombre, ""))}</b><span class="sm">${escapeHtml([orFallback(client.movil, orFallback(client.telefono, "")), client.nif].filter(Boolean).join(" · "))}</span></span></button>`;
-  var searchTimer5;
-  async function search4(draft) {
+  var searchTimer6;
+  async function search5(draft) {
     const found = await opportunitiesLegacy.searchClients(typedQuery()), box3 = document.getElementById("nvres1");
     if (!box3) return;
     box3.innerHTML = found.map(resultHtml).join("") || (typedQuery().length > 1 ? `<div class="sm" style="padding:6px">${t("opportunities.editor.notFound")}</div>` : "");
@@ -34905,10 +36255,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function bindSearch5(draft) {
     const input10 = document.getElementById("nvq");
     if (input10) input10.oninput = () => {
-      clearTimeout(searchTimer5);
-      searchTimer5 = setTimeout(() => {
-        void search4(draft);
-      }, SEARCH_WAIT_MS10);
+      clearTimeout(searchTimer6);
+      searchTimer6 = setTimeout(() => {
+        void search5(draft);
+      }, SEARCH_WAIT_MS11);
     };
     const add2 = document.getElementById("nvalta");
     if (add2) add2.onclick = () => {
@@ -35224,7 +36574,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/opportunities/charts.ts
-  function indicatorsHtml2(summary5) {
+  function indicatorsHtml3(summary5) {
     const total2 = summary5.total ?? 0, orders2 = summary5.con_pedido ?? 0, closed = total2 - (summary5.sin_cerrar ?? 0);
     const kpi = (value26, key) => `<div class="kpi"><b>${value26}</b><span>${t(key)}</span></div>`;
     return [
@@ -35243,7 +36593,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const max = Math.max(1, ...items.map((item) => item.t));
     return `<div class="barrash">${items.map((item) => ratioRow(item, max)).join("")}</div>`;
   };
-  var card2 = (id, title2, body2, read4) => `<div class="card ancard" id="${id}"><h2>${title2}</h2>${body2}<p class="leer">${read4}</p></div>`;
+  var card3 = (id, title2, body2, read4) => `<div class="card ancard" id="${id}"><h2>${title2}</h2>${body2}<p class="leer">${read4}</p></div>`;
   var ratiosOr = (list, toRatio, empty2) => (list ?? []).length ? ratioBars((list ?? []).map(toRatio)) : opportunitiesLegacy.emptyChart(empty2);
   var words10 = () => ({
     professional: term("medico"),
@@ -35256,7 +36606,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function chartsHtml2(summary5) {
     const weekdays = t("opportunities.weekdays").split(","), read4 = (lead, key) => t(lead) + t(key, words10());
     const results = (summary5.por_resultado ?? []).length ? opportunitiesLegacy.barChart((summary5.por_resultado ?? []).map((item) => ({ n: item.resultado, v: item.n })), formatNumber) : opportunitiesLegacy.emptyChart(t("opportunities.list.resultsEmpty"));
-    return card2("llgprod", t("opportunities.list.productsTitle"), ratiosOr(summary5.por_producto, (item) => ({ n: item.producto, p: Number(item.unidades_ganadas) || 0, t: Number(item.unidades) || 0 }), t("opportunities.list.productsEmpty")), read4(HOW, "opportunities.list.productsRead")) + card2("llgres", t("opportunities.list.resultsTitle"), results, read4(HOW, "opportunities.list.resultsRead")) + card2("llghora", t("opportunities.list.hoursTitle"), ratiosOr(summary5.por_hora, (item) => ({ n: `${String(item.hora).padStart(2, "0")}:00`, p: item.pedidos, t: item.n }), t("opportunities.list.hoursEmpty")), read4(FOR, "opportunities.list.hoursRead")) + card2("llgdia", t("opportunities.list.daysTitle"), ratiosOr(summary5.por_dia, (item) => ({ n: weekdays[item.dia] ?? "", p: item.pedidos, t: item.n }), t("opportunities.list.daysEmpty")), read4(HOW, "opportunities.list.daysRead")) + card2("llgori", t("opportunities.list.originsTitle"), ratiosOr(summary5.por_origen, (item) => ({ n: item.origen, p: item.pedidos, t: item.n }), t("opportunities.list.originsEmpty")), read4(HOW, "opportunities.list.originsRead")) + card2("llgmed", t("opportunities.list.referencesTitle", words10()), ratiosOr(summary5.por_medico, (item) => ({ n: item.medico, p: item.pedidos, t: item.n }), t("opportunities.list.referencesEmpty", words10())), read4(HOW, "opportunities.list.referencesRead")) + card2("llcom", t("opportunities.list.salesTitle", words10()), ratiosOr(summary5.por_comercial, (item) => ({ n: item.comercial, p: item.pedidos, t: item.n }), t("opportunities.list.salesEmpty", words10())), read4(HOW, "opportunities.list.salesRead"));
+    return card3("llgprod", t("opportunities.list.productsTitle"), ratiosOr(summary5.por_producto, (item) => ({ n: item.producto, p: Number(item.unidades_ganadas) || 0, t: Number(item.unidades) || 0 }), t("opportunities.list.productsEmpty")), read4(HOW, "opportunities.list.productsRead")) + card3("llgres", t("opportunities.list.resultsTitle"), results, read4(HOW, "opportunities.list.resultsRead")) + card3("llghora", t("opportunities.list.hoursTitle"), ratiosOr(summary5.por_hora, (item) => ({ n: `${String(item.hora).padStart(2, "0")}:00`, p: item.pedidos, t: item.n }), t("opportunities.list.hoursEmpty")), read4(FOR, "opportunities.list.hoursRead")) + card3("llgdia", t("opportunities.list.daysTitle"), ratiosOr(summary5.por_dia, (item) => ({ n: weekdays[item.dia] ?? "", p: item.pedidos, t: item.n }), t("opportunities.list.daysEmpty")), read4(HOW, "opportunities.list.daysRead")) + card3("llgori", t("opportunities.list.originsTitle"), ratiosOr(summary5.por_origen, (item) => ({ n: item.origen, p: item.pedidos, t: item.n }), t("opportunities.list.originsEmpty")), read4(HOW, "opportunities.list.originsRead")) + card3("llgmed", t("opportunities.list.referencesTitle", words10()), ratiosOr(summary5.por_medico, (item) => ({ n: item.medico, p: item.pedidos, t: item.n }), t("opportunities.list.referencesEmpty", words10())), read4(HOW, "opportunities.list.referencesRead")) + card3("llcom", t("opportunities.list.salesTitle", words10()), ratiosOr(summary5.por_comercial, (item) => ({ n: item.comercial, p: item.pedidos, t: item.n }), t("opportunities.list.salesEmpty", words10())), read4(HOW, "opportunities.list.salesRead"));
   }
 
   // src/app/screens/opportunities/follow-ups.ts
@@ -35302,7 +36652,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/opportunities/list.ts
-  var SEARCH_WAIT_MS11 = 300;
+  var SEARCH_WAIT_MS12 = 300;
   function pageHtml16() {
     const results = catalog("resultado_llamada").map((entry) => `<option>${escapeHtml(entry.valor)}</option>`).join("");
     return `<div class="panel">
@@ -35369,25 +36719,25 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ]);
     const list = document.getElementById("lllista"), totals = document.getElementById("lltot"), charts = document.getElementById("llres2");
     if (!list || !totals || !charts) return;
-    totals.innerHTML = indicatorsHtml2(summary5 ?? {});
+    totals.innerHTML = indicatorsHtml3(summary5 ?? {});
     charts.innerHTML = chartsHtml2(summary5 ?? {});
     paintList5(list, rows2 ?? []);
   }
-  var searchTimer6;
+  var searchTimer7;
   async function paintOpportunities() {
     await loadOpportunityCatalogs();
     const box3 = document.getElementById("vcuerpo");
     if (!box3) return;
     box3.innerHTML = pageHtml16();
-    const search6 = document.getElementById("llq"), result = document.getElementById("llfres");
+    const search7 = document.getElementById("llq"), result = document.getElementById("llfres");
     opportunitiesLegacy.mountPeriod(document.getElementById("llper"), { id: "llamadas", valor: "mes", alCambiar: () => {
       void paintPeriod();
     } });
-    if (search6) search6.oninput = () => {
-      clearTimeout(searchTimer6);
-      searchTimer6 = setTimeout(() => {
+    if (search7) search7.oninput = () => {
+      clearTimeout(searchTimer7);
+      searchTimer7 = setTimeout(() => {
         void paintPeriod();
-      }, SEARCH_WAIT_MS11);
+      }, SEARCH_WAIT_MS12);
     };
     if (result) result.onchange = () => {
       void paintPeriod();
@@ -35503,11 +36853,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function paintDoubtfulAddresses() {
     if (!document.getElementById("calidad") || document.getElementById("caldirs")) return;
     const { data, error } = await legacyDb().rpc("ubicaciones_dudosas", {});
-    const card3 = document.getElementById("calidad");
-    if (error || !card3 || document.getElementById("caldirs")) return;
+    const card4 = document.getElementById("calidad");
+    if (error || !card4 || document.getElementById("caldirs")) return;
     const places = data ?? [];
     if (!places.length) return;
-    card3.insertAdjacentHTML("afterend", addressesHtml(places));
+    card4.insertAdjacentHTML("afterend", addressesHtml(places));
     const box3 = document.getElementById("caldirs");
     if (!box3) return;
     box3.querySelectorAll("[data-cdirf]").forEach((button2) => {
@@ -35826,10 +37176,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
     return `<button class="manhit" ${entry.section ? `data-mansec2="${entry.section}"` : ""}><span class="mhm">${escapeHtml(entry.module)}</span><span>${text5}</span></button>`;
   }
-  function search5(input10, results, entries) {
+  function search6(input10, results, entries) {
     const query = normalise3(input10.value.trim());
-    document.querySelectorAll(".mancard").forEach((card3) => {
-      card3.classList.remove("hide");
+    document.querySelectorAll(".mancard").forEach((card4) => {
+      card4.classList.remove("hide");
     });
     if (query.length < MIN_QUERY) {
       results.classList.add("hide");
@@ -35847,7 +37197,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const results = document.getElementById("manres"), entries = searchIndex();
     if (!results) return;
     input10.oninput = () => {
-      search5(input10, results, entries);
+      search6(input10, results, entries);
     };
     results.addEventListener("click", (event) => {
       const hit = event.target?.closest("[data-mansec2]");
@@ -35882,16 +37232,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="card manfaqs">${manualLegacy.faq().map(([question, answer]) => `<details class="manfaq"><summary>${escapeHtml(question)}</summary><p>${escapeHtml(answer)}</p></details>`).join("")}</div>`;
   }
   function markOutOfPlan(page) {
-    page.querySelectorAll(".mancard").forEach((card3) => {
-      const module = card3.dataset.mansec ?? "";
+    page.querySelectorAll(".mancard").forEach((card4) => {
+      const module = card4.dataset.mansec ?? "";
       if (!PLAN_MODULES.has(module) || manualLegacy.planIncludes(module)) return;
-      const pill = card3.querySelector(".pill");
+      const pill = card4.querySelector(".pill");
       if (pill) {
         pill.className = "pill p-plan";
         pill.innerHTML = `${icon("lock")} ${t("manual.portal.inPlan", { plan: escapeHtml(manualLegacy.cheapestPlan(module) ?? t("manual.portal.premium")) })}`;
       }
-      card3.classList.add("bloq");
-      card3.onclick = () => {
+      card4.classList.add("bloq");
+      card4.onclick = () => {
         manualLegacy.showPlanNotice(module);
       };
     });
@@ -35900,12 +37250,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     page.onclick = (event) => {
       const step = event.target?.closest("[data-mira]");
       if (!step) return;
-      const card3 = step.closest(".manpaso"), index = card3 ? [...page.querySelectorAll(".manpaso")].indexOf(card3) : -1, chosen5 = firstSteps()[index];
+      const card4 = step.closest(".manpaso"), index = card4 ? [...page.querySelectorAll(".manpaso")].indexOf(card4) : -1, chosen5 = firstSteps()[index];
       if (index >= 0 && chosen5) showFirstStep(chosen5);
     };
-    page.querySelectorAll(".mancard").forEach((card3) => {
-      card3.onclick = () => {
-        showSection(card3.dataset.mansec ?? "");
+    page.querySelectorAll(".mancard").forEach((card4) => {
+      card4.onclick = () => {
+        showSection(card4.dataset.mansec ?? "");
       };
     });
   }
@@ -37153,7 +38503,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/equipment/list.ts
   var LIMIT11 = 500;
   var SOON_DAYS2 = 30;
-  var SEARCH_WAIT_MS12 = 300;
+  var SEARCH_WAIT_MS13 = 300;
   var listState = { query: "" };
   var plain = (text5) => String(text5 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   function rowHtml36(item) {
@@ -37182,24 +38532,24 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <section class="card cirbloque"><div class="cicbcab"><h2>${t("equipment.list.all", { count: formatNumber(list.length) })}</h2><input id="eqq" type="search" placeholder="${t("equipment.list.searchPlaceholder")}" value="${escapeHtml(listState.query)}" aria-label="${t("equipment.list.searchLabel")}"></div>
       ${found.length ? `<div class="lista">${found.map(rowHtml36).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
-  var searchTimer7;
+  var searchTimer8;
   function bind35(box3, wasSearching) {
     const add2 = document.getElementById("eqnuevo");
     if (add2) add2.onclick = () => {
       void editEquipment(null);
     };
-    const search6 = document.getElementById("eqq");
-    if (search6) {
-      search6.oninput = () => {
-        clearTimeout(searchTimer7);
-        searchTimer7 = setTimeout(() => {
-          listState.query = search6.value.trim();
+    const search7 = document.getElementById("eqq");
+    if (search7) {
+      search7.oninput = () => {
+        clearTimeout(searchTimer8);
+        searchTimer8 = setTimeout(() => {
+          listState.query = search7.value.trim();
           void paintEquipment2();
-        }, SEARCH_WAIT_MS12);
+        }, SEARCH_WAIT_MS13);
       };
       if (wasSearching) {
-        search6.focus();
-        search6.setSelectionRange(search6.value.length, search6.value.length);
+        search7.focus();
+        search7.setSelectionRange(search7.value.length, search7.value.length);
       }
     }
     box3.querySelectorAll("[data-eq]").forEach((button2) => {
@@ -37225,7 +38575,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     rememberWarningDays(setting);
-    const search6 = document.getElementById("eqq"), wasSearching = Boolean(search6) && document.activeElement === search6;
+    const search7 = document.getElementById("eqq"), wasSearching = Boolean(search7) && document.activeElement === search7;
     box3.innerHTML = pageHtml22(data ?? []);
     bind35(box3, wasSearching);
   }
@@ -37823,7 +39173,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/cycle/classify.ts
   var SHOWN6 = 300;
-  var SEARCH_WAIT_MS13 = 350;
+  var SEARCH_WAIT_MS14 = 350;
   function rowHtml37(item) {
     return `<div class="item cicrow" data-cfila="${item.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
@@ -37842,7 +39192,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <p class="sm">${t("cycle.classifyPage.hint", words())}</p>
     ${listHtml6(rows2)}</div>`;
   }
-  var searchTimer8;
+  var searchTimer9;
   function bind40(box3, wasSearching) {
     box3.querySelectorAll("#cicclf [data-cl]").forEach((button2) => {
       button2.onclick = () => {
@@ -37850,18 +39200,18 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         void paintClassify();
       };
     });
-    const search6 = document.getElementById("cicq");
-    if (search6) {
-      search6.oninput = () => {
-        clearTimeout(searchTimer8);
-        searchTimer8 = setTimeout(() => {
-          cycleState.query = search6.value.trim();
+    const search7 = document.getElementById("cicq");
+    if (search7) {
+      search7.oninput = () => {
+        clearTimeout(searchTimer9);
+        searchTimer9 = setTimeout(() => {
+          cycleState.query = search7.value.trim();
           void paintClassify();
-        }, SEARCH_WAIT_MS13);
+        }, SEARCH_WAIT_MS14);
       };
       if (wasSearching) {
-        search6.focus();
-        search6.setSelectionRange(search6.value.length, search6.value.length);
+        search7.focus();
+        search7.setSelectionRange(search7.value.length, search7.value.length);
       }
     }
     bindOwner(paintClassify);
@@ -37879,7 +39229,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       box3.innerHTML = `<div class="vacio">${t("cycle.classifyPage.couldNotLoad")}</div>`;
       return;
     }
-    const search6 = document.getElementById("cicq"), wasSearching = Boolean(search6) && document.activeElement === search6;
+    const search7 = document.getElementById("cicq"), wasSearching = Boolean(search7) && document.activeElement === search7;
     box3.innerHTML = pageHtml24(data ?? [], selector);
     bind40(box3, wasSearching);
   }
@@ -38175,7 +39525,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     t,
     setLanguage,
     setVocabulary,
-    components: { ...components_exports, list: list_exports, filters: filters_exports, filtersPanel: filters_panel_exports },
+    components: { ...components_exports, list: list_exports, filters: filters_exports, filtersPanel: filters_panel_exports, listBar: list_bar_exports },
     screens: {
       home: { load, renderSkeleton, paintIndicators, openIndicatorSettings },
       agenda: agenda_exports,
@@ -41358,128 +42708,10 @@ const ICO_PLEGAR = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9
 // componentes/lista.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-
-
-
-function plObservar(tab) {
-  const sec = $('v-' + tab); if (!sec || PL_OBS[tab]) return;
-  let pend = false;
-  let n = 0, t0 = 0;
-  const mo = new MutationObserver(() => {
-    if (pend) return;
-    // Freno: más de 30 ajustes en 100 ms es que otra parte de la pantalla responde a cada cambio; se espera al siguiente fotograma
-    const ya = performance.now(); if (ya - t0 > 100) { t0 = ya; n = 0; }
-    if (++n > 30) { if (n === 31) requestAnimationFrame(() => { n = 0; t0 = performance.now(); plSync(tab); }); return; }
-    pend = true;
-    queueMicrotask(() => { pend = false; window.PL_N = (window.PL_N || 0) + 1; mo.disconnect(); try { plSync(tab); } finally { mo.takeRecords(); mo.observe(sec, { childList: true, subtree: true, characterData: true }); } });
-  });
-  PL_OBS[tab] = mo; mo.observe(sec, { childList: true, subtree: true, characterData: true });
-}
-
-
-
-// La configuración de una pantalla en este momento (las de varias secciones, según la abierta)
-function plCfg(tab) {
-  const x = PL[tab]; if (!x) return null;
-  if (PL_SECC[tab]) { const k = PL_SECC[tab](); return k ? x[k] || null : null; }
-  return x;
-}
-
-function plVigilar(tab) {
-  const sec = $('v-' + tab); if (!sec || PL_OBSEL[tab] === sec) return;
-  if (PL_OBS[tab]) { PL_OBS[tab].disconnect(); delete PL_OBS[tab]; }
-  PL_OBSEL[tab] = sec; plObservar(tab);
-}
-
-function plAjenos(sec, clave) {
-  const pan = sec.querySelector(':scope > .htpanel'), prop = pan && pan.querySelector('.htpropios'); if (!prop) return;
-  let fuera = pan.querySelector(':scope > .plajenos');
-  if (!fuera) { fuera = document.createElement('div'); fuera.className = 'plajenos hide'; pan.appendChild(fuera); }
-  const ajenos = new Set(PL_AJENOS[clave] || []);
-  [...prop.children, ...fuera.children].forEach(d => {
-    const s = d.querySelector('select'), id = d.id || (s && s.id) || '', ajeno = ajenos.has(id);
-    if (ajeno && d.parentElement !== fuera) fuera.appendChild(d);
-    else if (!ajeno && d.parentElement === fuera) prop.appendChild(d);
-  });
-}
-
-
-
-
-function tamPagina() { const n = +localStorage.getItem(TAMKEY()); return TAMANOS.includes(n) ? n : 20; }
-
-function fijarTam(n) { localStorage.setItem(TAMKEY(), String(n)); }
-
-
-
-// Pasa los bloques de tarjetas de la pantalla a una tabla (cada vez que la pantalla los vuelve a pintar)
-function blqConvertir(tab) {
-  const o = BLQ[tab], sec = $('v-' + tab), caja = sec && sec.querySelector('#cfgcuerpo'); if (!o || !caja) return;
-  const items = [...caja.querySelectorAll('.lista > .item[data-' + o.attr + ']')];
-  const yaTabla = caja.querySelector('.dgrid.blq-' + tab);
-  if (!items.length && (yaTabla || !caja.querySelector('.cirpag, .evpag'))) return;
-  // Acciones: la principal a la cabecera; las demás, al «⋯» (también en la cabecera, ocultas)
-  const sal = sec.querySelector(':scope > .saludo');
-  let acts = sal && sal.querySelector(':scope > .acts');
-  if (sal && !acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts"></div>'); acts = sal.querySelector(':scope > .acts'); }
-  const cab = caja.querySelector('.evcab');
-  // las de la vez anterior (también el «+» del móvil, que va al final de la sección) se quitan: si no, se repetirían sus id
-  if (cab && acts) { sec.querySelectorAll('[data-plmov]').forEach(b => b.remove()); [...cab.querySelectorAll('button')].forEach(b => { b.dataset.plmov = '1'; acts.appendChild(b); }); cab.remove(); }
-  // Filas: una por registro, con los bloques en que sale
-  const filas = new Map(), grupos = [];
-  caja.querySelectorAll('section.card, .card').forEach(card => {
-    const h = card.querySelector('h2'), g = h ? plTxt(h).replace(/\s*·\s*[\d.]+$/, '') : o.def;
-    const its = [...card.querySelectorAll('.lista > .item[data-' + o.attr + ']')]; if (!its.length) return;
-    if (!grupos.includes(g)) grupos.push(g);
-    its.forEach(b => { const k = b.dataset[o.attr]; if (filas.has(k)) { filas.get(k).g.add(g); b.remove(); } else filas.set(k, { b, g: new Set([g]) }); });
-  });
-  const vacio = caja.querySelector('.vacio');
-  const nota = [...caja.querySelectorAll('.cirpag > p.sm, .evpag > p.sm')];
-  const wrap = document.createElement('div'); wrap.className = 'dgrid-wrap';
-  wrap.innerHTML = `<div class="dgrid blq-${tab}"><div class="dh">${o.cols.map(([t, k]) => `<span class="${k}">${esc(t)}</span>`).join('')}</div></div>`;
-  const g = wrap.firstElementChild;
-  filas.forEach(({ b, g: gs }) => {
-    const cel = o.celdas(b), click = b.onclick;
-    b.className = 'dr'; b.innerHTML = cel.map((x, i) => `<span class="${o.cols[i][1]}">${x || '<span class="vac">—</span>'}</span>`).join('');
-    b.dataset.grupos = [...gs].join('|'); b.onclick = click; g.appendChild(b);
-  });
-  if (!filas.size) wrap.innerHTML = `<div class="vacio">${esc(vacio ? plTxt(vacio) : 'Todavía no hay nada aquí.')}</div>`;
-  caja.innerHTML = ''; nota.forEach(p => caja.appendChild(p)); caja.appendChild(wrap);
-  // Bloque elegido (filtro rápido y banda de indicadores)
-  if (PLG[tab] && !grupos.includes(PLG[tab])) PLG[tab] = '';
-  let sel = $('plg-' + tab);
-  if (!sel) { sec.insertAdjacentHTML('beforeend', `<div class="plgsel hide"><label for="plg-${tab}">${esc(o.grupo)}</label><select id="plg-${tab}"></select></div>`); sel = $('plg-' + tab); sel.onchange = () => { PLG[tab] = sel.value; blqFiltrar(tab); }; }
-  sel.innerHTML = '<option value="">Todos</option>' + (grupos.length > 1 ? grupos.map(x => `<option ${PLG[tab] === x ? 'selected' : ''}>${esc(x)}</option>`).join('') : '');
-  let band = $('plgb-' + tab);
-  if (!band) { band = document.createElement('div'); band.id = 'plgb-' + tab; band.className = 'plgband'; sec.appendChild(band); }
-  const cuenta = x => [...filas.values()].filter(f => f.g.has(x)).length;
-  band.innerHTML = grupos.length > 1 ? grupos.map(x => `<button type="button" class="plk ${PLG[tab] === x ? 'on' : ''}" data-plg="${esc(x)}"><span class="plkt">${esc(x)}</span><b>${num(cuenta(x))}</b><small>${cuenta(x) === 1 ? '1 ' + esc(o.que.replace(/s$/, '')) : esc(o.que)}</small></button>`).join('') : '';
-  band.classList.toggle('hide', grupos.length < 2);
-  blqFiltrar(tab);
-}
-
-function blqFiltrar(tab) {
-  const v = PLG[tab] || '', sec = $('v-' + tab); if (!sec) return;
-  sec.querySelectorAll('.dgrid.blq-' + tab + ' > .dr').forEach(r => r.classList.toggle('plgfuera', !!v && !(r.dataset.grupos || '').split('|').includes(v)));
-  sec.querySelectorAll('[data-plg]').forEach(b => b.classList.toggle('on', b.dataset.plg === v));
-  const s = $('plg-' + tab); if (s && s.value !== v) s.value = v;
-  const cnt = sec.querySelector('.plcnt'); if (cnt) { cnt.dataset.h = ''; }
-}
-
-
-
-const colKey = () => 'dlc-cols-' + (PERFIL ? PERFIL.id : '');
-
 // Las columnas de Cuentas están en src/app/screens/accounts/list (v2.406.0); estos nombres los usan los campos personalizados y la lista
 const colsGuardar = c => window.delcos.screens.accounts.saveColumns(c);
 function colsConfig() { return window.delcos.screens.accounts.columnSettings(); }
 function abrirColumnas() { window.delcos.screens.accounts.openColumnsPanel(() => buscar(true)); }
-
-const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
-
-const TAMANOS = [20, 50, 100];
-
-
 
 // Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
 const ORD_SRV = {
@@ -41488,93 +42720,6 @@ const ORD_SRV = {
 };
 
 const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };
-
-/* ============================================================
-   v2.236.0 · Modelo de página «Lista» (variante A elegida por Eric): cabecera con la acción principal y «⋯»,
-   indicadores que filtran, barra con buscador, filtros rápidos, «Filtros», «Columnas» y el recuento, tabla con su pie
-   y tarjetas en el móvil. Al llegar no se tapa la pantalla: se ve el esqueleto con la misma forma. Primero en
-   Contactos (directorio) y Clientes; se monta encima de lo que ya pintan sus funciones, sin cambiar su lógica.
-   ============================================================ */
-const plIco = (...n) => svgIco(n.map(k => ICON_NOM[k] || ICON_EMOJI[k]).find(Boolean) || '');
-
-const PL_KPI = {};   // indicadores por pantalla: {t, epoca, datos}
-
-const PL = {
-  directorio: {
-    que: () => TT('medico', 'p', '', 'l', 'l'),
-    nuevo: () => $('nuevoBtn'),
-    textoNuevo: () => 'Añadir ' + TT('medico', 's', '', 'l', 'l'),
-    cuerpo: () => $('lista'), tabla: () => $('tabla'), pie: () => $('dirpag'), cuenta: () => $('cuenta'),
-    conDatos: el => !!el.querySelector('.trow, .vacio'),
-    rapidos: [['ftipo', 'Tipo'], ['fest', 'Estado'], ['fcom', ''], ['fprov', 'Provincia'], ['fmuni', 'Municipio'], ['fesp', 'Especialidad']],
-    q: () => F.q || '',
-    buscarQ: v => { F.q = v; buscar(true); },
-    buscaTxt: () => 'Buscar cuentas',
-    nKpis: 5,   // v2.304.0: el esqueleto con los mismos cinco huecos
-    // v2.296: un campo personalizado vaciado se quedaba como clave y contaba como filtro sin verse en el panel
-    activos: () => ['tipo', 'prov', 'muni', 'esp', 'est', 'rep', 'com'].filter(k => F[k]).length + ['urg', 'mios', 'sin'].filter(k => F[k]).length + Object.values(F.campos || {}).filter(filtroConValor).length,
-    quitar: () => {
-      Object.assign(F, { q: '', tipo: '', prov: '', muni: '', esp: '', est: '', urg: false, mios: false, sin: false, com: '', rep: '', campos: {} });
-      ['ftipo', 'fest', 'fprov', 'fmuni', 'fesp', 'fcom', 'frep', 'q'].forEach(id => { if ($(id)) $(id).value = ''; });
-      const t = $('tools'); if (t && t.classList.contains('abierto') && HERR_CTX === 'directorio') t.classList.remove('abierto');
-      cargarFiltros(); buscar(true);
-    },
-    filtros: () => { const b = $('dirtools'); if (b) b.click(); },
-    columnas: () => abrirColumnas(),
-    mapa: () => $('mapaBtn'),
-    mas: () => [['dircalidad', 'Calidad del dato'], ['cercaBtn', 'Cerca de mí']],
-    kpis: async () => {
-      const t = x => RPC_ORIG('buscar_cuentas', { q: null, lim: 1, desplaz: 0, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
-      // v2.304.0: profesionales y centros por separado (antes una sola cifra con el nombre de los profesionales que contaba también los centros)
-      const [pro, cen, urg, sin, mios] = await Promise.all([t({ f_tipo: 'Persona' }), t({ f_tipo: 'Centro' }), t({ f_urgentes: true }), t({ f_sin_visitar: true }), t({ f_mios: true })]);
-      return [{ k: 'Persona', t: TT('medico', 'p', '', 'l', 'C'), n: pro, s: 'en total' }, { k: 'Centro', t: 'Centros', n: cen, s: 'en total' }, { k: 'urg', t: 'Urgentes', n: urg, s: 'marcados como urgentes' },
-        { k: 'sin', t: 'Sin visitar nunca', n: sin, s: 'todavía sin ' + TT('visita', 'p', '', 'l', 'l') }, { k: 'mios', t: 'De mi cartera', n: mios, s: 'asignados a ti' }];
-    },
-    kpiOn: k => k === 'Persona' || k === 'Centro' ? F.tipo === k : !!F[k],
-    kpiPulsar: k => { if (k === 'Persona' || k === 'Centro') { F.tipo = F.tipo === k ? '' : k; if ($('ftipo')) $('ftipo').value = F.tipo; } else F[k] = !F[k]; buscar(true); },
-    card: null   // las tarjetas del directorio las pone rowHtml (src/app/screens/accounts/list/table.ts), con los datos de la ficha
-  },
-  pacientes: {
-    que: () => 'clientes',
-    nuevo: () => $('pacnuevo'),
-    cuerpo: () => $('paclista'), tabla: () => $('paclista'), pie: () => $('pacpag'), cuenta: () => $('paccuenta'),
-    conDatos: el => !!el.querySelector('.dgrid, .vacio'),
-    rapidos: [['pactipo', 'Tipo'], ['pacped', 'Pedidos'], ['pacmun', 'Población']],
-    q: () => PAC.q || '',
-    buscarQ: v => { const i = $('pacq'); if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); } else { PAC.q = v; PAC.pagina = 0; listaPacientes(); } },
-    activos: () => (PAC.tipo ? 1 : 0) + (PAC.pedidos ? 1 : 0) + (PAC.municipio ? 1 : 0) + (PAC.medico ? 1 : 0) + Object.keys(PAC.campos || {}).length,
-    filtros: () => { const b = document.querySelector('#v-pacientes .htbtn'); if (b) b.click(); },
-    columnas: () => { const b = document.querySelector('#v-pacientes .htbtn'); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
-    mapa: () => null,
-    mas: () => [],
-    kpis: async () => {
-      const t = x => RPC_ORIG('clientes_lista', { q: null, p_medico: null, lim: 1, desplaz: 0, p_tipo: null, p_pedidos: null, p_municipio: null, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
-      const [tot, con, sin, emp] = await Promise.all([t({}), t({ p_pedidos: 'con' }), t({ p_pedidos: 'sin' }), t({ p_tipo: 'Empresa' })]);
-      return [{ k: 'tot', t: 'Clientes', n: tot, s: 'en total' }, { k: 'con', t: 'Con pedidos', n: con, s: 'han comprado alguna vez' },
-        { k: 'sin', t: 'Sin pedidos', n: sin, s: 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: 'centros, tiendas y otras' }];
-    },
-    kpiOn: k => k === 'tot' ? !PAC.tipo && !PAC.pedidos : k === 'emp' ? PAC.tipo === 'Empresa' : PAC.pedidos === k,
-    kpiPulsar: k => {
-      if (k === 'tot') { PAC.tipo = ''; PAC.pedidos = ''; }
-      else if (k === 'emp') PAC.tipo = PAC.tipo === 'Empresa' ? '' : 'Empresa';
-      else PAC.pedidos = PAC.pedidos === k ? '' : k;
-      if ($('pactipo')) $('pactipo').value = PAC.tipo || ''; if ($('pacped')) $('pacped').value = PAC.pedidos || '';
-      PAC.pagina = 0; listaPacientes();
-    },
-    // Tarjeta del móvil a partir de la fila de la tabla: nombre, población y teléfono, y el tipo a la derecha
-    card: dr => { const c = dr.children, tx = i => c[i] ? c[i].textContent.trim() : '';
-      return { a: tx(0), b: [tx(5), tx(3)].filter(x => x && x !== '—').join(' · '), c: c[1] ? c[1].innerHTML : '' }; }
-  }
-};
-
-// Sin nombre propio, el filtro rápido usa la etiqueta de su campo (así no se escribe aquí el nombre de un rol)
-const plEtiqueta = id => { const l = document.querySelector(`label[for="${id}"]`); return l ? l.textContent.trim() : ''; };
-
-// Un observador por pantalla: cada vez que la pantalla se repinta, la plantilla se ajusta antes de que se vea
-const PL_OBS = {};
-
-// Buscador de la barra
-let PL_TQ;
 
 /* ============================================================
    v2.237.0 · Inicio y Agenda aparecen de una vez (aviso de Eric): al abrir la app la primera pantalla se enseñaba
@@ -41594,107 +42739,6 @@ const LISTA_PARA = {
 };
 
 /* ============================================================
-   v2.238.0 · Modelo «Lista» en Ventas: Pedidos, Oportunidades, Compras, Proveedores, Facturas, Productos, Servicios y Stock.
-   La plantilla pasa a ser genérica: cada pantalla dice sus filtros rápidos (selectores), su buscador si lo tiene, dónde está su
-   lista y su paginador. Los indicadores que filtran (Operativa de Pedidos) van en la banda; los totales (.kpis.vtot) pasan a una
-   franja de resumen compacta encima de la tabla. Sin buscador propio, el de la barra filtra la tabla («Contiene»).
-   ============================================================ */
-// Pantallas con varias secciones: la configuración depende de la sección abierta (null = sin plantilla, p. ej. Configuración de Facturación)
-const PL_SECC = {
-  ventas: () => typeof PEDSEC === 'undefined' ? null : ({ ventas: 'pedidos', llamadas: 'oport', compras: 'compras', proveedores: 'prov' })[PEDSEC] || null,
-  facturacion: () => typeof FSEC !== 'undefined' && FSEC === 'facturas' ? 'facturas' : null,
-  productos: () => typeof PSEC === 'undefined' ? null : ({ catalogo: 'prods', servicios: 'servs', stock: 'stock' })[PSEC] || 'prods'
-};
-
-// Base común de las listas en rejilla (.dgrid) con «Filtros y columnas»
-const plRejilla = o => Object.assign({
-  rejilla: true,
-  nuevo: () => document.querySelector(`#v-${o.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) || document.querySelector(`#v-${o.tab} .fab`),
-  cuerpo: () => o.lista ? $(o.lista) : null,
-  tabla: () => { const w = document.querySelector(`#v-${o.tab} .dgrid-wrap`); return (o.lista && $(o.lista)) || w; },
-  pie: () => o.pag ? $(o.pag) : null,
-  cuenta: () => null,
-  conDatos: el => !!el.querySelector('.dgrid, .vacio'),
-  rapidos: [],
-  q: () => { const i = o.buscador && $(o.buscador); if (i) return i.value || ''; const g = document.querySelector(`#v-${o.tab} .dgrid`); return g ? ((HT_ESTADO[htTipo(g)] || {}).texto || '') : ''; },
-  buscarQ: v => {
-    const i = o.buscador && $(o.buscador);
-    if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); return; }
-    const g = document.querySelector(`#v-${o.tab} .dgrid`); if (!g) return;
-    const t = htTipo(g); HT_ESTADO[t] = HT_ESTADO[t] || { texto: '', facetas: {} }; HT_ESTADO[t].texto = v; htAplicarFiltros(g);
-    const sec = $('v-' + o.tab); if (sec) { htContador(sec); }
-  },
-  activos: () => { const sec = $('v-' + o.tab); const n = sec ? sec.querySelectorAll('.htchips .htchip').length : 0; return n; },
-  filtros: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (b) b.click(); },
-  columnas: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
-  mapa: () => null,
-  // «⋯»: los botones secundarios de la cabecera (menos «Filtros y columnas»)
-  mas: () => [...document.querySelectorAll(`#v-${o.tab} > .saludo .acts > button.sec:not(.htbtn):not(.plmas)`)].filter(b => !b.classList.contains('hide') && !(o.extra || []).some(([id]) => id === b.id))
-    .map(b => { if (!b.id) b.id = 'plb' + Math.random().toString(36).slice(2, 8); return [b.id, (b.textContent.trim() || b.title || b.getAttribute('aria-label') || '').replace(/\s+/g, ' ')]; })
-    .concat((o.extra || []).filter(([id]) => $(id))),
-  kpis: null, kpiOn: () => false, kpiPulsar: () => {},
-  // Tarjeta del móvil: la primera celda, las dos siguientes con texto y la pastilla de estado (si la hay) a la derecha
-  card: dr => {
-    const c = [...dr.children].filter(x => !x.classList.contains('plcard')), tx = x => x ? x.textContent.trim().replace(/\s+/g, ' ') : '';
-    const est = c.find(x => x.querySelector('.pill, .est, .cirest, [class*="estado"]'));
-    const resto = c.slice(1).filter(x => x !== est).map(tx).filter(x => x && x !== '—').slice(0, 2);
-    return { a: tx(c[0]), b: resto.join(' · '), c: est ? est.innerHTML : '' };
-  }
-}, o);
-
-const plSel = id => id && /^[#.]/.test(id) ? document.querySelector(id) : $(id);
-
-const plEtiq = id => { const s = plSel(id); if (!s) return ''; const l = (s.id && document.querySelector(`label[for="${s.id}"]`)) || (s.closest('div') && s.closest('div').querySelector(':scope > label')); return l ? l.textContent.trim() : ''; };
-
-/* ============================================================
-   v2.239.0 · Modelo «Lista» en Eventos, Intervenciones, Concursos y Parque instalado: los bloques de tarjetas pasan a una tabla con
-   las mismas filas (cada fila conserva su botón y lo que abre). Los bloques (Próximos, Pasados, Reposiciones…) pasan a ser
-   indicadores que filtran y un filtro rápido; si una fila estaba en dos bloques, sale una vez y cuenta en los dos.
-   La acción principal sube a la cabecera; las demás, al «⋯».
-   ============================================================ */
-const PLG = {};   // bloque elegido por pantalla
-
-const plTxt = el => el ? el.textContent.trim().replace(/\s+/g, ' ') : '';
-
-const plSm = el => { const s = el && el.querySelector('.tx .sm, .sm'); return plTxt(s); };
-
-const BLQ = {
-  eventos: { attr: 'ev', que: 'eventos', grupo: 'Cuándo', def: 'Eventos',
-    cols: [['Evento', ''], ['Fecha', ''], ['Tipo', ''], ['Lugar', ''], ['Asistentes', 'num'], ['Gasto', 'num']],
-    celdas: b => {
-      const p = plSm(b).split(' · '), hora = p.find(x => /^\d{1,2}:\d{2}$/.test(x)), tipo = p.find(x => window.delcos.screens.events.EVENT_TYPES.includes(x));
-      const asis = p.find(x => /asistente/.test(x)) || '', lugar = p.filter((x, i) => i > 0 && x !== hora && x !== tipo && x !== asis).join(' · ');
-      return [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(p[0] + (hora ? ' · ' + hora : '')), esc(tipo || '—'), esc(lugar || '—'), esc((asis.match(/\d+/) || ['0'])[0]), esc(plTxt(b.querySelector('.evtot')) || '—')];
-    } },
-  cirugias: { attr: 'cir', que: 'intervenciones', grupo: 'Bloque', def: 'Intervenciones',
-    cols: [['Fecha', ''], ['Intervención', ''], ['Equipo y lugar', ''], ['Estado', '']],
-    celdas: b => [esc(plTxt(b.querySelector('.cirf b')) + (plTxt(b.querySelector('.cirf .sm')) ? ' · ' + plTxt(b.querySelector('.cirf .sm')) : '')),
-      `<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
-  concursos: { attr: 'con', que: 'concursos', grupo: 'Bloque', def: 'Concursos',
-    cols: [['Concurso', ''], ['Cliente, organismo y lotes', ''], ['Estado y plazos', '']],
-    celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
-  parque: { attr: 'eq', que: 'equipos', grupo: 'Bloque', def: 'Todos los equipos',
-    cols: [['Equipo', ''], ['Serie, centro y contrato', ''], ['Revisión y vencimientos', '']],
-    celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] }
-};
-
-// Las páginas (Eventos, Intervenciones…) crean su sección al entrar: el observador se engancha entonces (y otra vez si se vuelve a crear)
-const PL_OBSEL = {};
-
-/* ============================================================
-   v2.240.0 · Paneles sin saltos. Grabados con la red lenta, Inicio, Analítica, Agenda, Rutas y Calidad del dato ya llegan
-   de una vez; quedaban tres detalles:
-   - Las cifras que cuentan (mosaico de Inicio, indicadores de Inicio, Pedidos y Analítica) volvían a contar desde cero cada vez
-     que se volvía a la pantalla, y parecía que saltaban: ahora solo cuentan si la cifra ha cambiado desde la última vez.
-   - En el móvil, las cifras grandes de Analítica se partían en dos líneas.
-   - Oportunidades enseñaba los filtros de Pedidos («Mes actual» dos veces): los de la otra sección se apartan del panel.
-   ============================================================ */
-
-
-// Pedidos y Oportunidades comparten el panel de filtros: los de la otra sección se apartan (no salen en el panel ni como filtro activo)
-const PL_AJENOS = { pedidos: ['llper', 'llfres'], oport: ['pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], compras: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], prov: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'] };
-
-/* ============================================================
    v2.262.0 · Facturas y Oportunidades ordenadas de verdad (punto 3 del plan del 11/10/2026). Las dos listas traen ya todo el periodo
    elegido (la base filtra por fechas, búsqueda y estado) y se paginaban en la pantalla, pero al pulsar una columna solo se ordenaban
    las filas de la página que se veía. Ahora el orden se aplica a toda la lista del periodo antes de paginar y se vuelve a la primera
@@ -41706,234 +42750,19 @@ const ORD_MEM = {
   llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
 };
 
-
-// Directorio: cada fila lleva su tarjeta (oculta en el ordenador) con el nombre, centro · municipio y el estado
-
-function plKpisHtmlBase(tab) {
-  const c = PL[tab], k = PL_KPI[tab];
-  if (!k || !k.datos) return Array(c.nKpis || 4).fill('').map(() => `<div class="plk plcarga"><span class="plkt"><i class="plsk" style="width:46%"></i></span><b><i class="plsk plskv"></i></b><small><i class="plsk" style="width:70%"></i></small></div>`).join('');
-  return k.datos.map(d => `<button type="button" class="plk ${c.kpiOn(d.k) ? 'on' : ''}" data-plk="${d.k}"><span class="plkt">${esc(d.t)}</span><b data-pln="${d.n}">${num(d.n)}</b><small>${esc(d.s)}</small></button>`).join('');
-}
-
-function plKpisHtml(tab) { return plCfg(tab) && plCfg(tab).kpis ? plKpisHtmlBase(tab) : ''; }
-
-// Recuento: el de la pantalla; si no tiene, el paginador («1–20 de N») o las filas que se ven
-function plRecuentoBase(sec, c) {
-  const cu = c.cuenta && c.cuenta(); if (cu && /\d/.test(cu.textContent)) return cu.innerHTML.replace(/<span class="sm">[\s\S]*?<\/span>/, '').trim();
-  const pag = sec.querySelector('.pltab .pag > span, .pag > span'); const m = pag && pag.textContent.match(/de\s+([\d.]+)/);
-  const g = sec.querySelector('.dgrid'); if (!m && !g) return sec.querySelector('.pltab .vacio, .panel .vacio') ? `<b>0</b> ${esc(c.que())}` : '';
-  const n = m ? m[1] : num(g.querySelectorAll(':scope > .dr:not(.hide):not(.htfuera)').length);
-  return `<b>${n}</b> ${esc(c.que())}`;
-}
-
-// El recuento de estas tablas cuenta solo las filas que se ven (bloque y búsqueda)
-function plRecuentoBase2(sec, c) {
-  if (!c.bloques) return plRecuentoBase(sec, c);
-  const g = sec.querySelector('.dgrid'); if (!g) return sec.querySelector('#cfgcuerpo .vacio') ? `<b>0</b> ${esc(c.que())}` : '';
-  return `<b>${num(g.querySelectorAll(':scope > .dr:not(.htfuera):not(.plgfuera)').length)}</b> ${esc(c.que())}`;
-}
-
-// ---- «Cerca de mí»: el recuento de la barra lleva «Volver a la búsqueda» de verdad
-function plRecuento(sec, c) {
-  const r = plRecuentoBase2.call(this, sec, c);
-  return typeof r === 'string' ? r.replace(/\sid="cercacerrar"/g, ' data-cercavolver') : r;
-}
-
-function plSyncBase(tab) {
-  const sec = $('v-' + tab), c = plCfg(tab); if (!sec) return;
-  if (!c) {   // sección sin plantilla: fuera lo que se hubiera puesto
-    if (sec.classList.contains('plantilla')) { sec.classList.remove('plantilla'); sec.querySelectorAll(':scope > .plkpis, :scope > .pltool, .plmas').forEach(x => x.remove()); }
-    return;
-  }
-  const clave = PL_SECC[tab] ? PL_SECC[tab]() : tab;
-  sec.classList.add('plantilla'); sec.dataset.plsec = clave;
-  const sal = sec.querySelector(':scope > .saludo');
-  const acts = sal && sal.querySelector('.acts');
-  if (acts && !acts.querySelector('.plmas')) acts.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico plmas" aria-label="Más acciones" title="Más acciones">${plIco('ellipsis', '⋯')}</button>`);
-  const mas = acts && acts.querySelector('.plmas'); if (mas) { const no = !c.mas().length; if (mas.classList.contains('plno') !== no) mas.classList.toggle('plno', no); }
-  const nb = c.nuevo && c.nuevo();
-  if (nb && c.textoNuevo && !ES_MOVIL() && !nb.classList.contains('fab') && nb.textContent.trim() !== c.textoNuevo()) nb.innerHTML = plIco('plus') + ' ' + esc(c.textoNuevo());
-  if (nb && c.textoNuevo && ES_MOVIL() && !nb.dataset.plfab) { nb.dataset.plfab = '1'; nb.classList.add('fab'); nb.dataset.txt = c.textoNuevo(); nb.setAttribute('aria-label', c.textoNuevo()); nb.innerHTML = plIco('plus'); sec.appendChild(nb); }
-  // Móvil: un solo «+», el de la sección abierta (al cambiar de sección quedaba el de la anterior)
-  if (c.rejilla && ES_MOVIL()) {
-    const prim = [...sec.querySelectorAll(':scope > .saludo .acts > .btn:not(.sec):not(.htbtn), :scope > .fab')].find(b => /^\s*\+/.test(b.dataset.txt ? '+' : b.textContent) && (b.classList.contains('fab') ? b.dataset.plsec === clave || !b.dataset.plsec : true));
-    if (prim && !prim.classList.contains('fab')) { prim.dataset.txt = prim.textContent.replace('+', '').trim(); prim.classList.add('fab'); prim.setAttribute('aria-label', prim.dataset.txt); prim.innerHTML = plIco('plus'); sec.appendChild(prim); }
-    if (prim) { prim.dataset.plsec = clave; sec.querySelectorAll(':scope > .fab').forEach(f => { const fuera = f !== prim; if (f.classList.contains('plfuera') !== fuera) f.classList.toggle('plfuera', fuera); }); }
-  }
-  // Debajo de la cabecera (y de las pestañas, si las hay): la banda de indicadores y la barra
-  const ancla = sec.querySelector(':scope > .subnav') || sal;
-  let kp = sec.querySelector(':scope > .plkpis');
-  if (c.kpis || c.banda) {
-    if (!kp) { kp = document.createElement('div'); kp.className = 'plkpis' + (c.banda ? ' plbanda' : ''); if (c.kpis) kp.innerHTML = plKpisHtml(tab); }
-    if (!kp.isConnected) { if (ancla) ancla.after(kp); else sec.prepend(kp); }
-    if (c.kpis) { plCargarKpis(tab); kp.querySelectorAll('[data-plk]').forEach(b => { const on = c.kpiOn(b.dataset.plk); if (b.classList.contains('on') !== on) b.classList.toggle('on', on); }); }
-    if (c.banda) { const b = $(c.banda); if (b && b.parentElement !== kp) kp.appendChild(b); }
-  } else if (kp) kp.remove();
-  let tl = sec.querySelector(':scope > .pltool');
-  if (tl && tl.dataset.plsec !== clave) { tl.remove(); tl = null; }
-  if (!tl) { tl = document.createElement('div'); tl.className = 'pltool'; tl.dataset.plsec = clave; tl.innerHTML = plToolHtml(tab); }
-  if (!tl.isConnected) { const ref = sec.querySelector(':scope > .plkpis') || ancla; if (ref) ref.after(tl); else sec.prepend(tl); }
-  const qi = tl.querySelector('.plqi'); if (qi && document.activeElement !== qi && qi.value !== c.q()) qi.value = c.q();
-  tl.querySelectorAll('[data-plr]').forEach(b => {
-    const s = plSel(b.dataset.plr), w = s && s.closest('#fcomwrap');
-    const ver = !!s && !(w && w.classList.contains('hide')) && s.options.length > 1;
-    if (b.classList.contains('hide') === ver) b.classList.toggle('hide', !ver); if (!ver) return;
-    if (!b.dataset.plt) b.dataset.plt = plEtiq(b.dataset.plr);
-    const on = s.selectedIndex > 0 && !(b.dataset.plt === 'Periodo');
-    const txt = s.selectedIndex > 0 || b.dataset.plt === 'Periodo' ? `${b.dataset.plt}: ${s.options[s.selectedIndex].text.replace(/\s*\(\d[\d.]*\)\s*$/, '')}` : b.dataset.plt;
-    if (b.textContent !== txt) b.textContent = txt; if (b.classList.contains('on') !== on) b.classList.toggle('on', on);
-  });
-  const n = c.activos(), pn = tl.querySelector('.pln');
-  if (pn) { const v = String(n || ''); if (pn.textContent !== v) pn.textContent = v; if (pn.classList.contains('hide') !== !n) pn.classList.toggle('hide', !n); }
-  const pq = tl.querySelector('.plquitar'); if (pq && pq.classList.contains('hide') !== !n) pq.classList.toggle('hide', !n);
-  const cnt = tl.querySelector('.plcnt'), h = plRecuento(sec, c);
-  if (cnt && h && cnt.dataset.h !== h) { cnt.dataset.h = h; cnt.innerHTML = h; }
-  // Tabla y pie en una tarjeta; los totales, en la franja de resumen encima
-  const tb = c.tabla(), pie = c.pie();
-  if (tb && tb.parentElement && !tb.parentElement.classList.contains('pltab')) { const w = document.createElement('div'); w.className = 'pltab'; tb.before(w); w.appendChild(tb); if (pie) w.appendChild(pie); }
-  else if (tb && pie && pie.parentElement !== tb.parentElement) tb.parentElement.appendChild(pie);
-  const tab2 = tb && tb.closest('.pltab');
-  if (c.rejilla && tab2) {
-    sec.querySelectorAll('.kpis.vtot:not(.plres)').forEach(k => { if (k.closest('#v-' + tab) && !k.closest('.plkpis')) k.classList.add('plres'); });
-    if (c.despues) { const d = $(c.despues); if (d && tab2.nextElementSibling !== d) tab2.after(d); }
-  }
-  const cuerpo = c.cuerpo();
-  if (cuerpo) {
-    if (cuerpo.querySelector(':scope > .cargador')) {
-      if (cuerpo.__plUlt) { cuerpo.innerHTML = cuerpo.__plUlt; cuerpo.classList.add('platenua'); }
-      else if (tab === 'directorio') { cuerpo.innerHTML = plEsqueleto(tab, false); if (!$('thead').children.length) $('thead').innerHTML = plEsqueleto(tab, true).match(/<div class="plskh">[\s\S]*?<\/div>/)[0]; }
-      else cuerpo.innerHTML = plEsqueleto(tab, true);
-    } else if (c.conDatos(cuerpo)) { cuerpo.classList.remove('platenua'); cuerpo.__plUlt = cuerpo.innerHTML; }
-  }
-  const vc = tab === 'pacientes' && $('vcuerpo');
-  if (vc && !vc.children.length) vc.innerHTML = `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`;
-  // Primera llegada de una pantalla en rejilla: mientras no hay tabla, su esqueleto debajo de la barra
-  if (c.rejilla && !sec.querySelector('.dgrid, .pltab, .vacio') && !sec.querySelector(':scope > .plskpanel')) tl.insertAdjacentHTML('afterend', `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`);
-  if (sec.querySelector('.dgrid, .vacio')) sec.querySelectorAll(':scope > .plskpanel').forEach(x => x.remove());
-  if (c.card) sec.querySelectorAll('.dgrid > .dr:not([data-plc])').forEach(dr => {
-    dr.dataset.plc = '1'; const x = c.card(dr);
-    dr.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${esc(x.a)}</b><span class="plc2">${esc(x.b)}</span><span class="plc3">${x.c}</span>${x.d ? `<span class="plc4">${esc(x.d)}</span>` : ''}</span>`);   // v2.316.0: tercera línea
-  });
-}
-
-// La barra y los clics usan la configuración de la sección abierta
-function plToolHtml(tab) {
-  const c = plCfg(tab);
-  return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}" aria-label="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}"></label>
-    <div class="plrap">${c.rapidos.map(([id, t]) => { t = t || plEtiq(id); return `<button type="button" class="plchip" data-plr="${esc(id)}" data-plt="${esc(t)}">${esc(t)}</button>`; }).join('')}</div>
-    <button type="button" class="plbtn chico plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
-    ${c.quitar ? `<button type="button" class="btn sec chico dang plquitar hide">${svgIco(ICON_NOM.x)} Eliminar filtros</button>` : ''}
-    <button type="button" class="plbtn chico plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
-    ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
-    <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
-}
-
-// Antes de ajustar la plantilla, los bloques se convierten en tabla
-function plSyncBase2(tab) { if (BLQ[tab] && plCfg(tab)) blqConvertir(tab); return plSyncBase(tab); }
-
-// Las pestañas de las páginas (.pagtabs) van justo debajo de la cabecera: la banda y la barra, después de ellas
-function plSyncBase3(tab) {
-  const r = plSyncBase2(tab), sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
-  const tabs = sec.querySelector(':scope > .pagtabs, :scope > .subnav'), kp = sec.querySelector(':scope > .plkpis'), tl = sec.querySelector(':scope > .pltool');
-  if (tabs && tl && (tabs.compareDocumentPosition(tl) & 2)) { const ref = kp || tl; ref.before(tabs); }
-  return r;
-}
-
-function plSyncBase4(tab) {
-  if (tab === 'ventas') { const sec = $('v-ventas'), k = PL_SECC.ventas(); if (sec && k) plAjenos(sec, k); }
-  return plSyncBase3(tab);
-}
-
-// ---- La barra tiene sus filtros rápidos desde el primer momento: mientras su desplegable no existe (Clientes lo crea al llegar
-// los datos), el filtro se ve con su nombre y en espera, en vez de aparecer después empujando el buscador
-function plSyncBase5(tab, ...x) {
-  const r = plSyncBase4.call(this, tab, ...x);
-  const sec = $('v-' + tab), c = plCfg(tab); if (!sec || !c || !c.rapidos) return r;
-  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
-    if (plSel(b.dataset.plr)) { if (b.classList.contains('plespera')) b.classList.remove('plespera'); return; }
-    const nom = (c.rapidos.find(x => x[0] === b.dataset.plr) || [])[1]; if (!nom) return;
-    if (b.classList.contains('hide')) b.classList.remove('hide');
-    if (!b.classList.contains('plespera')) b.classList.add('plespera');
-    if (b.textContent !== nom) b.textContent = nom;
-  });
-  return r;
-}
-
-// El filtro de bloques no desaparece: con un solo bloque se queda desactivado
-function plSyncBase6(tab, ...x) {
-  const r = plSyncBase5.call(this, tab, ...x);
-  if (!BLQ[tab]) return r;
-  const b = document.querySelector(`#v-${tab} > .pltool [data-plr="#plg-${tab}"]`), s = $('plg-' + tab);
-  if (b && s) {
-    const nada = s.options.length < 2;
-    if (nada && b.classList.contains('hide')) b.classList.remove('hide');
-    if (b.classList.contains('plnada') !== nada) b.classList.toggle('plnada', nada);
-    if (nada && b.textContent !== BLQ[tab].grupo) b.textContent = BLQ[tab].grupo;
-  }
-  return r;
-}
-
-/* ============================================================
-   v2.257.0 · Filtro por profesional en Clientes y uso de TomTom en el Panel delcos (pendientes repasados con Eric, 11/10/2026).
-   - Clientes: el filtro por profesional (al llegar desde su ficha) se aplicaba pero no se veía en la pantalla: ahora es un filtro
-     rápido marcado en la barra, con su «✕» para quitarlo. «Columnas» abría y cerraba el panel según estuviera: ahora siempre lo abre.
-   - Panel delcos → Estado de la plataforma: cuántas consultas de rutas (TomTom) se han hecho hoy frente al tope de todas las empresas,
-     en el mes, y por empresa frente a su cupo (rutas_uso_resumen, SQL 138).
-   ============================================================ */
-function plSyncBase7(tab, ...x) {
-  const r = plSyncBase6.call(this, tab, ...x);
-  if (tab !== 'pacientes') return r;
-  const rap = document.querySelector('#v-pacientes > .pltool .plrap'); if (!rap) return r;
-  let b = rap.querySelector('[data-plmed]');
-  if (!PAC.medico) { if (b) b.remove(); return r; }
-  const txt = `${TT('medico', 's', '', 'l', 'C')}: ${PAC.medicoNombre || '—'}`;
-  if (!b) { rap.insertAdjacentHTML('afterbegin', '<button type="button" class="plchip on plmed" data-plmed title="Quitar este filtro"><span></span><i aria-hidden="true">✕</i></button>'); b = rap.querySelector('[data-plmed]'); }
-  const s = b.querySelector('span'); if (s.textContent !== txt) s.textContent = txt;
-  return r;
-}
-
-// ---- Filtros rápidos que no desaparecen (aviso intermitente de la batería: en Contactos, en el móvil, un filtro aparecía tarde
-// cuando sus opciones llegaban después de entrar). Un filtro rápido cuyo desplegable aún no tiene opciones se ve desactivado en su
-// sitio, en vez de esconderse y aparecer luego empujando el buscador.
-function plSync(tab, ...x) {
-  const r = plSyncBase7.call(this, tab, ...x);
-  const sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
-  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
-    const s = plSel(b.dataset.plr); if (!s || !s.options) return;
-    const w = s.closest('#fcomwrap'); if (w && w.classList.contains('hide')) return;
-    const nada = s.options.length <= 1;
-    if (nada) {
-      if (b.classList.contains('hide')) b.classList.remove('hide');
-      if (!b.classList.contains('plnada')) b.classList.add('plnada');
-      const t = b.dataset.plt || plEtiq(b.dataset.plr); if (t && b.textContent !== t) b.textContent = t;
-    } else if (b.classList.contains('plnada') && !(BLQ[tab] && b.dataset.plr === '#plg-' + tab)) b.classList.remove('plnada');
-  });
-  return r;
-}
-
-function plCargarKpis(tab) {
-  if (tab !== TAB) return;
-  const c = plCfg(tab); if (!c || !c.kpis) return;
-  const ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0, f = c.kpiFirma ? c.kpiFirma() : '';
-  let k = PL_KPI[tab];
-  if (k && k.pend) { if (f !== k.firma) k.otra = true; return; }
-  if (k && k.datos && k.epoca === ep && k.firma === f && Date.now() - k.t < 60000) return;
-  PL_KPI[tab] = k = Object.assign(k || {}, { pend: true, firma: f, otra: false });
-  c.kpis().then(datos => {
-    const nuevo = !k.datos;
-    Object.assign(k, { datos, t: Date.now(), epoca: ep, pend: false });
-    const box = document.querySelector(`#v-${tab} .plkpis`);
-    if (box) {
-      box.innerHTML = plKpisHtml(tab);
-      if (nuevo && !matchMedia('(prefers-reduced-motion: reduce)').matches) box.querySelectorAll('b[data-pln]').forEach(b => {
-        const n = +b.dataset.pln, t0 = performance.now(); if (!n) return;
-        const paso = () => { const p = Math.min(1, (performance.now() - t0) / 700); b.textContent = num(Math.round(n * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(paso); };
-        paso();
-      });
-    }
-    if (k.otra) { k.otra = false; plCargarKpis(tab); }
-  }, () => { k.pend = false; });
-}
+// El motor de la barra de listas está en src/app/components/list-bar (v2.421.0). PL, PL_SECC y BLQ son sus mismos objetos (las pruebas
+// y el código antiguo leen y cambian sus miembros); estos nombres se quedan: la navegación, el menú, los puentes y las pruebas los usan.
+const PL = window.delcos.components.listBar.configs;
+const PL_SECC = window.delcos.components.listBar.sections;
+const BLQ = window.delcos.components.listBar.blocks;
+const TAMANOS = window.delcos.components.listBar.PAGE_SIZES;
+function plSync(tab) { window.delcos.components.listBar.syncListBar(tab); }
+function plCfg(tab) { return window.delcos.components.listBar.configOf(tab); }
+function plVigilar(tab) { window.delcos.components.listBar.watch(tab); }
+function plIco(...n) { return window.delcos.components.listBar.icon(...n); }
+// Las pruebas cambian tamPagina para paginar de 5 en 5: las listas la leen siempre por este nombre
+function tamPagina() { return window.delcos.components.listBar.storedPageSize(); }
+function fijarTam(n) { window.delcos.components.listBar.savePageSize(n); }
 
 // Las piezas comunes de las listas están en src/app/components/list (v2.416.0). Estos nombres se quedan: el motor de la barra
 // de listas (PL, plSync), el panel «Filtros y columnas», otras pantallas antiguas y las pruebas los usan.
@@ -51249,51 +52078,11 @@ function arbolCfgUnicoBase2(...a) {
 CFG_CLAVES['o.textos'] = 'textos nombres vocabulario menú menu estados resultados roles campos renombrar palabras';
 
 
-
-
-
-
-// v2.242.0: aquí iba la primera versión de plToolHtml (se redefine entera más abajo)
-
-// Monta (o vuelve a ajustar) la plantilla sobre lo que haya pintado la pantalla. Se puede llamar las veces que haga falta.
-// v2.242.0: aquí iba la primera versión de plSync (se redefine entera más abajo)
-
-Object.keys(PL).forEach(plObservar);
-
+// v2.236.0 · Modelo de página «Lista»: la barra está en src/app/components/list-bar (v2.421.0). Aquí, en su sitio del orden de
+// carga, se observan Cuentas y Clientes y se ponen sus escuchas.
+window.delcos.components.listBar.startScreens();
 
 const normalizar = typeof quitarAcentos === 'function' ? (s => quitarAcentos(String(s || '').toLowerCase())) : (s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''));
-document.addEventListener('click', e => {
-  if (!e.target.closest('.plpop') && !e.target.closest('.plchip, .plmas')) plCerrarPop();
-  const sec = e.target.closest('main > section.plantilla'); if (!sec) return;
-  const tab = sec.id.slice(2), c = PL[tab]; if (!c) return;
-  const k = e.target.closest('[data-plk]'); if (k) { c.kpiPulsar(k.dataset.plk); plSync(tab); return; }
-  const r = e.target.closest('[data-plr]');
-  if (r) {
-    if (document.querySelector('.plpop') && r.classList.contains('abierto')) { plCerrarPop(); r.classList.remove('abierto'); return; }
-    sec.querySelectorAll('.plchip.abierto').forEach(x => x.classList.remove('abierto'));
-    const s = $(r.dataset.plr); if (!s) return;
-    r.classList.add('abierto');
-    plPop(r, [...s.options].map((o, i) => ({ t: i === 0 ? (o.text || 'Todos') : o.text, on: s.selectedIndex === i, fn: () => { r.classList.remove('abierto'); s.selectedIndex = i; s.dispatchEvent(new Event('change', { bubbles: true })); } })));
-    return;
-  }
-  if (e.target.closest('.plmas')) {
-    const items = c.mas().filter(([id]) => $(id) && !$(id).classList.contains('hide')).map(([id, t]) => ({ t, fn: () => $(id).click() }));
-    if (items.length) plPop(e.target.closest('.plmas'), items); return;
-  }
-  if (e.target.closest('.plfil')) { c.filtros(); return; }
-  if (e.target.closest('.plquitar') && c.quitar) { c.quitar(); plSync(tab); return; }
-  if (e.target.closest('.plcol')) { c.columnas(); return; }
-  if (e.target.closest('.plmapa')) { const m = c.mapa(); if (m) m.click(); setTimeout(() => plSync(tab), 50); return; }
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.plpop')) plCerrarPop(); });
-addEventListener('scroll', () => { if (document.querySelector('.plpop')) plCerrarPop(); }, { passive: true });
-document.addEventListener('input', e => {
-  const i = e.target.closest('main > section.plantilla .plqi'); if (!i) return;
-  const tab = i.closest('section').id.slice(2);
-  clearTimeout(PL_TQ); PL_TQ = setTimeout(() => PL[tab].buscarQ(i.value.trim()), 300);
-});
-
-
 // Al abrir la app, la primera pantalla también espera a estar completa (antes se enseñaba sin pasar por el revelado)
 (() => {
   const app = $('app'); if (!app) return;
@@ -51311,78 +52100,12 @@ LISTA_PARA.inicio = s => true;   // con el esqueleto del mosaico se enseña al m
 
 
 
-Object.assign(PL, {
-  ventas: {
-    pedidos: plRejilla({ tab: 'ventas', que: () => 'pedidos', lista: 'pedlista', pag: 'pedpag', buscador: 'pq', banda: 'operativa', extra: [['opcfg', 'Elegir qué avisos ver']],
-      rapidos: [['#pper select', 'Periodo'], ['#pestado', ''], ['#pcanal', ''], ['#porigf', ''], ['#prepf', '']] }),
-    oport: plRejilla({ tab: 'ventas', que: () => 'oportunidades', lista: 'lllista', pag: 'llpag', buscador: 'llq', despues: 'llres2',
-      rapidos: [['#llper select', 'Periodo'], ['#llfres', '']] }),
-    compras: plRejilla({ tab: 'ventas', que: () => 'pedidos de compra' }),
-    prov: plRejilla({ tab: 'ventas', que: () => 'proveedores' })
-  },
-  facturacion: { facturas: plRejilla({ tab: 'facturacion', que: () => 'facturas', lista: 'flista', pag: 'fpag', buscador: 'fq', rapidos: [['#fper select', 'Periodo'], ['#fcob', '']] }) },
-  productos: {
-    prods: plRejilla({ tab: 'productos', que: () => 'productos' }),
-    servs: plRejilla({ tab: 'productos', que: () => 'servicios' }),
-    stock: plRejilla({ tab: 'productos', que: () => 'productos' })
-  }
-});
-
-
-['ventas', 'facturacion', 'productos'].forEach(plObservar);
-// Clics de la barra: con la configuración de la sección abierta (la v2.236 leía PL[tab] directamente)
-document.addEventListener('click', e => {
-  const sec = e.target.closest('main > section.plantilla'); if (!sec || !PL_SECC[sec.id.slice(2)]) return;
-  const tab = sec.id.slice(2), c = plCfg(tab); if (!c) return;
-  const r = e.target.closest('[data-plr]');
-  if (r) {
-    e.stopImmediatePropagation();
-    if (document.querySelector('.plpop') && r.classList.contains('abierto')) { plCerrarPop(); r.classList.remove('abierto'); return; }
-    sec.querySelectorAll('.plchip.abierto').forEach(x => x.classList.remove('abierto'));
-    const s = plSel(r.dataset.plr); if (!s) return;
-    r.classList.add('abierto');
-    plPop(r, [...s.options].map((o, i) => ({ t: o.text, on: s.selectedIndex === i, fn: () => {
-      r.classList.remove('abierto'); s.selectedIndex = i; s.dispatchEvent(new Event('change', { bubbles: true }));
-      // Periodo personalizado: las fechas están en el panel de filtros
-      if (/pers/i.test(o.value) || /personaliz/i.test(o.text)) setTimeout(() => c.filtros(), 60);
-    } })));
-    return;
-  }
-  if (e.target.closest('.plmas')) {
-    e.stopImmediatePropagation();
-    const items = c.mas().filter(([id]) => $(id) && !$(id).classList.contains('hide')).map(([id, t]) => ({ t, fn: () => $(id).click() }));
-    if (items.length) plPop(e.target.closest('.plmas'), items); return;
-  }
-  if (e.target.closest('.plfil')) { e.stopImmediatePropagation(); c.filtros(); return; }
-  if (e.target.closest('.plcol')) { e.stopImmediatePropagation(); c.columnas(); return; }
-}, true);
-document.addEventListener('input', e => {
-  const i = e.target.closest('main > section.plantilla .plqi'); if (!i) return;
-  const tab = i.closest('section').id.slice(2); if (!PL_SECC[tab]) return;
-  e.stopImmediatePropagation();
-  clearTimeout(PL_TQ); PL_TQ = setTimeout(() => { const c = plCfg(tab); if (c) c.buscarQ(i.value.trim()); }, 300);
-}, true);
-
-
-// Configuración de cada una (Eventos solo en su pestaña «Eventos», no en Informe de gastos)
-Object.assign(PL_SECC, {
-  eventos: () => { const on = document.querySelector('#v-eventos .pagtabs button.on'); return !on || on === document.querySelector('#v-eventos .pagtabs button') ? 'lista' : null; },
-  cirugias: () => 'lista', concursos: () => 'lista', parque: () => 'lista'
-});
-Object.keys(BLQ).forEach(tab => {
-  const o = BLQ[tab];
-  PL[tab] = { lista: plRejilla({ tab, que: () => o.que, bloques: o, rapidos: [['#plg-' + tab, o.grupo]], banda: 'plgb-' + tab,
-    activos: () => { const sec = $('v-' + tab); return (PLG[tab] ? 1 : 0) + (sec ? sec.querySelectorAll('.htchips .htchip').length : 0); } }) };
-});
-
-document.addEventListener('click', e => {
-  const k = e.target.closest('main > section.plantilla [data-plg]'); if (!k) return;
-  const tab = k.closest('section').id.slice(2); PLG[tab] = PLG[tab] === k.dataset.plg ? '' : k.dataset.plg; blqFiltrar(tab); plSync(tab);
-});
-Object.keys(BLQ).forEach(plObservar);
-Object.keys(PL).forEach(plVigilar);
-
-
+// v2.238.0 · Modelo «Lista» en Ventas, Facturas y Productos: sus configuraciones y escuchas están en src/app/components/list-bar
+// (v2.421.0). Aquí, en su sitio del orden de carga (antes que las escuchas generales), se observan y se ponen sus escuchas.
+window.delcos.components.listBar.startSections();
+// v2.239.0 · Modelo «Lista» en Eventos, Intervenciones, Concursos y Parque instalado: en src/app/components/list-bar (v2.421.0).
+// Aquí, en su sitio del orden de carga, se observan, se pone la escucha de los bloques y se vigilan todas las pantallas de lista.
+window.delcos.components.listBar.startBlocks();
 
 
 
@@ -51480,8 +52203,7 @@ db.rpc = (orig => function (fn, p, ...x) {
   if (DB_PRE.size) { const k = fn + JSON.stringify(p || {}); if (DB_PRE.has(k)) { const r = DB_PRE.get(k); DB_PRE.delete(k); return Promise.resolve(r); } }
   return orig.call(this, fn, p, ...x);
 })(db.rpc);
-// El buscador de la barra busca directamente (antes pasaba por el campo oculto y esperaba dos veces)
-PL.pacientes.buscarQ = v => { const i = $('pacq'); if (i) i.value = v; PAC.q = (v || '').trim(); PAC.pagina = 0; listaPacientes(); };
+// El buscador de la barra busca directamente: está en la configuración de Clientes (src/app/components/list-bar, v2.421.0)
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-cercavolver]'); if (!b) return;
@@ -51539,13 +52261,7 @@ document.addEventListener('click', e => {
   const m = $('pacmedx'); if (m && m.parentElement && m.parentElement.parentElement) m.parentElement.parentElement.remove();
   listaPacientes();
 }, true);
-PL.pacientes.columnas = () => {
-  const abrir = () => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); };
-  const t = $('tools');
-  if (t && t.classList.contains('abierto') && t.querySelector('.t2abrir')) return abrir();
-  const b = document.querySelector('#v-pacientes .htbtn'); if (!b) return;
-  b.click(); setTimeout(abrir, 80);
-};
+// «Columnas» siempre abre el panel: está en la configuración de Clientes (src/app/components/list-bar, v2.421.0)
 
 
 

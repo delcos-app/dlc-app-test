@@ -5,13 +5,7 @@ document.addEventListener('click', e => {
   const m = $('pacmedx'); if (m && m.parentElement && m.parentElement.parentElement) m.parentElement.parentElement.remove();
   listaPacientes();
 }, true);
-PL.pacientes.columnas = () => {
-  const abrir = () => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); };
-  const t = $('tools');
-  if (t && t.classList.contains('abierto') && t.querySelector('.t2abrir')) return abrir();
-  const b = document.querySelector('#v-pacientes .htbtn'); if (!b) return;
-  b.click(); setTimeout(abrir, 80);
-};
+// «Columnas» siempre abre el panel: está en la configuración de Clientes (src/app/components/list-bar, v2.421.0)
 
 
 
