@@ -245,11 +245,8 @@ declare function guardarAvisoRevisita(value: { on: boolean; dias: number }): Pro
 declare let FICHA_ID: string | null;
 declare let FICHA_PAC: unknown;
 declare function puedeEditarTipo(type: string | null | undefined): boolean;
-declare function pintarFichaBase(id: string): Promise<void>;
 declare function fichaComercialYPacientes(id: string): Promise<void>;
-declare function fichaAvisoHorario(id: string): Promise<void>;
 declare function fichaMaterialVisitas(id: string): Promise<void>;
-declare function fichaUnidades(id: string): Promise<void>;
 declare function fichaClientes(id: string): Promise<void>;
 declare function fichaAcceso(id: string): Promise<void>;
 declare function bloqueCampos(table: string, id: string, container: Element | null): Promise<void>;
@@ -271,3 +268,21 @@ declare function conPill(state: string): string;
 declare function verEquipo(id: string): Promise<void>;
 declare function editarEquipo(equipment: null, account: { id: string; nombre: string }): Promise<void>;
 declare function eqRevPill(equipment: object): string;
+interface CardAccount { id: string; nombre: string; tipo?: string | null; codigo?: string | null; especialidad?: string | null; area?: string | null; urgente?: boolean | null; sin_reporting?: boolean | null; estado_comercial?: string | null; email?: string | null }
+interface CardConsultation extends Consultation { direccion?: string | null; cp?: string | null; planta?: string | null; sala?: string | null; indicaciones?: string | null; telefono?: string | null; dias?: Record<string, string | null> | null; lat?: number | null; lon?: number | null }
+interface CardVisit { id: string; fecha: string; modo?: string | null; resultados?: string[] | null; muestras?: number | null; nota?: string | null; proxima_fecha?: string | null; proxima_accion?: string | null }
+interface CardData { medico?: CardAccount; consultas?: CardConsultation[]; visitas?: CardVisit[]; comerciales?: string[] }
+interface AccountUnits { hoy: number; semana: number; mes: number; trimestre: number; anio: number; total: number; pautas: number; ultima: string }
+declare let UDS_SERIE: string;
+declare const UDS_SERIES: [string, string][];
+declare function fichaVisitaHTML(account: CardAccount, consultations: CardConsultation[], visits: CardVisit[]): string;
+declare function consultaDeLaVisita(consultations: CardConsultation[]): CardConsultation | undefined;
+declare function estados(): string[];
+declare function puedeRegistrar(): boolean;
+declare function puedeEditar(): boolean;
+declare function navAttr(point: [number, number]): string;
+declare function editarVisita(visit: CardVisit, accountId: string): Promise<void>;
+declare function sparkUnidades(units: AccountUnits, series: string): string;
+declare function leyendaUnidades(series: string): string;
+declare function faltaHorario(id: string): Promise<boolean>;
+declare function abrirEditor(id: string): Promise<void>;

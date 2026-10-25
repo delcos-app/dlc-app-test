@@ -467,6 +467,43 @@
 
   // src/app/i18n/es/accounts.ts
   var accounts = {
+    base: {
+      noConnection: "Sin conexión y sin copia guardada de esta ficha.",
+      cachedNotice: "Sin conexión · ficha guardada en este dispositivo",
+      urgent: "Urgente",
+      noReporting: "Sin reporting",
+      noReportingTitle: "Solo {visit} presencial: sin informes ni feedback",
+      code: " · código {code}",
+      record: "Registrar {visit}",
+      edit: "Editar ficha",
+      markUrgent: "Marcar urgente",
+      unmarkUrgent: "Quitar urgente",
+      addToAgenda: "+ Añadir a mi agenda",
+      salesRep: "Comercial: {names}",
+      noAddress: "Sin dirección",
+      phone: "Teléfono: {phone}",
+      directions: "Cómo llegar",
+      byPhone: " · Por teléfono",
+      byVideo: " · Por videollamada",
+      noResult: "Sin resultado",
+      samples: " · {count} muestras",
+      next: "Próxima: {date} · {action}",
+      editVisit: "Editar",
+      noVisits: "Todavía no hay {visits}.",
+      salesTitle: "Ventas y {patients}",
+      timetableMissing: "⚠ <b>Falta su horario de atención.</b> Sin él, las rutas y el planificador no saben qué días y horas atiende.",
+      completeTimetable: "Completar horario",
+      unitsTitle: "Unidades atribuidas",
+      unitsToday: "Hoy",
+      unitsWeek: "Semana",
+      unitsMonth: "Mes",
+      unitsQuarter: "Trimestre",
+      unitsYear: "Año",
+      unitsTotal: "Total",
+      evolution: "Evolución",
+      unitsSummary: "{count} {prescriptions} · última el {date} · ",
+      noPrescriptions: "Todavía sin {prescriptions} registradas."
+    },
     card: {
       stateTitle: "Estado",
       photo: "1 foto",
@@ -1327,6 +1364,9 @@
   };
   var accountCardLegacy = {
     shownId: () => FICHA_ID,
+    setShownId: (id) => {
+      FICHA_ID = id;
+    },
     forgetPatients: () => {
       FICHA_PAC = null;
     },
@@ -1336,7 +1376,7 @@
     planIncludes: (section) => planIncluyeSeccion(section),
     canEditType: (type) => puedeEditarTipo(type),
     /** The base sections, in their legacy order (each one paints a block of the card). */
-    base: { paint: pintarFichaBase, salesAndPatients: fichaComercialYPacientes, timetableNotice: fichaAvisoHorario, materialAndVisits: fichaMaterialVisitas, units: fichaUnidades, clients: fichaClientes, access: fichaAcceso },
+    base: { salesAndPatients: fichaComercialYPacientes, materialAndVisits: fichaMaterialVisitas, clients: fichaClientes, access: fichaAcceso },
     customFields: (id, container) => bloqueCampos("cuentas", id, container),
     history: (id) => fichaHistorial(id),
     portal: (id) => fichaPortal(id),
@@ -1373,110 +1413,32 @@
     },
     equipmentPill: (equipment2) => eqRevPill(equipment2)
   };
-
-  // src/app/services/format.ts
-  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value2) {
-    return String(value2 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
-  }
-  function formatNumber(value2) {
-    return Number(value2 ?? 0).toLocaleString("es");
-  }
-  function formatEuros(value2) {
-    return `${Math.round(Number(value2) || 0).toLocaleString("es-ES")} €`;
-  }
-  function looseText(text) {
-    return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-  }
-
-  // src/app/screens/accounts/card/card-tools.ts
-  var stillShown = (id) => accountCardLegacy.shownId() === id;
-  var fieldsPlace = () => document.getElementById("fzcampos");
-  function addBeforeFields(id, blockId, html) {
-    const place = fieldsPlace();
-    if (!place || document.getElementById(blockId) || !stillShown(id)) return null;
-    place.insertAdjacentHTML("beforebegin", html);
-    return document.getElementById(blockId);
-  }
-  function closeCardAnd(open) {
-    document.getElementById("ficha")?.close();
-    open();
-  }
-  function onEach(block, key, action) {
-    block.querySelectorAll(`[data-${key}]`).forEach((button) => {
-      button.onclick = () => {
-        action(button.getAttribute(`data-${key}`) ?? "");
-      };
-    });
-  }
-  async function accountKind(id) {
-    const { data } = await legacyDb().from("cuentas").select("tipo, nombre, centro_id, archivado_en").eq("id", id).maybeSingle();
-    return data;
-  }
-  var historyRows = () => [...document.querySelectorAll("#fbody [data-vrow]")];
-
-  // src/app/screens/accounts/card/sections-account.ts
-  var CENTRE = "Centro";
-  var DELETE_LEVEL = 3;
-  async function cycle(id) {
-    if (permissions.isProfessionalPortal() || document.getElementById("fciclo") || !stillShown(id)) return;
-    const state = [...document.querySelectorAll("#fbody .blk > h3")].find((heading) => heading.textContent?.trim() === t("accounts.card.stateTitle"));
-    if (!state?.parentElement) return;
-    state.parentElement.insertAdjacentHTML("beforeend", '<div class="fciclo" id="fciclo"></div>');
-    await accountCardLegacy.cycle(id);
-  }
-  async function centreProfessionals(id) {
-    const account = await accountKind(id), body = document.getElementById("fbody");
-    if (account?.tipo !== CENTRE || !account.centro_id || !body || !stillShown(id) || document.getElementById("fcentrop")) return;
-    const professionals = escapeHtml(term("medico", { number: "p" }));
-    (body.querySelector(".fh") ?? body.firstElementChild)?.insertAdjacentHTML("afterend", `<div class="blk" id="fcentrop"><div class="fcentropf"><span>${t("accounts.card.centreProfessionals", { professionals })}</span>
-        <button type="button" class="btn sec chico" data-fcver="${account.centro_id}">${t("accounts.card.seeCentreProfessionals", { professionals })}</button></div></div>`);
-  }
-  async function archiveButtons(id) {
-    const account = await accountKind(id), body = document.getElementById("fbody");
-    if (!account || !body || !stillShown(id) || document.getElementById("fbajablk") || !accountCardLegacy.canEditType(account.tipo)) return;
-    const status = account.archivado_en ? `<button type="button" class="btn sec chico" data-falta="${id}">${t("accounts.card.reactivate")}</button>` : `<button type="button" class="btn sec chico" data-fbaja="${id}">${t("accounts.card.archive")}</button>`;
-    body.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="fbajablk"><div class="acts">
-      ${status}
-      ${permissions.levelOf("M") >= DELETE_LEVEL ? `<button type="button" class="btn sec dang chico" data-felim="${id}">${t("accounts.card.delete")}</button>` : ""}</div></div>`);
-  }
-
-  // src/app/screens/accounts/card/sections-history.ts
-  async function visitPhotos(id) {
-    const rows = historyRows();
-    if (!rows.length) return;
-    const { data } = await legacyDb().from("actividad_fotos").select("actividad_id").in("actividad_id", rows.map((row2) => row2.dataset.vrow));
-    const counts = /* @__PURE__ */ new Map();
-    (data ?? []).forEach((photo) => {
-      counts.set(photo.actividad_id, (counts.get(photo.actividad_id) ?? 0) + 1);
-    });
-    rows.forEach((row2) => {
-      if (row2.querySelector("[data-vfotos]")) return;
-      const count2 = counts.get(row2.dataset.vrow ?? "") ?? 0, place = row2.querySelector("span");
-      if (!place || !count2 && !row2.querySelector("[data-editv]")) return;
-      const label = count2 ? count2 === 1 ? t("accounts.card.photo") : t("accounts.card.photos", { count: count2 }) : t("accounts.card.addPhotos");
-      place.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row2.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
-    });
-    document.querySelectorAll("#fbody [data-vfotos]").forEach((button) => {
-      button.onclick = () => {
-        relatedLegacy.openVisitPhotos(button.dataset.vfotos ?? "", id);
-      };
-    });
-  }
-  async function presentedProducts(id) {
-    const rows = historyRows();
-    if (!rows.length || document.querySelector("#fbody .vprodtx")) return;
-    const { data } = await legacyDb().from("actividades").select("id,productos").in("id", rows.map((row2) => row2.dataset.vrow));
-    const ids = [...new Set((data ?? []).flatMap((visit) => visit.productos ?? []))];
-    if (!ids.length || !stillShown(id)) return;
-    const { data: products } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
-    const names = new Map((products ?? []).map((product) => [product.id, product.nombre]));
-    (data ?? []).forEach((visit) => {
-      const row2 = document.querySelector(`#fbody [data-vrow="${visit.id}"]`), place = row2?.querySelector("span");
-      const presented = (visit.productos ?? []).map((product) => names.get(product)).filter((name) => Boolean(name));
-      if (place && presented.length && !row2?.querySelector(".vprodtx")) place.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
-    });
-  }
+  var cardBaseLegacy = {
+    visitBlock: (account, consultations, visits) => fichaVisitaHTML(account, consultations, visits),
+    visitConsultation: (consultations) => consultaDeLaVisita(consultations),
+    states: () => estados(),
+    canRecord: () => puedeRegistrar(),
+    canEdit: () => puedeEditar(),
+    directionsAttribute: (point) => navAttr(point),
+    editVisit: (visit, accountId) => {
+      void editarVisita(visit, accountId);
+    },
+    unitsChart: (units2, series) => sparkUnidades(units2, series),
+    unitsLegend: (series) => leyendaUnidades(series),
+    unitsSeries: () => UDS_SERIES,
+    unitsSeriesChosen: () => UDS_SERIE,
+    chooseUnitsSeries: (series) => {
+      UDS_SERIE = series;
+      try {
+        localStorage.setItem("dlc-uds-serie", series);
+      } catch {
+      }
+    },
+    missingTimetable: (id) => faltaHorario(id),
+    openEditor: (id) => {
+      void abrirEditor(id);
+    }
+  };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -1532,6 +1494,260 @@
   }
   function formatDayMonth(isoDate) {
     return fromIsoDate(isoDate.slice(0, 10)).toLocaleDateString(locale(), { day: "numeric", month: "long" });
+  }
+
+  // src/app/services/format.ts
+  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  function escapeHtml(value2) {
+    return String(value2 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  }
+  function formatNumber(value2) {
+    return Number(value2 ?? 0).toLocaleString("es");
+  }
+  function formatEuros(value2) {
+    return `${Math.round(Number(value2) || 0).toLocaleString("es-ES")} €`;
+  }
+  function looseText(text) {
+    return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+
+  // src/app/screens/accounts/card/base.ts
+  var WORKDAYS = ["L", "M", "X", "J", "V"];
+  var SHOWN_VISITS = 10;
+  var SKELETON = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
+  var body = () => document.getElementById("fbody");
+  function headerHtml(account) {
+    const urgent = account.urgente ? `<span class="pill p-urg">${t("accounts.base.urgent")}</span> ` : "";
+    const noReporting = account.sin_reporting ? `<span class="pill p-sr" title="${t("accounts.base.noReportingTitle", { visit: term("visita") })}">${t("accounts.base.noReporting")}</span> ` : "";
+    return `<div class="fh">
+      <div><h2>${urgent}${noReporting}${escapeHtml(account.nombre)}</h2>
+        <div class="sm">${escapeHtml(account.especialidad ?? "")}${account.area ? ` · ${escapeHtml(account.area)}` : ""}${t("accounts.base.code", { code: escapeHtml(account.codigo) })}</div></div>
+      <button class="x" id="fx" aria-label="${t("common.close")}">✕</button>
+    </div>`;
+  }
+  function actionsHtml(account) {
+    const record = cardBaseLegacy.canRecord(), edit = accountCardLegacy.canEditType(account.tipo);
+    if (!record && !edit) return "";
+    return `<div class="acts">
+      ${record ? `<button class="btn" data-act="visita" data-id="${account.id}">${t("accounts.base.record", { visit: term("visita") })}</button>` : ""}
+      ${edit ? `<button class="btn sec" data-act="editar" data-id="${account.id}">${t("accounts.base.edit")}</button>` : ""}
+      ${edit ? `<button class="btn ${account.urgente ? "sec" : "warn"}" data-act="urgente" data-id="${account.id}" data-urg="${account.urgente ? 1 : 0}">${t(account.urgente ? "accounts.base.unmarkUrgent" : "accounts.base.markUrgent")}</button>` : ""}
+      <button class="btn sec" data-agendar="${account.id}">${t("accounts.base.addToAgenda")}</button>
+    </div>`;
+  }
+  function stateHtml(account, salesReps) {
+    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value2) => `<option ${value2 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value2)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
+    return `<div class="blk"><h3>${t("accounts.card.stateTitle")}</h3>
+      <div>${state}</div>
+      ${salesReps.length ? `<div class="sm" style="margin-top:6px">${t("accounts.base.salesRep", { names: salesReps.map(escapeHtml).join(", ") })}</div>` : ""}
+    </div>`;
+  }
+  function consultationHtml(consultation) {
+    const days = consultation.dias ?? {};
+    const address = escapeHtml([consultation.direccion, consultation.cp, consultation.municipio].filter(Boolean).join(", "));
+    const room = [consultation.planta, consultation.sala].filter(Boolean).join(" · ");
+    return `<div class="blk"><h3>${escapeHtml(orFallback(consultation.centro_nombre, term("consulta", { capital: "C", adjective: "privado" })))}</h3>
+      <div>${address || `<span class="sm">${t("accounts.base.noAddress")}</span>`}</div>
+      ${room ? `<div class="sm">${escapeHtml(room)}</div>` : ""}
+      ${consultation.indicaciones ? `<div class="sm">${escapeHtml(consultation.indicaciones)}</div>` : ""}
+      ${consultation.telefono ? `<div class="sm">${t("accounts.base.phone", { phone: escapeHtml(consultation.telefono) })}</div>` : ""}
+      <div class="dias" style="margin-top:8px">${WORKDAYS.map((day) => `<span class="${days[day] ? "on" : ""}">${day}</span>`).join("")}</div>
+      ${WORKDAYS.filter((day) => days[day]).map((day) => `<div class="sm">${day}: ${escapeHtml(days[day])}</div>`).join("")}
+      ${consultation.lat ? `<div class="sm" style="margin-top:6px"><button class="lnk" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${t("accounts.base.directions")}</button></div>` : ""}
+    </div>`;
+  }
+  function visitHtml(visit, canRecord) {
+    const mode = visit.modo === "telefono" ? t("accounts.base.byPhone") : visit.modo === "video" ? t("accounts.base.byVideo") : "";
+    const results = orFallback((visit.resultados ?? []).join(" + "), t("accounts.base.noResult"));
+    return `<div data-vrow="${visit.id}" style="padding:7px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <span><b>${formatShortDate(visit.fecha)}</b>${mode} · ${escapeHtml(results)}
+          ${visit.muestras ? t("accounts.base.samples", { count: visit.muestras }) : ""}
+          ${visit.nota ? `<div class="sm">${escapeHtml(visit.nota)}</div>` : ""}
+          ${visit.proxima_fecha ? `<div class="sm">${t("accounts.base.next", { date: formatShortDate(visit.proxima_fecha), action: escapeHtml(visit.proxima_accion ?? "") })}</div>` : ""}</span>
+        ${canRecord ? `<button class="btn sec chico" data-editv='${escapeHtml(JSON.stringify(visit))}'>${t("accounts.base.editVisit")}</button>` : ""}
+      </div>`;
+  }
+  function visitsHtml(visits) {
+    const canRecord = cardBaseLegacy.canRecord();
+    const list = visits.length ? visits.slice(0, SHOWN_VISITS).map((visit) => visitHtml(visit, canRecord)).join("") : `<div class="sm">${t("accounts.base.noVisits", { visits: term("visita", { number: "p", adjective: "registrado" }) })}</div>`;
+    return `<div class="blk"><h3>${term("visita", { number: "p", capital: "C" })}</h3>
+      ${list}</div>`;
+  }
+  function cardHtml(data, cached) {
+    const account = data.medico, consultations = data.consultas ?? [], visits = data.visitas ?? [];
+    const forVisit = cardBaseLegacy.visitConsultation(consultations);
+    return `${cached ? `<div class="cacheaviso">${t("accounts.base.cachedNotice")}</div>` : ""}
+    ${headerHtml(account)}
+    ${actionsHtml(account)}
+    ${cardBaseLegacy.visitBlock(account, consultations, visits)}
+    ${stateHtml(account, data.comerciales ?? [])}
+    ${consultations.filter((consultation) => consultation !== forVisit).map(consultationHtml).join("")}
+    ${visitsHtml(visits)}
+    <div id="fzcampos"></div>
+    <section class="blk fventas" id="fventas"><h3>${t("accounts.base.salesTitle", { patients: term("paciente", { number: "p" }) })}</h3><div id="fventasc"></div></section>`;
+  }
+  async function paintBase(id) {
+    const box = body(), card = document.getElementById("ficha");
+    if (!box || !card) return;
+    accountCardLegacy.setShownId(id);
+    box.innerHTML = SKELETON;
+    card.showModal();
+    const result = await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`);
+    const data = result.data, account = data?.medico;
+    if (!data || !account) {
+      box.innerHTML = `<p class="sm">${t("accounts.base.noConnection")}</p>`;
+      return;
+    }
+    box.innerHTML = cardHtml({ ...data, medico: account }, Boolean(result.cache));
+    const close2 = document.getElementById("fx");
+    if (close2) close2.onclick = () => {
+      card.close();
+    };
+    box.querySelectorAll("[data-editv]").forEach((button) => {
+      button.onclick = () => {
+        cardBaseLegacy.editVisit(JSON.parse(button.dataset.editv ?? "{}"), id);
+      };
+    });
+  }
+
+  // src/app/screens/accounts/card/card-tools.ts
+  var stillShown = (id) => accountCardLegacy.shownId() === id;
+  var fieldsPlace = () => document.getElementById("fzcampos");
+  function addBeforeFields(id, blockId, html) {
+    const place = fieldsPlace();
+    if (!place || document.getElementById(blockId) || !stillShown(id)) return null;
+    place.insertAdjacentHTML("beforebegin", html);
+    return document.getElementById(blockId);
+  }
+  function closeCardAnd(open) {
+    document.getElementById("ficha")?.close();
+    open();
+  }
+  function onEach(block, key, action) {
+    block.querySelectorAll(`[data-${key}]`).forEach((button) => {
+      button.onclick = () => {
+        action(button.getAttribute(`data-${key}`) ?? "");
+      };
+    });
+  }
+  async function accountKind(id) {
+    const { data } = await legacyDb().from("cuentas").select("tipo, nombre, centro_id, archivado_en").eq("id", id).maybeSingle();
+    return data;
+  }
+  var historyRows = () => [...document.querySelectorAll("#fbody [data-vrow]")];
+
+  // src/app/screens/accounts/card/sections-account.ts
+  var CENTRE = "Centro";
+  var DELETE_LEVEL = 3;
+  async function cycle(id) {
+    if (permissions.isProfessionalPortal() || document.getElementById("fciclo") || !stillShown(id)) return;
+    const state = [...document.querySelectorAll("#fbody .blk > h3")].find((heading) => heading.textContent?.trim() === t("accounts.card.stateTitle"));
+    if (!state?.parentElement) return;
+    state.parentElement.insertAdjacentHTML("beforeend", '<div class="fciclo" id="fciclo"></div>');
+    await accountCardLegacy.cycle(id);
+  }
+  async function centreProfessionals(id) {
+    const account = await accountKind(id), body2 = document.getElementById("fbody");
+    if (account?.tipo !== CENTRE || !account.centro_id || !body2 || !stillShown(id) || document.getElementById("fcentrop")) return;
+    const professionals = escapeHtml(term("medico", { number: "p" }));
+    (body2.querySelector(".fh") ?? body2.firstElementChild)?.insertAdjacentHTML("afterend", `<div class="blk" id="fcentrop"><div class="fcentropf"><span>${t("accounts.card.centreProfessionals", { professionals })}</span>
+        <button type="button" class="btn sec chico" data-fcver="${account.centro_id}">${t("accounts.card.seeCentreProfessionals", { professionals })}</button></div></div>`);
+  }
+  async function archiveButtons(id) {
+    const account = await accountKind(id), body2 = document.getElementById("fbody");
+    if (!account || !body2 || !stillShown(id) || document.getElementById("fbajablk") || !accountCardLegacy.canEditType(account.tipo)) return;
+    const status = account.archivado_en ? `<button type="button" class="btn sec chico" data-falta="${id}">${t("accounts.card.reactivate")}</button>` : `<button type="button" class="btn sec chico" data-fbaja="${id}">${t("accounts.card.archive")}</button>`;
+    body2.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="fbajablk"><div class="acts">
+      ${status}
+      ${permissions.levelOf("M") >= DELETE_LEVEL ? `<button type="button" class="btn sec dang chico" data-felim="${id}">${t("accounts.card.delete")}</button>` : ""}</div></div>`);
+  }
+
+  // src/app/screens/accounts/card/sections-base.ts
+  async function timetableNotice(id) {
+    const header = document.querySelector("#fbody .fh");
+    if (!stillShown(id) || !header) return;
+    if (!await cardBaseLegacy.missingTimetable(id) || !stillShown(id) || document.getElementById("fhorario")) return;
+    document.querySelector("#fbody .fh")?.insertAdjacentHTML("afterend", `<div class="avisoh" id="fhorario">
+    <span>${t("accounts.base.timetableMissing")}</span>
+    ${cardBaseLegacy.canEdit() ? `<button class="btn sec" id="fhcompletar">${t("accounts.base.completeTimetable")}</button>` : ""}</div>`);
+    const complete = document.getElementById("fhcompletar");
+    if (complete) complete.onclick = () => {
+      cardBaseLegacy.openEditor(id);
+    };
+  }
+  var PERIODS = [
+    ["accounts.base.unitsToday", "hoy"],
+    ["accounts.base.unitsWeek", "semana"],
+    ["accounts.base.unitsMonth", "mes"],
+    ["accounts.base.unitsQuarter", "trimestre"],
+    ["accounts.base.unitsYear", "anio"],
+    ["accounts.base.unitsTotal", "total"]
+  ];
+  function unitsHtml(units2, series) {
+    const prescriptions = (count2) => term("pauta", { number: count2 === 1 ? "s" : "p" });
+    const summary = units2.total ? `${t("accounts.base.unitsSummary", { count: formatNumber(units2.pautas), prescriptions: prescriptions(units2.pautas), date: formatShortDate(units2.ultima) })}<span id="fusley">${cardBaseLegacy.unitsLegend(series)}</span>` : t("accounts.base.noPrescriptions", { prescriptions: term("pauta", { number: "p" }) });
+    const choices = units2.total ? `<div class="segs" id="fuserie" role="group" aria-label="${t("accounts.base.evolution")}">${cardBaseLegacy.unitsSeries().map(([key, label]) => `<button type="button" data-us="${key}" class="${key === series ? "on" : ""}">${label}</button>`).join("")}</div>` : "";
+    return `<div class="blk" id="fundades"><h3>${t("accounts.base.unitsTitle")}</h3>
+    <div class="uper">${PERIODS.map(([label, key]) => `<div><b>${formatNumber(units2[key])}</b><span>${t(label)}</span></div>`).join("")}</div>
+    ${choices}
+    <div class="spark" id="fuspark">${cardBaseLegacy.unitsChart(units2, series)}</div>
+    <div class="sm">${summary}</div></div>`;
+  }
+  async function units(id) {
+    const box = document.getElementById("fbody");
+    if (!stillShown(id) || !box || document.getElementById("fundades")) return;
+    const { data } = await callRpc("unidades_cuenta", { p_medico: id });
+    if (!data || !stillShown(id) || document.getElementById("fundades")) return;
+    const html = unitsHtml(data, cardBaseLegacy.unitsSeriesChosen()), sales = document.getElementById("fventasc");
+    if (sales) sales.insertAdjacentHTML("afterbegin", html);
+    else (box.querySelector(".blk:nth-of-type(2)") ?? box.lastElementChild)?.insertAdjacentHTML("beforebegin", html);
+    box.querySelectorAll("#fuserie [data-us]").forEach((button) => {
+      button.onclick = () => {
+        const series = button.dataset.us ?? "mes";
+        cardBaseLegacy.chooseUnitsSeries(series);
+        box.querySelectorAll("#fuserie [data-us]").forEach((other) => other.classList.toggle("on", other === button));
+        const chart = document.getElementById("fuspark"), legend = document.getElementById("fusley");
+        if (chart) chart.innerHTML = cardBaseLegacy.unitsChart(data, series);
+        if (legend) legend.textContent = cardBaseLegacy.unitsLegend(series);
+      };
+    });
+  }
+
+  // src/app/screens/accounts/card/sections-history.ts
+  async function visitPhotos(id) {
+    const rows = historyRows();
+    if (!rows.length) return;
+    const { data } = await legacyDb().from("actividad_fotos").select("actividad_id").in("actividad_id", rows.map((row2) => row2.dataset.vrow));
+    const counts = /* @__PURE__ */ new Map();
+    (data ?? []).forEach((photo) => {
+      counts.set(photo.actividad_id, (counts.get(photo.actividad_id) ?? 0) + 1);
+    });
+    rows.forEach((row2) => {
+      if (row2.querySelector("[data-vfotos]")) return;
+      const count2 = counts.get(row2.dataset.vrow ?? "") ?? 0, place = row2.querySelector("span");
+      if (!place || !count2 && !row2.querySelector("[data-editv]")) return;
+      const label = count2 ? count2 === 1 ? t("accounts.card.photo") : t("accounts.card.photos", { count: count2 }) : t("accounts.card.addPhotos");
+      place.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row2.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
+    });
+    document.querySelectorAll("#fbody [data-vfotos]").forEach((button) => {
+      button.onclick = () => {
+        relatedLegacy.openVisitPhotos(button.dataset.vfotos ?? "", id);
+      };
+    });
+  }
+  async function presentedProducts(id) {
+    const rows = historyRows();
+    if (!rows.length || document.querySelector("#fbody .vprodtx")) return;
+    const { data } = await legacyDb().from("actividades").select("id,productos").in("id", rows.map((row2) => row2.dataset.vrow));
+    const ids = [...new Set((data ?? []).flatMap((visit) => visit.productos ?? []))];
+    if (!ids.length || !stillShown(id)) return;
+    const { data: products } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
+    const names = new Map((products ?? []).map((product) => [product.id, product.nombre]));
+    (data ?? []).forEach((visit) => {
+      const row2 = document.querySelector(`#fbody [data-vrow="${visit.id}"]`), place = row2?.querySelector("span");
+      const presented = (visit.productos ?? []).map((product) => names.get(product)).filter((name) => Boolean(name));
+      if (place && presented.length && !row2?.querySelector(".vprodtx")) place.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
+    });
   }
 
   // src/app/screens/accounts/card/sections-related.ts
@@ -1656,11 +1872,11 @@
   // src/app/screens/accounts/card/index.ts
   var LOADING_LIMIT_MS = 8e3;
   var BASE = [
-    { name: "base", run: (id) => accountCardLegacy.base.paint(id) },
+    { name: "base", run: paintBase },
     { name: "salesAndPatients", run: (id) => accountCardLegacy.base.salesAndPatients(id) },
-    { name: "timetableNotice", run: (id) => accountCardLegacy.base.timetableNotice(id) },
+    { name: "timetableNotice", run: timetableNotice },
     { name: "materialAndVisits", run: (id) => accountCardLegacy.base.materialAndVisits(id) },
-    { name: "units", run: (id) => accountCardLegacy.base.units(id) },
+    { name: "units", run: units },
     { name: "clients", run: (id) => accountCardLegacy.base.clients(id) }
   ];
   var ACCESS = { name: "access", run: (id) => accountCardLegacy.base.access(id) };
@@ -1693,7 +1909,7 @@
       console.error(`ficha · ${section.name}`, error);
     }
   }
-  async function paintBase(id) {
+  async function paintBase2(id) {
     const card = document.getElementById("ficha");
     card?.classList.add("cargando");
     const limit = setTimeout(() => card?.classList.remove("cargando"), LOADING_LIMIT_MS);
@@ -1708,7 +1924,7 @@
   }
   async function openAccountCard(id) {
     try {
-      await paintBase(id);
+      await paintBase2(id);
       await runSection(ACCESS, id);
       void runSection(CUSTOM_FIELDS, id);
     } finally {
@@ -1801,7 +2017,7 @@
     const cells = range(days).map((index) => `${month}-${String(index + 1).padStart(2, "0")}`);
     return header + "<span></span>".repeat(blanks) + cells.map((day) => dayCell(day, perDay.get(day) ?? 0, today)).join("");
   }
-  function headerHtml(month, current) {
+  function headerHtml2(month, current) {
     return `<button type="button" class="kmv agmnav" data-agm="-1" aria-label="${t("agenda.month.previous")}">‹</button>
     <button type="button" class="agmtit" id="agmtit" aria-label="${t("agenda.month.choose")}">${escapeHtml(capitalise(formatMonth(month)))}</button>
     <button type="button" class="kmv agmnav" data-agm="1" aria-label="${t("agenda.month.next")}">›</button>
@@ -1853,7 +2069,7 @@
     const box2 = calendar(), header = box2?.querySelector(".fh");
     if (!box2 || !header) return;
     header.classList.add("agmesh");
-    header.innerHTML = headerHtml(target, current);
+    header.innerHTML = headerHtml2(target, current);
     bindHeader(header, target, current);
     bindDays(box2);
   }
@@ -2035,12 +2251,12 @@
     return new Set(legacyAgenda.dayAppointments().filter((item) => !appointments.isCancelled(item.estado)).map((item) => item.cuenta_id));
   }
   function paintSameCentre() {
-    const body = document.getElementById("agcuerpo"), suggestions = agendaSuggestions.forDay(), isoDate = legacyAgenda.selectedDate();
-    if (!body || !suggestions || !isoDate || suggestions.fecha !== isoDate) return;
-    body.querySelectorAll(".agtamb").forEach((element) => {
+    const body2 = document.getElementById("agcuerpo"), suggestions = agendaSuggestions.forDay(), isoDate = legacyAgenda.selectedDate();
+    if (!body2 || !suggestions || !isoDate || suggestions.fecha !== isoDate) return;
+    body2.querySelectorAll(".agtamb").forEach((element) => {
       element.remove();
     });
-    const cards = [...body.querySelectorAll(".tdu[data-tdu]")];
+    const cards = [...body2.querySelectorAll(".tdu[data-tdu]")];
     if (!cards.length) return;
     const byId = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
     const already = withAppointmentToday(), used = /* @__PURE__ */ new Set();
@@ -2485,12 +2701,12 @@
       cachedRpc("agenda_rango", { p_desde: start, p_hasta: end, p_usuario: owner }, `agenda-cinta-${owner}-${start}`),
       legacyAgendaParts.blockedDays(start, STRIP_DAYS2)
     ]);
-    const body = document.getElementById("agcuerpo");
-    if (!hasStrip() || stripState.start() !== start || !body) return;
+    const body2 = document.getElementById("agcuerpo");
+    if (!hasStrip() || stripState.start() !== start || !body2) return;
     const html = stripHtml(start, { today, selected: legacyAgenda.selectedDate(), perDay: perDayOf(result.data ?? [], owner), blocked });
     const old = document.getElementById("agcinta");
     if (old) old.outerHTML = html;
-    else body.insertAdjacentHTML("beforebegin", html);
+    else body2.insertAdjacentHTML("beforebegin", html);
     const strip = document.getElementById("agcinta");
     if (!strip) return;
     bind2(strip);
@@ -2758,10 +2974,10 @@
     return t("agenda.todayTitle", { date: formatLongDate(todayIso()) }) + (viewed && legacyAgenda.isDayView() ? t("agenda.agendaOf", { name: viewed.nombre }) : "");
   }
   function markEmptyDay() {
-    const body = dayBody();
-    if (!body || currentScreen() !== "agenda") return;
-    const empty = body.querySelector(":scope > .vacio"), stats = body.querySelector(".tdhead .tdstats");
-    stats?.classList.toggle("hide", Boolean(empty) && !body.querySelector(".tdesc"));
+    const body2 = dayBody();
+    if (!body2 || currentScreen() !== "agenda") return;
+    const empty = body2.querySelector(":scope > .vacio"), stats = body2.querySelector(".tdhead .tdstats");
+    stats?.classList.toggle("hide", Boolean(empty) && !body2.querySelector(".tdesc"));
     if (!empty) return;
     empty.classList.add("vlinea");
     const selected = legacyAgenda.selectedDate();
@@ -2797,7 +3013,7 @@
     };
     return back;
   }
-  function headerHtml2() {
+  function headerHtml3() {
     return `
       <div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${escapeHtml(titleText())}</div></div>
         <div class="aghud" id="aghud" aria-label="${t("agenda.yourNumbers")}">${metricsHtml()}</div>
@@ -2838,7 +3054,7 @@
       if (metrics) legacyAgenda.setMetrics(metrics);
       applySuggestions(day, suggestions);
       view.classList.add("agunida", "agcinta", "agb", "agn");
-      view.innerHTML = headerHtml2();
+      view.innerHTML = headerHtml3();
       ensureTeamControls();
       await Promise.all([legacyAgendaPaint.yourDay(), paintStrip(), paintWeekSidebar()]);
       markSelectedDay();
@@ -2864,9 +3080,9 @@
     if (plan) void shareWeek();
   }
   function scrollToDay() {
-    const body = dayBody();
-    if (!body) return;
-    const top = body.getBoundingClientRect().top;
+    const body2 = dayBody();
+    if (!body2) return;
+    const top = body2.getBoundingClientRect().top;
     if (top < SCROLL_TOP_LIMIT || top > innerHeight * SCROLL_BOTTOM_RATIO) scrollTo({ top: scrollY + top - SCROLL_MARGIN, behavior: "smooth" });
   }
   async function showDay(day) {
@@ -3098,7 +3314,7 @@
     if (summary.workingDay) return `<button class="btn dang chico" id="tdterminar">${t("agenda.yourDay.endDay")}</button>`;
     return summary.open ? `<button class="btn chico" id="tdempezar">${t("agenda.yourDay.startDay")}</button>` : "";
   }
-  function actionsHtml(summary) {
+  function actionsHtml2(summary) {
     const { isPast, own, open, withPlace } = summary;
     return `<div class="acts">
         ${own ? `<button type="button" class="btn sec chico" id="tdtarea">${t("agenda.yourDay.addTask")}</button>` : ""}
@@ -3107,14 +3323,14 @@
         ${isPast && open ? `<button class="btn chico" id="tdrepro">${t("agenda.yourDay.reschedulePending")}</button>` : ""}
       </div>`;
   }
-  function headerHtml3(summary) {
+  function headerHtml4(summary) {
     const title = t(summary.isToday ? "agenda.yourDay.titleToday" : summary.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
     const dayMenu = summary.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
     return `
     <div class="tdhead">
       <div class="${summary.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title}</h2>${summary.mine > 1 ? compactButton(summary.compact) : ""}${dayMenu}
         ${statsHtml(summary)}</div>
-      ${actionsHtml(summary)}
+      ${actionsHtml2(summary)}
     </div>`;
   }
   function workingDayHtml(summary, duration) {
@@ -3173,13 +3389,13 @@
       };
     });
   }
-  function paintTasks(body, list) {
+  function paintTasks(body2, list) {
     document.getElementById("tdtareas")?.remove();
     if (!list?.length) return;
-    const place = document.getElementById("tdnocabe") ?? body.querySelector(".tdesc, .vacio");
+    const place = document.getElementById("tdnocabe") ?? body2.querySelector(".tdesc, .vacio");
     const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t("agenda.tasks.title", { count: list.length })}</div>${list.map((task) => taskRow(task, list)).join("")}</div>`;
     if (place) place.insertAdjacentHTML("beforebegin", html);
-    else body.insertAdjacentHTML("beforeend", html);
+    else body2.insertAdjacentHTML("beforeend", html);
     const block = document.getElementById("tdtareas");
     if (block) bind4(block);
   }
@@ -3287,14 +3503,14 @@
   async function paintDay() {
     const day = legacyAgenda.selectedDate() ?? todayIso(), today = todayIso();
     const result = await cachedRpc("agenda_rango", { p_desde: day, p_hasta: day, p_usuario: legacyAgenda.userFilter() }, `agenda-${day}`);
-    const body = document.getElementById("agcuerpo");
-    if (legacyAgenda.selectedDate() !== day || legacyAgendaParts.mode() !== "dia" || !body) return;
+    const body2 = document.getElementById("agcuerpo");
+    if (legacyAgenda.selectedDate() !== day || legacyAgendaParts.mode() !== "dia" || !body2) return;
     const all = result.data ?? [], owner = agendaSources.ownerId();
     const data = { day, today, mine: all.filter((item) => item.usuario_id === owner), others: all.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
     const { context, summary, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
     const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
-    body.innerHTML = `${headerHtml3(summary)}
+    body2.innerHTML = `${headerHtml4(summary)}
     ${workingDayHtml(summary, summary.workingDay ? formatDuration(Date.now() - summary.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
     ${cards}
@@ -3581,10 +3797,10 @@
     const icon2 = indicatorCatalog.icon(definition.id), description = indicatorCatalog.description(definition.id);
     const help = helpButton(indicatorCatalog.help(definition.id), title);
     const raw = definition.v(context.kpis);
-    const body = context.panel ? liveBody(definition.id, capitalise(title).trim(), raw, context) : `
+    const body2 = context.panel ? liveBody(definition.id, capitalise(title).trim(), raw, context) : `
        ${help}
        <b>${typeof raw === "string" ? raw : formatNumber(raw)}</b><span>${escapeHtml(capitalise(title))}</span>`;
-    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon2 ? `<span class="kico" aria-hidden="true">${icon2}</span>` : ""}${context.panel ? help : ""}${body}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
+    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon2 ? `<span class="kico" aria-hidden="true">${icon2}</span>` : ""}${context.panel ? help : ""}${body2}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
   }
   function liveBody(id, title, raw, context) {
     const { summary, visual } = chartFor(id, context.kpis, context.panel, context.charts);
@@ -3884,10 +4100,10 @@
     const sales = data.areas.ventas ?? {};
     const { inEuros, current, change } = salesFigures(sales);
     const figure2 = inEuros ? `data-meur="${current}"` : `data-mcnt="${current}"`;
-    const units = inEuros ? ` · <b>${formatNumber(sales.unidades ?? 0)}</b> ${t("home.sales.units")}` : "";
+    const units2 = inEuros ? ` · <b>${formatNumber(sales.unidades ?? 0)}</b> ${t("home.sales.units")}` : "";
     return `<div class="mt mtven"><div class="mtt">${icon("chart-column")} ${t("home.sales.title")}</div>
       <div class="mn1" ${figure2}>${inEuros ? formatEuros(current) : `${formatNumber(current)}<small>${t("home.sales.units")}</small>`}</div>
-      <div class="ms">${salesVersus(change)}<b>${formatNumber(sales.pedidos ?? 0)}</b> ${t("home.sales.orders")}${units}</div>
+      <div class="ms">${salesVersus(change)}<b>${formatNumber(sales.pedidos ?? 0)}</b> ${t("home.sales.orders")}${units2}</div>
       ${salesChart(data)}</div>`;
   }
   function todayTile(data) {
@@ -4093,8 +4309,8 @@
     const before = positionsOf(CARDS, "tdu"), day = legacyAgenda.selectedDate();
     agendaCache.forget();
     if (data && day) agendaCache.preset(day, data);
-    const body = document.getElementById("agcuerpo"), scroll = window.scrollY;
-    if (body) body.style.minHeight = `${body.offsetHeight}px`;
+    const body2 = document.getElementById("agcuerpo"), scroll = window.scrollY;
+    if (body2) body2.style.minHeight = `${body2.offsetHeight}px`;
     try {
       await paintYourDay();
     } finally {
@@ -4415,8 +4631,8 @@
     notices.toast(t("agenda.sheet.notesSaved"));
     refreshQuietly(item.id, false);
   }
-  function bind5(body, item) {
-    const notes = body.querySelector("#vcnota"), save3 = body.querySelector("#vcok");
+  function bind5(body2, item) {
+    const notes = body2.querySelector("#vcnota"), save3 = body2.querySelector("#vcok");
     if (notes && save3) {
       notes.oninput = () => {
         save3.disabled = notes.value.trim() === (item.nota ?? "").trim();
@@ -4426,7 +4642,7 @@
       };
     }
     const on2 = (id, action) => {
-      const button = body.querySelector(`#${id}`);
+      const button = body2.querySelector(`#${id}`);
       if (button) button.onclick = action;
     };
     const closeAnd = (action) => () => {
@@ -4449,7 +4665,7 @@
       close();
       appointmentLegacy.recordVisit(item.cuenta_id, item.fecha);
     });
-    body.querySelectorAll("[data-vcdia]").forEach((button) => {
+    body2.querySelectorAll("[data-vcdia]").forEach((button) => {
       button.onclick = () => {
         close();
         agendaState.setMode("dia");
@@ -4467,10 +4683,10 @@
     }, () => void 0);
   }
   function showAppointment(item) {
-    const body = document.getElementById("dbody"), box = dialog();
-    if (!item || !body || !box) return;
-    body.innerHTML = sheetHtml(item, yourDayLegacy.stopInfo()[item.id] ?? {});
-    bind5(body, item);
+    const body2 = document.getElementById("dbody"), box = dialog();
+    if (!item || !body2 || !box) return;
+    body2.innerHTML = sheetHtml(item, yourDayLegacy.stopInfo()[item.id] ?? {});
+    bind5(body2, item);
     fillVisitResult(item);
     box.classList.add("pequena");
     box.showModal();
@@ -4618,9 +4834,9 @@
     const draft = { picked: null, consultations: [] };
     if (accountId) draft.picked = await loadAccount(accountId, draft);
     const shown = legacyAgenda.selectedDate(), today = todayIso();
-    const body = document.getElementById("dbody"), box = document.getElementById("dlg");
-    if (!body || !box) return;
-    body.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown && shown >= today ? shown : today));
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown && shown >= today ? shown : today));
     paintCentres(draft);
     editorLegacy.pickAccount(document.getElementById("ncsel"), draft.picked, async (account) => {
       draft.picked = account;
@@ -4714,10 +4930,10 @@
     if (!box.open) box.showModal();
   }
   function editTask(task, day) {
-    const body = document.getElementById("dbody");
-    if (!body) return;
+    const body2 = document.getElementById("dbody");
+    if (!body2) return;
     const current = task ?? {};
-    body.innerHTML = current.id && current.hecha ? doneHtml(current) : editHtml(current, day);
+    body2.innerHTML = current.id && current.hecha ? doneHtml(current) : editHtml(current, day);
     const ok = document.getElementById("taok");
     if (ok) ok.onclick = () => {
       void save2(current, ok);

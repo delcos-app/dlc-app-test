@@ -6,7 +6,9 @@
  * «‹ Volver» (legado 126) wraps the windows by their global names.
  */
 import { accountCardLegacy } from '../../../legacy/bridge';
-import { cycle, archiveButtons, centreProfessionals } from './sections-account';
+import { paintBase as paintBaseBlocks } from './base';
+import { archiveButtons, centreProfessionals, cycle } from './sections-account';
+import { timetableNotice, units } from './sections-base';
 import { presentedProducts, visitPhotos } from './sections-history';
 import { deposit, equipment, events, samples, surgeries, tenders } from './sections-related';
 
@@ -17,11 +19,11 @@ const LOADING_LIMIT_MS = 8000;
 
 /** Painted while the card shows «cargando» (in the legacy order). */
 const BASE: readonly Section[] = [
-  { name: 'base', run: id => accountCardLegacy.base.paint(id) },
+  { name: 'base', run: paintBaseBlocks },
   { name: 'salesAndPatients', run: id => accountCardLegacy.base.salesAndPatients(id) },
-  { name: 'timetableNotice', run: id => accountCardLegacy.base.timetableNotice(id) },
+  { name: 'timetableNotice', run: timetableNotice },
   { name: 'materialAndVisits', run: id => accountCardLegacy.base.materialAndVisits(id) },
-  { name: 'units', run: id => accountCardLegacy.base.units(id) },
+  { name: 'units', run: units },
   { name: 'clients', run: id => accountCardLegacy.base.clients(id) },
 ];
 

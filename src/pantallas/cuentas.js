@@ -1,38 +1,7 @@
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-// Ficha · Aviso si falta su horario de atención
-async function fichaAvisoHorario(id) {
-  if (FICHA_ID !== id || !$('fbody').querySelector('.fh')) return;
-  if (!await faltaHorario(id) || FICHA_ID !== id || $('fhorario')) return;
-  $('fbody').querySelector('.fh').insertAdjacentHTML('afterend', `<div class="avisoh" id="fhorario">
-    <span>⚠ <b>Falta su horario de atención.</b> Sin él, las rutas y el planificador no saben qué días y horas atiende.</span>
-    ${puedeEditar() ? '<button class="btn sec" id="fhcompletar">Completar horario</button>' : ''}</div>`);
-  if ($('fhcompletar')) $('fhcompletar').onclick = () => abrirEditor(id);
-}
 
-// Ficha · Unidades pautadas por periodo y evolución de los últimos 12 meses
-async function fichaUnidades(id) {
-  if (FICHA_ID !== id || !$('fbody') || $('fundades')) return;
-  const { data: u } = await RPC_ORIG('unidades_cuenta', { p_medico: id });
-  if (!u || FICHA_ID !== id || $('fundades')) return;
-  const bloque = `<div class="blk" id="fundades"><h3>Unidades atribuidas</h3>
-    <div class="uper">${[['Hoy', u.hoy], ['Semana', u.semana], ['Mes', u.mes], ['Trimestre', u.trimestre], ['Año', u.anio], ['Total', u.total]]
-      .map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
-    ${u.total ? `<div class="segs" id="fuserie" role="group" aria-label="Evolución">${UDS_SERIES.map(([k, t]) => `<button type="button" data-us="${k}" class="${k === UDS_SERIE ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
-    <div class="spark" id="fuspark">${sparkUnidades(u, UDS_SERIE)}</div>
-    <div class="sm">${u.total ? `${num(u.pautas)} ${TT('pauta', u.pautas === 1 ? 's' : 'p', '', 'l', 'l')} · última el ${fechaCorta(u.ultima)} · <span id="fusley">${leyendaUnidades(UDS_SERIE)}</span>` : `Todavía sin ${TT('pauta', 'p', '', 'l', 'l')} registradas.`}</div></div>`;
-  // v2.96.0: las ventas van en su sección plegada, al final de la ficha
-  const zona = $('fventasc');
-  if (zona) zona.insertAdjacentHTML('afterbegin', bloque);
-  else ($('fbody').querySelector('.blk:nth-of-type(2)') || $('fbody').lastElementChild).insertAdjacentHTML('beforebegin', bloque);
-  // v2.113.0: semana, mes o año (se recuerda la última elegida)
-  $('fbody').querySelectorAll('#fuserie [data-us]').forEach(b => b.onclick = () => {
-    UDS_SERIE = b.dataset.us; try { localStorage.setItem('dlc-uds-serie', UDS_SERIE); } catch (e) {}
-    $('fbody').querySelectorAll('#fuserie [data-us]').forEach(x => x.classList.toggle('on', x === b));
-    $('fuspark').innerHTML = sparkUnidades(u, UDS_SERIE); $('fusley').textContent = leyendaUnidades(UDS_SERIE);
-  });
-}
 
 // Ficha · Acceso del médico a la plataforma (administración)
 async function fichaAcceso(id) {
@@ -54,59 +23,6 @@ async function fichaAcceso(id) {
   };
 }
 
-/* Ficha base del prescriptor; abrirFicha le añade el resto de bloques */
-async function pintarFichaBase(id) {
-  FICHA_ID = id;
-  $('fbody').innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
-  $('ficha').showModal();
-  const rf = await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id);
-  const data = rf.data;
-  if (!data || !data.medico) { $('fbody').innerHTML = '<p class="sm">Sin conexión y sin copia guardada de esta ficha.</p>'; return; }
-
-  const m = data.medico, cons = data.consultas || [], vis = data.visitas || [], com = data.comerciales || [];
-  const dias = ['L','M','X','J','V'];
-
-  $('fbody').innerHTML = `${rf.cache ? '<div class="cacheaviso">Sin conexión · ficha guardada en este dispositivo</div>' : ''}
-    <div class="fh">
-      <div><h2>${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</h2>
-        <div class="sm">${esc(m.especialidad || '')}${m.area ? ' · ' + esc(m.area) : ''} · código ${esc(m.codigo)}</div></div>
-      <button class="x" id="fx" aria-label="Cerrar">✕</button>
-    </div>
-    ${(puedeRegistrar() || puedeEditarTipo(m.tipo)) ? `<div class="acts">
-      ${puedeRegistrar() ? `<button class="btn" data-act="visita" data-id="${m.id}">Registrar ${TT('visita', 's', '', 'l', 'l')}</button>` : ''}
-      ${puedeEditarTipo(m.tipo) ? `<button class="btn sec" data-act="editar" data-id="${m.id}">Editar ficha</button>` : ''}
-      ${puedeEditarTipo(m.tipo) ? `<button class="btn ${m.urgente ? 'sec' : 'warn'}" data-act="urgente" data-id="${m.id}" data-urg="${m.urgente ? 1 : 0}">${m.urgente ? 'Quitar urgente' : 'Marcar urgente'}</button>` : ''}
-      <button class="btn sec" data-agendar="${m.id}">+ Añadir a mi agenda</button>
-    </div>` : ''}
-    ${fichaVisitaHTML(m, cons, vis)}
-    <div class="blk"><h3>Estado</h3>
-      <div>${puedeEditar()
-        ? `<select data-estado="${m.id}" style="max-width:240px">${estados().map(x => `<option ${x === m.estado_comercial ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`
-        : `<span class="pill p-est">${esc(m.estado_comercial)}</span>`}</div>
-      ${com.length ? `<div class="sm" style="margin-top:6px">Comercial: ${com.map(esc).join(', ')}</div>` : ''}
-    </div>
-    ${cons.filter(c => c !== consultaDeLaVisita(cons)).map(c => `<div class="blk"><h3>${esc(c.centro_nombre || consultaPrivada())}</h3>
-      <div>${esc([c.direccion, c.cp, c.municipio].filter(Boolean).join(', ')) || '<span class="sm">Sin dirección</span>'}</div>
-      ${c.planta || c.sala ? `<div class="sm">${esc([c.planta, c.sala].filter(Boolean).join(' · '))}</div>` : ''}
-      ${c.indicaciones ? `<div class="sm">${esc(c.indicaciones)}</div>` : ''}
-      ${c.telefono ? `<div class="sm">Teléfono: ${esc(c.telefono)}</div>` : ''}
-      <div class="dias" style="margin-top:8px">${dias.map(k => `<span class="${(c.dias || {})[k] ? 'on' : ''}">${k}</span>`).join('')}</div>
-      ${dias.filter(k => (c.dias || {})[k]).map(k => `<div class="sm">${k}: ${esc(c.dias[k])}</div>`).join('')}
-      ${c.lat ? `<div class="sm" style="margin-top:6px"><button class="lnk" type="button" data-nav="${navAttr([c.lat, c.lon])}">Cómo llegar</button></div>` : ''}
-    </div>`).join('')}
-    <div class="blk"><h3>${TT('visita', 'p', '', 'l', 'C')}</h3>
-      ${vis.length ? vis.slice(0, 10).map(v => `<div data-vrow="${v.id}" style="padding:7px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-        <span><b>${fechaCorta(v.fecha)}</b>${v.modo === 'telefono' ? ' · Por teléfono' : v.modo === 'video' ? ' · Por videollamada' : ''} · ${esc((v.resultados || []).join(' + ') || 'Sin resultado')}
-          ${v.muestras ? ` · ${v.muestras} muestras` : ''}
-          ${v.nota ? `<div class="sm">${esc(v.nota)}</div>` : ''}
-          ${v.proxima_fecha ? `<div class="sm">Próxima: ${fechaCorta(v.proxima_fecha)} · ${esc(v.proxima_accion || '')}</div>` : ''}</span>
-        ${puedeRegistrar() ? `<button class="btn sec chico" data-editv='${esc(JSON.stringify(v))}'>Editar</button>` : ''}
-      </div>`).join('') : `<div class="sm">Todavía no hay ${TT('visita', 'p', '', 'l', 'l', 'registrado')}.</div>`}</div>
-    <div id="fzcampos"></div>
-    <section class="blk fventas" id="fventas"><h3>Ventas y ${TT('paciente', 'p', '', 'l', 'l')}</h3><div id="fventasc"></div></section>`;
-  $('fx').onclick = () => $('ficha').close();
-  $('fbody').querySelectorAll('[data-editv]').forEach(b => b.onclick = () => editarVisita(JSON.parse(b.dataset.editv), id));
-}
 
 /* v2.75.0 · Cómo se llama una ficha nueva: el vocabulario del cliente o, si no lo ha cambiado, «cuenta» */
 function fichaNueva() {

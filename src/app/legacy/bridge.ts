@@ -285,12 +285,13 @@ export const editorLegacy = {
 /** The account card (ficha) pieces still in legacy, and the windows other modules open from it. */
 export const accountCardLegacy = {
   shownId: (): string | null => FICHA_ID,
+  setShownId: (id: string): void => { FICHA_ID = id; },
   forgetPatients: (): void => { FICHA_PAC = null; },
   forgetCentreFromAppointment: (): void => { FICHA_CENTRO = null; },
   planIncludes: (section: string): boolean => planIncluyeSeccion(section),
   canEditType: (type: string | null | undefined): boolean => puedeEditarTipo(type),
   /** The base sections, in their legacy order (each one paints a block of the card). */
-  base: { paint: pintarFichaBase, salesAndPatients: fichaComercialYPacientes, timetableNotice: fichaAvisoHorario, materialAndVisits: fichaMaterialVisitas, units: fichaUnidades, clients: fichaClientes, access: fichaAcceso },
+  base: { salesAndPatients: fichaComercialYPacientes, materialAndVisits: fichaMaterialVisitas, clients: fichaClientes, access: fichaAcceso },
   customFields: (id: string, container: Element | null): Promise<void> => bloqueCampos('cuentas', id, container),
   history: (id: string): Promise<void> => fichaHistorial(id),
   portal: (id: string): Promise<void> => fichaPortal(id),
@@ -314,4 +315,22 @@ export const relatedLegacy = {
   openEquipment: (id: string): void => { void verEquipo(id); },
   newEquipment: (account: { id: string; nombre: string }): void => { void editarEquipo(null, account); },
   equipmentPill: (equipment: object): string => eqRevPill(equipment),
+};
+
+/** What the base of the account card uses from legacy: the «Para la visita» block (Visitas), permissions and the units chart. */
+export const cardBaseLegacy = {
+  visitBlock: (account: CardAccount, consultations: CardConsultation[], visits: CardVisit[]): string => fichaVisitaHTML(account, consultations, visits),
+  visitConsultation: (consultations: CardConsultation[]): CardConsultation | undefined => consultaDeLaVisita(consultations),
+  states: (): string[] => estados(),
+  canRecord: (): boolean => puedeRegistrar(),
+  canEdit: (): boolean => puedeEditar(),
+  directionsAttribute: (point: [number, number]): string => navAttr(point),
+  editVisit: (visit: CardVisit, accountId: string): void => { void editarVisita(visit, accountId); },
+  unitsChart: (units: AccountUnits, series: string): string => sparkUnidades(units, series),
+  unitsLegend: (series: string): string => leyendaUnidades(series),
+  unitsSeries: (): readonly [string, string][] => UDS_SERIES,
+  unitsSeriesChosen: (): string => UDS_SERIE,
+  chooseUnitsSeries: (series: string): void => { UDS_SERIE = series; try { localStorage.setItem('dlc-uds-serie', series); } catch { /* not remembered */ } },
+  missingTimetable: (id: string): Promise<boolean> => faltaHorario(id),
+  openEditor: (id: string): void => { void abrirEditor(id); },
 };
