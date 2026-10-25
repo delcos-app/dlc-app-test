@@ -33,6 +33,8 @@ export const permissions = {
   canSeeAmounts: (): boolean => verImportes(),
   seesEverything: (): boolean => VE_TODO(),
   salesLevel: (): number => nivelDe2('V'),
+  /** Level (0–3) in an area by its letter (M: accounts, V: sales…). */
+  levelOf: (letter: string): number => nivelDe2(letter),
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   hasOpportunities: (): boolean => typeof hayOportunidades === 'function' && hayOportunidades(),
   canReviewDuplicates: (): boolean => typeof puedeDuplicados === 'function' && puedeDuplicados(),
@@ -278,4 +280,38 @@ export const editorLegacy = {
   turnOffRecentNotice: (): Promise<void> => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
   centreFromCard: (): string | null => FICHA_CENTRO,
   viewedUserId: (): string | null => (currentScreen() === 'agenda' && AG_VISTA ? AG_VISTA.id : null),
+};
+
+/** The account card (ficha) pieces still in legacy, and the windows other modules open from it. */
+export const accountCardLegacy = {
+  shownId: (): string | null => FICHA_ID,
+  forgetPatients: (): void => { FICHA_PAC = null; },
+  forgetCentreFromAppointment: (): void => { FICHA_CENTRO = null; },
+  planIncludes: (section: string): boolean => planIncluyeSeccion(section),
+  canEditType: (type: string | null | undefined): boolean => puedeEditarTipo(type),
+  /** The base sections, in their legacy order (each one paints a block of the card). */
+  base: { paint: pintarFichaBase, salesAndPatients: fichaComercialYPacientes, timetableNotice: fichaAvisoHorario, materialAndVisits: fichaMaterialVisitas, units: fichaUnidades, clients: fichaClientes, access: fichaAcceso },
+  customFields: (id: string, container: Element | null): Promise<void> => bloqueCampos('cuentas', id, container),
+  history: (id: string): Promise<void> => fichaHistorial(id),
+  portal: (id: string): Promise<void> => fichaPortal(id),
+  centreProducts: (id: string): Promise<void> => fichaProductosCentro(id),
+  proposal: (id: string): Promise<void> => fichaPropuesta(id),
+  cycle: (id: string): Promise<void> => cicFicha(id),
+};
+
+/** Windows and labels of other modules (events, deposit, surgeries, tenders, equipment, visit photos), still in legacy. */
+export const relatedLegacy = {
+  openVisitPhotos: (activityId: string, accountId: string): void => { void verFotosVisita(activityId, accountId); },
+  openEvent: (id: string): void => { void verEvento(id); },
+  openDeposit: (accountId: string, name: string): void => { void verDeposito(accountId, name); },
+  expiresSoon: (isoDate: string | null | undefined): boolean => depCaducaPronto(isoDate),
+  openSurgery: (id: string): void => { void verCirugia(id); },
+  surgeryPill: (surgery: object): string => cirEstado(surgery),
+  openTender: (id: string): void => { void verConcurso(id); },
+  tenderDaysLeft: (tender: object): number | null => conQuedan(tender),
+  tenderEnd: (tender: object): string | null => conVence(tender),
+  tenderPill: (state: string): string => conPill(state),
+  openEquipment: (id: string): void => { void verEquipo(id); },
+  newEquipment: (account: { id: string; nombre: string }): void => { void editarEquipo(null, account); },
+  equipmentPill: (equipment: object): string => eqRevPill(equipment),
 };

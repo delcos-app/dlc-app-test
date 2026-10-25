@@ -1139,22 +1139,6 @@ async function centroPintar(...a) { const r = await centroPintarBase.apply(this,
 
 /* Ficha del prescriptor: la ficha base y, en orden, cada bloque que se le añade
    (antes eran 6 capas separadas). */
-async function abrirFichaBase(id, ...r) {
-  const d = $('ficha'); d.classList.add('cargando');
-  const limite = setTimeout(() => d.classList.remove('cargando'), 8000);
-  try {
-    FICHA_PAC = null;
-    await pintarFichaBase(id, ...r);
-    await fichaComercialYPacientes(id);
-    await fichaAvisoHorario(id);
-    await fichaMaterialVisitas(id);
-    await fichaUnidades(id);
-    await fichaClientes(id);
-    // v2.96.0: si no hay ventas que enseñar (o no hay permiso para verlas), la sección no aparece
-    if ($('fventas') && !$('fventasc').children.length) $('fventas').remove();
-  } finally { clearTimeout(limite); requestAnimationFrame(() => d.classList.remove('cargando')); }
-  await fichaAcceso(id);
-}
 
 function barraCuentasBase() {
   const m = $('mapaBtn');
@@ -1194,189 +1178,23 @@ function barraCuentasBase3() {
   }
 }
 
-async function abrirFichaBase2(id, ...a) { const r = await abrirFichaBase.call(this, id, ...a); bloqueCampos('cuentas', id, $('fzcampos') || ($('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild))); return r; }
 
-async function abrirFichaBase3(...a) { try { return await abrirFichaBase2.apply(this, a); } finally { FICHA_CENTRO = null; } }
 
-async function abrirFichaBase4(id, ...a) { const r = await abrirFichaBase3.call(this, id, ...a); fichaHistorial(id); return r; }
 
-async function abrirFichaBase5(id, ...a) { const r = await abrirFichaBase4.call(this, id, ...a); fichaPortal(id); return r; }
 
-async function abrirFichaBase6(id, ...a) { const r = await abrirFichaBase5.call(this, id, ...a); fichaProductosCentro(id); return r; }
 
-// Historial de la ficha: cuántas fotos tiene cada visita y la ventana para verlas, añadir o borrar
-async function abrirFichaBase7(id, ...a) {
-  const r = await abrirFichaBase6.call(this, id, ...a);
-  try {
-    const filas = [...document.querySelectorAll('#fbody [data-vrow]')];
-    if (filas.length) {
-      const { data } = await db.from('actividad_fotos').select('actividad_id').in('actividad_id', filas.map(f => f.dataset.vrow));
-      const n = {}; (data || []).forEach(x => { n[x.actividad_id] = (n[x.actividad_id] || 0) + 1; });
-      filas.forEach(f => {
-        if (f.querySelector('[data-vfotos]')) return;
-        const k = n[f.dataset.vrow] || 0, sitio = f.querySelector('span');
-        if (sitio && (k || f.querySelector('[data-editv]'))) sitio.insertAdjacentHTML('beforeend', `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${f.dataset.vrow}">${svgIco(ICON_NOM.camera)} ${k ? (k === 1 ? '1 foto' : k + ' fotos') : 'Añadir fotos'}</button></div>`);
-      });
-      document.querySelectorAll('#fbody [data-vfotos]').forEach(b => b.onclick = () => verFotosVisita(b.dataset.vfotos, id));
-    }
-  } catch (e) {}
-  return r;
-}
 
-// Ficha: lo entregado este año de cada producto regulado
-async function abrirFichaBase8(id, ...a) {
-  const r = await abrirFichaBase7.call(this, id, ...a);
-  try {
-    const sitio = $('fzcampos'); if (!sitio || $('fmuestras')) return r;
-    const { data: l } = await db.rpc('muestras_de_cuenta', { p_cuenta: id });
-    if (!Array.isArray(l) || !l.length || !$('fzcampos') || $('fmuestras') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fmuestras"><h3>Muestras este año</h3>
-      ${l.map(x => `<div class="fmrow"><span>${esc(x.nombre)}</span><b>${x.entregadas} de ${x.max}</b>${!x.en_plazo ? '<span class="pill p-anu">Fuera de plazo</span>' : !x.quedan ? '<span class="pill p-warn">Sin muestras este año</span>' : ''}</div>`).join('')}</div>`);
-  } catch (e) {}
-  return r;
-}
 
-// Ficha: eventos de ese profesional
-async function abrirFichaBase9(id, ...a) {
-  const r = await abrirFichaBase8.call(this, id, ...a);
-  try {
-    if (!$('fzcampos') || $('feventos') || !planIncluyeSeccion('eventos')) return r;
-    const { data: l } = await db.from('eventos_asistentes').select('estado,eventos(id,titulo,fecha)').eq('cuenta_id', id).limit(30);
-    const ev = (l || []).filter(x => x.eventos).sort((x, y) => String(y.eventos.fecha).localeCompare(String(x.eventos.fecha))).slice(0, 5);
-    if (!ev.length || !$('fzcampos') || $('feventos') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="feventos"><h3>Eventos</h3>
-      ${ev.map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-fev="${x.eventos.id}">${esc(x.eventos.titulo)}</button><span class="sm"> · ${fechaCorta(x.eventos.fecha)}</span></span><span class="pill ${x.estado === 'Asistió' ? 'p-est' : x.estado === 'No asistió' ? 'p-anu' : 'p-per'}">${esc(x.estado)}</span></div>`).join('')}</div>`);
-    $('feventos').querySelectorAll('[data-fev]').forEach(b => b.onclick = () => { $('ficha').close(); verEvento(b.dataset.fev); });
-  } catch (e) {}
-  return r;
-}
 
-// Ficha de un centro: su depósito
-async function abrirFichaBase10(id, ...a) {
-  const r = await abrirFichaBase9.call(this, id, ...a);
-  try {
-    if (!$('fzcampos') || $('fdeposito') || !planIncluyeSeccion('deposito')) return r;
-    const { data: c } = await db.from('cuentas').select('tipo,nombre').eq('id', id).maybeSingle();
-    if (!c || c.tipo !== 'Centro') return r;
-    const { data: e } = await db.rpc('deposito_estado', { p_cuenta: id });
-    if (!e || e.ok === false || !$('fzcampos') || $('fdeposito') || FICHA_ID !== id) return r;
-    const l = (e.lineas || []).filter(x => x.unidades > 0), tot = l.reduce((s, x) => s + x.unidades, 0), cad = l.filter(x => depCaducaPronto(x.caducidad)).length;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fdeposito"><h3>Material en depósito</h3>
-      <p class="sm">${e.existe && tot ? `${num(tot)} unidades de ${(z => z === 1 ? '1 producto' : z + ' productos')(new Set(l.map(x => x.producto_id)).size)}${cad ? ` · <b style="color:var(--warn)">${cad === 1 ? '1 lote caduca' : cad + ' lotes caducan'} en menos de 60 días</b>` : ''}` : 'Sin material en depósito.'}</p>
-      <button type="button" class="btn sec" id="fdepabrir">${e.existe ? 'Abrir el depósito' : 'Dejar material en depósito'}</button></div>`);
-    $('fdepabrir').onclick = () => { $('ficha').close(); verDeposito(id, c.nombre); };
-  } catch (e) {}
-  return r;
-}
 
-async function abrirFichaBase11(id, ...a) {
-  const r = await abrirFichaBase10.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || $('fciclo') || FICHA_ID !== id) return r;
-    const est = [...$('fbody').querySelectorAll('.blk > h3')].find(h => h.textContent.trim() === 'Estado');
-    if (!est) return r;
-    est.parentElement.insertAdjacentHTML('beforeend', '<div class="fciclo" id="fciclo"></div>');
-    await cicFicha(id);
-  } catch (e) {}
-  return r;
-}
 
-// Historial de la ficha: qué productos se presentaron en cada visita
-async function abrirFichaBase12(id, ...a) {
-  const r = await abrirFichaBase11.call(this, id, ...a);
-  try {
-    const filas = [...document.querySelectorAll('#fbody [data-vrow]')];
-    if (!filas.length || document.querySelector('#fbody .vprodtx')) return r;
-    const { data } = await db.from('actividades').select('id,productos').in('id', filas.map(f => f.dataset.vrow));
-    const ids = [...new Set((data || []).flatMap(x => x.productos || []))];
-    if (!ids.length || FICHA_ID !== id) return r;
-    const { data: ps } = await db.from('productos').select('id,nombre').in('id', ids);
-    const nom = Object.fromEntries((ps || []).map(p => [p.id, p.nombre]));
-    (data || []).forEach(x => {
-      const f = document.querySelector(`#fbody [data-vrow="${x.id}"]`), sitio = f && f.querySelector('span');
-      const n = (x.productos || []).map(k => nom[k]).filter(Boolean);
-      if (sitio && n.length && !f.querySelector('.vprodtx')) sitio.insertAdjacentHTML('beforeend', `<div class="sm vprodtx">Presentado: ${n.map(esc).join(', ')}</div>`);
-    });
-  } catch (e) {}
-  return r;
-}
 
-// Ficha del responsable o del centro: sus últimas intervenciones
-async function abrirFichaBase13(id, ...a) {
-  const r = await abrirFichaBase12.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || !$('fzcampos') || $('fcirugias') || !planIncluyeSeccion('cirugias')) return r;
-    const { data: l } = await db.from('cirugias').select('id,fecha,procedimiento,estado').or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order('fecha', { ascending: false }).limit(5);
-    if (!(l || []).length || !$('fzcampos') || $('fcirugias') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fcirugias"><h3>Intervenciones</h3>
-      ${l.map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${x.id}">${esc(x.procedimiento || 'Intervención')}</button><span class="sm"> · ${fechaCorta(x.fecha)}</span></span>${cirEstado(x)}</div>`).join('')}</div>`);
-    $('fcirugias').querySelectorAll('[data-fcir]').forEach(b => b.onclick = () => { $('ficha').close(); verCirugia(b.dataset.fcir); });
-  } catch (e) {}
-  return r;
-}
 
-// Ficha: sus concursos (en marcha y contratos)
-async function abrirFichaBase14(id, ...a) {
-  const r = await abrirFichaBase13.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || !$('fzcampos') || $('fconcursos') || !planIncluyeSeccion('concursos')) return r;
-    const { data: l } = await db.from('concursos').select('id,titulo,estado,fin,prorroga_hasta').eq('cuenta_id', id).in('estado', ['En estudio', 'Oferta enviada', 'Adjudicado']).order('creado_en', { ascending: false }).limit(6);
-    if (!(l || []).length || !$('fzcampos') || $('fconcursos') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fconcursos"><h3>Concursos</h3>
-      ${l.map(x => { const q = conQuedan(x); return `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${x.id}">${esc(x.titulo)}</button>${x.estado === 'Adjudicado' && q != null ? `<span class="sm"> · ${q < 0 ? 'vencido' : 'vence el ' + fechaCorta(conVence(x))}</span>` : ''}</span>${conPill(x.estado)}</div>`; }).join('')}</div>`);
-    $('fconcursos').querySelectorAll('[data-fcon]').forEach(b => b.onclick = () => { $('ficha').close(); verConcurso(b.dataset.fcon); });
-  } catch (e) {}
-  return r;
-}
 
-// Ficha: equipos instalados
-async function abrirFichaBase15(id, ...a) {
-  const r = await abrirFichaBase14.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || !planIncluyeSeccion('parque') || !$('fzcampos') || $('fequipos')) return r;
-    const { data: l } = await db.from('equipos').select('id,serie,ubicacion,estado,contrato,contrato_fin,garantia_hasta,proxima_revision,productos(nombre)').eq('cuenta_id', id).eq('estado', 'Instalado').order('instalado', { ascending: false }).limit(20);
-    if (!$('fzcampos') || $('fequipos') || FICHA_ID !== id) return r;
-    const { data: c } = await db.from('cuentas').select('tipo,nombre').eq('id', id).maybeSingle();
-    if (!(l || []).length && (!c || c.tipo !== 'Centro')) return r;
-    if (!$('fzcampos') || $('fequipos') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fequipos"><h3>Equipos instalados${(l || []).length ? ` <span class="n">${l.length}</span>` : ''}</h3>
-      ${(l || []).map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${x.id}">${esc((x.productos || {}).nombre || 'Equipo')}</button><span class="sm">${x.serie ? ' · nº ' + esc(x.serie) : ''}${x.ubicacion ? ' · ' + esc(x.ubicacion) : ''}</span></span>${eqRevPill(x)}</div>`).join('') || '<p class="sm">Sin equipos instalados.</p>'}
-      <button type="button" class="btn sec" id="feqmas">+ Equipo</button></div>`);
-    $('fequipos').querySelectorAll('[data-feq]').forEach(b => b.onclick = () => { $('ficha').close(); verEquipo(b.dataset.feq); });
-    $('feqmas').onclick = () => { $('ficha').close(); editarEquipo(null, { id, nombre: (c || {}).nombre || '' }); };
-  } catch (e) {}
-  return r;
-}
 
 // Si el modo mapa cambia el botón, la barra lo refleja
 function barraCuentas() { barraCuentasBase3(); const b = document.querySelector('#v-directorio .plmapa'), m = $('mapaBtn'); if (b && m && b.dataset.modo !== (m.dataset.modo || '')) { b.dataset.modo = m.dataset.modo || ''; b.innerHTML = m.innerHTML; b.title = m.title; b.setAttribute('aria-label', m.title); } }
 
-async function abrirFichaBase16(id, ...a) { const r = await abrirFichaBase15.call(this, id, ...a); await fichaPropuesta(id); return r; }
-
-async function abrirFichaBase17(id, ...a) {
-  const r = await abrirFichaBase16.call(this, id, ...a);
-  try {
-    const { data: c } = await db.from('cuentas').select('tipo, centro_id').eq('id', id).maybeSingle();
-    const fb = $('fbody');
-    if (c && c.tipo === 'Centro' && c.centro_id && fb && FICHA_ID === id && !$('fcentrop')) {
-      const fh = fb.querySelector('.fh');
-      (fh || fb.firstElementChild).insertAdjacentHTML('afterend', `<div class="blk" id="fcentrop"><div class="fcentropf"><span>Los ${esc(TT('medico', 'p', '', 'l', 'l'))} que atienden aquí y su horario</span>
-        <button type="button" class="btn sec chico" data-fcver="${c.centro_id}">Ver sus ${esc(TT('medico', 'p', '', 'l', 'l'))}</button></div></div>`);
-    }
-  } catch (e) {}
-  return r;
-}
-
-async function abrirFicha(id, ...a) {
-  const r = await abrirFichaBase17.call(this, id, ...a);
-  try {
-    const { data: c } = await db.from('cuentas').select('tipo, nombre, archivado_en').eq('id', id).maybeSingle();
-    const fb = $('fbody');
-    if (!c || !fb || FICHA_ID !== id || $('fbajablk') || !puedeEditarTipo(c.tipo)) return r;
-    const elim = nivelDe2('M') >= 3;
-    fb.insertAdjacentHTML('beforeend', `<div class="blk fbajablk" id="fbajablk"><div class="acts">
-      ${c.archivado_en ? `<button type="button" class="btn sec chico" data-falta="${id}">Volver a dar de alta</button>` : `<button type="button" class="btn sec chico" data-fbaja="${id}">Dar de baja</button>`}
-      ${elim ? `<button type="button" class="btn sec dang chico" data-felim="${id}">Eliminar la ficha</button>` : ''}</div></div>`);
-  } catch (e) {}
-  return r;
-}
+// La ficha está en src/app/screens/accounts/card (v2.401.0): una lista de secciones con nombre en vez de 18 capas. El nombre
+// global se queda: lo llaman muchas pantallas y «‹ Volver» (legado 126) envuelve las ventanas por su nombre.
+function abrirFicha(id) { return window.delcos.screens.accounts.openAccountCard(id); }

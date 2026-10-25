@@ -5,6 +5,7 @@
 import { createRouter, type Router } from './core/router';
 import { navigate } from './core/navigation';
 import { setLanguage, setVocabulary, t } from './i18n';
+import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import { listenToSameCentre } from './screens/agenda/same-centre';
 import { listenToYourDay } from './screens/agenda/your-day';
@@ -23,6 +24,7 @@ export interface DelcosCore {
   readonly screens: {
     readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators };
     readonly agenda: typeof agenda;
+    readonly accounts: typeof accounts;
   };
 }
 
@@ -44,6 +46,7 @@ window.delcos = {
   screens: {
     home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators },
     agenda,
+    accounts,
   },
 };
 

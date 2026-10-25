@@ -465,6 +465,47 @@
     }, target, args);
   }
 
+  // src/app/i18n/es/accounts.ts
+  var accounts = {
+    card: {
+      stateTitle: "Estado",
+      photo: "1 foto",
+      photos: "{count} fotos",
+      addPhotos: "Añadir fotos",
+      presented: "Presentado: {list}",
+      samplesTitle: "Muestras este año",
+      samplesGiven: "{given} de {max}",
+      samplesOutOfTime: "Fuera de plazo",
+      samplesNoneLeft: "Sin muestras este año",
+      eventsTitle: "Eventos",
+      depositTitle: "Material en depósito",
+      depositUnits: "{units} unidades de {products}",
+      oneProduct: "1 producto",
+      products: "{count} productos",
+      oneBatchExpires: "1 lote caduca",
+      batchesExpire: "{count} lotes caducan",
+      inLessThan60Days: " en menos de 60 días",
+      depositNone: "Sin material en depósito.",
+      depositOpen: "Abrir el depósito",
+      depositLeave: "Dejar material en depósito",
+      surgeriesTitle: "Intervenciones",
+      surgery: "Intervención",
+      tendersTitle: "Concursos",
+      tenderExpired: "vencido",
+      tenderExpiresOn: "vence el {date}",
+      equipmentTitle: "Equipos instalados",
+      equipment: "Equipo",
+      serial: " · nº {serial}",
+      equipmentNone: "Sin equipos instalados.",
+      addEquipment: "+ Equipo",
+      centreProfessionals: "Los {professionals} que atienden aquí y su horario",
+      seeCentreProfessionals: "Ver sus {professionals}",
+      reactivate: "Volver a dar de alta",
+      archive: "Dar de baja",
+      delete: "Eliminar la ficha"
+    }
+  };
+
   // src/app/i18n/es/agenda.ts
   var agenda = {
     title: "Agenda",
@@ -825,6 +866,7 @@
       weekdaysLong: "lunes,martes,miércoles,jueves,viernes,sábado,domingo"
     },
     agenda,
+    accounts,
     home: {
       showIndicators: "Ver tus indicadores",
       hideIndicators: "Ocultar tus indicadores",
@@ -954,44 +996,10 @@
     return fill(text, params);
   }
 
-  // src/app/screens/agenda/index.ts
-  var agenda_exports = {};
-  __export(agenda_exports, {
-    applyTaskFolding: () => applyTaskFolding,
-    bindWeekButton: () => bindWeekButton,
-    changeTime: () => changeTime,
-    closeMonth: () => closeMonth,
-    data: () => preload_exports,
-    dueList: () => dueList,
-    editTask: () => editTask,
-    groupByAttendance: () => groupByAttendance,
-    hasMenu: () => hasMenu,
-    loadAgenda: () => loadAgenda,
-    markQueuedVisits: () => markQueuedVisits,
-    metricsHtml: () => metricsHtml,
-    newAppointment: () => newAppointment,
-    openMenu: () => openMenu,
-    openTray: () => openTray,
-    paintOpenWeek: () => paintOpenWeek,
-    paintSameCentre: () => paintSameCentre,
-    paintStrip: () => paintStrip,
-    paintTrayButtons: () => paintTrayButtons,
-    paintWeekSidebar: () => paintWeekSidebar,
-    paintYourDay: () => paintYourDay,
-    refreshAfterChange: () => refreshAfterChange,
-    refreshMetrics: () => refreshMetrics,
-    refreshOpenMonth: () => refreshOpenMonth,
-    refreshOpenTray: () => refreshOpenTray,
-    refreshQuietly: () => refreshQuietly,
-    reloadMetrics: () => reloadMetrics,
-    renderMonth: () => renderMonth,
-    repaintSmoothly: () => repaintSmoothly,
-    runAction: () => runAction,
-    saveOrder: () => saveOrder,
-    shareWeek: () => shareWeek,
-    showAppointment: () => showAppointment,
-    showDay: () => showDay,
-    toggleMonth: () => toggleMonth
+  // src/app/screens/accounts/index.ts
+  var accounts_exports = {};
+  __export(accounts_exports, {
+    openAccountCard: () => openAccountCard
   });
 
   // src/app/legacy/bridge.ts
@@ -1014,6 +1022,8 @@
     canSeeAmounts: () => verImportes(),
     seesEverything: () => VE_TODO(),
     salesLevel: () => nivelDe2("V"),
+    /** Level (0–3) in an area by its letter (M: accounts, V: sales…). */
+    levelOf: (letter) => nivelDe2(letter),
     isProfessionalPortal: () => ES_MEDICO(),
     hasOpportunities: () => typeof hayOportunidades === "function" && hayOportunidades(),
     canReviewDuplicates: () => typeof puedeDuplicados === "function" && puedeDuplicados()
@@ -1315,6 +1325,158 @@
     centreFromCard: () => FICHA_CENTRO,
     viewedUserId: () => currentScreen() === "agenda" && AG_VISTA ? AG_VISTA.id : null
   };
+  var accountCardLegacy = {
+    shownId: () => FICHA_ID,
+    forgetPatients: () => {
+      FICHA_PAC = null;
+    },
+    forgetCentreFromAppointment: () => {
+      FICHA_CENTRO = null;
+    },
+    planIncludes: (section) => planIncluyeSeccion(section),
+    canEditType: (type) => puedeEditarTipo(type),
+    /** The base sections, in their legacy order (each one paints a block of the card). */
+    base: { paint: pintarFichaBase, salesAndPatients: fichaComercialYPacientes, timetableNotice: fichaAvisoHorario, materialAndVisits: fichaMaterialVisitas, units: fichaUnidades, clients: fichaClientes, access: fichaAcceso },
+    customFields: (id, container) => bloqueCampos("cuentas", id, container),
+    history: (id) => fichaHistorial(id),
+    portal: (id) => fichaPortal(id),
+    centreProducts: (id) => fichaProductosCentro(id),
+    proposal: (id) => fichaPropuesta(id),
+    cycle: (id) => cicFicha(id)
+  };
+  var relatedLegacy = {
+    openVisitPhotos: (activityId, accountId) => {
+      void verFotosVisita(activityId, accountId);
+    },
+    openEvent: (id) => {
+      void verEvento(id);
+    },
+    openDeposit: (accountId, name) => {
+      void verDeposito(accountId, name);
+    },
+    expiresSoon: (isoDate) => depCaducaPronto(isoDate),
+    openSurgery: (id) => {
+      void verCirugia(id);
+    },
+    surgeryPill: (surgery) => cirEstado(surgery),
+    openTender: (id) => {
+      void verConcurso(id);
+    },
+    tenderDaysLeft: (tender) => conQuedan(tender),
+    tenderEnd: (tender) => conVence(tender),
+    tenderPill: (state) => conPill(state),
+    openEquipment: (id) => {
+      void verEquipo(id);
+    },
+    newEquipment: (account) => {
+      void editarEquipo(null, account);
+    },
+    equipmentPill: (equipment2) => eqRevPill(equipment2)
+  };
+
+  // src/app/services/format.ts
+  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  function escapeHtml(value2) {
+    return String(value2 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  }
+  function formatNumber(value2) {
+    return Number(value2 ?? 0).toLocaleString("es");
+  }
+  function formatEuros(value2) {
+    return `${Math.round(Number(value2) || 0).toLocaleString("es-ES")} €`;
+  }
+  function looseText(text) {
+    return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+
+  // src/app/screens/accounts/card/card-tools.ts
+  var stillShown = (id) => accountCardLegacy.shownId() === id;
+  var fieldsPlace = () => document.getElementById("fzcampos");
+  function addBeforeFields(id, blockId, html) {
+    const place = fieldsPlace();
+    if (!place || document.getElementById(blockId) || !stillShown(id)) return null;
+    place.insertAdjacentHTML("beforebegin", html);
+    return document.getElementById(blockId);
+  }
+  function closeCardAnd(open) {
+    document.getElementById("ficha")?.close();
+    open();
+  }
+  function onEach(block, key, action) {
+    block.querySelectorAll(`[data-${key}]`).forEach((button) => {
+      button.onclick = () => {
+        action(button.getAttribute(`data-${key}`) ?? "");
+      };
+    });
+  }
+  async function accountKind(id) {
+    const { data } = await legacyDb().from("cuentas").select("tipo, nombre, centro_id, archivado_en").eq("id", id).maybeSingle();
+    return data;
+  }
+  var historyRows = () => [...document.querySelectorAll("#fbody [data-vrow]")];
+
+  // src/app/screens/accounts/card/sections-account.ts
+  var CENTRE = "Centro";
+  var DELETE_LEVEL = 3;
+  async function cycle(id) {
+    if (permissions.isProfessionalPortal() || document.getElementById("fciclo") || !stillShown(id)) return;
+    const state = [...document.querySelectorAll("#fbody .blk > h3")].find((heading) => heading.textContent?.trim() === t("accounts.card.stateTitle"));
+    if (!state?.parentElement) return;
+    state.parentElement.insertAdjacentHTML("beforeend", '<div class="fciclo" id="fciclo"></div>');
+    await accountCardLegacy.cycle(id);
+  }
+  async function centreProfessionals(id) {
+    const account = await accountKind(id), body = document.getElementById("fbody");
+    if (account?.tipo !== CENTRE || !account.centro_id || !body || !stillShown(id) || document.getElementById("fcentrop")) return;
+    const professionals = escapeHtml(term("medico", { number: "p" }));
+    (body.querySelector(".fh") ?? body.firstElementChild)?.insertAdjacentHTML("afterend", `<div class="blk" id="fcentrop"><div class="fcentropf"><span>${t("accounts.card.centreProfessionals", { professionals })}</span>
+        <button type="button" class="btn sec chico" data-fcver="${account.centro_id}">${t("accounts.card.seeCentreProfessionals", { professionals })}</button></div></div>`);
+  }
+  async function archiveButtons(id) {
+    const account = await accountKind(id), body = document.getElementById("fbody");
+    if (!account || !body || !stillShown(id) || document.getElementById("fbajablk") || !accountCardLegacy.canEditType(account.tipo)) return;
+    const status = account.archivado_en ? `<button type="button" class="btn sec chico" data-falta="${id}">${t("accounts.card.reactivate")}</button>` : `<button type="button" class="btn sec chico" data-fbaja="${id}">${t("accounts.card.archive")}</button>`;
+    body.insertAdjacentHTML("beforeend", `<div class="blk fbajablk" id="fbajablk"><div class="acts">
+      ${status}
+      ${permissions.levelOf("M") >= DELETE_LEVEL ? `<button type="button" class="btn sec dang chico" data-felim="${id}">${t("accounts.card.delete")}</button>` : ""}</div></div>`);
+  }
+
+  // src/app/screens/accounts/card/sections-history.ts
+  async function visitPhotos(id) {
+    const rows = historyRows();
+    if (!rows.length) return;
+    const { data } = await legacyDb().from("actividad_fotos").select("actividad_id").in("actividad_id", rows.map((row2) => row2.dataset.vrow));
+    const counts = /* @__PURE__ */ new Map();
+    (data ?? []).forEach((photo) => {
+      counts.set(photo.actividad_id, (counts.get(photo.actividad_id) ?? 0) + 1);
+    });
+    rows.forEach((row2) => {
+      if (row2.querySelector("[data-vfotos]")) return;
+      const count2 = counts.get(row2.dataset.vrow ?? "") ?? 0, place = row2.querySelector("span");
+      if (!place || !count2 && !row2.querySelector("[data-editv]")) return;
+      const label = count2 ? count2 === 1 ? t("accounts.card.photo") : t("accounts.card.photos", { count: count2 }) : t("accounts.card.addPhotos");
+      place.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row2.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
+    });
+    document.querySelectorAll("#fbody [data-vfotos]").forEach((button) => {
+      button.onclick = () => {
+        relatedLegacy.openVisitPhotos(button.dataset.vfotos ?? "", id);
+      };
+    });
+  }
+  async function presentedProducts(id) {
+    const rows = historyRows();
+    if (!rows.length || document.querySelector("#fbody .vprodtx")) return;
+    const { data } = await legacyDb().from("actividades").select("id,productos").in("id", rows.map((row2) => row2.dataset.vrow));
+    const ids = [...new Set((data ?? []).flatMap((visit) => visit.productos ?? []))];
+    if (!ids.length || !stillShown(id)) return;
+    const { data: products } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
+    const names = new Map((products ?? []).map((product) => [product.id, product.nombre]));
+    (data ?? []).forEach((visit) => {
+      const row2 = document.querySelector(`#fbody [data-vrow="${visit.id}"]`), place = row2?.querySelector("span");
+      const presented = (visit.productos ?? []).map((product) => names.get(product)).filter((name) => Boolean(name));
+      if (place && presented.length && !row2?.querySelector(".vprodtx")) place.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
+    });
+  }
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -1372,20 +1534,231 @@
     return fromIsoDate(isoDate.slice(0, 10)).toLocaleDateString(locale(), { day: "numeric", month: "long" });
   }
 
-  // src/app/services/format.ts
-  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value2) {
-    return String(value2 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  // src/app/screens/accounts/card/sections-related.ts
+  var ATTENDED = "Asistió";
+  var NOT_ATTENDED = "No asistió";
+  var AWARDED = "Adjudicado";
+  var INSTALLED = "Instalado";
+  var CENTRE2 = "Centro";
+  var OPEN_TENDERS = ["En estudio", "Oferta enviada", AWARDED];
+  var SHOWN_EVENTS = 5;
+  var canAdd = (blockId, section) => Boolean(fieldsPlace()) && !document.getElementById(blockId) && (!section || accountCardLegacy.planIncludes(section));
+  async function samples(id) {
+    if (!canAdd("fmuestras")) return;
+    const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
+    if (!Array.isArray(data) || !data.length) return;
+    const pill = (sample) => {
+      if (!sample.en_plazo) return `<span class="pill p-anu">${t("accounts.card.samplesOutOfTime")}</span>`;
+      return sample.quedan ? "" : `<span class="pill p-warn">${t("accounts.card.samplesNoneLeft")}</span>`;
+    };
+    addBeforeFields(id, "fmuestras", `<div class="blk" id="fmuestras"><h3>${t("accounts.card.samplesTitle")}</h3>
+      ${data.map((sample) => `<div class="fmrow"><span>${escapeHtml(sample.nombre)}</span><b>${t("accounts.card.samplesGiven", { given: sample.entregadas, max: sample.max })}</b>${pill(sample)}</div>`).join("")}</div>`);
   }
-  function formatNumber(value2) {
-    return Number(value2 ?? 0).toLocaleString("es");
+  async function events(id) {
+    if (!canAdd("feventos", "eventos")) return;
+    const { data } = await legacyDb().from("eventos_asistentes").select("estado,eventos(id,titulo,fecha)").eq("cuenta_id", id).limit(30);
+    const list = (data ?? []).filter((item) => item.eventos !== null).sort((first, second) => String(second.eventos.fecha).localeCompare(String(first.eventos.fecha))).slice(0, SHOWN_EVENTS);
+    if (!list.length) return;
+    const pillClass = (state) => state === ATTENDED ? "p-est" : state === NOT_ATTENDED ? "p-anu" : "p-per";
+    const block = addBeforeFields(id, "feventos", `<div class="blk" id="feventos"><h3>${t("accounts.card.eventsTitle")}</h3>
+      ${list.map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fev="${item.eventos.id}">${escapeHtml(item.eventos.titulo)}</button><span class="sm"> · ${formatShortDate(item.eventos.fecha)}</span></span><span class="pill ${pillClass(item.estado)}">${escapeHtml(item.estado)}</span></div>`).join("")}</div>`);
+    if (block) onEach(block, "fev", (event) => {
+      closeCardAnd(() => {
+        relatedLegacy.openEvent(event);
+      });
+    });
   }
-  function formatEuros(value2) {
-    return `${Math.round(Number(value2) || 0).toLocaleString("es-ES")} €`;
+  function depositText(state) {
+    const lines = (state.lineas ?? []).filter((line) => line.unidades > 0), total = sum(lines.map((line) => line.unidades));
+    if (!state.existe || !total) return t("accounts.card.depositNone");
+    const productCount = new Set(lines.map((line) => line.producto_id)).size, expiring = lines.filter((line) => relatedLegacy.expiresSoon(line.caducidad)).length;
+    const products = productCount === 1 ? t("accounts.card.oneProduct") : t("accounts.card.products", { count: productCount });
+    const soon = expiring ? ` · <b style="color:var(--warn)">${expiring === 1 ? t("accounts.card.oneBatchExpires") : t("accounts.card.batchesExpire", { count: expiring })}${t("accounts.card.inLessThan60Days")}</b>` : "";
+    return t("accounts.card.depositUnits", { units: formatNumber(total), products }) + soon;
   }
-  function looseText(text) {
-    return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  async function deposit(id) {
+    if (!canAdd("fdeposito", "deposito")) return;
+    const account = await accountKind(id);
+    if (account?.tipo !== CENTRE2) return;
+    const { data: state } = await legacyDb().rpc("deposito_estado", { p_cuenta: id });
+    if (!state || state.ok === false || !canAdd("fdeposito") || !stillShown(id)) return;
+    addBeforeFields(id, "fdeposito", `<div class="blk" id="fdeposito"><h3>${t("accounts.card.depositTitle")}</h3>
+      <p class="sm">${depositText(state)}</p>
+      <button type="button" class="btn sec" id="fdepabrir">${t(state.existe ? "accounts.card.depositOpen" : "accounts.card.depositLeave")}</button></div>`);
+    const open = document.getElementById("fdepabrir");
+    if (open) open.onclick = () => {
+      closeCardAnd(() => {
+        relatedLegacy.openDeposit(id, account.nombre ?? "");
+      });
+    };
   }
+  async function surgeries(id) {
+    if (permissions.isProfessionalPortal() || !canAdd("fcirugias", "cirugias")) return;
+    const { data } = await legacyDb().from("cirugias").select("id,fecha,procedimiento,estado").or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order("fecha", { ascending: false }).limit(5);
+    if (!(data ?? []).length) return;
+    const block = addBeforeFields(id, "fcirugias", `<div class="blk" id="fcirugias"><h3>${t("accounts.card.surgeriesTitle")}</h3>
+      ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${item.id}">${escapeHtml(orFallback(item.procedimiento, t("accounts.card.surgery")))}</button><span class="sm"> · ${formatShortDate(item.fecha)}</span></span>${relatedLegacy.surgeryPill(item)}</div>`).join("")}</div>`);
+    if (block) onEach(block, "fcir", (surgery) => {
+      closeCardAnd(() => {
+        relatedLegacy.openSurgery(surgery);
+      });
+    });
+  }
+  function tenderEnd(tender) {
+    const left = relatedLegacy.tenderDaysLeft(tender);
+    if (tender.estado !== AWARDED || left === null) return "";
+    return ` · ${left < 0 ? t("accounts.card.tenderExpired") : t("accounts.card.tenderExpiresOn", { date: formatShortDate(relatedLegacy.tenderEnd(tender) ?? "") })}`;
+  }
+  async function tenders(id) {
+    if (permissions.isProfessionalPortal() || !canAdd("fconcursos", "concursos")) return;
+    const { data } = await legacyDb().from("concursos").select("id,titulo,estado,fin,prorroga_hasta").eq("cuenta_id", id).in("estado", OPEN_TENDERS).order("creado_en", { ascending: false }).limit(6);
+    if (!(data ?? []).length) return;
+    const block = addBeforeFields(id, "fconcursos", `<div class="blk" id="fconcursos"><h3>${t("accounts.card.tendersTitle")}</h3>
+      ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${item.id}">${escapeHtml(item.titulo)}</button>${tenderEnd(item) ? `<span class="sm">${tenderEnd(item)}</span>` : ""}</span>${relatedLegacy.tenderPill(item.estado)}</div>`).join("")}</div>`);
+    if (block) onEach(block, "fcon", (tender) => {
+      closeCardAnd(() => {
+        relatedLegacy.openTender(tender);
+      });
+    });
+  }
+  function equipmentRow(item) {
+    const details = (item.serie ? t("accounts.card.serial", { serial: escapeHtml(item.serie) }) : "") + (item.ubicacion ? ` · ${escapeHtml(item.ubicacion)}` : "");
+    return `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${item.id}">${escapeHtml(orFallback(item.productos?.nombre, t("accounts.card.equipment")))}</button><span class="sm">${details}</span></span>${relatedLegacy.equipmentPill(item)}</div>`;
+  }
+  async function equipment(id) {
+    if (permissions.isProfessionalPortal() || !canAdd("fequipos", "parque")) return;
+    const { data } = await legacyDb().from("equipos").select("id,serie,ubicacion,estado,contrato,contrato_fin,garantia_hasta,proxima_revision,productos(nombre)").eq("cuenta_id", id).eq("estado", INSTALLED).order("instalado", { ascending: false }).limit(20);
+    if (!canAdd("fequipos") || !stillShown(id)) return;
+    const list = data ?? [], account = await accountKind(id);
+    if (!list.length && account?.tipo !== CENTRE2) return;
+    const block = addBeforeFields(id, "fequipos", equipmentHtml(list));
+    if (block) bindEquipment(block, id, account?.nombre ?? "");
+  }
+  function equipmentHtml(list) {
+    return `<div class="blk" id="fequipos"><h3>${t("accounts.card.equipmentTitle")}${list.length ? ` <span class="n">${list.length}</span>` : ""}</h3>
+      ${list.map(equipmentRow).join("") || `<p class="sm">${t("accounts.card.equipmentNone")}</p>`}
+      <button type="button" class="btn sec" id="feqmas">${t("accounts.card.addEquipment")}</button></div>`;
+  }
+  function bindEquipment(block, id, name) {
+    onEach(block, "feq", (item) => {
+      closeCardAnd(() => {
+        relatedLegacy.openEquipment(item);
+      });
+    });
+    const add = document.getElementById("feqmas");
+    if (add) add.onclick = () => {
+      closeCardAnd(() => {
+        relatedLegacy.newEquipment({ id, nombre: name });
+      });
+    };
+  }
+
+  // src/app/screens/accounts/card/index.ts
+  var LOADING_LIMIT_MS = 8e3;
+  var BASE = [
+    { name: "base", run: (id) => accountCardLegacy.base.paint(id) },
+    { name: "salesAndPatients", run: (id) => accountCardLegacy.base.salesAndPatients(id) },
+    { name: "timetableNotice", run: (id) => accountCardLegacy.base.timetableNotice(id) },
+    { name: "materialAndVisits", run: (id) => accountCardLegacy.base.materialAndVisits(id) },
+    { name: "units", run: (id) => accountCardLegacy.base.units(id) },
+    { name: "clients", run: (id) => accountCardLegacy.base.clients(id) }
+  ];
+  var ACCESS = { name: "access", run: (id) => accountCardLegacy.base.access(id) };
+  var CUSTOM_FIELDS = {
+    name: "customFields",
+    wait: false,
+    run: (id) => accountCardLegacy.customFields(id, document.getElementById("fzcampos") ?? document.querySelector("#ficha .fbody, #ficha #fbody") ?? document.getElementById("ficha")?.firstElementChild ?? null)
+  };
+  var SECTIONS = [
+    { name: "history", run: (id) => accountCardLegacy.history(id), wait: false },
+    { name: "portal", run: (id) => accountCardLegacy.portal(id), wait: false },
+    { name: "centreProducts", run: (id) => accountCardLegacy.centreProducts(id), wait: false },
+    { name: "visitPhotos", run: visitPhotos },
+    { name: "samples", run: samples },
+    { name: "events", run: events },
+    { name: "deposit", run: deposit },
+    { name: "cycle", run: cycle },
+    { name: "presentedProducts", run: presentedProducts },
+    { name: "surgeries", run: surgeries },
+    { name: "tenders", run: tenders },
+    { name: "equipment", run: equipment },
+    { name: "proposal", run: (id) => accountCardLegacy.proposal(id) },
+    { name: "centreProfessionals", run: centreProfessionals },
+    { name: "archiveButtons", run: archiveButtons }
+  ];
+  async function runSection(section, id) {
+    try {
+      await section.run(id);
+    } catch (error) {
+      console.error(`ficha · ${section.name}`, error);
+    }
+  }
+  async function paintBase(id) {
+    const card = document.getElementById("ficha");
+    card?.classList.add("cargando");
+    const limit = setTimeout(() => card?.classList.remove("cargando"), LOADING_LIMIT_MS);
+    try {
+      accountCardLegacy.forgetPatients();
+      for (const section of BASE) await section.run(id);
+      if (document.getElementById("fventas") && !document.getElementById("fventasc")?.children.length) document.getElementById("fventas")?.remove();
+    } finally {
+      clearTimeout(limit);
+      requestAnimationFrame(() => card?.classList.remove("cargando"));
+    }
+  }
+  async function openAccountCard(id) {
+    try {
+      await paintBase(id);
+      await runSection(ACCESS, id);
+      void runSection(CUSTOM_FIELDS, id);
+    } finally {
+      accountCardLegacy.forgetCentreFromAppointment();
+    }
+    for (const section of SECTIONS) {
+      if (section.wait === false) void runSection(section, id);
+      else await runSection(section, id);
+    }
+  }
+
+  // src/app/screens/agenda/index.ts
+  var agenda_exports = {};
+  __export(agenda_exports, {
+    applyTaskFolding: () => applyTaskFolding,
+    bindWeekButton: () => bindWeekButton,
+    changeTime: () => changeTime,
+    closeMonth: () => closeMonth,
+    data: () => preload_exports,
+    dueList: () => dueList,
+    editTask: () => editTask,
+    groupByAttendance: () => groupByAttendance,
+    hasMenu: () => hasMenu,
+    loadAgenda: () => loadAgenda,
+    markQueuedVisits: () => markQueuedVisits,
+    metricsHtml: () => metricsHtml,
+    newAppointment: () => newAppointment,
+    openMenu: () => openMenu,
+    openTray: () => openTray,
+    paintOpenWeek: () => paintOpenWeek,
+    paintSameCentre: () => paintSameCentre,
+    paintStrip: () => paintStrip,
+    paintTrayButtons: () => paintTrayButtons,
+    paintWeekSidebar: () => paintWeekSidebar,
+    paintYourDay: () => paintYourDay,
+    refreshAfterChange: () => refreshAfterChange,
+    refreshMetrics: () => refreshMetrics,
+    refreshOpenMonth: () => refreshOpenMonth,
+    refreshOpenTray: () => refreshOpenTray,
+    refreshQuietly: () => refreshQuietly,
+    reloadMetrics: () => reloadMetrics,
+    renderMonth: () => renderMonth,
+    repaintSmoothly: () => repaintSmoothly,
+    runAction: () => runAction,
+    saveOrder: () => saveOrder,
+    shareWeek: () => shareWeek,
+    showAppointment: () => showAppointment,
+    showDay: () => showDay,
+    toggleMonth: () => toggleMonth
+  });
 
   // src/app/screens/agenda/month-calendar.ts
   var NOT_COUNTED = ["Descartada", "Aplazada"];
@@ -3319,14 +3692,14 @@
   }
   async function loadHomeData() {
     const today = todayIso();
-    const [areas, pendingOps, stock, cycle, calls, dayAppointments, tasks] = await Promise.all(requests(today));
+    const [areas, pendingOps, stock, cycle2, calls, dayAppointments, tasks] = await Promise.all(requests(today));
     if (!homeCache.panel()) homeCache.setPanel(await valueOf(legacyDb().rpc("panel_inicio")));
     return {
       today,
       areas: areas ?? {},
       pendingOps,
       stock: stock ?? [],
-      cycle,
+      cycle: cycle2,
       calls,
       appointments: dayAppointments,
       tasks: tasks ?? [],
@@ -4430,7 +4803,8 @@
     setVocabulary,
     screens: {
       home: { load, renderSkeleton, paintIndicators },
-      agenda: agenda_exports
+      agenda: agenda_exports,
+      accounts: accounts_exports
     }
   };
   listenToSameCentre();
@@ -17098,22 +17472,6 @@ async function centroPintar(...a) { const r = await centroPintarBase.apply(this,
 
 /* Ficha del prescriptor: la ficha base y, en orden, cada bloque que se le añade
    (antes eran 6 capas separadas). */
-async function abrirFichaBase(id, ...r) {
-  const d = $('ficha'); d.classList.add('cargando');
-  const limite = setTimeout(() => d.classList.remove('cargando'), 8000);
-  try {
-    FICHA_PAC = null;
-    await pintarFichaBase(id, ...r);
-    await fichaComercialYPacientes(id);
-    await fichaAvisoHorario(id);
-    await fichaMaterialVisitas(id);
-    await fichaUnidades(id);
-    await fichaClientes(id);
-    // v2.96.0: si no hay ventas que enseñar (o no hay permiso para verlas), la sección no aparece
-    if ($('fventas') && !$('fventasc').children.length) $('fventas').remove();
-  } finally { clearTimeout(limite); requestAnimationFrame(() => d.classList.remove('cargando')); }
-  await fichaAcceso(id);
-}
 
 function barraCuentasBase() {
   const m = $('mapaBtn');
@@ -17153,192 +17511,26 @@ function barraCuentasBase3() {
   }
 }
 
-async function abrirFichaBase2(id, ...a) { const r = await abrirFichaBase.call(this, id, ...a); bloqueCampos('cuentas', id, $('fzcampos') || ($('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild))); return r; }
 
-async function abrirFichaBase3(...a) { try { return await abrirFichaBase2.apply(this, a); } finally { FICHA_CENTRO = null; } }
 
-async function abrirFichaBase4(id, ...a) { const r = await abrirFichaBase3.call(this, id, ...a); fichaHistorial(id); return r; }
 
-async function abrirFichaBase5(id, ...a) { const r = await abrirFichaBase4.call(this, id, ...a); fichaPortal(id); return r; }
 
-async function abrirFichaBase6(id, ...a) { const r = await abrirFichaBase5.call(this, id, ...a); fichaProductosCentro(id); return r; }
 
-// Historial de la ficha: cuántas fotos tiene cada visita y la ventana para verlas, añadir o borrar
-async function abrirFichaBase7(id, ...a) {
-  const r = await abrirFichaBase6.call(this, id, ...a);
-  try {
-    const filas = [...document.querySelectorAll('#fbody [data-vrow]')];
-    if (filas.length) {
-      const { data } = await db.from('actividad_fotos').select('actividad_id').in('actividad_id', filas.map(f => f.dataset.vrow));
-      const n = {}; (data || []).forEach(x => { n[x.actividad_id] = (n[x.actividad_id] || 0) + 1; });
-      filas.forEach(f => {
-        if (f.querySelector('[data-vfotos]')) return;
-        const k = n[f.dataset.vrow] || 0, sitio = f.querySelector('span');
-        if (sitio && (k || f.querySelector('[data-editv]'))) sitio.insertAdjacentHTML('beforeend', `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${f.dataset.vrow}">${svgIco(ICON_NOM.camera)} ${k ? (k === 1 ? '1 foto' : k + ' fotos') : 'Añadir fotos'}</button></div>`);
-      });
-      document.querySelectorAll('#fbody [data-vfotos]').forEach(b => b.onclick = () => verFotosVisita(b.dataset.vfotos, id));
-    }
-  } catch (e) {}
-  return r;
-}
 
-// Ficha: lo entregado este año de cada producto regulado
-async function abrirFichaBase8(id, ...a) {
-  const r = await abrirFichaBase7.call(this, id, ...a);
-  try {
-    const sitio = $('fzcampos'); if (!sitio || $('fmuestras')) return r;
-    const { data: l } = await db.rpc('muestras_de_cuenta', { p_cuenta: id });
-    if (!Array.isArray(l) || !l.length || !$('fzcampos') || $('fmuestras') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fmuestras"><h3>Muestras este año</h3>
-      ${l.map(x => `<div class="fmrow"><span>${esc(x.nombre)}</span><b>${x.entregadas} de ${x.max}</b>${!x.en_plazo ? '<span class="pill p-anu">Fuera de plazo</span>' : !x.quedan ? '<span class="pill p-warn">Sin muestras este año</span>' : ''}</div>`).join('')}</div>`);
-  } catch (e) {}
-  return r;
-}
 
-// Ficha: eventos de ese profesional
-async function abrirFichaBase9(id, ...a) {
-  const r = await abrirFichaBase8.call(this, id, ...a);
-  try {
-    if (!$('fzcampos') || $('feventos') || !planIncluyeSeccion('eventos')) return r;
-    const { data: l } = await db.from('eventos_asistentes').select('estado,eventos(id,titulo,fecha)').eq('cuenta_id', id).limit(30);
-    const ev = (l || []).filter(x => x.eventos).sort((x, y) => String(y.eventos.fecha).localeCompare(String(x.eventos.fecha))).slice(0, 5);
-    if (!ev.length || !$('fzcampos') || $('feventos') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="feventos"><h3>Eventos</h3>
-      ${ev.map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-fev="${x.eventos.id}">${esc(x.eventos.titulo)}</button><span class="sm"> · ${fechaCorta(x.eventos.fecha)}</span></span><span class="pill ${x.estado === 'Asistió' ? 'p-est' : x.estado === 'No asistió' ? 'p-anu' : 'p-per'}">${esc(x.estado)}</span></div>`).join('')}</div>`);
-    $('feventos').querySelectorAll('[data-fev]').forEach(b => b.onclick = () => { $('ficha').close(); verEvento(b.dataset.fev); });
-  } catch (e) {}
-  return r;
-}
 
-// Ficha de un centro: su depósito
-async function abrirFichaBase10(id, ...a) {
-  const r = await abrirFichaBase9.call(this, id, ...a);
-  try {
-    if (!$('fzcampos') || $('fdeposito') || !planIncluyeSeccion('deposito')) return r;
-    const { data: c } = await db.from('cuentas').select('tipo,nombre').eq('id', id).maybeSingle();
-    if (!c || c.tipo !== 'Centro') return r;
-    const { data: e } = await db.rpc('deposito_estado', { p_cuenta: id });
-    if (!e || e.ok === false || !$('fzcampos') || $('fdeposito') || FICHA_ID !== id) return r;
-    const l = (e.lineas || []).filter(x => x.unidades > 0), tot = l.reduce((s, x) => s + x.unidades, 0), cad = l.filter(x => depCaducaPronto(x.caducidad)).length;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fdeposito"><h3>Material en depósito</h3>
-      <p class="sm">${e.existe && tot ? `${num(tot)} unidades de ${(z => z === 1 ? '1 producto' : z + ' productos')(new Set(l.map(x => x.producto_id)).size)}${cad ? ` · <b style="color:var(--warn)">${cad === 1 ? '1 lote caduca' : cad + ' lotes caducan'} en menos de 60 días</b>` : ''}` : 'Sin material en depósito.'}</p>
-      <button type="button" class="btn sec" id="fdepabrir">${e.existe ? 'Abrir el depósito' : 'Dejar material en depósito'}</button></div>`);
-    $('fdepabrir').onclick = () => { $('ficha').close(); verDeposito(id, c.nombre); };
-  } catch (e) {}
-  return r;
-}
 
-async function abrirFichaBase11(id, ...a) {
-  const r = await abrirFichaBase10.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || $('fciclo') || FICHA_ID !== id) return r;
-    const est = [...$('fbody').querySelectorAll('.blk > h3')].find(h => h.textContent.trim() === 'Estado');
-    if (!est) return r;
-    est.parentElement.insertAdjacentHTML('beforeend', '<div class="fciclo" id="fciclo"></div>');
-    await cicFicha(id);
-  } catch (e) {}
-  return r;
-}
 
-// Historial de la ficha: qué productos se presentaron en cada visita
-async function abrirFichaBase12(id, ...a) {
-  const r = await abrirFichaBase11.call(this, id, ...a);
-  try {
-    const filas = [...document.querySelectorAll('#fbody [data-vrow]')];
-    if (!filas.length || document.querySelector('#fbody .vprodtx')) return r;
-    const { data } = await db.from('actividades').select('id,productos').in('id', filas.map(f => f.dataset.vrow));
-    const ids = [...new Set((data || []).flatMap(x => x.productos || []))];
-    if (!ids.length || FICHA_ID !== id) return r;
-    const { data: ps } = await db.from('productos').select('id,nombre').in('id', ids);
-    const nom = Object.fromEntries((ps || []).map(p => [p.id, p.nombre]));
-    (data || []).forEach(x => {
-      const f = document.querySelector(`#fbody [data-vrow="${x.id}"]`), sitio = f && f.querySelector('span');
-      const n = (x.productos || []).map(k => nom[k]).filter(Boolean);
-      if (sitio && n.length && !f.querySelector('.vprodtx')) sitio.insertAdjacentHTML('beforeend', `<div class="sm vprodtx">Presentado: ${n.map(esc).join(', ')}</div>`);
-    });
-  } catch (e) {}
-  return r;
-}
 
-// Ficha del responsable o del centro: sus últimas intervenciones
-async function abrirFichaBase13(id, ...a) {
-  const r = await abrirFichaBase12.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || !$('fzcampos') || $('fcirugias') || !planIncluyeSeccion('cirugias')) return r;
-    const { data: l } = await db.from('cirugias').select('id,fecha,procedimiento,estado').or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order('fecha', { ascending: false }).limit(5);
-    if (!(l || []).length || !$('fzcampos') || $('fcirugias') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fcirugias"><h3>Intervenciones</h3>
-      ${l.map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${x.id}">${esc(x.procedimiento || 'Intervención')}</button><span class="sm"> · ${fechaCorta(x.fecha)}</span></span>${cirEstado(x)}</div>`).join('')}</div>`);
-    $('fcirugias').querySelectorAll('[data-fcir]').forEach(b => b.onclick = () => { $('ficha').close(); verCirugia(b.dataset.fcir); });
-  } catch (e) {}
-  return r;
-}
 
-// Ficha: sus concursos (en marcha y contratos)
-async function abrirFichaBase14(id, ...a) {
-  const r = await abrirFichaBase13.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || !$('fzcampos') || $('fconcursos') || !planIncluyeSeccion('concursos')) return r;
-    const { data: l } = await db.from('concursos').select('id,titulo,estado,fin,prorroga_hasta').eq('cuenta_id', id).in('estado', ['En estudio', 'Oferta enviada', 'Adjudicado']).order('creado_en', { ascending: false }).limit(6);
-    if (!(l || []).length || !$('fzcampos') || $('fconcursos') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fconcursos"><h3>Concursos</h3>
-      ${l.map(x => { const q = conQuedan(x); return `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${x.id}">${esc(x.titulo)}</button>${x.estado === 'Adjudicado' && q != null ? `<span class="sm"> · ${q < 0 ? 'vencido' : 'vence el ' + fechaCorta(conVence(x))}</span>` : ''}</span>${conPill(x.estado)}</div>`; }).join('')}</div>`);
-    $('fconcursos').querySelectorAll('[data-fcon]').forEach(b => b.onclick = () => { $('ficha').close(); verConcurso(b.dataset.fcon); });
-  } catch (e) {}
-  return r;
-}
 
-// Ficha: equipos instalados
-async function abrirFichaBase15(id, ...a) {
-  const r = await abrirFichaBase14.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || !planIncluyeSeccion('parque') || !$('fzcampos') || $('fequipos')) return r;
-    const { data: l } = await db.from('equipos').select('id,serie,ubicacion,estado,contrato,contrato_fin,garantia_hasta,proxima_revision,productos(nombre)').eq('cuenta_id', id).eq('estado', 'Instalado').order('instalado', { ascending: false }).limit(20);
-    if (!$('fzcampos') || $('fequipos') || FICHA_ID !== id) return r;
-    const { data: c } = await db.from('cuentas').select('tipo,nombre').eq('id', id).maybeSingle();
-    if (!(l || []).length && (!c || c.tipo !== 'Centro')) return r;
-    if (!$('fzcampos') || $('fequipos') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fequipos"><h3>Equipos instalados${(l || []).length ? ` <span class="n">${l.length}</span>` : ''}</h3>
-      ${(l || []).map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${x.id}">${esc((x.productos || {}).nombre || 'Equipo')}</button><span class="sm">${x.serie ? ' · nº ' + esc(x.serie) : ''}${x.ubicacion ? ' · ' + esc(x.ubicacion) : ''}</span></span>${eqRevPill(x)}</div>`).join('') || '<p class="sm">Sin equipos instalados.</p>'}
-      <button type="button" class="btn sec" id="feqmas">+ Equipo</button></div>`);
-    $('fequipos').querySelectorAll('[data-feq]').forEach(b => b.onclick = () => { $('ficha').close(); verEquipo(b.dataset.feq); });
-    $('feqmas').onclick = () => { $('ficha').close(); editarEquipo(null, { id, nombre: (c || {}).nombre || '' }); };
-  } catch (e) {}
-  return r;
-}
 
 // Si el modo mapa cambia el botón, la barra lo refleja
 function barraCuentas() { barraCuentasBase3(); const b = document.querySelector('#v-directorio .plmapa'), m = $('mapaBtn'); if (b && m && b.dataset.modo !== (m.dataset.modo || '')) { b.dataset.modo = m.dataset.modo || ''; b.innerHTML = m.innerHTML; b.title = m.title; b.setAttribute('aria-label', m.title); } }
 
-async function abrirFichaBase16(id, ...a) { const r = await abrirFichaBase15.call(this, id, ...a); await fichaPropuesta(id); return r; }
-
-async function abrirFichaBase17(id, ...a) {
-  const r = await abrirFichaBase16.call(this, id, ...a);
-  try {
-    const { data: c } = await db.from('cuentas').select('tipo, centro_id').eq('id', id).maybeSingle();
-    const fb = $('fbody');
-    if (c && c.tipo === 'Centro' && c.centro_id && fb && FICHA_ID === id && !$('fcentrop')) {
-      const fh = fb.querySelector('.fh');
-      (fh || fb.firstElementChild).insertAdjacentHTML('afterend', `<div class="blk" id="fcentrop"><div class="fcentropf"><span>Los ${esc(TT('medico', 'p', '', 'l', 'l'))} que atienden aquí y su horario</span>
-        <button type="button" class="btn sec chico" data-fcver="${c.centro_id}">Ver sus ${esc(TT('medico', 'p', '', 'l', 'l'))}</button></div></div>`);
-    }
-  } catch (e) {}
-  return r;
-}
-
-async function abrirFicha(id, ...a) {
-  const r = await abrirFichaBase17.call(this, id, ...a);
-  try {
-    const { data: c } = await db.from('cuentas').select('tipo, nombre, archivado_en').eq('id', id).maybeSingle();
-    const fb = $('fbody');
-    if (!c || !fb || FICHA_ID !== id || $('fbajablk') || !puedeEditarTipo(c.tipo)) return r;
-    const elim = nivelDe2('M') >= 3;
-    fb.insertAdjacentHTML('beforeend', `<div class="blk fbajablk" id="fbajablk"><div class="acts">
-      ${c.archivado_en ? `<button type="button" class="btn sec chico" data-falta="${id}">Volver a dar de alta</button>` : `<button type="button" class="btn sec chico" data-fbaja="${id}">Dar de baja</button>`}
-      ${elim ? `<button type="button" class="btn sec dang chico" data-felim="${id}">Eliminar la ficha</button>` : ''}</div></div>`);
-  } catch (e) {}
-  return r;
-}
+// La ficha está en src/app/screens/accounts/card (v2.401.0): una lista de secciones con nombre en vez de 18 capas. El nombre
+// global se queda: lo llaman muchas pantallas y «‹ Volver» (legado 126) envuelve las ventanas por su nombre.
+function abrirFicha(id) { return window.delcos.screens.accounts.openAccountCard(id); }
 // pantallas/eventos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 

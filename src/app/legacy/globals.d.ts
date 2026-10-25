@@ -11,6 +11,10 @@ interface LegacyQuery<T> extends PromiseLike<LegacyResult<T>> {
   limit(count: number): LegacyQuery<T>;
   insert(values: Record<string, unknown>): LegacyQuery<T>;
   delete(): LegacyQuery<T>;
+  in(column: string, values: readonly unknown[]): LegacyQuery<T>;
+  or(filter: string): LegacyQuery<T>;
+  order(column: string, options?: { ascending?: boolean }): LegacyQuery<T>;
+  maybeSingle(): LegacyQuery<T>;
 }
 interface LegacyDb {
   rpc<T>(name: string, params?: Record<string, unknown>): PromiseLike<LegacyResult<T>>;
@@ -238,3 +242,32 @@ declare function recientesDe(ids: string[], isoDate: string): Promise<Record<str
 declare function txtReciente(list: RecentContact[]): string;
 declare function avisoRevisita(): { on: boolean; dias: number };
 declare function guardarAvisoRevisita(value: { on: boolean; dias: number }): Promise<void>;
+declare let FICHA_ID: string | null;
+declare let FICHA_PAC: unknown;
+declare function puedeEditarTipo(type: string | null | undefined): boolean;
+declare function pintarFichaBase(id: string): Promise<void>;
+declare function fichaComercialYPacientes(id: string): Promise<void>;
+declare function fichaAvisoHorario(id: string): Promise<void>;
+declare function fichaMaterialVisitas(id: string): Promise<void>;
+declare function fichaUnidades(id: string): Promise<void>;
+declare function fichaClientes(id: string): Promise<void>;
+declare function fichaAcceso(id: string): Promise<void>;
+declare function bloqueCampos(table: string, id: string, container: Element | null): Promise<void>;
+declare function fichaHistorial(id: string): Promise<void>;
+declare function fichaPortal(id: string): Promise<void>;
+declare function fichaProductosCentro(id: string): Promise<void>;
+declare function fichaPropuesta(id: string): Promise<void>;
+declare function cicFicha(id: string): Promise<void>;
+declare function verFotosVisita(activityId: string, accountId: string): Promise<void>;
+declare function verEvento(id: string): Promise<void>;
+declare function verDeposito(accountId: string, name: string): Promise<void>;
+declare function depCaducaPronto(isoDate: string | null | undefined): boolean;
+declare function verCirugia(id: string): Promise<void>;
+declare function cirEstado(surgery: object): string;
+declare function verConcurso(id: string): Promise<void>;
+declare function conQuedan(tender: object): number | null;
+declare function conVence(tender: object): string | null;
+declare function conPill(state: string): string;
+declare function verEquipo(id: string): Promise<void>;
+declare function editarEquipo(equipment: null, account: { id: string; nombre: string }): Promise<void>;
+declare function eqRevPill(equipment: object): string;

@@ -4,6 +4,7 @@
  * Business words (profesional, visita, cliente…) are written with {placeholders} and resolved per company by the vocabulary
  * (see i18n/index.ts), so each company sees its own words.
  */
+import { accounts } from './es/accounts';
 import { agenda } from './es/agenda';
 
 export const es = {
@@ -35,6 +36,7 @@ export const es = {
     weekdaysLong: 'lunes,martes,miércoles,jueves,viernes,sábado,domingo',
   },
   agenda,
+  accounts,
   home: {
     showIndicators: 'Ver tus indicadores',
     hideIndicators: 'Ocultar tus indicadores',
