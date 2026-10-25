@@ -1,20 +1,5 @@
 /* ============================================================
    DLC OS 2.0 · Entrega 17 · Bloque E
+   v2.424.0: lo de esta entrega ya estaba en sus pantallas.
    ============================================================ */
-
-/* ---------------- copia local para consultar sin conexión ---------------- */
-
-
-
-
-/* ---------------- administración: secciones nuevas ---------------- */
-
-
-
-
-/* ---------------- cartera y contraseña de un usuario ---------------- */
-
-
-
-
 

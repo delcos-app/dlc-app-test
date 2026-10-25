@@ -9,6 +9,9 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as layers from './core/layers';
+import * as legacyB from './core/legacy-b';
+import * as legacyA from './core/legacy-a';
 import * as settingsShell from './screens/settings/shell';
 import * as embeddedWindow from './components/embedded-window';
 import * as settingsRest from './screens/settings/rest';
@@ -60,9 +63,15 @@ export interface DelcosCore {
   readonly t: typeof t;
   readonly setLanguage: typeof setLanguage;
   readonly setVocabulary: typeof setVocabulary;
+  /** The legacy layers 080–161 folded into src/app/core/layers (v2.424.0): installed from their legado files, in load order. */
+  readonly layers: typeof layers;
+  /** What legado 000–024 did (v2.424.0): each legado file calls it at its place in the load order. */
+  readonly legacyA: typeof legacyA;
   /** Shared components (src/app/components), called by the legacy adapters in src/componentes. */
   readonly components: typeof components & { readonly embeddedWindow: typeof embeddedWindow; readonly list: typeof listComponents; readonly filters: typeof filterComponents; readonly filtersPanel: typeof filtersPanel; readonly listBar: typeof listBar };
   /** Migrated screens, called by the legacy adapters (e.g. cargarInicio) until navigation moves to the router. */
+  /** What legado 025–049 did (v2.424.0): each legado file calls its part at its place in the load order. */
+  readonly legacyB: typeof legacyB;
   readonly screens: {
     readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators; readonly openIndicatorSettings: typeof openIndicatorSettings };
     readonly agenda: typeof agenda;
@@ -112,7 +121,10 @@ window.delcos = {
   t,
   setLanguage,
   setVocabulary,
+  layers,
+  legacyA,
   components: { ...components, embeddedWindow, list: listComponents, filters: filterComponents, filtersPanel, listBar },
+  legacyB,
   screens: {
     home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators, openIndicatorSettings },
     agenda,

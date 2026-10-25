@@ -6,37 +6,19 @@
 
 Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, actividades_recientes: 30 });
 
-
 /* ---------------- móvil: los cuatro principales y «Más» ---------------- */
 
-function pintarBnavBase() {
-  const b = $('bnav'); if (!b) return;
-  const principales = ['inicio', 'agenda', 'rutas', 'directorio'];
-  const iconos = { inicio: '◉', agenda: '▤', rutas: '➤', directorio: '☰' };
-  b.innerHTML = principales.map(t => `<button data-t="${t}" aria-selected="${TAB === t}"><span>${iconos[t]}</span>${esc((document.querySelector(`nav.main [data-t="${t}"]`) || {}).textContent || t)}</button>`).join('')
-    + `<button id="bmasbtn" aria-selected="${!principales.includes(TAB)}"><span>⋯</span>Más</button>`;
-  b.querySelectorAll('[data-t]').forEach(x => x.onclick = () => ir(x.dataset.t));
-  $('bmasbtn').onclick = abrirMasMovil;
-}
-
+// La barra inferior del móvil está en src/app/core/mobile/navigation.ts (v2.424.0)
 
 /* ---------------- entrar como otro usuario ---------------- */
 
 const SKEY = 'dlc-suplantador';
 
-
-
-
-
-document.addEventListener('click', e => {
-  const b = e.target.closest('[data-ucomo]');
-  if (b) entrarComo(b.dataset.ucomo);
-});
+window.delcos.legacyB.listenToImpersonateAndManual();
 
 AREAS.push(['U', 'Impersonalizar usuarios']);
 
 /* ---------------- manual de uso ---------------- */
-
 
 const MANUAL = [
   { id: 'inicio', t: 'Inicio', a: 'H', para: 'El resumen de tu día y de tu semana: indicadores, alertas, tu agenda de hoy y lo que conviene hacer.',
@@ -76,50 +58,22 @@ const FAQ = [
   ['¿Por qué no puedo descargar datos?', `Por seguridad: los datos de ${TT('medico', 'p', '', 'l', 'l')} y ventas solo se consultan dentro de la plataforma.`]
 ];
 
-
-/* ---------------- navegación: manual y barra de suplantación ---------------- */
-
-
-document.addEventListener('click', e => {
-  if (e.target.closest('#manbtn')) { e.stopPropagation(); document.querySelectorAll('.umenu').forEach(m => m.classList.add('hide')); ir('manual'); }
-}, true);
-
 /* ---------------- reglas de cartera ---------------- */
 
-
-async function pintarEquipo() {
-  await pintarEquipoBase();
-  const h = $('agcuerpo').querySelector('.semhead');
-  if (h && puede('administrar') && !$('eqcart')) {
-    h.insertAdjacentHTML('beforeend', '<button class="btn sec" id="eqcart">⚙ Reglas de cartera</button>');
-    $('eqcart').onclick = editorReglasCartera;
-  }
-}
+// Agenda → Equipo con «Reglas de cartera» (src/app/screens/agenda/team-rules.ts, v2.424.0)
+function pintarEquipo() { return window.delcos.legacyB.paintTeam(); }
 
 /* ---------------- aviso de visita reciente ---------------- */
-
-
-
-
 
 // Plan de ruta: marca a quien ya se ha visto hace poco y permite quitarlo
 
 // Preferencias: el aviso se puede activar, desactivar y ajustar
-
-/* ---------------- servicios en Productos ---------------- */
-
-
-
-
 
 /* ---------------- Rutas: resumen como pantalla de entrada ---------------- */
 
 RSEC = 'inicio';
 
 // v2.242.0: aquí iba resumenRutas (nadie la usaba)
-
-/* ---------------- Inicio: mi semana, ventas, alertas y equipo ---------------- */
-
 
 /* ---------------- ayudas ---------------- */
 
@@ -132,5 +86,3 @@ Object.assign(AYUDA, {
 });
 AYUDA.inicio[2].push(`<b>Mi semana</b>, <b>Ventas del mes</b> y <b>Alertas</b> resumen lo importante. Administración y televenta ven además los cruces del equipo (${TT('medico', 'p', '', 'l', 'l')} en dos carteras, ${TT('visita', 'p', '', 'l', 'l')} a ${TT('medico', 'p', '', 'l', 'l')} de otra cartera…) y el cumplimiento del equipo.`);
 AYUDA.rutas[2].unshift('La pestaña <b>Resumen</b> muestra tu día, las propuestas para hoy y tus rutas, con accesos directos a planificar.');
-
-

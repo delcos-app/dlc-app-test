@@ -8,38 +8,14 @@ Object.assign(RPC_TTL, { clasificadores_actividad: 300, municipios_clientes: 300
 
 /* ---------------- registrar visita con datos ---------------- */
 
-// v2.205.0: los resultados sin dato ya salen en la línea de la visita; no son material
-const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato && (v.resultados || []).includes(d.valor)))
-  .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');
-
-
-
-
-
-/* ---------------- clasificadores: configurar el dato de cada valor ---------------- */
-
-
-
-/* ---------------- ficha: material y datos en el historial de visitas ---------------- */
-
-
-/* ---------------- plan: mapa con su propio botón y «Descartar plan» ---------------- */
-
-
-/* ---------------- columnas dentro del panel lateral ---------------- */
-
+// v2.205.0: el material y los datos de una visita en una línea (src/app/screens/accounts/card/visit-details.ts, v2.424.0)
+function detTxt(v) { return window.delcos.legacyB.visitDetails(v); }
 
 /* ---------------- Clientes (antes Pacientes): tipo y filtros ---------------- */
 
 Object.assign(PAC, { tipo: '', pedidos: '', municipio: '' });
 
-
-
-
-document.querySelectorAll('#nav [data-t="pacientes"]').forEach(b => b.textContent = 'Clientes');
-
-/* ---------------- nueva cita: aviso si ya tiene cita ese día ---------------- */
-
+window.delcos.legacyB.renameMenuEntry('pacientes');
 
 /* ---------------- ayudas ---------------- */
 
@@ -52,5 +28,3 @@ Object.assign(AYUDA, {
 AYUDA.config = AYUDA.config || ['Configuración', '', []];
 AYUDA.config[2].push(`En <b>Clasificadores</b>, los de ${TT('visita', 'p', '', 'l', 'l')} (resultados, material comercial…) pueden pedir un <b>dato</b> al marcarse: una cantidad, un texto o una opción de una lista. Usa «+ Dato» en cada valor.`);
 AYUDA.agenda[2].push(`Si añades una cita a ${TT('medico', 's', 'un', 'l', 'l')} que ya tiene otra ese día, te avisa y eliges: mantener las dos o quedarte solo con la nueva.`);
-
-

@@ -23,18 +23,6 @@ PLANES.splice(0, PLANES.length,
   { id: 'premium', nombre: 'Premium', precio: 179, incluidos: 15, bloque: [1, 8], medicos: null, para: 'Redes comerciales completas',
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
     ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Impersonalización de usuarios y auditoría', 'Soporte prioritario y ayuda con la migración'] });
-async function pintarPlan2() {
-  await pintarPlan2Base();
-  const c = $('cfgcuerpo'); if (!c) return;
-  // Textos del modelo por usuario (en lugar de bloques)
-  c.querySelectorAll('.plan .sm').forEach(s => { s.textContent = s.textContent.replace(/\+1 usuarios por (.+?)\/mes/, 'usuario extra: $1/mes'); });
-  const b = $('plbloque'); if (b) b.textContent = b.textContent.replace(/Añadir un bloque de 1 usuarios \((.+)\)/, 'Añadir un usuario extra ($1)');
-  c.querySelectorAll('.manlist li span:last-child').forEach(li => {
-    if (/bloques de usuarios/.test(li.textContent)) li.textContent = 'Cada plan incluye usuarios; si el equipo crece, se añaden usuarios sueltos sin cambiar de plan.';
-    if (/dos meses gratis/.test(li.textContent)) li.textContent = 'Pago mensual con tarjeta, sin permanencia.';
-  });
-  const act = c.querySelector('.planact .sm'); if (act) act.textContent = act.textContent.replace(/ \+ (\d+) bloques? de 1/, ' + $1 extra');
-}
 
 /* ---------------- notificaciones ampliadas ---------------- */
 
@@ -60,16 +48,5 @@ TIPOS_NOTIF.push(
 /* ---------------- idiomas ---------------- */
 
 let MAPA_I18N = null;   // (IDIOMA está en nucleo/idioma.js)
-let TR_PEND = new Set(), TR_RAF = 0;
-new MutationObserver(ms => {
-  if (!MAPA_I18N) return;
-  ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) TR_PEND.add(n); else if (n.nodeType === 3 && n.parentElement) TR_PEND.add(n.parentElement); }));
-  if (TR_RAF) return;
-  TR_RAF = 1; queueMicrotask(() => { TR_RAF = 0; const l = [...TR_PEND]; TR_PEND.clear(); l.forEach(n => n.isConnected && traducir(n)); });
-}).observe(document.body, { childList: true, subtree: true });
-// Fechas en el idioma elegido
-prepararIdioma((() => { try { return localStorage.getItem('app-idioma') || 'es'; } catch (e) { return 'es'; } })());
-if (MAPA_I18N) traducir(document.body);
+window.delcos.legacyB.watchTranslations();
 // Selector de idioma en Mi perfil
-
-

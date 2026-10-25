@@ -8,5 +8,3 @@ MANUAL.unshift({ id: 'roles', t: 'Roles del equipo', a: null, para: 'Qué ve y q
     [0, 'Televenta: ve toda la base, crea y confirma pedidos, da de alta clientes, emite facturas y registra cobros'],
     [0, `Comercial: su cartera, su agenda y rutas, sus ${TT('visita', 'p', '', 'l', 'l')} y las ventas y clientes de sus ${TT('medico', 'p', '', 'l', 'l')}`],
     [0, 'Solo consulta: ve sin modificar lo que le permitan sus permisos']], config: ['Permisos por persona: Administración → Usuarios → Editar'] });
-
-

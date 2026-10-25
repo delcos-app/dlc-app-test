@@ -5,81 +5,18 @@
 
 Object.assign(RPC_TTL, { facturas_lista: 20, series_lista: 60, eventos_facturacion_lista: 20 });
 
-/* ---------------- navegación ---------------- */
-
-
-/* ---------------- módulo ---------------- */
-
-
-
-
-
-
-
-
-/* ---------------- ver e imprimir (PDF desde el navegador) ---------------- */
-
-
-/* ---------------- series ---------------- */
-
-
-
 /* ---------------- datos fiscales y preferencias de facturación ---------------- */
 
-async function pintarEmpresaBase() {
-  await cargarAjustes();
-  const e = AJUSTES.empresa || {}, c = Object.assign({ vencimiento_dias: 15, forma_pago: '', emitir_al_validar: false }, AJUSTES.facturacion || {});
-  const f = (k, t, extra) => `<div><label for="em_${k}">${t}</label><input id="em_${k}" value="${esc(e[k] || '')}" ${extra || ''}></div>`;
-  $('fcuerpo').innerHTML = `<div class="card" style="padding-top:16px;padding-bottom:16px">
-    <h2 style="padding:0 0 8px">Datos fiscales del emisor</h2><p class="sm">Aparecen en cada factura. Las facturas ya emitidas conservan los datos con los que se emitieron.</p>
-    <div class="g2">${f('razon_social', 'Razón social')}${f('nif', 'NIF')}</div>
-    <div class="g2">${f('direccion', 'Dirección')}${f('cp', 'Código postal')}</div>
-    <div class="g2">${f('municipio', 'Población')}${f('provincia', 'Provincia')}</div>
-    <div class="g2">${f('telefono', 'Teléfono')}${f('email', 'Email', 'type="email"')}</div>
-    <div class="g2">${f('iban', 'IBAN para transferencias')}${f('registro', 'Datos registrales (Registro Mercantil)')}</div>
-    <label for="em_pie">Pie de factura</label><textarea id="em_pie" rows="2" placeholder="Condiciones, protección de datos…">${esc(e.pie || '')}</textarea>
-    <h2 style="padding:18px 0 8px">Al emitir</h2>
-    <div class="g2"><div><label for="fcv">Días hasta el vencimiento</label><input id="fcv" type="number" min="0" value="${+c.vencimiento_dias || 0}"></div>
-      <div><label for="fcf">Forma de pago si el pedido no la indica</label><select id="fcf"><option value="">—</option>${(CAT.forma_pago || []).map(x => `<option ${x.valor === c.forma_pago ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="fce" ${c.emitir_al_validar ? 'checked' : ''}>
-      <span><b>Emitir la factura automáticamente al confirmar un pedido</b><br><span class="sm">Si no, se emite a mano desde el pedido con «Emitir factura».</span></span></label>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="emok">Guardar</button></div></div>`;
-  $('emok').onclick = async () => {
-    const emp = {}; ['razon_social', 'nif', 'direccion', 'cp', 'municipio', 'provincia', 'telefono', 'email', 'iban', 'registro', 'pie'].forEach(k => emp[k] = $('em_' + k).value.trim());
-    emp.pais = e.pais || 'España';
-    if (!emp.razon_social || !emp.nif) { toast('La razón social y el NIF son obligatorios', true); return; }
-    const [a, b] = await Promise.all([
-      db.rpc('guardar_ajuste', { p_clave: 'empresa', p_valor: emp }),
-      db.rpc('guardar_ajuste', { p_clave: 'facturacion', p_valor: { vencimiento_dias: +$('fcv').value || 0, forma_pago: $('fcf').value, emitir_al_validar: $('fce').checked } })]);
-    if (a.error || b.error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.empresa = emp; toast('Datos guardados');
-  };
-}
+// Datos fiscales: src/app/screens/billing/company-data.ts (v2.424.0)
 
 /* ---------------- VeriFactu (solo administración) ---------------- */
 
 // (v2.183.0: aquí iba la primera versión de pintarVerifactu; se redefine entera más abajo)
 
-
 /* ---------------- desde el pedido: emitir o ver la factura ---------------- */
 
-
-
 // Emisión automática al validar, si está configurada
-const RPC_V2300 = db.rpc;
-db.rpc = function (fn, params, opts) {
-  const b = RPC_V2300.call(db, fn, params, opts);
-  if (fn !== 'guardar_pedido' || !params || !params.p || params.p.estado === 'Borrador') return b;
-  return conCatch(Promise.resolve(b).then(async res => {
-    try {
-      if (!res.error && res.data && res.data.ok && res.data.estado !== 'Borrador' && (AJUSTES.facturacion || {}).emitir_al_validar && puedeFacturar()) {
-        const { data: f } = await RPC_ORIG('emitir_factura', { p_pedido: res.data.id });
-        if (f && f.ok) setTimeout(() => toast('Factura ' + f.numero + ' emitida'), 900);
-      }
-    } catch (e) {}
-    return res;
-  }));
-};
+window.delcos.legacyB.invoiceOnConfirm();
 
 /* ---------------- ayudas ---------------- */
 
@@ -93,5 +30,3 @@ AYUDA.facturacion = ['Facturación', 'Facturas emitidas desde los pedidos, recti
 MANUAL.push({ id: 'facturacion', t: 'Facturación', a: 'V', para: 'Facturas desde pedidos confirmados, rectificativas, cobros, series y VeriFactu.',
   hacer: [[1, 'Ver facturas y cobros (administración y televenta)'], [2, 'Emitir facturas, rectificar y registrar cobros'], [3, 'Configurar series, datos fiscales y VeriFactu (administración)']],
   config: ['Series y numeración', 'Datos fiscales, vencimiento y emisión automática', 'VeriFactu (solo administración)'] });
-
-

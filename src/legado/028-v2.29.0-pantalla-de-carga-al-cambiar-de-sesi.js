@@ -3,23 +3,10 @@
    agenda sin parpadeos, más indicadores en Inicio y Analítica visual
    ============================================================ */
 
-/* ---------------- pantalla de carga a pantalla completa ---------------- */
-
-
-
-
-
 /* ---------------- agenda: una sola transición al cambiar de vista ---------------- */
 
-
-
 // Desde Rutas: «Planificar la semana» abre el planificador cuando la semana ya está pintada
-document.addEventListener('click', e => {
-  const b = e.target.closest('#rrsem, [data-inisem="plan"]');
-  if (!b) return;
-  e.stopImmediatePropagation();
-  ABRIR_PLAN_SEMANA = true; AG_MODO = 'semana'; AG_FECHA = hoyISO(); ir('agenda');
-}, true);
+window.delcos.legacyB.listenToWeekPlanLinks();
 
 /* ---------------- Inicio: más indicadores ---------------- */
 
@@ -57,26 +44,10 @@ Object.assign(AYUDA_KPI, {
 
 // Quien ya tenía indicadores guardados recibe los nuevos principales una vez (luego puede ocultarlos)
 
-document.addEventListener('click', e => {
-  const k = e.target.closest('#kpis [data-k^="x-"]');
-  if (!k || e.target.closest('.ai')) return;
-  e.stopImmediatePropagation();
-  const a = k.dataset.k;
-  if (a === 'x-analitica') ir('analitica');
-  if (a === 'x-semana') { AG_MODO = 'semana'; AG_FECHA = hoyISO(); ir('agenda'); }
-  if (a === 'x-ventas') ir('ventas');
-}, true);
+window.delcos.legacyB.listenToIndicatorLinks();
 
 /* ---------------- Analítica: resumen visual ---------------- */
 
-
-
-
-
-
 // (v2.183.0: aquí iba la primera versión de pintarResumenAnalitica; se redefine entera más abajo)
 
-
 AYUDA.analitica[2].unshift(`<b>Resumen</b>: indicadores con la comparación frente al periodo anterior y gráficos explicados (evolución, productos, ${TT('medico', 'p', '', 'l', 'l')}, embudo y actividad). <b>Explorar datos</b>: ranking y tablas con filtros por ${TT('medico', 's', '', 'l', 'l')}, comercial y producto.`);
-
-

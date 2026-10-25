@@ -24,38 +24,13 @@ function aplicarPermisosMenuBase2() {
   aplicarPermisosMenuPaso3();
 }
 
-
-
-
-
-/* ---------------- indicadores con su categoría y permiso ---------------- */
-
-
-/* ---------------- zonas de cada comercial ---------------- */
-
-
-
 /* ---------------- operativa de los pedidos ---------------- */
-
-
-
 
 // (v2.183.0: aquí iba la primera versión de pintarOperativa; se redefine entera más abajo)
 
-/* ---------------- Pedidos: pestaña «Llamadas» ---------------- */
-
-
-
-
-/* ---------------- Inicio: operativa pendiente para televenta y administración ---------------- */
-
-
-/* ---------------- Agenda: ver varios meses ---------------- */
-
-
 /* ---------------- «Seguimiento» pasa a «Calidad del dato» ---------------- */
 
-document.querySelectorAll('[data-t="seguimiento"]').forEach(b => { if (b.closest('nav.main')) b.textContent = 'Calidad del dato'; });
+window.delcos.legacyB.renameMenuEntry('seguimiento');
 
 /* ---------------- ayudas y manual ---------------- */
 
@@ -69,5 +44,3 @@ MANUAL.forEach(s => {
 MANUAL.push({ id: 'permisos', t: 'Permisos por módulo', a: null, para: 'Cada módulo se abre con su permiso; si no lo tienes, no aparece en el menú.',
   hacer: [[0, 'Clientes, Productos y stock, Facturación, Analítica y Calidad del dato tienen su propio permiso'],
     [0, '«Importes de ventas» decide si se ven euros o solo unidades en Inicio, Analítica y listados']], config: ['Administración → Usuarios → Editar'] });
-
-

@@ -15,103 +15,10 @@ let SELPOP = null, LOGO_CIRC = false;
 
 // (v2.183.0: aquí iba la primera versión de abrirReloj; se redefine entera más abajo)
 
-function valorVisibleBase(inp) {
-  const w = inp.closest('.selw'), sp = w && w.querySelector('.selval'); if (!sp) return;
-  const v = inp.value;
-  if (!v) { sp.textContent = inp.type === 'date' ? 'Elige una fecha' : 'Elige una hora'; sp.classList.add('vacio'); return; }
-  sp.classList.remove('vacio');
-  if (inp.type === 'time') { sp.textContent = v.slice(0, 5); return; }
-  const d = new Date(v + 'T12:00:00');
-  sp.textContent = isNaN(d) ? v : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-}
-document.addEventListener('click', e => {
-  const nb = e.target.closest('.numw .nb');
-  if (nb) {
-    const inp = nb.parentNode.querySelector('input'); if (inp.disabled || inp.readOnly) return;
-    const paso = +inp.step || 1, v = (+inp.value || 0) + paso * +nb.dataset.nd;
-    let n = v; if (inp.min !== '' && n < +inp.min) n = +inp.min; if (inp.max !== '' && n > +inp.max) n = +inp.max;
-    inp.value = paso < 1 ? n.toFixed(String(paso).split('.')[1].length) : n; emitir(inp); return;
-  }
-  const s = e.target.closest('.selw');
-  if (s) {
-    const inp = s.querySelector('input'); if (inp.disabled || inp.dataset.ro === '1') return;
-    e.preventDefault(); inp.type === 'date' ? abrirCalendario(inp) : abrirReloj(inp); return;
-  }
-  // v2.343.0: el «clic fantasma» del móvil (justo tras abrir) no cierra el calendario: con las ventanas a pantalla completa caía fuera
-  const sd = $('seldlg'); if (sd && sd.__abierto && Date.now() - sd.__abierto < 500) return;
-  if (!e.target.closest('.selpop')) cerrarSelector();
-}, true);
-// El calendario del sistema no se abre: se usa el propio
-document.addEventListener('mousedown', e => { const i = e.target.closest('.selw input'); if (i) e.preventDefault(); }, true);
-document.addEventListener('keydown', e => {
-  const i = e.target.closest && e.target.closest('.selw input');
-  if (i && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); i.type === 'date' ? abrirCalendario(i) : abrirReloj(i); }
-  if (e.key === 'Escape') cerrarSelector();
-});
-document.addEventListener('scroll', e => { if (SELPOP && Date.now() - (SELPOP.__t || 0) > 500 && !(e.target.closest && e.target.closest('.selpop'))) cerrarSelector(); }, true);
-new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1) mejorarCampos(n); })
-  .observe(document.body, { childList: true, subtree: true });
-['dlg', 'dlg2', 'ficha', 'mini'].forEach(id => { const d = $(id); if (d) d.addEventListener('close', cerrarSelector); });
-
-/* ---------------- alertas: el detalle se abre en una ventana ---------------- */
-
-document.addEventListener('click', e => {
-  const s = e.target.closest('#iniextra details.alerta2 > summary');
-  if (!s) return;
-  e.preventDefault(); e.stopPropagation();
-  const det = s.parentElement, items = [...det.querySelectorAll(':scope > div > .item')];
-  const titulo = s.textContent.replace(/\s+/g, ' ').trim();
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(titulo.replace(/^\d+\s*/, ''))}</h2><div class="sm">${num(items.length)} ${items.length === 1 ? 'caso' : 'casos'}${det.querySelector('.sm:last-child') && /más/.test(det.lastElementChild.textContent) ? ' · ' + esc(det.lastElementChild.textContent) : ''}</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <input id="alq" type="search" placeholder="Buscar en la lista" style="margin:6px 0 8px">
-    <div class="lista alertlist" id="allista"></div><div id="alpag"></div>`;
-  let pag = 0;
-  const pinta = () => {
-    const q = $('alq').value.trim().toLowerCase(), f = items.filter(x => !q || x.textContent.toLowerCase().includes(q)), tam = 12;
-    $('allista').innerHTML = ''; f.slice(pag * tam, pag * tam + tam).forEach(x => $('allista').appendChild(x.cloneNode(true)));
-    $('allista').querySelectorAll('[data-inificha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.inificha); });
-    $('allista').querySelectorAll('[data-iniped]').forEach(b => b.onclick = () => verPedido(b.dataset.iniped));
-    $('allista').querySelectorAll('[data-inistock]').forEach(b => b.onclick = () => { $('dlg').close(); PSEC = 'stock'; ir('productos'); });
-    $('allista').querySelectorAll('[data-inicomp]').forEach(b => b.onclick = () => editorCompra(b.dataset.inicomp));
-    paginador($('alpag'), f.length, pag, p => { pag = p; pinta(); }, () => { pag = 0; pinta(); });
-  };
-  $('alq').oninput = () => { pag = 0; pinta(); };
-  pinta(); $('dlg').showModal();
-}, true);
-
-/* ---------------- comisiones: asignar esquema con fecha desde Comisiones ---------------- */
-
-
-/* ---------------- entorno de pruebas: solo restablece la persona responsable ---------------- */
-
-if (EN_PRUEBAS) {
-  pintarFranjaPruebas = (orig => async function () {
-    orig();
-    const b = $('prreset'); if (!b) return;
-    const { data: permitido, error } = await RPC_ORIG('pruebas_puede_restablecer', {});
-    if (error) return;               // proyecto sin el ajuste: se mantiene como estaba
-    if (!permitido) { b.remove(); return; }
-    b.onclick = async () => {
-      const txt = await pedirTexto('Se borrará todo lo creado o cambiado en pruebas y los datos quedarán como se copiaron de producción.\n\nEscribe VOLVER para confirmar.', '', { titulo: '¿Volver a los datos de partida?', ok: 'Volver a los datos de partida' });
-      if (txt === null) return;
-      if (txt.trim().toUpperCase() !== 'VOLVER') { toast('No se ha hecho nada: no coincide la palabra', true); return; }
-      pantallaCarga('Volviendo a los datos de partida…');
-      const { data: r, error: e2 } = await RPC_ORIG('pruebas_resetear_responsable', { p_confirmacion: 'RESTABLECER' });
-      if (e2 || !r || !r.ok) { quitarCarga(); toast('No se ha podido: ' + ((e2 && e2.message) || (r && r.error) || ''), true); return; }
-      limpiarDatosLocales(); location.reload();
-    };
-  })(pintarFranjaPruebas);
-}
+function valorVisibleBase(inp) { return window.delcos.legacyB.showVisibleValue(inp); }
+window.delcos.legacyB.listenToPickers();
 
 /* ---------------- espacio del médico ---------------- */
-
-
-
-
-function pintarBnavBase2() {
-  if (ES_MEDICO()) { const b = $('bnav'); if (b) b.innerHTML = `<button data-t="informe" aria-selected="true"><span>◉</span>${puede('portal_centro') ? 'Mi centro' : 'Mi informe'}</button>`; if (b) b.firstChild.onclick = () => ir('informe'); return; }
-  pintarBnavBase();
-}
 
 // Vincular un usuario de tipo Médico con su ficha (Administración → Usuarios → Editar)
 
@@ -119,8 +26,3 @@ MANUAL.push({ id: 'medico', t: `Espacio ${TT('medico', 's', 'del', 'l', 'l')}`, 
   hacer: [[3, 'Crear el usuario con un rol de portal y vincularlo a su ficha (Configuración → Usuarios → Editar)']],
   config: [`${TT('medico', 's', 'el', 'C', 'l')} ve unidades, ventas, ${TT('paciente', 'p', '', 'l', 'l')} (solo el número) y las llamadas de sus ${TT('paciente', 'p', '', 'l', 'l')}. Nunca importes ni nombres.`] });
 ICONOS_MANUAL.medico = '🩺';
-
-/* ---------------- factura en PDF con el logo circular ---------------- */
-
-
-

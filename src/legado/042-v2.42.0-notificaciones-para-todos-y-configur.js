@@ -21,31 +21,8 @@ const TIPOS_NOTIF = [
 // v2.242.0: aquí iba panelNotificacionesPaso2 (nadie la usaba)
 
 // v2.242.0: aquí iba panelNotificacionesBase (nadie la usaba)
-setInterval(refrescarCampana, 30000);   // v2.281.0: cada 30 s (además, en vivo con el SQL 150)
-
+window.delcos.legacyB.pollBell();
 
 /* ---------------- Mi perfil ---------------- */
 
-
-
-
-
-
 // Al entrar, se abre el módulo elegido
-
-/* ---------------- Rutas y desplazamientos ---------------- */
-
-
-/* ---------------- Material de visita ---------------- */
-
-
-/* ---------------- Almacenes ---------------- */
-
-
-/* ---------------- Configuración: apartados y navegación ---------------- */
-
-
-/* ---------------- alta de usuario: resumen al terminar ---------------- */
-
-
-

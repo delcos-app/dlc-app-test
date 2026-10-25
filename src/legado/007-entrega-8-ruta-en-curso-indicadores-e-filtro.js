@@ -1,8 +1,8 @@
 /* ============================================================
    DLC OS 2.0 · Entrega 8: ruta en curso, indicadores e filtros guardados
+   v2.424.0: «★ Guardar filtro» está en src/app/screens/accounts/list/save-filter.ts y el refresco de la barra de ruta en
+   src/app/screens/routes/route-listeners.ts. KPI_CAT y RKEY se quedan: los leen Inicio, gráficos, Configuración y rutas.js.
    ============================================================ */
-
-/* ---------------- indicadores personalizables ---------------- */
 
 const KPI_CAT = [
   { id: 'citas',        t: 'citas de hoy visitadas',   v: k => `${k.citas_hechas}/${k.citas_hoy}` },
@@ -14,35 +14,6 @@ const KPI_CAT = [
   { id: 'cartera',      t: `${TT('medico', 'p', '', 'l', 'l')} en tu cartera`,    v: k => k.medicos, h: 'todos' },
   { id: 'dups',         t: 'pendientes de unificar',   v: k => k.pendientes_unificar, cls: () => 'warn', admin: true, h: 'dups' }
 ];
-
-
-
-
-
-
-/* ---------------- guardar el filtro actual como indicador ---------------- */
-
-
-$('guardarFiltro').addEventListener('click', async ev => {
-  const f = filtroActual();
-  if (!Object.keys(f).length) { toast('Aplica algún filtro antes de guardarlo', true); return; }
-  const nombre = await pedirTexto('Nombre del indicador', textoFiltro(f).slice(0, 40), { titulo: 'Guardar filtro', ok: 'Guardar' });
-  if (nombre === null) return;
-  ev.target.disabled = true;
-  const lista = kpiConfig().concat([{ id: 'f:' + Date.now().toString(36), on: true, t: nombre.trim() || textoFiltro(f), filtro: f }]);
-  const ok = await guardarKpis(lista);
-  ev.target.disabled = false;
-  if (ok) { toast('Guardado como indicador en Inicio'); cargarInicio(); }
-});
-
-
-/* ---------------- ruta en curso ---------------- */
-
+window.delcos.legacyA.listenToSaveFilter();
 const RKEY = () => 'dlc-ruta-' + (PERFIL ? PERFIL.id : '');
-
-
-
-setInterval(() => { if (rutaActiva()) pintarRutaBarra(); }, 60000);
-
-
-
+window.delcos.legacyA.refreshRouteBar();

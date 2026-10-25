@@ -5,55 +5,16 @@
    WhatsApp con el menú del sistema y unidades por periodo en la ficha
    ============================================================ */
 
-
 /* ---------------- navegación: cada cambio de módulo descarta lo pendiente ---------------- */
 
 let NAV_CTRL = new AbortController(), NAV_GEN = 0;
-const SOLO_ULTIMA = new Set(['pedidos_pagina', 'facturas_lista', 'llamadas_lista', 'clientes_lista', 'analitica_tabla', 'compras_lista', 'stock_resumen']);
-const RPC_V2361 = db.rpc;
-db.rpc = function (fn, params, opts) {
-  const b = RPC_V2361.call(db, fn, params, opts);
-  // En los listados, si se vuelve a pedir antes de terminar, solo vale la última petición
-  if (SOLO_ULTIMA.has(fn)) {
-    const t = pedirTurno(fn), gen0 = NAV_GEN;
-    return conCatch(new Promise(res => Promise.resolve(b).then(r => { if (esMiTurno(fn, t) && gen0 === NAV_GEN) res(r); }, () => {})));
-  }
-  if (!(fn in RPC_TTL)) return b;
-  const gen = NAV_GEN, señal = NAV_CTRL.signal;
-  try { if (b && typeof b.abortSignal === 'function') b.abortSignal(señal); } catch (e) {}
-  return conCatch(new Promise(res => Promise.resolve(b).then(r => { if (gen === NAV_GEN) res(r); }, () => {})));
-};
-// Y ninguna pantalla puede aparecer si no es la del módulo actual
-new MutationObserver(ms => {
-  for (const m of ms) {
-    const s = m.target;
-    if (s.parentElement && s.parentElement.tagName === 'MAIN' && s.id !== 'v-' + TAB && !s.classList.contains('hide')) s.classList.add('hide');
-  }
-}).observe(document.querySelector('main'), { attributes: true, attributeFilter: ['class'], subtree: true });
-
+window.delcos.legacyB.keepLatestAnswers();
+window.delcos.legacyB.hideForeignViews();
 
 /* ---------------- selectores de fecha y hora en su propia capa (nunca se cortan) ---------------- */
 
-(function () {
-  if (!$('seldlg')) document.body.insertAdjacentHTML('beforeend', '<dialog id="seldlg" class="seldlg"></dialog>');
-  const d = $('seldlg');
-  // v2.87.0: en móvil, el «clic fantasma» que sigue al toque (~300 ms) no debe cerrar el calendario ni elegir un día:
-  // durante el primer medio segundo tras abrirse se ignora cualquier toque
-  d.addEventListener('click', e => { if (d.__abierto && Date.now() - d.__abierto < 500) { e.stopPropagation(); e.preventDefault(); } }, true);
-  d.addEventListener('click', e => { if (e.target === d) cerrarSelector(); });
-  d.addEventListener('cancel', e => { e.preventDefault(); cerrarSelector(); });
-})();
+window.delcos.legacyB.preparePickerLayer();
 ;
-function colocarPopBase(pop, ref) {
-  const d = $('seldlg');
-  if (!d.open) d.showModal();
-  if (ES_MOVIL()) { d.classList.add('hoja'); d.style.top = ''; d.style.left = ''; return; }
-  d.classList.remove('hoja');
-  const r = ref.getBoundingClientRect(), alto = d.offsetHeight, ancho = d.offsetWidth;
-  const abajo = window.innerHeight - r.bottom > alto + 12 || r.top < alto + 12;
-  d.style.top = Math.max(8, abajo ? r.bottom + 6 : r.top - alto - 6) + 'px';
-  d.style.left = Math.max(8, Math.min(window.innerWidth - ancho - 8, r.left)) + 'px';
-};
 
 /* ---------------- rendimiento: los campos se mejoran por lotes ---------------- */
 
@@ -61,37 +22,14 @@ let MEJ_PEND = new Set(), MEJ_RAF = 0;
 
 /* ---------------- barra de herramientas ordenada en el móvil ---------------- */
 
-const ORDENAR_EN = { agenda: 'v-agenda', rutas: 'v-rutas', productos: 'v-productos', ventas: 'v-ventas', analitica: 'v-analitica',
-  facturacion: 'v-facturacion', config: 'v-config', admin: 'v-admin', pacientes: 'v-pacientes', seguimiento: 'v-seguimiento', duplicados: 'v-duplicados' };
-new MutationObserver(() => { if (ORDENAR_EN[TAB]) ordenarCabeceraMovil($(ORDENAR_EN[TAB])); })
-  .observe(document.querySelector('main'), { childList: true, subtree: true });
-window.addEventListener('resize', () => { if (!ES_MOVIL()) document.querySelectorAll('.fab').forEach(f => { f.textContent = '+ ' + (f.dataset.txt || ''); f.classList.remove('fab'); }); });
-
-/* ---------------- agenda: sin recargar la página en cada acción ---------------- */
-
+window.delcos.legacyB.orderMobileToolbars();
 
 /* ---------------- menú «Más» del móvil con el mismo estilo ---------------- */
 
-function abrirMasMovilBase() {
-  const principales = ['inicio', 'agenda', 'rutas', 'directorio'];
-  const mods = [...document.querySelectorAll('nav.main [data-t]')]
-    .filter(x => !x.classList.contains('hide') && !x.disabled && !principales.includes(x.dataset.t))
-    .map(x => [x.dataset.t, x.textContent.replace('Pronto', '').trim()]);
-  let s = $('bmas');
-  if (!s) { document.body.insertAdjacentHTML('beforeend', '<div id="bmas" class="bmas hide"></div>'); s = $('bmas'); }
-  s.innerHTML = `<div class="bmasbox"><div class="bmasasa" aria-hidden="true"></div>
-    <div class="bmasgrid">${mods.map(([t, n]) => `<button data-bm="${t}" class="${TAB === t ? 'on' : ''}"><span>${ICO_MOD[t] || '•'}</span>${esc(n)}</button>`).join('')}</div>
-    <div class="sm" style="text-align:center;margin-top:8px">Configuración, manual y administración, en tu nombre arriba</div></div>`;
-  s.classList.remove('hide');
-  requestAnimationFrame(() => s.classList.add('abierto'));
-  const cerrar = () => { s.classList.remove('abierto'); setTimeout(() => s.classList.add('hide'), 180); };
-  s.onclick = e => { if (e.target === s) cerrar(); };
-  s.querySelectorAll('[data-bm]').forEach(x => x.onclick = () => { cerrar(); ir(x.dataset.bm); });
-};
-function pintarBnavBase3() { pintarBnavBase2(); const m = $('bmasbtn'); if (m) m.onclick = abrirMasMovil; }
+function abrirMasMovilBase() { return window.delcos.legacyB.openMoreMenu(); }
+function pintarBnavBase3() { return window.delcos.legacyB.paintBottomNav(); }
 
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */
-
 
 // v2.105.0: los subtítulos que dependen del vocabulario o del nombre de un estado se calculan al pintarlos (get)
 const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medico', 'p', '', 'l', 'C', 'marcado')} urgentes sin ${TT('visita', 's', '', 'l', 'l')}`, visitas_sem: 'Registradas de lunes a hoy',
@@ -103,95 +41,12 @@ const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medic
 
 /* ---------------- alertas: ventana clara, con qué significa y qué hacer ---------------- */
 
-const EXPLICA_ALERTA = [
-  [/sin comercial/i, `Ventas de ${TT('medico', 'p', '', 'l', 'l')} que no están en la cartera de ningún comercial: nadie cobra comisión por ellas.`, `Asigna un comercial desde la ficha ${TT('medico', 's', 'del', 'l', 'l')}.`],
-  [/más de una cartera/i, `El mismo ${TT('medico', 's', '', 'l', 'l')} aparece en la cartera de varias personas.`, 'Deja una sola persona desde Administración → Usuarios → Asignar.'],
-  [/otra cartera|otro comercial/i, `Un comercial ha visitado ${TT('medico', 'p', '', 'l', 'l')} que lleva otra persona.`, `Revisa si hay que cambiar la cartera o coordinar ${TT('visita', 'p', 'el', 'l', 'l')}.`],
-  [/dos personas|14 días/i, `Dos personas han visitado al mismo ${TT('medico', 's', '', 'l', 'l')} en pocos días.`, `Coordina quién lo lleva para no repetir ${TT('visita', 'p', '', 'l', 'l')}.`],
-  [/sin médico|sin atribuir|atribuido/i, `Pedidos confirmados que no tienen ${TT('medico', 's', '', 'l', 'l')}: no se atribuyen a nadie.`, `Ábrelos y asigna su ${TT('medico', 's', '', 'l', 'l')} de referencia.`],
-  [/stock|caduc/i, 'Productos con pocas unidades o lotes próximos a caducar.', 'Revisa el stock y prepara un pedido de compra.'],
-  [/compra|recepci/i, 'Pedidos de compra pendientes de recibir.', 'Registra la recepción cuando llegue la mercancía.']
-];
-document.addEventListener('click', e => {
-  const s = e.target.closest('#iniextra details.alerta2 > summary'); if (!s) return;
-  e.preventDefault(); e.stopImmediatePropagation();
-  const det = s.parentElement, items = [...det.querySelectorAll(':scope > div > .item, :scope .lista > .item')];
-  const titulo = s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*/, '').replace(/\bequipo\b\s*$/, '').trim();
-  const exp = EXPLICA_ALERTA.find(x => x[0].test(titulo)) || [null, 'Casos que conviene revisar.', 'Pulsa cada uno para abrirlo.'];
-  items.forEach(x => { x.dataset.alclave = claveAlerta(titulo, x); });
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(titulo)}</h2><div class="sm">${num(items.length)} ${items.length === 1 ? 'caso' : 'casos'}</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="alinfo"><div><b>Qué significa</b><span>${esc(exp[1])}</span></div><div><b>Qué hacer</b><span>${esc(exp[2])}</span></div></div>
-    ${items.length > 8 ? '<input id="alq" type="search" placeholder="Buscar en la lista" style="margin:10px 0 4px">' : ''}
-    <div class="alcards" id="allista"></div><div id="alpag"></div>`;
-  let pag = 0;
-  const pinta = () => {
-    const q = ($('alq') ? $('alq').value : '').trim().toLowerCase(), f = items.filter(x => !q || x.textContent.toLowerCase().includes(q)), tam = 10;
-    $('allista').innerHTML = f.slice(pag * tam, pag * tam + tam).map((x, i) => {
-      const tit = (x.querySelector('.tx b') || x.querySelector('b') || x).textContent.trim();
-      const sub = [...x.querySelectorAll('.tx .sm, .sm')].map(y => y.textContent.trim()).filter(Boolean)[0] || '';
-      const cant = (x.querySelector(':scope > b, .n, .cnt') || {}).textContent || '';
-      const acc = x.dataset.inificha ? ['Abrir ficha', 'inificha', x.dataset.inificha] : x.dataset.iniped ? ['Abrir pedido', 'iniped', x.dataset.iniped]
-        : x.dataset.inistock ? ['Ver stock', 'inistock', x.dataset.inistock] : x.dataset.inicomp ? ['Abrir compra', 'inicomp', x.dataset.inicomp] : null;
-      return `<div class="alcard" data-clave="${esc(claveAlerta(titulo, x))}" data-titulo="${esc(titulo)}"><div class="alc1"><b>${esc(tit)}</b>${cant && cant !== tit ? `<span class="pill p-per">${esc(cant)}</span>` : ''}</div>
-        ${sub && sub !== tit ? `<div class="sm">${esc(sub)}</div>` : ''}
-        <div class="alacts">${acc ? `<button class="btn sec chico" data-alacc="${acc[1]}" data-id="${acc[2]}">${acc[0]}</button>` : ''}<button class="btn sec chico" data-aloc="menu">Ocultar…</button></div>
-        <div class="alocmenu hide"><span class="sm">Ocultar este caso:</span><button class="kcfg" data-aloc="7">7 días</button><button class="kcfg" data-aloc="30">30 días</button><button class="kcfg" data-aloc="siempre">Para siempre</button></div></div>`;
-    }).join('') || '<div class="vacio">Sin coincidencias.</div>';
-    $('allista').querySelectorAll('[data-alacc]').forEach(b => b.onclick = () => {
-      const id = b.dataset.id;
-      if (b.dataset.alacc === 'inificha') { $('dlg').close(); abrirFicha(id); }
-      if (b.dataset.alacc === 'iniped') verPedido(id);
-      if (b.dataset.alacc === 'inistock') { $('dlg').close(); PSEC = 'stock'; ir('productos'); }
-      if (b.dataset.alacc === 'inicomp') editorCompra(id);
-    });
-    paginador($('alpag'), f.length, pag, p => { pag = p; pinta(); }, () => { pag = 0; pinta(); });
-  };
-  if ($('alq')) $('alq').oninput = () => { pag = 0; pinta(); };
-  pinta(); $('dlg').showModal();
-}, true);
+window.delcos.legacyB.listenToAlertWindows();
 
 /* ---------------- asignar comercial: solo perfiles de tipo Comercial ---------------- */
 
-new MutationObserver(() => {
-  ['fcomsel', 'ecom'].forEach(id => {
-    const s = $(id); if (!s || s.dataset.soloCom || s.options.length < 2) return;
-    s.dataset.soloCom = '1';
-    [...s.options].forEach(o => { if (o.value && !/· Comercial$/.test(o.textContent) && !o.selected) o.remove(); });
-    [...s.options].forEach(o => o.textContent = o.textContent.replace(/ · Comercial$/, ''));
-  });
-}).observe(document.body, { childList: true, subtree: true });
-
-/* ---------------- ficha del médico: unidades por periodo ---------------- */
-
-
-/* ---------------- Analítica: la tabla mensual explicada ---------------- */
-
-
-/* ---------------- Manual: buscador con resultados directos ---------------- */
-
-
-/* ---------------- Configuración: todo en un único sitio ---------------- */
-
+window.delcos.legacyB.keepOnlySalespeople();
 
 /* ---------------- Administración en el móvil: cada persona como tarjeta ---------------- */
 
-new MutationObserver(() => {
-  if (TAB !== 'admin' || !ES_MOVIL() || ADM_SEC !== 'usuarios') return;
-  document.querySelectorAll('#admcuerpo .lista > .item').forEach(it => {
-    if (it.dataset.movil) return; it.dataset.movil = '1';
-    const acts = it.querySelector('.acts'); if (!acts) return;
-    acts.classList.add('hide');
-    it.insertAdjacentHTML('beforeend', '<button class="btn sec umas" aria-label="Acciones">Gestionar</button>');
-    it.querySelector('.umas').onclick = () => {
-      const nombre = it.querySelector('.tx b').textContent;
-      $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(nombre)}</h2><div class="sm">${esc(it.querySelector('.tx .sm').textContent)}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-        <div class="accsheet">${[...acts.querySelectorAll('button')].map((b, i) => `<button class="btn sec" data-accn="${i}">${b.innerHTML}</button>`).join('')}</div>`;
-      $('dlg').showModal();
-      $('dbody').querySelectorAll('[data-accn]').forEach(x => x.onclick = () => { const o = acts.querySelectorAll('button')[+x.dataset.accn]; $('dlg').close(); setTimeout(() => o.click(), 50); });
-    };
-  });
-}).observe(document.querySelector('main'), { childList: true, subtree: true });
-
-
+window.delcos.legacyB.cardsForPeopleOnMobile();

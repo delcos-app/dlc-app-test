@@ -1,87 +1,9 @@
 /* ============================================================
    DLC OS 2.0 · v2.24.0 · «Tu día»: la agenda del día es la ruta.
    Estados de cita, orden del día, jornada en curso
+   v2.424.0: los colores de los estados de cita, el menú de las tarjetas de «Tu día», el refresco al cerrar una ventana y
+   «Mover» que aplaza están en src/app (core/legacy-a/load-time.ts y screens/agenda/appointment-clicks.ts).
    ============================================================ */
 
-/* ---------------- estados de cita ---------------- */
-
-Object.assign(EST_COL, { Planificada: 'var(--navy)', Confirmada: 'var(--sky)', Visitada: 'var(--ok)',
-  'No estaba': 'var(--warn)', Aplazada: 'var(--muted)', Descartada: 'var(--muted)' });
-
-// La ruta en curso de versiones anteriores se sustituye por la jornada
-try { Object.keys(localStorage).filter(k => k.startsWith('dlc-ruta-')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
-
-/* ---------------- jornada ---------------- */
-
-
-
-
-
-
-/* ---------------- orden y horas estimadas ---------------- */
-
-
-/** Calcula la hora estimada de cada cita abierta siguiendo el orden actual. */
-
-/** Orden por cercanía: las citas con hora fija marcan el esqueleto; las demás se insertan donde menos desvío suman. */
-
-
-
-/* ---------------- «Tu día» en la agenda ---------------- */
-
-
-
-document.addEventListener('pointerdown', e => {
-  if (!e.target.closest('.tdmenu, .tdmas')) document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-}, true);
-// Se cierra al desplazarse, salvo en el primer instante (el propio toque puede mover un poco la página)
-document.addEventListener('scroll', () => document.querySelectorAll('.tdmenu').forEach(m => { if (Date.now() - (m.__t || 0) > 400) m.remove(); }), true);
-
-
-
-// Los botones de las tarjetas de «Tu día» están en src/app/screens/agenda/your-day/card-buttons.ts (v2.399.0)
-
-// La vista de día de la agenda es «Tu día»
-
-// Al cerrar una visita o una cita, se refresca el día
-$('dlg').addEventListener('close', () => { if (TAB === 'agenda' && agCambiosEnVentana()) setTimeout(() => agRefrescoQuieto(), 350); });
-
-// En la semana, «Mover» ahora aplaza (antes dejaba la cita en un estado que ya no existía)
-document.addEventListener('click', async e => {
-  const c = e.target.closest('[data-cita^="repro|"]');
-  if (!c) return;
-  e.stopImmediatePropagation(); e.preventDefault();
-  const id = c.dataset.cita.split('|')[1];
-  const f = await pedirFecha('¿A qué día la pasas?', isoMas(hoyISO(), 1), { titulo: 'Aplazar la cita', ok: 'Aplazar' });
-  if (!f) return;
-  const { data: r, error } = await db.rpc('aplazar_cita', { p_id: id, p_fecha: f, p_hora: null, p_origen: 'Aplazada' });
-  if (error || (r && r.ok === false)) { toast('No se ha podido aplazar', true); return; }
-  toast('Aplazada al ' + fechaCorta(f)); cargarAgenda();
-}, true);
-
-/* ---------------- rutas: el plan se convierte en la agenda del día ---------------- */
-
-
-
-
-
-/* ---------------- ayudas ---------------- */
-
-Object.assign(AYUDA, {
-  agenda: ['Agenda y «Tu día»', 'Tus citas por día, semana o mes. La vista de día es tu ruta.', [
-    'Las citas se ordenan como vas a visitarlas. <b>Ordenar por cercanía</b> calcula el recorrido más corto; las citas con hora fija se respetan. Las flechas cambian el orden a mano.',
-    'La hora con «~» es una estimación según el orden, tu horario y los desplazamientos. Una hora sin «~» es una hora fijada.',
-    `<b>Empezar jornada</b> activa la barra verde. Registra cada ${TT('visita', 's', '', 'l', 'l')} al terminarla: la cita pasa a <b>Visitada</b>.`,
-    'Estados: <b>Planificada</b> y <b>Confirmada</b> (abiertas); <b>Visitada</b>, <b>No estaba</b>, <b>Aplazada</b> y <b>Descartada</b> (cerradas).',
-    '<b>No estaba</b> lo anota en su historial y te propone el próximo día que atiende.',
-    '<b>Aplazar</b> deja la cita como aplazada y crea la nueva, así se ve el cumplimiento real.',
-    'Las citas abiertas de días anteriores aparecen abajo para moverlas a hoy.']],
-  rutas: ['Rutas', 'Plantillas para llenar tu agenda.', [
-    `<b>Lista fija</b>: tú eliges ${TT('medico', 'p', 'el', 'l', 'l')}. <b>Por criterios</b>: se rellena sola con los filtros.`,
-    'Al planificar ves el orden y las horas estimadas. <b>Guardar en mi agenda</b> crea las citas de ese día; <b>Pasar a mi agenda y empezar</b> además inicia la jornada.',
-    'Durante la jornada todo se hace desde <b>Agenda → Tu día</b>.',
-    `La salida y la vuelta son de cada ruta (y del planificador semanal); <b>⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')}</b> cambia los minutos por ${TT('medico', 's', '', 'l', 'l')} y por parada.`,
-    `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de atención mejora mucho las rutas.`]]
-});
-
-
+window.delcos.legacyA.appointmentStates();
+window.delcos.legacyA.listenToDayMenus();
