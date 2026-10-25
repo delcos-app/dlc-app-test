@@ -1305,7 +1305,7 @@ async function planificarSemana(desde, dias, bloq, porDia) {
     ev.target.disabled = false; ev.target.textContent = 'Proponer reparto';
     $('dlg').close();
     if (!SEM_BORRADOR.total) toast(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l', 'nuevo')} con estos datos`, true);
-    pintarSemanaAgenda();
+    window.delcos.screens.agenda.paintOpenWeek();   // v2.396.0: antes pintarSemanaAgenda, que aquí no pintaba nada (solo con AG_MODO «semana»)
   };
 }
 

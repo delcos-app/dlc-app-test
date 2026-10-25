@@ -132,98 +132,6 @@ async function menuDiaSemana(boton, fecha, bloqueado) {
   });
 }
 
-async function pintarSemanaAgenda() {
-  const desde = lunesDe(AG_FECHA), hasta = isoMas(desde, 6);
-  const filtro = agUsuarioFiltro(), uid = agUid();
-  const [r, bloq] = await Promise.all([
-    rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: filtro }, 'agenda-' + desde),
-    bloqueadosSemana(desde, hasta)
-  ]);
-  if (AG_MODO !== 'semana') return;
-  const porDia = {};
-  (r.data || []).forEach(c => (porDia[c.fecha] = porDia[c.fecha] || []).push(c));
-  const dias = Array.from({ length: 7 }, (_, i) => isoMas(desde, i));
-  const borr = SEM_BORRADOR && SEM_BORRADOR.semana === desde && SEM_BORRADOR.uid === uid ? SEM_BORRADOR : null;
-  const hayFuturo = dias.some(f => f >= hoyISO());
-  const cfg = PLANCFG();
-
-  $('agcuerpo').innerHTML = `
-    <div class="semhead"><h2 style="padding:0">Semana del ${fechaCorta(desde)} al ${fechaCorta(hasta)}${AG_VISTA ? ` · ${esc(AG_VISTA.nombre)}` : ''}</h2>
-      ${hayFuturo && !borr ? '<button class="btn" id="semplan">Planificar la semana</button>' : ''}</div>
-    ${borr ? `<div class="semborr">
-      <span><b>Propuesta sin guardar</b> · ${num(borr.total)} ${TT('visita', 'p', '', 'l', 'l', 'nuevo')} en ${Object.keys(borr.dias).filter(f => borr.dias[f].length).length} días${borr.sinDia.length ? ` · ${borr.sinDia.length} sin día` : ''}</span>
-      <span class="acts" style="margin:0"><button class="btn sec" id="semdescartar">Descartar</button><button class="btn" id="semguardar">Guardar en la agenda</button></span></div>` : ''}
-    <div class="semwrap"><div class="mes sem">
-      ${['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => `<span class="mesdow">${d}</span>`).join('')}
-      ${dias.map(f => {
-        const todas = (porDia[f] || []).filter(c => !['Descartada', 'Aplazada'].includes(c.estado));
-        const mias = todas.filter(c => c.usuario_id === uid);
-        const nuevas = borr ? (borr.dias[f] || []) : [];
-        const hechas = todas.filter(c => c.estado === 'Visitada').length;
-        const d = new Date(f + 'T12:00:00');
-        const abiertas = mias.filter(c => CITA_ABIERTA.includes(c.estado));
-        let carga = '';
-        if ((abiertas.length || nuevas.length) && f >= hoyISO()) {
-          const { fin, tope } = estimarDia(mias.concat(nuevas.map(n => Object.assign({ estado: 'Planificada' }, (SEM_BORRADOR && SEM_BORRADOR.horario) || {}, n.cita))), f);
-          carga = `<span class="semcarga ${fin > tope ? 'pasa' : ''}" title="Hora de fin estimada${fin > tope ? ': pasa de la hora de vuelta ' + hm(tope) : ''}">~${hm(fin)}</span>`;
-        }
-        return `<div class="mesdia semdia ${f === hoyISO() ? 'hoy' : ''} ${d.getDay() === 0 || d.getDay() === 6 ? 'finde' : ''} ${bloq[f] ? 'bloq' : ''}" data-semdia="${f}" role="button" tabindex="0">
-          <div class="semcab"><b>${d.getDate()}</b>${todas.length ? `<span class="mespunto">${hechas}/${todas.length}</span>` : ''}${carga}
-            <button class="semmas" data-semmenu="${f}" aria-label="Opciones del ${fechaCorta(f)}" title="Opciones del día">⋯</button></div>
-          ${bloq[f] ? `<span class="sembloq">🚫 ${esc(bloq[f])}</span>` : ''}
-          <div class="semcitas">${todas.slice(0, 9).map(c => {
-            const mover = c.usuario_id === uid && CITA_ABIERTA.includes(c.estado) && c.fecha >= hoyISO();
-            return `<span class="semcita" data-semficha="${c.cuenta_id}" ${mover ? `draggable="true" data-semcid="${c.id}"` : ''}
-              title="${esc(c.nombre)} · ${esc(c.estado)}${mover ? ' · arrástrala a otro día para moverla' : ''}" style="border-left-color:${EST_COL[c.estado] || 'var(--muted)'}">
-              ${c.hora ? `<i>${esc(String(c.hora).slice(0, 5))}</i>` : ''}${esc(String(c.nombre).split(',')[0])}${c.usuario_id !== uid && c.usuario ? ` <em>${esc(iniciales(c.usuario))}</em>` : ''}</span>`;
-          }).join('')}
-            ${nuevas.map(n => `<span class="semcita nueva" title="Propuesta: ${esc(n.m.nombre)}${n.ini != null ? ' · ~' + hm(n.ini) : ''}"><i>~${n.ini != null ? hm(n.ini) : ''}</i>${esc(String(n.m.nombre).split(',')[0])}</span>`).join('')}
-            ${todas.length > 9 ? `<span class="sm">y ${todas.length - 9} más</span>` : ''}</div>
-        </div>`;
-      }).join('')}
-    </div></div>
-    ${borr && borr.sinDia.length ? `<div class="planfuera" style="margin:0 16px 16px"><h3>Se quedan sin día · ${borr.sinDia.length}</h3>
-      <div class="lista">${borr.sinDia.slice(0, 25).map(x => `<div class="item" style="cursor:default"><span class="ic w">!</span>
-        <span class="tx"><b>${esc(x.m.nombre)}</b><span class="sm">${esc(x.motivo)}${x.m.municipio ? ' · ' + esc(x.m.municipio) : ''}</span></span></div>`).join('')}
-        ${borr.sinDia.length > 25 ? `<div class="sm" style="padding:6px 12px">y ${borr.sinDia.length - 25} más</div>` : ''}</div></div>` : ''}`;
-
-  if ($('semplan')) $('semplan').onclick = () => planificarSemana(desde, dias, bloq, porDia);
-  if ($('semdescartar')) $('semdescartar').onclick = () => { SEM_BORRADOR = null; cargarAgenda(); };
-  if ($('semguardar')) $('semguardar').onclick = e => guardarBorradorSemana(e.target);
-
-  $('agcuerpo').querySelectorAll('[data-semdia]').forEach(el => {
-    const abrir = e => {
-      const mm = e.target.closest('[data-semmenu]');
-      if (mm) { menuDiaSemana(mm, mm.dataset.semmenu, !!bloq[mm.dataset.semmenu]); return; }
-      if (e.target.closest('.semcita.nueva')) return;
-      if (e.target.closest('[data-semficha]')) { abrirFicha(e.target.closest('[data-semficha]').dataset.semficha); return; }
-      AG_FECHA = el.dataset.semdia; AG_MODO = 'dia'; cargarAgenda();
-    };
-    el.onclick = abrir; el.onkeydown = e => { if (e.key === 'Enter') abrir(e); };
-    // Soltar una cita arrastrada
-    el.ondragover = e => { if (e.dataTransfer.types.includes('text/cita')) { e.preventDefault(); el.classList.add('sobre'); } };
-    el.ondragleave = () => el.classList.remove('sobre');
-    el.ondrop = async e => {
-      e.preventDefault(); el.classList.remove('sobre');
-      const id = e.dataTransfer.getData('text/cita'), destino = el.dataset.semdia;
-      const c = (r.data || []).find(x => x.id === id);
-      if (!c || c.fecha === destino) return;
-      if (destino < hoyISO()) { toast('No se puede mover a un día pasado', true); return; }
-      const avisos = [];
-      if (bloq[destino]) avisos.push(`ese día está bloqueado (${bloq[destino]})`);
-      const v = ventanasDe(c.dias, destino);
-      if (v && !v.length) avisos.push('ese día no atiende');
-      if (avisos.length && !await preguntar(`${c.nombre}: ${avisos.join(' y ')}.`, { titulo: '¿Moverla igualmente?', ok: 'Mover' })) return;
-      const { data: rr, error } = await db.rpc('estado_cita', { p_id: id, p_estado: c.estado, p_fecha: destino });
-      if (error || (rr && rr.ok === false)) { toast('No se ha podido mover', true); return; }
-      toast('Movida al ' + fechaCorta(destino)); cargarAgenda();
-    };
-  });
-  $('agcuerpo').querySelectorAll('[data-semcid]').forEach(ch => {
-    ch.ondragstart = e => { e.dataTransfer.setData('text/cita', ch.dataset.semcid); e.dataTransfer.effectAllowed = 'move'; ch.classList.add('arrastrando'); };
-    ch.ondragend = () => ch.classList.remove('arrastrando');
-  });
-}
 
 // Mis citas pendientes (planificadas o confirmadas) desde hoy: médico → primera fecha
 async function citasPlanificadasMias() {
@@ -1016,18 +924,6 @@ function verCitaBase4(c, ...r) {
   return x;
 }
 
-// La semana de siempre, pintada debajo de la cinta (se cambia el id un momento para que pintarSemanaAgenda pinte allí)
-async function agPintarSemanaExpBase() {
-  const cin = $('agcinta'); if (!cin || !AG_SEM_ABIERTA) { const x = $('agsemexp'); if (x) x.remove(); return; }
-  let cont = $('agsemexp'); if (!cont) { cin.insertAdjacentHTML('beforeend', '<div id="agsemexp" class="agsemexp"></div>'); cont = $('agsemexp'); }
-  const real = $('agcuerpo'), modo = AG_MODO;
-  if (!real) return;
-  real.id = 'agcuerpo-dia'; cont.id = 'agcuerpo'; AG_MODO = 'semana';
-  try { await pintarSemanaAgenda(); } finally { cont.id = 'agsemexp'; real.id = 'agcuerpo'; AG_MODO = modo; }
-  const h = cont.querySelector('.semhead h2'); if (h) h.remove();
-  const p = cont.querySelector('#semplan'); if (p) p.textContent = 'Repartir la semana';
-  const head = cont.querySelector('.semhead'); if (head) head.insertAdjacentHTML('afterbegin', '<span class="sm">Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita</span>');
-}
 
 function verCita(c, ...r) {
   const x = verCitaBase4.call(this, c, ...r);
@@ -1061,12 +957,6 @@ async function moverCitaLocal(...a) {
 }
 
 // «Ver la semana» aparece de una vez: se pinta escondida y se enseña ya con sus días (antes salía vacía y se llenaba)
-async function agPintarSemanaExpBase2(...a) {
-  const cin = $('agcinta');
-  if (!agN() || !cin || !AG_SEM_ABIERTA || $('agsemexp')) return agPintarSemanaExpBase.apply(this, a);
-  cin.insertAdjacentHTML('beforeend', '<div id="agsemexp" class="agsemexp" style="display:none"></div>');
-  try { return await agPintarSemanaExpBase.apply(this, a); } finally { const x = $('agsemexp'); if (x) x.style.display = ''; }
-}
 
 // ---- «Tu día» con sus bandejas y «En este centro también», de una vez
 async function pintarTuDiaBase() {
@@ -1081,10 +971,6 @@ async function pintarTuDiaBase() {
   });
 }
 
-function agPintarSemanaExp(...a) {
-  if (!agN()) return agPintarSemanaExpBase2.apply(this, a);
-  return datosAgenda.withData(AG_SEM_ABIERTA ? datosAgenda.weekLoads(AG_FECHA) : [], () => agPintarSemanaExpBase2.apply(this, a));
-}
 
 async function pintarTuDiaBase2(...a) {
   const r = await pintarTuDiaBase.apply(this, a);

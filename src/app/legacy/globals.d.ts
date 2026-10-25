@@ -157,7 +157,6 @@ declare function agUid(): string;
 declare function tareasDelDia(isoDate: string): Promise<unknown>;
 declare function bloqueadosSemanaBase(fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>>;
 declare let AG_SEM_ABIERTA: boolean;
-declare function agPintarSemanaExp(): Promise<void>;
 declare let AG_HOY_VISTO: string | null;
 declare let TAREAS_DIA: unknown;
 declare let ABRIR_PLAN_SEMANA: boolean;
@@ -167,3 +166,15 @@ declare function pintarEquipo(): Promise<void>;
 declare function cargarComerciales(): Promise<void>;
 declare function avisoSinSalida(element: HTMLElement | null): void;
 declare function verAgendaDe(userId: string): Promise<void>;
+interface WeekAppointment extends RangeAppointment { id: string; cuenta_id: string; usuario?: string | null; dias?: Record<string, string | null> | null }
+interface WeekDraftItem { m: { nombre: string; municipio?: string | null }; ini?: number | null; cita?: Record<string, unknown>; motivo?: string }
+interface WeekDraft { semana: string; uid: string; total: number; dias: Record<string, WeekDraftItem[]>; sinDia: WeekDraftItem[]; horario?: Record<string, unknown> | null }
+declare let SEM_BORRADOR: WeekDraft | null;
+declare function estimarDia(appointments: readonly object[], isoDate: string): { fin: number; tope: number };
+declare function planificarSemana(fromIsoDate: string, days: readonly string[], blocked: Record<string, string>, perDay: Record<string, WeekAppointment[]>): Promise<void>;
+declare function guardarBorradorSemana(button: HTMLElement): Promise<void>;
+declare function ventanasDe(days: Record<string, string | null> | null | undefined, isoDate: string): unknown[] | null;
+declare function preguntar(message: string, options: { titulo?: string; ok?: string }): Promise<boolean>;
+declare function toast(message: string, isError?: boolean): void;
+declare function iniciales(name: string): string;
+declare function cargarAgenda(): Promise<void>;

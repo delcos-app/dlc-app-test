@@ -24,3 +24,8 @@ export function mondayOf(isoDate: string): string {
   const date = fromIsoDate(isoDate);
   return addDays(isoDate, -((date.getDay() + 6) % 7));
 }
+
+/** 570 minutes → «09:30». */
+export function formatMinutes(minutes: number): string {
+  return `${String(Math.floor(minutes / 60) % 24).padStart(2, '0')}:${String(Math.round(minutes) % 60).padStart(2, '0')}`;
+}

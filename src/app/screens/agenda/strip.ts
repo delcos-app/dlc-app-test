@@ -10,6 +10,7 @@ import { capitalise, formatLongDate, formatMonthYear, monthNameOf } from '../../
 import { escapeHtml } from '../../services/format';
 import { range } from '../../services/values';
 import { closeMonth, toggleMonth } from './month-calendar';
+import { paintOpenWeek } from './open-week';
 import { stripLoads, weekLoads, withData } from './preload';
 
 const STRIP_DAYS = 14, WEEK_DAYS = 7, MAX_DOTS = 6, DAY_MS = 864e5;
@@ -77,7 +78,7 @@ export function bindWeekButton(): void {
     if (button.dataset.ocupado) return;
     button.dataset.ocupado = '1';
     stripState.setWeekOpen(!open);
-    try { await stripState.paintOpenWeek(); } finally { delete button.dataset.ocupado; bindWeekButton(); }
+    try { await paintOpenWeek(); } finally { delete button.dataset.ocupado; bindWeekButton(); }
   };
 }
 
@@ -134,7 +135,7 @@ export function paintStrip(): Promise<void> {
   return withData([...stripLoads(), ...(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [])], async () => {
     await render();
     if (!legacyAgenda.isDayView() || !document.getElementById('agcinta')) return;
-    if (stripState.weekOpen()) await stripState.paintOpenWeek();
+    if (stripState.weekOpen()) await paintOpenWeek();
     bindWeekButton();
   });
 }
@@ -142,7 +143,7 @@ export function paintStrip(): Promise<void> {
 /** Opens the week under the strip and starts «Repartir la semana». */
 export async function shareWeek(): Promise<void> {
   stripState.setWeekOpen(true);
-  await stripState.paintOpenWeek(); bindWeekButton();
+  await paintOpenWeek(); bindWeekButton();
   const plan = document.getElementById('semplan');
   if (plan) { document.getElementById('agsemexp')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); plan.click(); }
 }

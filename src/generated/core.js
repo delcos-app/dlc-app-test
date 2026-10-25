@@ -566,6 +566,30 @@
         hideWeek: "Ocultar la semana",
         showWeekTitle: "Ver la semana entera, moverla y repartirla"
       },
+      openWeek: {
+        hint: "Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita",
+        share: "Repartir la semana",
+        draft: "Propuesta sin guardar",
+        draftSummary: "{count} {visits} en {days} días",
+        draftWithoutDay: " · {count} sin día",
+        discard: "Descartar",
+        save: "Guardar en la agenda",
+        dayOptions: "Opciones del {date}",
+        dayOptionsTitle: "Opciones del día",
+        estimatedEnd: "Hora de fin estimada",
+        overReturn: ": pasa de la hora de vuelta {time}",
+        dragToMove: " · arrástrala a otro día para moverla",
+        proposal: "Propuesta: {name}",
+        andMore: "y {count} más",
+        withoutDay: "Se quedan sin día · {count}",
+        notToPast: "No se puede mover a un día pasado",
+        blockedDay: "ese día está bloqueado ({reason})",
+        notAttending: "ese día no atiende",
+        moveAnyway: "¿Moverla igualmente?",
+        move: "Mover",
+        couldNotMove: "No se ha podido mover",
+        movedTo: "Movida al {date}"
+      },
       week: {
         title: "Tu semana",
         hint: "«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.",
@@ -729,6 +753,7 @@
     loadAgenda: () => loadAgenda,
     metricsHtml: () => metricsHtml,
     openTray: () => openTray,
+    paintOpenWeek: () => paintOpenWeek,
     paintSameCentre: () => paintSameCentre,
     paintStrip: () => paintStrip,
     paintTrayButtons: () => paintTrayButtons,
@@ -885,8 +910,7 @@
     weekOpen: () => AG_SEM_ABIERTA,
     setWeekOpen: (open) => {
       AG_SEM_ABIERTA = open;
-    },
-    paintOpenWeek: () => agPintarSemanaExp()
+    }
   };
   var agendaState = {
     setMode: (mode) => {
@@ -926,6 +950,32 @@
       avisoSinSalida(element);
     }
   };
+  var weekPlanner = {
+    draft: () => SEM_BORRADOR,
+    discardDraft: () => {
+      SEM_BORRADOR = null;
+    },
+    plan: (from, days, blocked, perDay) => {
+      void planificarSemana(from, days, blocked, perDay);
+    },
+    saveDraft: (button) => {
+      void guardarBorradorSemana(button);
+    },
+    /** Estimated end of a day (minutes) and the latest return time. */
+    estimateDay: (list, isoDate) => estimarDia(list, isoDate),
+    /** Opening windows of a person on a date: null when unknown, [] when they do not attend that day. */
+    attendanceWindows: (days, isoDate) => ventanasDe(days, isoDate)
+  };
+  var notices = {
+    toast: (message, isError = false) => {
+      toast(message, isError);
+    },
+    confirm: (message, options) => preguntar(message, options)
+  };
+  var initialsOf = (name) => iniciales(name);
+  var reloadAgenda = () => {
+    void cargarAgenda();
+  };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -945,6 +995,9 @@
   function mondayOf(isoDate) {
     const date = fromIsoDate(isoDate);
     return addDays(isoDate, -((date.getDay() + 6) % 7));
+  }
+  function formatMinutes(minutes) {
+    return `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(Math.round(minutes) % 60).padStart(2, "0")}`;
   }
 
   // src/app/services/date-format.ts
@@ -1391,14 +1444,217 @@
     }
   }
 
+  // src/app/screens/agenda/open-week.ts
+  var WEEK_DAYS2 = 7;
+  var SHOWN_PER_DAY = 9;
+  var SHOWN_WITHOUT_DAY = 25;
+  var NOT_SHOWN = ["Descartada", "Aplazada"];
+  var firstName = (name) => String(name).split(",")[0] ?? "";
+  function loadEstimate(day, mine, proposed, data) {
+    if (!(mine.some((item) => appointments.isOpen(item.estado)) || proposed.length) || day < data.today) return "";
+    const planned = proposed.map((item) => ({ estado: "Planificada", ...data.draft?.horario ?? {}, ...item.cita }));
+    const { fin: end, tope: limit } = weekPlanner.estimateDay([...mine, ...planned], day);
+    const title = t("agenda.openWeek.estimatedEnd") + (end > limit ? t("agenda.openWeek.overReturn", { time: formatMinutes(limit) }) : "");
+    return `<span class="semcarga ${end > limit ? "pasa" : ""}" title="${title}">~${formatMinutes(end)}</span>`;
+  }
+  function appointmentChip(item, data) {
+    const movable = item.usuario_id === data.owner && appointments.isOpen(item.estado) && item.fecha >= data.today;
+    const title = `${escapeHtml(item.nombre)} · ${escapeHtml(item.estado)}${movable ? t("agenda.openWeek.dragToMove") : ""}`;
+    const time = item.hora ? `<i>${escapeHtml(String(item.hora).slice(0, 5))}</i>` : "";
+    const other = item.usuario_id !== data.owner && item.usuario ? ` <em>${escapeHtml(initialsOf(item.usuario))}</em>` : "";
+    return `<span class="semcita" data-semficha="${item.cuenta_id}" ${movable ? `draggable="true" data-semcid="${item.id}"` : ""}
+              title="${title}" style="border-left-color:${commercialStates.color(item.estado) ?? "var(--muted)"}">
+              ${time}${escapeHtml(firstName(item.nombre))}${other}</span>`;
+  }
+  function proposedChip(item) {
+    const start = item.ini === null || item.ini === void 0 ? "" : formatMinutes(item.ini);
+    return `<span class="semcita nueva" title="${t("agenda.openWeek.proposal", { name: escapeHtml(item.m.nombre) })}${start ? ` · ~${start}` : ""}"><i>~${start}</i>${escapeHtml(firstName(item.m.nombre))}</span>`;
+  }
+  function dayColumn(day, data) {
+    const all = (data.perDay[day] ?? []).filter((item) => !NOT_SHOWN.includes(item.estado));
+    const mine = all.filter((item) => item.usuario_id === data.owner), proposed = data.draft?.dias[day] ?? [];
+    const done = all.filter((item) => item.estado === "Visitada").length, date = fromIsoDate(day), reason = data.blocked[day];
+    const classes = ["mesdia semdia", day === data.today ? "hoy" : "", date.getDay() === 0 || date.getDay() === 6 ? "finde" : "", reason ? "bloq" : ""].filter(Boolean).join(" ");
+    return `<div class="${classes}" data-semdia="${day}" role="button" tabindex="0">
+          <div class="semcab"><b>${date.getDate()}</b>${all.length ? `<span class="mespunto">${done}/${all.length}</span>` : ""}${loadEstimate(day, mine, proposed, data)}
+            <button class="semmas" data-semmenu="${day}" aria-label="${t("agenda.openWeek.dayOptions", { date: formatShortDate(day) })}" title="${t("agenda.openWeek.dayOptionsTitle")}">⋯</button></div>
+          ${reason ? `<span class="sembloq">🚫 ${escapeHtml(reason)}</span>` : ""}
+          <div class="semcitas">${all.slice(0, SHOWN_PER_DAY).map((item) => appointmentChip(item, data)).join("")}
+            ${proposed.map(proposedChip).join("")}
+            ${all.length > SHOWN_PER_DAY ? `<span class="sm">${t("agenda.openWeek.andMore", { count: all.length - SHOWN_PER_DAY })}</span>` : ""}</div>
+        </div>`;
+  }
+  function draftHtml(draft) {
+    const days = Object.keys(draft.dias).filter((day) => draft.dias[day]?.length).length;
+    const summary = t("agenda.openWeek.draftSummary", { count: formatNumber(draft.total), visits: term("visita", { number: "p", adjective: "nuevo" }), days }) + (draft.sinDia.length ? t("agenda.openWeek.draftWithoutDay", { count: draft.sinDia.length }) : "");
+    return `<div class="semborr">
+      <span><b>${t("agenda.openWeek.draft")}</b> · ${summary}</span>
+      <span class="acts" style="margin:0"><button class="btn sec" id="semdescartar">${t("agenda.openWeek.discard")}</button><button class="btn" id="semguardar">${t("agenda.openWeek.save")}</button></span></div>`;
+  }
+  function withoutDayHtml(draft) {
+    if (!draft?.sinDia.length) return "";
+    const rows = draft.sinDia.slice(0, SHOWN_WITHOUT_DAY).map((item) => `<div class="item" style="cursor:default"><span class="ic w">!</span>
+        <span class="tx"><b>${escapeHtml(item.m.nombre)}</b><span class="sm">${escapeHtml(item.motivo)}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ""}</span></span></div>`).join("");
+    const more = draft.sinDia.length > SHOWN_WITHOUT_DAY ? `<div class="sm" style="padding:6px 12px">${t("agenda.openWeek.andMore", { count: draft.sinDia.length - SHOWN_WITHOUT_DAY })}</div>` : "";
+    return `<div class="planfuera" style="margin:0 16px 16px"><h3>${t("agenda.openWeek.withoutDay", { count: draft.sinDia.length })}</h3>
+      <div class="lista">${rows}
+        ${more}</div></div>`;
+  }
+  function weekHtml(data) {
+    const canPlan = data.days.some((day) => day >= data.today) && !data.draft;
+    return `
+    <div class="semhead"><span class="sm">${t("agenda.openWeek.hint")}</span>
+      ${canPlan ? `<button class="btn" id="semplan">${t("agenda.openWeek.share")}</button>` : ""}</div>
+    ${data.draft ? draftHtml(data.draft) : ""}
+    <div class="semwrap"><div class="mes sem">
+      ${t("dates.weekdayLetters").split(",").map((letter) => `<span class="mesdow">${letter}</span>`).join("")}
+      ${data.days.map((day) => dayColumn(day, data)).join("")}
+    </div></div>
+    ${withoutDayHtml(data.draft)}`;
+  }
+  async function moveTo(item, day, data) {
+    if (item.fecha === day) return;
+    if (day < todayIso()) {
+      notices.toast(t("agenda.openWeek.notToPast"), true);
+      return;
+    }
+    const warnings = [];
+    const reason = data.blocked[day];
+    if (reason) warnings.push(t("agenda.openWeek.blockedDay", { reason }));
+    const windows = weekPlanner.attendanceWindows(item.dias, day);
+    if (windows && !windows.length) warnings.push(t("agenda.openWeek.notAttending"));
+    if (warnings.length && !await notices.confirm(`${item.nombre ?? ""}: ${warnings.join(" y ")}.`, { titulo: t("agenda.openWeek.moveAnyway"), ok: t("agenda.openWeek.move") })) return;
+    const { data: result, error } = await legacyDb().rpc("estado_cita", { p_id: item.id, p_estado: item.estado, p_fecha: day });
+    if (error || result?.ok === false) {
+      notices.toast(t("agenda.openWeek.couldNotMove"), true);
+      return;
+    }
+    notices.toast(t("agenda.openWeek.movedTo", { date: formatShortDate(day) }));
+    reloadAgenda();
+  }
+  function onDayClick(event, column, data) {
+    const target = event.target instanceof Element ? event.target : null;
+    const menu = target?.closest("[data-semmenu]");
+    if (menu) {
+      const day = menu.dataset.semmenu ?? "";
+      legacyAgendaParts.dayMenu(menu, day, Boolean(data.blocked[day]));
+      return;
+    }
+    if (target?.closest(".semcita.nueva")) return;
+    const account = target?.closest("[data-semficha]");
+    if (account) {
+      agendaActions.openAccount(account.dataset.semficha ?? "");
+      return;
+    }
+    agendaState.setSelectedDate(column.dataset.semdia ?? "");
+    agendaState.setMode("dia");
+    reloadAgenda();
+  }
+  function bindDay(column, data) {
+    column.onclick = (event) => {
+      onDayClick(event, column, data);
+    };
+    column.onkeydown = (event) => {
+      if (event.key === "Enter") onDayClick(event, column, data);
+    };
+    column.ondragover = (event) => {
+      if (event.dataTransfer?.types.includes("text/cita")) {
+        event.preventDefault();
+        column.classList.add("sobre");
+      }
+    };
+    column.ondragleave = () => {
+      column.classList.remove("sobre");
+    };
+    column.ondrop = (event) => {
+      event.preventDefault();
+      column.classList.remove("sobre");
+      const id = event.dataTransfer?.getData("text/cita"), item = data.list.find((entry) => entry.id === id);
+      if (item) void moveTo(item, column.dataset.semdia ?? "", data);
+    };
+  }
+  function bind(box, data) {
+    const plan = box.querySelector("#semplan");
+    if (plan) plan.onclick = () => {
+      weekPlanner.plan(data.monday, data.days, { ...data.blocked }, data.perDay);
+    };
+    const discard = box.querySelector("#semdescartar");
+    if (discard) discard.onclick = () => {
+      weekPlanner.discardDraft();
+      reloadAgenda();
+    };
+    const save = box.querySelector("#semguardar");
+    if (save) save.onclick = () => {
+      weekPlanner.saveDraft(save);
+    };
+    box.querySelectorAll("[data-semdia]").forEach((column) => {
+      bindDay(column, data);
+    });
+    box.querySelectorAll("[data-semcid]").forEach((chip) => {
+      chip.ondragstart = (event) => {
+        event.dataTransfer?.setData("text/cita", chip.dataset.semcid ?? "");
+        if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+        chip.classList.add("arrastrando");
+      };
+      chip.ondragend = () => {
+        chip.classList.remove("arrastrando");
+      };
+    });
+  }
+  async function weekData() {
+    const monday = mondayOf(legacyAgenda.selectedDate() ?? todayIso()), sunday = addDays(monday, WEEK_DAYS2 - 1), owner = agendaSources.ownerId();
+    const [result, blocked] = await Promise.all([
+      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: sunday, p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
+      legacyAgendaParts.blockedDays(monday, WEEK_DAYS2)
+    ]);
+    const list = result.data ?? [], perDay = {};
+    list.forEach((item) => {
+      var _a;
+      (perDay[_a = item.fecha] ?? (perDay[_a] = [])).push(item);
+    });
+    const draft = weekPlanner.draft(), ownDraft = draft?.semana === monday && draft.uid === owner ? draft : null;
+    return { monday, days: range(WEEK_DAYS2).map((index) => addDays(monday, index)), today: todayIso(), owner, list, perDay, blocked, draft: ownDraft };
+  }
+  async function render() {
+    const strip = document.getElementById("agcinta");
+    if (!strip || !stripState.weekOpen()) {
+      document.getElementById("agsemexp")?.remove();
+      return;
+    }
+    if (!document.getElementById("agsemexp")) strip.insertAdjacentHTML("beforeend", '<div id="agsemexp" class="agsemexp"></div>');
+    if (!document.getElementById("agcuerpo")) return;
+    const data = await weekData();
+    const box = document.getElementById("agsemexp");
+    if (!box || !stripState.weekOpen()) return;
+    box.innerHTML = weekHtml(data);
+    bind(box, data);
+  }
+  function paintOpenWeek() {
+    const paint2 = async () => {
+      const strip = document.getElementById("agcinta");
+      if (!legacyAgenda.isDayView() || !strip || !stripState.weekOpen() || document.getElementById("agsemexp")) {
+        await render();
+        return;
+      }
+      strip.insertAdjacentHTML("beforeend", '<div id="agsemexp" class="agsemexp" style="display:none"></div>');
+      try {
+        await render();
+      } finally {
+        const box = document.getElementById("agsemexp");
+        if (box) box.style.display = "";
+      }
+    };
+    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint2) : paint2();
+  }
+
   // src/app/screens/agenda/strip.ts
   var STRIP_DAYS2 = 14;
-  var WEEK_DAYS2 = 7;
+  var WEEK_DAYS3 = 7;
   var MAX_DOTS = 6;
   var DAY_MS = 864e5;
   var hasStrip = () => currentScreen() === "agenda" && legacyAgendaParts.mode() === "dia" && Boolean(document.getElementById("v-agenda"));
   function weekTitle(monday, today) {
-    const weeks = Math.round((fromIsoDate(monday).getTime() - fromIsoDate(mondayOf(today)).getTime()) / DAY_MS / WEEK_DAYS2);
+    const weeks = Math.round((fromIsoDate(monday).getTime() - fromIsoDate(mondayOf(today)).getTime()) / DAY_MS / WEEK_DAYS3);
     if (weeks === 0) return t("agenda.strip.thisWeek");
     if (weeks === 1) return t("agenda.strip.nextWeek");
     if (weeks === -1) return t("agenda.strip.lastWeek");
@@ -1426,7 +1682,7 @@
   function stripHtml(start, context) {
     const month = capitalise(formatMonthYear(addDays(start, 3)));
     const today = mondayOf(context.today) === start ? "" : `<button type="button" class="btn sec chico" id="choy">${t("agenda.strip.today")}</button>`;
-    const weeks = [0, WEEK_DAYS2].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS2).map((index) => dayButton(addDays(start, offset + index), context)).join("")}</div></div>`).join("");
+    const weeks = [0, WEEK_DAYS3].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS3).map((index) => dayButton(addDays(start, offset + index), context)).join("")}</div></div>`).join("");
     return `<div class="cinta" id="agcinta" data-ini="${start}"><div class="ccab">
       <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="${t("agenda.strip.previousWeekNav")}" title="${t("agenda.strip.previousWeekNav")}">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="${t("agenda.strip.seeMonth")}">${escapeHtml(month)} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="${t("agenda.strip.nextWeekNav")}" title="${t("agenda.strip.nextWeekNav")}">›</button>${today}</div>
       <div class="cley" aria-hidden="true"><span><i class="ch"></i>${t("agenda.strip.done")}</span><span><i class="cp"></i>${t("agenda.strip.toDo")}</span><span><i class="cx"></i>${t("agenda.strip.notClosed")}</span></div>
@@ -1454,7 +1710,7 @@
       button.dataset.ocupado = "1";
       stripState.setWeekOpen(!open);
       try {
-        await stripState.paintOpenWeek();
+        await paintOpenWeek();
       } finally {
         delete button.dataset.ocupado;
         bindWeekButton();
@@ -1475,7 +1731,7 @@
       });
     });
   }
-  function bind(strip) {
+  function bind2(strip) {
     strip.querySelectorAll("[data-cf]").forEach((day) => {
       day.onclick = () => {
         closeMonth();
@@ -1501,7 +1757,7 @@
     };
     bindDayOptions(strip);
   }
-  async function render() {
+  async function render2() {
     if (!hasStrip() || !document.getElementById("agcuerpo")) return;
     const today = todayIso(), start = stripState.start() ?? mondayOf(legacyAgenda.selectedDate() ?? today), owner = agendaSources.ownerId();
     stripState.setStart(start);
@@ -1518,26 +1774,26 @@
     else body.insertAdjacentHTML("beforebegin", html);
     const strip = document.getElementById("agcinta");
     if (!strip) return;
-    bind(strip);
+    bind2(strip);
     showSelectedWeek(strip, start);
   }
   function showSelectedWeek(strip, start) {
     const weeks = strip.querySelector(".csems"), selected = legacyAgenda.selectedDate();
-    if (weeks && selected && selected >= addDays(start, WEEK_DAYS2)) weeks.scrollLeft = weeks.scrollWidth;
+    if (weeks && selected && selected >= addDays(start, WEEK_DAYS3)) weeks.scrollLeft = weeks.scrollWidth;
   }
   function paintStrip() {
     if (!legacyAgenda.isDayView()) return Promise.resolve();
     if (!stripState.start()) stripState.setStart(mondayOf(legacyAgenda.selectedDate() ?? todayIso()));
     return withData([...stripLoads(), ...stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : []], async () => {
-      await render();
+      await render2();
       if (!legacyAgenda.isDayView() || !document.getElementById("agcinta")) return;
-      if (stripState.weekOpen()) await stripState.paintOpenWeek();
+      if (stripState.weekOpen()) await paintOpenWeek();
       bindWeekButton();
     });
   }
   async function shareWeek() {
     stripState.setWeekOpen(true);
-    await stripState.paintOpenWeek();
+    await paintOpenWeek();
     bindWeekButton();
     const plan = document.getElementById("semplan");
     if (plan) {
@@ -1547,8 +1803,8 @@
   }
 
   // src/app/screens/agenda/week-sidebar.ts
-  var SHOWN_PER_DAY = 3;
-  var WEEK_DAYS3 = 7;
+  var SHOWN_PER_DAY2 = 3;
+  var WEEK_DAYS4 = 7;
   var timeOf = (item) => String(item.hora ?? "");
   function byDay(list) {
     const days = /* @__PURE__ */ new Map();
@@ -1560,8 +1816,8 @@
   }
   function dayContent(items, blockedReason) {
     const blocked = blockedReason ? `<span class="agslb">${escapeHtml(blockedReason)}</span>` : "";
-    const shown = items.slice(0, SHOWN_PER_DAY).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
-    const more = items.length > SHOWN_PER_DAY ? `<span class="agslv">${t("agenda.week.andMore", { count: items.length - SHOWN_PER_DAY })}</span>` : "";
+    const shown = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
+    const more = items.length > SHOWN_PER_DAY2 ? `<span class="agslv">${t("agenda.week.andMore", { count: items.length - SHOWN_PER_DAY2 })}</span>` : "";
     const free = !items.length && !blockedReason ? `<span class="agslv">${t("agenda.week.free")}</span>` : "";
     return blocked + shown + more + free;
   }
@@ -1575,7 +1831,7 @@
         <span class="agslc">${dayContent(items, blockedReason)}</span>
         ${menu}</div>`;
   }
-  function bind2(box, blocked) {
+  function bind3(box, blocked) {
     box.querySelectorAll("[data-agslm]").forEach((button) => {
       button.onclick = (event) => {
         event.stopPropagation();
@@ -1610,16 +1866,16 @@
     if (!box) return;
     const today = todayIso(), selected = legacyAgenda.selectedDate(), monday = mondayOf(selected ?? today);
     const [result, blocked] = await Promise.all([
-      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: addDays(monday, WEEK_DAYS3 - 1), p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
-      legacyAgendaParts.blockedDays(monday, WEEK_DAYS3)
+      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: addDays(monday, WEEK_DAYS4 - 1), p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
+      legacyAgendaParts.blockedDays(monday, WEEK_DAYS4)
     ]);
     if (!document.getElementById("agsemlat")) return;
-    const days = range(WEEK_DAYS3).map((index) => addDays(monday, index)), perDay = byDay(result.data ?? []);
+    const days = range(WEEK_DAYS4).map((index) => addDays(monday, index)), perDay = byDay(result.data ?? []);
     const context = { today, selected, blocked };
     box.innerHTML = `<h2>${t("agenda.week.title")}</h2><p class="sm agslnota">${t("agenda.week.hint")}</p>
     <div class="agsl">${days.map((day) => dayHtml(day, perDay.get(day) ?? [], context)).join("")}</div>
     ${days.some((day) => day >= today) ? `<div class="acts agslacts"><button type="button" class="btn sec" id="agslrep">${t("agenda.week.share")}</button></div>` : ""}`;
-    bind2(box, blocked);
+    bind3(box, blocked);
   }
   function paintWeekSidebar() {
     return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint) : paint();
@@ -2181,7 +2437,7 @@
     };
     requestAnimationFrame(step);
   }
-  function render2(container, settings, kpis) {
+  function render3(container, settings, kpis) {
     const definitions = indicatorCatalog.definitions();
     const allowed = settings.map((setting) => ({ setting, definition: definitions.find((item) => item.id === setting.id) }));
     const panel = homeCache.panel();
@@ -2212,7 +2468,7 @@
       return;
     }
     const settings = indicatorCatalog.settings().filter((setting) => setting.on);
-    const live = render2(container, settings, result.data.kpis ?? {});
+    const live = render3(container, settings, result.data.kpis ?? {});
     if (result.cache) showCacheNotice(container, result.fecha);
     countSavedFilters(settings);
     addHelpButtons();

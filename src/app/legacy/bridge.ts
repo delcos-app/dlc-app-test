@@ -143,13 +143,12 @@ export const agendaSources = {
   },
 };
 
-/** The day strip state, still shared with the legacy day view: its first Monday and whether the whole week is open below it. */
+/** The day strip state, still kept in legacy globals (the tests read CINTA_INI): its first Monday and whether the week is open. */
 export const stripState = {
   start: (): string | null => CINTA_INI,
   setStart: (isoDate: string | null): void => { CINTA_INI = isoDate; },
   weekOpen: (): boolean => AG_SEM_ABIERTA,
   setWeekOpen: (open: boolean): void => { AG_SEM_ABIERTA = open; },
-  paintOpenWeek: (): Promise<void> => agPintarSemanaExp(),
 };
 
 /** Agenda screen state still kept in legacy globals (the day view and «Tu día» read them). */
@@ -179,3 +178,25 @@ export const legacyAgendaPaint = {
   team: (): Promise<void> => pintarEquipo(),
   noStartWarning: (element: HTMLElement | null): void => { avisoSinSalida(element); },
 };
+
+/** The week planner («Repartir la semana») and its unsaved proposal, still in legacy (pantallas/rutas.js). */
+export const weekPlanner = {
+  draft: (): WeekDraft | null => SEM_BORRADOR,
+  discardDraft: (): void => { SEM_BORRADOR = null; },
+  plan: (from: string, days: readonly string[], blocked: Record<string, string>, perDay: Record<string, WeekAppointment[]>): void => { void planificarSemana(from, days, blocked, perDay); },
+  saveDraft: (button: HTMLElement): void => { void guardarBorradorSemana(button); },
+  /** Estimated end of a day (minutes) and the latest return time. */
+  estimateDay: (list: readonly object[], isoDate: string): { fin: number; tope: number } => estimarDia(list, isoDate),
+  /** Opening windows of a person on a date: null when unknown, [] when they do not attend that day. */
+  attendanceWindows: (days: Record<string, string | null> | null | undefined, isoDate: string): unknown[] | null => ventanasDe(days, isoDate),
+};
+
+/** Common dialogs and notices. */
+export const notices = {
+  toast: (message: string, isError = false): void => { toast(message, isError); },
+  confirm: (message: string, options: { titulo?: string; ok?: string }): Promise<boolean> => preguntar(message, options),
+};
+
+export const initialsOf = (name: string): string => iniciales(name);
+/** Mounts Agenda again from its current state (legacy adapter of loadAgenda: avoids an import cycle between the pieces). */
+export const reloadAgenda = (): void => { void cargarAgenda(); };
