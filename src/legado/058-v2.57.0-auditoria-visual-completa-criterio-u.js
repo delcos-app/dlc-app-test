@@ -110,14 +110,6 @@ new MutationObserver(() => {
 
 /* ---------------- v2.58.0 · la configuración de Facturación solo vive en su módulo ---------------- */
 
-const IR_V258 = ir;
-ir = function (t) {
-  const mapa = { fiscal: 'empresa', series: 'series', vf: 'verifactu', fact: FAC_ULTIMA || 'empresa' };
-  if (t === 'config' && (mapa[CFG_SEC] || (CFG_SEC === 'fact' && mapa[CFG_SUB]))) {
-    FSEC = mapa[CFG_SEC === 'fact' ? (CFG_SUB || 'fact') : CFG_SEC] || 'empresa'; CFG_SEC = 'rutas'; t = 'facturacion';
-  }
-  IR_V258(t);
-};
 
 
 /* ---------------- v2.59.0 · nombre configurado en todos los textos; sin ayuda en la tabla de Cuentas ---------------- */

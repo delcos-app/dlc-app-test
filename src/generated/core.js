@@ -16,7 +16,7 @@
       const route = routes.get(resolved);
       return route && (route.canEnter?.() ?? true) ? resolved : fallbackRoute;
     }
-    async function navigate(target, ...params) {
+    async function navigate2(target, ...params) {
       const context = { from: current, params };
       const routeId = resolve(target, context);
       const route = routes.get(routeId);
@@ -38,11 +38,419 @@
       onNavigate: (hook) => {
         hooks.push(hook);
       },
-      navigate,
+      navigate: navigate2,
       get current() {
         return current;
       }
     };
+  }
+
+  // src/app/core/navigation/pipeline.ts
+  function runBefores(steps, navigation) {
+    const passed = [];
+    for (const step of steps) {
+      step.before?.(navigation);
+      passed.push({ step, target: navigation.target });
+      if (navigation.blocked) break;
+    }
+    return passed;
+  }
+  function runNavigation(steps, switchScreen, target, args) {
+    const navigation = { target, args, blocked: false };
+    let passed = [];
+    try {
+      passed = runBefores(steps, navigation);
+      if (!navigation.blocked) switchScreen(navigation.target, args);
+      for (const { step, target: seen } of [...passed].reverse()) step.after?.(seen, args);
+    } finally {
+      for (const { step, target: seen } of [...passed].reverse()) step.cleanup?.(seen);
+    }
+  }
+
+  // src/app/services/values.ts
+  function orFallback(value, fallback) {
+    return value === void 0 || value === null || value === "" ? fallback : value;
+  }
+
+  // src/app/core/navigation/steps-outer.ts
+  var PORTAL_SCREENS = ["informe", "config", "perfil"];
+  var PLATFORM_SCREENS = ["delcos", "config", "perfil", "manual"];
+  var safely = (action) => {
+    try {
+      action();
+    } catch {
+    }
+  };
+  var later = (delays, action) => {
+    delays.forEach((delay) => {
+      setTimeout(() => {
+        safely(action);
+      }, delay);
+    });
+  };
+  var resetBackStack = {
+    name: "v2.300 · a new navigation empties the «Volver» stack",
+    before: () => {
+      VUELTA.length = 0;
+      VISTA = null;
+    }
+  };
+  var professionalPortalOnly = {
+    name: "v2.271 · the professional (and centre) portal only opens its own screens",
+    before: (nav) => {
+      if (ES_MEDICO() && !PORTAL_SCREENS.includes(nav.target)) nav.target = "informe";
+    }
+  };
+  var loadingComet = {
+    name: "v2.267 · the loading line at the top when the screen changes",
+    before: (nav) => {
+      if (nav.target && nav.target !== TAB) safely(cometa);
+    }
+  };
+  var watchListPage = {
+    name: "v2.239 · list pages (PL) keep their layout in sync",
+    after: (target) => {
+      if (PL[target]) {
+        plVigilar(target);
+        setTimeout(() => {
+          plVigilar(target);
+        }, 0);
+      }
+    }
+  };
+  var customMenuNames = {
+    name: "v2.231 · menu names chosen by the company",
+    after: () => {
+      setTimeout(() => {
+        safely(aplicarNombresMenu);
+      }, 0);
+      queueMicrotask(() => {
+        safely(aplicarNombresMenu);
+      });
+    }
+  };
+  var rememberManualReturn = {
+    name: "v2.224 · entering the manual remembers where to come back to",
+    before: (nav) => {
+      if (nav.target === "manual" && TAB !== "manual") MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
+    }
+  };
+  var NAVIGATION_START_EVENT = "delcos:navigation-start";
+  var announceNavigation = {
+    name: "v2.221 · tell listeners a navigation starts (the mobile «+» comes back into view)",
+    before: (nav) => {
+      document.dispatchEvent(new CustomEvent(NAVIGATION_START_EVENT, { detail: { target: nav.target } }));
+    }
+  };
+  function configKey(target) {
+    if (target === "config") return claveCfgVieja(CFG_SEC, CFG_SUB);
+    if (target === "perfil") return PAG_TAB.perfil === "notif" ? "notif" : "datos";
+    if (target === "organizacion" || target === "empresa") return `o.${orFallback(PAG_TAB[target], "marca")}`;
+    if (target === "plan") return "o.plan";
+    if (target === "usuarios") return PAG_TAB.usuarios === "roles" ? "roles" : "usuarios";
+    return null;
+  }
+  var singleConfiguration = {
+    name: "v2.215/v2.340 · profile, company, plan and users are parts of the single Configuración page",
+    before: (nav) => {
+      if (nav.target === "config" && ["seguridad", "orgs"].includes(CFG_SEC ?? "")) return;
+      const key = configKey(nav.target);
+      if (key === null) return;
+      if (key) {
+        CFG_KEY = key;
+        CFG_DETALLE = true;
+      } else if (IR_DESDE_MENU_CFG) {
+        CFG_DETALLE = false;
+        CFG_KEY = "datos";
+      }
+      if (nav.target !== "config") {
+        PAG_TAB.perfil = void 0;
+        PAG_TAB.organizacion = void 0;
+        PAG_TAB.empresa = void 0;
+        PAG_TAB.usuarios = void 0;
+      }
+      CFG_SEC = "__cfg";
+      CFG_SUB = null;
+      IR_DESDE_MENU_CFG = false;
+      nav.target = "config";
+    }
+  };
+  var directoryLabel = {
+    name: "v2.210 · the directory title with the company word for its accounts",
+    after: (target) => {
+      if (target === "directorio") later([0, 300, 1200], aplicarEtiqueta);
+    }
+  };
+  var manualHelpButton = {
+    name: "v2.226 · the «i» help next to each screen title",
+    after: () => {
+      later([400, 1200, 2500], ponerAyudaManual);
+    }
+  };
+  var platformPanel = {
+    name: "v2.166 · Panel delcos sections, and platform mode only shows the panel",
+    before: (nav) => {
+      const section = PANEL_SECCIONES.find((entry) => entry[0] === nav.target);
+      if (section) {
+        PAG_TAB.delcos = section[1];
+        nav.target = "delcos";
+        return;
+      }
+      if (MODO_PLATAFORMA && !PLATFORM_SCREENS.includes(nav.target)) nav.target = "delcos";
+    },
+    after: (target) => {
+      if (target === "delcos") marcarPanel();
+    }
+  };
+  var stripeReturnToPlan = {
+    name: "v2.167 · coming back from Stripe opens «Plan y suscripción»",
+    before: (nav) => {
+      if (!PAGO_IR_PLAN || !PERFIL) return;
+      pagoAlPlan();
+      if (!ES_MEDICO() && puedeOrganizacion()) nav.target = "plan";
+    }
+  };
+  var planSections = {
+    name: "v2.152 · sections outside the contracted plan show the plan notice instead",
+    before: (nav) => {
+      if (nav.target in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) {
+        avisoPlan(nav.target);
+        nav.blocked = true;
+      }
+    }
+  };
+  var agendaFromMenuIsToday = {
+    name: "v2.140 · Agenda from the menu always opens today",
+    before: (nav) => {
+      if (nav.target === "agenda" && IR_DESDE_MENU) {
+        AG_MODO = "dia";
+        AG_FECHA = hoyISO();
+      }
+    }
+  };
+  var ordersSections = {
+    name: "v2.128 · Oportunidades, Compras… are sections of Pedidos",
+    before: (nav) => {
+      const section = ALIAS_PEDIDOS[nav.target];
+      if (section !== void 0) {
+        PEDSEC = section;
+        nav.target = "ventas";
+        return;
+      }
+      if (nav.target === "ventas" && IR_DESDE_MENU) PEDSEC = "ventas";
+    },
+    after: (target) => {
+      if (target === "ventas") marcarPedsec();
+    }
+  };
+  var closePageDialog = {
+    name: "v2.128 · a window that belongs to the page closes when leaving it",
+    before: () => {
+      const dialog = document.getElementById("dlg");
+      if (dialog?.open && (Boolean(dialog.dataset.fija) || Boolean(dialog.dataset.depagina))) dialog.close();
+    }
+  };
+  var footerMenuMark = {
+    name: "v2.128 · mark the current screen in the footer menu",
+    after: () => {
+      menuMarcarPie();
+      setTimeout(menuMarcarPie, 0);
+    }
+  };
+
+  // src/app/core/navigation/steps-inner.ts
+  var COMPANY_SECTIONS = ["__empresa", "empresa", "marca", "correo", "copias"];
+  var MAIL_SECTIONS = ["correo", "copias"];
+  var screenSection = () => document.getElementById(`v-${TAB}`);
+  var configToOwnPages = {
+    name: "v2.128 · team, security and organizations open their own pages",
+    before: (nav) => {
+      if (nav.target === "config" && CFG_SEC === "equipo") {
+        PAG_TAB.usuarios = CFG_SUB === "roles" ? "roles" : "usuarios";
+        CFG_SEC = "inicio";
+        CFG_SUB = null;
+        nav.target = "usuarios";
+      }
+      if (nav.target === "config" && CFG_SEC === "seguridad" && puede("gestionar_plataforma")) {
+        PAG_TAB.delcos = CFG_SUB === "accesos" ? "accesos" : "auditoria";
+        CFG_SEC = "inicio";
+        CFG_SUB = null;
+        nav.target = "delcos";
+      }
+      if (nav.target === "config" && CFG_SEC === "orgs" && puede("gestionar_plataforma")) {
+        PAG_TAB.delcos = "orgs";
+        CFG_SEC = "inicio";
+        nav.target = "delcos";
+      }
+    }
+  };
+  var closeEmbeddedWindows = {
+    name: "v2.117 · windows embedded in a page close when leaving it",
+    before: () => {
+      cerrarEncajadas();
+    }
+  };
+  var organizationPage = {
+    name: "v2.121 · company and plan are parts of the Organización page (only for who may configure it)",
+    before: (nav) => {
+      const fromConfig = nav.target === "config" && CFG_SEC !== null ? ORG_DESDE[CFG_SEC] : void 0;
+      if (nav.target === "empresa") {
+        PAG_TAB.organizacion = orFallback(PAG_TAB.empresa, "marca");
+        nav.target = "organizacion";
+      } else if (nav.target === "plan") {
+        PAG_TAB.organizacion = "plan";
+        nav.target = "organizacion";
+      } else if (fromConfig) {
+        PAG_TAB.organizacion = orFallback(CFG_SUB !== null ? ORG_DESDE[CFG_SUB] : void 0, fromConfig);
+        CFG_SEC = "rutas";
+        nav.target = "organizacion";
+      }
+      if (nav.target === "organizacion" && !puedeOrganizacion()) nav.target = "inicio";
+    }
+  };
+  var clearPagesWhenLeaving = {
+    name: "v2.117 · going to a non-page screen empties the pages, so no old page shows up",
+    before: (nav) => {
+      if (nav.target in PAGINAS) return;
+      Object.keys(PAGINAS).forEach((page) => {
+        const section = document.getElementById(`v-${page}`);
+        if (section) section.innerHTML = "";
+      });
+    }
+  };
+  var revealSince = [];
+  var atomicReveal = {
+    name: "v2.60 · the screen is revealed at once when its data is ready (no screen «ghosts»)",
+    before: () => {
+      revealSince.push(Date.now() - 2);
+    },
+    after: () => {
+      const section = screenSection();
+      if (section) {
+        section.classList.remove("cargando", "cargando-pend");
+        revelar(section, 4e3, revealSince[revealSince.length - 1] ?? Date.now());
+      }
+      document.querySelectorAll("main > section.preparando").forEach((other) => {
+        if (other !== section) other.classList.remove("preparando");
+      });
+    },
+    cleanup: () => {
+      revealSince.pop();
+    }
+  };
+  function billingSection() {
+    const map = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(FAC_ULTIMA, "empresa") };
+    const section = CFG_SEC ?? "";
+    if (!(map[section] ?? (section === "fact" ? map[CFG_SUB ?? ""] : void 0))) return void 0;
+    return orFallback(map[section === "fact" ? orFallback(CFG_SUB, "fact") : section], "empresa");
+  }
+  var billingSettings = {
+    name: "v2.57 · fiscal data, series and VeriFactu open in Facturación",
+    before: (nav) => {
+      if (nav.target !== "config") return;
+      const section = billingSection();
+      if (section !== void 0) {
+        FSEC = section;
+        CFG_SEC = "rutas";
+        nav.target = "facturacion";
+      }
+    }
+  };
+  var loadingIndicatorAfterDelay = {
+    name: "v2.56 · the loading indicator only shows while the screen is still requesting data",
+    after: () => {
+      const section = screenSection();
+      if (section?.classList.contains("cargando-pend")) {
+        section.classList.remove("cargando-pend");
+        if (PEND > 0) section.classList.add("cargando");
+      }
+    }
+  };
+  var markNavigationInProgress = {
+    name: "v2.56 · VIA_IR tells the screens they are being opened by a navigation",
+    before: (nav) => {
+      VIA_IR = nav.target;
+    },
+    cleanup: () => {
+      setTimeout(() => {
+        VIA_IR = null;
+      }, 0);
+    }
+  };
+  function companyTab() {
+    if (CFG_SUB !== null && MAIL_SECTIONS.includes(CFG_SUB)) return CFG_SUB;
+    if (CFG_SEC !== null && MAIL_SECTIONS.includes(CFG_SEC)) return CFG_SEC;
+    return "marca";
+  }
+  var legacyConfigPages = {
+    name: "v2.53 · notifications, company and plan have their own page; pages are loaded after switching",
+    before: (nav) => {
+      if (nav.target === "config" && CFG_SEC === "notif") {
+        PAG_TAB.perfil = "notif";
+        CFG_SEC = "rutas";
+        nav.target = "perfil";
+      }
+      if (nav.target === "config" && ["perfil", "prefs"].includes(CFG_SEC ?? "")) CFG_SEC = "rutas";
+      if (nav.target === "config" && COMPANY_SECTIONS.includes(CFG_SEC ?? "")) {
+        PAG_TAB.empresa = companyTab();
+        CFG_SEC = "rutas";
+        nav.target = "empresa";
+      }
+      if (nav.target === "config" && CFG_SEC === "plan") {
+        CFG_SEC = "rutas";
+        nav.target = "plan";
+      }
+    },
+    after: (target) => {
+      if (PAGINAS[target]) cargarPagina(target);
+    }
+  };
+  var noFlashOnFastLoad = {
+    name: "v2.52 · fast screens go straight from the old content to the new one, without a flash of the loader",
+    after: () => {
+      const section = screenSection();
+      if (!section?.classList.contains("cargando")) return;
+      section.classList.remove("cargando");
+      section.classList.add("cargando-pend");
+      if (PEND > 0) section.classList.add("cargando");
+      section.classList.remove("cargando-pend");
+    }
+  };
+
+  // src/app/core/navigation/index.ts
+  var NAVIGATION_STEPS = [
+    resetBackStack,
+    professionalPortalOnly,
+    loadingComet,
+    watchListPage,
+    customMenuNames,
+    rememberManualReturn,
+    announceNavigation,
+    singleConfiguration,
+    directoryLabel,
+    manualHelpButton,
+    platformPanel,
+    stripeReturnToPlan,
+    planSections,
+    agendaFromMenuIsToday,
+    ordersSections,
+    closePageDialog,
+    footerMenuMark,
+    configToOwnPages,
+    closeEmbeddedWindows,
+    organizationPage,
+    clearPagesWhenLeaving,
+    atomicReveal,
+    billingSettings,
+    loadingIndicatorAfterDelay,
+    markNavigationInProgress,
+    legacyConfigPages,
+    noFlashOnFastLoad
+  ];
+  function navigate(target, ...args) {
+    runNavigation(NAVIGATION_STEPS, (screen2) => {
+      irBase(screen2);
+    }, target, args);
   }
 
   // src/app/i18n/es.ts
@@ -653,6 +1061,7 @@
   router.register(homeRoute);
   window.delcos = {
     router,
+    navigate,
     t,
     setLanguage,
     setVocabulary,

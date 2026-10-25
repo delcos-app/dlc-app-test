@@ -14,13 +14,6 @@ PAGINAS.delcos = { t: 'Panel delcos', d: 'Clientes de la plataforma, accesos y r
   const g = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs').get;
   Object.defineProperty(PAGINAS.organizacion, 'tabs', { get() { return g.call(this).filter(x => x[0] !== 'orgs'); }, configurable: true });
 })();
-// Lo que antes se abría en Configuración lleva a su página
-ir = (orig => function (t, ...a) {
-  if (t === 'config' && CFG_SEC === 'equipo') { PAG_TAB.usuarios = CFG_SUB === 'roles' ? 'roles' : 'usuarios'; CFG_SEC = 'inicio'; CFG_SUB = null; t = 'usuarios'; }
-  if (t === 'config' && CFG_SEC === 'seguridad' && puede('gestionar_plataforma')) { PAG_TAB.delcos = CFG_SUB === 'accesos' ? 'accesos' : 'auditoria'; CFG_SEC = 'inicio'; CFG_SUB = null; t = 'delcos'; }
-  if (t === 'config' && CFG_SEC === 'orgs' && puede('gestionar_plataforma')) { PAG_TAB.delcos = 'orgs'; CFG_SEC = 'inicio'; t = 'delcos'; }
-  return orig.call(this, t, ...a);
-})(ir);
 
 function aplicarPermisosMenuBase3(...a) { const r = aplicarPermisosMenuBase2.apply(this, a); menuPaginas2131(); franjaVista(); return r; }
 
@@ -130,11 +123,7 @@ document.addEventListener('input', e => {
   const f = i.closest('.ctlin'); if (f) f.classList.toggle('con', (+i.value || 0) > 0);
 });
 
-ir = (orig => function (...a) { const r = orig.apply(this, a); menuMarcarPie(); setTimeout(menuMarcarPie, 0); return r; })(ir);
 
-// v2.136.0 · Al cambiar de pantalla se cierra lo que va «en la página» (Diseño del PDF): en el móvil es una ventana y seguía
-// abierta encima de la pantalla siguiente (Usuarios, Panel delcos…)
-ir = (orig => function (...a) { const d = $('dlg'); if (d && d.open && (d.dataset.fija || d.dataset.depagina)) d.close(); return orig.apply(this, a); })(ir);
 
 
 (() => {
@@ -169,13 +158,6 @@ colocarIndPruebas();
 document.addEventListener('click', e => {
   if (e.target.closest('nav.main [data-t], #bnav [data-t], [data-bm]')) { IR_DESDE_MENU = true; setTimeout(() => { IR_DESDE_MENU = false; }, 0); }
 }, true);
-ir = (orig => function (t, ...a) {
-  if (t in ALIAS_PEDIDOS) { PEDSEC = ALIAS_PEDIDOS[t]; const r = orig.call(this, 'ventas', ...a); marcarPedsec(); return r; }
-  if (t === 'ventas' && IR_DESDE_MENU) PEDSEC = 'ventas';   // «Pedidos» del menú siempre abre los pedidos
-  const r = orig.call(this, t, ...a);
-  if (t === 'ventas') marcarPedsec();
-  return r;
-})(ir);
 // Los botones se crean antes de que el menú lateral reparta los bloques (y se vuelve a mirar su permiso después)
 function aplicarPermisosMenuBase4(...a) { try { menuPedidos2139(); } catch (e) {} const r = aplicarPermisosMenuBase3.apply(this, a); menuPedidos2139(); return r; }
 Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', proveedores: 'building' });

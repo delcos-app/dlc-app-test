@@ -94,11 +94,6 @@ document.addEventListener('click', e => {
   document.querySelectorAll('.umenu, #umenu').forEach(m => m.classList.add('hide'));
   abrirManual(MANUAL_ANCLA[TAB] || '');
 }, true);
-ir = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  [400, 1200, 2500].forEach(ms => setTimeout(() => { try { ponerAyudaManual(); } catch (e) {} }, ms));
-  return r;
-})(ir);
 
 /* v2.205.0 · Manual: capítulo «La visita y lo común». El «?» de Ciclo de visitas y de Intervenciones lleva a su sección del capítulo
    (MANUAL_ANCLA, editado en su sitio), y el material de cada visita ya no repite los resultados sin dato (detTxt, editado en su sitio). */
@@ -118,9 +113,4 @@ ir = (orig => function (...a) {
 /* v2.210.0 · Detalles vistos al grabar el manual.
    - El título del directorio usa siempre el nombre del módulo (antes salía «Médicos» si la cabecera se pintaba después de aplicarEtiqueta, editada en su sitio).
    - «Cerca de mí»: la distancia entera y el vocabulario de la empresa (pintarCerca, editada en su sitio); cobertura por producto y «Rectificar» en el estilo. */
-ir = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  if (a[0] === 'directorio') [0, 300, 1200].forEach(ms => setTimeout(() => { try { aplicarEtiqueta(); } catch (e) {} }, ms));
-  return r;
-})(ir);
 

@@ -52,22 +52,6 @@ function arbolCfgUnicoBase() {
   ].filter(g => g[1].length);
 }
 ['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
-// Cualquier camino a los ajustes lleva a su entrada de Configuración
-ir = (orig => function (t, ...r) {
-  let k = null;
-  // Accesos, auditoría y organizaciones siguen en el Panel delcos
-  if (t === 'config' && ['seguridad', 'orgs'].includes(CFG_SEC)) return orig.call(this, t, ...r);
-  if (t === 'config') k = claveCfgVieja(CFG_SEC, CFG_SUB);
-  else if (t === 'perfil') k = PAG_TAB.perfil === 'notif' ? 'notif' : 'datos';
-  else if (t === 'organizacion' || t === 'empresa') k = 'o.' + (PAG_TAB[t] || 'marca');
-  else if (t === 'plan') k = 'o.plan';
-  else if (t === 'usuarios') k = PAG_TAB.usuarios === 'roles' ? 'roles' : 'usuarios';
-  if (k === null) return orig.call(this, t, ...r);
-  if (k) { CFG_KEY = k; CFG_DETALLE = true; } else if (IR_DESDE_MENU_CFG) { CFG_DETALLE = false; CFG_KEY = 'datos'; }   // v2.340.0: siempre «Mis datos»
-  if (t !== 'config') { PAG_TAB.perfil = PAG_TAB.organizacion = PAG_TAB.empresa = PAG_TAB.usuarios = undefined; }
-  CFG_SEC = '__cfg'; CFG_SUB = null; IR_DESDE_MENU_CFG = false;
-  return orig.call(this, 'config', ...r);
-})(ir);
 var IR_DESDE_MENU_CFG = false;
 document.addEventListener('click', e => { if (e.target.closest('nav.main [data-t="config"], #bnav [data-t="config"], [data-u="cfg"]')) { CFG_SEC = '__cfg'; IR_DESDE_MENU_CFG = true; } }, true);
 // El «?» del manual lleva al capítulo del apartado abierto
@@ -226,8 +210,8 @@ document.addEventListener('keydown', e => {
       y0 = y;
     });
   }, { passive: true });
-  // Al cambiar de pantalla vuelve a estar a la vista
-  ir = (orig => function (...x) { poner(false); y0 = 0; return orig.apply(this, x); })(ir);
+  // Al cambiar de pantalla vuelve a estar a la vista (evento de la navegación, src/app/core/navigation)
+  document.addEventListener('delcos:navigation-start', () => { poner(false); y0 = 0; });
 })();
 
 /* v2.222.0 · KPIs vivos de Inicio (decisión de Eric: variante A «Instrumentos» del prototipo https://claude.ai/artifact/5sCrtXHiW1RvCZ5GLSDDdZ).

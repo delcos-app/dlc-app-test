@@ -102,10 +102,6 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINA
 })();
 
 function aplicarPermisosMenuBase5(...a) { const r = aplicarPermisosMenuBase4.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; }
-ir = (orig => function (t, ...a) {
-  if (t in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(t)) { avisoPlan(t); return; }
-  return orig.call(this, t, ...a);
-})(ir);
 setTimeout(() => { try { candadoSecciones(); } catch (e) {} }, 0);
 
 function montarMenuLateral(...a) {

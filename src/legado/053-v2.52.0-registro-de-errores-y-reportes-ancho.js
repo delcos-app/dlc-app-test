@@ -30,15 +30,6 @@ db.rpc = (orig => function (fn, params, opts) {
 
 /* ---------------- sin parpadeos ---------------- */
 
-// El indicador de carga solo aparece si la pantalla tarda más de un cuarto de segundo:
-// con respuestas rápidas se pasa directamente del contenido anterior al nuevo, sin destellos
-const IR_V252 = ir;
-ir = function (t) {
-  IR_V252(t);
-  const sec = $('v-' + TAB); if (!sec || !sec.classList.contains('cargando')) return;
-  sec.classList.remove('cargando'); sec.classList.add('cargando-pend');
-  if (PEND > 0) sec.classList.add('cargando'); sec.classList.remove('cargando-pend');
-};
 
 /* ---------------- Cuentas: cabecera ordenada; Duplicados dentro de Calidad del dato ---------------- */
 

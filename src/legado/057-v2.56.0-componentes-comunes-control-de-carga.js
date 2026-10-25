@@ -39,8 +39,6 @@ const ESTADO_MOD = {
   };
   eval(`${fn} = nueva`);
 });
-const IR_V256 = ir;
-ir = function (t) { VIA_IR = t; try { IR_V256(t); } finally { setTimeout(() => { VIA_IR = null; }, 0); } };
 // Inicio: cuándo se actualizó y botón para actualizar
 function pintarActualizadoBase() {
   const acts = document.querySelector('#v-inicio .saludo .acts, #v-inicio .hero .acts, #v-inicio .inihead .acts') || document.querySelector('#v-inicio .saludo');
@@ -60,8 +58,6 @@ setTimeout(() => document.body.classList.add('inilisto'), 6000);   // red de seg
 
 /* ---------------- 3. Indicador de carga: aparece a partir de 120 ms y dura al menos 350 ms ---------------- */
 
-// El retraso lo hace el estilo (sin JavaScript); aquí se quita el retraso antiguo y se asegura el mínimo visible
-ir = (orig => function (t) { orig(t); const s = $('v-' + TAB); if (s && s.classList.contains('cargando-pend')) { s.classList.remove('cargando-pend'); if (PEND > 0) s.classList.add('cargando'); } })(ir);
 new MutationObserver(ms => ms.forEach(m => {
   const s = m.target; if (!s.matches || !s.matches('main > section, dialog, .card')) return;
   const tiene = s.classList.contains('cargando') || s.classList.contains('cargandolocal');

@@ -90,7 +90,7 @@ $('nav').addEventListener('click', e => {
    Reúne en una sola función lo que antes estaba repartido en 13 piezas (la original y 12 capas),
    con el mismo orden: comprobaciones de destino, cancelación de lo pendiente, cambio de pantalla,
    carga del módulo e indicador de carga. */
-var ir = function (t) {
+function irBase(t) {
   // 1. Destinos que no se abren o que se redirigen
   if (t in MODULO_AREA && PERFIL && puedeModuloV2400(t) && !planIncluye(t)) { avisoPlan(t); return; }   // fuera del plan contratado
   if (t === 'admin') { CFG_SEC = CFG_ADMIN[ADM_SEC] || 'usuarios'; t = 'config'; }                       // Administración vive en Configuración
@@ -135,7 +135,11 @@ var ir = function (t) {
     quietos = PEND === 0 ? quietos + 1 : 0;
     if ((quietos >= 3 && performance.now() - t0 > 300) || performance.now() - t0 > 8000) { clearInterval(w); requestAnimationFrame(() => sec.classList.remove('cargando')); }
   }, 80);
-};
+}
+
+/* ir(): cambiar de pantalla. Las reglas (redirecciones, bloqueos y lo que pasa antes y después) están en
+   src/app/core/navigation (v2.386.0): aquí solo queda el adaptador para el código antiguo, y irBase, el cambio de pantalla en sí. */
+function ir(t, ...a) { window.delcos.navigate(t, ...a); }
 
 /* ---------------- inicio ---------------- */
 

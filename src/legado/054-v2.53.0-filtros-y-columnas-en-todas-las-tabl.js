@@ -23,16 +23,6 @@ function celda(m, k) {
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 
 let PAG_TAB = {};
-const IR_V253 = ir;
-ir = function (t) {
-  // Apartados que ahora tienen página propia: solo se redirige cuando se piden expresamente
-  if (t === 'config' && CFG_SEC === 'notif') { PAG_TAB.perfil = 'notif'; CFG_SEC = 'rutas'; t = 'perfil'; }
-  if (t === 'config' && ['perfil', 'prefs'].includes(CFG_SEC)) CFG_SEC = 'rutas';
-  if (t === 'config' && ['__empresa', 'empresa', 'marca', 'correo', 'copias'].includes(CFG_SEC)) { PAG_TAB.empresa = ['correo', 'copias'].includes(CFG_SUB) ? CFG_SUB : (['correo', 'copias'].includes(CFG_SEC) ? CFG_SEC : 'marca'); CFG_SEC = 'rutas'; t = 'empresa'; }
-  if (t === 'config' && CFG_SEC === 'plan') { CFG_SEC = 'rutas'; t = 'plan'; }
-  IR_V253(t);
-  if (PAGINAS[t]) cargarPagina(t);
-};
 // Menú de usuario: cada opción abre su página
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-u="perfil"], [data-u="empresa"], [data-u="plan"]'); if (!b) return;

@@ -14,7 +14,6 @@ document.addEventListener('click', e => {
   const tab = k.closest('section').id.slice(2); PLG[tab] = PLG[tab] === k.dataset.plg ? '' : k.dataset.plg; blqFiltrar(tab); plSync(tab);
 });
 Object.keys(BLQ).forEach(plObservar);
-ir = (orig => function (t, ...a) { const r = orig.call(this, t, ...a); if (PL[t]) { plVigilar(t); setTimeout(() => plVigilar(t), 0); } return r; })(ir);
 Object.keys(PL).forEach(plVigilar);
 
 

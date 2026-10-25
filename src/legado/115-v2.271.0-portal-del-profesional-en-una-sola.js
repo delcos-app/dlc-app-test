@@ -51,10 +51,6 @@ function resumirAyuda(pop) {
   resumirAyudaBase2.call(this, pop);
   if (ES_MEDICO()) pop.querySelectorAll('.aiman').forEach(x => x.remove());
 }
-ir = (orig => function (t, ...a) {
-  if (ES_MEDICO() && !['informe', 'config', 'perfil'].includes(t)) t = 'informe';   // v2.282.0: también el centro
-  return orig.call(this, t, ...a);
-})(ir);
 
 
 

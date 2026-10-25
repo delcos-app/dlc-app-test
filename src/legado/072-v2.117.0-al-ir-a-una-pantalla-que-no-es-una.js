@@ -1,10 +1,3 @@
-// v2.117.0 · Al ir a una pantalla que no es una página propia (Perfil, Empresa, Plan), esas páginas se vacían: así nunca hay dos
-// contenedores #cfgcuerpo a la vez (pasaba al ir de «Plan y suscripción» a Configuración)
-const IR_V2117 = ir;
-ir = function (t, ...a) {
-  if (!(t in PAGINAS)) Object.keys(PAGINAS).forEach(o => { const v = $('v-' + o); if (v) v.innerHTML = ''; });
-  return IR_V2117(t, ...a);
-};
 
 
 
@@ -18,14 +11,6 @@ PAGINAS.organizacion = {
       ...(fact ? [['fiscal', 'Datos fiscales', facOrg(pintarEmpresa)], ['series', 'Series', facOrg(pintarSeries)], ['vf', 'VeriFactu', facOrg(pintarVerifactu)], ['pdf', 'Diseño del PDF', () => disenoPDF()]] : []),
       ...(puede('gestionar_plataforma') ? [['orgs', 'Organizaciones', () => pintarOrganizaciones()]] : [])];
   }
-};
-const IR_V2121 = ir;
-ir = function (t, ...a) {
-  if (t === 'empresa') { PAG_TAB.organizacion = PAG_TAB.empresa || 'marca'; t = 'organizacion'; }
-  else if (t === 'plan') { PAG_TAB.organizacion = 'plan'; t = 'organizacion'; }
-  else if (t === 'config' && ORG_DESDE[CFG_SEC]) { PAG_TAB.organizacion = ORG_DESDE[CFG_SUB] || ORG_DESDE[CFG_SEC]; CFG_SEC = 'rutas'; t = 'organizacion'; }
-  if (t === 'organizacion' && !puedeOrganizacion()) t = 'inicio';
-  return IR_V2121(t, ...a);
 };
 function mostrarApp(...a) { const r = mostrarAppBase(...a); menuOrganizacion(); return r; }
 document.addEventListener('click', e => {
@@ -80,8 +65,6 @@ document.addEventListener('keydown', e => {
   if (d && !d.dataset.fija) { e.preventDefault(); d.close(); }
 });
 document.addEventListener('click', e => { if (e.target.closest('.cfgnav [data-cfg], .cfuidx [data-ck], .pagtabs [data-ptab], #cfgsubs button, nav.main [data-t], #bnav [data-t], [data-u]')) cerrarEncajadas(); }, true);
-const IR_ENCAJE = ir;
-ir = function (...a) { cerrarEncajadas(); return IR_ENCAJE(...a); };
 addEventListener('resize', () => ['dlg', 'dlg2'].forEach(id => { const d = $(id); if (d && d.open && d.__area) { if (innerWidth < ENCAJE_MIN) d.close(); else colocarEncajada(d, d.__area); } }));
 
 

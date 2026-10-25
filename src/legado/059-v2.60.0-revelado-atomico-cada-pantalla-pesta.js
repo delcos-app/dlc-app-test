@@ -24,13 +24,6 @@ const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0
 })();
 
 
-ir = (orig => function (t) {
-  const t0 = Date.now() - 2;
-  const r = orig(t);
-  const sec = $('v-' + TAB); if (sec) { sec.classList.remove('cargando', 'cargando-pend'); revelar(sec, 4000, t0); }
-  document.querySelectorAll('main > section.preparando').forEach(x => { if (x !== sec) x.classList.remove('preparando'); });
-  return r;
-})(ir);
 
 // 4. Pestañas y cambios de vista dentro de una pantalla: la vista anterior se queda fija hasta que la nueva está entera
 

@@ -17,10 +17,6 @@ Object.assign(ICON_NOM, {
 });
 
 
-ir = (orig => function (t, ...a) {
-  if (t === 'agenda' && IR_DESDE_MENU) { AG_MODO = 'dia'; AG_FECHA = hoyISO(); }   // la Agenda del menú abre siempre hoy
-  return orig.call(this, t, ...a);
-})(ir);
 
 
 

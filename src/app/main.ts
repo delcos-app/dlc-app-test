@@ -3,11 +3,14 @@
  * While screens migrate, the legacy code (src/legado) reaches the new services and screens through `window.delcos`.
  */
 import { createRouter, type Router } from './core/router';
+import { navigate } from './core/navigation';
 import { setLanguage, setVocabulary, t } from './i18n';
 import * as home from './screens/home';
 
 export interface DelcosCore {
   readonly router: Router;
+  /** Change screen: the legacy ir() calls this. */
+  readonly navigate: typeof navigate;
   readonly t: typeof t;
   readonly setLanguage: typeof setLanguage;
   readonly setVocabulary: typeof setVocabulary;
@@ -28,6 +31,7 @@ router.register(home.homeRoute);
 
 window.delcos = {
   router,
+  navigate,
   t,
   setLanguage,
   setVocabulary,

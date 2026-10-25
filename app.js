@@ -16,7 +16,7 @@
       const route = routes.get(resolved);
       return route && (route.canEnter?.() ?? true) ? resolved : fallbackRoute;
     }
-    async function navigate(target, ...params) {
+    async function navigate2(target, ...params) {
       const context = { from: current, params };
       const routeId = resolve(target, context);
       const route = routes.get(routeId);
@@ -38,11 +38,419 @@
       onNavigate: (hook) => {
         hooks.push(hook);
       },
-      navigate,
+      navigate: navigate2,
       get current() {
         return current;
       }
     };
+  }
+
+  // src/app/core/navigation/pipeline.ts
+  function runBefores(steps, navigation) {
+    const passed = [];
+    for (const step of steps) {
+      step.before?.(navigation);
+      passed.push({ step, target: navigation.target });
+      if (navigation.blocked) break;
+    }
+    return passed;
+  }
+  function runNavigation(steps, switchScreen, target, args) {
+    const navigation = { target, args, blocked: false };
+    let passed = [];
+    try {
+      passed = runBefores(steps, navigation);
+      if (!navigation.blocked) switchScreen(navigation.target, args);
+      for (const { step, target: seen } of [...passed].reverse()) step.after?.(seen, args);
+    } finally {
+      for (const { step, target: seen } of [...passed].reverse()) step.cleanup?.(seen);
+    }
+  }
+
+  // src/app/services/values.ts
+  function orFallback(value, fallback) {
+    return value === void 0 || value === null || value === "" ? fallback : value;
+  }
+
+  // src/app/core/navigation/steps-outer.ts
+  var PORTAL_SCREENS = ["informe", "config", "perfil"];
+  var PLATFORM_SCREENS = ["delcos", "config", "perfil", "manual"];
+  var safely = (action) => {
+    try {
+      action();
+    } catch {
+    }
+  };
+  var later = (delays, action) => {
+    delays.forEach((delay) => {
+      setTimeout(() => {
+        safely(action);
+      }, delay);
+    });
+  };
+  var resetBackStack = {
+    name: "v2.300 · a new navigation empties the «Volver» stack",
+    before: () => {
+      VUELTA.length = 0;
+      VISTA = null;
+    }
+  };
+  var professionalPortalOnly = {
+    name: "v2.271 · the professional (and centre) portal only opens its own screens",
+    before: (nav) => {
+      if (ES_MEDICO() && !PORTAL_SCREENS.includes(nav.target)) nav.target = "informe";
+    }
+  };
+  var loadingComet = {
+    name: "v2.267 · the loading line at the top when the screen changes",
+    before: (nav) => {
+      if (nav.target && nav.target !== TAB) safely(cometa);
+    }
+  };
+  var watchListPage = {
+    name: "v2.239 · list pages (PL) keep their layout in sync",
+    after: (target) => {
+      if (PL[target]) {
+        plVigilar(target);
+        setTimeout(() => {
+          plVigilar(target);
+        }, 0);
+      }
+    }
+  };
+  var customMenuNames = {
+    name: "v2.231 · menu names chosen by the company",
+    after: () => {
+      setTimeout(() => {
+        safely(aplicarNombresMenu);
+      }, 0);
+      queueMicrotask(() => {
+        safely(aplicarNombresMenu);
+      });
+    }
+  };
+  var rememberManualReturn = {
+    name: "v2.224 · entering the manual remembers where to come back to",
+    before: (nav) => {
+      if (nav.target === "manual" && TAB !== "manual") MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
+    }
+  };
+  var NAVIGATION_START_EVENT = "delcos:navigation-start";
+  var announceNavigation = {
+    name: "v2.221 · tell listeners a navigation starts (the mobile «+» comes back into view)",
+    before: (nav) => {
+      document.dispatchEvent(new CustomEvent(NAVIGATION_START_EVENT, { detail: { target: nav.target } }));
+    }
+  };
+  function configKey(target) {
+    if (target === "config") return claveCfgVieja(CFG_SEC, CFG_SUB);
+    if (target === "perfil") return PAG_TAB.perfil === "notif" ? "notif" : "datos";
+    if (target === "organizacion" || target === "empresa") return `o.${orFallback(PAG_TAB[target], "marca")}`;
+    if (target === "plan") return "o.plan";
+    if (target === "usuarios") return PAG_TAB.usuarios === "roles" ? "roles" : "usuarios";
+    return null;
+  }
+  var singleConfiguration = {
+    name: "v2.215/v2.340 · profile, company, plan and users are parts of the single Configuración page",
+    before: (nav) => {
+      if (nav.target === "config" && ["seguridad", "orgs"].includes(CFG_SEC ?? "")) return;
+      const key = configKey(nav.target);
+      if (key === null) return;
+      if (key) {
+        CFG_KEY = key;
+        CFG_DETALLE = true;
+      } else if (IR_DESDE_MENU_CFG) {
+        CFG_DETALLE = false;
+        CFG_KEY = "datos";
+      }
+      if (nav.target !== "config") {
+        PAG_TAB.perfil = void 0;
+        PAG_TAB.organizacion = void 0;
+        PAG_TAB.empresa = void 0;
+        PAG_TAB.usuarios = void 0;
+      }
+      CFG_SEC = "__cfg";
+      CFG_SUB = null;
+      IR_DESDE_MENU_CFG = false;
+      nav.target = "config";
+    }
+  };
+  var directoryLabel = {
+    name: "v2.210 · the directory title with the company word for its accounts",
+    after: (target) => {
+      if (target === "directorio") later([0, 300, 1200], aplicarEtiqueta);
+    }
+  };
+  var manualHelpButton = {
+    name: "v2.226 · the «i» help next to each screen title",
+    after: () => {
+      later([400, 1200, 2500], ponerAyudaManual);
+    }
+  };
+  var platformPanel = {
+    name: "v2.166 · Panel delcos sections, and platform mode only shows the panel",
+    before: (nav) => {
+      const section = PANEL_SECCIONES.find((entry) => entry[0] === nav.target);
+      if (section) {
+        PAG_TAB.delcos = section[1];
+        nav.target = "delcos";
+        return;
+      }
+      if (MODO_PLATAFORMA && !PLATFORM_SCREENS.includes(nav.target)) nav.target = "delcos";
+    },
+    after: (target) => {
+      if (target === "delcos") marcarPanel();
+    }
+  };
+  var stripeReturnToPlan = {
+    name: "v2.167 · coming back from Stripe opens «Plan y suscripción»",
+    before: (nav) => {
+      if (!PAGO_IR_PLAN || !PERFIL) return;
+      pagoAlPlan();
+      if (!ES_MEDICO() && puedeOrganizacion()) nav.target = "plan";
+    }
+  };
+  var planSections = {
+    name: "v2.152 · sections outside the contracted plan show the plan notice instead",
+    before: (nav) => {
+      if (nav.target in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) {
+        avisoPlan(nav.target);
+        nav.blocked = true;
+      }
+    }
+  };
+  var agendaFromMenuIsToday = {
+    name: "v2.140 · Agenda from the menu always opens today",
+    before: (nav) => {
+      if (nav.target === "agenda" && IR_DESDE_MENU) {
+        AG_MODO = "dia";
+        AG_FECHA = hoyISO();
+      }
+    }
+  };
+  var ordersSections = {
+    name: "v2.128 · Oportunidades, Compras… are sections of Pedidos",
+    before: (nav) => {
+      const section = ALIAS_PEDIDOS[nav.target];
+      if (section !== void 0) {
+        PEDSEC = section;
+        nav.target = "ventas";
+        return;
+      }
+      if (nav.target === "ventas" && IR_DESDE_MENU) PEDSEC = "ventas";
+    },
+    after: (target) => {
+      if (target === "ventas") marcarPedsec();
+    }
+  };
+  var closePageDialog = {
+    name: "v2.128 · a window that belongs to the page closes when leaving it",
+    before: () => {
+      const dialog = document.getElementById("dlg");
+      if (dialog?.open && (Boolean(dialog.dataset.fija) || Boolean(dialog.dataset.depagina))) dialog.close();
+    }
+  };
+  var footerMenuMark = {
+    name: "v2.128 · mark the current screen in the footer menu",
+    after: () => {
+      menuMarcarPie();
+      setTimeout(menuMarcarPie, 0);
+    }
+  };
+
+  // src/app/core/navigation/steps-inner.ts
+  var COMPANY_SECTIONS = ["__empresa", "empresa", "marca", "correo", "copias"];
+  var MAIL_SECTIONS = ["correo", "copias"];
+  var screenSection = () => document.getElementById(`v-${TAB}`);
+  var configToOwnPages = {
+    name: "v2.128 · team, security and organizations open their own pages",
+    before: (nav) => {
+      if (nav.target === "config" && CFG_SEC === "equipo") {
+        PAG_TAB.usuarios = CFG_SUB === "roles" ? "roles" : "usuarios";
+        CFG_SEC = "inicio";
+        CFG_SUB = null;
+        nav.target = "usuarios";
+      }
+      if (nav.target === "config" && CFG_SEC === "seguridad" && puede("gestionar_plataforma")) {
+        PAG_TAB.delcos = CFG_SUB === "accesos" ? "accesos" : "auditoria";
+        CFG_SEC = "inicio";
+        CFG_SUB = null;
+        nav.target = "delcos";
+      }
+      if (nav.target === "config" && CFG_SEC === "orgs" && puede("gestionar_plataforma")) {
+        PAG_TAB.delcos = "orgs";
+        CFG_SEC = "inicio";
+        nav.target = "delcos";
+      }
+    }
+  };
+  var closeEmbeddedWindows = {
+    name: "v2.117 · windows embedded in a page close when leaving it",
+    before: () => {
+      cerrarEncajadas();
+    }
+  };
+  var organizationPage = {
+    name: "v2.121 · company and plan are parts of the Organización page (only for who may configure it)",
+    before: (nav) => {
+      const fromConfig = nav.target === "config" && CFG_SEC !== null ? ORG_DESDE[CFG_SEC] : void 0;
+      if (nav.target === "empresa") {
+        PAG_TAB.organizacion = orFallback(PAG_TAB.empresa, "marca");
+        nav.target = "organizacion";
+      } else if (nav.target === "plan") {
+        PAG_TAB.organizacion = "plan";
+        nav.target = "organizacion";
+      } else if (fromConfig) {
+        PAG_TAB.organizacion = orFallback(CFG_SUB !== null ? ORG_DESDE[CFG_SUB] : void 0, fromConfig);
+        CFG_SEC = "rutas";
+        nav.target = "organizacion";
+      }
+      if (nav.target === "organizacion" && !puedeOrganizacion()) nav.target = "inicio";
+    }
+  };
+  var clearPagesWhenLeaving = {
+    name: "v2.117 · going to a non-page screen empties the pages, so no old page shows up",
+    before: (nav) => {
+      if (nav.target in PAGINAS) return;
+      Object.keys(PAGINAS).forEach((page) => {
+        const section = document.getElementById(`v-${page}`);
+        if (section) section.innerHTML = "";
+      });
+    }
+  };
+  var revealSince = [];
+  var atomicReveal = {
+    name: "v2.60 · the screen is revealed at once when its data is ready (no screen «ghosts»)",
+    before: () => {
+      revealSince.push(Date.now() - 2);
+    },
+    after: () => {
+      const section = screenSection();
+      if (section) {
+        section.classList.remove("cargando", "cargando-pend");
+        revelar(section, 4e3, revealSince[revealSince.length - 1] ?? Date.now());
+      }
+      document.querySelectorAll("main > section.preparando").forEach((other) => {
+        if (other !== section) other.classList.remove("preparando");
+      });
+    },
+    cleanup: () => {
+      revealSince.pop();
+    }
+  };
+  function billingSection() {
+    const map = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(FAC_ULTIMA, "empresa") };
+    const section = CFG_SEC ?? "";
+    if (!(map[section] ?? (section === "fact" ? map[CFG_SUB ?? ""] : void 0))) return void 0;
+    return orFallback(map[section === "fact" ? orFallback(CFG_SUB, "fact") : section], "empresa");
+  }
+  var billingSettings = {
+    name: "v2.57 · fiscal data, series and VeriFactu open in Facturación",
+    before: (nav) => {
+      if (nav.target !== "config") return;
+      const section = billingSection();
+      if (section !== void 0) {
+        FSEC = section;
+        CFG_SEC = "rutas";
+        nav.target = "facturacion";
+      }
+    }
+  };
+  var loadingIndicatorAfterDelay = {
+    name: "v2.56 · the loading indicator only shows while the screen is still requesting data",
+    after: () => {
+      const section = screenSection();
+      if (section?.classList.contains("cargando-pend")) {
+        section.classList.remove("cargando-pend");
+        if (PEND > 0) section.classList.add("cargando");
+      }
+    }
+  };
+  var markNavigationInProgress = {
+    name: "v2.56 · VIA_IR tells the screens they are being opened by a navigation",
+    before: (nav) => {
+      VIA_IR = nav.target;
+    },
+    cleanup: () => {
+      setTimeout(() => {
+        VIA_IR = null;
+      }, 0);
+    }
+  };
+  function companyTab() {
+    if (CFG_SUB !== null && MAIL_SECTIONS.includes(CFG_SUB)) return CFG_SUB;
+    if (CFG_SEC !== null && MAIL_SECTIONS.includes(CFG_SEC)) return CFG_SEC;
+    return "marca";
+  }
+  var legacyConfigPages = {
+    name: "v2.53 · notifications, company and plan have their own page; pages are loaded after switching",
+    before: (nav) => {
+      if (nav.target === "config" && CFG_SEC === "notif") {
+        PAG_TAB.perfil = "notif";
+        CFG_SEC = "rutas";
+        nav.target = "perfil";
+      }
+      if (nav.target === "config" && ["perfil", "prefs"].includes(CFG_SEC ?? "")) CFG_SEC = "rutas";
+      if (nav.target === "config" && COMPANY_SECTIONS.includes(CFG_SEC ?? "")) {
+        PAG_TAB.empresa = companyTab();
+        CFG_SEC = "rutas";
+        nav.target = "empresa";
+      }
+      if (nav.target === "config" && CFG_SEC === "plan") {
+        CFG_SEC = "rutas";
+        nav.target = "plan";
+      }
+    },
+    after: (target) => {
+      if (PAGINAS[target]) cargarPagina(target);
+    }
+  };
+  var noFlashOnFastLoad = {
+    name: "v2.52 · fast screens go straight from the old content to the new one, without a flash of the loader",
+    after: () => {
+      const section = screenSection();
+      if (!section?.classList.contains("cargando")) return;
+      section.classList.remove("cargando");
+      section.classList.add("cargando-pend");
+      if (PEND > 0) section.classList.add("cargando");
+      section.classList.remove("cargando-pend");
+    }
+  };
+
+  // src/app/core/navigation/index.ts
+  var NAVIGATION_STEPS = [
+    resetBackStack,
+    professionalPortalOnly,
+    loadingComet,
+    watchListPage,
+    customMenuNames,
+    rememberManualReturn,
+    announceNavigation,
+    singleConfiguration,
+    directoryLabel,
+    manualHelpButton,
+    platformPanel,
+    stripeReturnToPlan,
+    planSections,
+    agendaFromMenuIsToday,
+    ordersSections,
+    closePageDialog,
+    footerMenuMark,
+    configToOwnPages,
+    closeEmbeddedWindows,
+    organizationPage,
+    clearPagesWhenLeaving,
+    atomicReveal,
+    billingSettings,
+    loadingIndicatorAfterDelay,
+    markNavigationInProgress,
+    legacyConfigPages,
+    noFlashOnFastLoad
+  ];
+  function navigate(target, ...args) {
+    runNavigation(NAVIGATION_STEPS, (screen2) => {
+      irBase(screen2);
+    }, target, args);
   }
 
   // src/app/i18n/es.ts
@@ -653,6 +1061,7 @@
   router.register(homeRoute);
   window.delcos = {
     router,
+    navigate,
     t,
     setLanguage,
     setVocabulary,
@@ -23301,7 +23710,7 @@ $('nav').addEventListener('click', e => {
    Reúne en una sola función lo que antes estaba repartido en 13 piezas (la original y 12 capas),
    con el mismo orden: comprobaciones de destino, cancelación de lo pendiente, cambio de pantalla,
    carga del módulo e indicador de carga. */
-var ir = function (t) {
+function irBase(t) {
   // 1. Destinos que no se abren o que se redirigen
   if (t in MODULO_AREA && PERFIL && puedeModuloV2400(t) && !planIncluye(t)) { avisoPlan(t); return; }   // fuera del plan contratado
   if (t === 'admin') { CFG_SEC = CFG_ADMIN[ADM_SEC] || 'usuarios'; t = 'config'; }                       // Administración vive en Configuración
@@ -23346,7 +23755,11 @@ var ir = function (t) {
     quietos = PEND === 0 ? quietos + 1 : 0;
     if ((quietos >= 3 && performance.now() - t0 > 300) || performance.now() - t0 > 8000) { clearInterval(w); requestAnimationFrame(() => sec.classList.remove('cargando')); }
   }, 80);
-};
+}
+
+/* ir(): cambiar de pantalla. Las reglas (redirecciones, bloqueos y lo que pasa antes y después) están en
+   src/app/core/navigation (v2.386.0): aquí solo queda el adaptador para el código antiguo, y irBase, el cambio de pantalla en sí. */
+function ir(t, ...a) { window.delcos.navigate(t, ...a); }
 
 /* ---------------- inicio ---------------- */
 
@@ -27358,15 +27771,6 @@ db.rpc = (orig => function (fn, params, opts) {
 
 /* ---------------- sin parpadeos ---------------- */
 
-// El indicador de carga solo aparece si la pantalla tarda más de un cuarto de segundo:
-// con respuestas rápidas se pasa directamente del contenido anterior al nuevo, sin destellos
-const IR_V252 = ir;
-ir = function (t) {
-  IR_V252(t);
-  const sec = $('v-' + TAB); if (!sec || !sec.classList.contains('cargando')) return;
-  sec.classList.remove('cargando'); sec.classList.add('cargando-pend');
-  if (PEND > 0) sec.classList.add('cargando'); sec.classList.remove('cargando-pend');
-};
 
 /* ---------------- Cuentas: cabecera ordenada; Duplicados dentro de Calidad del dato ---------------- */
 
@@ -27421,16 +27825,6 @@ function celda(m, k) {
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 
 let PAG_TAB = {};
-const IR_V253 = ir;
-ir = function (t) {
-  // Apartados que ahora tienen página propia: solo se redirige cuando se piden expresamente
-  if (t === 'config' && CFG_SEC === 'notif') { PAG_TAB.perfil = 'notif'; CFG_SEC = 'rutas'; t = 'perfil'; }
-  if (t === 'config' && ['perfil', 'prefs'].includes(CFG_SEC)) CFG_SEC = 'rutas';
-  if (t === 'config' && ['__empresa', 'empresa', 'marca', 'correo', 'copias'].includes(CFG_SEC)) { PAG_TAB.empresa = ['correo', 'copias'].includes(CFG_SUB) ? CFG_SUB : (['correo', 'copias'].includes(CFG_SEC) ? CFG_SEC : 'marca'); CFG_SEC = 'rutas'; t = 'empresa'; }
-  if (t === 'config' && CFG_SEC === 'plan') { CFG_SEC = 'rutas'; t = 'plan'; }
-  IR_V253(t);
-  if (PAGINAS[t]) cargarPagina(t);
-};
 // Menú de usuario: cada opción abre su página
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-u="perfil"], [data-u="empresa"], [data-u="plan"]'); if (!b) return;
@@ -27629,8 +28023,6 @@ const ESTADO_MOD = {
   };
   eval(`${fn} = nueva`);
 });
-const IR_V256 = ir;
-ir = function (t) { VIA_IR = t; try { IR_V256(t); } finally { setTimeout(() => { VIA_IR = null; }, 0); } };
 // Inicio: cuándo se actualizó y botón para actualizar
 function pintarActualizadoBase() {
   const acts = document.querySelector('#v-inicio .saludo .acts, #v-inicio .hero .acts, #v-inicio .inihead .acts') || document.querySelector('#v-inicio .saludo');
@@ -27650,8 +28042,6 @@ setTimeout(() => document.body.classList.add('inilisto'), 6000);   // red de seg
 
 /* ---------------- 3. Indicador de carga: aparece a partir de 120 ms y dura al menos 350 ms ---------------- */
 
-// El retraso lo hace el estilo (sin JavaScript); aquí se quita el retraso antiguo y se asegura el mínimo visible
-ir = (orig => function (t) { orig(t); const s = $('v-' + TAB); if (s && s.classList.contains('cargando-pend')) { s.classList.remove('cargando-pend'); if (PEND > 0) s.classList.add('cargando'); } })(ir);
 new MutationObserver(ms => ms.forEach(m => {
   const s = m.target; if (!s.matches || !s.matches('main > section, dialog, .card')) return;
   const tiene = s.classList.contains('cargando') || s.classList.contains('cargandolocal');
@@ -27836,14 +28226,6 @@ new MutationObserver(() => {
 
 /* ---------------- v2.58.0 · la configuración de Facturación solo vive en su módulo ---------------- */
 
-const IR_V258 = ir;
-ir = function (t) {
-  const mapa = { fiscal: 'empresa', series: 'series', vf: 'verifactu', fact: FAC_ULTIMA || 'empresa' };
-  if (t === 'config' && (mapa[CFG_SEC] || (CFG_SEC === 'fact' && mapa[CFG_SUB]))) {
-    FSEC = mapa[CFG_SEC === 'fact' ? (CFG_SUB || 'fact') : CFG_SEC] || 'empresa'; CFG_SEC = 'rutas'; t = 'facturacion';
-  }
-  IR_V258(t);
-};
 
 
 /* ---------------- v2.59.0 · nombre configurado en todos los textos; sin ayuda en la tabla de Cuentas ---------------- */
@@ -27881,13 +28263,6 @@ const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0
 })();
 
 
-ir = (orig => function (t) {
-  const t0 = Date.now() - 2;
-  const r = orig(t);
-  const sec = $('v-' + TAB); if (sec) { sec.classList.remove('cargando', 'cargando-pend'); revelar(sec, 4000, t0); }
-  document.querySelectorAll('main > section.preparando').forEach(x => { if (x !== sec) x.classList.remove('preparando'); });
-  return r;
-})(ir);
 
 // 4. Pestañas y cambios de vista dentro de una pantalla: la vista anterior se queda fija hasta que la nueva está entera
 
@@ -28280,13 +28655,6 @@ PLANES.splice(0, PLANES.length,
 
 
 
-// v2.117.0 · Al ir a una pantalla que no es una página propia (Perfil, Empresa, Plan), esas páginas se vacían: así nunca hay dos
-// contenedores #cfgcuerpo a la vez (pasaba al ir de «Plan y suscripción» a Configuración)
-const IR_V2117 = ir;
-ir = function (t, ...a) {
-  if (!(t in PAGINAS)) Object.keys(PAGINAS).forEach(o => { const v = $('v-' + o); if (v) v.innerHTML = ''; });
-  return IR_V2117(t, ...a);
-};
 
 
 
@@ -28300,14 +28668,6 @@ PAGINAS.organizacion = {
       ...(fact ? [['fiscal', 'Datos fiscales', facOrg(pintarEmpresa)], ['series', 'Series', facOrg(pintarSeries)], ['vf', 'VeriFactu', facOrg(pintarVerifactu)], ['pdf', 'Diseño del PDF', () => disenoPDF()]] : []),
       ...(puede('gestionar_plataforma') ? [['orgs', 'Organizaciones', () => pintarOrganizaciones()]] : [])];
   }
-};
-const IR_V2121 = ir;
-ir = function (t, ...a) {
-  if (t === 'empresa') { PAG_TAB.organizacion = PAG_TAB.empresa || 'marca'; t = 'organizacion'; }
-  else if (t === 'plan') { PAG_TAB.organizacion = 'plan'; t = 'organizacion'; }
-  else if (t === 'config' && ORG_DESDE[CFG_SEC]) { PAG_TAB.organizacion = ORG_DESDE[CFG_SUB] || ORG_DESDE[CFG_SEC]; CFG_SEC = 'rutas'; t = 'organizacion'; }
-  if (t === 'organizacion' && !puedeOrganizacion()) t = 'inicio';
-  return IR_V2121(t, ...a);
 };
 function mostrarApp(...a) { const r = mostrarAppBase(...a); menuOrganizacion(); return r; }
 document.addEventListener('click', e => {
@@ -28362,8 +28722,6 @@ document.addEventListener('keydown', e => {
   if (d && !d.dataset.fija) { e.preventDefault(); d.close(); }
 });
 document.addEventListener('click', e => { if (e.target.closest('.cfgnav [data-cfg], .cfuidx [data-ck], .pagtabs [data-ptab], #cfgsubs button, nav.main [data-t], #bnav [data-t], [data-u]')) cerrarEncajadas(); }, true);
-const IR_ENCAJE = ir;
-ir = function (...a) { cerrarEncajadas(); return IR_ENCAJE(...a); };
 addEventListener('resize', () => ['dlg', 'dlg2'].forEach(id => { const d = $(id); if (d && d.open && d.__area) { if (innerWidth < ENCAJE_MIN) d.close(); else colocarEncajada(d, d.__area); } }));
 
 
@@ -28400,13 +28758,6 @@ PAGINAS.delcos = { t: 'Panel delcos', d: 'Clientes de la plataforma, accesos y r
   const g = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs').get;
   Object.defineProperty(PAGINAS.organizacion, 'tabs', { get() { return g.call(this).filter(x => x[0] !== 'orgs'); }, configurable: true });
 })();
-// Lo que antes se abría en Configuración lleva a su página
-ir = (orig => function (t, ...a) {
-  if (t === 'config' && CFG_SEC === 'equipo') { PAG_TAB.usuarios = CFG_SUB === 'roles' ? 'roles' : 'usuarios'; CFG_SEC = 'inicio'; CFG_SUB = null; t = 'usuarios'; }
-  if (t === 'config' && CFG_SEC === 'seguridad' && puede('gestionar_plataforma')) { PAG_TAB.delcos = CFG_SUB === 'accesos' ? 'accesos' : 'auditoria'; CFG_SEC = 'inicio'; CFG_SUB = null; t = 'delcos'; }
-  if (t === 'config' && CFG_SEC === 'orgs' && puede('gestionar_plataforma')) { PAG_TAB.delcos = 'orgs'; CFG_SEC = 'inicio'; t = 'delcos'; }
-  return orig.call(this, t, ...a);
-})(ir);
 
 function aplicarPermisosMenuBase3(...a) { const r = aplicarPermisosMenuBase2.apply(this, a); menuPaginas2131(); franjaVista(); return r; }
 
@@ -28516,11 +28867,7 @@ document.addEventListener('input', e => {
   const f = i.closest('.ctlin'); if (f) f.classList.toggle('con', (+i.value || 0) > 0);
 });
 
-ir = (orig => function (...a) { const r = orig.apply(this, a); menuMarcarPie(); setTimeout(menuMarcarPie, 0); return r; })(ir);
 
-// v2.136.0 · Al cambiar de pantalla se cierra lo que va «en la página» (Diseño del PDF): en el móvil es una ventana y seguía
-// abierta encima de la pantalla siguiente (Usuarios, Panel delcos…)
-ir = (orig => function (...a) { const d = $('dlg'); if (d && d.open && (d.dataset.fija || d.dataset.depagina)) d.close(); return orig.apply(this, a); })(ir);
 
 
 (() => {
@@ -28555,13 +28902,6 @@ colocarIndPruebas();
 document.addEventListener('click', e => {
   if (e.target.closest('nav.main [data-t], #bnav [data-t], [data-bm]')) { IR_DESDE_MENU = true; setTimeout(() => { IR_DESDE_MENU = false; }, 0); }
 }, true);
-ir = (orig => function (t, ...a) {
-  if (t in ALIAS_PEDIDOS) { PEDSEC = ALIAS_PEDIDOS[t]; const r = orig.call(this, 'ventas', ...a); marcarPedsec(); return r; }
-  if (t === 'ventas' && IR_DESDE_MENU) PEDSEC = 'ventas';   // «Pedidos» del menú siempre abre los pedidos
-  const r = orig.call(this, t, ...a);
-  if (t === 'ventas') marcarPedsec();
-  return r;
-})(ir);
 // Los botones se crean antes de que el menú lateral reparta los bloques (y se vuelve a mirar su permiso después)
 function aplicarPermisosMenuBase4(...a) { try { menuPedidos2139(); } catch (e) {} const r = aplicarPermisosMenuBase3.apply(this, a); menuPedidos2139(); return r; }
 Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', proveedores: 'building' });
@@ -28658,10 +28998,6 @@ Object.assign(ICON_NOM, {
 });
 
 
-ir = (orig => function (t, ...a) {
-  if (t === 'agenda' && IR_DESDE_MENU) { AG_MODO = 'dia'; AG_FECHA = hoyISO(); }   // la Agenda del menú abre siempre hoy
-  return orig.call(this, t, ...a);
-})(ir);
 
 
 
@@ -28811,10 +29147,6 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINA
 })();
 
 function aplicarPermisosMenuBase5(...a) { const r = aplicarPermisosMenuBase4.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; }
-ir = (orig => function (t, ...a) {
-  if (t in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(t)) { avisoPlan(t); return; }
-  return orig.call(this, t, ...a);
-})(ir);
 setTimeout(() => { try { candadoSecciones(); } catch (e) {} }, 0);
 
 function montarMenuLateral(...a) {
@@ -28858,10 +29190,6 @@ if (PAGO_VUELTA_BAJA) {
 /* v2.167.0 · Al volver de Stripe (pago, baja o el portal) se abre «Plan y suscripción», no Inicio (petición de Eric). Stripe vuelve a
    …/?pago=…#plan o a …/#plan: la primera pantalla tras entrar es la del plan. */
 let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
-ir = (orig => function (t, ...a) {
-  if (PAGO_IR_PLAN && PERFIL) { pagoAlPlan(); if (!ES_MEDICO() && puedeOrganizacion()) t = 'plan'; }
-  return orig.call(this, t, ...a);
-})(ir);
 // (si la app ya ha entrado al llegar aquí, se va al plan: lo hace nucleo/arranque.js justo después de arrancar)
 setTimeout(() => { PAGO_IR_PLAN = false; }, 30000);
 
@@ -28910,13 +29238,6 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PA
   });
   MENU_GRUPOS.push({ id: 'panel', t: 'Panel delcos', items: PANEL_SECCIONES.map(s => s[0]) });
 })();
-ir = (orig => function (t, ...a) {
-  const s = PANEL_SECCIONES.find(x => x[0] === t);
-  if (s) { PAG_TAB.delcos = s[1]; const r = orig.call(this, 'delcos', ...a); marcarPanel(); return r; }
-  // En modo plataforma no hay módulos de empresa: todo lleva al panel (salvo Configuración y el perfil)
-  if (MODO_PLATAFORMA && !['delcos', 'config', 'perfil', 'manual'].includes(t)) { const r = orig.call(this, 'delcos', ...a); marcarPanel(); return r; }
-  const r = orig.call(this, t, ...a); if (t === 'delcos') marcarPanel(); return r;
-})(ir);
 function aplicarModoPlataforma() {
   document.body.classList.toggle('modo-plataforma', MODO_PLATAFORMA);
   document.querySelectorAll('#nav [data-t]').forEach(b => {
@@ -29463,11 +29784,6 @@ document.addEventListener('click', e => {
   document.querySelectorAll('.umenu, #umenu').forEach(m => m.classList.add('hide'));
   abrirManual(MANUAL_ANCLA[TAB] || '');
 }, true);
-ir = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  [400, 1200, 2500].forEach(ms => setTimeout(() => { try { ponerAyudaManual(); } catch (e) {} }, ms));
-  return r;
-})(ir);
 
 /* v2.205.0 · Manual: capítulo «La visita y lo común». El «?» de Ciclo de visitas y de Intervenciones lleva a su sección del capítulo
    (MANUAL_ANCLA, editado en su sitio), y el material de cada visita ya no repite los resultados sin dato (detTxt, editado en su sitio). */
@@ -29487,11 +29803,6 @@ ir = (orig => function (...a) {
 /* v2.210.0 · Detalles vistos al grabar el manual.
    - El título del directorio usa siempre el nombre del módulo (antes salía «Médicos» si la cabecera se pintaba después de aplicarEtiqueta, editada en su sitio).
    - «Cerca de mí»: la distancia entera y el vocabulario de la empresa (pintarCerca, editada en su sitio); cobertura por producto y «Rectificar» en el estilo. */
-ir = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  if (a[0] === 'directorio') [0, 300, 1200].forEach(ms => setTimeout(() => { try { aplicarEtiqueta(); } catch (e) {} }, ms));
-  return r;
-})(ir);
 
 
 
@@ -29547,22 +29858,6 @@ function arbolCfgUnicoBase() {
   ].filter(g => g[1].length);
 }
 ['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
-// Cualquier camino a los ajustes lleva a su entrada de Configuración
-ir = (orig => function (t, ...r) {
-  let k = null;
-  // Accesos, auditoría y organizaciones siguen en el Panel delcos
-  if (t === 'config' && ['seguridad', 'orgs'].includes(CFG_SEC)) return orig.call(this, t, ...r);
-  if (t === 'config') k = claveCfgVieja(CFG_SEC, CFG_SUB);
-  else if (t === 'perfil') k = PAG_TAB.perfil === 'notif' ? 'notif' : 'datos';
-  else if (t === 'organizacion' || t === 'empresa') k = 'o.' + (PAG_TAB[t] || 'marca');
-  else if (t === 'plan') k = 'o.plan';
-  else if (t === 'usuarios') k = PAG_TAB.usuarios === 'roles' ? 'roles' : 'usuarios';
-  if (k === null) return orig.call(this, t, ...r);
-  if (k) { CFG_KEY = k; CFG_DETALLE = true; } else if (IR_DESDE_MENU_CFG) { CFG_DETALLE = false; CFG_KEY = 'datos'; }   // v2.340.0: siempre «Mis datos»
-  if (t !== 'config') { PAG_TAB.perfil = PAG_TAB.organizacion = PAG_TAB.empresa = PAG_TAB.usuarios = undefined; }
-  CFG_SEC = '__cfg'; CFG_SUB = null; IR_DESDE_MENU_CFG = false;
-  return orig.call(this, 'config', ...r);
-})(ir);
 var IR_DESDE_MENU_CFG = false;
 document.addEventListener('click', e => { if (e.target.closest('nav.main [data-t="config"], #bnav [data-t="config"], [data-u="cfg"]')) { CFG_SEC = '__cfg'; IR_DESDE_MENU_CFG = true; } }, true);
 // El «?» del manual lleva al capítulo del apartado abierto
@@ -29721,8 +30016,8 @@ document.addEventListener('keydown', e => {
       y0 = y;
     });
   }, { passive: true });
-  // Al cambiar de pantalla vuelve a estar a la vista
-  ir = (orig => function (...x) { poner(false); y0 = 0; return orig.apply(this, x); })(ir);
+  // Al cambiar de pantalla vuelve a estar a la vista (evento de la navegación, src/app/core/navigation)
+  document.addEventListener('delcos:navigation-start', () => { poner(false); y0 = 0; });
 })();
 
 /* v2.222.0 · KPIs vivos de Inicio (decisión de Eric: variante A «Instrumentos» del prototipo https://claude.ai/artifact/5sCrtXHiW1RvCZ5GLSDDdZ).
@@ -29742,10 +30037,6 @@ let KV_INI = null, KV_GRAF = null;
   enganchar();   // #kpis está en index.html desde el arranque: basta con vigilarlo a él
 })();
 
-ir = (orig => function (t, ...r) {
-  if (t === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
-  return orig.call(this, t, ...r);
-})(ir);
 
 
 
@@ -29904,7 +30195,6 @@ document.addEventListener('click', e => { const b = e.target.closest && e.target
 
 
 function aplicarEtiqueta(...a) { const r = aplicarEtiquetaBase.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; }
-ir = (orig => function (...a) { const r = orig.apply(this, a); setTimeout(() => { try { aplicarNombresMenu(); } catch (e) {} }, 0); Promise.resolve(r).then(() => { try { aplicarNombresMenu(); } catch (e) {} }); return r; })(ir);
 // Cuando el menú se vuelve a montar (al arrancar, al cambiar de tamaño…), se vuelven a poner los nombres
 if (typeof montarMenuLateral === 'function') montarMenuLateral = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(montarMenuLateral);
 new MutationObserver(() => { if (!Object.keys(menuNombres()).length || TX_OBS) return; TX_OBS = requestAnimationFrame(() => { TX_OBS = 0; try { aplicarNombresMenu(); } catch (e) {} }); })
@@ -30055,7 +30345,6 @@ document.addEventListener('click', e => {
   const tab = k.closest('section').id.slice(2); PLG[tab] = PLG[tab] === k.dataset.plg ? '' : k.dataset.plg; blqFiltrar(tab); plSync(tab);
 });
 Object.keys(BLQ).forEach(plObservar);
-ir = (orig => function (t, ...a) { const r = orig.call(this, t, ...a); if (PL[t]) { plVigilar(t); setTimeout(() => plVigilar(t), 0); } return r; })(ir);
 Object.keys(PL).forEach(plVigilar);
 
 
@@ -30401,10 +30690,6 @@ let PRES = null;   // { l, i, urls }
 
 
 
-ir = (orig => function (t, ...a) {
-  if (t && t !== TAB) try { cometa(); } catch (e) {}
-  return orig.call(this, t, ...a);
-})(ir);
 
 // Al abrir la app, el esqueleto de Inicio se pinta antes de que llegue esta parte del código: se completa aquí mismo
 if (document.querySelector('#v-inicio.conmos')) inicioCabecera();
@@ -30500,10 +30785,6 @@ function resumirAyuda(pop) {
   resumirAyudaBase2.call(this, pop);
   if (ES_MEDICO()) pop.querySelectorAll('.aiman').forEach(x => x.remove());
 }
-ir = (orig => function (t, ...a) {
-  if (ES_MEDICO() && !['informe', 'config', 'perfil'].includes(t)) t = 'informe';   // v2.282.0: también el centro
-  return orig.call(this, t, ...a);
-})(ir);
 
 
 
@@ -30696,7 +30977,6 @@ Object.keys(VISTA_TITULO).forEach(fn => {
   });
 });
 document.addEventListener('click', e => { const b = e.target.closest('.vueltabtn'); if (!b) return; const d = b.closest('dialog'); if (d && d.open) d.close(); });
-ir = (orig => function (...a) { VUELTA.length = 0; VISTA = null; return orig.apply(this, a); })(ir);
 
 /* ============================================================
    v2.301.0 · Lo de debajo se pone al día solo (petición de Eric): al guardar una ficha, un centro o sus profesionales,

@@ -1,7 +1,3 @@
-ir = (orig => function (t, ...a) {
-  if (t && t !== TAB) try { cometa(); } catch (e) {}
-  return orig.call(this, t, ...a);
-})(ir);
 
 // Al abrir la app, el esqueleto de Inicio se pinta antes de que llegue esta parte del código: se completa aquí mismo
 if (document.querySelector('#v-inicio.conmos')) inicioCabecera();

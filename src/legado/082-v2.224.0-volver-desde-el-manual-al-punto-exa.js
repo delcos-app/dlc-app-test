@@ -1,7 +1,3 @@
-ir = (orig => function (t, ...r) {
-  if (t === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
-  return orig.call(this, t, ...r);
-})(ir);
 
 
 

@@ -12,10 +12,6 @@ if (PAGO_VUELTA_BAJA) {
 /* v2.167.0 · Al volver de Stripe (pago, baja o el portal) se abre «Plan y suscripción», no Inicio (petición de Eric). Stripe vuelve a
    …/?pago=…#plan o a …/#plan: la primera pantalla tras entrar es la del plan. */
 let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
-ir = (orig => function (t, ...a) {
-  if (PAGO_IR_PLAN && PERFIL) { pagoAlPlan(); if (!ES_MEDICO() && puedeOrganizacion()) t = 'plan'; }
-  return orig.call(this, t, ...a);
-})(ir);
 // (si la app ya ha entrado al llegar aquí, se va al plan: lo hace nucleo/arranque.js justo después de arrancar)
 setTimeout(() => { PAGO_IR_PLAN = false; }, 30000);
 
@@ -64,13 +60,6 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PA
   });
   MENU_GRUPOS.push({ id: 'panel', t: 'Panel delcos', items: PANEL_SECCIONES.map(s => s[0]) });
 })();
-ir = (orig => function (t, ...a) {
-  const s = PANEL_SECCIONES.find(x => x[0] === t);
-  if (s) { PAG_TAB.delcos = s[1]; const r = orig.call(this, 'delcos', ...a); marcarPanel(); return r; }
-  // En modo plataforma no hay módulos de empresa: todo lleva al panel (salvo Configuración y el perfil)
-  if (MODO_PLATAFORMA && !['delcos', 'config', 'perfil', 'manual'].includes(t)) { const r = orig.call(this, 'delcos', ...a); marcarPanel(); return r; }
-  const r = orig.call(this, t, ...a); if (t === 'delcos') marcarPanel(); return r;
-})(ir);
 function aplicarModoPlataforma() {
   document.body.classList.toggle('modo-plataforma', MODO_PLATAFORMA);
   document.querySelectorAll('#nav [data-t]').forEach(b => {

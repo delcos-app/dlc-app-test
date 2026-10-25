@@ -33,5 +33,4 @@ Object.keys(VISTA_TITULO).forEach(fn => {
   });
 });
 document.addEventListener('click', e => { const b = e.target.closest('.vueltabtn'); if (!b) return; const d = b.closest('dialog'); if (d && d.open) d.close(); });
-ir = (orig => function (...a) { VUELTA.length = 0; VISTA = null; return orig.apply(this, a); })(ir);
 
