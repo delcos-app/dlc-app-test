@@ -33,6 +33,22 @@ export const es = {
     weekdaysLong: 'lunes,martes,miércoles,jueves,viernes,sábado,domingo',
   },
   agenda: {
+    title: 'Agenda',
+    todayTitle: 'Hoy · {date}',
+    agendaOf: ' · agenda de {name}',
+    yourNumbers: 'Tus números',
+    newAppointment: '+ Nueva cita',
+    backToToday: 'Volver a hoy',
+    noAppointmentsThatDay: 'No tuviste citas este día.',
+    team: {
+      title: 'Cumplimiento del equipo',
+      agendaOf: 'Agenda de',
+      seeOthers: 'Ver la agenda de otra persona',
+      myAgenda: 'Mi agenda',
+      team: 'Equipo',
+      backToMine: 'Volver a tu agenda',
+      seeTeam: 'Ver el cumplimiento del equipo',
+    },
     month: {
       previous: 'Mes anterior',
       next: 'Mes siguiente',

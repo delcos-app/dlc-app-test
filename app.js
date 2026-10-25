@@ -495,6 +495,22 @@
       weekdaysLong: "lunes,martes,miércoles,jueves,viernes,sábado,domingo"
     },
     agenda: {
+      title: "Agenda",
+      todayTitle: "Hoy · {date}",
+      agendaOf: " · agenda de {name}",
+      yourNumbers: "Tus números",
+      newAppointment: "+ Nueva cita",
+      backToToday: "Volver a hoy",
+      noAppointmentsThatDay: "No tuviste citas este día.",
+      team: {
+        title: "Cumplimiento del equipo",
+        agendaOf: "Agenda de",
+        seeOthers: "Ver la agenda de otra persona",
+        myAgenda: "Mi agenda",
+        team: "Equipo",
+        backToMine: "Volver a tu agenda",
+        seeTeam: "Ver el cumplimiento del equipo"
+      },
       month: {
         previous: "Mes anterior",
         next: "Mes siguiente",
@@ -710,17 +726,21 @@
     data: () => preload_exports,
     dueList: () => dueList,
     groupByAttendance: () => groupByAttendance,
+    loadAgenda: () => loadAgenda,
     metricsHtml: () => metricsHtml,
     openTray: () => openTray,
     paintSameCentre: () => paintSameCentre,
     paintStrip: () => paintStrip,
     paintTrayButtons: () => paintTrayButtons,
     paintWeekSidebar: () => paintWeekSidebar,
+    refreshAfterChange: () => refreshAfterChange,
     refreshMetrics: () => refreshMetrics,
     refreshOpenMonth: () => refreshOpenMonth,
     refreshOpenTray: () => refreshOpenTray,
     reloadMetrics: () => reloadMetrics,
     renderMonth: () => renderMonth,
+    shareWeek: () => shareWeek,
+    showDay: () => showDay,
     toggleMonth: () => toggleMonth
   });
 
@@ -841,9 +861,6 @@
     blockedDays: (fromIsoDate2, days) => agBloqueos(fromIsoDate2, days),
     dayMenu: (button, isoDate, blocked) => {
       void menuDiaSemana(button, isoDate, blocked);
-    },
-    shareWeek: () => {
-      void agRepartirSemana();
     }
   };
   var agendaSources = {
@@ -870,6 +887,44 @@
       AG_SEM_ABIERTA = open;
     },
     paintOpenWeek: () => agPintarSemanaExp()
+  };
+  var agendaState = {
+    setMode: (mode) => {
+      AG_MODO = mode;
+    },
+    setSelectedDate: (isoDate) => {
+      AG_FECHA = isoDate;
+    },
+    /** The last day the agenda was opened on «today» (to jump to the new today after midnight). */
+    lastTodaySeen: () => AG_HOY_VISTO,
+    setLastTodaySeen: (isoDate) => {
+      AG_HOY_VISTO = isoDate;
+    },
+    forgetDayTasks: () => {
+      TAREAS_DIA = null;
+    },
+    /** Someone asked to open Agenda straight on «Repartir la semana». */
+    takeWeekPlanRequest: () => {
+      const asked = ABRIR_PLAN_SEMANA;
+      ABRIR_PLAN_SEMANA = false;
+      return asked;
+    },
+    viewed: () => AG_VISTA
+  };
+  var salesTeam = {
+    members: () => COMS,
+    load: () => cargarComerciales(),
+    currentUserId: () => PERFIL.id,
+    showAgendaOf: (userId) => {
+      void verAgendaDe(userId);
+    }
+  };
+  var legacyAgendaPaint = {
+    yourDay: () => pintarTuDia(),
+    team: () => pintarEquipo(),
+    noStartWarning: (element) => {
+      avisoSinSalida(element);
+    }
   };
 
   // src/app/services/dates.ts
@@ -1336,9 +1391,164 @@
     }
   }
 
+  // src/app/screens/agenda/strip.ts
+  var STRIP_DAYS2 = 14;
+  var WEEK_DAYS2 = 7;
+  var MAX_DOTS = 6;
+  var DAY_MS = 864e5;
+  var hasStrip = () => currentScreen() === "agenda" && legacyAgendaParts.mode() === "dia" && Boolean(document.getElementById("v-agenda"));
+  function weekTitle(monday, today) {
+    const weeks = Math.round((fromIsoDate(monday).getTime() - fromIsoDate(mondayOf(today)).getTime()) / DAY_MS / WEEK_DAYS2);
+    if (weeks === 0) return t("agenda.strip.thisWeek");
+    if (weeks === 1) return t("agenda.strip.nextWeek");
+    if (weeks === -1) return t("agenda.strip.lastWeek");
+    return t("agenda.strip.weekOf", { day: fromIsoDate(monday).getDate(), month: monthNameOf(monday) });
+  }
+  function dotKind(item, isoDate, today) {
+    if (!appointments.isOpen(item.estado)) return "ch";
+    return isoDate < today ? "cx" : "cp";
+  }
+  function dayButton(isoDate, context) {
+    const { today, selected, perDay, blocked } = context;
+    const items = perDay.get(isoDate) ?? [], date = fromIsoDate(isoDate), reason = blocked[isoDate];
+    const dots = items.slice(0, MAX_DOTS).map((item) => `<i class="${dotKind(item, isoDate, today)}"></i>`).join("") + (items.length > MAX_DOTS ? `<em>+${items.length - MAX_DOTS}</em>` : "");
+    const count2 = t(items.length === 1 ? "agenda.strip.oneAppointment" : "agenda.strip.appointments", { count: items.length });
+    const classes = ["cdia", isoDate === today ? "hoy" : "", isoDate === selected ? "sel" : "", [0, 6].includes(date.getDay()) ? "finde" : "", reason ? "bloq" : ""].filter(Boolean).join(" ");
+    const options = isoDate >= today ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t("agenda.strip.dayOptions")}" title="${t("agenda.strip.dayOptions")}">⋯</span>` : "";
+    const letter = t("dates.weekdayLetters").split(",")[(date.getDay() + 6) % 7] ?? "";
+    return `<button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ""} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count2}" title="${count2}">
+      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span>${options}</button>`;
+  }
+  function weekButtonHtml(open) {
+    const label = t(open ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
+    return `<button type="button" class="btn sec chico" id="cplan" title="${open ? label : t("agenda.strip.showWeekTitle")}" aria-expanded="${String(open)}">${icon("calendar-days")}<span>${label}</span></button>`;
+  }
+  function stripHtml(start, context) {
+    const month = capitalise(formatMonthYear(addDays(start, 3)));
+    const today = mondayOf(context.today) === start ? "" : `<button type="button" class="btn sec chico" id="choy">${t("agenda.strip.today")}</button>`;
+    const weeks = [0, WEEK_DAYS2].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS2).map((index) => dayButton(addDays(start, offset + index), context)).join("")}</div></div>`).join("");
+    return `<div class="cinta" id="agcinta" data-ini="${start}"><div class="ccab">
+      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="${t("agenda.strip.previousWeekNav")}" title="${t("agenda.strip.previousWeekNav")}">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="${t("agenda.strip.seeMonth")}">${escapeHtml(month)} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="${t("agenda.strip.nextWeekNav")}" title="${t("agenda.strip.nextWeekNav")}">›</button>${today}</div>
+      <div class="cley" aria-hidden="true"><span><i class="ch"></i>${t("agenda.strip.done")}</span><span><i class="cp"></i>${t("agenda.strip.toDo")}</span><span><i class="cx"></i>${t("agenda.strip.notClosed")}</span></div>
+      ${weekButtonHtml(stripState.weekOpen())}</div>
+    <div class="csems">${weeks}</div></div>`;
+  }
+  function perDayOf(list, owner) {
+    const days = /* @__PURE__ */ new Map();
+    list.filter((item) => item.usuario_id === owner && !appointments.isCancelled(item.estado)).forEach((item) => {
+      days.set(item.fecha, [...days.get(item.fecha) ?? [], item]);
+    });
+    return days;
+  }
+  function bindWeekButton() {
+    const button = document.getElementById("cplan");
+    if (!button) return;
+    const open = Boolean(document.getElementById("agsemexp")), label = t(open ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
+    button.innerHTML = `${icon("calendar-days")}<span>${label}</span>`;
+    button.title = open ? label : t("agenda.strip.showWeekTitle");
+    button.setAttribute("aria-expanded", String(open));
+    button.onclick = async (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+      if (button.dataset.ocupado) return;
+      button.dataset.ocupado = "1";
+      stripState.setWeekOpen(!open);
+      try {
+        await stripState.paintOpenWeek();
+      } finally {
+        delete button.dataset.ocupado;
+        bindWeekButton();
+      }
+    };
+  }
+  function bindDayOptions(strip) {
+    strip.querySelectorAll(".cdmas").forEach((options) => {
+      const day = options.closest("[data-cf]");
+      const open = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        legacyAgendaParts.dayMenu(options, day?.dataset.cf ?? "", Boolean(day?.classList.contains("bloq")));
+      };
+      options.addEventListener("click", open, true);
+      options.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") open(event);
+      });
+    });
+  }
+  function bind(strip) {
+    strip.querySelectorAll("[data-cf]").forEach((day) => {
+      day.onclick = () => {
+        closeMonth();
+        strip.querySelectorAll(".cdia").forEach((other) => other.classList.toggle("sel", other === day));
+        legacyAgenda.showDay(day.dataset.cf ?? "");
+      };
+    });
+    strip.querySelectorAll("[data-cm]").forEach((arrow) => {
+      arrow.onclick = () => {
+        stripState.setStart(addDays(stripState.start() ?? mondayOf(todayIso()), Number(arrow.dataset.cm)));
+        void paintStrip();
+      };
+    });
+    const month = document.getElementById("cmesb");
+    if (month) month.onclick = (event) => {
+      event.stopPropagation();
+      void toggleMonth();
+    };
+    const today = document.getElementById("choy");
+    if (today) today.onclick = () => {
+      stripState.setStart(null);
+      legacyAgenda.showDay(todayIso());
+    };
+    bindDayOptions(strip);
+  }
+  async function render() {
+    if (!hasStrip() || !document.getElementById("agcuerpo")) return;
+    const today = todayIso(), start = stripState.start() ?? mondayOf(legacyAgenda.selectedDate() ?? today), owner = agendaSources.ownerId();
+    stripState.setStart(start);
+    const end = addDays(start, STRIP_DAYS2 - 1);
+    const [result, blocked] = await Promise.all([
+      cachedRpc("agenda_rango", { p_desde: start, p_hasta: end, p_usuario: owner }, `agenda-cinta-${owner}-${start}`),
+      legacyAgendaParts.blockedDays(start, STRIP_DAYS2)
+    ]);
+    const body = document.getElementById("agcuerpo");
+    if (!hasStrip() || stripState.start() !== start || !body) return;
+    const html = stripHtml(start, { today, selected: legacyAgenda.selectedDate(), perDay: perDayOf(result.data ?? [], owner), blocked });
+    const old = document.getElementById("agcinta");
+    if (old) old.outerHTML = html;
+    else body.insertAdjacentHTML("beforebegin", html);
+    const strip = document.getElementById("agcinta");
+    if (!strip) return;
+    bind(strip);
+    showSelectedWeek(strip, start);
+  }
+  function showSelectedWeek(strip, start) {
+    const weeks = strip.querySelector(".csems"), selected = legacyAgenda.selectedDate();
+    if (weeks && selected && selected >= addDays(start, WEEK_DAYS2)) weeks.scrollLeft = weeks.scrollWidth;
+  }
+  function paintStrip() {
+    if (!legacyAgenda.isDayView()) return Promise.resolve();
+    if (!stripState.start()) stripState.setStart(mondayOf(legacyAgenda.selectedDate() ?? todayIso()));
+    return withData([...stripLoads(), ...stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : []], async () => {
+      await render();
+      if (!legacyAgenda.isDayView() || !document.getElementById("agcinta")) return;
+      if (stripState.weekOpen()) await stripState.paintOpenWeek();
+      bindWeekButton();
+    });
+  }
+  async function shareWeek() {
+    stripState.setWeekOpen(true);
+    await stripState.paintOpenWeek();
+    bindWeekButton();
+    const plan = document.getElementById("semplan");
+    if (plan) {
+      document.getElementById("agsemexp")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      plan.click();
+    }
+  }
+
   // src/app/screens/agenda/week-sidebar.ts
   var SHOWN_PER_DAY = 3;
-  var WEEK_DAYS2 = 7;
+  var WEEK_DAYS3 = 7;
   var timeOf = (item) => String(item.hora ?? "");
   function byDay(list) {
     const days = /* @__PURE__ */ new Map();
@@ -1365,7 +1575,7 @@
         <span class="agslc">${dayContent(items, blockedReason)}</span>
         ${menu}</div>`;
   }
-  function bind(box, blocked) {
+  function bind2(box, blocked) {
     box.querySelectorAll("[data-agslm]").forEach((button) => {
       button.onclick = (event) => {
         event.stopPropagation();
@@ -1384,7 +1594,7 @@
     });
     const share = document.getElementById("agslrep");
     if (share) share.onclick = () => {
-      legacyAgendaParts.shareWeek();
+      void shareWeek();
     };
   }
   function sidebarBox() {
@@ -1400,16 +1610,16 @@
     if (!box) return;
     const today = todayIso(), selected = legacyAgenda.selectedDate(), monday = mondayOf(selected ?? today);
     const [result, blocked] = await Promise.all([
-      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: addDays(monday, WEEK_DAYS2 - 1), p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
-      legacyAgendaParts.blockedDays(monday, WEEK_DAYS2)
+      cachedRpc("agenda_rango", { p_desde: monday, p_hasta: addDays(monday, WEEK_DAYS3 - 1), p_usuario: legacyAgenda.userFilter() }, `agenda-${monday}`),
+      legacyAgendaParts.blockedDays(monday, WEEK_DAYS3)
     ]);
     if (!document.getElementById("agsemlat")) return;
-    const days = range(WEEK_DAYS2).map((index) => addDays(monday, index)), perDay = byDay(result.data ?? []);
+    const days = range(WEEK_DAYS3).map((index) => addDays(monday, index)), perDay = byDay(result.data ?? []);
     const context = { today, selected, blocked };
     box.innerHTML = `<h2>${t("agenda.week.title")}</h2><p class="sm agslnota">${t("agenda.week.hint")}</p>
     <div class="agsl">${days.map((day) => dayHtml(day, perDay.get(day) ?? [], context)).join("")}</div>
     ${days.some((day) => day >= today) ? `<div class="acts agslacts"><button type="button" class="btn sec" id="agslrep">${t("agenda.week.share")}</button></div>` : ""}`;
-    bind(box, blocked);
+    bind2(box, blocked);
   }
   function paintWeekSidebar() {
     return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint) : paint();
@@ -1515,149 +1725,230 @@
     if (document.getElementById("tools")?.classList.contains("abierto") && context.startsWith(CONTEXT_PREFIX)) openTray(context.slice(CONTEXT_PREFIX.length) === "toca" ? "toca" : "pend");
   }
 
-  // src/app/screens/agenda/strip.ts
-  var STRIP_DAYS2 = 14;
-  var WEEK_DAYS3 = 7;
-  var MAX_DOTS = 6;
-  var DAY_MS = 864e5;
-  var hasStrip = () => currentScreen() === "agenda" && legacyAgendaParts.mode() === "dia" && Boolean(document.getElementById("v-agenda"));
-  function weekTitle(monday, today) {
-    const weeks = Math.round((fromIsoDate(monday).getTime() - fromIsoDate(mondayOf(today)).getTime()) / DAY_MS / WEEK_DAYS3);
-    if (weeks === 0) return t("agenda.strip.thisWeek");
-    if (weeks === 1) return t("agenda.strip.nextWeek");
-    if (weeks === -1) return t("agenda.strip.lastWeek");
-    return t("agenda.strip.weekOf", { day: fromIsoDate(monday).getDate(), month: monthNameOf(monday) });
+  // src/app/screens/agenda/team.ts
+  function selectorHtml() {
+    const me = salesTeam.currentUserId(), viewed = agendaState.viewed();
+    const options = salesTeam.members().filter((member) => member.id !== me).map((member) => `<option value="${member.id}" ${viewed?.id === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("");
+    return `<select id="agvista" aria-label="${t("agenda.team.agendaOf")}" title="${t("agenda.team.seeOthers")}">
+        <option value="">${t("agenda.team.myAgenda")}</option>${options}</select>`;
   }
-  function dotKind(item, isoDate, today) {
-    if (!appointments.isOpen(item.estado)) return "ch";
-    return isoDate < today ? "cx" : "cp";
-  }
-  function dayButton(isoDate, context) {
-    const { today, selected, perDay, blocked } = context;
-    const items = perDay.get(isoDate) ?? [], date = fromIsoDate(isoDate), reason = blocked[isoDate];
-    const dots = items.slice(0, MAX_DOTS).map((item) => `<i class="${dotKind(item, isoDate, today)}"></i>`).join("") + (items.length > MAX_DOTS ? `<em>+${items.length - MAX_DOTS}</em>` : "");
-    const count2 = t(items.length === 1 ? "agenda.strip.oneAppointment" : "agenda.strip.appointments", { count: items.length });
-    const classes = ["cdia", isoDate === today ? "hoy" : "", isoDate === selected ? "sel" : "", [0, 6].includes(date.getDay()) ? "finde" : "", reason ? "bloq" : ""].filter(Boolean).join(" ");
-    const options = isoDate >= today ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t("agenda.strip.dayOptions")}" title="${t("agenda.strip.dayOptions")}">⋯</span>` : "";
-    const letter = t("dates.weekdayLetters").split(",")[(date.getDay() + 6) % 7] ?? "";
-    return `<button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ""} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count2}" title="${count2}">
-      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span>${options}</button>`;
-  }
-  function weekButtonHtml(open) {
-    const label = t(open ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
-    return `<button type="button" class="btn sec chico" id="cplan" title="${open ? label : t("agenda.strip.showWeekTitle")}" aria-expanded="${String(open)}">${icon("calendar-days")}<span>${label}</span></button>`;
-  }
-  function stripHtml(start, context) {
-    const month = capitalise(formatMonthYear(addDays(start, 3)));
-    const today = mondayOf(context.today) === start ? "" : `<button type="button" class="btn sec chico" id="choy">${t("agenda.strip.today")}</button>`;
-    const weeks = [0, WEEK_DAYS3].map((offset) => `<div class="csem"><span class="csemt">${weekTitle(addDays(start, offset), context.today)}</span><div class="c7">${range(WEEK_DAYS3).map((index) => dayButton(addDays(start, offset + index), context)).join("")}</div></div>`).join("");
-    return `<div class="cinta" id="agcinta" data-ini="${start}"><div class="ccab">
-      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="${t("agenda.strip.previousWeekNav")}" title="${t("agenda.strip.previousWeekNav")}">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="${t("agenda.strip.seeMonth")}">${escapeHtml(month)} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="${t("agenda.strip.nextWeekNav")}" title="${t("agenda.strip.nextWeekNav")}">›</button>${today}</div>
-      <div class="cley" aria-hidden="true"><span><i class="ch"></i>${t("agenda.strip.done")}</span><span><i class="cp"></i>${t("agenda.strip.toDo")}</span><span><i class="cx"></i>${t("agenda.strip.notClosed")}</span></div>
-      ${weekButtonHtml(stripState.weekOpen())}</div>
-    <div class="csems">${weeks}</div></div>`;
-  }
-  function perDayOf(list, owner) {
-    const days = /* @__PURE__ */ new Map();
-    list.filter((item) => item.usuario_id === owner && !appointments.isCancelled(item.estado)).forEach((item) => {
-      days.set(item.fecha, [...days.get(item.fecha) ?? [], item]);
-    });
-    return days;
-  }
-  function bindWeekButton() {
-    const button = document.getElementById("cplan");
-    if (!button) return;
-    const open = Boolean(document.getElementById("agsemexp")), label = t(open ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
-    button.innerHTML = `${icon("calendar-days")}<span>${label}</span>`;
-    button.title = open ? label : t("agenda.strip.showWeekTitle");
-    button.setAttribute("aria-expanded", String(open));
-    button.onclick = async (event) => {
-      event.stopPropagation();
-      event.preventDefault();
-      if (button.dataset.ocupado) return;
-      button.dataset.ocupado = "1";
-      stripState.setWeekOpen(!open);
-      try {
-        await stripState.paintOpenWeek();
-      } finally {
-        delete button.dataset.ocupado;
-        bindWeekButton();
+  function ensureTeamControls() {
+    if (currentScreen() !== "agenda" || !permissions.seesEverything()) return;
+    const actions = document.querySelector("#v-agenda > .saludo .acts");
+    if (!actions) return;
+    let selector = actions.querySelector("#agvista");
+    if (!selector) {
+      if (!salesTeam.members().length) {
+        void salesTeam.load().then(ensureTeamControls);
+        return;
       }
-    };
-  }
-  function bindDayOptions(strip) {
-    strip.querySelectorAll(".cdmas").forEach((options) => {
-      const day = options.closest("[data-cf]");
-      const open = (event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        legacyAgendaParts.dayMenu(options, day?.dataset.cf ?? "", Boolean(day?.classList.contains("bloq")));
+      actions.insertAdjacentHTML("afterbegin", selectorHtml());
+      selector = actions.querySelector("#agvista");
+      if (selector) selector.onchange = () => {
+        salesTeam.showAgendaOf(selector?.value ?? "");
       };
-      options.addEventListener("click", open, true);
-      options.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") open(event);
+    }
+    let button = actions.querySelector('[data-ag="equipo"]');
+    if (!button) {
+      selector?.insertAdjacentHTML("afterend", `<button class="btn sec" data-ag="equipo">${t("agenda.team.team")}</button>`);
+      button = actions.querySelector('[data-ag="equipo"]');
+    }
+    if (!button) return;
+    const teamView = legacyAgendaParts.mode() === "equipo";
+    button.textContent = t(teamView ? "agenda.team.myAgenda" : "agenda.team.team");
+    button.classList.toggle("sec", !teamView);
+    button.title = t(teamView ? "agenda.team.backToMine" : "agenda.team.seeTeam");
+  }
+  async function loadTeamView() {
+    const view = document.getElementById("v-agenda");
+    if (permissions.seesEverything() && !salesTeam.members().length) await salesTeam.load().catch(() => void 0);
+    if (currentScreen() !== "agenda" || legacyAgendaParts.mode() !== "equipo" || !view) return;
+    view.classList.remove("agunida", "agcinta", "agb", "agn");
+    view.innerHTML = `<div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${t("agenda.team.title")}</div></div><div class="acts" style="margin:0"></div></div>
+    <div class="card" id="agcuerpo"></div>`;
+    ensureTeamControls();
+    await legacyAgendaPaint.team();
+    view.dataset.listo = "1";
+  }
+
+  // src/app/screens/agenda/day-view.ts
+  var STRIP_DAYS3 = 14;
+  var SCROLL_MARGIN = 90;
+  var SCROLL_TOP_LIMIT = 80;
+  var SCROLL_BOTTOM_RATIO = 0.6;
+  var agendaView = () => document.getElementById("v-agenda");
+  var dayBody = () => document.getElementById("agcuerpo");
+  function titleText() {
+    const viewed = agendaState.viewed();
+    return t("agenda.todayTitle", { date: formatLongDate(todayIso()) }) + (viewed && legacyAgenda.isDayView() ? t("agenda.agendaOf", { name: viewed.nombre }) : "");
+  }
+  function markEmptyDay() {
+    const body = dayBody();
+    if (!body || currentScreen() !== "agenda") return;
+    const empty = body.querySelector(":scope > .vacio"), stats = body.querySelector(".tdhead .tdstats");
+    stats?.classList.toggle("hide", Boolean(empty) && !body.querySelector(".tdesc"));
+    if (!empty) return;
+    empty.classList.add("vlinea");
+    const selected = legacyAgenda.selectedDate();
+    if (selected && selected < todayIso()) empty.textContent = t("agenda.noAppointmentsThatDay");
+  }
+  function markSelectedDay() {
+    const view = agendaView();
+    if (!view?.classList.contains("agunida")) return;
+    const today = todayIso(), selected = legacyAgenda.selectedDate();
+    const title = document.getElementById("agtit");
+    if (title) title.textContent = titleText();
+    const heading = view.querySelector("#agcuerpo .tdhead h2");
+    if (!heading) return;
+    let back = document.getElementById("agahoy");
+    if (!selected || selected === today) {
+      back?.remove();
+      return;
+    }
+    heading.textContent = capitalise(formatLongDate(selected));
+    back ?? (back = addBackToToday(heading));
+    if (back) putFirstOnMobile(view, back);
+    heading.parentElement?.classList.add("agtitdia");
+  }
+  function putFirstOnMobile(view, back) {
+    const actions = !matchMedia("(min-width: 761px)").matches && view.querySelector("#agcuerpo .tdhead .acts");
+    if (actions && actions.firstElementChild !== back) actions.prepend(back);
+  }
+  function addBackToToday(heading) {
+    heading.insertAdjacentHTML("afterend", `<button type="button" class="btn sec" id="agahoy">${t("agenda.backToToday")}</button>`);
+    const back = document.getElementById("agahoy");
+    if (back) back.onclick = () => {
+      void showDay(todayIso());
+    };
+    return back;
+  }
+  function headerHtml2() {
+    return `
+      <div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${escapeHtml(titleText())}</div></div>
+        <div class="aghud" id="aghud" aria-label="${t("agenda.yourNumbers")}">${metricsHtml()}</div>
+        <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">${t("agenda.newAppointment")}</button></div></div>
+      <div class="card" id="agcuerpo"></div>
+      <div class="card" id="agsemlat"></div>`;
+  }
+  function dayToShow() {
+    const today = todayIso(), selected = legacyAgenda.selectedDate(), lastToday = agendaState.lastTodaySeen();
+    const day = !selected || selected === lastToday && lastToday !== today ? today : selected;
+    agendaState.setSelectedDate(day);
+    if (day === today) agendaState.setLastTodaySeen(day);
+    return day;
+  }
+  async function loadDayView() {
+    const view = agendaView();
+    if (!view) return;
+    const day = dayToShow();
+    agendaState.forgetDayTasks();
+    stripState.setStart(mondayOf(day));
+    view.dataset.listo = "";
+    const scroll = scrollY, same = view.classList.contains("agn") && dayBody();
+    if (same) dayBody()?.classList.add("agcargando");
+    let suggestions = null, metrics = null;
+    await withData([
+      ...dayLoads(day),
+      loadSuggestions(day).then((found) => {
+        suggestions = found;
+      }),
+      Promise.resolve(callRpc("agenda_metricas", { p_usuario: legacyAgenda.viewedUserId() })).then((result) => {
+        metrics = result.data;
+      }),
+      ...stripLoads(),
+      ...weekLoads(day),
+      permissions.seesEverything() && !salesTeam.members().length ? salesTeam.load() : null
+    ], async () => {
+      if (legacyAgenda.selectedDate() !== day || currentScreen() !== "agenda" || legacyAgendaParts.mode() !== "dia") return;
+      if (metrics) legacyAgenda.setMetrics(metrics);
+      applySuggestions(day, suggestions);
+      view.classList.add("agunida", "agcinta", "agb", "agn");
+      view.innerHTML = headerHtml2();
+      ensureTeamControls();
+      await Promise.all([legacyAgendaPaint.yourDay(), paintStrip(), paintWeekSidebar()]);
+      markSelectedDay();
+      markEmptyDay();
+      if (!agendaState.viewed()) legacyAgendaPaint.noStartWarning(dayBody());
+      if (same) window.scrollTo(0, scroll);
+      view.dataset.listo = "1";
+      refreshOpenTray();
+    });
+  }
+  async function loadAgenda() {
+    if (currentScreen() !== "agenda" || !agendaView()) return;
+    const mode = legacyAgendaParts.mode();
+    if (mode === "equipo") {
+      await loadTeamView();
+      return;
+    }
+    const plan = agendaState.takeWeekPlanRequest();
+    if (mode === "semana") stripState.setWeekOpen(true);
+    agendaState.setMode("dia");
+    await loadDayView();
+    if (mode === "mes") void toggleMonth();
+    if (plan) void shareWeek();
+  }
+  function scrollToDay() {
+    const body = dayBody();
+    if (!body) return;
+    const top = body.getBoundingClientRect().top;
+    if (top < SCROLL_TOP_LIMIT || top > innerHeight * SCROLL_BOTTOM_RATIO) scrollTo({ top: scrollY + top - SCROLL_MARGIN, behavior: "smooth" });
+  }
+  async function showDay(day) {
+    document.querySelectorAll(".agpop").forEach((element) => {
+      element.remove();
+    });
+    closeMonth();
+    if (!day) return;
+    if (!legacyAgenda.isDayView()) {
+      agendaState.setMode("dia");
+      agendaState.setSelectedDate(day);
+      await loadAgenda();
+      return;
+    }
+    const before = legacyAgenda.selectedDate() ?? day, start = stripState.start();
+    agendaState.setSelectedDate(day);
+    dayBody()?.classList.add("agcargando");
+    const outside = !start || day < start || day > addDays(start, STRIP_DAYS3 - 1);
+    if (outside) stripState.setStart(mondayOf(day));
+    const otherWeek = mondayOf(day) !== mondayOf(before);
+    let suggestions = null;
+    try {
+      await withData([...dayLoads(day), loadSuggestions(day).then((found) => {
+        suggestions = found;
+      }), ...outside ? stripLoads() : [], ...weekLoads(day)], async () => {
+        if (legacyAgenda.selectedDate() !== day || !legacyAgenda.isDayView()) return;
+        applySuggestions(day, suggestions);
+        const pieces = [legacyAgendaPaint.yourDay(), paintWeekSidebar()];
+        if (outside || otherWeek && stripState.weekOpen()) pieces.push(paintStrip());
+        await Promise.all(pieces);
+        if (!outside) document.querySelectorAll("#agcinta .cdia").forEach((element) => {
+          element.classList.toggle("sel", element.dataset.cf === day);
+        });
+        markSelectedDay();
+        markEmptyDay();
+        refreshMetrics();
       });
-    });
+    } finally {
+      dayBody()?.classList.remove("agcargando");
+    }
+    if (legacyAgenda.selectedDate() === day) scrollToDay();
   }
-  function bind2(strip) {
-    strip.querySelectorAll("[data-cf]").forEach((day) => {
-      day.onclick = () => {
-        closeMonth();
-        strip.querySelectorAll(".cdia").forEach((other) => other.classList.toggle("sel", other === day));
-        legacyAgenda.showDay(day.dataset.cf ?? "");
-      };
+  function refreshAfterChange() {
+    if (!legacyAgenda.isDayView()) return;
+    const day = legacyAgenda.selectedDate() ?? todayIso();
+    let suggestions = null;
+    void reloadMetrics();
+    void withData([...stripLoads(), ...weekLoads(day), loadSuggestions(day).then((found) => {
+      suggestions = found;
+    })], async () => {
+      if (legacyAgenda.selectedDate() !== day || !legacyAgenda.isDayView()) return;
+      applySuggestions(day, suggestions);
+      await Promise.all([paintStrip(), paintWeekSidebar()]);
+      paintSameCentre();
+      paintTrayButtons();
     });
-    strip.querySelectorAll("[data-cm]").forEach((arrow) => {
-      arrow.onclick = () => {
-        stripState.setStart(addDays(stripState.start() ?? mondayOf(todayIso()), Number(arrow.dataset.cm)));
-        void paintStrip();
-      };
-    });
-    const month = document.getElementById("cmesb");
-    if (month) month.onclick = (event) => {
-      event.stopPropagation();
-      void toggleMonth();
-    };
-    const today = document.getElementById("choy");
-    if (today) today.onclick = () => {
-      stripState.setStart(null);
-      legacyAgenda.showDay(todayIso());
-    };
-    bindDayOptions(strip);
-  }
-  async function render() {
-    if (!hasStrip() || !document.getElementById("agcuerpo")) return;
-    const today = todayIso(), start = stripState.start() ?? mondayOf(legacyAgenda.selectedDate() ?? today), owner = agendaSources.ownerId();
-    stripState.setStart(start);
-    const end = addDays(start, STRIP_DAYS2 - 1);
-    const [result, blocked] = await Promise.all([
-      cachedRpc("agenda_rango", { p_desde: start, p_hasta: end, p_usuario: owner }, `agenda-cinta-${owner}-${start}`),
-      legacyAgendaParts.blockedDays(start, STRIP_DAYS2)
-    ]);
-    const body = document.getElementById("agcuerpo");
-    if (!hasStrip() || stripState.start() !== start || !body) return;
-    const html = stripHtml(start, { today, selected: legacyAgenda.selectedDate(), perDay: perDayOf(result.data ?? [], owner), blocked });
-    const old = document.getElementById("agcinta");
-    if (old) old.outerHTML = html;
-    else body.insertAdjacentHTML("beforebegin", html);
-    const strip = document.getElementById("agcinta");
-    if (!strip) return;
-    bind2(strip);
-    showSelectedWeek(strip, start);
-  }
-  function showSelectedWeek(strip, start) {
-    const weeks = strip.querySelector(".csems"), selected = legacyAgenda.selectedDate();
-    if (weeks && selected && selected >= addDays(start, WEEK_DAYS3)) weeks.scrollLeft = weeks.scrollWidth;
-  }
-  function paintStrip() {
-    if (!legacyAgenda.isDayView()) return Promise.resolve();
-    if (!stripState.start()) stripState.setStart(mondayOf(legacyAgenda.selectedDate() ?? todayIso()));
-    return withData([...stripLoads(), ...stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : []], async () => {
-      await render();
-      if (!legacyAgenda.isDayView() || !document.getElementById("agcinta")) return;
-      if (stripState.weekOpen()) await stripState.paintOpenWeek();
-      bindWeekButton();
-    });
+    refreshOpenMonth();
   }
 
   // src/app/screens/home/indicators/chart-tools.ts
@@ -7858,15 +8149,6 @@ async function rpAgenda(i, btn) {
 
 /* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
    puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */
-function agDiaVacio() {
-  const c = $('agcuerpo'); if (!c || TAB !== 'agenda') return;
-  const v = c.querySelector(':scope > .vacio'), st = c.querySelector('.tdhead .tdstats');
-  const sinCitas = !!v && !c.querySelector('.tdesc');
-  if (st) st.classList.toggle('hide', sinCitas);
-  if (!v) return;
-  v.classList.add('vlinea');
-  if (AG_FECHA < hoyISO()) v.textContent = 'No tuviste citas este día.';
-}
 
 async function tareasDelDia(f) {
   if (AG_VISTA && AG_VISTA.id !== PERFIL.id) return null;   // las tareas son de cada uno: en la agenda de otra persona no se ven
@@ -7890,7 +8172,7 @@ function agRefrescoQuieto(id, o = {}) {
   AGQ_T = setTimeout(async () => {
     const i = AGQ_ID; AGQ_ID = null;
     await repintarDiaSuave(i);
-    if (o.cifras !== false) agCifrasQuietas();
+    if (o.cifras !== false) window.delcos.screens.agenda.refreshAfterChange();
     pintarRutaBarra();
   }, 40);
 }
@@ -8134,85 +8416,13 @@ function tdAnimar(antes, id, dur = 300) {
 
 // ---- Pastillas: las cifras de agenda_metricas
 // ---- La Agenda: vista del día (con la semana o el mes abiertos si se piden) o Equipo
-async function cargarAgenda() {
-  if (TAB !== 'agenda' || !$('v-agenda')) return;
-  if (AG_MODO === 'equipo') return agCargarEquipo();
-  const mes = AG_MODO === 'mes', plan = ABRIR_PLAN_SEMANA;
-  if (AG_MODO === 'semana') AG_SEM_ABIERTA = true;
-  AG_MODO = 'dia'; ABRIR_PLAN_SEMANA = false;
-  await agCargarDia();
-  if (mes) void window.delcos.screens.agenda.toggleMonth();
-  if (plan) agRepartirSemana();
-}
-
-async function agCargarEquipo() {
-  const v = $('v-agenda');
-  if (VE_TODO() && !COMS.length) { try { await cargarComerciales(); } catch (e) { } }
-  if (TAB !== 'agenda' || AG_MODO !== 'equipo') return;
-  v.classList.remove('agunida', 'agcinta', 'agb', 'agn');
-  v.innerHTML = `<div class="saludo"><div><h1>Agenda</h1><div class="fecha" id="agtit">Cumplimiento del equipo</div></div><div class="acts" style="margin:0"></div></div>
-    <div class="card" id="agcuerpo"></div>`;
-  asegurarEquipo();
-  await pintarEquipo();
-  v.dataset.listo = '1';
-}
-
-async function agCargarDia() {
-  const v = $('v-agenda'); if (!v) return;
-  if (!AG_FECHA || (AG_FECHA === AG_HOY_VISTO && AG_HOY_VISTO !== hoyISO())) AG_FECHA = hoyISO();   // v2.273.0: al cambiar de día, hoy
-  if (AG_FECHA === hoyISO()) AG_HOY_VISTO = AG_FECHA;
-  const f = AG_FECHA;
-  TAREAS_DIA = null;
-  CINTA_INI = lunesCinta(f);   // v2.273.0: la semana del día a la izquierda y la siguiente a la derecha
-  v.dataset.listo = '';
-  const y = scrollY, mismo = v.classList.contains('agn') && $('agcuerpo');
-  if (mismo) $('agcuerpo').classList.add('agcargando');
-  let s = null, met = null;
-  await datosAgenda.withData([...datosAgenda.dayLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; }),
-    Promise.resolve(RPC_ORIG('agenda_metricas', { p_usuario: AG_VISTA ? AG_VISTA.id : null })).then(r => { met = r && r.data; }),
-    ...datosAgenda.stripLoads(), ...datosAgenda.weekLoads(f), VE_TODO() && !COMS.length ? cargarComerciales() : null], async () => {
-    if (AG_FECHA !== f || TAB !== 'agenda' || AG_MODO !== 'dia') return;
-    if (met) AG_MET = met;
-    datosAgenda.applySuggestions(f, s);
-    v.classList.add('agunida', 'agcinta', 'agb', 'agn');
-    v.innerHTML = `
-      <div class="saludo"><div><h1>Agenda</h1><div class="fecha" id="agtit">${esc('Hoy · ' + fechaLarga(new Date(hoyISO() + 'T00:00:00')) + (AG_VISTA ? ' · agenda de ' + AG_VISTA.nombre : ''))}</div></div>
-        <div class="aghud" id="aghud" aria-label="Tus números">${window.delcos.screens.agenda.metricsHtml()}</div>
-        <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">+ Nueva cita</button></div></div>
-      <div class="card" id="agcuerpo"></div>
-      <div class="card" id="agsemlat"></div>`;
-    asegurarEquipo();
-    await Promise.all([pintarTuDia(), window.delcos.screens.agenda.paintStrip(), window.delcos.screens.agenda.paintWeekSidebar()]);
-    agMarcarDia(); agDiaVacio();
-    if (!AG_VISTA) avisoSinSalida($('agcuerpo'));
-    if (mismo) window.scrollTo(0, y);
-    v.dataset.listo = '1';
-    // Si una bandeja estaba abierta (p. ej. tras «Mover a hoy»), se repinta con lo nuevo
-    window.delcos.screens.agenda.refreshOpenTray();
-  });
-}
 
 
-async function agRepartirSemana() {
-  AG_SEM_ABIERTA = true;
-  await agPintarSemanaExp(); window.delcos.screens.agenda.bindWeekButton();
-  const p = $('semplan'); if (p) { $('agsemexp').scrollIntoView({ behavior: 'smooth', block: 'start' }); p.click(); }
-}
+
+
 
 // ---- Pastillas, cifras y bandejas
 // Tras un cambio (mover, registrar, notas…): cifras, cinta, «Tu semana», bandejas y el mes si está abierto, de una vez
-function agCifrasQuietas() {
-  if (!agN()) return;
-  const f = AG_FECHA; let s = null;
-  void window.delcos.screens.agenda.reloadMetrics();
-  datosAgenda.withData([...datosAgenda.stripLoads(), ...datosAgenda.weekLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; })], async () => {
-    if (AG_FECHA !== f || !agN()) return;
-    datosAgenda.applySuggestions(f, s);
-    await Promise.all([window.delcos.screens.agenda.paintStrip(), window.delcos.screens.agenda.paintWeekSidebar()]);
-    window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons();
-  });
-  window.delcos.screens.agenda.refreshOpenMonth();
-}
 
 
 // Con tiempos reales del día, cada tramo conocido usa su tiempo con tráfico; el resto, la estimación de siempre (minutosEntre es
@@ -8319,25 +8529,6 @@ async function nuevaFechaTrasNoEstaba(c) {
 // El mes está en src/app/screens/agenda (v2.390.0); este nombre se queda porque lo llaman el escuchador de Escape y las pruebas
 function cerrarMesCinta() { window.delcos.screens.agenda.closeMonth(); }
 
-function asegurarEquipo() {
-  if (TAB !== 'agenda' || !VE_TODO()) return;
-  // Solo en la cabecera que se ve: mientras se repinta puede quedar una copia congelada con los mismos id
-  const acts = document.querySelector('#v-agenda > .saludo .acts'); if (!acts) return;
-  let sel = acts.querySelector('#agvista');
-  if (!sel) {
-    if (!COMS.length) { cargarComerciales().then(asegurarEquipo); return; }
-    acts.insertAdjacentHTML('afterbegin', `<select id="agvista" aria-label="Agenda de" title="Ver la agenda de otra persona">
-        <option value="">Mi agenda</option>${COMS.filter(u => u.id !== PERFIL.id).map(u => `<option value="${u.id}" ${AG_VISTA && AG_VISTA.id === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select>`);
-    sel = acts.querySelector('#agvista');
-    sel.onchange = e => verAgendaDe(e.target.value);
-  }
-  let b = acts.querySelector('[data-ag="equipo"]');
-  if (!b) { sel.insertAdjacentHTML('afterend', '<button class="btn sec" data-ag="equipo">Equipo</button>'); b = acts.querySelector('[data-ag="equipo"]'); }
-  const eq = AG_MODO === 'equipo';
-  b.textContent = eq ? 'Mi agenda' : 'Equipo';
-  b.classList.toggle('sec', !eq);
-  b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
-}
 
 const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
 
@@ -8486,24 +8677,6 @@ async function citaRepetida(medicoId, fecha) {
 /* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
    El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
    Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
-function agMarcarDiaBase() {
-  const v = $('v-agenda'); if (!v || !v.classList.contains('agunida')) return;
-  const hoy = hoyISO(), otro = AG_FECHA !== hoy;
-  if ($('agtit')) $('agtit').textContent = 'Hoy · ' + fechaLarga(new Date(hoy + 'T00:00:00'));
-  const h = v.querySelector('#agcuerpo .tdhead h2'); if (!h) return;
-  const caja = h.parentElement;
-  let b = $('agahoy');
-  if (!otro) { if (b) b.remove(); return; }
-  h.textContent = fechaLarga(new Date(AG_FECHA + 'T00:00:00')).replace(/^./, c => c.toUpperCase());
-  if (!b) {
-    h.insertAdjacentHTML('afterend', '<button type="button" class="btn sec" id="agahoy">Volver a hoy</button>');
-    b = $('agahoy'); b.onclick = () => agVerDia(hoyISO());
-  }
-  // v2.338.0: en el móvil va delante de «+ Tarea», en la misma fila (Eric)
-  const acts = !matchMedia('(min-width: 761px)').matches && v.querySelector('#agcuerpo .tdhead .acts');
-  if (acts && acts.firstElementChild !== b) acts.prepend(b);
-  caja.classList.add('agtitdia');
-}
 
 function editarTareaBase(t, fecha) {
   t = t || {};
@@ -8566,15 +8739,8 @@ function editarTarea(t, fecha) {
   $('dlg').showModal();
 }
 
-// Columna derecha: tu semana
 
 
-// El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
-function agMarcarDia(...a) {
-  const r = agMarcarDiaBase.apply(this, a);
-  if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
-  return r;
-}
 
 function bloqueadosSemana(d, h) {
   const pre = datosAgenda.peekBlocked(d, h); if (pre) return Promise.resolve(pre);
@@ -8901,32 +9067,6 @@ async function cambiarHoraCita(id, hora) {
 }
 
 // ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
-async function agVerDia(f) {
-  document.querySelectorAll('.agpop').forEach(x => x.remove());
-  cerrarMesCinta();
-  if (!f) return;
-  if (!agN()) { AG_MODO = 'dia'; AG_FECHA = f; return cargarAgenda(); }
-  const antes = AG_FECHA || f; AG_FECHA = f;
-  const c = $('agcuerpo'); if (c) c.classList.add('agcargando');
-  const fuera = !CINTA_INI || f < CINTA_INI || f > diasMas(CINTA_INI, 13); if (fuera) CINTA_INI = lunesCinta(f);
-  const otraSem = lunesDe(f) !== lunesDe(antes);
-  let s = null;
-  try {
-    await datosAgenda.withData([...datosAgenda.dayLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; }), ...(fuera ? datosAgenda.stripLoads() : []), ...datosAgenda.weekLoads(f)], async () => {
-      if (AG_FECHA !== f || !agN()) return;
-      datosAgenda.applySuggestions(f, s);
-      const piezas = [pintarTuDia(), window.delcos.screens.agenda.paintWeekSidebar()];
-      if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(window.delcos.screens.agenda.paintStrip());
-      await Promise.all(piezas);
-      if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
-      agMarcarDia(); agDiaVacio(); window.delcos.screens.agenda.refreshMetrics();
-    });
-  } finally { const cc = $('agcuerpo'); if (cc) cc.classList.remove('agcargando'); }
-  if (AG_FECHA !== f) return;
-  const cc = $('agcuerpo'); if (!cc) return;
-  const top = cc.getBoundingClientRect().top;
-  if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
-}
 
 // ---- 3. Una sola ventana de cita, con centro y notas
 async function nuevaCita(medicoId, fecha, op = {}) {
@@ -8978,6 +9118,11 @@ async function nuevaCita(medicoId, fecha, op = {}) {
   $('dlg').classList.add('pequena');
   $('dlg').showModal();
 }
+
+// La vista del día y la de equipo están en src/app/screens/agenda (v2.395.0). Estos dos nombres se quedan como adaptadores
+// porque los llaman mucho código antiguo y las pruebas.
+function cargarAgenda() { return window.delcos.screens.agenda.loadAgenda(); }
+function agVerDia(f) { return window.delcos.screens.agenda.showDay(f); }
 // pantallas/analitica.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 

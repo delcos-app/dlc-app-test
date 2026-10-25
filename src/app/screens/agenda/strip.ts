@@ -138,3 +138,11 @@ export function paintStrip(): Promise<void> {
     bindWeekButton();
   });
 }
+
+/** Opens the week under the strip and starts «Repartir la semana». */
+export async function shareWeek(): Promise<void> {
+  stripState.setWeekOpen(true);
+  await stripState.paintOpenWeek(); bindWeekButton();
+  const plan = document.getElementById('semplan');
+  if (plan) { document.getElementById('agsemexp')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); plan.click(); }
+}

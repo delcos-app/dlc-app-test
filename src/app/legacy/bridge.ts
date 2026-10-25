@@ -126,7 +126,6 @@ export const legacyAgendaParts = {
   mode: (): string => AG_MODO,
   blockedDays: (fromIsoDate: string, days: number): Promise<Record<string, string>> => agBloqueos(fromIsoDate, days),
   dayMenu: (button: HTMLElement, isoDate: string, blocked: boolean): void => { void menuDiaSemana(button, isoDate, blocked); },
-  shareWeek: (): void => { void agRepartirSemana(); },
 };
 
 /** What the Agenda data loader needs from legacy: whose agenda, the strip start and the day tasks. */
@@ -151,4 +150,32 @@ export const stripState = {
   weekOpen: (): boolean => AG_SEM_ABIERTA,
   setWeekOpen: (open: boolean): void => { AG_SEM_ABIERTA = open; },
   paintOpenWeek: (): Promise<void> => agPintarSemanaExp(),
+};
+
+/** Agenda screen state still kept in legacy globals (the day view and «Tu día» read them). */
+export const agendaState = {
+  setMode: (mode: string): void => { AG_MODO = mode; },
+  setSelectedDate: (isoDate: string): void => { AG_FECHA = isoDate; },
+  /** The last day the agenda was opened on «today» (to jump to the new today after midnight). */
+  lastTodaySeen: (): string | null => AG_HOY_VISTO,
+  setLastTodaySeen: (isoDate: string): void => { AG_HOY_VISTO = isoDate; },
+  forgetDayTasks: (): void => { TAREAS_DIA = null; },
+  /** Someone asked to open Agenda straight on «Repartir la semana». */
+  takeWeekPlanRequest: (): boolean => { const asked = ABRIR_PLAN_SEMANA; ABRIR_PLAN_SEMANA = false; return asked; },
+  viewed: (): { id: string; nombre: string } | null => AG_VISTA,
+};
+
+/** The sales team (COMS) for the team views, loaded once. */
+export const salesTeam = {
+  members: (): readonly { id: string; nombre: string }[] => COMS,
+  load: (): Promise<void> => cargarComerciales(),
+  currentUserId: (): string => (PERFIL as { id: string }).id,
+  showAgendaOf: (userId: string): void => { void verAgendaDe(userId); },
+};
+
+/** Agenda pieces painted by legacy code. */
+export const legacyAgendaPaint = {
+  yourDay: (): Promise<void> => pintarTuDia(),
+  team: (): Promise<void> => pintarEquipo(),
+  noStartWarning: (element: HTMLElement | null): void => { avisoSinSalida(element); },
 };

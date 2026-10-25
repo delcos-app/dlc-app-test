@@ -9,6 +9,7 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml } from '../../services/format';
 import { orFallback, range } from '../../services/values';
 import { weekLoads, withData } from './preload';
+import { shareWeek } from './strip';
 
 const SHOWN_PER_DAY = 3, WEEK_DAYS = 7;
 
@@ -52,7 +53,7 @@ function bind(box: HTMLElement, blocked: Readonly<Record<string, string>>): void
     day.onclick = show;
     day.onkeydown = (event): void => { if (event.key === 'Enter') show(); };
   });
-  const share = document.getElementById('agslrep'); if (share) share.onclick = (): void => { legacyAgendaParts.shareWeek(); };
+  const share = document.getElementById('agslrep'); if (share) share.onclick = (): void => { void shareWeek(); };
 }
 
 function sidebarBox(): HTMLElement | null {

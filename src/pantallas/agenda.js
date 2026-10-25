@@ -250,15 +250,6 @@ async function rpAgenda(i, btn) {
 
 /* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
    puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */
-function agDiaVacio() {
-  const c = $('agcuerpo'); if (!c || TAB !== 'agenda') return;
-  const v = c.querySelector(':scope > .vacio'), st = c.querySelector('.tdhead .tdstats');
-  const sinCitas = !!v && !c.querySelector('.tdesc');
-  if (st) st.classList.toggle('hide', sinCitas);
-  if (!v) return;
-  v.classList.add('vlinea');
-  if (AG_FECHA < hoyISO()) v.textContent = 'No tuviste citas este día.';
-}
 
 async function tareasDelDia(f) {
   if (AG_VISTA && AG_VISTA.id !== PERFIL.id) return null;   // las tareas son de cada uno: en la agenda de otra persona no se ven
@@ -282,7 +273,7 @@ function agRefrescoQuieto(id, o = {}) {
   AGQ_T = setTimeout(async () => {
     const i = AGQ_ID; AGQ_ID = null;
     await repintarDiaSuave(i);
-    if (o.cifras !== false) agCifrasQuietas();
+    if (o.cifras !== false) window.delcos.screens.agenda.refreshAfterChange();
     pintarRutaBarra();
   }, 40);
 }
@@ -526,85 +517,13 @@ function tdAnimar(antes, id, dur = 300) {
 
 // ---- Pastillas: las cifras de agenda_metricas
 // ---- La Agenda: vista del día (con la semana o el mes abiertos si se piden) o Equipo
-async function cargarAgenda() {
-  if (TAB !== 'agenda' || !$('v-agenda')) return;
-  if (AG_MODO === 'equipo') return agCargarEquipo();
-  const mes = AG_MODO === 'mes', plan = ABRIR_PLAN_SEMANA;
-  if (AG_MODO === 'semana') AG_SEM_ABIERTA = true;
-  AG_MODO = 'dia'; ABRIR_PLAN_SEMANA = false;
-  await agCargarDia();
-  if (mes) void window.delcos.screens.agenda.toggleMonth();
-  if (plan) agRepartirSemana();
-}
-
-async function agCargarEquipo() {
-  const v = $('v-agenda');
-  if (VE_TODO() && !COMS.length) { try { await cargarComerciales(); } catch (e) { } }
-  if (TAB !== 'agenda' || AG_MODO !== 'equipo') return;
-  v.classList.remove('agunida', 'agcinta', 'agb', 'agn');
-  v.innerHTML = `<div class="saludo"><div><h1>Agenda</h1><div class="fecha" id="agtit">Cumplimiento del equipo</div></div><div class="acts" style="margin:0"></div></div>
-    <div class="card" id="agcuerpo"></div>`;
-  asegurarEquipo();
-  await pintarEquipo();
-  v.dataset.listo = '1';
-}
-
-async function agCargarDia() {
-  const v = $('v-agenda'); if (!v) return;
-  if (!AG_FECHA || (AG_FECHA === AG_HOY_VISTO && AG_HOY_VISTO !== hoyISO())) AG_FECHA = hoyISO();   // v2.273.0: al cambiar de día, hoy
-  if (AG_FECHA === hoyISO()) AG_HOY_VISTO = AG_FECHA;
-  const f = AG_FECHA;
-  TAREAS_DIA = null;
-  CINTA_INI = lunesCinta(f);   // v2.273.0: la semana del día a la izquierda y la siguiente a la derecha
-  v.dataset.listo = '';
-  const y = scrollY, mismo = v.classList.contains('agn') && $('agcuerpo');
-  if (mismo) $('agcuerpo').classList.add('agcargando');
-  let s = null, met = null;
-  await datosAgenda.withData([...datosAgenda.dayLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; }),
-    Promise.resolve(RPC_ORIG('agenda_metricas', { p_usuario: AG_VISTA ? AG_VISTA.id : null })).then(r => { met = r && r.data; }),
-    ...datosAgenda.stripLoads(), ...datosAgenda.weekLoads(f), VE_TODO() && !COMS.length ? cargarComerciales() : null], async () => {
-    if (AG_FECHA !== f || TAB !== 'agenda' || AG_MODO !== 'dia') return;
-    if (met) AG_MET = met;
-    datosAgenda.applySuggestions(f, s);
-    v.classList.add('agunida', 'agcinta', 'agb', 'agn');
-    v.innerHTML = `
-      <div class="saludo"><div><h1>Agenda</h1><div class="fecha" id="agtit">${esc('Hoy · ' + fechaLarga(new Date(hoyISO() + 'T00:00:00')) + (AG_VISTA ? ' · agenda de ' + AG_VISTA.nombre : ''))}</div></div>
-        <div class="aghud" id="aghud" aria-label="Tus números">${window.delcos.screens.agenda.metricsHtml()}</div>
-        <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">+ Nueva cita</button></div></div>
-      <div class="card" id="agcuerpo"></div>
-      <div class="card" id="agsemlat"></div>`;
-    asegurarEquipo();
-    await Promise.all([pintarTuDia(), window.delcos.screens.agenda.paintStrip(), window.delcos.screens.agenda.paintWeekSidebar()]);
-    agMarcarDia(); agDiaVacio();
-    if (!AG_VISTA) avisoSinSalida($('agcuerpo'));
-    if (mismo) window.scrollTo(0, y);
-    v.dataset.listo = '1';
-    // Si una bandeja estaba abierta (p. ej. tras «Mover a hoy»), se repinta con lo nuevo
-    window.delcos.screens.agenda.refreshOpenTray();
-  });
-}
 
 
-async function agRepartirSemana() {
-  AG_SEM_ABIERTA = true;
-  await agPintarSemanaExp(); window.delcos.screens.agenda.bindWeekButton();
-  const p = $('semplan'); if (p) { $('agsemexp').scrollIntoView({ behavior: 'smooth', block: 'start' }); p.click(); }
-}
+
+
 
 // ---- Pastillas, cifras y bandejas
 // Tras un cambio (mover, registrar, notas…): cifras, cinta, «Tu semana», bandejas y el mes si está abierto, de una vez
-function agCifrasQuietas() {
-  if (!agN()) return;
-  const f = AG_FECHA; let s = null;
-  void window.delcos.screens.agenda.reloadMetrics();
-  datosAgenda.withData([...datosAgenda.stripLoads(), ...datosAgenda.weekLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; })], async () => {
-    if (AG_FECHA !== f || !agN()) return;
-    datosAgenda.applySuggestions(f, s);
-    await Promise.all([window.delcos.screens.agenda.paintStrip(), window.delcos.screens.agenda.paintWeekSidebar()]);
-    window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons();
-  });
-  window.delcos.screens.agenda.refreshOpenMonth();
-}
 
 
 // Con tiempos reales del día, cada tramo conocido usa su tiempo con tráfico; el resto, la estimación de siempre (minutosEntre es
@@ -711,25 +630,6 @@ async function nuevaFechaTrasNoEstaba(c) {
 // El mes está en src/app/screens/agenda (v2.390.0); este nombre se queda porque lo llaman el escuchador de Escape y las pruebas
 function cerrarMesCinta() { window.delcos.screens.agenda.closeMonth(); }
 
-function asegurarEquipo() {
-  if (TAB !== 'agenda' || !VE_TODO()) return;
-  // Solo en la cabecera que se ve: mientras se repinta puede quedar una copia congelada con los mismos id
-  const acts = document.querySelector('#v-agenda > .saludo .acts'); if (!acts) return;
-  let sel = acts.querySelector('#agvista');
-  if (!sel) {
-    if (!COMS.length) { cargarComerciales().then(asegurarEquipo); return; }
-    acts.insertAdjacentHTML('afterbegin', `<select id="agvista" aria-label="Agenda de" title="Ver la agenda de otra persona">
-        <option value="">Mi agenda</option>${COMS.filter(u => u.id !== PERFIL.id).map(u => `<option value="${u.id}" ${AG_VISTA && AG_VISTA.id === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select>`);
-    sel = acts.querySelector('#agvista');
-    sel.onchange = e => verAgendaDe(e.target.value);
-  }
-  let b = acts.querySelector('[data-ag="equipo"]');
-  if (!b) { sel.insertAdjacentHTML('afterend', '<button class="btn sec" data-ag="equipo">Equipo</button>'); b = acts.querySelector('[data-ag="equipo"]'); }
-  const eq = AG_MODO === 'equipo';
-  b.textContent = eq ? 'Mi agenda' : 'Equipo';
-  b.classList.toggle('sec', !eq);
-  b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
-}
 
 const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
 
@@ -878,24 +778,6 @@ async function citaRepetida(medicoId, fecha) {
 /* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
    El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
    Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
-function agMarcarDiaBase() {
-  const v = $('v-agenda'); if (!v || !v.classList.contains('agunida')) return;
-  const hoy = hoyISO(), otro = AG_FECHA !== hoy;
-  if ($('agtit')) $('agtit').textContent = 'Hoy · ' + fechaLarga(new Date(hoy + 'T00:00:00'));
-  const h = v.querySelector('#agcuerpo .tdhead h2'); if (!h) return;
-  const caja = h.parentElement;
-  let b = $('agahoy');
-  if (!otro) { if (b) b.remove(); return; }
-  h.textContent = fechaLarga(new Date(AG_FECHA + 'T00:00:00')).replace(/^./, c => c.toUpperCase());
-  if (!b) {
-    h.insertAdjacentHTML('afterend', '<button type="button" class="btn sec" id="agahoy">Volver a hoy</button>');
-    b = $('agahoy'); b.onclick = () => agVerDia(hoyISO());
-  }
-  // v2.338.0: en el móvil va delante de «+ Tarea», en la misma fila (Eric)
-  const acts = !matchMedia('(min-width: 761px)').matches && v.querySelector('#agcuerpo .tdhead .acts');
-  if (acts && acts.firstElementChild !== b) acts.prepend(b);
-  caja.classList.add('agtitdia');
-}
 
 function editarTareaBase(t, fecha) {
   t = t || {};
@@ -958,15 +840,8 @@ function editarTarea(t, fecha) {
   $('dlg').showModal();
 }
 
-// Columna derecha: tu semana
 
 
-// El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
-function agMarcarDia(...a) {
-  const r = agMarcarDiaBase.apply(this, a);
-  if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
-  return r;
-}
 
 function bloqueadosSemana(d, h) {
   const pre = datosAgenda.peekBlocked(d, h); if (pre) return Promise.resolve(pre);
@@ -1293,32 +1168,6 @@ async function cambiarHoraCita(id, hora) {
 }
 
 // ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
-async function agVerDia(f) {
-  document.querySelectorAll('.agpop').forEach(x => x.remove());
-  cerrarMesCinta();
-  if (!f) return;
-  if (!agN()) { AG_MODO = 'dia'; AG_FECHA = f; return cargarAgenda(); }
-  const antes = AG_FECHA || f; AG_FECHA = f;
-  const c = $('agcuerpo'); if (c) c.classList.add('agcargando');
-  const fuera = !CINTA_INI || f < CINTA_INI || f > diasMas(CINTA_INI, 13); if (fuera) CINTA_INI = lunesCinta(f);
-  const otraSem = lunesDe(f) !== lunesDe(antes);
-  let s = null;
-  try {
-    await datosAgenda.withData([...datosAgenda.dayLoads(f), datosAgenda.loadSuggestions(f).then(x => { s = x; }), ...(fuera ? datosAgenda.stripLoads() : []), ...datosAgenda.weekLoads(f)], async () => {
-      if (AG_FECHA !== f || !agN()) return;
-      datosAgenda.applySuggestions(f, s);
-      const piezas = [pintarTuDia(), window.delcos.screens.agenda.paintWeekSidebar()];
-      if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(window.delcos.screens.agenda.paintStrip());
-      await Promise.all(piezas);
-      if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
-      agMarcarDia(); agDiaVacio(); window.delcos.screens.agenda.refreshMetrics();
-    });
-  } finally { const cc = $('agcuerpo'); if (cc) cc.classList.remove('agcargando'); }
-  if (AG_FECHA !== f) return;
-  const cc = $('agcuerpo'); if (!cc) return;
-  const top = cc.getBoundingClientRect().top;
-  if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
-}
 
 // ---- 3. Una sola ventana de cita, con centro y notas
 async function nuevaCita(medicoId, fecha, op = {}) {
@@ -1370,3 +1219,8 @@ async function nuevaCita(medicoId, fecha, op = {}) {
   $('dlg').classList.add('pequena');
   $('dlg').showModal();
 }
+
+// La vista del día y la de equipo están en src/app/screens/agenda (v2.395.0). Estos dos nombres se quedan como adaptadores
+// porque los llaman mucho código antiguo y las pruebas.
+function cargarAgenda() { return window.delcos.screens.agenda.loadAgenda(); }
+function agVerDia(f) { return window.delcos.screens.agenda.showDay(f); }

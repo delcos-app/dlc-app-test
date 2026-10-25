@@ -127,7 +127,6 @@ interface AgendaMetrics {
   pendientes?: { urgentes?: number | null; sin_visita?: number | null };
   media_dia?: number | null;
 }
-declare let AG_FECHA: string | null;
 declare let AG_MET: AgendaMetrics | null;
 declare let AG_VISTA: { id: string; nombre: string } | null;
 interface AgendaAppointment { id: string; cuenta_id?: string; estado: string; lat?: number | string | null; lon?: number | string | null; centro_nombre?: string | null }
@@ -150,10 +149,8 @@ declare function nuevaCita(accountId: string, isoDate: string | null): Promise<v
 declare function planDesdeLista(list: readonly DueAccount[], name: string, button: HTMLElement): Promise<void>;
 declare function reprogramarCitas(list: readonly PendingAppointment[], title: string, text: string): Promise<void>;
 interface RangeAppointment { fecha: string; estado: string; usuario_id?: string; hora?: string | null; medico?: string | null; nombre?: string | null }
-declare let AG_MODO: string;
 declare function agBloqueos(fromIsoDate: string, days: number): Promise<Record<string, string>>;
 declare function menuDiaSemana(button: HTMLElement, isoDate: string, blocked: boolean): Promise<void>;
-declare function agRepartirSemana(): Promise<void>;
 declare let TD_PRESET: { fecha: string } | null;
 declare let CINTA_INI: string | null;
 declare function agUid(): string;
@@ -161,3 +158,12 @@ declare function tareasDelDia(isoDate: string): Promise<unknown>;
 declare function bloqueadosSemanaBase(fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>>;
 declare let AG_SEM_ABIERTA: boolean;
 declare function agPintarSemanaExp(): Promise<void>;
+declare let AG_HOY_VISTO: string | null;
+declare let TAREAS_DIA: unknown;
+declare let ABRIR_PLAN_SEMANA: boolean;
+declare let COMS: { id: string; nombre: string }[];
+declare function pintarTuDia(): Promise<void>;
+declare function pintarEquipo(): Promise<void>;
+declare function cargarComerciales(): Promise<void>;
+declare function avisoSinSalida(element: HTMLElement | null): void;
+declare function verAgendaDe(userId: string): Promise<void>;
