@@ -2,7 +2,8 @@
  * Ciclo de visitas → «Equipo» (who sees the whole team): each person's portfolio by class and how their cycle goes. Pressing a
  * person opens their cycle. Migrated from the legacy pintarCicloEquipo (v2.408.0).
  */
-import { currentScreen, legacyDb } from '../../legacy/bridge';
+import { rpc } from '../../api/client';
+import { currentScreen } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { cycleState, goToTab, percentOf, progressBar, rangeText, visitsText, words } from './model';
@@ -30,7 +31,8 @@ function tableHtml(members: readonly Member[]): string {
 
 export async function paintCycleTeam(): Promise<void> {
   if (!document.getElementById('cfgcuerpo')) return;
-  const [{ data: members }, { data: ranges }] = await Promise.all([legacyDb().rpc<Member[]>('ciclo_equipo'), legacyDb().rpc<CycleRange[]>('ciclo_rango')]);
+  const [{ data: memberRows }, { data: rangeRows }] = await Promise.all([rpc('ciclo_equipo'), rpc('ciclo_rango')]);
+  const members = memberRows as Member[] | null, ranges = rangeRows as CycleRange[] | null;
   const box = document.getElementById('cfgcuerpo');
   if (!box || currentScreen() !== 'ciclo') return;
   const range = (ranges ?? [])[0];

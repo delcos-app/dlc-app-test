@@ -44,4 +44,9 @@ export default tseslint.config(
     files: ['src/app/legacy/*globals.d.ts'],
     rules: { '@typescript-eslint/naming-convention': 'off', '@typescript-eslint/no-unnecessary-type-parameters': 'off', 'id-length': 'off' },
   },
+  {
+    // Generated from the database schema (delcos-qa/pruebas/herramientas/contrato_api.js): one entry per SQL function, as long as it takes
+    files: ['src/app/api/contract.ts'],
+    rules: { 'max-lines': 'off' },
+  },
 );

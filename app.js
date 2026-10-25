@@ -21308,6 +21308,12 @@
   }
   var historyRows = () => [...document.querySelectorAll("#fbody [data-vrow]")];
 
+  // src/app/api/client.ts
+  function rpc(name, ...params2) {
+    const [values2] = params2;
+    return legacyDb().rpc(name, values2);
+  }
+
   // src/app/screens/cycle/model.ts
   var CLASSES = ["A", "B", "C"];
   var cycleState = { owner: "", classFilter: "", classifyFilter: "sin", query: "" };
@@ -21359,7 +21365,7 @@
     return t("cycle.card.thisCycle", { done: cycle3.hechas, goal: visitsText(cycle3.objetivo), cycle: name });
   }
   async function paintCardCycle(id) {
-    const { data: cycle3 } = await legacyDb().rpc("ciclo_de_cuenta", { p_id: id });
+    const { data } = await rpc("ciclo_de_cuenta", { p_id: id }), cycle3 = data;
     const box5 = document.getElementById("fciclo");
     if (!cycle3 || !box5 || accountCardLegacy.shownId() !== id) return;
     box5.innerHTML = `<span class="sm cicfl">${t("cycle.classLabel")}</span>${cardBaseLegacy.canEdit() ? classButtons(id, cycle3.clase) : classPill(cycle3.clase)}
@@ -38665,8 +38671,8 @@
       return;
     }
     const billing2 = { vencimiento_dias: Number(value12("fcv")) || 0, forma_pago: value12("fcf"), emitir_al_validar: Boolean(document.getElementById("fce")?.checked) };
-    const rpc = rawDb2().rpc;
-    const [first2, second] = await Promise.all([rpc("guardar_ajuste", { p_clave: "empresa", p_valor: company }), rpc("guardar_ajuste", { p_clave: "facturacion", p_valor: billing2 })]);
+    const rpc2 = rawDb2().rpc;
+    const [first2, second] = await Promise.all([rpc2("guardar_ajuste", { p_clave: "empresa", p_valor: company }), rpc2("guardar_ajuste", { p_clave: "facturacion", p_valor: billing2 })]);
     if (first2?.error || second?.error) {
       notices.toast(t("legacyB.company.couldNotSave"), true);
       return;
@@ -39320,9 +39326,8 @@
     document.querySelectorAll("nav.main [data-t]").forEach((button3) => {
       button3.setAttribute("aria-selected", String(button3.dataset.t === "directorio"));
     });
-    qualityLegacy.setExport(async (format) => {
-      const { data } = await legacyDb().rpc("exportar_seguimiento", filterParams());
-      qualityLegacy.download(data ?? [], "Exportacion_seguimiento", format);
+    qualityLegacy.setExport((format) => {
+      qualityLegacy.download([], "Exportacion_seguimiento", format);
     });
   }
   async function loadQuality() {
@@ -57718,7 +57723,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     body4.querySelectorAll("[data-cobj]").forEach((input12) => {
       value27[input12.dataset.cobj ?? ""] = visits(input12.value);
     });
-    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value27 });
+    const { data, error } = await rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value27 }), result = data;
     if (error || result?.ok === false) {
       notices.toast(t("cycle.editor.couldNotSave"), true);
       return;
@@ -57822,7 +57827,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function paintCycle() {
     if (!document.getElementById("cfgcuerpo")) return;
-    const [{ data, error }, selector] = await Promise.all([legacyDb().rpc("ciclo_cuentas", { p_usuario: ownerParam() }), ownerSelector()]);
+    const [{ data: answer, error }, selector] = await Promise.all([rpc("ciclo_cuentas", { p_usuario: ownerParam() }), ownerSelector()]);
+    const data = answer;
     const box5 = document.getElementById("cfgcuerpo");
     if (!box5 || currentScreen() !== "ciclo") return;
     if (error || !data) {
@@ -57882,9 +57888,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   async function paintClassify() {
     if (!document.getElementById("cfgcuerpo")) return;
     const [{ data, error }, selector] = await Promise.all([
-      legacyDb().rpc("cuentas_para_clasificar", { p_usuario: ownerParam(), p_filtro: cycleState.classifyFilter, p_q: cycleState.query || null }),
+      rpc("cuentas_para_clasificar", { p_usuario: ownerParam(), p_filtro: cycleState.classifyFilter, p_q: cycleState.query || null }),
       ownerSelector()
     ]);
+    const rows2 = data;
     const box5 = document.getElementById("cfgcuerpo");
     if (!box5 || currentScreen() !== "ciclo") return;
     if (error) {
@@ -57892,7 +57899,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       return;
     }
     const search9 = document.getElementById("cicq"), wasSearching = Boolean(search9) && document.activeElement === search9;
-    box5.innerHTML = pageHtml25(data ?? [], selector);
+    box5.innerHTML = pageHtml25(rows2 ?? [], selector);
     bind43(box5, wasSearching);
   }
   async function classify(button3, onCard) {
@@ -57902,7 +57909,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     buttons.forEach((other) => {
       other.disabled = true;
     });
-    const { data: result, error } = await legacyDb().rpc("clasificar_cuentas", { p_ids: [id], p_clase: chosen5 });
+    const { data, error } = await rpc("clasificar_cuentas", { p_ids: [id], p_clase: chosen5 }), result = data;
     buttons.forEach((other) => {
       other.disabled = false;
     });
@@ -57954,7 +57961,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function paintCoverage() {
     if (!document.getElementById("cfgcuerpo")) return;
-    const [{ data, error }, selector] = await Promise.all([legacyDb().rpc("ciclo_cobertura", { p_usuario: ownerParam() }), ownerSelector()]);
+    const [{ data: answer, error }, selector] = await Promise.all([rpc("ciclo_cobertura", { p_usuario: ownerParam() }), ownerSelector()]);
+    const data = answer;
     const box5 = document.getElementById("cfgcuerpo");
     if (!box5 || currentScreen() !== "ciclo") return;
     if (error || !data) {
@@ -57988,7 +57996,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   async function paintCycleTeam() {
     if (!document.getElementById("cfgcuerpo")) return;
-    const [{ data: members2 }, { data: ranges }] = await Promise.all([legacyDb().rpc("ciclo_equipo"), legacyDb().rpc("ciclo_rango")]);
+    const [{ data: memberRows }, { data: rangeRows }] = await Promise.all([rpc("ciclo_equipo"), rpc("ciclo_rango")]);
+    const members2 = memberRows, ranges = rangeRows;
     const box5 = document.getElementById("cfgcuerpo");
     if (!box5 || currentScreen() !== "ciclo") return;
     const range2 = (ranges ?? [])[0];

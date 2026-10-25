@@ -2,7 +2,8 @@
  * The window «Ciclo de visitas A/B/C» (administration): how long the cycle is and how many visits each class needs. Opened from
  * «Ajustar el ciclo» and from Configuración → Cartera y visitas. Migrated from the legacy editorCiclo (v2.408.0).
  */
-import { appLegacy, cycleLegacy, legacyDb, notices } from '../../legacy/bridge';
+import { rpc } from '../../api/client';
+import { appLegacy, cycleLegacy, notices } from '../../legacy/bridge';
 import { t, type MessageKey } from '../../i18n';
 import { classPill, CLASSES, words } from './model';
 
@@ -30,7 +31,7 @@ function editorHtml(current: Readonly<Record<string, number>>): string {
 async function save(body: HTMLElement, box: HTMLDialogElement): Promise<void> {
   const value: Record<string, number> = { meses: Number((document.getElementById('cicmeses') as HTMLSelectElement | null)?.value) || DEFAULT_MONTHS };
   body.querySelectorAll<HTMLInputElement>('[data-cobj]').forEach(input => { value[input.dataset.cobj ?? ''] = visits(input.value); });
-  const { data: result, error } = await legacyDb().rpc<{ ok?: boolean }>('guardar_ajuste', { p_clave: 'ciclo_visitas', p_valor: value });
+  const { data, error } = await rpc('guardar_ajuste', { p_clave: 'ciclo_visitas', p_valor: value }), result = data as { ok?: boolean } | null;
   if (error || result?.ok === false) { notices.toast(t('cycle.editor.couldNotSave'), true); return; }
   cycleLegacy.setSetting('ciclo_visitas', value);
   box.close(); notices.toast(t('cycle.editor.saved')); appLegacy.forgetCache();

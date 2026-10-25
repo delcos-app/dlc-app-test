@@ -2,7 +2,8 @@
  * Ciclo de visitas → «Este ciclo»: how each class goes and who still needs visits this cycle, with «+ Cita». Migrated from the
  * legacy pintarCiclo (v2.408.0).
  */
-import { agendaActions, cardSectionsLegacy, currentScreen, legacyDb } from '../../legacy/bridge';
+import { rpc } from '../../api/client';
+import { agendaActions, cardSectionsLegacy, currentScreen } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
@@ -88,7 +89,8 @@ function bind(box: HTMLElement): void {
 
 export async function paintCycle(): Promise<void> {
   if (!document.getElementById('cfgcuerpo')) return;
-  const [{ data, error }, selector] = await Promise.all([legacyDb().rpc<CycleData>('ciclo_cuentas', { p_usuario: ownerParam() }), ownerSelector()]);
+  const [{ data: answer, error }, selector] = await Promise.all([rpc('ciclo_cuentas', { p_usuario: ownerParam() }), ownerSelector()]);
+  const data = answer as CycleData | null;
   // The page may have been painted again meanwhile: the box is looked up after the answer
   const box = document.getElementById('cfgcuerpo');
   if (!box || currentScreen() !== 'ciclo') return;

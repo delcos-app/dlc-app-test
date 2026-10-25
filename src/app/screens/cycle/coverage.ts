@@ -2,7 +2,8 @@
  * Ciclo de visitas → «Por producto»: how many accounts of each class heard about each promoted product this cycle, and who is
  * missing it, with «+ Cita». Migrated from the legacy pintarCobertura (v2.408.0).
  */
-import { cardSectionsLegacy, currentScreen, legacyDb } from '../../legacy/bridge';
+import { rpc } from '../../api/client';
+import { cardSectionsLegacy, currentScreen } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { sum } from '../../services/values';
@@ -46,7 +47,8 @@ function bodyHtml(data: CoverageData): string {
 
 export async function paintCoverage(): Promise<void> {
   if (!document.getElementById('cfgcuerpo')) return;
-  const [{ data, error }, selector] = await Promise.all([legacyDb().rpc<CoverageData>('ciclo_cobertura', { p_usuario: ownerParam() }), ownerSelector()]);
+  const [{ data: answer, error }, selector] = await Promise.all([rpc('ciclo_cobertura', { p_usuario: ownerParam() }), ownerSelector()]);
+  const data = answer as CoverageData | null;
   const box = document.getElementById('cfgcuerpo');
   if (!box || currentScreen() !== 'ciclo') return;
   if (error || !data) { box.innerHTML = `<div class="vacio">${t('cycle.coverage.couldNotLoad')}</div>`; return; }

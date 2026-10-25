@@ -462,7 +462,7 @@ export const manualLegacy = {
 export const qualityLegacy = {
   geocode: (query: string, hints: GeocodeHints): Promise<GeocodeResult | null> => geocodificar(query, hints),
   /** The «Descargar» entry of the tools menu calls window.__dlSeg (legado 014). */
-  setExport: (exporter: (format: string) => Promise<void>): void => { Reflect.set(window, '__dlSeg', exporter); },
+  setExport: (exporter: (format: string) => Promise<void> | void): void => { Reflect.set(window, '__dlSeg', exporter); },
   download: (rows: unknown[], name: string, format: string): void => { descargar(rows, name, format); },
   canUseModule: (module: string): boolean => puedeModulo(module),
 };

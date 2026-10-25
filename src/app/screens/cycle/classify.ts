@@ -3,7 +3,8 @@
  * buttons wherever they are (this page and the account card). Migrated from the legacy pintarClasificar and the data-ccl listener
  * of legado 079 (v2.408.0).
  */
-import { appLegacy, currentScreen, legacyDb, notices } from '../../legacy/bridge';
+import { rpc } from '../../api/client';
+import { appLegacy, currentScreen, notices } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { bindAccounts } from './current';
@@ -52,13 +53,14 @@ function bind(box: HTMLElement, wasSearching: boolean): void {
 export async function paintClassify(): Promise<void> {
   if (!document.getElementById('cfgcuerpo')) return;
   const [{ data, error }, selector] = await Promise.all([
-    legacyDb().rpc<Classifiable[]>('cuentas_para_clasificar', { p_usuario: ownerParam(), p_filtro: cycleState.classifyFilter, p_q: cycleState.query || null }), ownerSelector(),
+    rpc('cuentas_para_clasificar', { p_usuario: ownerParam(), p_filtro: cycleState.classifyFilter, p_q: cycleState.query || null }), ownerSelector(),
   ]);
+  const rows = data as Classifiable[] | null;
   const box = document.getElementById('cfgcuerpo');
   if (!box || currentScreen() !== 'ciclo') return;
   if (error) { box.innerHTML = `<div class="vacio">${t('cycle.classifyPage.couldNotLoad')}</div>`; return; }
   const search = document.getElementById('cicq'), wasSearching = Boolean(search) && document.activeElement === search;
-  box.innerHTML = pageHtml(data ?? [], selector);
+  box.innerHTML = pageHtml(rows ?? [], selector);
   bind(box, wasSearching);
 }
 
@@ -67,7 +69,7 @@ async function classify(button: HTMLButtonElement, onCard: (id: string) => void)
   if (!group) return;
   const chosen = button.classList.contains('on') ? null : letter, buttons = [...group.querySelectorAll('button')];
   buttons.forEach(other => { other.disabled = true; });
-  const { data: result, error } = await legacyDb().rpc<{ ok?: boolean; error?: string }>('clasificar_cuentas', { p_ids: [id], p_clase: chosen });
+  const { data, error } = await rpc('clasificar_cuentas', { p_ids: [id], p_clase: chosen }), result = data as { ok?: boolean; error?: string } | null;
   buttons.forEach(other => { other.disabled = false; });
   if (error || !result || result.ok === false) { notices.toast(t(result?.error === 'permiso' ? 'cycle.classifyPage.noPermission' : 'cycle.classifyPage.couldNotSave'), true); return; }
   buttons.forEach(other => { const on = other.dataset.ccl === `${id}|${String(chosen)}`; other.classList.toggle('on', on); other.setAttribute('aria-pressed', String(on)); });

@@ -2,7 +2,8 @@
  * The class and the visits of this cycle in the «Estado» block of the account card (A/B/C buttons for who can edit). Migrated
  * from the legacy cicFicha (v2.408.0); cicFicha stays as an adapter.
  */
-import { accountCardLegacy, cardBaseLegacy, legacyDb, term } from '../../legacy/bridge';
+import { rpc } from '../../api/client';
+import { accountCardLegacy, cardBaseLegacy, term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { classButtons, classPill, cycleName, visitsText } from './model';
 
@@ -16,7 +17,7 @@ function summary(cycle: AccountCycle): string {
 }
 
 export async function paintCardCycle(id: string): Promise<void> {
-  const { data: cycle } = await legacyDb().rpc<AccountCycle>('ciclo_de_cuenta', { p_id: id });
+  const { data } = await rpc('ciclo_de_cuenta', { p_id: id }), cycle = data as AccountCycle | null;
   const box = document.getElementById('fciclo');
   if (!cycle || !box || accountCardLegacy.shownId() !== id) return;
   box.innerHTML = `<span class="sm cicfl">${t('cycle.classLabel')}</span>${cardBaseLegacy.canEdit() ? classButtons(id, cycle.clase) : classPill(cycle.clase)}
