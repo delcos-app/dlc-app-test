@@ -93,12 +93,6 @@ const QUE_ABRE = { H: 'Inicio: indicadores, alertas y resumen', G: 'Agenda, cita
 /* ---------------- Configuración única (Administración queda integrada) ---------------- */
 
 document.querySelectorAll('[data-u="adm"]').forEach(b => b.classList.add('hide'));
-// Dentro de Configuración no se repiten menús interiores
-function panelDeModulo(sec) {
-  panelDeModuloBase(sec);
-  const quitar = () => { const p = document.querySelector('#cfgcuerpo .cfgmod'); if (p) p.querySelectorAll('.subnav').forEach(s => s.remove()); };
-  quitar(); setTimeout(quitar, 300); setTimeout(quitar, 1200);
-}
 
 /* ---------------- menú «Más» del móvil: continuación de la barra ---------------- */
 

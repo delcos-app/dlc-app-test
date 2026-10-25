@@ -1,12 +1,6 @@
 // pantallas/panel_delcos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function salirPanel() {
-  if (!PANEL_ACTIVO) return;
-  if (PANEL_ACTIVO.tipo === 'dbody') { const p = document.querySelector('#cfgcuerpo [data-panel]#dbody'); if (p) p.id = ''; const r = $('dbody-modal'); if (r) r.id = 'dbody'; }
-  if (PANEL_ACTIVO.tipo === 'admin') { const p = document.querySelector('#cfgcuerpo [data-panel]#v-admin'); if (p) p.id = ''; const r = $('v-admin-real'); if (r) r.id = 'v-admin'; }
-  PANEL_ACTIVO = null;
-}
 
 // (v2.183.0: aquí iba la primera versión de reportarProblema; se redefine entera más abajo)
 // Configuración → Seguridad y registro → Errores (administración)
@@ -82,3 +76,6 @@ function pintarEstadoDelcos() { return window.delcos.screens.platform.paintStatu
 function pintarPlantillaDelcos(sub) { return window.delcos.screens.platform.paintTemplate(sub); }
 function pintarErrores() { return window.delcos.screens.platform.paintCompanyErrors(); }
 function franjaVista() { return window.delcos.screens.platform.paintViewBand(); }
+
+// La ventana dentro del panel está en src/app/components/embedded-window (v2.422.0); este nombre se queda: Configuración y legado 001 lo usan.
+function salirPanel() { return window.delcos.components.embeddedWindow.leavePanel(); }

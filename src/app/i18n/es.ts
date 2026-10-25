@@ -5,6 +5,7 @@
  * (see i18n/index.ts), so each company sees its own words.
  */
 import { accounts } from './es/accounts';
+import { settingsShell } from './es/settings-shell';
 import { listBar } from './es/list-bar';
 import { settingsRest } from './es/settings-rest';
 import { panels } from './es/panels';
@@ -77,6 +78,7 @@ export const es = {
   panels,
   settingsRest,
   listBar,
+  settingsShell,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',

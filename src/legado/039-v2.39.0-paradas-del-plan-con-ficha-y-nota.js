@@ -33,22 +33,10 @@ if (window.L && L.map) {
 
 
 /* ---------------- Configuración: todo se muestra en el panel de la derecha ---------------- */
+// La ventana dentro del panel está en src/app/components/embedded-window (v2.422.0); aquí, en su sitio de siempre, se protege la ventana
+// (va antes que los parches de legado 072)
+window.delcos.components.embeddedWindow.guardPanelDialog($('dlg'));
 
-function panelDeModuloBase(sec) {
-  salirPanel();
-  const r = $('v-admin'); r.id = 'v-admin-real';
-  $('cfgcuerpo').innerHTML = '<div id="v-admin" data-panel="1" class="cfgpanel cfgmod"></div>';
-  PANEL_ACTIVO = { tipo: 'admin' };
-  ADM_SEC = sec; cargarAdmin();
-}
-(function () {
-  const d = $('dlg'), abrir = d.showModal.bind(d), cerrar = d.close.bind(d);
-  d.showModal = function () { if (PANEL_ACTIVO && PANEL_ACTIVO.tipo === 'dbody') return; abrir(); };
-  d.close = function (v) {
-    if (PANEL_ACTIVO && PANEL_ACTIVO.tipo === 'dbody' && !d.open) { const f = PANEL_ACTIVO.refrescar; setTimeout(() => PANEL_ACTIVO && f && f(), 60); return; }
-    cerrar(v);
-  };
-})();
 
 
 /* ---------------- Mi perfil: contexto de la persona ---------------- */

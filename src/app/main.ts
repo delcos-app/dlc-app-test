@@ -9,6 +9,8 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as settingsShell from './screens/settings/shell';
+import * as embeddedWindow from './components/embedded-window';
 import * as settingsRest from './screens/settings/rest';
 import * as portalHome from './screens/home/portal-home';
 import { listenToDuplicates } from './screens/accounts/duplicates';
@@ -59,13 +61,14 @@ export interface DelcosCore {
   readonly setLanguage: typeof setLanguage;
   readonly setVocabulary: typeof setVocabulary;
   /** Shared components (src/app/components), called by the legacy adapters in src/componentes. */
-  readonly components: typeof components & { readonly list: typeof listComponents; readonly filters: typeof filterComponents; readonly filtersPanel: typeof filtersPanel; readonly listBar: typeof listBar };
+  readonly components: typeof components & { readonly embeddedWindow: typeof embeddedWindow; readonly list: typeof listComponents; readonly filters: typeof filterComponents; readonly filtersPanel: typeof filtersPanel; readonly listBar: typeof listBar };
   /** Migrated screens, called by the legacy adapters (e.g. cargarInicio) until navigation moves to the router. */
   readonly screens: {
     readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators; readonly openIndicatorSettings: typeof openIndicatorSettings };
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly settingsShell: typeof settingsShell;
     readonly settingsRest: typeof settingsRest;
     readonly portalHome: typeof portalHome;
     readonly settingsExtra: typeof settingsExtra;
@@ -109,12 +112,13 @@ window.delcos = {
   t,
   setLanguage,
   setVocabulary,
-  components: { ...components, list: listComponents, filters: filterComponents, filtersPanel, listBar },
+  components: { ...components, embeddedWindow, list: listComponents, filters: filterComponents, filtersPanel, listBar },
   screens: {
     home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators, openIndicatorSettings },
     agenda,
     accounts,
     events,
+    settingsShell,
     settingsRest,
     portalHome,
     settingsExtra,

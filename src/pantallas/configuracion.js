@@ -102,13 +102,6 @@ function pintarPlanBase() {
 
 
 
-function cfgMovil() {
-  const hub = document.querySelector('.cfghub'); if (!hub) return;
-  hub.classList.toggle('movil', ES_MOVIL());
-  if (!ES_MOVIL()) { hub.classList.remove('detalle'); return; }
-  const cont = $('cfgcuerpo-hub');
-  if (cont && !cont.querySelector(':scope > .cfgvolver')) cont.insertAdjacentHTML('afterbegin', '<button class="cfgvolver" type="button">‹ Configuración</button>');
-}
 /* v2.87.0 · Borrar un usuario por completo (administración). Pedidos, facturas, cobros y auditoría se conservan siempre. */
 
 // Editar usuario y asignar cartera funcionan aunque la lista de usuarios aún no esté cargada (por ejemplo, desde una notificación)
@@ -147,11 +140,6 @@ function colocarIndPruebas() {
   else if (p.previousElementSibling !== casa) casa.insertAdjacentElement('afterend', p);
 }
 
-function marcarPedsec() {
-  if (TAB !== 'ventas') return;
-  const alias = Object.keys(ALIAS_PEDIDOS).find(k => ALIAS_PEDIDOS[k] === pedsecVista()) || 'ventas';
-  document.querySelectorAll('nav.main [data-t], #bnav [data-t]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.t === alias)));
-}
 
 
 function rpPlanDe(i) {
@@ -165,30 +153,10 @@ function rpPlanDe(i) {
 
 
 
-function marcarFacPlan() {
-  document.body.classList.toggle('facsolo', facSinPlan());
-  try { aplicarPermisosMenu(); } catch (e) {}
-}
 
 
-function marcarPanel() {
-  const tab = PAG_TAB.delcos || 'orgs';
-  document.querySelectorAll('nav.main [data-t]').forEach(b => { if (b.classList.contains('pdsec') || b.dataset.t === 'delcos') b.setAttribute('aria-selected', String(b.dataset.t === 'pd-' + tab)); });
-}
 
-function claveCfgVieja(sec, sub) {
-  if (!sec || sec === '__cfg') return '';
-  if (sec === 'equipo') return sub === 'roles' ? 'roles' : 'usuarios';
-  if (sub) return sec + '.' + sub;
-  return CFG_VIEJO[sec] || sec;
-}
 
-// El índice cabe siempre en la pantalla: su alto llega justo al borde de abajo, así la rueda lo recorre entero sin tener que mover la página
-function cfuAjustarIndice() {
-  const n = document.querySelector('#v-config .cfuidx'); if (!n || TAB !== 'config' || ES_MOVIL()) return;
-  const top = Math.max(0, n.getBoundingClientRect().top);
-  n.style.setProperty('--cfuidxh', Math.max(240, innerHeight - top - 12) + 'px');
-}
 
 
 // ---------- nombres del menú ----------
@@ -223,67 +191,10 @@ function txTexto(b) {
 
 // (R-12: pintarPlantillasCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
 
-function cfgSecDormir(sec) {
-  sec.querySelectorAll(IDS_SEC.map(i => '#' + i).join(',')).forEach(e => { e.dataset.idd = e.id; e.removeAttribute('id'); });
-  const c = sec.querySelector(':scope > .cfgsecc'); if (c && c.id === 'cfgcuerpo') c.removeAttribute('id');
-}
 
-function cfgSecDespertar(sec) {
-  if (!sec || CFG_SEC_ACT === sec) return;
-  document.querySelectorAll('#cfgcuerpo-hub .cfgsec').forEach(o => { if (o !== sec) cfgSecDormir(o); });
-  const viejo = $('cfgcuerpo'); if (viejo && !sec.contains(viejo)) viejo.removeAttribute('id');
-  sec.querySelector(':scope > .cfgsecc').id = 'cfgcuerpo';
-  sec.querySelectorAll('[data-idd]').forEach(e => { e.id = e.dataset.idd; delete e.dataset.idd; });
-  // La ventana de siempre (#dbody) solo se aparta si la sección tiene su panel
-  if (sec.__panel) { const m = document.querySelector('dialog #dbody'); if (m) m.id = 'dbody-modal'; PANEL_ACTIVO = sec.__panel; }
-  else { const m = $('dbody-modal'); if (m && !document.querySelector('#dbody')) m.id = 'dbody'; PANEL_ACTIVO = null; }
-  CFG_SEC_ACT = sec; CFG_KEY = sec.dataset.cfgsec;
-}
 
-async function cfgApilar(it, foco) {
-  const hub = $('cfgcuerpo-hub'); if (!hub) return;
-  CFG_SEC_ACT = null;
-  // Se preparan escondidas y la página aparece entera de una vez (sin fantasmas)
-  hub.innerHTML = '<div class="cfgsecs" hidden>' + it.hijos.map(h => `<section class="cfgsec" data-cfgsec="${h.k}"><h3 class="cfgsectit">${esc(h.t)}</h3><div class="cfgsecc"></div></section>`).join('') + '</div><div class="cfgcarga cargandolocal"><span class="giro"></span> Cargando…</div>';
-  hub.dataset.apilado = '1';
-  for (const sec of hub.querySelectorAll('.cfgsec')) {
-    if (!hub.isConnected) return;
-    const h = it.hijos.find(x => x.k === sec.dataset.cfgsec);
-    sec.__panel = null; PANEL_ACTIVO = null;
-    const m = $('dbody-modal'); if (m && !document.querySelector('#dbody')) m.id = 'dbody';
-    cfgSecDespertar(sec);
-    try { await h.r(); } catch (e) {}
-    await cfgEstable(sec, 4000);
-    if (PANEL_ACTIVO && sec.querySelector('[data-panel]')) sec.__panel = PANEL_ACTIVO;
-    try { if (typeof pulirCfg === 'function') pulirCfg(); } catch (e) {}
-    // Sin título repetido: si la parte ya empieza con su título, fuera el de la sección
-    if ([...sec.querySelectorAll('.cfgsecc h2')].some(x => x.offsetParent)) sec.querySelector('.cfgsectit').hidden = true;   // la parte ya trae su título
-    CFG_SEC_ACT = null;
-  }
-  const caja = hub.querySelector('.cfgsecs'); if (caja) caja.hidden = false; const cg = hub.querySelector(':scope > .cfgcarga'); if (cg) cg.remove();
-  const primera = (foco && hub.querySelector(`.cfgsec[data-cfgsec="${foco.k}"]`)) || hub.querySelector('.cfgsec');
-  cfgSecDespertar(primera);
-  if (foco && foco !== it.hijos[0] && primera) primera.scrollIntoView({ block: 'start', behavior: 'smooth' });
-}
 
-// v2.344.0: los estilos de Configuración hablan de #cfgcuerpo (el contenedor activo); se copian para las demás secciones de la página
-function cfgClonarEstilos() {
-  const re = /#cfgcuerpo(?![-\w])/g;
-  const nuevo = sel => sel.split(',').filter(p => re.test(p) && !(re.lastIndex = 0)).map(p => p.replace(re, '#cfgcuerpo-hub .cfgsecc')).join(',');
-  const recorrer = (lista, dentro) => {
-    for (const r of [...lista]) {
-      if (r.cssRules && (r.media || (typeof CSSLayerBlockRule !== 'undefined' && r instanceof CSSLayerBlockRule))) { recorrer(r.cssRules, r); continue; }   // v2.356.0: también dentro de las capas
-      if (!r.selectorText || !r.selectorText.includes('#cfgcuerpo')) continue;
-      re.lastIndex = 0; const sel = nuevo(r.selectorText); if (!sel) continue;
-      // v2.361.0: la copia va justo detrás de su original (al final del bloque, la de escritorio quedaba detrás de la del @media y le ganaba)
-      const caja = dentro || r.parentStyleSheet;
-      try { caja.insertRule(`${sel}{${r.style.cssText}}`, [...caja.cssRules].indexOf(r) + 1); } catch (e) {}
-    }
-  };
-  for (const h of document.styleSheets) { try { if (!h.href) recorrer(h.cssRules, null); } catch (e) {} }
-}
 
-function pagMarcarSucio() { const n = PAG_SUCIO.size; ['cfuguardar', 'cfudescartar'].forEach(id => { const b = $(id); if (b) b.disabled = !n; }); }
 
 
 
@@ -296,21 +207,6 @@ async function logoData() { if (MARCA.logo && (AJUSTES.marca || {}).logo_factura
 
 
 
-async function pendientesCfg() {
-  if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
-  const l = {};
-  try { if (!prefsActivas().salida && puedeModulo('agenda')) l['rutas.salida'] = 'Sin punto de salida: las horas del día salen sin el primer trayecto'; } catch (e) {}
-  if (puedeOrganizacion()) {
-    try { const { data: c } = await RPC_ORIG('correo_config', {}); if (!c || !c.host) l['o.correo'] = 'Sin configurar: los correos de la empresa no salen'; } catch (e) {}
-    try {
-      const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
-      const d = au && au[0] ? Math.floor((Date.now() - new Date(au[0].creado_en)) / 864e5) : null;
-      if (d == null) l['o.copias'] = 'Todavía no hay ninguna copia'; else if (d > 7) l['o.copias'] = `La última copia es de hace ${d} días`;
-    } catch (e) {}
-  }
-  CFG_PEND = { t: Date.now(), l };
-  return l;
-}
 
 
 
@@ -430,10 +326,6 @@ const PRESU_CUANDO = ['Lo antes posible', 'Este trimestre', 'Más adelante', 'So
 
 const PRESU_ESTADO = { 'Nueva': 'Recibida', 'En curso': 'En curso', 'Cerrada': 'Atendida' };
 
-const CFG_VIEJO = { prefs: 'rutas.salida', perfil: 'datos', datos: 'datos', notif: 'notif', horario: 'rutas.horario', kpis: 'inicio.kpis', usuarios: 'usuarios',
-  roles: 'roles', equipo: 'usuarios', reglas: 'cartera.reglas', frec: 'cartera.frec', accesos: 'seguridad.accesos', auditoria: 'seguridad.auditoria',
-  alm: 'stock.alm', mues: 'stock.mues', marca: 'o.marca', __empresa: 'o.marca', empresa: 'o.marca', correo: 'o.correo', copias: 'o.copias', plan: 'o.plan',
-  fact: 'o.fiscal', fiscal: 'o.fiscal', series: 'o.series', vf: 'o.vf', pdf: 'o.pdf', orgs: 'o.orgs' };
 
 const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión cerrar', notif: 'avisos campana silencio resumen',
   'rutas.salida': 'salida llegada casa oficina navegar google maps waze', 'rutas.horario': 'tiempos minutos duración parada',
@@ -444,11 +336,8 @@ const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión 
   portal: 'portal material pedir' };
 
 // v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
-const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.map(it => Object.assign({ gr }, it)));
 
-let CFG_PEND = { t: 0, l: {} };
 
-const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
 
 let CFG_DETALLE = false;
 
@@ -502,13 +391,7 @@ let TX_OBS = 0;
 const cfgDePlantilla = id => { const p = listaPDF().lista.find(x => x.id === id); const c = (p && p.cfg) || {};
   return Object.assign({}, PDF_DEF, c, { cols: Object.assign({}, PDF_DEF.cols, c.cols || {}) }); };
 
-let CFG_SEC_ACT = null;
 
-const cfgEstable = (el, max) => new Promise(ok => {
-  let t = 0, fin = 0; const ob = new MutationObserver(() => { clearTimeout(t); t = setTimeout(listo, 150); });
-  const listo = () => { if (el.querySelector('.cfgcarga, .giro, .spin')) { t = setTimeout(listo, 150); return; } ob.disconnect(); clearTimeout(fin); ok(); };
-  ob.observe(el, { childList: true, subtree: true, attributes: true }); t = setTimeout(listo, 200); fin = setTimeout(() => { ob.disconnect(); clearTimeout(t); ok(); }, max || 5000);
-});
 
 /* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
 function pintarPlanBase2() {
@@ -721,84 +604,8 @@ async function cargarAjustes(...a) { const r = await cargarAjustesBase2(...a); i
 // «Plan y suscripción»: periodo de prueba de Stripe
 
 
-async function cargarConfigBase() {
-  // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
-  // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
-  // son una sola entrada y las partes, pestañas dentro de la página.
-  if (typeof salirPanel === 'function') salirPanel();
-  const arbol = arbolCfgUnico(), hojas = hojasCfg(arbol);
-  const pedida = CFG_KEY || 'datos';
-  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.hijos && x.hijos.some(h => h.k === pedida)) || hojas.find(x => pedida.startsWith(x.k + '.'))
-    || hojas.find(x => x.k === 'datos') || hojas[0];
-  if (!it) return;
-  const hijo = it.hijos ? (it.hijos.find(h => h.k === pedida) || it.hijos[0]) : null;
-  CFG_KEY = hijo ? hijo.k : it.k;
-  const movil = ES_MOVIL(), v = $('v-config');
-  const firma = hojas.map(x => x.k + (x.hijos ? '(' + x.hijos.map(h => h.k).join(',') + ')' : '')).join('|') + '|' + movil;
-  if (!(v.dataset.cfgfirma === firma && $('cfulista') && v.querySelector('.cfupag'))) {
-    const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => `<button type="button" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
-    v.innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
-      <div class="cfu">
-        <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
-          <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
-        <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
-          <div class="cfucab"></div><div class="cfupend hide" id="cfupend"></div>
-          <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
-    v.dataset.cfgfirma = firma;
-    v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
-    $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
-    // Buscador: por nombre, apartado, partes y palabras clave; Intro abre el primero
-    const busca = $('cfubus');
-    busca.oninput = () => {
-      const q = impNorm(busca.value.trim());
-      let vis = 0;
-      v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
-        const h = hojasCfg(arbolCfgUnico()).find(x => x.k === b.dataset.ck) || {};
-        const partes = (h.hijos || []).map(x => x.t + ' ' + (CFG_CLAVES[x.k] || '')).join(' ');
-        const txt = impNorm([h.t, h.gr, h.d, partes, CFG_CLAVES[h.k] || ''].join(' '));
-        const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
-      });
-      v.querySelectorAll('#cfulista h4').forEach(e => {
-        let x = e.nextElementSibling, alguno = false;
-        while (x && x.tagName !== 'H4') { if (x.matches('[data-ck]:not(.hide)')) alguno = true; x = x.nextElementSibling; }
-        e.classList.toggle('hide', !!q && !alguno);
-      });
-      $('cfusin').classList.toggle('hide', vis > 0);
-    };
-    busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
-    cfuAjustarIndice();
-  }
-  v.querySelector('.cfu').classList.toggle('det', movil && CFG_DETALLE);
-  v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.classList.toggle('on', b.dataset.ck === it.k));
-  // Cabecera de la página y, si tiene partes, sus pestañas
-  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}`;   // v2.344.0: sin pestañas: las partes, una debajo de otra
-  v.querySelectorAll('.cfucab [data-cks]').forEach(b => b.onclick = () => { if (b.dataset.cks === CFG_KEY) return; CFG_KEY = b.dataset.cks; cargarConfig(); });
-  $('cfupend').classList.add('hide'); $('cfupend').innerHTML = '';
-  $('cfgcuerpo-hub').innerHTML = '<div id="cfgcuerpo"></div>';
-  // Lo pendiente: punto en el índice (en el apartado que lo contiene) y aviso en la página
-  pendientesCfg().then(l => {
-    if (!$('cfulista')) return;
-    Object.entries(l).forEach(([k, t]) => { const b = [...v.querySelectorAll('#cfulista [data-ck]')].find(x => k === x.dataset.ck || k.startsWith(x.dataset.ck + '.')); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
-    if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
-  });
-  // El apartado (o, si el plan no lo incluye, qué plan lo trae)
-  const r = it.hijos ? () => cfgApilar(it, hijo) : it.r;
-  if (it.mod && !planIncluye(it.mod)) {
-    const p = planMinimo(it.mod);
-    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
-      <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye.</p>${puedeOrganizacion() ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
-    if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
-  } else Promise.resolve().then(r);
-}
 
 
-// Configuración: botón de volver
-async function cargarConfigBase2(...a) {
-  const r = await cargarConfigBase.apply(this, a);
-  const b = $('cfuvolver');
-  if (b && !b.classList.contains('manvuelta')) { b.classList.add('manvuelta'); b.innerHTML = '<b aria-hidden="true">‹</b> Volver'; b.setAttribute('aria-label', 'Volver a Configuración'); }
-  return r;
-}
 
 // Catálogos guardados en el móvil (resultado por defecto de la visita, «No estaba»…)
 async function cargarCatalogos(...a) {
@@ -811,16 +618,6 @@ async function cargarCatalogos(...a) {
   return r;
 }
 
-// Al cambiar de apartado, la ventana de siempre vuelve a su sitio
-async function cargarConfig(...a) {
-  const hub = $('cfgcuerpo-hub');
-  if (hub && hub.dataset.apilado) {
-    hub.querySelectorAll('[data-idd]').forEach(e => e.removeAttribute('data-idd'));
-    const m = $('dbody-modal'); if (m) { const p = document.querySelector('#dbody[data-panel]'); if (p) p.removeAttribute('id'); m.id = 'dbody'; }
-    PANEL_ACTIVO = null; CFG_SEC_ACT = null; delete hub.dataset.apilado;
-  }
-  return cargarConfigBase2.apply(this, a);
-}
 
 // Preferencias, Clasificadores, Auditoría, Registro, campos personalizados y entorno de pruebas están en src/app/screens/settings
 // (v2.415.0). Estos nombres se quedan: las secciones de Configuración, Facturación, Pedidos, Productos, Clientes, la ficha, el Panel
@@ -887,3 +684,16 @@ function pintarPerfil() { return window.delcos.screens.settingsRest.paintMyProfi
 function perdidasPlan(de, a, datos) { return window.delcos.screens.settingsRest.planLosses(de, a, datos || null); }
 function reciboCalculado(pl) { return window.delcos.screens.settingsRest.receiptOf(pl); }
 function pintarPaginaPlanBase10() { return window.delcos.screens.settingsRest.paintPlanPage(); }
+
+// La carcasa de Configuración está en src/app/screens/settings/shell (v2.422.0). Estos nombres se quedan: el mapa de pantallas
+// (legado 001), Guardar página, legado 004/044/080/081/157/161, la navegación, los puentes y las pruebas los usan.
+function cargarConfig() { return window.delcos.screens.settingsShell.loadSettingsPage(); }
+function cfgMovil() { return window.delcos.screens.settingsShell.mobileLayout(); }
+function cfuAjustarIndice() { return window.delcos.screens.settingsShell.fitIndex(); }
+function cfgSecDespertar(sec) { return window.delcos.screens.settingsShell.wakeSection(sec); }
+function cfgClonarEstilos() { return window.delcos.screens.settingsShell.copyPartStyles(); }
+function pagMarcarSucio() { return window.delcos.screens.settingsShell.markUnsaved(); }
+function claveCfgVieja(sec, sub) { return window.delcos.screens.settingsShell.oldSettingsKey(sec, sub); }
+function marcarPedsec() { return window.delcos.screens.settingsShell.markOrderSection(); }
+function marcarFacPlan() { return window.delcos.screens.settingsShell.markBillingPlan(); }
+function marcarPanel() { return window.delcos.screens.settingsShell.markPlatformPanel(); }

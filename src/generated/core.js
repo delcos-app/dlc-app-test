@@ -828,6 +828,31 @@
     }
   };
 
+  // src/app/i18n/es/settings-shell.ts
+  var settingsShell = {
+    title: "Configuración",
+    subtitleAll: "Tu cuenta, tu equipo y tu empresa, en un solo sitio",
+    subtitleOwn: "Tu cuenta y tus preferencias",
+    sections: "Apartados de configuración",
+    search: "Buscar un ajuste",
+    noResults: "Ningún ajuste con esas palabras",
+    back: "Volver",
+    backToSettings: "Volver a Configuración",
+    backMobile: "‹ Configuración",
+    loading: "Cargando…",
+    inPlan: "{section} está en el plan {plan}",
+    customPlan: "A medida",
+    plan: "Plan",
+    notIncluded: "Tu plan {plan} no lo incluye.",
+    seePlans: "Ver planes",
+    pending: {
+      noDeparture: "Sin punto de salida: las horas del día salen sin el primer trayecto",
+      noEmail: "Sin configurar: los correos de la empresa no salen",
+      noBackup: "Todavía no hay ninguna copia",
+      oldBackup: "La última copia es de hace {days} días"
+    }
+  };
+
   // src/app/i18n/es/list-bar.ts
   var listBar = {
     bar: {
@@ -6527,6 +6552,7 @@
     panels,
     settingsRest,
     listBar,
+    settingsShell,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -8931,10 +8957,10 @@
     return `<div class="blk"><h3>${term("visita", { number: "p", capital: "C" })}</h3>
       ${list}</div>`;
   }
-  function cardHtml(data, cached) {
+  function cardHtml(data, cached2) {
     const account = data.medico, consultations = data.consultas ?? [], visits2 = data.visitas ?? [];
     const forVisit = visitConsultation(consultations);
-    return `${cached ? `<div class="cacheaviso">${t("accounts.base.cachedNotice")}</div>` : ""}
+    return `${cached2 ? `<div class="cacheaviso">${t("accounts.base.cachedNotice")}</div>` : ""}
     ${headerHtml(account)}
     ${actionsHtml(account)}
     ${visitBlock(account, consultations, visits2)}
@@ -11352,7 +11378,7 @@
     filters.classList.add("abierto");
     panel.classList.add("abierto");
   }
-  function listenToColumnResize(paintHeader2) {
+  function listenToColumnResize(paintHeader3) {
     let drag = null;
     document.addEventListener("pointerdown", (event) => {
       const handle = event.target instanceof Element ? event.target.closest("i.res[data-res]") : null;
@@ -11368,7 +11394,7 @@
       const width = Math.max(MIN_WIDTH2, Math.min(MAX_WIDTH2, Math.round(drag.startWidth + (event.clientX - drag.startX)))), key = drag.key;
       const settings2 = drag.settings.map((item) => item.k === key ? { ...item, w: width } : item);
       saveColumns(settings2);
-      paintHeader2();
+      paintHeader3();
       const visible2 = settings2.filter((item) => item.on);
       document.querySelectorAll("#lista .trow").forEach((row4) => {
         [...row4.children].forEach((cellElement, index) => {
@@ -12799,13 +12825,13 @@
     });
     const cards2 = [...body2.querySelectorAll(".tdu[data-tdu]")];
     if (!cards2.length) return;
-    const byId4 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    const byId8 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
     const already = withAppointmentToday(), used = /* @__PURE__ */ new Set();
     suggestions.centros.forEach((group) => {
       const people = (group.cuentas ?? group.medicos ?? []).filter((person) => !already.has(person.id));
       if (!people.length) return;
       const card4 = cards2.find((element4) => {
-        const appointment = byId4.get(element4.dataset.tdu ?? "");
+        const appointment = byId8.get(element4.dataset.tdu ?? "");
         return appointment !== void 0 && !used.has(element4) && isSameCentre(group, appointment);
       });
       if (!card4) return;
@@ -17973,9 +17999,9 @@
   function markQueuedVisits() {
     const day = legacyAgenda.selectedDate();
     const queued = yourDayLegacy.queuedVisits().filter((item) => item.fn === "registrar_actividad" && item.payload?.p?.fecha === day);
-    const byId4 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    const byId8 = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
     document.querySelectorAll("#agcuerpo .tdu[data-tdu]").forEach((card4) => {
-      const item = byId4.get(card4.dataset.tdu ?? "");
+      const item = byId8.get(card4.dataset.tdu ?? "");
       if (!item) return;
       const pending = queued.some((entry) => entry.payload?.p?.cuenta_id === item.cuenta_id);
       if (card4.classList.contains("tdpend") !== pending) card4.classList.toggle("tdpend", pending);
@@ -18901,6 +18927,663 @@
       const attendee = attendees.find((item) => item.id === row4.dataset.as);
       if (attendee) bindAttendee(row4, attendee, attendees, id);
     });
+  }
+
+  // src/app/screens/settings/shell/index.ts
+  var shell_exports = {};
+  __export(shell_exports, {
+    copyPartStyles: () => copyPartStyles,
+    fitIndex: () => fitIndex,
+    loadSettingsPage: () => loadSettingsPage,
+    markBillingPlan: () => markBillingPlan,
+    markOrderSection: () => markOrderSection,
+    markPlatformPanel: () => markPlatformPanel,
+    markUnsaved: () => markUnsaved,
+    mobileLayout: () => mobileLayout,
+    oldSettingsKey: () => oldSettingsKey,
+    pendingSettings: () => pendingSettings,
+    sleepSection: () => sleepSection,
+    stackSections: () => stackSections,
+    steady: () => steady,
+    wakeSection: () => wakeSection
+  });
+
+  // src/app/legacy/shell-bridge.ts
+  var shellLegacy = {
+    activePanel: () => PANEL_ACTIVO,
+    setActivePanel: (panel) => {
+      PANEL_ACTIVO = panel;
+    },
+    setAdminSection: (section2) => {
+      ADM_SEC = section2;
+    },
+    loadAdmin: () => cargarAdmin(),
+    openingCard: () => Boolean(FX_FICHA),
+    hasPage: (screen2) => Boolean(PAGINAS[screen2]),
+    /** The stacked windows (legado 058 gives the previous one back when the top one closes). */
+    windowStack: () => PILA_VENT,
+    setStacking: (on6) => {
+      APILANDO = on6;
+    },
+    iconOf: (name) => svgIco(ICON_NOM[name ?? ""] ?? ""),
+    tree: () => arbolCfgUnico(),
+    searchWords: (key) => CFG_CLAVES[key] ?? "",
+    normalise: (text5) => impNorm(text5),
+    polish: () => {
+      try {
+        pulirCfg();
+      } catch {
+      }
+    },
+    key: () => CFG_KEY,
+    setKey: (key) => {
+      CFG_KEY = key;
+    },
+    detail: () => CFG_DETALLE,
+    setDetail: (on6) => {
+      CFG_DETALLE = on6;
+    },
+    /** Configuración again, through its global name (other code may wrap it). */
+    reload: () => {
+      void cargarConfig();
+    },
+    planIncludes: (module) => planIncluye(module),
+    planMinimum: (module) => planMinimo(module),
+    currentPlanName: () => planDe(PLAN_ACTUAL.plan).nombre,
+    canManageOrganisation: () => puedeOrganizacion(),
+    canUseModule: (module) => puedeModulo(module),
+    hasDeparture: () => Boolean(prefsActivas().salida),
+    emailSettings: () => RPC_ORIG("correo_config", {}),
+    unsavedCount: () => PAG_SUCIO.size,
+    orderAliases: () => ALIAS_PEDIDOS,
+    orderSectionView: () => pedsecVista(),
+    billingWithoutPlan: () => facSinPlan(),
+    applyMenuPermissions: () => {
+      aplicarPermisosMenu();
+    },
+    platformTab: () => PAG_TAB.delcos ?? "orgs"
+  };
+
+  // src/app/screens/settings/shell/helpers.ts
+  var INDEX_MIN_HEIGHT = 240;
+  var INDEX_BOTTOM_GAP = 12;
+  var OLD_KEYS = {
+    prefs: "rutas.salida",
+    perfil: "datos",
+    datos: "datos",
+    notif: "notif",
+    horario: "rutas.horario",
+    kpis: "inicio.kpis",
+    usuarios: "usuarios",
+    roles: "roles",
+    equipo: "usuarios",
+    reglas: "cartera.reglas",
+    frec: "cartera.frec",
+    accesos: "seguridad.accesos",
+    auditoria: "seguridad.auditoria",
+    alm: "stock.alm",
+    mues: "stock.mues",
+    marca: "o.marca",
+    __empresa: "o.marca",
+    empresa: "o.marca",
+    correo: "o.correo",
+    copias: "o.copias",
+    plan: "o.plan",
+    fact: "o.fiscal",
+    fiscal: "o.fiscal",
+    series: "o.series",
+    vf: "o.vf",
+    pdf: "o.pdf",
+    orgs: "o.orgs"
+  };
+  function oldSettingsKey(section2, part) {
+    if (!section2 || section2 === "__cfg") return "";
+    if (section2 === "equipo") return part === "roles" ? "roles" : "usuarios";
+    if (part) return `${section2}.${part}`;
+    return OLD_KEYS[section2] ?? section2;
+  }
+  function mobileLayout() {
+    const hub = document.querySelector(".cfghub");
+    if (!hub) return;
+    hub.classList.toggle("movil", isMobile());
+    if (!isMobile()) {
+      hub.classList.remove("detalle");
+      return;
+    }
+    const content = document.getElementById("cfgcuerpo-hub");
+    if (content && !content.querySelector(":scope > .cfgvolver")) content.insertAdjacentHTML("afterbegin", `<button class="cfgvolver" type="button">${t("settingsShell.backMobile")}</button>`);
+  }
+  function fitIndex() {
+    const index = document.querySelector("#v-config .cfuidx");
+    if (!index || currentScreen() !== "config" || isMobile()) return;
+    const top = Math.max(0, index.getBoundingClientRect().top);
+    index.style.setProperty("--cfuidxh", `${Math.max(INDEX_MIN_HEIGHT, innerHeight - top - INDEX_BOTTOM_GAP)}px`);
+  }
+  var ACTIVE_BOX = /#cfgcuerpo(?![-\w])/g;
+  var partSelector = (selector) => selector.split(",").filter((piece) => {
+    ACTIVE_BOX.lastIndex = 0;
+    return ACTIVE_BOX.test(piece);
+  }).map((piece) => piece.replace(ACTIVE_BOX, "#cfgcuerpo-hub .cfgsecc")).join(",");
+  var isGroup = (rule) => "cssRules" in rule && (rule instanceof CSSMediaRule || typeof CSSLayerBlockRule !== "undefined" && rule instanceof CSSLayerBlockRule);
+  function copyRules(rules, inside) {
+    for (const rule of [...rules]) {
+      if (isGroup(rule)) {
+        copyRules(rule.cssRules, rule);
+        continue;
+      }
+      if (!(rule instanceof CSSStyleRule) || !rule.selectorText.includes("#cfgcuerpo")) continue;
+      const selector = partSelector(rule.selectorText);
+      if (!selector) continue;
+      const box3 = inside ?? rule.parentStyleSheet;
+      if (!box3) continue;
+      try {
+        box3.insertRule(`${selector}{${rule.style.cssText}}`, [...box3.cssRules].indexOf(rule) + 1);
+      } catch {
+      }
+    }
+  }
+  function copyPartStyles() {
+    for (const sheet of document.styleSheets) {
+      try {
+        if (!sheet.href) copyRules(sheet.cssRules, null);
+      } catch {
+      }
+    }
+  }
+  function markUnsaved() {
+    const count2 = shellLegacy.unsavedCount();
+    ["cfuguardar", "cfudescartar"].forEach((id) => {
+      const button2 = document.getElementById(id);
+      if (button2) button2.disabled = !count2;
+    });
+  }
+  function markOrderSection() {
+    if (currentScreen() !== "ventas") return;
+    const aliases = shellLegacy.orderAliases(), view = shellLegacy.orderSectionView();
+    const alias = Object.keys(aliases).find((key) => aliases[key] === view) ?? "ventas";
+    document.querySelectorAll("nav.main [data-t], #bnav [data-t]").forEach((button2) => {
+      button2.setAttribute("aria-selected", String(button2.dataset.t === alias));
+    });
+  }
+  function markBillingPlan() {
+    document.body.classList.toggle("facsolo", shellLegacy.billingWithoutPlan());
+    try {
+      shellLegacy.applyMenuPermissions();
+    } catch {
+    }
+  }
+  function markPlatformPanel() {
+    const tab = shellLegacy.platformTab();
+    document.querySelectorAll("nav.main [data-t]").forEach((button2) => {
+      if (button2.classList.contains("pdsec") || button2.dataset.t === "delcos") button2.setAttribute("aria-selected", String(button2.dataset.t === `pd-${tab}`));
+    });
+  }
+
+  // src/app/components/embedded-window/panel.ts
+  var PAINT_MAX_MS = 8e3;
+  var REPAINT_DELAY_MS = 60;
+  var SUBNAV_CLEANUP_MS = [300, 1200];
+  var byId = (id) => document.getElementById(id);
+  var settle = (work) => Promise.race([
+    Promise.resolve(work).then(() => void 0, () => void 0),
+    new Promise((done2) => {
+      setTimeout(done2, PAINT_MAX_MS);
+    })
+  ]);
+  function leavePanel() {
+    const active = shellLegacy.activePanel();
+    if (!active) return;
+    if (active.tipo === "dbody") {
+      const panel = document.querySelector("#cfgcuerpo [data-panel]#dbody");
+      if (panel) panel.id = "";
+      const real = byId("dbody-modal");
+      if (real) real.id = "dbody";
+    }
+    if (active.tipo === "admin") {
+      const panel = document.querySelector("#cfgcuerpo [data-panel]#v-admin");
+      if (panel) panel.id = "";
+      const real = byId("v-admin-real");
+      if (real) real.id = "v-admin";
+    }
+    shellLegacy.setActivePanel(null);
+  }
+  function showWindowInPanel(paint20) {
+    leavePanel();
+    const real = byId("dbody");
+    if (real) real.id = "dbody-modal";
+    const box3 = byId("cfgcuerpo");
+    if (box3) box3.innerHTML = '<div id="dbody" data-panel="1" class="cfgpanel card"></div>';
+    shellLegacy.setActivePanel({ tipo: "dbody", refrescar: () => showWindowInPanel(paint20) });
+    return settle(paint20());
+  }
+  var removeSubnavs = () => {
+    document.querySelector("#cfgcuerpo .cfgmod")?.querySelectorAll(".subnav").forEach((subnav) => {
+      subnav.remove();
+    });
+  };
+  function showModuleInPanel(section2) {
+    leavePanel();
+    const real = byId("v-admin");
+    if (real) real.id = "v-admin-real";
+    const box3 = byId("cfgcuerpo");
+    if (box3) box3.innerHTML = '<div id="v-admin" data-panel="1" class="cfgpanel cfgmod"></div>';
+    shellLegacy.setActivePanel({ tipo: "admin" });
+    shellLegacy.setAdminSection(section2);
+    const painted = settle(shellLegacy.loadAdmin());
+    removeSubnavs();
+    SUBNAV_CLEANUP_MS.forEach((ms) => {
+      setTimeout(removeSubnavs, ms);
+    });
+    return painted;
+  }
+  function guardPanelDialog(dialog10) {
+    if (!dialog10) return;
+    const open2 = dialog10.showModal.bind(dialog10), close4 = dialog10.close.bind(dialog10);
+    dialog10.showModal = () => {
+      if (shellLegacy.activePanel()?.tipo === "dbody") return;
+      open2();
+    };
+    dialog10.close = (value26) => {
+      const active = shellLegacy.activePanel();
+      if (active?.tipo === "dbody" && !dialog10.open) {
+        setTimeout(() => {
+          if (shellLegacy.activePanel() === active) void active.refrescar?.();
+        }, REPAINT_DELAY_MS);
+        return;
+      }
+      close4(value26);
+    };
+  }
+
+  // src/app/screens/settings/shell/pending.ts
+  var CACHE_MS = 6e4;
+  var DAY_MS5 = 864e5;
+  var BACKUP_MAX_DAYS = 7;
+  var BACKUP_ACTION = "Copia de seguridad";
+  var cached = { at: 0, list: {} };
+  async function backupNotice() {
+    const { data } = await legacyDb().from("auditoria").select("creado_en").eq("accion", BACKUP_ACTION).order("creado_en", { ascending: false }).limit(1);
+    const last = data?.[0];
+    if (!last) return t("settingsShell.pending.noBackup");
+    const days = Math.floor((Date.now() - new Date(last.creado_en).getTime()) / DAY_MS5);
+    return days > BACKUP_MAX_DAYS ? t("settingsShell.pending.oldBackup", { days }) : null;
+  }
+  async function organisationNotices(list) {
+    try {
+      const { data } = await shellLegacy.emailSettings();
+      if (!data?.host) list["o.correo"] = t("settingsShell.pending.noEmail");
+    } catch {
+    }
+    try {
+      const notice = await backupNotice();
+      if (notice) list["o.copias"] = notice;
+    } catch {
+    }
+  }
+  async function pendingSettings() {
+    if (Date.now() - cached.at < CACHE_MS) return cached.list;
+    const list = {};
+    try {
+      if (!shellLegacy.hasDeparture() && shellLegacy.canUseModule("agenda")) list["rutas.salida"] = t("settingsShell.pending.noDeparture");
+    } catch {
+    }
+    if (shellLegacy.canManageOrganisation()) await organisationNotices(list);
+    cached = { at: Date.now(), list };
+    return list;
+  }
+
+  // src/app/screens/settings/shell/sections.ts
+  var SECTION_IDS = ["fcuerpo", "dbody", "v-admin"];
+  var STEADY_QUIET_MS = 150;
+  var STEADY_FIRST_MS = 200;
+  var STEADY_DEFAULT_MAX_MS = 5e3;
+  var PART_MAX_MS = 4e3;
+  var activeSection = null;
+  var byId2 = (id) => document.getElementById(id);
+  function forgetActiveSection() {
+    activeSection = null;
+  }
+  function sleepSection(section2) {
+    section2.querySelectorAll(SECTION_IDS.map((id) => `#${id}`).join(",")).forEach((element4) => {
+      element4.dataset.idd = element4.id;
+      element4.removeAttribute("id");
+    });
+    const content = section2.querySelector(":scope > .cfgsecc");
+    if (content?.id === "cfgcuerpo") content.removeAttribute("id");
+  }
+  function wakeSection(section2) {
+    if (!section2 || activeSection === section2) return;
+    document.querySelectorAll("#cfgcuerpo-hub .cfgsec").forEach((other) => {
+      if (other !== section2) sleepSection(other);
+    });
+    const old = byId2("cfgcuerpo");
+    if (old && !section2.contains(old)) old.removeAttribute("id");
+    const content = section2.querySelector(":scope > .cfgsecc");
+    if (content) content.id = "cfgcuerpo";
+    section2.querySelectorAll("[data-idd]").forEach((element4) => {
+      element4.id = element4.dataset.idd ?? "";
+      delete element4.dataset.idd;
+    });
+    if (section2.__panel) {
+      const modal = document.querySelector("dialog #dbody");
+      if (modal) modal.id = "dbody-modal";
+      shellLegacy.setActivePanel(section2.__panel);
+    } else {
+      const modal = byId2("dbody-modal");
+      if (modal && !document.querySelector("#dbody")) modal.id = "dbody";
+      shellLegacy.setActivePanel(null);
+    }
+    activeSection = section2;
+    shellLegacy.setKey(section2.dataset.cfgsec ?? "");
+  }
+  var steady = (element4, max = STEADY_DEFAULT_MAX_MS) => new Promise((done2) => {
+    const timers = {};
+    const observer = new MutationObserver(() => {
+      clearTimeout(timers.quiet);
+      timers.quiet = setTimeout(ready2, STEADY_QUIET_MS);
+    });
+    function ready2() {
+      if (element4.querySelector(".cfgcarga, .giro, .spin")) {
+        timers.quiet = setTimeout(ready2, STEADY_QUIET_MS);
+        return;
+      }
+      observer.disconnect();
+      clearTimeout(timers.limit);
+      done2();
+    }
+    observer.observe(element4, { childList: true, subtree: true, attributes: true });
+    timers.quiet = setTimeout(ready2, STEADY_FIRST_MS);
+    timers.limit = setTimeout(() => {
+      observer.disconnect();
+      clearTimeout(timers.quiet);
+      done2();
+    }, max);
+  });
+  var partsHtml = (parts) => `<div class="cfgsecs" hidden>${parts.map((part) => `<section class="cfgsec" data-cfgsec="${part.k}"><h3 class="cfgsectit">${escapeHtml(part.t)}</h3><div class="cfgsecc"></div></section>`).join("")}</div><div class="cfgcarga cargandolocal"><span class="giro"></span> ${t("settingsShell.loading")}</div>`;
+  async function paintPart(section2, part) {
+    section2.__panel = null;
+    shellLegacy.setActivePanel(null);
+    const modal = byId2("dbody-modal");
+    if (modal && !document.querySelector("#dbody")) modal.id = "dbody";
+    wakeSection(section2);
+    try {
+      await part.r();
+    } catch {
+    }
+    await steady(section2, PART_MAX_MS);
+    if (shellLegacy.activePanel() && section2.querySelector("[data-panel]")) section2.__panel = shellLegacy.activePanel();
+    shellLegacy.polish();
+    if ([...section2.querySelectorAll(".cfgsecc h2")].some((title2) => title2.offsetParent)) {
+      const own = section2.querySelector(".cfgsectit");
+      if (own) own.hidden = true;
+    }
+    activeSection = null;
+  }
+  function showParts(hub, focus, notFirst) {
+    const box3 = hub.querySelector(".cfgsecs");
+    if (box3) box3.hidden = false;
+    hub.querySelector(":scope > .cfgcarga")?.remove();
+    const first2 = (focus && hub.querySelector(`.cfgsec[data-cfgsec="${focus.k}"]`)) ?? hub.querySelector(".cfgsec");
+    wakeSection(first2);
+    if (focus && notFirst && first2) first2.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+  async function stackSections(item, focus) {
+    const hub = byId2("cfgcuerpo-hub");
+    if (!hub) return;
+    const parts = item.hijos ?? [];
+    activeSection = null;
+    hub.innerHTML = partsHtml(parts);
+    hub.dataset.apilado = "1";
+    for (const section2 of hub.querySelectorAll(".cfgsec")) {
+      if (!hub.isConnected) return;
+      const part = parts.find((candidate) => candidate.k === section2.dataset.cfgsec);
+      if (part) await paintPart(section2, part);
+    }
+    showParts(hub, focus, focus !== parts[0]);
+  }
+
+  // src/app/screens/settings/shell/page.ts
+  var SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+  var DEFAULT_KEY = "datos";
+  var PLAN_KEY = "o.plan";
+  var byId3 = (id) => document.getElementById(id);
+  var leavesOf = (tree) => tree.flatMap(([group, items]) => items.map((item) => ({ gr: group, ...item })));
+  function chosenLeaf(leaves, asked) {
+    return leaves.find((leaf) => leaf.k === asked) ?? leaves.find((leaf) => leaf.hijos?.some((part) => part.k === asked)) ?? leaves.find((leaf) => asked.startsWith(`${leaf.k}.`)) ?? leaves.find((leaf) => leaf.k === DEFAULT_KEY) ?? leaves[0];
+  }
+  function planPill(item) {
+    if (!item.mod || shellLegacy.planIncludes(item.mod)) return "";
+    return `<span class="pill p-plan">${escapeHtml(shellLegacy.planMinimum(item.mod)?.nombre ?? t("settingsShell.plan"))}</span>`;
+  }
+  function indexHtml(tree) {
+    const index = tree.map(([group, items]) => `<h4>${escapeHtml(group)}</h4>${items.map((item) => `<button type="button" data-ck="${item.k}">${shellLegacy.iconOf(item.ic)}<span>${escapeHtml(item.t)}</span>${planPill(item)}</button>`).join("")}`).join("");
+    return `<div class="saludo"><div><h1>${t("settingsShell.title")}</h1><div class="fecha">${t(tree.length > 1 ? "settingsShell.subtitleAll" : "settingsShell.subtitleOwn")}</div></div></div>
+      <div class="cfu">
+        <nav class="cfuidx" aria-label="${t("settingsShell.sections")}"><div class="cfubusca">${SEARCH_ICON}<input id="cfubus" type="search" placeholder="${t("settingsShell.search")}" autocomplete="off" aria-label="${t("settingsShell.search")}"></div>
+          <div id="cfulista">${index}</div><div class="cfusin hide" id="cfusin">${t("settingsShell.noResults")}</div></nav>
+        <section class="cfupag"><button type="button" class="cfuvolver manvuelta" id="cfuvolver" aria-label="${t("settingsShell.backToSettings")}"><b aria-hidden="true">‹</b> ${t("settingsShell.back")}</button>
+          <div class="cfucab"></div><div class="cfupend hide" id="cfupend"></div>
+          <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
+  }
+  function searchText2(key) {
+    const leaf = leavesOf(shellLegacy.tree()).find((candidate) => candidate.k === key);
+    if (!leaf) return shellLegacy.normalise("");
+    const parts = (leaf.hijos ?? []).map((part) => `${part.t} ${shellLegacy.searchWords(part.k)}`).join(" ");
+    return shellLegacy.normalise([leaf.t, leaf.gr, leaf.d, parts, shellLegacy.searchWords(leaf.k)].join(" "));
+  }
+  function filterIndex(view, query) {
+    let shown5 = 0;
+    view.querySelectorAll("#cfulista [data-ck]").forEach((button2) => {
+      const text5 = searchText2(button2.dataset.ck ?? ""), found = !query || query.split(/\s+/).every((word) => text5.includes(word));
+      button2.classList.toggle("hide", !found);
+      if (found) shown5++;
+    });
+    view.querySelectorAll("#cfulista h4").forEach((heading) => {
+      let next = heading.nextElementSibling, any = false;
+      while (next && next.tagName !== "H4") {
+        if (next.matches("[data-ck]:not(.hide)")) any = true;
+        next = next.nextElementSibling;
+      }
+      heading.classList.toggle("hide", Boolean(query) && !any);
+    });
+    byId3("cfusin")?.classList.toggle("hide", shown5 > 0);
+  }
+  function bindIndex(view) {
+    view.querySelectorAll("#cfulista [data-ck]").forEach((button2) => {
+      button2.onclick = () => {
+        shellLegacy.setKey(button2.dataset.ck ?? "");
+        shellLegacy.setDetail(true);
+        shellLegacy.reload();
+        if (isMobile()) scrollTo(0, 0);
+      };
+    });
+    const back = byId3("cfuvolver");
+    if (back) back.onclick = () => {
+      shellLegacy.setDetail(false);
+      view.querySelector(".cfu")?.classList.remove("det");
+      scrollTo(0, 0);
+    };
+    const search7 = byId3("cfubus");
+    if (!search7) return;
+    search7.oninput = () => {
+      filterIndex(view, shellLegacy.normalise(search7.value.trim()));
+    };
+    search7.onkeydown = (event) => {
+      if (event.key !== "Enter") return;
+      const first2 = view.querySelector("#cfulista [data-ck]:not(.hide)");
+      if (first2) {
+        event.preventDefault();
+        first2.click();
+      }
+    };
+  }
+  function showPending(view) {
+    void pendingSettings().then((list) => {
+      if (!byId3("cfulista")) return;
+      Object.entries(list).forEach(([key, text5]) => {
+        const button2 = [...view.querySelectorAll("#cfulista [data-ck]")].find((candidate) => key === candidate.dataset.ck || key.startsWith(`${candidate.dataset.ck ?? ""}.`));
+        if (button2 && !button2.querySelector(".cfupt")) {
+          button2.insertAdjacentHTML("beforeend", '<span class="cfupt"></span>');
+          button2.title = text5;
+        }
+      });
+      const notice = byId3("cfupend"), own = list[shellLegacy.key()];
+      if (own && notice) {
+        notice.innerHTML = `<span class="cfupt"></span>${escapeHtml(own)}`;
+        notice.classList.remove("hide");
+      }
+    });
+  }
+  function showPlanNeeded(item) {
+    const box3 = byId3("cfgcuerpo");
+    if (!box3 || !item.mod) return;
+    const plan3 = shellLegacy.planMinimum(item.mod);
+    box3.innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${shellLegacy.iconOf("lock")}</div><h2>${escapeHtml(t("settingsShell.inPlan", { section: item.t, plan: plan3?.nombre ?? t("settingsShell.customPlan") }))}</h2>
+      <p class="sm">${escapeHtml(t("settingsShell.notIncluded", { plan: shellLegacy.currentPlanName() }))}</p>${shellLegacy.canManageOrganisation() ? `<div class="acts"><button class="btn" id="planver">${t("settingsShell.seePlans")}</button></div>` : ""}</div>`;
+    const see = byId3("planver");
+    if (see) see.onclick = () => {
+      shellLegacy.setKey(PLAN_KEY);
+      shellLegacy.reload();
+    };
+  }
+  function paintIndexIfChanged(view, tree, leaves) {
+    const mobile = isMobile();
+    const signature = `${leaves.map((leaf) => leaf.k + (leaf.hijos ? `(${leaf.hijos.map((part) => part.k).join(",")})` : "")).join("|")}|${String(mobile)}`;
+    if (view.dataset.cfgfirma === signature && byId3("cfulista") && view.querySelector(".cfupag")) return;
+    view.innerHTML = indexHtml(tree);
+    view.dataset.cfgfirma = signature;
+    bindIndex(view);
+    fitIndex();
+  }
+  function paintHeader2(view, leaf) {
+    view.querySelector(".cfu")?.classList.toggle("det", isMobile() && shellLegacy.detail());
+    view.querySelectorAll("#cfulista [data-ck]").forEach((button2) => {
+      button2.classList.toggle("on", button2.dataset.ck === leaf.k);
+    });
+    const head = view.querySelector(".cfucab");
+    if (head) head.innerHTML = `<div class="miga">${escapeHtml(leaf.gr)}</div><h2>${escapeHtml(leaf.t)}</h2>${leaf.d ? `<p>${escapeHtml(leaf.d)}</p>` : ""}`;
+    const pending = byId3("cfupend");
+    if (pending) {
+      pending.classList.add("hide");
+      pending.innerHTML = "";
+    }
+    const hub = byId3("cfgcuerpo-hub");
+    if (hub) hub.innerHTML = '<div id="cfgcuerpo"></div>';
+  }
+  function paintPage() {
+    leavePanel();
+    const tree = shellLegacy.tree(), leaves = leavesOf(tree);
+    const leaf = chosenLeaf(leaves, shellLegacy.key() || DEFAULT_KEY), view = byId3("v-config");
+    if (!leaf || !view) return;
+    const part = leaf.hijos ? leaf.hijos.find((candidate) => candidate.k === shellLegacy.key()) ?? leaf.hijos[0] ?? null : null;
+    shellLegacy.setKey(part ? part.k : leaf.k);
+    paintIndexIfChanged(view, tree, leaves);
+    paintHeader2(view, leaf);
+    showPending(view);
+    if (leaf.mod && !shellLegacy.planIncludes(leaf.mod)) {
+      showPlanNeeded(leaf);
+      return;
+    }
+    const paint20 = leaf.hijos ? () => stackSections(leaf, part) : leaf.r;
+    if (paint20) void Promise.resolve().then(paint20);
+  }
+  function leaveStackedParts() {
+    const hub = byId3("cfgcuerpo-hub");
+    if (!hub?.dataset.apilado) return;
+    hub.querySelectorAll("[data-idd]").forEach((element4) => {
+      element4.removeAttribute("data-idd");
+    });
+    const modal = byId3("dbody-modal");
+    if (modal) {
+      document.querySelector("#dbody[data-panel]")?.removeAttribute("id");
+      modal.id = "dbody";
+    }
+    shellLegacy.setActivePanel(null);
+    forgetActiveSection();
+    delete hub.dataset.apilado;
+  }
+  function loadSettingsPage() {
+    leaveStackedParts();
+    paintPage();
+    return Promise.resolve();
+  }
+
+  // src/app/components/embedded-window/index.ts
+  var embedded_window_exports = {};
+  __export(embedded_window_exports, {
+    EMBED_MIN_WIDTH: () => EMBED_MIN_WIDTH,
+    WIDE_WINDOWS: () => WIDE_WINDOWS,
+    closeEmbedded: () => closeEmbedded,
+    embedArea: () => embedArea,
+    guardPanelDialog: () => guardPanelDialog,
+    leavePanel: () => leavePanel,
+    openStacked: () => openStacked,
+    placeEmbedded: () => placeEmbedded,
+    returnEmbedded: () => returnEmbedded,
+    showModuleInPanel: () => showModuleInPanel,
+    showWindowInPanel: () => showWindowInPanel,
+    withDialogLoading: () => withDialogLoading
+  });
+
+  // src/app/components/embedded-window/embed.ts
+  var WIDE_WINDOWS = ["editorPedido", "verPedido", "editorCompra", "verFactura"];
+  var EMBED_MIN_WIDTH = 900;
+  var byId4 = (id) => document.getElementById(id);
+  function embedArea() {
+    if (shellLegacy.openingCard() || innerWidth < EMBED_MIN_WIDTH) return null;
+    const screen2 = currentScreen();
+    if (screen2 === "config") return byId4("cfgcuerpo-hub") ?? byId4("cfgcuerpo");
+    if (shellLegacy.hasPage(screen2)) return document.querySelector(`#v-${screen2} .pagcuerpo`) ?? byId4("cfgcuerpo");
+    return null;
+  }
+  var fixedBottom = (selector) => {
+    const element4 = document.querySelector(selector);
+    return element4 && /fixed|sticky/.test(getComputedStyle(element4).position) ? element4.getBoundingClientRect().bottom : 0;
+  };
+  function placeEmbedded() {
+    const selectors = ["header", ".top", document.body.classList.contains("menulat") ? "" : "nav.main"].filter(Boolean);
+    document.documentElement.style.setProperty("--alto-cab", `${Math.max(0, ...selectors.map(fixedBottom))}px`);
+  }
+  function returnEmbedded(dialog10) {
+    if (dialog10.__casa && dialog10.parentNode !== dialog10.__casa) dialog10.__casa.appendChild(dialog10);
+  }
+  function closeEmbedded() {
+    ["dlg2", "dlg"].forEach((id) => {
+      const dialog10 = byId4(id);
+      if (dialog10?.open && dialog10.classList.contains("encajada")) dialog10.close();
+    });
+  }
+  async function withDialogLoading(work) {
+    const dialog10 = byId4("dlg");
+    dialog10?.classList.add("cargando");
+    try {
+      return await work();
+    } finally {
+      dialog10?.classList.remove("cargando");
+    }
+  }
+  async function openStacked(paint20, backText) {
+    const dialog10 = byId4("dlg"), body2 = byId4("dbody");
+    if (!dialog10 || !body2) return;
+    shellLegacy.windowStack().push({ nodos: [...body2.childNodes], clases: dialog10.className, titulo: backText });
+    shellLegacy.setStacking(true);
+    const keep = document.createDocumentFragment();
+    [...body2.childNodes].forEach((node) => {
+      keep.appendChild(node);
+    });
+    if (dialog10.open) dialog10.close();
+    try {
+      await paint20();
+    } finally {
+      shellLegacy.setStacking(false);
+    }
+    if (!dialog10.open) dialog10.showModal();
+    const head = body2.querySelector(".fh");
+    if (head && !body2.querySelector(".pilavolver")) head.insertAdjacentHTML("beforebegin", `<button class="pilavolver" type="button">${shellLegacy.iconOf("arrow-left")} ${escapeHtml(orFallback(backText, t("common.back")))}</button>`);
+    const back = body2.querySelector(".pilavolver");
+    if (back) back.onclick = () => {
+      dialog10.close();
+    };
   }
 
   // src/app/screens/settings/rest/index.ts
@@ -20284,12 +20967,12 @@
 
   // src/app/screens/settings/plan/page.ts
   var REQUEST_SHOWN_DAYS = 30;
-  var DAY_MS5 = 864e5;
+  var DAY_MS6 = 864e5;
   async function lastRequest() {
     try {
       const { data } = await legacyDb().from("solicitudes_plan").select("creado_en,estado,tipo").order("creado_en", { ascending: false }).limit(1);
       const request2 = (data ?? [])[0];
-      return request2 && (request2.estado !== "Cerrada" || Date.now() - new Date(request2.creado_en).getTime() < REQUEST_SHOWN_DAYS * DAY_MS5) ? request2 : null;
+      return request2 && (request2.estado !== "Cerrada" || Date.now() - new Date(request2.creado_en).getTime() < REQUEST_SHOWN_DAYS * DAY_MS6) ? request2 : null;
     } catch {
       return null;
     }
@@ -20717,7 +21400,7 @@
 
   // src/app/screens/settings/more/access-log.ts
   var MINUTE_MS = 6e4;
-  var DAY_MS6 = 864e5;
+  var DAY_MS7 = 864e5;
   var NOW_MINUTES = 5;
   var HOUR_MINUTES = 60;
   var AGENT_LENGTH = 60;
@@ -20727,7 +21410,7 @@
     const time = date.toLocaleTimeString(locale2, { hour: "2-digit", minute: "2-digit" });
     const today = /* @__PURE__ */ new Date();
     today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today.getTime() - DAY_MS6);
+    const yesterday = new Date(today.getTime() - DAY_MS7);
     if (minutes2 < NOW_MINUTES) return t("settingsMore.access.now");
     if (minutes2 < HOUR_MINUTES) return t("settingsMore.access.minutesAgo", { minutes: minutes2 });
     if (date >= today) return t("settingsMore.access.todayAt", { time });
@@ -21381,7 +22064,7 @@
 
   // src/app/screens/settings/users/list.ts
   var INACTIVE_DAYS = 30;
-  var DAY_MS7 = 864e5;
+  var DAY_MS8 = 864e5;
   var matches = (user) => {
     const query = userFilters.q.toLowerCase(), text5 = `${user.nombre} ${user.email ?? ""} ${user.medico ?? user.cuenta ?? ""}`.toLowerCase();
     const state2 = userFilters.est === "todos" || (userFilters.est === "activos" ? Boolean(user.activo) : !user.activo);
@@ -21453,7 +22136,7 @@
   }
   function kpisHtml2(all2) {
     const plan3 = planLegacy.of(planLegacy.current().plan), max = planLegacy.contractedUsers();
-    const active = all2.filter((user) => user.activo && !isPrescriber(user)), since = Date.now() - INACTIVE_DAYS * DAY_MS7;
+    const active = all2.filter((user) => user.activo && !isPrescriber(user)), since = Date.now() - INACTIVE_DAYS * DAY_MS8;
     const inactive = active.filter((user) => !user.ultima_actividad || new Date(user.ultima_actividad).getTime() < since).length;
     const byRole = /* @__PURE__ */ new Map();
     active.forEach((user) => {
@@ -21987,12 +22670,12 @@
   }
 
   // src/app/screens/settings/notifications/model.ts
-  var DAY_MS8 = 864e5;
+  var DAY_MS9 = 864e5;
   var WEEK_DAYS5 = 7;
   function dayGroup(isoDate) {
     const date = new Date(isoDate), today = /* @__PURE__ */ new Date();
     today.setHours(0, 0, 0, 0);
-    const days = Math.round((today.getTime() - new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()) / DAY_MS8);
+    const days = Math.round((today.getTime() - new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()) / DAY_MS9);
     if (days <= 0) return "today";
     if (days === 1) return "yesterday";
     return days < WEEK_DAYS5 ? "week" : "before";
@@ -23458,16 +24141,16 @@
 
   // src/app/components/list-bar/configs/grid.ts
   var COLUMNS_DELAY_MS = 80;
-  var byId = (id) => id ? document.getElementById(id) : null;
+  var byId5 = (id) => id ? document.getElementById(id) : null;
   var gridOf2 = (tab) => document.querySelector(`#v-${tab} .dgrid`);
-  function searchText2(options4) {
-    const input10 = byId(options4.buscador);
+  function searchText3(options4) {
+    const input10 = byId5(options4.buscador);
     if (input10) return input10.value || "";
     const grid = gridOf2(options4.tab);
     return grid ? listBarLegacy.tableFilters()[tableKind(grid)]?.texto ?? "" : "";
   }
   function search4(options4, value26) {
-    const input10 = byId(options4.buscador);
+    const input10 = byId5(options4.buscador);
     if (input10) {
       input10.value = value26;
       input10.dispatchEvent(new Event("input", { bubbles: true }));
@@ -23507,13 +24190,13 @@
   var gridConfig = (options4) => Object.assign({
     rejilla: true,
     nuevo: () => document.querySelector(`#v-${options4.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) ?? document.querySelector(`#v-${options4.tab} .fab`),
-    cuerpo: () => byId(options4.lista),
-    tabla: () => byId(options4.lista) ?? document.querySelector(`#v-${options4.tab} .dgrid-wrap`),
-    pie: () => byId(options4.pag),
+    cuerpo: () => byId5(options4.lista),
+    tabla: () => byId5(options4.lista) ?? document.querySelector(`#v-${options4.tab} .dgrid-wrap`),
+    pie: () => byId5(options4.pag),
     cuenta: () => null,
     conDatos: (element4) => Boolean(element4.querySelector(".dgrid, .vacio")),
     rapidos: [],
-    q: () => searchText2(options4),
+    q: () => searchText3(options4),
     buscarQ: (value26) => {
       search4(options4, value26);
     },
@@ -23606,7 +24289,7 @@
   var TOTAL = "tot";
   var COMPANIES = "emp";
   var COMPANY = "Empresa";
-  var byId2 = (id) => document.getElementById(id);
+  var byId6 = (id) => document.getElementById(id);
   async function indicators() {
     const count2 = (filters) => Promise.resolve(listBarLegacy.countRows("clientes_lista", {
       q: null,
@@ -23638,18 +24321,18 @@
       filters.pedidos = "";
     } else if (key === COMPANIES) filters.tipo = filters.tipo === COMPANY ? "" : COMPANY;
     else filters.pedidos = filters.pedidos === key ? "" : key;
-    const type = byId2("pactipo");
+    const type = byId6("pactipo");
     if (type) type.value = filters.tipo ?? "";
-    const orders2 = byId2("pacped");
+    const orders2 = byId6("pacped");
     if (orders2) orders2.value = filters.pedidos ?? "";
     filters.pagina = 0;
     listBarLegacy.searchCustomers();
   }
   function openColumns2() {
     const open2 = () => {
-      byId2("tools")?.querySelector(".t2abrir")?.click();
+      byId6("tools")?.querySelector(".t2abrir")?.click();
     };
-    const tools = byId2("tools");
+    const tools = byId6("tools");
     if (tools?.classList.contains("abierto") && tools.querySelector(".t2abrir")) {
       open2();
       return;
@@ -23665,17 +24348,17 @@
   }
   var customersConfig = () => ({
     que: () => t("listBar.customers.what"),
-    nuevo: () => byId2("pacnuevo"),
-    cuerpo: () => byId2("paclista"),
-    tabla: () => byId2("paclista"),
-    pie: () => byId2("pacpag"),
-    cuenta: () => byId2("paccuenta"),
+    nuevo: () => byId6("pacnuevo"),
+    cuerpo: () => byId6("paclista"),
+    tabla: () => byId6("paclista"),
+    pie: () => byId6("pacpag"),
+    cuenta: () => byId6("paccuenta"),
     conDatos: (element4) => Boolean(element4.querySelector(".dgrid, .vacio")),
     rapidos: [["pactipo", t("listBar.customers.type")], ["pacped", t("listBar.customers.orders")], ["pacmun", t("listBar.customers.town")]],
     q: () => listBarLegacy.customerFilters().q || "",
     // v2.249.0: the bar's search searches directly (before, it went through the hidden field and waited twice)
     buscarQ: (value26) => {
-      const input10 = byId2("pacq");
+      const input10 = byId6("pacq");
       if (input10) input10.value = value26;
       const filters = listBarLegacy.customerFilters();
       filters.q = value26.trim();
@@ -23704,7 +24387,7 @@
   var SELECT_FILTERS = ["tipo", "prov", "muni", "esp", "est", "rep", "com"];
   var FLAG_FILTERS = ["urg", "mios", "sin"];
   var FIELD_IDS = ["ftipo", "fest", "fprov", "fmuni", "fesp", "fcom", "frep", "q"];
-  var byId3 = (id) => document.getElementById(id);
+  var byId7 = (id) => document.getElementById(id);
   function activeFilters() {
     const filters = listBarLegacy.accountFilters();
     return SELECT_FILTERS.filter((key) => filters[key]).length + FLAG_FILTERS.filter((key) => filters[key]).length + Object.values(filters.campos ?? {}).filter(filterHasValue).length;
@@ -23712,10 +24395,10 @@
   function clearFilters() {
     Object.assign(listBarLegacy.accountFilters(), { q: "", tipo: "", prov: "", muni: "", esp: "", est: "", urg: false, mios: false, sin: false, com: "", rep: "", campos: {} });
     FIELD_IDS.forEach((id) => {
-      const field19 = byId3(id);
+      const field19 = byId7(id);
       if (field19) field19.value = "";
     });
-    const tools = byId3("tools");
+    const tools = byId7("tools");
     if (tools?.classList.contains("abierto") && listBarLegacy.toolsContext() === "directorio") tools.classList.remove("abierto");
     listBarLegacy.loadAccountFilters();
     listBarLegacy.searchAccounts(true);
@@ -23736,19 +24419,19 @@
     const filters = listBarLegacy.accountFilters();
     if (isType(key)) {
       filters.tipo = filters.tipo === key ? "" : key;
-      const select3 = byId3("ftipo");
+      const select3 = byId7("ftipo");
       if (select3) select3.value = filters.tipo;
     } else filters[key] = !filters[key];
     listBarLegacy.searchAccounts(true);
   }
   var directoryConfig = () => ({
     que: () => term("medico", { number: "p" }),
-    nuevo: () => byId3("nuevoBtn"),
+    nuevo: () => byId7("nuevoBtn"),
     textoNuevo: () => t("listBar.directory.add", { professional: term("medico") }),
-    cuerpo: () => byId3("lista"),
-    tabla: () => byId3("tabla"),
-    pie: () => byId3("dirpag"),
-    cuenta: () => byId3("cuenta"),
+    cuerpo: () => byId7("lista"),
+    tabla: () => byId7("tabla"),
+    pie: () => byId7("dirpag"),
+    cuenta: () => byId7("cuenta"),
     conDatos: (element4) => Boolean(element4.querySelector(".trow, .vacio")),
     rapidos: [["ftipo", t("listBar.directory.type")], ["fest", t("listBar.directory.state")], ["fcom", ""], ["fprov", t("listBar.directory.province")], ["fmuni", t("listBar.directory.municipality")], ["fesp", t("listBar.directory.speciality")]],
     q: () => listBarLegacy.accountFilters().q || "",
@@ -23763,12 +24446,12 @@
     activos: activeFilters,
     quitar: clearFilters,
     filtros: () => {
-      byId3("dirtools")?.click();
+      byId7("dirtools")?.click();
     },
     columnas: () => {
       listBarLegacy.openAccountColumns();
     },
-    mapa: () => byId3("mapaBtn"),
+    mapa: () => byId7("mapaBtn"),
     mas: () => [["dircalidad", t("listBar.directory.quality")], ["cercaBtn", t("listBar.directory.nearby")]],
     kpis: indicators2,
     kpiOn: (key) => isType(key) ? listBarLegacy.accountFilters().tipo === key : Boolean(listBarLegacy.accountFilters()[key]),
@@ -24676,11 +25359,11 @@
   }
 
   // src/app/screens/settings/more/backups.ts
-  var DAY_MS9 = 864e5;
+  var DAY_MS10 = 864e5;
   var STALE_DAYS = 7;
   var REPAINT_MS = 800;
   function stateHtml2(last) {
-    const days = last ? Math.floor((Date.now() - last.getTime()) / DAY_MS9) : null, stale = days === null || days > STALE_DAYS;
+    const days = last ? Math.floor((Date.now() - last.getTime()) / DAY_MS10) : null, stale = days === null || days > STALE_DAYS;
     const title2 = last ? t("settingsMore.backups.last", { date: last.toLocaleString(t("dates.locale"), { dateStyle: "long", timeStyle: "short" }) }) : t("settingsMore.backups.none");
     const hint = days === null ? t("settingsMore.backups.makeFirst") : days > STALE_DAYS ? t("settingsMore.backups.stale", { days }) : t("settingsMore.backups.upToDate");
     return `<div class="copiaest ${stale ? "mal" : "bien"}"><b>${title2}</b>
@@ -25119,7 +25802,7 @@
     </div>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="dtok">${t("common.save")}</button></div>`;
   }
-  function showParts() {
+  function showParts2() {
     const type = valueOf6("dtt");
     field8("dtcfg")?.classList.toggle("hide", !type);
     field8("dtlw")?.classList.toggle("hide", type !== LIST3);
@@ -25145,8 +25828,8 @@
     if (!body2) return;
     body2.innerHTML = editorHtml7(value26);
     const type = field8("dtt");
-    if (type) type.onchange = showParts;
-    showParts();
+    if (type) type.onchange = showParts2;
+    showParts2();
     const ok = field8("dtok");
     if (ok) ok.onclick = () => {
       void save15(value26, onSave);
@@ -29819,8 +30502,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var AMOUNT_LABEL = /importe|precio|total|base|coste/i;
   var VAT_LABEL = /^IVA(\s*\(%\)|\s+del servicio(\s*\(%\))?|\s+%)?$|tipo de iva/i;
   function labelOf2(input10) {
-    const byId4 = input10.id ? document.querySelector(`label[for="${input10.id}"]`) ?? document.querySelector(`label[for="${input10.id}_sel"]`) : null;
-    return (byId4 ?? input10.closest("label"))?.textContent?.trim() ?? "";
+    const byId8 = input10.id ? document.querySelector(`label[for="${input10.id}"]`) ?? document.querySelector(`label[for="${input10.id}_sel"]`) : null;
+    return (byId8 ?? input10.closest("label"))?.textContent?.trim() ?? "";
   }
   function isVatPercentField(input10) {
     if (input10.dataset.ivaok) return input10.dataset.ivaok === "1";
@@ -29864,7 +30547,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   };
 
   // src/app/screens/orders/subscription/company-billing.ts
-  var DAY_MS10 = 864e5;
+  var DAY_MS11 = 864e5;
   var MINUTE_MS2 = 6e4;
   var HOUR_MINUTES2 = 60;
   var DAY_MINUTES3 = 1440;
@@ -29873,7 +30556,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var SKELETON_TILES = 4;
   var until = (isoDate) => isoDate ? t("ordersMore.billing.until", { date: platformLegacy.shortDate(isoDate) }) : "";
   function unpaid(plan3) {
-    const days = plan3.impago_desde ? Math.round((Date.now() - (/* @__PURE__ */ new Date(`${plan3.impago_desde}T12:00:00`)).getTime()) / DAY_MS10) : 0;
+    const days = plan3.impago_desde ? Math.round((Date.now() - (/* @__PURE__ */ new Date(`${plan3.impago_desde}T12:00:00`)).getTime()) / DAY_MS11) : 0;
     return [t("ordersMore.billing.unpaid"), "p-urg", days >= GRACE_DAYS ? t("ordersMore.billing.readOnlySince", { count: days - GRACE_DAYS }) : t("ordersMore.billing.graceLeft", { count: GRACE_DAYS - days })];
   }
   function withoutCard(plan3) {
@@ -34644,9 +35327,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var MATERIALS_FRESH_MS = 3e5;
   var showing = null;
   async function loadMaterials(force = false) {
-    const cached = visitLegacy.materials();
-    if (cached && !force && Date.now() - visitLegacy.materialsTime() < MATERIALS_FRESH_MS) return cached;
-    if (!navigator.onLine) return cached ?? [];
+    const cached2 = visitLegacy.materials();
+    if (cached2 && !force && Date.now() - visitLegacy.materialsTime() < MATERIALS_FRESH_MS) return cached2;
+    if (!navigator.onLine) return cached2 ?? [];
     try {
       const { data, error } = await legacyDb().from("producto_materiales").select("id,producto_id,nombre,tipo,orden,para_portal").order("orden").order("creado_en");
       if (!error) visitLegacy.setMaterials(data ?? [], Date.now());
@@ -35478,7 +36161,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const count2 = shown5.length === 1 ? t("commissions.page.oneSettlement") : t("commissions.page.settlementsCount", { count: formatNumber(shown5.length) });
     return t("commissions.page.summary", { settlements: count2, units: formatNumber(units2), amount: formatCurrency(total2) }) + (unpaid2 && unpaid2 !== total2 ? t("commissions.page.unpaid", { amount: formatCurrency(unpaid2) }) : "");
   }
-  async function settle(button2, repaint5) {
+  async function settle2(button2, repaint5) {
     const [user = "", period = "", state2 = ""] = (button2.dataset.liq ?? "").split("|"), approve = state2 === SETTLEMENT.approved;
     if (!await notices.confirm(
       t(approve ? "commissions.page.approveText" : "commissions.page.payText"),
@@ -35496,7 +36179,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       list.innerHTML = shown5.map(rowHtml29).join("") || `<div class="vacio">${t(all2.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
       list.querySelectorAll("[data-liq]").forEach((button2) => {
         button2.onclick = () => {
-          void settle(button2, repaint5);
+          void settle2(button2, repaint5);
         };
       });
     };
@@ -39525,12 +40208,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     t,
     setLanguage,
     setVocabulary,
-    components: { ...components_exports, list: list_exports, filters: filters_exports, filtersPanel: filters_panel_exports, listBar: list_bar_exports },
+    components: { ...components_exports, embeddedWindow: embedded_window_exports, list: list_exports, filters: filters_exports, filtersPanel: filters_panel_exports, listBar: list_bar_exports },
     screens: {
       home: { load, renderSkeleton, paintIndicators, openIndicatorSettings },
       agenda: agenda_exports,
       accounts: accounts_exports,
       events: events_exports,
+      settingsShell: shell_exports,
       settingsRest: rest_exports,
       portalHome: portal_home_exports,
       settingsExtra: extra_exports,

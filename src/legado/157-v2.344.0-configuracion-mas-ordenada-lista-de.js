@@ -5,7 +5,6 @@
      sus piezas con nombre fijo (#cfgcuerpo, #fcuerpo, el panel #dbody) se le devuelven al tocarla y las de las otras se guardan.
    - Mis datos en una sola tarjeta; Datos fiscales y Series juntos; los botones de KPIs de Inicio junto al título.
    ============================================================ */
-const IDS_SEC = ['fcuerpo', 'dbody', 'v-admin'];
 // Tocar una parte le devuelve sus piezas (en captura: antes de que su botón haga nada)
 ['pointerdown', 'focusin', 'keydown'].forEach(ev => document.addEventListener(ev, e => {
   const sec = e.target.closest && e.target.closest('#cfgcuerpo-hub .cfgsec'); if (sec) cfgSecDespertar(sec);
