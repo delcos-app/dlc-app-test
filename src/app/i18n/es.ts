@@ -5,6 +5,7 @@
  * (see i18n/index.ts), so each company sees its own words.
  */
 import { accounts } from './es/accounts';
+import { settingsRest } from './es/settings-rest';
 import { panels } from './es/panels';
 import { accountsEditor } from './es/accounts-editor';
 import { routesMore } from './es/routes-more';
@@ -73,6 +74,7 @@ export const es = {
   routesMore,
   accountsEditor,
   panels,
+  settingsRest,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',

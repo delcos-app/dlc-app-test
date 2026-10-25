@@ -9,6 +9,7 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as settingsRest from './screens/settings/rest';
 import * as portalHome from './screens/home/portal-home';
 import { listenToDuplicates } from './screens/accounts/duplicates';
 import { listenToDayPickers } from './screens/accounts/editor-form';
@@ -64,6 +65,7 @@ export interface DelcosCore {
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly settingsRest: typeof settingsRest;
     readonly portalHome: typeof portalHome;
     readonly settingsExtra: typeof settingsExtra;
     readonly settingsMore: typeof settingsMore;
@@ -112,6 +114,7 @@ window.delcos = {
     agenda,
     accounts,
     events,
+    settingsRest,
     portalHome,
     settingsExtra,
     settingsMore,

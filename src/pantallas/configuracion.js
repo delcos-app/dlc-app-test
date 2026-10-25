@@ -82,386 +82,24 @@ function pintarPlanBase() {
 
 
 
-/* Editar usuario: la ventana base y, en orden, cada bloque que se le añade (antes eran 5 capas separadas). */
-async function editarUsuario(id, ...r) {
-  await asegurarUsuario(id);            // funciona aunque la lista de usuarios aún no esté cargada
-  const d = $('dlg'); d.classList.add('cargando');
-  const limite = setTimeout(() => d.classList.remove('cargando'), 8000);
-  try {
-    await pintarUsuarioBase(id, ...r);
-    await usuarioComisionYZona(id);
-    await usuarioFichaMedico(id);
-    await usuarioComisionInfo(id);
-  } finally { clearTimeout(limite); requestAnimationFrame(() => d.classList.remove('cargando')); }
-}
-
-// Editar usuario · Ficha de médico vinculada (usuarios con rol Medico)
-async function usuarioFichaMedico(id) {
-  const u = (USUARIOS || []).find(x => x.id === id);
-  if (!u || !rolPuede(u.rol, 'portal_prescriptor') || !$('dlg').open || $('umedw')) return;
-  const { data: pf } = await db.from('perfiles').select('cuenta_id').eq('id', id).single();
-  let medico = null;
-  if (pf && pf.cuenta_id) { const { data: fm } = await db.rpc('ficha_cuenta', { p_id: pf.cuenta_id }); if (fm && fm.medico) medico = { id: fm.medico.id, nombre: fm.medico.nombre }; }
-  const ref = $('dbody').querySelector('.acts:last-of-type');
-  ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="umedw"><h3>Ficha de ${TT('medico', 's', '', 'l', 'l')} vinculada</h3>
-    <p class="sm">Este usuario verá solo el informe de ${TT('medico', 's', 'este', 'l', 'l')} y recibirá un aviso con cada ${TT('pauta', 's', '', 'l', 'l')} registrada. Sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
-    <div id="umedsel"></div><div class="acts" style="margin-top:8px"><button class="btn sec" id="umedok">Guardar vínculo</button>
-    ${medico ? `<button class="btn sec" id="umedver">Ver su informe</button>` : ''}</div></div>`);
-  selectorMedico($('umedsel'), { valor: medico, placeholder: 'Busca su ficha', alElegir: m => { medico = m; } });
-  $('umedok').onclick = async () => {
-    const { data: r, error } = await db.rpc('vincular_cuenta', { p_usuario: id, p_medico: medico ? medico.id : null });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    toast(medico ? 'Vinculado con ' + medico.nombre : 'Vínculo quitado');
-  };
-  if ($('umedver')) $('umedver').onclick = async () => {
-    const { data: d } = await RPC_ORIG('informe_cuenta', { p_medico: medico.id });
-    toast(`${medico.nombre}: ${num(d.unidades)} unidades, ${num(d.pautas)} ${TT('pauta', 'p', '', 'l', 'l')} este año${d.posicion ? ' · Nº ' + d.posicion : ''}`);
-  };
-}
-
-/* Ventana base de editar usuario; editarUsuario le añade el resto de bloques */
-function pintarUsuarioBase(id) {
-  const u = USUARIOS.find(x => x.id === id); if (!u) return;
-  const areas = u.areas || {};
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(u.nombre)}</h2><div class="sm">${esc(u.email || '')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2">
-      <div><label for="un">Nombre</label><input id="un" value="${esc(u.nombre)}"></div>
-      <div><label for="uu">Usuario</label><input id="uu" value="${esc(u.usuario)}"></div>
-    </div>
-    <div class="g2">
-      <div><label for="ur">Rol</label><select id="ur">${rolesNombres().map(r => `<option ${r === u.rol ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
-      <div><label for="ua">Estado</label><select id="ua">
-        <option value="1" ${u.activo ? 'selected' : ''}>Activo</option>
-        <option value="0" ${u.activo ? '' : 'selected'}>Desactivado</option></select></div>
-    </div>
-    <label>Permisos por área</label>
-    ${AREAS.map(([k, t]) => `<div class="dprow" style="grid-template-columns:130px minmax(0,1fr)"><b>${t}</b>
-      <select data-area="${k}">${NIVELES.map((n, i) => `<option value="${i}" ${(+areas[k] || 0) === i ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`).join('')}
-    <div id="ucomzona"></div>
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="uguardar">Guardar</button>
-    </div>`;
-
-  $('ur').onchange = () => {
-    const preset = Object.assign({}, (rolDef($('ur').value) || {}).plantilla || {}, (AJUSTES.roles || {})[$('ur').value] || {});
-    AREAS.forEach(([k]) => { const s = $('dbody').querySelector(`[data-area="${k}"]`); if (s) s.value = String(preset[k] || 0); });
-  };
-
-  panelComisionUsuario(u).then(html => { const z = $('ucomzona'); if (z) z.innerHTML = html; });
-
-  $('uguardar').onclick = async ev => {
-    const areasN = {};
-    AREAS.forEach(([k]) => areasN[k] = +$('dbody').querySelector(`[data-area="${k}"]`).value);
-    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const { data: r, error } = await db.rpc('guardar_perfil', { p: {
-      id, nombre: $('un').value.trim(), usuario: $('uu').value.trim(),
-      rol: $('ur').value, activo: $('ua').value === '1', areas: areasN
-    }});
-    ev.target.disabled = false; ev.target.textContent = 'Guardar';
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    if ($('ucom')) {
-      // Solo se toca el esquema si cambia o si se elige otra fecha de efecto
-      const modo = $('ucdm') ? $('ucdm').value : 'hoy';
-      if ($('ucom').value !== ($('ucom').dataset.orig || '') || modo !== 'hoy') {
-        const desde = modo === 'todo' ? '2000-01-01' : modo === 'fecha' ? ($('ucdf').value || hoyISO()) : hoyISO();
-        await db.rpc('asignar_esquema', { p_usuario: id, p_esquema: $('ucom').value || null, p_quitar: !$('ucom').value, p_desde: desde });
-      }
-      const { error: ever } = await db.from('perfiles').update({ comision_ver: $('uverc').value }).eq('id', id);   // v2.276.0: si falla, se dice
-      if (ever) { toast('Usuario guardado, pero no se ha podido guardar qué ve de su comisión: ' + ever.message, true); return; }
-    }
-    // v2.109.0: la zona marcada se guarda también con «Guardar» (antes solo con su propio botón y se perdía)
-    let extra = '';
-    if ($('uzonas') && !$('uzonas').classList.contains('hide') && zonasMarcadas().join('|') !== ($('uzonas').dataset.orig || '')) {
-      const { data: z, error: ez } = await db.rpc('asignar_zona', { p_usuario: id, p_zonas: zonasMarcadas() });
-      if (ez || (z && z.ok === false)) { toast('Usuario guardado, pero no se ha podido guardar la zona', true); return; }
-      extra = ` · zona guardada, ${num(z.asignados)} ${TT('medico', 'p', '', 'l', 'l', 'nuevo')} en su cartera`;
-    }
-    $('dlg').close(); toast('Usuario guardado' + extra); cargarAdmin();
-  };
-  $('dlg').showModal();
-}
-
-/* Nuevo usuario: la ventana base, el límite del plan y el alta de médicos, y el resumen al crear (antes eran 3 capas). */
-function nuevoUsuario(pre) {
-  const act = planDe(PLAN_ACTUAL.plan), maxU = usuariosContratados();
-  const activos = (USUARIOS || []).filter(u => u.activo && !rolPuede(u.rol, 'portal_prescriptor')).length;
-  nuevoUsuarioBase();
-  nuevoUsuarioPlanYMedico(pre, act, maxU, activos);
-  nuevoUsuarioResumen(pre);
-}
-
-// Nuevo usuario · Límite de usuarios del plan y alta de médicos eligiendo su ficha
-function nuevoUsuarioPlanYMedico(pre, act, maxU, activos) {
-  $('ne').placeholder = 'nombre@empresa.com';
-  $('np').value = 'Tmp-' + Math.random().toString(36).slice(2, 8);
-  // Rol «Medico»: se elige un médico del directorio, no se crea uno nuevo
-  $('nr').insertAdjacentHTML('afterend', '');
-  $('nr').closest('.g2').insertAdjacentHTML('afterend', `<div id="nmedw" class="hide"><label>${TT('medico', 's', '', 'l', 'C')} del directorio</label><div id="nmed"></div>
-    <div class="sm" style="margin-top:4px">Tendrá acceso solo a su informe y a sus avisos. No cuenta como usuario del plan.</div></div>`);
-  let medico = pre && pre.medico ? pre.medico : null;
-  selectorMedico($('nmed'), { valor: medico, placeholder: `Busca ${TT('medico', 's', 'al', 'l', 'l')}`, alElegir: async m => {
-    medico = m;
-    const { data: f } = await db.rpc('ficha_cuenta', { p_id: m.id });
-    if (f && f.medico) { if (!$('nn').value) $('nn').value = f.medico.nombre; if (!$('ne').value && f.medico.email) $('ne').value = f.medico.email; }
-  } });
-  const ver = () => $('nmedw').classList.toggle('hide', !rolPuede($('nr').value, 'portal_prescriptor'));
-  $('nr').addEventListener('change', ver);
-  if (pre && pre.medico) { $('nr').value = (pre.centro && rolCon('portal_centro')) || rolesNombres().find(r => rolPuede(r, 'portal_prescriptor') && !rolPuede(r, 'portal_centro')) || rolCon('portal_prescriptor'); $('nn').value = pre.nombre || ''; $('ne').value = pre.email || ''; ver(); }
-  const crear = $('ncrear').onclick;
-  $('ncrear').onclick = async ev => {
-    if (!rolPuede($('nr').value, 'portal_prescriptor') && activos >= maxU) { toast(`Tu plan ${act.nombre} permite ${maxU} usuarios. Añade usuarios en «Plan y suscripción» (menú de tu nombre).`, true); return; }
-    if (rolPuede($('nr').value, 'portal_prescriptor') && !medico) { toast(`Elige ${TT('medico', 's', 'el', 'l', 'l')} del directorio`, true); return; }
-    await crear(ev);
-    if (rolPuede($('nr').value, 'portal_prescriptor') && medico && /Usuario creado/.test($('nmsg').textContent)) {
-      // v2.291: el perfil puede tardar en existir tras crear el usuario y el vínculo puede fallar: se reintenta y, si no se consigue, se dice
-      // (antes decía «Vinculado» siempre y el profesional se quedaba sin ficha: su portal no cargaba)
-      let ok = false;
-      for (let i = 0; i < 6 && !ok; i++) {
-        if (i) await new Promise(r => setTimeout(r, 700));
-        const { data: u } = await db.from('perfiles').select('id').eq('email', $('ne').value.trim()).maybeSingle();
-        if (!u) continue;
-        const { data: r, error } = await db.rpc('vincular_cuenta', { p_usuario: u.id, p_medico: medico.id });
-        ok = !error && !(r && r.ok === false);
-      }
-      $('nmsg').insertAdjacentHTML('beforeend', ok ? ` Vinculado a <b>${esc(medico.nombre)}</b>.`
-        : ` <span class="campoerr"><b>No se ha podido vincular a ${esc(medico.nombre)}.</b> Hazlo en Configuración → Usuarios → su ficha → «Ficha de ${esc(TT('medico', 's', '', 'l', 'l'))} vinculada»; sin vínculo su portal no muestra nada.</span>`);
-    }
-    if (TAB === 'config' && CFG_SEC === 'usuarios') pintarUsuarios2();
-  };
-}
-
-// Nuevo usuario · Al crear, resumen con los datos para pasárselos a la persona
-function nuevoUsuarioResumen(pre) {
-  const crear = $('ncrear').onclick;
-  $('ncrear').onclick = async ev => {
-    const datos = { nombre: $('nn').value.trim(), email: $('ne').value.trim(), pass: $('np').value, rol: $('nr').value };
-    await crear(ev);
-    const ok = /Usuario creado/.test($('nmsg') ? $('nmsg').textContent : '');
-    if (!ok) return;
-    Promise.resolve(RPC_ORIG('guardar_acceso_temporal', { p_email: datos.email, p_pass: datos.pass })).then(() => {}, () => {});   // v2.279.0: para volver a verlos
-    const vinc = ($('nmsg').textContent.match(/Vinculado a (.+)\./) || [])[1];
-    delete $('dlg').dataset.sucio;
-    const url = location.origin + location.pathname;
-    const texto = `Hola ${nombrePila(datos.nombre)}, ya tienes acceso a ${nombreApp()}.\nEntra en ${url}\nUsuario: ${datos.email}\nContraseña temporal: ${datos.pass}\nCámbiala al entrar (menú de tu nombre → Mi perfil).`;
-    $('dbody').innerHTML = `<div class="fh"><div><h2>✓ Usuario creado</h2><div class="sm">Pásale estos datos para que entre</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="usrok"><div><span>Nombre</span><b>${esc(datos.nombre)}</b></div><div><span>Rol</span><b>${esc(datos.rol)}</b></div>
-        <div><span>Usuario</span><b>${esc(datos.email)}</b></div><div><span>Contraseña temporal</span><b class="mono">${esc(datos.pass)}</b></div>
-        ${vinc ? `<div><span>${TT('medico', 's', '', 'l', 'C', 'vinculado')}</span><b>${esc(vinc)}</b></div>` : ''}<div><span>Dirección</span><b>${esc(url)}</b></div></div>
-      <p class="sm">Si la confirmación por correo está activada, primero deberá confirmar su email.</p>
-      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="usrcop">Copiar los datos</button><button class="btn" data-cerrar>Hecho</button></div>`;
-    delete $('dlg').dataset.sucio;
-    $('usrcop').onclick = async () => { try { await navigator.clipboard.writeText(texto); toast('Copiado: pégalo en un mensaje'); } catch (e) { toast('No se ha podido copiar', true); } };
-  };
-}
-
-/* Parte base; nuevoUsuario le añade el resto */
-function nuevoUsuarioBase() {
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Nuevo usuario</h2><div class="sm">Se crea con una contraseña temporal que deberá cambiar</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2">
-      <div><label for="nn">Nombre</label><input id="nn" placeholder="Nombre y apellidos"></div>
-      <div><label for="ne">Correo</label><input id="ne" type="email" placeholder="nombre@empresa.com"></div>
-    </div>
-    <div class="g2">
-      <div><label for="nr">Rol</label><select id="nr">${rolesNombres().map(r => `<option ${r === rolPorDefecto() ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
-      <div><label for="np">Contraseña temporal</label><input id="np" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div>
-    </div>
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="ncrear">Crear usuario</button></div>
-    <div id="nmsg" class="sm" style="margin-top:10px"></div>`;
-
-  $('ncrear').onclick = async ev => {
-    const email = $('ne').value.trim(), pass = $('np').value, nombre = $('nn').value.trim();
-    if (!email || !nombre || pass.length < 6) { toast('Completa nombre, correo y contraseña', true); return; }
-    ev.target.disabled = true; ev.target.textContent = 'Creando…';
-    // v2.86.0: la invitación coloca a la persona en tu organización y con su rol al registrarse
-    const { data: inv, error: einv } = await db.rpc('crear_invitacion', { p_email: email, p_rol: $('nr').value });
-    if (einv || !inv || !inv.ok) {
-      ev.target.disabled = false; ev.target.textContent = 'Crear usuario';
-      $('nmsg').innerHTML = `<span style="color:var(--dang)">No se ha podido invitar: ${esc((einv && einv.message) || (inv && inv.error) || '')}</span>`; return;
-    }
-    // Cliente aparte para no tocar tu sesión actual
-    const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data, error } = await tmp.auth.signUp({
-      email, password: pass,
-      options: { data: { nombre, usuario: email.split('@')[0] } }
-    });
-    ev.target.disabled = false; ev.target.textContent = 'Crear usuario';
-    if (error) { $('nmsg').innerHTML = `<span style="color:var(--dang)">No se ha podido crear: ${esc(error.message)}</span>`; return; }
-    if (data && data.user) {
-      await db.rpc('guardar_perfil', { p: { id: data.user.id, nombre, usuario: email.split('@')[0], rol: $('nr').value } });
-    }
-    $('nmsg').innerHTML = `<b style="color:var(--ok)">Usuario creado.</b> Contraseña temporal: <b>${esc(pass)}</b>.
-      Pásasela y que la cambie al entrar. Si Supabase tiene activada la confirmación por correo, deberá confirmarlo primero.`;
-    cargarAdmin();
-  };
-  $('dlg').showModal();
-}
-
-async function guardarKpis(lista) {
-  const prefs = Object.assign({}, PERFIL.preferencias || {}, { kpis: lista });
-  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-  if (error) { toast('No se ha podido guardar: ' + error.message, true); return false; }
-  PERFIL.preferencias = data || prefs;
-  return true;
-}
 
 
 
 
 
-async function pintarUsuarios2() {
-  const [{ data }, rAcc] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), RPC_ORIG('invitados_accesos', {})]);   // v2.270.0: cuándo entró cada uno
-  const ACC = {}; ((rAcc && rAcc.data) || []).forEach(x => ACC[x.id] = x);
-  USR_ACC = ACC;   // v2.335.0: última conexión de cada uno
-  const todos = data || []; USUARIOS = todos.map(u => Object.assign({ medicos: u.cartera, visitas: u.visitas_mes }, u));
-  const act = planDe(PLAN_ACTUAL.plan), maxU = usuariosContratados();
-  const activos = todos.filter(u => u.activo && !rolPuede(u.rol, 'portal_prescriptor'));
-  const hace30 = Date.now() - 30 * 864e5;
-  const inactivos = activos.filter(u => !u.ultima_actividad || new Date(u.ultima_actividad).getTime() < hace30).length;
-  const porRol = {}; activos.forEach(u => porRol[u.rol] = (porRol[u.rol] || 0) + 1);
-  const pinta = () => {
-    const q = USR_F.q.toLowerCase();
-    const l0 = todos.filter(u => (!q || (u.nombre + ' ' + (u.email || '') + ' ' + (u.medico || u.cuenta || '')).toLowerCase().includes(q)) && (!USR_F.rol || u.rol === USR_F.rol)
-      && (USR_F.est === 'todos' || (USR_F.est === 'activos' ? u.activo : !u.activo)));
-    const l = l0.filter(u => !esInvitado(u));   // v2.270.0: los invitados, en su grupo
-    pintarInvitados(l0.filter(esInvitado), ACC);
-    $('usrl').innerHTML = l.map(u => {
-      const mods = Object.keys(MODULO_AREA).filter(m => rolPuede(u.rol, 'administrar') || +((u.areas || {})[MODULO_AREA[m]] || 0) >= 1);
-      const reciente = u.ultima_actividad ? new Date(u.ultima_actividad) : null;
-      return `<button class="usrcard ${u.activo ? '' : 'off'}" data-usr="${u.id}">
-        <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
-        <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
-          <span class="usrchips"><span class="pill p-est">${esc(u.rol)}</span>${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
-            ${rolPuede(u.rol, 'portal_prescriptor') ? `<span class="pill p-per">${esc(u.medico || 'Sin ficha')}</span>` : `<span class="sm">${mods.length} módulos</span>`}</span></span>
-        <span class="usrdat">${!rolPuede(u.rol, 'portal_prescriptor') ? `<span><b>${num(u.cartera)}</b> en cartera</span><span><b>${num(u.visitas_mes)}</b> ${TT('visita', 'p', '', 'l', 'l')} mes</span>` : ''}
-          <span class="sm usrcon" title="${reciente ? 'Última actividad registrada: ' + fechaCorta(isoLocal(reciente)) : 'Sin actividad registrada'}">${esc(conexionTxt(ACC[u.id]))}</span></span></button>`;
-    }).join('') || '<div class="vacio">Nadie con estos filtros.</div>';
-    $('usrl').querySelectorAll('[data-usr]').forEach(b => b.onclick = () => detalleUsuario(todos.find(u => u.id === b.dataset.usr)));
-  };
-  $('cfgcuerpo').innerHTML = `<div class="cfgpanel">
-    <div class="kpis vtot">
-      <div class="kpi"><b>${num(activos.length)} / ${num(maxU)}</b><span>usuarios del plan ${esc(act.nombre)}</span></div>
-      ${Object.entries(porRol).map(([r, n]) => `<div class="kpi"><b>${num(n)}</b><span>${esc(r)}</span></div>`).join('')}
-      <div class="kpi ${inactivos ? 'warn' : 'ok'}"><b>${num(inactivos)}</b><span>sin actividad en 30 días</span></div>
-      <div class="kpi" data-usrinvk><b>${num(todos.filter(u => (rolPuede(u.rol, 'portal_prescriptor') || rolPuede(u.rol, 'portal_centro')) && u.activo).length)}</b><span>Cuentas con acceso</span></div></div>
-    <div class="card" style="padding-top:14px;padding-bottom:14px">
-      <div class="usrbar"><input id="usrq" type="search" placeholder="Buscar por nombre o email" value="${esc(USR_F.q)}">
-        <select id="usrrol"><option value="">Todos los roles</option>${rolesNombres().map(r => `<option ${USR_F.rol === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
-        <select id="usrest"><option value="activos" ${USR_F.est === 'activos' ? 'selected' : ''}>Activos</option><option value="inactivos" ${USR_F.est === 'inactivos' ? 'selected' : ''}>Desactivados</option><option value="todos" ${USR_F.est === 'todos' ? 'selected' : ''}>Todos</option></select>
-        <button class="btn" id="usrnuevo">+ Nuevo usuario</button></div>
-      <div id="usrl" class="usrlista"></div></div>
-    <div class="card usrinvw" style="padding-top:14px;padding-bottom:14px"><h3>Invitados <span id="usrinvn" class="sm"></span></h3>
-      <p class="sm">${TT('medico', 'p', '', 'l', 'C')} y centros a los que has dado acceso a su portal. No cuentan como usuarios del plan. Con «Impersonalizar» abres una sesión con su usuario y ves su portal tal como lo verá.</p>
-      <div id="usrinv" class="usrinvl"></div></div></div>`;
-  $('usrq').oninput = () => { USR_F.q = $('usrq').value; pinta(); };
-  $('usrrol').onchange = () => { USR_F.rol = $('usrrol').value; pinta(); };
-  $('usrest').onchange = () => { USR_F.est = $('usrest').value; pinta(); };
-  $('usrnuevo').onclick = () => nuevoUsuario();
-  pinta();
-}
 
-function pintarPerfilPaso1() {
-  const g = $('pfi') && $('pfi').closest('.g2'); if (!g) return;
-  const vacio = g.children[1];
-  vacio.innerHTML = `<label for="pfl">Idioma</label><select id="pfl" data-notr>${IDIOMAS.map(([k, n]) => `<option value="${k}" ${IDIOMA === k ? 'selected' : ''}>${n}</option>`).join('')}</select>`;
-  $('pfl').onchange = async () => {
-    const id = $('pfl').value;
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { idioma: id });
-    const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    PERFIL.preferencias = data || prefs;
-    try { localStorage.setItem('app-idioma', id); } catch (e) {}
-    // Al volver al castellano se recarga para recuperar los textos originales
-    if (id === 'es') { location.reload(); return; }
-    aplicarIdioma(id); toast('✓');
-  };
-}
 
-function pintarPerfilPaso2() {
-  const ok = $('pfok');
-  if (ok) {
-    // Siempre con las preferencias actuales: antes, guardar «Mis datos» podía borrar el idioma elegido
-    ok.onclick = async () => {
-      const nombre = $('pfn').value.trim(); if (!nombre) { toast('El nombre no puede quedar vacío', true); return; }
-      const prefs = Object.assign({}, PERFIL.preferencias || {}, { telefono: $('pft').value.trim(), inicio: $('pfi').value });
-      const [a, b] = await Promise.all([db.rpc('guardar_preferencias', { p: prefs }), db.from('perfiles').update({ nombre }).eq('id', PERFIL.id)]);
-      if (a.error) { toast('No se ha podido guardar', true); return; }
-      PERFIL.preferencias = a.data || prefs;
-      if (!b.error) { PERFIL.nombre = nombre; $('uname').textContent = nombrePila(nombre); $('av').textContent = iniciales(nombre); }
-      toast('Datos guardados');
-    };
-  }
-  const sel = $('pfl');
-  if (sel) sel.onchange = async () => {
-    const id = sel.value;
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { idioma: id });
-    const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    PERFIL.preferencias = data || prefs;
-    try { localStorage.setItem('app-idioma', id); sessionStorage.removeItem('app-idioma-recarga'); } catch (e) {}
-    pantallaCarga(IDIOMAS.find(x => x[0] === id)[1] + '…');
-    location.reload();
-  };
-}
 
-function pintarPerfilPaso3() {
- medidorClave($('pfp1'), $('pfp2'), $('pfpok'));
-}
 
-function pintarPerfilPaso4() {
- const c = $('pfp1') && $('pfp1').closest('.card'); if (c) c.remove();
-}
 
-function pintarPerfilBase() {
-  const pr = PERFIL.preferencias || {};
-  const inicios = [['inicio', 'Inicio'], ['agenda', 'Agenda'], ['rutas', 'Rutas'], ['directorio', 'Directorio'], ['ventas', 'Pedidos']].filter(([k]) => puedeModulo(k));
-  $('cfgcuerpo').innerHTML = `<div id="perfilcab"></div>
-    <div class="card cfgpanel"><h2>Mis datos</h2>
-      <div class="g2"><div><label for="pfn">Nombre visible</label><input id="pfn" value="${esc(PERFIL.nombre)}"></div>
-        <div><label for="pft">Teléfono</label><input id="pft" inputmode="tel" value="${esc(pr.telefono || '')}" placeholder="Para que el equipo pueda llamarte"></div></div>
-      <div class="g2"><div><label for="pfi">Al entrar, abrir</label><select id="pfi">${inicios.map(([k, t]) => `<option value="${k}" ${(pr.inicio || 'inicio') === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfok">Guardar</button></div></div>
-    <div class="card cfgpanel"><h2>Contraseña</h2>
-      <div class="g2"><div><label for="pfp1">Nueva contraseña</label><input id="pfp1" type="password" autocomplete="new-password"></div>
-        <div><label for="pfp2">Repítela</label><input id="pfp2" type="password" autocomplete="new-password"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="pfpok">Cambiar contraseña</button></div></div>`;
-  // Tarjeta de contexto (datos, accesos y actividad)
-  const tmp = $('cfgcuerpo'); const guard = tmp.innerHTML;
-  $('pfok').onclick = async () => {
-    const nombre = $('pfn').value.trim(); if (!nombre) { toast('El nombre no puede quedar vacío', true); return; }
-    const prefs = Object.assign({}, pr, { telefono: $('pft').value.trim(), inicio: $('pfi').value });
-    const [a, b] = await Promise.all([db.rpc('guardar_preferencias', { p: prefs }), db.from('perfiles').update({ nombre }).eq('id', PERFIL.id)]);
-    if (a.error) { toast('No se ha podido guardar', true); return; }
-    PERFIL.preferencias = a.data || prefs; if (!b.error) { PERFIL.nombre = nombre; $('uname').textContent = nombrePila(nombre); $('av').textContent = iniciales(nombre); }
-    toast('Datos guardados');
-  };
-  $('pfpok').onclick = async () => {
-    const p1 = $('pfp1').value, p2 = $('pfp2').value;
-    if (p1.length < 8) { toast('Mínimo 8 caracteres', true); return; } if (p1 !== p2) { toast('No coinciden', true); return; }
-    const { error } = await db.auth.updateUser({ password: p1 });
-    if (error) { toast('No se ha podido cambiar: ' + error.message, true); return; }
-    $('pfp1').value = $('pfp2').value = ''; toast('Contraseña cambiada');
-  };
-  // Se reutiliza la tarjeta de perfil con accesos y actividad
-  const caja = document.createElement('div'); caja.id = 'cfgcuerpo-tmp';
-  pintarPrefsPerfil();
-}
 
-async function pintarPrefsParte(parte) {
-  await pintarPrefs();
-  const c = $('cfgcuerpo'); if (!c) return;
-  if ($('miperfil')) $('miperfil').remove();
-  if (parte === 'rutas') {
-    c.querySelectorAll(':scope > p.sm').forEach(p => p.remove());
-    c.insertAdjacentHTML('afterbegin', '<div class="card cfgpanel"><h2>Rutas y desplazamientos</h2><p class="sm">Desde dónde sales y dónde terminas. Al pulsar «Cómo llegar» eliges con qué app navegar (Google Maps, Waze o Apple Maps). El horario de las rutas está en su propio apartado.</p></div>');
-  }
-}
+
+
+
+
+
+
+
 
 
 function cfgMovil() {
@@ -471,79 +109,9 @@ function cfgMovil() {
   const cont = $('cfgcuerpo-hub');
   if (cont && !cont.querySelector(':scope > .cfgvolver')) cont.insertAdjacentHTML('afterbegin', '<button class="cfgvolver" type="button">‹ Configuración</button>');
 }
-function detalleUsuario(u) {
-  const nombres = { inicio: 'Inicio', agenda: 'Agenda', rutas: 'Rutas', directorio: etiquetaContactos(), ventas: 'Pedidos', pacientes: 'Clientes', productos: 'Productos', facturacion: 'Facturación', analitica: 'Analítica', seguimiento: 'Calidad del dato' };
-  const orden = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'seguimiento'];
-  const nivel = m => rolPuede(u.rol, 'administrar') ? 3 : +((u.areas || {})[MODULO_AREA[m]] || 0);
-  const importes = rolPuede(u.rol, 'administrar') || +((u.areas || {}).E || 0) >= 1;
-  $('dbody').innerHTML = `<div class="fh"><div class="usrcab"><span class="usrav grande">${esc(iniciales(u.nombre))}</span>
-      <div><h2>${esc(u.nombre)}</h2><div class="sm">${esc(u.email || '')}</div>
-        <div class="usrchips"><span class="pill p-est">${esc(u.rol)}</span>${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}</div></div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="blk"><h3>Qué puede ver y hacer</h3>
-      <div class="permtabla">${orden.filter(m => m in MODULO_AREA).map(m => { const n = nivel(m); return `<div class="permfila ${n ? '' : 'no'}">
-        <span class="permmod">${svgIco(ICON_NOM[n ? 'check' : 'minus'])}${esc(nombres[m])}</span><span class="permniv nv${n}">${esc(NIVEL_TXT[n])}</span></div>`; }).join('')}</div>
-      <div class="sm" style="margin-top:8px">${importes ? 'Ve los importes de las ventas.' : 'En ventas solo ve unidades, no importes.'}</div></div>
-    <div class="blk"><h3>Actividad</h3>${rolPuede(u.rol, 'portal_prescriptor') ? `<p class="sm">Vinculado a <b>${esc(u.medico || 'ninguna ficha')}</b>.</p>` : `
-      <div class="uper" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div><b>${num(u.cartera)}</b><span>en cartera</span></div><div><b>${num(u.visitas_mes)}</b><span>${TT('visita', 'p', '', 'l', 'l')} este mes</span></div></div>
-      ${u.zonas && u.zonas.length ? `<div class="sm">Zona: ${esc(u.zonas.map(z => z.charAt(0) + z.slice(1).toLowerCase()).join(', '))}</div>` : ''}`}
-      <div class="sm" style="margin-top:6px">${puede('administrar') ? esc(conexionTxt((USR_ACC || {})[u.id], true)) + '<br>' : ''}Última actividad: ${u.ultima_actividad ? new Date(u.ultima_actividad).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'ninguna registrada'}</div></div>
-    <div class="usracc">
-      <button class="btn" data-uacc="editar">✏️ Editar rol, permisos y zona</button>
-      ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🗂️ Asignar cartera</button>' : ''}
-      ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec" data-uacc="acceso">Datos de acceso</button>' : ''}
-      <button class="btn sec" data-uacc="pass">🔑 Enviar cambio de contraseña</button>
-      <button class="btn sec" data-uacc="activar">📧 Reenviar el correo de activación</button>
-      ${typeof puedeVerComo === 'function' && puedeVerComo(u) ? (esInvitado(u) ? '<button class="btn" data-uacc="como">👤 Impersonalizar</button>' : '<button class="btn sec" data-uacc="como">👤 Impersonalizar</button>') : ''}
-      ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec dang" data-uacc="borrar">🗑 Borrar usuario</button>' : ''}</div>`;
-  $('dlg').showModal();
-  $('dbody').querySelectorAll('[data-uacc]').forEach(b => b.onclick = () => {
-    const a = b.dataset.uacc;
-    if (a === 'editar') editarUsuario(u.id);
-    if (a === 'cartera') { $('dlg').close(); asignarCartera(u.id); }
-    if (a === 'pass') { $('dlg').close(); restablecerPassword(u); }
-    if (a === 'activar') reenviarActivacion(u.email);
-    if (a === 'acceso') verAccesoTemporal(u);   // v2.279.0
-    if (a === 'como') { $('dlg').close(); entrarComo(u.id); }
-    if (a === 'borrar') { $('dlg').close(); borrarUsuario(u); }
-  });
-}
 /* v2.87.0 · Borrar un usuario por completo (administración). Pedidos, facturas, cobros y auditoría se conservan siempre. */
-function borrarUsuario(u) {
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Borrar a ${esc(u.nombre || u.email || '')}</h2><div class="sm">${esc(u.email || '')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Se borran su usuario y su acceso, sus notificaciones y avisos, y sus citas pendientes. Su cartera queda libre para asignarla a otra persona.</p>
-    <label class="chk" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0"><input type="checkbox" id="bucon" style="margin-top:3px">
-      <span>Borrar también su actividad: ${TT('visita', 'p', '', 'l', 'l')}, llamadas, citas pasadas y rutas propias.<br><span class="sm">Pensado para usuarios de prueba. Si era alguien del equipo, déjalo sin marcar para conservar el historial.</span></span></label>
-    <p class="sm">Nunca se borran pedidos, facturas, cobros, comisiones liquidadas ni el registro de cambios. No se puede deshacer.</p>
-    <label for="buconf">Escribe BORRAR para confirmar</label><input id="buconf" autocomplete="off">
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn dang" id="buok">Borrar usuario</button></div>`;
-  $('dlg').showModal();
-  $('buok').onclick = async ev => {
-    const buerr = t => { let m = $('buerr'); if (!m) { $('buok').closest('.acts').insertAdjacentHTML('beforebegin', '<p class="buerr" id="buerr" role="alert"></p>'); m = $('buerr'); } m.textContent = t; };   // v2.272.0: el motivo, dentro de la ventana
-    if ($('buconf').value.trim().toUpperCase() !== 'BORRAR') { buerr('Escribe BORRAR en el recuadro para confirmar.'); toast('Escribe BORRAR para confirmar', true); return; }
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('borrar_usuario_seguro', { p_id: u.id, p_con_actividad: $('bucon').checked });   // v2.272.0: borrar_usuario_seguro (SQL 147)
-    ev.target.disabled = false;
-    if (error || !r || !r.ok) {
-      const txt = { permiso: 'Solo administración puede borrar usuarios', uno_mismo: 'No puedes borrarte a ti', ultimo_admin: 'Es el último administrador: da antes ese rol a otra persona', no_existe: 'Ese usuario ya no existe', referencias: 'hay datos que dependen de esta persona (' + ((r && r.detalle) || '') + ')' }[(r && r.error) || ''] || (error && error.message) || 'sin respuesta';
-      buerr('No se ha podido borrar: ' + txt); toast('No se ha podido borrar: ' + txt, true);
-      if (!r || !['permiso', 'uno_mismo', 'ultimo_admin'].includes(r.error)) registrarError('api', 'Borrar usuario: ' + ((r && r.error) || (error && error.message) || 'sin respuesta'), { detalle: r && r.detalle });
-      return;
-    }
-    $('dlg').close();
-    toast(String(r.acceso || '').startsWith('no_borrado') ? 'Usuario borrado (su acceso queda sin perfil: ya no puede usar la plataforma)' : 'Usuario borrado');
-    if (typeof cargarAdmin === 'function') cargarAdmin();
-    if (TAB === 'config' && typeof CFG_KEY !== 'undefined' && CFG_KEY === 'usuarios') pintarUsuarios2();   // v2.272.0: la lista, sin esa persona
-  };
-}
 
 // Editar usuario y asignar cartera funcionan aunque la lista de usuarios aún no esté cargada (por ejemplo, desde una notificación)
-async function asegurarUsuario(id) {
-  if ((USUARIOS || []).some(x => x.id === id)) return;
-  const { data } = await RPC_ORIG('usuarios_resumen', {});
-  USUARIOS = (data || []).map(u => Object.assign({ medicos: u.cartera, visitas: u.visitas_mes }, u));
-}
 
 function marcarCache(t) { CACHE_MOD[t] = { clave: ESTADO_MOD[t](), t: Date.now(), esc: ESCRITURAS }; }
 
@@ -602,66 +170,6 @@ function marcarFacPlan() {
   try { aplicarPermisosMenu(); } catch (e) {}
 }
 
-function pedirPresupuesto(tipo) {
-  tipo = tipo === 'contrato' ? 'contrato' : 'presupuesto';
-  const est = { contacto: 'correo' }, usados = +((PAGO_ESTADO || {}).usuarios || 0), med = +((PAGO_ESTADO || {}).medicos || 0);
-  const tit = tipo === 'contrato' ? 'Hablar de tu contrato A medida' : 'Pide tu plan A medida';
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${tit}</h2>
-      <div class="sm">Cuéntanos qué necesitáis y te respondemos en un día laborable. No te comprometes a nada.</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="presu">
-      <section><h3>Qué buscáis <span class="sm">(marca lo que encaje; no hace falta acertar)</span></h3>
-        <div class="presuops">${PRESU_NECESITA.map(([k, t]) => `<label class="presuop"><input type="checkbox" value="${k}"><span>${esc(t)}</span></label>`).join('')}</div>
-        <div id="presuprogw" class="hide"><label for="presuprog">¿Con qué programa?</label><input id="presuprog" placeholder="Por ejemplo: Holded, Sage, A3, Salesforce…"></div>
-        <label for="presumsg">Cuéntanos con tus palabras</label>
-        <textarea id="presumsg" rows="4" placeholder="Qué queréis conseguir, cómo trabajáis hoy, qué os falta… Todo nos ayuda a proponeros lo mejor."></textarea></section>
-      <section><h3>Vuestro equipo</h3>
-        <div class="g2"><div><label for="presuusu">Usuarios aproximados</label><input id="presuusu" type="number" min="1" class="numw" value="${Math.max(50, usados)}">
-            <span class="sm">Ahora sois ${num(usados)}.</span></div>
-          <div><label for="presumed">${TT('medico', 'p', '', 'l', 'C')} o centros con portal</label><input id="presumed" type="number" min="0" class="numw" value="${med || ''}" placeholder="Opcional"></div>
-          <div><label for="presucuando">¿Cuándo os gustaría empezar?</label><select id="presucuando">${PRESU_CUANDO.map(x => `<option>${esc(x)}</option>`).join('')}</select></div></div></section>
-      <section><h3>Cómo te contactamos</h3>
-        <div class="g2"><div><label for="presunom">Nombre</label><input id="presunom" value="${esc(PERFIL.nombre || '')}"></div>
-          <div><label for="presumail">Correo</label><input id="presumail" type="email" value="${esc(PERFIL.email || '')}"></div>
-          <div><label for="presutel">Teléfono</label><input id="presutel" type="tel" placeholder="Opcional" value="${esc(PERFIL.telefono || '')}"></div>
-          <div><label for="presuhora">Mejor momento</label><input id="presuhora" placeholder="Por ejemplo: mañanas de 9 a 13"></div></div>
-        <label>Prefieres</label><div class="segs" role="group" id="presucont">${[['correo', 'Correo'], ['llamada', 'Llamada'], ['video', 'Videollamada']]
-          .map(([k, t]) => `<button type="button" data-pc="${k}" class="${k === 'correo' ? 'on' : ''}" aria-pressed="${k === 'correo'}">${t}</button>`).join('')}</div></section>
-    </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="presuok">Enviar solicitud</button></div>`;
-  const ops = () => [...$('dbody').querySelectorAll('.presuop input:checked')].map(x => x.value);
-  $('dbody').querySelectorAll('.presuop input').forEach(x => x.onchange = () => {
-    x.closest('.presuop').classList.toggle('on', x.checked);
-    $('presuprogw').classList.toggle('hide', !ops().includes('conexion'));
-  });
-  $('dbody').querySelectorAll('[data-pc]').forEach(b => b.onclick = () => {
-    est.contacto = b.dataset.pc; $('dbody').querySelectorAll('[data-pc]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
-  });
-  $('presuok').onclick = async ev => {
-    const necesita = ops(), mensaje = $('presumsg').value.trim();
-    if (!necesita.length && !mensaje) { toast('Marca qué buscáis o cuéntanoslo con tus palabras', true); $('presumsg').focus(); return; }
-    if (!$('presumail').value.trim() && !$('presutel').value.trim()) { toast('Déjanos un correo o un teléfono para contestarte', true); return; }
-    const datos = { necesita, necesita_txt: necesita.map(k => (PRESU_NECESITA.find(x => x[0] === k) || [k, k])[1]), programa: $('presuprog').value.trim() || null,
-      mensaje, usuarios: +$('presuusu').value || null, portal: +$('presumed').value || null, cuando: $('presucuando').value,
-      nombre: $('presunom').value.trim(), correo: $('presumail').value.trim(), telefono: $('presutel').value.trim() || null,
-      horario: $('presuhora').value.trim() || null, contacto: est.contacto, plan_actual: (PLAN_ACTUAL || {}).plan || null };
-    ev.target.disabled = true;
-    const { data: r, error } = await RPC_ORIG('pedir_presupuesto', { p: { tipo, datos } });
-    ev.target.disabled = false;
-    if (error || !r || !r.ok) {
-      toast(({ demasiadas: 'Ya nos has enviado varias hoy: te contestamos enseguida', vacia: 'Cuéntanos qué buscáis', permiso: 'No puedes enviar solicitudes' })[(r && r.error) || ''] || 'No se ha podido enviar', true);
-      return;
-    }
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Solicitud enviada</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="presuok"><div class="presuokic">${svgIco(ICON_NOM.check)}</div>
-        <p><b>Gracias, ${esc(nombrePila(datos.nombre || PERFIL.nombre || ''))}.</b> Ya la tenemos: te ${est.contacto === 'correo' ? 'escribimos' : est.contacto === 'llamada' ? 'llamamos' : 'proponemos una videollamada'}
-          en un día laborable${datos.correo ? ` (${esc(datos.correo)})` : ''}.</p>
-        <p class="sm">Puedes ver en qué punto está en Plan y suscripción.</p></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Entendido</button></div>`;
-    $('dlg').addEventListener('close', () => { if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); }, { once: true });
-  };
-  $('dlg').showModal();
-}
 
 function marcarPanel() {
   const tab = PAG_TAB.delcos || 'orgs';
@@ -702,29 +210,6 @@ function txTexto(b) {
      cómo prefiere las visitas), marcado según lo va rellenando; esos campos llevan «Necesario». Un centro sin nombre se puede escribir.
    - Cualquier campo de contraseña (también el de entrar) tiene un botón para ver lo que se escribe.
    ============================================================ */
-async function verAccesoTemporal(u) {
-  const { data: r } = await RPC_ORIG('ver_acceso_temporal', { p_usuario: u.id });
-  const url = location.origin + location.pathname;
-  const cab = t => `<div class="fh"><div><h2>${esc(t)}</h2><div class="sm">${esc(u.nombre || '')} · ${esc(u.email || '')}</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>`;
-  if (!r || !r.ok) {
-    const txt = !r ? 'No se han podido leer sus datos de acceso.'
-      : r.error === 'ya_entro' ? 'Ya ha entrado en la plataforma, así que su contraseña temporal ya no sirve. Si no la recuerda, envíale el cambio de contraseña.'
-      : r.error === 'sin_datos' ? 'No hay datos de acceso guardados: se dio de alta antes de que se guardaran o con otro método. Envíale el cambio de contraseña para que ponga una.'
-      : 'No tienes permiso para ver sus datos de acceso.';
-    $('dbody').innerHTML = `${cab('Datos de acceso')}<p>${esc(txt)}</p>
-      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">${r && r.error !== 'permiso' ? '<button class="btn sec" id="accpass">Enviar cambio de contraseña</button>' : ''}<button class="btn" data-cerrar>Cerrar</button></div>`;
-    if ($('accpass')) $('accpass').onclick = () => { $('dlg').close(); restablecerPassword(u); };
-    return;
-  }
-  const texto = `Hola ${nombrePila(r.nombre)}, ya tienes acceso a ${nombreApp()}.\nEntra en ${url}\nUsuario: ${r.email}\nContraseña temporal: ${r.pass}\nCámbiala al entrar (menú de tu nombre → Mi perfil).`;
-  $('dbody').innerHTML = `${cab('Datos de acceso')}
-    <div class="usrok"><div><span>Nombre</span><b>${esc(r.nombre)}</b></div><div><span>Rol</span><b>${esc(r.rol || '')}</b></div>
-      <div><span>Usuario</span><b>${esc(r.email)}</b></div><div><span>Contraseña temporal</span><b class="mono">${esc(r.pass)}</b></div>
-      ${r.cuenta ? `<div><span>${TT('medico', 's', '', 'l', 'C', 'vinculado')}</span><b>${esc(r.cuenta)}</b></div>` : ''}<div><span>Dirección</span><b>${esc(url)}</b></div></div>
-    <p class="sm">Aún no ha entrado. Cuando entre por primera vez y cambie la contraseña, estos datos dejan de estar aquí.</p>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="acccop">Copiar los datos</button><button class="btn" data-cerrar>Hecho</button></div>`;
-  $('acccop').onclick = async () => { try { await navigator.clipboard.writeText(texto); toast('Copiado: pégalo en un mensaje'); } catch (e) { toast('No se ha podido copiar', true); } };
-}
 
 
 
@@ -801,56 +286,13 @@ function cfgClonarEstilos() {
 function pagMarcarSucio() { const n = PAG_SUCIO.size; ['cfuguardar', 'cfudescartar'].forEach(id => { const b = $(id); if (b) b.disabled = !n; }); }
 
 
-async function bloqueZonas(u) {
-  if (!PROV_CCAA) {
-    const [{ data: pc }, { data: rz }] = await Promise.all([db.from('provincias_ccaa').select('provincia,comunidad'), db.rpc('zonas_resumen')]);
-    const cuenta = {}; (rz || []).forEach(x => cuenta[x.provincia] = x.medicos);
-    PROV_CCAA = {};
-    (pc || []).forEach(x => (PROV_CCAA[x.comunidad] = PROV_CCAA[x.comunidad] || []).push({ p: x.provincia, n: cuenta[x.provincia] || 0 }));
-  }
-  const { data: yo } = await db.from('perfiles').select('zonas').eq('id', u.id).single();
-  const sel = new Set((yo && yo.zonas) || []);
-  const bonito = p => p.charAt(0) + p.slice(1).toLowerCase();
-  return `<div class="blk" id="uzonas"><h3>Zona de trabajo</h3>
-    <p class="sm">Marca las provincias de su zona. Al guardar, ${TT('medico', 'p', 'el', 'l', 'l')} de esas provincias que no tengan comercial entran en su cartera, y los que se den de alta después entran solos. Solo verá ${TT('medico', 'p', 'el', 'l', 'l')} de su cartera.</p>
-    <div class="zonas">${Object.keys(PROV_CCAA).sort().map(cc => {
-      const ps = PROV_CCAA[cc].filter((x, i, a) => a.findIndex(y => y.n === x.n && bonito(y.p).slice(0, 4) === bonito(x.p).slice(0, 4)) === i || x.n || sel.has(x.p));
-      return `<details ${ps.some(x => sel.has(x.p)) ? 'open' : ''}><summary><label onclick="event.stopPropagation()"><input type="checkbox" data-zcc="${esc(cc)}" ${ps.every(x => sel.has(x.p)) ? 'checked' : ''}> ${esc(cc)}</label>
-        <span class="sm">${num(ps.reduce((n, x) => n + x.n, 0))} ${TT('medico', 'p', '', 'l', 'l')}</span></summary>
-        <div class="zprov">${ps.map(x => `<label><input type="checkbox" data-zp="${esc(x.p)}" data-zpc="${esc(cc)}" ${sel.has(x.p) ? 'checked' : ''}> ${esc(bonito(x.p))} <span class="sm">${num(x.n)}</span></label>`).join('')}</div></details>`;
-    }).join('')}</div>
-    <div class="acts" style="margin-top:8px"><button class="btn sec" id="uzok">Guardar zona y asignar sus ${TT('medico', 'p', '', 'l', 'l')}</button></div></div>`;
-}
 
 // En la factura solo va el logo si la empresa ha subido el suyo
 async function logoData() { if (MARCA.logo && (AJUSTES.marca || {}).logo_factura !== false) { LOGO_DATA = MARCA.logo; LOGO_CIRC = true; return MARCA.logo; } return null; }
 
 
 
-// Lo que se deja de tener al pasar de un plan a otro (para avisar antes)
-function perdidasPlan(de, a, datos) {
-  const pd = planDe(de), pa = planDe(a), extras = (datos && datos.extras) || [], l = [];
-  if (de === a) return l;
-  const nombreMod = m => (MOD_PLAN.find(x => x[0] === m) || [m, m])[1];
-  pd.modulos.filter(m => !pa.modulos.includes(m) && m in MODULO_AREA).forEach(m => l.push(m === 'facturacion'
-    ? `Facturación: ${datos && datos.facturas ? 'tus facturas quedan en solo lectura (verlas, descargarlas y cobrarlas, no emitir nuevas)' : 'no podrás emitir facturas'}` : nombreMod(m)));
-  Object.keys(PLAN_SECCIONES).forEach(s => { if (PLAN_SECCIONES[s].includes(de) && !PLAN_SECCIONES[s].includes(a)) l.push(TITULO_PEDSEC[s] ? TITULO_PEDSEC[s][0] : s); });
-  Object.keys(PLAN_EXTRAS).forEach(x => {
-    if (!PLAN_EXTRAS[x].includes(de) || PLAN_EXTRAS[x].includes(a) || extras.includes(x)) return;
-    if (x === 'oportunidades') l.push('Oportunidades');
-    if (x === 'portal') l.push(`Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro${datos && +datos.medicos ? ` (${num(datos.medicos)} con acceso lo perderán)` : ''}`);
-  });
-  if (de === 'medida' && a === 'empresa' && datos && +datos.medicos > 50) l.push(`Portal: el plan Empresa admite hasta 50 accesos y ahora hay ${num(datos.medicos)}`);
-  if (de === 'medida') l.push('Ver la plataforma como cada persona de tu equipo', 'Soporte prioritario');
-  return l;
-}
 
-function reciboCalculado(pl) {
-  const p = planDe(pl.plan), u = Math.max(+pl.usuarios || 0, p.minimo || 3), anual = pl.pago === 'anual';
-  const cuota = u * p.precio * (anual ? 10 : 1);
-  const puesta = pl.en_prueba && !anual ? PUESTA_EN_MARCHA : 0;
-  return { primero: cuota + puesta + ivaDe(cuota + puesta), despues: cuota + ivaDe(cuota), puesta, anual };
-}
 
 
 
@@ -871,26 +313,6 @@ async function pendientesCfg() {
 }
 
 
-// Grupo «Invitados» de Usuarios
-function pintarInvitados(lista, acc) {
-  const box = $('usrinv'); if (!box) return;
-  const hace = t => { if (!t) return null; const d = new Date(t); return isNaN(d) ? null : d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }); };
-  $('usrinvn').textContent = lista.length ? '· ' + num(lista.length) : '';
-  box.innerHTML = lista.map(u => {
-    const a = acc[u.id] || {}, ult = hace(a.ultima_conexion || a.ultimo_acceso);
-    return `<div class="usrinv ${u.activo ? '' : 'off'}">
-      <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
-      <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
-        <span class="usrchips">${u.cuenta_id ? `<button class="pill p-per" data-uinvf="${u.cuenta_id}" title="Abrir su ficha">${esc(u.medico || u.cuenta || 'Su ficha')}</button>` : '<span class="pill p-anu">Sin ficha</span>'}
-          ${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
-          <span class="sm usrinvult">${ult ? esc(conexionTxt(a)) : 'Aún no ha entrado'}</span></span>
-        <span class="sm usrinvve">${esc(queVeInvitado(u))}</span></span>
-      <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">👤 Impersonalizar</button>` : ''}
-        <button class="btn sec" data-uinvd="${u.id}">Detalles</button></span></div>`;
-  }).join('') || `<div class="vacio">${Object.keys(acc).length || (USUARIOS || []).some(esInvitado) ? 'Nadie con estos filtros.' : `Todavía no has dado acceso a nadie. Se da desde su ficha: «Acceso a la plataforma» → «Dar acceso».`}</div>`;
-  box.querySelectorAll('[data-uinvf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.uinvf));
-  box.querySelectorAll('[data-uinvd]').forEach(b => b.onclick = () => detalleUsuario((USUARIOS || []).find(x => x.id === b.dataset.uinvd)));
-}
 
 
 
@@ -923,7 +345,6 @@ const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita'
 
 let ABRIR_PLAN_SEMANA = false;
 
-const zonasMarcadas = () => [...$('dbody').querySelectorAll('#uzonas [data-zp]:checked')].map(x => x.dataset.zp).sort();
 
 let LOGO_DATA = null;
 
@@ -931,7 +352,6 @@ let PANEL_ACTIVO = null;
 
 const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };
 
-let USR_F = { q: '', rol: '', est: 'activos' };
 
 const plantillaRol = r => Object.assign({}, (rolDef(r) || {}).plantilla || {}, (AJUSTES.roles || {})[r] || {});
 
@@ -1133,26 +553,9 @@ function abrirHorarioPlanBase() {
 
 
 
-async function pintarPrefsPerfilBase() {
-  // v2.340.0: la tarjeta de la persona se pinta directamente en su sitio (antes, en un contenedor escondido esperando a pintarPrefs:
-  // llegaba tarde o, si quedaba otra #miperfil en la copia fija, no llegaba y dejaba el hueco)
-  document.querySelectorAll('#miperfil, #mpextra').forEach(x => { if (x.closest('.congelada')) x.removeAttribute('id'); else x.remove(); });
-  if (!$('perfilcab')) return;
-  const p = pintarPrefsPaso2();
-  const mp = $('miperfil');
-  if (mp && $('perfilcab')) $('perfilcab').replaceWith(mp); else if ($('perfilcab')) $('perfilcab').remove();
-  try { await p; } catch (e) {}
-}
 
 
 
-// pintarPrefsPerfil pone la tarjeta de la persona después: va a su sitio dentro de la tarjeta única
-async function pintarPrefsPerfil(...a) {
-  const p = pintarPrefsPerfilBase.apply(this, a);
-  const mp = $('miperfil'), row = document.querySelector('#cfgcuerpo .perfunorow');
-  if (mp && row && mp.parentElement !== row) { mp.classList.remove('card', 'cfgpanel'); mp.classList.add('perfparte'); row.prepend(mp); }
-  return p;
-}
 
 // v2.242.0: aquí iba envioCfg (nadie la usaba)
 async function cargarAjustesBase() {
@@ -1161,14 +564,6 @@ async function cargarAjustesBase() {
 }
 
 
-/* pintarPerfil: la parte base y, en orden, cada paso que se le añade (antes eran 4 capas separadas). */
-function pintarPerfilBase2() {
-  pintarPerfilBase();
-  pintarPerfilPaso1();
-  pintarPerfilPaso2();
-  pintarPerfilPaso3();
-  pintarPerfilPaso4();
-}
 
 function arbolConfigBase() {
   const admin = puede('administrar');
@@ -1231,23 +626,6 @@ function arbolConfigBase4() {
 function arbolConfigBase5() { return arbolConfigBase4().map(([g, l]) => [g, l.filter(x => !['perfil', 'notif'].includes(x.k))]).filter(g => g[1].length); }
 
 
-function pintarPerfilBase3() {
-  pintarPerfilBase2();
-  // El contenedor de la página (no el provisional que se usa mientras se prepara la tarjeta de la persona)
-  const c = document.querySelector('#v-perfil .pagcuerpo') || (TAB === 'config' ? document.querySelector('#v-config #cfgcuerpo-real, #v-config #cfgcuerpo') : null); if (!c || c.querySelector('.perfseg')) return;
-  c.classList.add('perfil2');
-  c.insertAdjacentHTML('beforeend', `<div class="card cfgpanel perfseg"><h2 style="padding:0 0 4px">${svgIco(ICON_NOM.shield)} Seguridad y sesión</h2>
-    <p class="sm">Para cambiar la contraseña te enviamos un enlace a tu correo. Así nadie puede cambiarla desde un dispositivo que hayas dejado abierto.</p>
-    <div class="perfsegf"><div><span class="sm">Correo de acceso</span><b>${esc(PERFIL.email || '')}</b></div><div><span class="sm">Rol</span><b>${esc(PERFIL.rol)}</b></div></div>
-    <div class="acts" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn sec" id="perfclave">${svgIco(ICON_NOM['key-round'])} Enviarme el enlace para cambiar la contraseña</button>
-      <button class="btn sec" id="perfsalir">${svgIco(ICON_NOM['log-out'])} Cerrar sesión</button></div></div>`);
-  $('perfclave').onclick = () => conCarga($('perfclave'), 'Enviando…', async () => {
-    const { error } = await db.auth.resetPasswordForEmail(PERFIL.email, { redirectTo: location.origin + location.pathname });
-    toast(error ? 'No se ha podido enviar: ' + error.message : 'Te hemos enviado el enlace a ' + PERFIL.email, !!error);
-  });
-  $('perfsalir').onclick = () => { const s = document.querySelector('[data-u="salir"]'); if (s) s.click(); };
-  // (el nombre configurado del módulo de contactos lo aplica el componente general, antes de pintar)
-}
 
 // Configuración ya no repite Facturación (datos fiscales, series y VeriFactu): están en Facturación → Configuración.
 // Además, tenerlo en los dos sitios creaba dos contenedores con el mismo identificador.
@@ -1290,21 +668,6 @@ function arbolConfig() {
   return g;
 }
 
-// Mis datos: una sola tarjeta (la persona, sus datos y la seguridad)
-function pintarPerfil(...a) {
-  const r = pintarPerfilBase3.apply(this, a);
-  if (TAB !== 'config') return r;
-  const c = $('cfgcuerpo'); if (!c || c.querySelector('.perfuno')) return r;
-  const mp = c.querySelector('#miperfil'), dt = [...c.children].find(x => x.querySelector && x.querySelector('#pfn')), sg = c.querySelector('.perfseg');
-  if (!dt) return r;
-  const u = document.createElement('div'); u.className = 'card cfgpanel perfuno';
-  u.innerHTML = '<div class="perfunorow"></div>';
-  const row = u.firstChild;
-  [mp, dt].filter(Boolean).forEach(x => { x.classList.remove('card', 'cfgpanel'); x.classList.add('perfparte'); row.appendChild(x); });
-  if (sg) { sg.classList.remove('card', 'cfgpanel'); sg.classList.add('perfparte'); u.appendChild(sg); }
-  c.prepend(u);
-  return r;
-}
 
 // Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
 function camposFiltros() { return ''; }
@@ -1339,213 +702,24 @@ function aplicarMarca() {
 async function cargarAjustesBase2() { await cargarAjustesBase(); aplicarEtiqueta(); }
 
 // Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
-async function pintarPaginaPlanBase() {
-  const { data } = await RPC_ORIG('plan_uso', {});
-  const d = data || {}, pl = d.plan || {}; if (pl.plan) PLAN_ACTUAL = pl;
-  const act = planDe(pl.plan), contr = usuariosContratados(), usados = +d.usuarios || 0, anual = pl.pago === 'anual';
-  const pct = contr === Infinity ? 0 : Math.min(100, Math.round(usados / contr * 100));
-  // Con pago anual se pagan 10 meses de 12: la cuota mensual equivalente es precio × 10 / 12
-  const cuota = act.presupuesto || contr === Infinity ? null : contr * (anual ? act.precio * 10 / 12 : act.precio);
-  const mailto = asunto => 'mailto:?subject=' + encodeURIComponent(asunto + ' · ' + ((AJUSTES.marca || {}).nombre || ''));
-  const cont = $('cfgcuerpo'); if (!cont) return;
-  // El plan que se destaca es el siguiente al tuyo (con A medida, ninguno)
-  const siguiente = PLANES[PLANES.indexOf(act) + 1] || null;
-  // v2.120.0: «incluido» y «no incluido» como icono y raya suave, con su texto para lectores de pantalla
-  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === '✓' ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
-    : v === '—' ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
-  cont.innerHTML = `${TAB === 'organizacion' || TAB === 'config' ? '<p class="sm">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</p>' : '<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>'}
-    <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
-      ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
-      <div class="kpis">
-        <div class="kpi"><b>${contr === Infinity ? 'Sin límite' : num(contr)}</b><span>Usuarios contratados</span></div>
-        <div class="kpi"><b>${num(usados)}</b><span>Usuarios en uso</span></div>
-        <div class="kpi"><b>${act.presupuesto ? 'A medida' : anual ? 'Anual' : 'Mensual'}</b><span>Pago</span></div>
-        ${cuota != null ? `<div class="kpi"><b>${eurI(cuota)}</b><span>Al mes, sin IVA</span></div>` : ''}
-        ${act.medicos !== 0 ? `<div class="kpi"><b>${num(d.medicos || 0)}${act.medicos ? ' / ' + act.medicos : ''}</b><span>${TT('medico', 'p', '', 'l', 'C')} con acceso</span></div>` : ''}
-      </div>
-      ${contr !== Infinity ? `<div class="barrauso" title="${num(usados)} de ${num(contr)}"><i style="width:${pct}%"></i></div>` : ''}
-      ${contr !== Infinity && usados > contr ? `<div class="banda-aviso" id="plansobre">Tienes ${usados - contr === 1 ? '1 usuario' : num(usados - contr) + ' usuarios'} más de ${num(contr)} contratados. Añádelos a tu plan o desactiva los que ya no usen la plataforma.</div>` : ''}
-      <div class="acts"><a class="btn sec" href="${mailto('Cambiar el número de usuarios')}">Añadir o quitar usuarios</a></div></div>
-    <div class="planes">${PLANES.map(p => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p === siguiente ? 'dest' : ''}" data-plan="${p.id}">
-      <h3>${esc(p.nombre)}</h3><div class="sm">${esc(p.para)}</div>
-      <div class="precio">${p.presupuesto ? '<b>A medida</b> <span class="sm">Presupuesto · desde 50 usuarios</span>'
-        : `<b>${eurI(p.precio)}</b> <span class="sm">por usuario al mes · ${eurI(p.anual)} con pago anual (${eurI(p.precio * 10)} al año)</span>`}</div>
-      <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
-      ${p.id === act.id ? '<button class="btn sec" disabled>Tu plan actual</button>'
-        : `<a class="btn ${p === siguiente ? '' : 'sec'}" href="${mailto(p.presupuesto ? 'Presupuesto del plan A medida' : 'Cambiar al plan ' + p.nombre)}">${p.presupuesto ? 'Pedir presupuesto' : 'Cambiar a ' + esc(p.nombre)}</a>`}</div>`).join('')}</div>
-    <div class="card" id="plancond"><h2>Condiciones</h2><ul class="manlist">
-      <li><span>✓</span><span>Mínimo 3 usuarios en Campo, Comercial y Empresa. Añades o quitas usuarios cuando quieras.</span></li>
-      <li><span>✓</span><span>Puesta en marcha (importar tus Excel, configurar la empresa y formar al equipo): incluida con pago anual; con pago mensual, ${eurI(PUESTA_EN_MARCHA)} una sola vez.</span></li>
-      <li><span>✓</span><span>Prueba de 30 días con tus propios datos, sin permanencia. Si no sigues, te llevas tus datos.</span></li>
-      <li><span>✓</span><span>Desarrollos y configuraciones a medida: presupuesto según lo que necesites.</span></li></ul></div>
-    <div class="card"><h2>Qué incluye cada plan</h2><div class="dgrid-wrap"><table class="planmat"><thead><tr><th>Módulo</th>${PLANES.map(p => `<th class="${p.id === act.id ? 'act' : ''}">${esc(p.nombre)}</th>`).join('')}</tr></thead>
-      <tbody>${MOD_PLAN.map(([m, n, desc]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(desc)}</span></td>${PLANES.map(p => celda(p, p.modulos.includes(m) ? '✓' : '—')).join('')}</tr>`).join('')}
-        <tr><td><b>Espacio ${TT('medico', 's', 'del', 'l', 'l')}</b><span class="sm">Su informe y sus avisos</span></td>${PLANES.map(p => celda(p, p.medicos === 0 ? '—' : p.medicos ? 'Hasta ' + p.medicos : 'Sin límite')).join('')}</tr>
-        <tr><td><b>Ver la plataforma como cada persona</b><span class="sm">De tu equipo, para ayudarla</span></td>${PLANES.map(p => celda(p, p.id === 'medida' ? '✓' : '—')).join('')}</tr>
-        <tr><td><b>Precio por usuario</b><span class="sm">Al mes, IVA no incluido</span></td>${PLANES.map(p => celda(p, p.presupuesto ? 'A medida' : eurI(p.precio) + ' · ' + eurI(p.anual) + ' anual')).join('')}</tr>
-      </tbody></table></div></div>`;
-}
 
 // Si la app ya estaba a la vista al cargar este bloque (arranque con el perfil guardado), el menú se ajusta igualmente
 async function cargarAjustes(...a) { const r = await cargarAjustesBase2(...a); if (PERFIL) menuOrganizacion(); return r; }
 
-async function pintarPaginaPlanBase2(...a) {
-  const r = await pintarPaginaPlanBase.apply(this, a);
-  const t = document.querySelector('#cfgcuerpo .planmat'); if (!t) return r;
-  const act = planDe((PLAN_ACTUAL || {}).plan);
-  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === true ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
-    : v === false ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
-  const filas = PLAN_FILAS().map(([n, d, pl]) => pl === null || pl === undefined && d === null
-    ? `<tr class="plangrupo"><td colspan="${PLANES.length + 1}">${esc(n)}</td></tr>`
-    : `<tr><td><b>${esc(n)}</b>${d ? `<span class="sm">${esc(d)}</span>` : ''}</td>${PLANES.map(p => celda(p, pl.includes(p.id))).join('')}</tr>`).join('');
-  const extra = [...t.querySelectorAll('tbody tr')].filter(tr => /Espacio|Ver la plataforma|Precio por usuario/.test(tr.textContent)).map(tr => tr.outerHTML).join('');
-  t.querySelector('tbody').innerHTML = filas + extra;
-  return r;
-}
 
 // Comparativa de «Plan y suscripción»: la fila del espacio del profesional pasa a ser la del portal (Oportunidades va en PLAN_FILAS)
-async function pintarPaginaPlanBase3(...a) {
-  const r = await pintarPaginaPlanBase2.apply(this, a);
-  const fp = [...document.querySelectorAll('.planmat tbody tr')].find(tr => /Su informe y sus avisos/.test(tr.textContent));
-  if (fp) fp.querySelector('td').innerHTML = `<b>Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro</b><span class="sm">Informe, constancia, material, mensajes y pedidos del centro</span>`;
-  return r;
-}
 
 // «Plan y suscripción»: los botones reales en lugar de correos
-async function pintarPaginaPlanBase4(...a) {
-  const r = await pintarPaginaPlanBase3.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c) return r;
-  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, puedePagar = puedeOrganizacion();
-  c.querySelectorAll('.plan[data-plan]').forEach(card => {
-    const k = card.dataset.plan, a2 = card.querySelector('a.btn[href^="mailto"]');
-    if (!a2 || !PAGO_PLANES.includes(k)) return;
-    if (!puedePagar) { a2.remove(); return; }
-    const b = document.createElement('button'); b.type = 'button'; b.className = a2.className; b.dataset.pgplan = k;
-    b.textContent = conSus ? 'Cambiar a ' + planDe(k).nombre : 'Contratar ' + planDe(k).nombre;
-    a2.replaceWith(b); b.onclick = () => elegirPago(k);
-  });
-  const acts = c.querySelector('#planact .acts');
-  if (acts) {
-    const usu = acts.querySelector('a.btn[href^="mailto"]'); if (usu) usu.remove();
-    if (puedePagar && pl.plan !== 'medida') acts.insertAdjacentHTML('beforeend', conSus
-      ? '<button type="button" class="btn sec" id="pgusu2">Añadir o quitar usuarios</button><button type="button" class="btn sec" id="pgportal">Gestionar el pago</button>'
-      : '<button type="button" class="btn" id="pgelegir">Elegir plan y pagar</button>');
-    if ($('pgusu2')) $('pgusu2').onclick = () => elegirPago(pl.plan);
-    if ($('pgportal')) $('pgportal').onclick = ev => pagoPortal(ev.target);
-    if ($('pgelegir')) $('pgelegir').onclick = () => elegirPago();
-  }
-  const act = c.querySelector('#planact h2');
-  if (act && pl.estado === 'impago') act.insertAdjacentHTML('afterend', `<div class="banda-peligro">No hemos podido cobrar el último recibo${pl.impago_desde ? ' (desde el ' + fechaCorta(pl.impago_desde) + ')' : ''}.
-    Actualiza el método de pago con «Gestionar el pago»; si en 14 días no se puede cobrar, la cuenta queda en solo lectura.</div>`);
-  if (act && pl.estado === 'cancelada') act.insertAdjacentHTML('afterend', `<div class="banda-aviso">Suscripción cancelada: puedes usar la plataforma hasta el
-    <b>${fechaCorta(pl.periodo_fin)}</b> y descargar tus datos. Para seguir, vuelve a contratar.</div>`);
-  if (act && conSus && pl.periodo_fin && pl.estado === 'activo') act.insertAdjacentHTML('afterend', `<p class="sm">Próximo recibo el ${fechaCorta(pl.periodo_fin)}.</p>`);
-  return r;
-}
 
 // A medida (como la empresa principal): sin botones de contratar ni de cambiar en línea, salvo que ya pague con Stripe
-async function pintarPaginaPlanBase5(...a) {
-  const r = await pintarPaginaPlanBase4.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
-  if (c && pl.plan === 'medida' && !pl.stripe_suscripcion) c.querySelectorAll('[data-pgplan], #pgelegir, #pgusu2').forEach(b => b.remove());
-  return r;
-}
 
 // «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
-async function pintarPaginaPlanBase6(...a) {
-  const r = await pintarPaginaPlanBase5.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2'); if (!h) return r;
-  const cp = pl.cambio_previsto;
-  if (cp && cp.plan) h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprevisto">El <b>${fechaCorta(cp.desde)}</b> pasarás al plan
-    <b>${esc(planDe(cp.plan).nombre)}</b> con ${num(cp.usuarios)} usuarios y pago ${cp.pago === 'anual' ? 'anual' : 'mensual'}.
-    ${puedeOrganizacion() ? '<button type="button" class="btn sec" id="pganular">Anular el cambio</button>' : ''}</div>`);
-  if (pl.baja_al_final && pl.estado === 'activo') h.insertAdjacentHTML('afterend', `<div class="banda-aviso" id="pgbajafin">Has pedido la baja: puedes usar la plataforma
-    hasta el <b>${fechaCorta(pl.periodo_fin)}</b>. Si quieres seguir, entra en «Gestionar el pago» y renueva la suscripción.</div>`);
-  if (pl.plan === 'medida' && pl.compromiso_hasta) h.insertAdjacentHTML('afterend', `<p class="sm" id="pgcomp">Contrato A medida hasta el ${fechaCorta(pl.compromiso_hasta)}. Para cambiarlo, habla con delcos.</p>`);
-  if ($('pganular')) $('pganular').onclick = async ev => {
-    const d = await pagoLlamar({ accion: 'anular_cambio' }, ev.target); if (!d) return;
-    toast('Cambio anulado: sigues con tu plan'); await pagoCargarEstado(); ir(TAB);
-  };
-  return r;
-}
 
-async function pintarPaginaPlanBase7(...a) {
-  const r = await pintarPaginaPlanBase6.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}; if (!c || !puedeOrganizacion() || !pl.stripe_suscripcion) return r;
-  const acts = c.querySelector('#planact .acts');
-  if (acts && pl.estado === 'activo' && !pl.baja_al_final && !$('pgdarbaja'))
-    acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="pgdarbaja">Darme de baja</button>');
-  const bf = $('pgbajafin');
-  if (bf) {
-    bf.innerHTML = `Has pedido la baja: puedes usar la plataforma hasta el <b>${fechaCorta(pl.periodo_fin)}</b>.
-      <button type="button" class="btn sec" id="pgseguir">Seguir con la suscripción</button>`;
-  }
-  if ($('pgdarbaja')) $('pgdarbaja').onclick = async ev => { const d = await pagoLlamar({ accion: 'baja' }, ev.target); if (d && d.url) location.href = d.url; };
-  if ($('pgseguir')) $('pgseguir').onclick = async ev => {
-    const d = await pagoLlamar({ accion: 'reanudar' }, ev.target); if (!d) return;
-    toast('Seguimos: tu suscripción continúa'); await pagoCargarEstado(); ir(TAB);
-  };
-  return r;
-}
 
 // «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
-async function pintarPaginaPlanBase8(...a) {
-  const r = await pintarPaginaPlanBase7.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c || !c.querySelector('#planact')) return r;
-  const pl = PLAN_ACTUAL || {};
-  c.querySelectorAll('a[href^="mailto"]').forEach(x => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = x.className;
-    b.textContent = x.closest('.plan[data-plan="medida"]') ? 'Pedir presupuesto' : 'Hablar con delcos';
-    b.dataset.presu = x.closest('.plan[data-plan="medida"]') && pl.plan !== 'medida' ? 'presupuesto' : 'contrato';
-    x.replaceWith(b);
-  });
-  const comp = $('pgcomp');
-  if (pl.plan === 'medida' && !c.querySelector('[data-presu]') && !puede('gestionar_plataforma')) {
-    const acts = c.querySelector('#planact .acts');
-    if (acts) acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" data-presu="contrato">Hablar con delcos</button>');
-  }
-  if (comp) comp.textContent = comp.textContent.replace(' Para cambiarlo, habla con delcos.', '');
-  c.querySelectorAll('[data-presu]').forEach(b => b.onclick = () => pedirPresupuesto(b.dataset.presu));
-  try {
-    const { data } = await db.from('solicitudes_plan').select('creado_en,estado,tipo').order('creado_en', { ascending: false }).limit(1);
-    const s = (data || [])[0], h = c.querySelector('#planact h2');
-    if (s && h && !$('presuest') && (s.estado !== 'Cerrada' || Date.now() - new Date(s.creado_en) < 30 * 864e5))
-      h.insertAdjacentHTML('afterend', `<div class="banda-info" id="presuest">Tu solicitud ${s.tipo === 'contrato' ? 'sobre el contrato' : 'de presupuesto'} del
-        ${fechaCorta(s.creado_en.slice(0, 10))}: <b>${esc(PRESU_ESTADO[s.estado] || s.estado)}</b>.${s.estado === 'Nueva' ? ' Te contestamos en un día laborable.' : ''}</div>`);
-  } catch (e) {}
-  return r;
-}
 
 // «Plan y suscripción»: periodo de prueba de Stripe
-async function pintarPaginaPlanBase9(...a) {
-  const r = await pintarPaginaPlanBase8.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
-  if (h && pl.en_prueba && pl.periodo_fin && !$('pgprueba') && !pl.baja_al_final)
-    h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprueba">Estás en el periodo de prueba hasta el <b>${fechaCorta(pl.periodo_fin)}</b>:
-      hasta entonces no se cobra nada. Ese día se pasará el primer recibo, salvo que te des de baja antes.</div>`);
-  return r;
-}
 
-async function pintarPaginaPlanBase10(...a) {
-  const r = await pintarPaginaPlanBase9.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
-  if (!c || !c.querySelector('#planact') || !pl.stripe_cliente || !puedeOrganizacion() || $('pgdatos')) return r;
-  c.querySelector('#planact').insertAdjacentHTML('afterend', `<div class="card cfgpanel" id="pgdatos"><h2 style="padding:0 0 4px">Datos de facturación</h2>
-    <p class="sm">Con estos datos se hacen tus recibos y facturas. ${pl.en_prueba ? `Revísalos antes del ${fechaCorta(pl.periodo_fin)}, cuando se pasa el primer recibo.` : ''}</p>
-    <div class="pgdlista"><div class="skel"></div></div>
-    <div class="acts"><button type="button" class="btn sec" id="pgdcorr">Corregir datos</button></div></div>`);
-  $('pgdcorr').onclick = ev => pagoPortal(ev.target);
-  // Sin avisos si falla (se ve «Falta» y se puede corregir igual)
-  const d = await db.functions.invoke('pagos', { body: { accion: 'datos' } }).then(x => x.data, () => null).catch(() => null);
-  const l = c.querySelector('#pgdatos .pgdlista'); if (!l) return r;
-  if (!d || !d.ok) { l.innerHTML = '<p class="sm">No se han podido leer ahora. Puedes verlos y cambiarlos con «Corregir datos».</p>'; return r; }
-  const x = d.datos || {};
-  const filas = [['Razón social', x.nombre], ['NIF o CIF', x.nif], ['Correo para los recibos', x.email], ['Dirección fiscal', x.direccion]];
-  const faltan = filas.filter(f => !f[1]).length;
-  l.innerHTML = filas.map(([k, v]) => `<div class="pgdfila${v ? '' : ' falta'}"><span>${esc(k)}</span><b>${v ? esc(v) : 'Falta'}</b></div>`).join('')
-    + (faltan ? `<div class="banda-aviso" style="margin-top:8px">Faltan datos para poder facturarte: complétalos con «Corregir datos».</div>` : '');
-  return r;
-}
 
 async function cargarConfigBase() {
   // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
@@ -1699,3 +873,17 @@ function pintarNotif() { return window.delcos.screens.settingsExtra.paintNotific
 function notifModo(k) { return window.delcos.screens.settingsExtra.notificationMode(k); }
 function guardarPrefsAvisos(avisos) { return window.delcos.screens.settingsExtra.saveOrderAlerts(avisos); }
 function pintarTextos() { return window.delcos.screens.settingsExtra.paintMenuNames(); }
+
+// Usuarios, Mi perfil y «Plan y suscripción» están en src/app/screens/settings (v2.420.0). Estos nombres se quedan: el árbol de
+// Configuración, las páginas «perfil» y «plan», legado 004/007/052/076, la ficha, Panel delcos y las pruebas los usan.
+function editarUsuario(id) { return window.delcos.screens.settingsRest.editUser(id); }
+function nuevoUsuario(pre) { return window.delcos.screens.settingsRest.newUser(pre && pre.medico ? pre : null); }
+function pintarUsuarios2() { return window.delcos.screens.settingsRest.paintUsers(); }
+function detalleUsuario(u) { return window.delcos.screens.settingsRest.showUser(u); }
+function asegurarUsuario(id) { return window.delcos.screens.settingsRest.ensureUser(id); }
+function guardarKpis(lista) { return window.delcos.screens.settingsRest.saveIndicators(lista); }
+function pintarPrefsParte(parte) { return window.delcos.screens.settingsRest.paintPreferencesPart(parte); }
+function pintarPerfil() { return window.delcos.screens.settingsRest.paintMyProfile(); }
+function perdidasPlan(de, a, datos) { return window.delcos.screens.settingsRest.planLosses(de, a, datos || null); }
+function reciboCalculado(pl) { return window.delcos.screens.settingsRest.receiptOf(pl); }
+function pintarPaginaPlanBase10() { return window.delcos.screens.settingsRest.paintPlanPage(); }
