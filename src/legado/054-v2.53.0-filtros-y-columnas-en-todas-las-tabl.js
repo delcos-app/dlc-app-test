@@ -1,35 +1,5 @@
-/* ============================================================
-   v2.53.0 · Filtros y columnas en todas las tablas, columna de
-   acceso en Prescriptores y páginas propias de Perfil, Empresa y Plan
-   ============================================================ */
-
-/* ---------------- componente común: «Filtros y columnas» ---------------- */
-
-new MutationObserver(() => {
-  if (HT_PEND) return; HT_PEND = true;
-  queueMicrotask(() => { HT_PEND = false; const sec = $('v-' + TAB); if (sec && !sec.classList.contains('hide')) htPreparar(sec); });
-}).observe(document.querySelector('main'), { childList: true, subtree: true });
-
-/* ---------------- Prescriptores: columna «Acceso a la plataforma» ---------------- */
-
-
-/* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
-
+// legado 054 · v2.53.0 «Filtros y columnas» y páginas de Perfil, Empresa y Plan: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
+// y los nombres que siguen usando otros archivos o las pruebas.
+window.delcos.legacyC.start054();
 let PAG_TAB = {};
-// Menú de usuario: cada opción abre su página
-document.addEventListener('click', e => {
-  const b = e.target.closest('[data-u="perfil"], [data-u="empresa"], [data-u="plan"]'); if (!b) return;
-  e.stopImmediatePropagation(); e.preventDefault();
-  document.querySelectorAll('.umenu, #umenu').forEach(m => m.classList.add('hide'));
-  ir(b.dataset.u);
-}, true);
-
-// Plan y suscripción: página comercial con lo que aporta cada plan y cada módulo
-const MOD_PLAN = [
-  ['agenda', 'Agenda y «Tu día»', `Citas, ${TT('visita', 'p', '', 'l', 'l')} y el plan de cada jornada`], ['rutas', 'Rutas', 'Rutas optimizadas y planificación semanal'],
-  ['directorio', etiquetaContactos(), `${TT('medico', 'p', '', 'l', 'C')}, centros y fichas`], ['seguimiento', 'Calidad del dato', 'Duplicados y datos que faltan'],
-  ['ventas', 'Pedidos y llamadas', 'Ventas, compras, proveedores y televenta'], ['pacientes', 'Clientes', `${TT('paciente', 'p', '', 'l', 'C')} y empresas con su historial`],
-  ['productos', 'Productos y stock', 'Catálogo, lotes, caducidades y almacenes'], ['analitica', 'Analítica', `Ventas, ranking de ${TT('medico', 'p', '', 'l', 'l')} y comisiones`],
-  ['facturacion', 'Facturación', 'Facturas con VeriFactu, cobros y rectificativas']];
-
-
+const MOD_PLAN = window.delcos.legacyC.planModules();

@@ -1,37 +1,4 @@
-/* ============================================================
-   v2.60.0 · Revelado atómico: cada pantalla, pestaña y ventana se
-   muestra entera de una vez, cuando han llegado todos sus datos y ha
-   dejado de cambiar (sin estados intermedios a la vista)
-   ============================================================ */
-
-// Contador en la salida a la red (lo llama el envío de peticiones del cliente de la base de datos)
-window.__redIni = () => { RED_PEND++; const m = performance.now() + Math.random() / 1000; RED_EN_CURSO.add(m); return m; };
-window.__redFin = m => { if (RED_EN_CURSO.delete(m)) { RED_PEND--; RED_ULTIMO_FIN = performance.now(); } };
-// Cuentan todas las consultas en curso, también las precargas lanzadas poco antes de entrar (Analítica las aprovecha);
-// solo se ignoran las que llevan más de 3 s en marcha (un refresco de fondo colgado no debe bloquear la pantalla)
-const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0) - 3000; let n = 0; RED_EN_CURSO.forEach(t => { if (t >= lim) n++; }); return n; };
-(function () {
-  let p = Object.getPrototypeOf(db.from('perfiles').select('id'));
-  while (p && !Object.prototype.hasOwnProperty.call(p, 'then')) p = Object.getPrototypeOf(p);
-  if (!p) return;
-  const thenOrig = p.then;
-  // Cada consulta se ejecuta UNA sola vez, aunque varias partes esperen su resultado
-  // (la librería la volvía a enviar cada vez que alguien la esperaba: lecturas duplicadas)
-  p.then = function (ok, ko) {
-    if (!this.__unaVez) this.__unaVez = thenOrig.call(this, v => v, e => { throw e; });
-    return this.__unaVez.then(ok, ko);
-  };
-})();
-
-
-
-// 4. Pestañas y cambios de vista dentro de una pantalla: la vista anterior se queda fija hasta que la nueva está entera
-
-// 5. Ventanas: su contenido aparece entero, no bloque a bloque
-['dlg', 'ficha', 'dlg2'].forEach(id => {
-  const d = $(id); if (!d) return;
-  new MutationObserver(() => { if (d.open) { const cont = d.firstElementChild; if (cont) revelar(cont, 1500, Date.now() - 50); } })
-    .observe(d, { attributes: true, attributeFilter: ['open'] });
-});
-
-
+// legado 059 · v2.60.0 revelado atómico: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
+// y los nombres que siguen usando otros archivos o las pruebas.
+window.delcos.legacyC.start059();
+const pendientesDesde = t0 => window.delcos.legacyC.pendingSince(t0);

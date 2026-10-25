@@ -5,6 +5,8 @@
  * (see i18n/index.ts), so each company sees its own words.
  */
 import { accounts } from './es/accounts';
+import { core } from './es/core';
+import { legacyC } from './es/legacy-c';
 import { legacyD } from './es/legacy-d';
 import { legacyB } from './es/legacy-b';
 import { legacyA } from './es/legacy-a';
@@ -87,6 +89,8 @@ export const es = {
   legacyAHelp,
   legacyB,
   legacyD,
+  legacyC,
+  core,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',

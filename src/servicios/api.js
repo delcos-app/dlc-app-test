@@ -1,6 +1,7 @@
 // @ts-check
-// servicios/api.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
-// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+// servicios/api.js · la cola de escrituras y la caché de lecturas están en src/app/core/write-queue.ts y read-cache.ts (v2.425.0). Se quedan
+// el estado compartido (cachés, contadores, consultas en curso), las claves antiguas de las respuestas y estos nombres: el legado, los
+// puentes y las pruebas los usan. Normas: docs/normas_codigo.md.
 
 function copiarClavesAntiguas(x) {
   if (Array.isArray(x)) { x.forEach(copiarClavesAntiguas); return; }
@@ -20,68 +21,22 @@ async function respuestaConClavesAntiguas(url, r) {
 }
 
 /** Ejecuta una escritura; si no hay conexión, la guarda y la reenvía después. */
-async function escribir(fn, payload, etiqueta) {
-  if (!navigator.onLine) {
-    colaGuardar(colaLeer().concat([{ fn, payload: marcarSinConexion(fn, payload), etiqueta, t: Date.now() }]));
-    pintarConexion();
-    toast('Sin conexión: se enviará al recuperarla');
-    return { offline: true };
-  }
-  const { data, error } = await db.rpc(fn, payload);
-  if (error) {
-    if (String(error.message || '').match(/fetch|network|Failed/i)) {
-      colaGuardar(colaLeer().concat([{ fn, payload: marcarSinConexion(fn, payload), etiqueta, t: Date.now() }]));
-      pintarConexion();
-      toast('Guardado en este dispositivo: se enviará luego');
-      return { offline: true };
-    }
-    return { error };
-  }
-  return { data };
-}
-
-function invalidarCache() {
-  RC.clear(); RC_VUELO.clear(); RC_EPOCA++;
-  try { ESQUEMAS = []; } catch (e) {}          // listas guardadas en memoria que deben volver a pedirse
-  try { Object.keys(localStorage).filter(k => k.startsWith('dlc-rc-')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
-}
-
-function marcarSinConexion(fn, payload) {
-  if (fn !== 'registrar_actividad' || !payload || !payload.p) return payload;
-  return Object.assign({}, payload, { p: Object.assign({}, payload.p, { sin_conexion: true }) });
-}
-
-function colaPoner(op) {
-  try { colaGuardar(colaLeer().concat([op])); return true; }
-  catch (e) { toast('El móvil no tiene espacio para guardar este cambio sin conexión', true); return false; }
-}
-
-function colaKoPoner(op, motivo) { try { localStorage.setItem(COLA_KO, JSON.stringify(colaKo().concat([Object.assign({}, op, { motivo, falla: Date.now() })]))); } catch (e) {} }
-
-function usarCache(t) {
-  const c = CACHE_MOD[t], sec = $('v-' + t);
-  const ok = VIA_IR === t && c && sec && sec.children.length && c.clave === ESTADO_MOD[t]() && c.esc === ESCRITURAS && Date.now() - c.t < 10 * 60000;
-  return !!ok;
-}
-
+function escribir(fn, payload, etiqueta) { return window.delcos.core.queue.write(fn, payload, etiqueta); }
+function invalidarCache() { return window.delcos.core.queue.forgetCache(); }
+function usarCache(t) { return window.delcos.core.reads.canReuseScreen(t); }
 // Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
-function cargaLocal(el) {
-  if (!el) return; el.classList.add('cargandolocal');
-  const t0 = performance.now(); let quietos = 0;
-  const w = setInterval(() => { quietos = PEND === 0 ? quietos + 1 : 0; if ((quietos >= 3 && performance.now() - t0 > 80) || performance.now() - t0 > 4000) { clearInterval(w); el.classList.remove('cargandolocal'); } }, 40);
-}
-
-const COLA = 'dlc-cola';
-
-const colaLeer = () => { try { return JSON.parse(localStorage.getItem(COLA) || '[]'); } catch (e) { return []; } };
-
-const colaGuardar = c => localStorage.setItem(COLA, JSON.stringify(c));
-
-const CKEY = k => 'dlc-cache-' + (PERFIL ? PERFIL.id : '') + '-' + k;
-
-const guardarCache = (k, d) => { try { localStorage.setItem(CKEY(k), JSON.stringify({ t: Date.now(), d })); } catch (e) {} };
-
-const leerCache = k => { try { const x = JSON.parse(localStorage.getItem(CKEY(k)) || 'null'); return x ? x : null; } catch (e) { return null; } };
+function cargaLocal(el) { return window.delcos.core.reads.localLoading(el); }
+function colaLeer() { return window.delcos.core.queue.queued(); }
+function colaGuardar(c) { return window.delcos.core.queue.saveQueue(c); }
+function colaKo() { return window.delcos.core.queue.refused(); }
+function guardarCache(k, d) { return window.delcos.core.reads.saveCopy(k, d); }
+function leerCache(k) { return window.delcos.core.reads.readCopy(k); }
+function pedirTurno(k) { return window.delcos.core.reads.takeTurn(k); }
+function esMiTurno(k, t) { return window.delcos.core.reads.isMyTurn(k, t); }
+function vaciarCola() { return window.delcos.core.queue.sendQueue(); }
+function escribirRpc(fn, payload) { return window.delcos.core.reads.writeQueued(fn, payload); }
+/** Llama a una función del servidor y guarda copia; sin conexión devuelve la última copia. */
+function rpcCache(fn, params, clave) { return window.delcos.core.reads.readCached(fn, params, clave); }
 
 const RPC_TTL = {                 // segundos
   panel_inicio: 60, propuestas_rutas: 120, comision_periodo: 120, resumen_duplicados: 600,
@@ -102,13 +57,6 @@ const rcLS = k => 'dlc-rc-' + (PERFIL ? PERFIL.id : '') + '-' + k;
 const rcCopia = r => ({ data: r.data == null ? r.data : JSON.parse(JSON.stringify(r.data)), error: r.error || null });
 
 const RPC_ORIG_FROM = t => FROM_ORIG(t);
-
-// Las consultas de lectura de un módulo que ya no está en pantalla se descartan: nunca pintan ni devuelven la vista
-const TURNOS = {};
-
-const pedirTurno = k => (TURNOS[k] = (TURNOS[k] || 0) + 1);
-
-const esMiTurno = (k, t) => TURNOS[k] === t;
 
 let ESCRITURAS = 0;
 
@@ -140,130 +88,5 @@ let RED_ULTIMO_FIN = 0;   // cuándo terminó la última consulta
 // ---- Lo pedido antes, entregado una vez sin volver a la red
 const DB_PRE = new Map();
 
-// ---- La cola: de una en una, sin perder lo que el servidor rechaza
+// ---- La cola: lo que el servidor rechaza se guarda aparte para revisarlo
 const COLA_KO = 'dlc-cola-ko';
-
-const colaKo = () => { try { return JSON.parse(localStorage.getItem(COLA_KO) || '[]'); } catch (e) { return []; } };
-
-let COLA_ENVIANDO = false;
-
-async function vaciarCola() {
-  if (!navigator.onLine || COLA_ENVIANDO) return;
-  let c = colaLeer(); if (!c.length) return;
-  COLA_ENVIANDO = true;
-  const habia = c.length; let fallidos = 0;
-  try {
-    pintarConexion();
-    while (c.length) {
-      const op = c[0];
-      let data = null, error = null;
-      try { ({ data, error } = await db.rpc(op.fn, op.payload)); } catch (e) { error = e; }
-      if (error && esErrorRed(error)) break;                                              // sigue sin red: luego
-      if (error && /jwt|token/i.test(String(error.message || ''))) { try { await db.auth.refreshSession(); } catch (e) {} break; }
-      if (error || (data && data.ok === false)) { colaKoPoner(op, error ? error.message : (data.error || 'rechazado')); fallidos++; }
-      else if (op.fn === 'registrar_actividad' && data && data.id && op.payload && op.payload.p && op.payload.p.op_id) await fotosEnviarPendientes(op.payload.p.op_id, data.id);
-      c = colaLeer().slice(1); colaGuardar(c);
-    }
-  } finally { COLA_ENVIANDO = false; }
-  pintarConexion();
-  if (fallidos) toast(`${fallidos === 1 ? 'Un cambio guardado sin conexión no se ha podido enviar' : fallidos + ' cambios guardados sin conexión no se han podido enviar'}: pulsa el aviso de arriba para verlos`, true);
-  if (colaLeer().length < habia) { invalidarCache(); cargarInicio(); if (TAB === 'agenda') cargarAgenda(); }
-}
-
-async function escribirRpcBase(fn, payload) {
-  const r = navigator.onLine ? await db.rpc(fn, payload) : { error: { message: 'Failed to fetch' } };
-  if (r && r.error && esErrorRed(r.error)) {
-    colaPoner({ fn, payload: marcarSinConexion(fn, payload), etiqueta: TT('visita', 's', '', 'l', 'C'), t: Date.now() });
-    pintarConexion();
-    setTimeout(() => toast('Sin conexión: queda guardado en este dispositivo y se enviará al recuperarla'), 1500);
-    return { data: { encolada: true }, error: null };
-  }
-  return r;
-}
-
-async function escribirRpcBase2(fn, payload, ...a) {
-  const va = VISITA_ACTUAL;
-  if (fn !== 'registrar_actividad' || !va || !payload || !payload.p || payload.p.cuenta_id !== va.id) return escribirRpcBase.call(this, fn, payload, ...a);
-  payload.p.modo = va.modo;
-  VISITA_ACTUAL = null;
-  const r = await escribirRpcBase.call(this, fn, payload, ...a);
-  if (va.fotos.length && r && !r.error) {
-    if (r.data && r.data.id) subirFotosVisita(r.data.id, va.fotos);
-    else fotosGuardarPendientes(payload.p.op_id, va.fotos);   // v2.259.0: se suben con la visita
-  }
-  return r;
-}
-
-async function escribirRpcBase3(fn, payload, ...a) {
-  const va = VISITA_ACTUAL;
-  if (fn !== 'registrar_actividad' || !va || !va.muestras || !payload || !payload.p || payload.p.cuenta_id !== va.id) return escribirRpcBase2.call(this, fn, payload, ...a);
-  const items = va.muestras.items().map(x => ({ producto_id: x.producto_id, unidades: x.unidades }));
-  const firma = va.muestras.firma(), firmante = va.muestras.firmante();
-  const r = await escribirRpcBase2.call(this, fn, payload, ...a);
-  if (items.length && r && !r.error) {
-    const pm = { cuenta_id: payload.p.cuenta_id, fecha: payload.p.fecha, items, firma, firmante, op_id: 'm-' + payload.p.op_id,
-      ...(r.data && r.data.id ? { actividad_id: r.data.id } : { actividad_op: payload.p.op_id }) };
-    const rm = await escribirRpcBase2.call(this, 'registrar_muestras', { p: pm });
-    if (rm && !rm.error && rm.data && rm.data.ok === false) setTimeout(() => toast(`${TT('visita', 's', '', 'l', 'C', 'guardado')}, pero las muestras no: ${muestraError(rm.data)}`, true), 2600);
-    else if (rm && rm.error) setTimeout(() => toast(`${TT('visita', 's', '', 'l', 'C', 'guardado')}, pero las muestras no se han podido guardar`, true), 2600);
-  }
-  return r;
-}
-
-async function escribirRpcBase4(fn, payload, ...a) {
-  const va = VISITA_ACTUAL;
-  if (fn === 'registrar_actividad' && va && va.productos && payload && payload.p && payload.p.cuenta_id === va.id) payload.p.productos = va.productos.slice();
-  return escribirRpcBase3.call(this, fn, payload, ...a);
-}
-
-async function escribirRpc(fn, payload, ...a) {
-  const r = await escribirRpcBase4.call(this, fn, payload, ...a);
-  if (fn === 'registrar_actividad' && r && r.data && r.data.encolada) setTimeout(() => { if (TAB === 'agenda') window.delcos.screens.agenda.markQueuedVisits(); }, 0);
-  return r;
-}
-
-/** Llama a una función del servidor y guarda copia; sin conexión devuelve la última copia. */
-async function rpcCacheBase(fn, params, clave) {
-  if (navigator.onLine) {
-    const { data, error } = await db.rpc(fn, params);
-    if (!error) { guardarCache(clave, data); return { data, cache: false }; }
-  }
-  const c = leerCache(clave);
-  if (c) return { data: c.d, cache: true, fecha: c.t };
-  return { data: null, cache: true };
-}
-
-async function rpcCacheBase2(fn, params, clave) {
-  if (fn === 'agenda_rango' && TD_PRESET && params && params.p_desde === TD_PRESET.fecha && params.p_hasta === TD_PRESET.fecha) {
-    const d = TD_PRESET.data; TD_PRESET = null; return { data: d, cache: false };
-  }
-  const r = await rpcCacheBase.call(this, fn, params, clave);
-  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) TD_ULTIMO = { fecha: params.p_desde, data: r.data };
-  return r;
-}
-
-async function rpcCacheBase3(fn, params, clave) {
-  if (fn !== 'panel_inicio') return rpcCacheBase2.call(this, fn, params, clave);
-  const [r, g] = await Promise.all([rpcCacheBase2.call(this, fn, params, clave), rpcCacheBase2.call(this, 'inicio_graficas', {}, 'inicio-graficas').catch(() => null)]);
-  KV_INI = r && r.data ? r.data : null;
-  KV_GRAF = g && g.data && g.data.por_dia ? g.data : null;
-  return r;
-}
-
-// La memoria de resultados de Pedidos distingue el orden
-function rpcCacheBase4(fn, params, clave, ...r) {
-  const o = fn === 'pedidos_pagina' ? HT_ORDEN.peds2 : null;
-  return rpcCacheBase3.call(this, fn, params, o && clave ? clave + '|orden:' + o.k + o.dir : clave, ...r);
-}
-
-async function rpcCacheBase5(fn, params, clave) {
-  const r = await rpcCacheBase4.call(this, fn, params, clave);
-  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
-  return r;
-}
-
-function rpcCache(fn, params, clave, ...x) {
-  // Lo precargado por la Agenda (src/app/screens/agenda/preload.ts) se usa sin volver a la red
-  if (fn === 'agenda_rango' && params) { const pre = window.delcos.screens.agenda.data.peekRange(params); if (pre !== undefined) return Promise.resolve(pre); }
-  return rpcCacheBase5.call(this, fn, params, clave, ...x);
-}

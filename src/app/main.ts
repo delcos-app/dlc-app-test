@@ -9,6 +9,8 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as coreServices from './core/services';
+import * as legacyC from './core/legacy-c';
 import * as layers from './core/layers';
 import * as legacyB from './core/legacy-b';
 import * as legacyA from './core/legacy-a';
@@ -63,6 +65,10 @@ export interface DelcosCore {
   readonly t: typeof t;
   readonly setLanguage: typeof setLanguage;
   readonly setVocabulary: typeof setVocabulary;
+  /** Core services (src/app/core, src/app/services), called by the legacy adapters in src/nucleo and src/servicios. */
+  readonly core: typeof coreServices;
+  /** The legacy layers 050–079 folded into src/app/core/legacy-c (v2.425.0): their start functions and the adapters they call. */
+  readonly legacyC: typeof legacyC;
   /** The legacy layers 080–161 folded into src/app/core/layers (v2.424.0): installed from their legado files, in load order. */
   readonly layers: typeof layers;
   /** What legado 000–024 did (v2.424.0): each legado file calls it at its place in the load order. */
@@ -121,6 +127,8 @@ window.delcos = {
   t,
   setLanguage,
   setVocabulary,
+  core: coreServices,
+  legacyC,
   layers,
   legacyA,
   components: { ...components, embeddedWindow, list: listComponents, filters: filterComponents, filtersPanel, listBar },
