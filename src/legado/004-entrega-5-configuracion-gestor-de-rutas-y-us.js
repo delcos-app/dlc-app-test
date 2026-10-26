@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 5: configuración, gestor de rutas y usuarios
    v2.424.0: la página antigua de Administración y los botones de sección están en src/app/screens/settings/admin-page.ts.

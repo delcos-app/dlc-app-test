@@ -1,0 +1,10 @@
+{
+  "//": "Declarations of src/app for the legacy type check (plan 7.4): window.delcos is typed with the real DelcosCore. Written to .tipos/ (not committed) by «npm run check».",
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": ".tipos"
+  }
+}

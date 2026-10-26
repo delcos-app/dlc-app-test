@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.18.0 · Arranque rápido, Inicio progresivo,
    pedidos con IVA y borrador, productos, pacientes y agenda

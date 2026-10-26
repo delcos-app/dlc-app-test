@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    v2.41.0 · Marca propia de cada empresa, planes contratables,
    Usuarios renovado, Roles y permisos, configuración sin redundancias

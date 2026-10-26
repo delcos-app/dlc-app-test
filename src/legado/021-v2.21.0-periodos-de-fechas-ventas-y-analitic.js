@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.21.0 · Periodos de fechas, ventas y analítica
    con totales, indicadores en tarjetas, ruta en curso reordenable

@@ -1,3 +1,4 @@
+// @ts-check
 // servicios/mapas.js · está en src/app/services/maps.ts (v2.425.0). Estos nombres se quedan: Agenda, Rutas, Calidad, la ficha y los
 // puentes los usan. rutasMapa sigue aquí: envuelve el mapa de hoy de Rutas (rutasMapaBase). Normas: docs/normas_codigo.md.
 

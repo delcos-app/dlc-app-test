@@ -6,6 +6,7 @@
 import { currentScreen, isMobile } from '../../../legacy/bridge';
 import { shellLegacy } from '../../../legacy/shell-bridge';
 import { t } from '../../../i18n';
+import { markCurrent } from '../../../core/navigation/current';
 
 const INDEX_MIN_HEIGHT = 240, INDEX_BOTTOM_GAP = 12;
 
@@ -75,7 +76,7 @@ export function markOrderSection(): void {
   if (currentScreen() !== 'ventas') return;
   const aliases = shellLegacy.orderAliases(), view = shellLegacy.orderSectionView();
   const alias = Object.keys(aliases).find(key => aliases[key] === view) ?? 'ventas';
-  document.querySelectorAll('nav.main [data-t], #bnav [data-t]').forEach(button => { button.setAttribute('aria-selected', String((button as HTMLElement).dataset.t === alias)); });
+  document.querySelectorAll('nav.main [data-t], #bnav [data-t]').forEach(button => { markCurrent(button, (button as HTMLElement).dataset.t === alias); });
 }
 
 /** Billing without the plan: the body says so and the menu follows. */
@@ -88,6 +89,6 @@ export function markBillingPlan(): void {
 export function markPlatformPanel(): void {
   const tab = shellLegacy.platformTab();
   document.querySelectorAll<HTMLElement>('nav.main [data-t]').forEach(button => {
-    if (button.classList.contains('pdsec') || button.dataset.t === 'delcos') button.setAttribute('aria-selected', String(button.dataset.t === `pd-${tab}`));
+    if (button.classList.contains('pdsec') || button.dataset.t === 'delcos') markCurrent(button, button.dataset.t === `pd-${tab}`);
   });
 }

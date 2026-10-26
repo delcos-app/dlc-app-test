@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    v2.43.0 · Idiomas por persona (castellano, inglés, alemán,
    francés e italiano), precios alineados con el mercado, paquete

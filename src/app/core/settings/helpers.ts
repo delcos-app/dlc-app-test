@@ -51,7 +51,7 @@ interface EditableText { get: () => string; set: (value: string) => void }
 
 /** The text of a menu entry, to read and to rename (its tooltip follows). */
 export function menuLabelText(button: HTMLElement): EditableText | null {
-  const setTip = (value: string): void => { if (button.dataset.tip) button.dataset.tip = value; };
+  const setTip = (value: string): void => { if (button.dataset.tip) { button.dataset.tip = value; button.setAttribute('aria-label', value); } };
   const label = button.querySelector('.mllab, b, em, small, .lb');
   if (label && !label.querySelector('svg')) return { get: () => (label.textContent ?? '').trim(), set: value => { label.textContent = value; setTip(value); } };
   const text = [...button.childNodes].find(node => node.nodeType === Node.TEXT_NODE && (node.nodeValue ?? '').trim());

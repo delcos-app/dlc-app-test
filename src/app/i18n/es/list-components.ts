@@ -5,6 +5,7 @@ export const listComponents = {
     previous: 'Página anterior',
     next: 'Página siguiente',
     show: 'Mostrar',
+    pageSize: 'Filas por página',
   },
   popover: {
     searchPlaceholder: 'Buscar…',

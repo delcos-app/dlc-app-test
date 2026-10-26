@@ -1,3 +1,4 @@
+// @ts-check
 // pantallas/configuracion.js · Configuración está en src/app (pantallas en src/app/screens/settings, el núcleo de ajustes en
 // src/app/core/settings; v2.415.0–v2.428.0). Aquí solo queda el estado compartido que otras partes leen o cambian por su nombre y
 // los adaptadores de una línea. Normas: docs/normas_codigo.md.

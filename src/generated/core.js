@@ -3926,7 +3926,8 @@
       range: "{from}–{to} de {total}",
       previous: "Página anterior",
       next: "Página siguiente",
-      show: "Mostrar"
+      show: "Mostrar",
+      pageSize: "Filas por página"
     },
     popover: {
       searchPlaceholder: "Buscar…",
@@ -12369,7 +12370,7 @@
   function placePageButton(nav, key, text5, shown5) {
     let button3 = nav.querySelector(`[data-t="${key}"]`);
     if (!button3 && shown5) {
-      nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" aria-selected="false">${text5}</button>`);
+      nav.insertAdjacentHTML("beforeend", `<button data-t="${key}">${text5}</button>`);
       button3 = nav.querySelector(`[data-t="${key}"]`);
     }
     if (!button3) return;
@@ -12446,7 +12447,7 @@
         toggle4.checked = false;
         toggle4.disabled = true;
       }
-      if (!row4.querySelector(".mlpcand")) row4.querySelector(".mlpn")?.insertAdjacentHTML("afterend", `<span class="mlpcand" aria-label="${t("navigationCore.menu.notInPlanShort")}"></span>`);
+      if (!row4.querySelector(".mlpcand")) row4.querySelector(".mlpn")?.insertAdjacentHTML("afterend", `<span class="mlpcand" role="img" aria-label="${t("navigationCore.menu.notInPlanShort")}"></span>`);
     });
     box5.querySelectorAll(".mlpg").forEach((group) => {
       const rows2 = [...group.querySelectorAll(".mlpi[data-k]")], count2 = group.querySelector(".mlpcnt");
@@ -16651,7 +16652,7 @@
   }
   function createColumnsPanel() {
     if (byId2("tools2")) return;
-    document.body.insertAdjacentHTML("beforeend", `<div class="tools tools2" id="tools2" aria-label="${t("legacyC.tools.columnsHeading")}"></div><div class="toolsfondo hide" id="toolsfondo"></div>`);
+    document.body.insertAdjacentHTML("beforeend", `<div class="tools tools2" id="tools2" role="group" aria-label="${t("legacyC.tools.columnsHeading")}"></div><div class="toolsfondo hide" id="toolsfondo"></div>`);
     const tools = byId2("tools"), second = byId2("tools2"), backdrop = byId2("toolsfondo");
     backdrop?.addEventListener("pointerdown", () => {
       second?.classList.remove("abierto");
@@ -17814,7 +17815,7 @@
     const nav = document.getElementById("nav");
     if (!nav) return;
     PANEL_SECCIONES.forEach(([key = "", , text5 = "", icon3 = ""]) => {
-      if (!nav.querySelector(`[data-t="${key}"]`)) nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" aria-selected="false" class="hide pdsec">${escapeHtml(text5)}</button>`);
+      if (!nav.querySelector(`[data-t="${key}"]`)) nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" class="hide pdsec">${escapeHtml(text5)}</button>`);
       navIcons()[key] = icon3;
     });
   }
@@ -18025,13 +18026,14 @@
         else button3.insertAdjacentHTML("beforeend", `<span class="mllab">${escapeHtml(text5)}</span>`);
       }
       button3.dataset.tip = (button3.querySelector(".mllab") ?? button3).textContent?.trim() ?? "";
+      button3.setAttribute("aria-label", button3.dataset.tip);
     });
   }
   function paintFooter(nav) {
     if (!nav.querySelector(".mlpie")) {
       nav.insertAdjacentHTML("beforeend", `<div class="mlpie">
-      <button type="button" class="mlitem" id="mlcfg" data-tip="${t("legacyC.sideMenu.settings")}">${svgIco(ICON_NOM.settings ?? "")}<span class="mllab">${t("legacyC.sideMenu.settings")}</span></button>
-      <button type="button" class="mlitem" id="mlpers" data-tip="${t("legacyC.sideMenu.customise")}">${svgIco(ICON_NOM["sliders-horizontal"] ?? "")}<span class="mllab">${t("legacyC.sideMenu.customise")}</span></button>
+      <button type="button" class="mlitem" id="mlcfg" data-tip="${t("legacyC.sideMenu.settings")}" aria-label="${t("legacyC.sideMenu.settings")}">${svgIco(ICON_NOM.settings ?? "")}<span class="mllab">${t("legacyC.sideMenu.settings")}</span></button>
+      <button type="button" class="mlitem" id="mlpers" data-tip="${t("legacyC.sideMenu.customise")}" aria-label="${t("legacyC.sideMenu.customise")}">${svgIco(ICON_NOM["sliders-horizontal"] ?? "")}<span class="mllab">${t("legacyC.sideMenu.customise")}</span></button>
       <button type="button" class="mlplegar" id="mlplegar" aria-label="${t("legacyC.sideMenu.foldLabel")}">${svgIco(ICO_PLEGAR)}</button></div>`);
       const settings2 = byId2("mlcfg"), customise2 = byId2("mlpers"), fold2 = byId2("mlplegar");
       if (settings2) settings2.onclick = () => {
@@ -24997,7 +24999,7 @@
     if (navigationGlueLegacy.isProfessionalPortal() || !bar2) return navigationGlueLegacy.baseBottomBar(args);
     const modules = navigationGlueLegacy.mobileModules(), screen3 = navigationGlueLegacy.currentScreen();
     bar2.dataset.n = String(modules.length + 1);
-    bar2.innerHTML = modules.map((module) => `<button data-t="${module}" aria-selected="${String(screen3 === module)}"><span>${navigationGlueLegacy.moduleIcon(module) ?? "•"}</span>${escapeHtml(navigationGlueLegacy.mobileName(module))}</button>`).join("") + `<button id="bmasbtn" aria-selected="${String(!modules.includes(screen3))}"><span>⋯</span>${t("legacyD.navigation.more")}</button>`;
+    bar2.innerHTML = modules.map((module) => `<button data-t="${module}"${screen3 === module ? ' aria-current="page"' : ""}><span>${navigationGlueLegacy.moduleIcon(module) ?? "•"}</span>${escapeHtml(navigationGlueLegacy.mobileName(module))}</button>`).join("") + `<button id="bmasbtn"${!modules.includes(screen3) ? ' aria-current="page"' : ""}><span>⋯</span>${t("legacyD.navigation.more")}</button>`;
     bar2.querySelectorAll("[data-t]").forEach((button3) => {
       button3.onclick = () => {
         navigationGlueLegacy.goTo(button3.dataset.t ?? "");
@@ -26174,6 +26176,12 @@
     platformTab: () => PAG_TAB.delcos ?? "orgs"
   };
 
+  // src/app/core/navigation/current.ts
+  function markCurrent(button3, current) {
+    if (current) button3.setAttribute("aria-current", "page");
+    else button3.removeAttribute("aria-current");
+  }
+
   // src/app/screens/settings/shell/helpers.ts
   var INDEX_MIN_HEIGHT = 240;
   var INDEX_BOTTOM_GAP = 12;
@@ -26272,7 +26280,7 @@
     const aliases = shellLegacy.orderAliases(), view = shellLegacy.orderSectionView();
     const alias = Object.keys(aliases).find((key) => aliases[key] === view) ?? "ventas";
     document.querySelectorAll("nav.main [data-t], #bnav [data-t]").forEach((button3) => {
-      button3.setAttribute("aria-selected", String(button3.dataset.t === alias));
+      markCurrent(button3, button3.dataset.t === alias);
     });
   }
   function markBillingPlan() {
@@ -26285,7 +26293,7 @@
   function markPlatformPanel() {
     const tab = shellLegacy.platformTab();
     document.querySelectorAll("nav.main [data-t]").forEach((button3) => {
-      if (button3.classList.contains("pdsec") || button3.dataset.t === "delcos") button3.setAttribute("aria-selected", String(button3.dataset.t === `pd-${tab}`));
+      if (button3.classList.contains("pdsec") || button3.dataset.t === "delcos") markCurrent(button3, button3.dataset.t === `pd-${tab}`);
     });
   }
 
@@ -27043,7 +27051,7 @@
     if (!button3) {
       const neighbour = entry2.after.map((screen3) => nav.querySelector(`[data-t="${screen3}"]`)).find(Boolean);
       if (!neighbour) return;
-      neighbour.insertAdjacentHTML("afterend", `<button data-t="${entry2.screen}" aria-selected="false">${entry2.title()}</button>`);
+      neighbour.insertAdjacentHTML("afterend", `<button data-t="${entry2.screen}">${entry2.title()}</button>`);
       button3 = nav.querySelector(`[data-t="${entry2.screen}"]`);
     }
     button3?.classList.toggle("hide", leftoversLegacy.isProfessionalPortal() || !leftoversLegacy.canUseModule(entry2.area));
@@ -29817,7 +29825,10 @@
   }
   function menuLabelText(button3) {
     const setTip = (value27) => {
-      if (button3.dataset.tip) button3.dataset.tip = value27;
+      if (button3.dataset.tip) {
+        button3.dataset.tip = value27;
+        button3.setAttribute("aria-label", value27);
+      }
     };
     const label = button3.querySelector(".mllab, b, em, small, .lb");
     if (label && !label.querySelector("svg")) return { get: () => (label.textContent ?? "").trim(), set: (value27) => {
@@ -35905,7 +35916,7 @@
   function headerHtml6() {
     return `
       <div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${escapeHtml(titleText2())}</div></div>
-        <div class="aghud" id="aghud" aria-label="${t("agenda.yourNumbers")}">${metricsHtml()}</div>
+        <div class="aghud" id="aghud" role="group" aria-label="${t("agenda.yourNumbers")}">${metricsHtml()}</div>
         <div class="acts u-m-0"><button class="btn" data-ag="nueva">${t("agenda.newAppointment")}</button></div></div>
       <div class="card" id="agcuerpo"></div>
       <div class="card" id="agsemlat"></div>`;
@@ -36731,7 +36742,7 @@
     const data = { day, today: today2, mine: all2.filter((item) => item.usuario_id === owner), others: all2.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
     const { context, summary: summary5, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-    const cards2 = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary5.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    const cards2 = data.mine.length ? `<div class="tdesc" role="group" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary5.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
     body4.innerHTML = `${headerHtml7(summary5)}
     ${workingDayHtml(summary5, summary5.workingDay ? formatDuration(Date.now() - summary5.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
@@ -38346,7 +38357,7 @@
   };
   var menuName = (tab) => document.querySelector(`nav.main [data-t="${tab}"]`)?.textContent ?? tab;
   function paintPortalBar(bar2) {
-    bar2.innerHTML = `<button data-t="informe" aria-selected="true"><span>◉</span>${t(legacyBActions.can("portal_centro") ? "legacyB.mobile.myCentre" : "legacyB.mobile.myReport")}</button>`;
+    bar2.innerHTML = `<button data-t="informe" aria-current="page"><span>◉</span>${t(legacyBActions.can("portal_centro") ? "legacyB.mobile.myCentre" : "legacyB.mobile.myReport")}</button>`;
     bar2.firstChild.onclick = () => {
       legacyBActions.goTo("informe");
     };
@@ -38359,7 +38370,7 @@
       return;
     }
     const tab = legacyBState.tab();
-    bar2.innerHTML = MAIN_TABS.map((main) => `<button data-t="${main}" aria-selected="${String(tab === main)}"><span>${MAIN_ICONS[main] ?? ""}</span>${escapeHtml(menuName(main) || main)}</button>`).join("") + `<button id="bmasbtn" aria-selected="${String(!MAIN_TABS.includes(tab))}"><span>⋯</span>${t("legacyB.mobile.more")}</button>`;
+    bar2.innerHTML = MAIN_TABS.map((main) => `<button data-t="${main}"${tab === main ? ' aria-current="page"' : ""}><span>${MAIN_ICONS[main] ?? ""}</span>${escapeHtml(menuName(main) || main)}</button>`).join("") + `<button id="bmasbtn"${!MAIN_TABS.includes(tab) ? ' aria-current="page"' : ""}><span>⋯</span>${t("legacyB.mobile.more")}</button>`;
     bar2.querySelectorAll("[data-t]").forEach((button3) => {
       button3.onclick = () => {
         legacyBActions.goTo(button3.dataset.t ?? "");
@@ -39386,7 +39397,7 @@
       goTo("duplicados");
     };
     document.querySelectorAll("nav.main [data-t]").forEach((button3) => {
-      button3.setAttribute("aria-selected", String(button3.dataset.t === "directorio"));
+      markCurrent(button3, button3.dataset.t === "directorio");
     });
     qualityLegacy.setExport((format) => {
       qualityLegacy.download([], "Exportacion_seguimiento", format);
@@ -39970,7 +39981,7 @@
     if (target !== "agenda") switchLegacy.forgetViewedAgenda();
     switchLegacy.setScreen(target);
     document.querySelectorAll("nav.main [data-t], #bnav [data-t]").forEach((button3) => {
-      button3.setAttribute("aria-selected", String(button3.dataset.t === target));
+      markCurrent(button3, button3.dataset.t === target);
     });
     document.querySelectorAll("main > section").forEach((section2) => {
       section2.classList.toggle("hide", section2.id !== `v-${target}`);
@@ -40753,7 +40764,7 @@
     let report = document.querySelector('nav.main [data-t="informe"]');
     if (!report) {
       const label = t(showAppLegacy.can("portal_centro") ? "legacyA.showApp.myCentre" : "legacyA.showApp.myReport");
-      document.querySelector("nav.main .in")?.insertAdjacentHTML("afterbegin", `<button data-t="informe" aria-selected="true">${label}</button>`);
+      document.querySelector("nav.main .in")?.insertAdjacentHTML("afterbegin", `<button data-t="informe" aria-current="page">${label}</button>`);
       report = document.querySelector('nav.main [data-t="informe"]');
     }
     report?.classList.remove("hide");
@@ -44250,7 +44261,7 @@
       ${buttons}
       <button data-pg="${page + 1}" ${page >= pages4 - 1 ? "disabled" : ""} aria-label="${t("listComponents.pagination.next")}">›</button>
     </span>
-    <span class="ptam">${t("listComponents.pagination.show")} <select class="chico" data-pgtam>${listsLegacy.pageSizes().map((option7) => `<option value="${option7}" ${option7 === size ? "selected" : ""}>${option7}</option>`).join("")}</select></span></div>`;
+    <span class="ptam">${t("listComponents.pagination.show")} <select class="chico" data-pgtam aria-label="${t("listComponents.pagination.pageSize")}">${listsLegacy.pageSizes().map((option7) => `<option value="${option7}" ${option7 === size ? "selected" : ""}>${option7}</option>`).join("")}</select></span></div>`;
   }
   var paging = /* @__PURE__ */ new WeakMap();
   var barList = /* @__PURE__ */ new WeakMap();
@@ -48462,7 +48473,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       const visible3 = sees && (!needsTeam || permissions.seesEverything() && permissions.hasOpportunities());
       let button3 = nav.querySelector(`[data-t="${key}"]`);
       if (!button3) {
-        after.insertAdjacentHTML("afterend", `<button data-t="${key}" aria-selected="false">${t(label)}</button>`);
+        after.insertAdjacentHTML("afterend", `<button data-t="${key}">${t(label)}</button>`);
         button3 = nav.querySelector(`[data-t="${key}"]`);
       }
       if (!button3) return;

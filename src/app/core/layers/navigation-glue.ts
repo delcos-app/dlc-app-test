@@ -78,8 +78,8 @@ function paintBar(args: unknown[]): unknown {
   if (legacy.isProfessionalPortal() || !bar) return legacy.baseBottomBar(args);
   const modules = legacy.mobileModules(), screen = legacy.currentScreen();
   bar.dataset.n = String(modules.length + 1);
-  bar.innerHTML = modules.map(module => `<button data-t="${module}" aria-selected="${String(screen === module)}"><span>${legacy.moduleIcon(module) ?? '•'}</span>${escapeHtml(legacy.mobileName(module))}</button>`).join('')
-    + `<button id="bmasbtn" aria-selected="${String(!modules.includes(screen))}"><span>⋯</span>${t('legacyD.navigation.more')}</button>`;
+  bar.innerHTML = modules.map(module => `<button data-t="${module}"${screen === module ? ' aria-current="page"' : ''}><span>${legacy.moduleIcon(module) ?? '•'}</span>${escapeHtml(legacy.mobileName(module))}</button>`).join('')
+    + `<button id="bmasbtn"${!modules.includes(screen) ? ' aria-current="page"' : ''}><span>⋯</span>${t('legacyD.navigation.more')}</button>`;
   bar.querySelectorAll<HTMLElement>('[data-t]').forEach(button => { button.onclick = (): void => { legacy.goTo(button.dataset.t ?? ''); }; });
   const more = document.getElementById('bmasbtn'); if (more) more.onclick = (): void => { legacy.openMoreMenu(); };
   return undefined;

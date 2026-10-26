@@ -80,7 +80,7 @@ async function paintDay(): Promise<void> {
   const data: DayData = { day, today, mine: all.filter(item => item.usuario_id === owner), others: all.filter(item => item.usuario_id !== owner) };
   yourDayLegacy.setDayAppointments(data.mine);
   const { context, summary, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-  const cards = data.mine.length ? `<div class="tdesc" aria-label="${t('agenda.yourDay.dayAppointments')}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join('')}</div>`
+  const cards = data.mine.length ? `<div class="tdesc" role="group" aria-label="${t('agenda.yourDay.dayAppointments')}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join('')}</div>`
     : `<div class="vacio">${t(summary.isToday ? 'agenda.yourDay.emptyToday' : 'agenda.yourDay.emptyOther')}</div>`;
   body.innerHTML = `${headerHtml(summary)}
     ${workingDayHtml(summary, summary.workingDay ? formatDuration(Date.now() - summary.workingDay.inicio) : '')}

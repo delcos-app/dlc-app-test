@@ -78,7 +78,7 @@ function professionalPortal(): void {
   let report = document.querySelector('nav.main [data-t="informe"]');
   if (!report) {
     const label = t(showAppLegacy.can('portal_centro') ? 'legacyA.showApp.myCentre' : 'legacyA.showApp.myReport');
-    document.querySelector('nav.main .in')?.insertAdjacentHTML('afterbegin', `<button data-t="informe" aria-selected="true">${label}</button>`);
+    document.querySelector('nav.main .in')?.insertAdjacentHTML('afterbegin', `<button data-t="informe" aria-current="page">${label}</button>`);
     report = document.querySelector('nav.main [data-t="informe"]');
   }
   report?.classList.remove('hide');

@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    v2.45.5 · Iconos de línea de un solo color (Lucide) en toda la
    plataforma, textos genéricos para el acceso al servidor de correo,

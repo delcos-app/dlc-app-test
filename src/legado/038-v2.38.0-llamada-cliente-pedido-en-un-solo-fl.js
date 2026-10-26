@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.38.0 · Llamada → cliente → pedido en un solo flujo,
    seguimientos de quien no compra, análisis por comercial, personas

@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.28.0 · Móvil con todos los módulos, entrar como
    otro usuario, manual, alertas de cruce, cartera exclusiva, aviso

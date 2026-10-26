@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 4: agenda, rutas, plan del día y cola sin conexión
    v2.424.0: el indicador de conexión, los botones de las citas, «Añadir a mi agenda», los botones [data-ruta] y la distancia

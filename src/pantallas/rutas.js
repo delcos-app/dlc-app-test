@@ -1,3 +1,4 @@
+// @ts-check
 // pantallas/rutas.js · Rutas está en src/app/screens/routes (v2.414.0 y v2.418.0): «Mis rutas», el asistente, el planificador, el
 // plan del día, el mapa de hoy, la barra de la jornada, el editor de rutas y la frecuencia. Aquí queda el estado que comparten otros
 // archivos y los nombres que usan Configuración (pintarPlan), Agenda, Inicio, Analítica, Parque, legado 001/003/007/018/019/024/083,
@@ -31,7 +32,7 @@ function planAvisoSinSalida() { return window.delcos.screens.routes.planNoStartN
 function planFichasYNotas() { return window.delcos.screens.routes.planCardsAndNotes(); }
 function mapaDelPlan() { return window.delcos.screens.routes.showPlanMap(); }
 function programarVisitas(items, t0) { return window.delcos.screens.routes.scheduleVisits(items, t0); }
-function ordenarPorCercania(citas) { const r = window.delcos.screens.routes.orderByDistance(citas); ordenarPorCercania.fuera = r.left; return r.list; }
+function ordenarPorCercania(citas) { const r = window.delcos.screens.routes.orderByDistance(citas); /** @type {any} */ (ordenarPorCercania).fuera = r.left; return r.list; }
 function conHor(h, fn) { return window.delcos.screens.routes.withHours(h, fn); }
 function PLANCFG() { return window.delcos.screens.routes.planSettings(); }
 function prefsActivas() { return window.delcos.screens.routes.activePreferences(); }

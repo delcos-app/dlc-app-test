@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 2: inicio, navegación y directorio
    v2.424.0: lo que hacía este archivo está en src/app (core/legacy-a: arranque, base de datos, cambio de pantalla y escuchas

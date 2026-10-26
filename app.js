@@ -3926,7 +3926,8 @@
       range: "{from}–{to} de {total}",
       previous: "Página anterior",
       next: "Página siguiente",
-      show: "Mostrar"
+      show: "Mostrar",
+      pageSize: "Filas por página"
     },
     popover: {
       searchPlaceholder: "Buscar…",
@@ -12369,7 +12370,7 @@
   function placePageButton(nav, key, text5, shown5) {
     let button3 = nav.querySelector(`[data-t="${key}"]`);
     if (!button3 && shown5) {
-      nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" aria-selected="false">${text5}</button>`);
+      nav.insertAdjacentHTML("beforeend", `<button data-t="${key}">${text5}</button>`);
       button3 = nav.querySelector(`[data-t="${key}"]`);
     }
     if (!button3) return;
@@ -12446,7 +12447,7 @@
         toggle4.checked = false;
         toggle4.disabled = true;
       }
-      if (!row4.querySelector(".mlpcand")) row4.querySelector(".mlpn")?.insertAdjacentHTML("afterend", `<span class="mlpcand" aria-label="${t("navigationCore.menu.notInPlanShort")}"></span>`);
+      if (!row4.querySelector(".mlpcand")) row4.querySelector(".mlpn")?.insertAdjacentHTML("afterend", `<span class="mlpcand" role="img" aria-label="${t("navigationCore.menu.notInPlanShort")}"></span>`);
     });
     box5.querySelectorAll(".mlpg").forEach((group) => {
       const rows2 = [...group.querySelectorAll(".mlpi[data-k]")], count2 = group.querySelector(".mlpcnt");
@@ -16651,7 +16652,7 @@
   }
   function createColumnsPanel() {
     if (byId2("tools2")) return;
-    document.body.insertAdjacentHTML("beforeend", `<div class="tools tools2" id="tools2" aria-label="${t("legacyC.tools.columnsHeading")}"></div><div class="toolsfondo hide" id="toolsfondo"></div>`);
+    document.body.insertAdjacentHTML("beforeend", `<div class="tools tools2" id="tools2" role="group" aria-label="${t("legacyC.tools.columnsHeading")}"></div><div class="toolsfondo hide" id="toolsfondo"></div>`);
     const tools = byId2("tools"), second = byId2("tools2"), backdrop = byId2("toolsfondo");
     backdrop?.addEventListener("pointerdown", () => {
       second?.classList.remove("abierto");
@@ -17814,7 +17815,7 @@
     const nav = document.getElementById("nav");
     if (!nav) return;
     PANEL_SECCIONES.forEach(([key = "", , text5 = "", icon3 = ""]) => {
-      if (!nav.querySelector(`[data-t="${key}"]`)) nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" aria-selected="false" class="hide pdsec">${escapeHtml(text5)}</button>`);
+      if (!nav.querySelector(`[data-t="${key}"]`)) nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" class="hide pdsec">${escapeHtml(text5)}</button>`);
       navIcons()[key] = icon3;
     });
   }
@@ -18025,13 +18026,14 @@
         else button3.insertAdjacentHTML("beforeend", `<span class="mllab">${escapeHtml(text5)}</span>`);
       }
       button3.dataset.tip = (button3.querySelector(".mllab") ?? button3).textContent?.trim() ?? "";
+      button3.setAttribute("aria-label", button3.dataset.tip);
     });
   }
   function paintFooter(nav) {
     if (!nav.querySelector(".mlpie")) {
       nav.insertAdjacentHTML("beforeend", `<div class="mlpie">
-      <button type="button" class="mlitem" id="mlcfg" data-tip="${t("legacyC.sideMenu.settings")}">${svgIco(ICON_NOM.settings ?? "")}<span class="mllab">${t("legacyC.sideMenu.settings")}</span></button>
-      <button type="button" class="mlitem" id="mlpers" data-tip="${t("legacyC.sideMenu.customise")}">${svgIco(ICON_NOM["sliders-horizontal"] ?? "")}<span class="mllab">${t("legacyC.sideMenu.customise")}</span></button>
+      <button type="button" class="mlitem" id="mlcfg" data-tip="${t("legacyC.sideMenu.settings")}" aria-label="${t("legacyC.sideMenu.settings")}">${svgIco(ICON_NOM.settings ?? "")}<span class="mllab">${t("legacyC.sideMenu.settings")}</span></button>
+      <button type="button" class="mlitem" id="mlpers" data-tip="${t("legacyC.sideMenu.customise")}" aria-label="${t("legacyC.sideMenu.customise")}">${svgIco(ICON_NOM["sliders-horizontal"] ?? "")}<span class="mllab">${t("legacyC.sideMenu.customise")}</span></button>
       <button type="button" class="mlplegar" id="mlplegar" aria-label="${t("legacyC.sideMenu.foldLabel")}">${svgIco(ICO_PLEGAR)}</button></div>`);
       const settings2 = byId2("mlcfg"), customise2 = byId2("mlpers"), fold2 = byId2("mlplegar");
       if (settings2) settings2.onclick = () => {
@@ -24997,7 +24999,7 @@
     if (navigationGlueLegacy.isProfessionalPortal() || !bar2) return navigationGlueLegacy.baseBottomBar(args);
     const modules = navigationGlueLegacy.mobileModules(), screen3 = navigationGlueLegacy.currentScreen();
     bar2.dataset.n = String(modules.length + 1);
-    bar2.innerHTML = modules.map((module) => `<button data-t="${module}" aria-selected="${String(screen3 === module)}"><span>${navigationGlueLegacy.moduleIcon(module) ?? "•"}</span>${escapeHtml(navigationGlueLegacy.mobileName(module))}</button>`).join("") + `<button id="bmasbtn" aria-selected="${String(!modules.includes(screen3))}"><span>⋯</span>${t("legacyD.navigation.more")}</button>`;
+    bar2.innerHTML = modules.map((module) => `<button data-t="${module}"${screen3 === module ? ' aria-current="page"' : ""}><span>${navigationGlueLegacy.moduleIcon(module) ?? "•"}</span>${escapeHtml(navigationGlueLegacy.mobileName(module))}</button>`).join("") + `<button id="bmasbtn"${!modules.includes(screen3) ? ' aria-current="page"' : ""}><span>⋯</span>${t("legacyD.navigation.more")}</button>`;
     bar2.querySelectorAll("[data-t]").forEach((button3) => {
       button3.onclick = () => {
         navigationGlueLegacy.goTo(button3.dataset.t ?? "");
@@ -26174,6 +26176,12 @@
     platformTab: () => PAG_TAB.delcos ?? "orgs"
   };
 
+  // src/app/core/navigation/current.ts
+  function markCurrent(button3, current) {
+    if (current) button3.setAttribute("aria-current", "page");
+    else button3.removeAttribute("aria-current");
+  }
+
   // src/app/screens/settings/shell/helpers.ts
   var INDEX_MIN_HEIGHT = 240;
   var INDEX_BOTTOM_GAP = 12;
@@ -26272,7 +26280,7 @@
     const aliases = shellLegacy.orderAliases(), view = shellLegacy.orderSectionView();
     const alias = Object.keys(aliases).find((key) => aliases[key] === view) ?? "ventas";
     document.querySelectorAll("nav.main [data-t], #bnav [data-t]").forEach((button3) => {
-      button3.setAttribute("aria-selected", String(button3.dataset.t === alias));
+      markCurrent(button3, button3.dataset.t === alias);
     });
   }
   function markBillingPlan() {
@@ -26285,7 +26293,7 @@
   function markPlatformPanel() {
     const tab = shellLegacy.platformTab();
     document.querySelectorAll("nav.main [data-t]").forEach((button3) => {
-      if (button3.classList.contains("pdsec") || button3.dataset.t === "delcos") button3.setAttribute("aria-selected", String(button3.dataset.t === `pd-${tab}`));
+      if (button3.classList.contains("pdsec") || button3.dataset.t === "delcos") markCurrent(button3, button3.dataset.t === `pd-${tab}`);
     });
   }
 
@@ -27043,7 +27051,7 @@
     if (!button3) {
       const neighbour = entry2.after.map((screen3) => nav.querySelector(`[data-t="${screen3}"]`)).find(Boolean);
       if (!neighbour) return;
-      neighbour.insertAdjacentHTML("afterend", `<button data-t="${entry2.screen}" aria-selected="false">${entry2.title()}</button>`);
+      neighbour.insertAdjacentHTML("afterend", `<button data-t="${entry2.screen}">${entry2.title()}</button>`);
       button3 = nav.querySelector(`[data-t="${entry2.screen}"]`);
     }
     button3?.classList.toggle("hide", leftoversLegacy.isProfessionalPortal() || !leftoversLegacy.canUseModule(entry2.area));
@@ -29817,7 +29825,10 @@
   }
   function menuLabelText(button3) {
     const setTip = (value27) => {
-      if (button3.dataset.tip) button3.dataset.tip = value27;
+      if (button3.dataset.tip) {
+        button3.dataset.tip = value27;
+        button3.setAttribute("aria-label", value27);
+      }
     };
     const label = button3.querySelector(".mllab, b, em, small, .lb");
     if (label && !label.querySelector("svg")) return { get: () => (label.textContent ?? "").trim(), set: (value27) => {
@@ -35905,7 +35916,7 @@
   function headerHtml6() {
     return `
       <div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${escapeHtml(titleText2())}</div></div>
-        <div class="aghud" id="aghud" aria-label="${t("agenda.yourNumbers")}">${metricsHtml()}</div>
+        <div class="aghud" id="aghud" role="group" aria-label="${t("agenda.yourNumbers")}">${metricsHtml()}</div>
         <div class="acts u-m-0"><button class="btn" data-ag="nueva">${t("agenda.newAppointment")}</button></div></div>
       <div class="card" id="agcuerpo"></div>
       <div class="card" id="agsemlat"></div>`;
@@ -36731,7 +36742,7 @@
     const data = { day, today: today2, mine: all2.filter((item) => item.usuario_id === owner), others: all2.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
     const { context, summary: summary5, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-    const cards2 = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary5.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    const cards2 = data.mine.length ? `<div class="tdesc" role="group" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary5.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
     body4.innerHTML = `${headerHtml7(summary5)}
     ${workingDayHtml(summary5, summary5.workingDay ? formatDuration(Date.now() - summary5.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
@@ -38346,7 +38357,7 @@
   };
   var menuName = (tab) => document.querySelector(`nav.main [data-t="${tab}"]`)?.textContent ?? tab;
   function paintPortalBar(bar2) {
-    bar2.innerHTML = `<button data-t="informe" aria-selected="true"><span>◉</span>${t(legacyBActions.can("portal_centro") ? "legacyB.mobile.myCentre" : "legacyB.mobile.myReport")}</button>`;
+    bar2.innerHTML = `<button data-t="informe" aria-current="page"><span>◉</span>${t(legacyBActions.can("portal_centro") ? "legacyB.mobile.myCentre" : "legacyB.mobile.myReport")}</button>`;
     bar2.firstChild.onclick = () => {
       legacyBActions.goTo("informe");
     };
@@ -38359,7 +38370,7 @@
       return;
     }
     const tab = legacyBState.tab();
-    bar2.innerHTML = MAIN_TABS.map((main) => `<button data-t="${main}" aria-selected="${String(tab === main)}"><span>${MAIN_ICONS[main] ?? ""}</span>${escapeHtml(menuName(main) || main)}</button>`).join("") + `<button id="bmasbtn" aria-selected="${String(!MAIN_TABS.includes(tab))}"><span>⋯</span>${t("legacyB.mobile.more")}</button>`;
+    bar2.innerHTML = MAIN_TABS.map((main) => `<button data-t="${main}"${tab === main ? ' aria-current="page"' : ""}><span>${MAIN_ICONS[main] ?? ""}</span>${escapeHtml(menuName(main) || main)}</button>`).join("") + `<button id="bmasbtn"${!MAIN_TABS.includes(tab) ? ' aria-current="page"' : ""}><span>⋯</span>${t("legacyB.mobile.more")}</button>`;
     bar2.querySelectorAll("[data-t]").forEach((button3) => {
       button3.onclick = () => {
         legacyBActions.goTo(button3.dataset.t ?? "");
@@ -39386,7 +39397,7 @@
       goTo("duplicados");
     };
     document.querySelectorAll("nav.main [data-t]").forEach((button3) => {
-      button3.setAttribute("aria-selected", String(button3.dataset.t === "directorio"));
+      markCurrent(button3, button3.dataset.t === "directorio");
     });
     qualityLegacy.setExport((format) => {
       qualityLegacy.download([], "Exportacion_seguimiento", format);
@@ -39970,7 +39981,7 @@
     if (target !== "agenda") switchLegacy.forgetViewedAgenda();
     switchLegacy.setScreen(target);
     document.querySelectorAll("nav.main [data-t], #bnav [data-t]").forEach((button3) => {
-      button3.setAttribute("aria-selected", String(button3.dataset.t === target));
+      markCurrent(button3, button3.dataset.t === target);
     });
     document.querySelectorAll("main > section").forEach((section2) => {
       section2.classList.toggle("hide", section2.id !== `v-${target}`);
@@ -40753,7 +40764,7 @@
     let report = document.querySelector('nav.main [data-t="informe"]');
     if (!report) {
       const label = t(showAppLegacy.can("portal_centro") ? "legacyA.showApp.myCentre" : "legacyA.showApp.myReport");
-      document.querySelector("nav.main .in")?.insertAdjacentHTML("afterbegin", `<button data-t="informe" aria-selected="true">${label}</button>`);
+      document.querySelector("nav.main .in")?.insertAdjacentHTML("afterbegin", `<button data-t="informe" aria-current="page">${label}</button>`);
       report = document.querySelector('nav.main [data-t="informe"]');
     }
     report?.classList.remove("hide");
@@ -44250,7 +44261,7 @@
       ${buttons}
       <button data-pg="${page + 1}" ${page >= pages4 - 1 ? "disabled" : ""} aria-label="${t("listComponents.pagination.next")}">›</button>
     </span>
-    <span class="ptam">${t("listComponents.pagination.show")} <select class="chico" data-pgtam>${listsLegacy.pageSizes().map((option7) => `<option value="${option7}" ${option7 === size ? "selected" : ""}>${option7}</option>`).join("")}</select></span></div>`;
+    <span class="ptam">${t("listComponents.pagination.show")} <select class="chico" data-pgtam aria-label="${t("listComponents.pagination.pageSize")}">${listsLegacy.pageSizes().map((option7) => `<option value="${option7}" ${option7 === size ? "selected" : ""}>${option7}</option>`).join("")}</select></span></div>`;
   }
   var paging = /* @__PURE__ */ new WeakMap();
   var barList = /* @__PURE__ */ new WeakMap();
@@ -48462,7 +48473,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       const visible3 = sees && (!needsTeam || permissions.seesEverything() && permissions.hasOpportunities());
       let button3 = nav.querySelector(`[data-t="${key}"]`);
       if (!button3) {
-        after.insertAdjacentHTML("afterend", `<button data-t="${key}" aria-selected="false">${t(label)}</button>`);
+        after.insertAdjacentHTML("afterend", `<button data-t="${key}">${t(label)}</button>`);
         button3 = nav.querySelector(`[data-t="${key}"]`);
       }
       if (!button3) return;
@@ -58361,6 +58372,7 @@ function aplicarIdioma(id) { return window.delcos.core.language.applyLanguage(id
 const IDIOMAS = window.delcos.core.language.LANGUAGES;
 
 const LOCALES = window.delcos.core.language.LOCALES;
+// @ts-check
 // nucleo/menu.js · el menú está en src/app/core/navigation/menu (v2.426.0). Aquí quedan el estado que leen y cambian otras partes
 // (MENU_FIRMA, FAB_RZ), los objetos compartidos (los mismos que en src/app) y los nombres que usan el legado, los puentes y las pruebas.
 
@@ -58397,6 +58409,7 @@ function medirBnav() { return window.delcos.nav.measureBottomBar(); }
 function fabAOrdenador() { return window.delcos.nav.fabToDesktop(); }
 function menuPersonalizar() { return window.delcos.nav.customiseDesktopMenu(); }
 function abrirMasMovil() { return window.delcos.nav.openMoreMenu(); }
+// @ts-check
 // nucleo/navegacion.js · páginas, revelado, enlaces, «‹ Volver» y arranque están en src/app/core/navigation y core/startup (v2.426.0).
 // Aquí quedan el estado que leen y cambian otras partes, los objetos compartidos (los mismos que en src/app) y los nombres que usan el
 // legado, los puentes, «‹ Volver» y las pruebas.
@@ -58438,6 +58451,7 @@ function irEnlace(e) { return window.delcos.nav.followLink(e); }
 function cargarPagina(t) { return window.delcos.nav.loadPage(t); }
 function revelar(el, max, desde) { return window.delcos.nav.reveal(el, max, desde); }
 function congelar(sec) { return window.delcos.nav.freeze(sec); }
+// @ts-check
 // nucleo/notificaciones.js · la campana está en src/app/core/live.ts (v2.425.0). El nombre se queda: el arranque, los avisos y las pruebas
 // lo usan. Normas: docs/normas_codigo.md.
 
@@ -58573,6 +58587,7 @@ const DB_PRE = new Map();
 
 // ---- La cola: lo que el servidor rechaza se guarda aparte para revisarlo
 const COLA_KO = 'dlc-cola-ko';
+// @ts-check
 // servicios/archivos.js · está en src/app/services/files.ts (v2.425.0). Estos nombres se quedan: Pedidos, Facturación, Visita, la ficha y
 // los puentes los usan. Normas: docs/normas_codigo.md.
 
@@ -58585,6 +58600,7 @@ function aBase64(blob) { return window.delcos.core.files.toBase64(blob); }
 function selectorArchivo(inp) { return window.delcos.core.files.filePicker(inp); }
 
 const FOTOS_VISITA_MAX = window.delcos.core.files.VISIT_PHOTOS_MAX;
+// @ts-check
 // servicios/camara.js · leer lotes y números de serie con la cámara está en src/app/services/scanner (v2.427.0). Estos nombres
 // se quedan: la capa de dispositivos (legado 156) los usa y la prueba de la cámara lee códigos con leerGS1.
 function leerGS1(txt) { return window.delcos.leftovers.readGs1(txt); }
@@ -58616,6 +58632,7 @@ const EST_COL = window.delcos.core.states.APPOINTMENT_COLOURS;
 
 // Estados comerciales: el papel de cada uno
 const PAPELES_ESTADO = window.delcos.core.states.STATE_ROLES;
+// @ts-check
 // servicios/exportar.js · el lector de Excel está en src/app/services/files.ts (v2.425.0). El nombre se queda: Importar lo usa.
 // Normas: docs/normas_codigo.md.
 
@@ -58678,6 +58695,7 @@ function eurW(n) { return window.delcos.core.money.eurosWeb(n); }
 const TIPOS_IVA = window.delcos.core.money.VAT_RATES;
 
 const ES_IMPORTE = window.delcos.core.money.AMOUNT_FIELD;
+// @ts-check
 // servicios/mapas.js · está en src/app/services/maps.ts (v2.425.0). Estos nombres se quedan: Agenda, Rutas, Calidad, la ficha y los
 // puentes los usan. rutasMapa sigue aquí: envuelve el mapa de hoy de Rutas (rutasMapaBase). Normas: docs/normas_codigo.md.
 
@@ -58696,6 +58714,7 @@ function geocodificar(q, o) { return window.delcos.core.maps.geocode(q, o); }
 async function rutasMapa(...a) { if (RN) return; const r = await rutasMapaBase.apply(this, a); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; }
 
 // El mapa de Cuentas está en src/app/screens/accounts/map (v2.414.0); el nombre se queda: lo llama «Ver mapa» (legado 006).
+// @ts-check
 // servicios/pdf.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -58891,6 +58910,7 @@ function clasCeldas(cols, v) { return window.delcos.components.columnCells(cols,
 function clasChips(amb, estado) { return window.delcos.components.filterChips(amb, estado); }
 /** @param {any} c @param {unknown} v */
 function campoTexto(c, v) { return window.delcos.components.fieldText(c, v); }
+// @ts-check
 // componentes/filtros.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -58991,6 +59011,7 @@ const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visita
   sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
   importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
 
+// @ts-check
 // componentes/guardar_pagina.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59022,6 +59043,7 @@ const PAG_SUCIO = new Set();
 
 // Las páginas se pintan por partes y algunas se repintan al guardar: se vuelve a colocar al cambiar el contenido
 let PAG_GUARDA_RAF = 0;
+// @ts-check
 // componentes/iconos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59058,6 +59080,7 @@ const ICO_NAV = { inicio: 'house', agenda: 'calendar-days', rutas: 'route', dire
 const ICO_SUBIR = '<path d="m18 15-6-6-6 6"/>';
 
 const ICO_PLEGAR = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>';
+// @ts-check
 // componentes/lista.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59127,6 +59150,7 @@ function ordMemOrdenar(tipo, l) { return window.delcos.components.list.sortRemem
 function plYaContado(clave, valores) { return window.delcos.components.list.alreadyCounted(clave, valores); }
 function itemHTML(id, ico, clase, titulo, sub) { return window.delcos.components.list.itemHtml({ id, icon: ico, iconClass: clase || '', title: titulo, detail: sub }); }
 function anchosGuardados(tipo) { return window.delcos.components.filters.savedWidths(tipo); }
+// @ts-check
 // componentes/selector_fecha.js · el calendario, el reloj y la mejora de los campos de fecha, hora, mes y número están en
 // src/app/components/date-picker (v2.416.0). Estos nombres se quedan: las escuchas de legado 001, 019, 035, 037, 071 y 078, la
 // ficha y las ventanas los usan.
@@ -59149,6 +59173,7 @@ function teclaLista(inp) { return window.delcos.components.resultsOf(inp); }
 function teclaItems(l) { return window.delcos.components.listItems(l); }
 /** @param {HTMLElement} x */
 function teclaActivar(x) { window.delcos.components.activateItem(x); }
+// @ts-check
 // componentes/ventana.js · las ventanitas (aviso, confirmación, pregunta, elección, campo), «¿Salir sin guardar?» y el horario de
 // consulta están en src/app/components (dialogs.ts y consultation-hours.ts, v2.416.0). Sus nombres se quedan como adaptadores:
 // toda la app los usa. Aquí sigue lo que va con la pila de ventanas y con el encaje en el panel de Configuración.
@@ -59193,6 +59218,7 @@ function colocarEncajada() { return window.delcos.components.embeddedWindow.plac
 function devolverEncajada(d) { return window.delcos.components.embeddedWindow.returnEmbedded(d); }
 function areaEncaje() { return window.delcos.components.embeddedWindow.embedArea(); }
 function cerrarEncajadas() { return window.delcos.components.embeddedWindow.closeEmbedded(); }
+// @ts-check
 // pantallas/acceso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59222,6 +59248,7 @@ function restablecerPassword(u) { return window.delcos.screens.access.resetPassw
 function bienvenidaAlta() { return window.delcos.screens.access.showWelcome(); }
 function reenviarActivacion(email, o = {}) { return window.delcos.screens.access.resendActivation(email, o); }
 function mostrarLogin(msg) { window.delcos.screens.access.showLogin(msg); }
+// @ts-check
 // pantallas/agenda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59417,6 +59444,7 @@ function textoOrigenCita(c) { return window.delcos.screens.agenda.originText(c);
 function tdMinutos(a, b) { return window.delcos.screens.agenda.legMinutes(a, b); }
 function tdRutaDia(citas, fecha) { return window.delcos.screens.agenda.dayRoute(citas, fecha); }
 function tdPonerReal(ruta, res) { return window.delcos.screens.agenda.setRealTimes(ruta, res); }
+// @ts-check
 // pantallas/analitica.js · la página de Analítica está en src/app/screens/analytics (v2.412.0 y v2.419.0).
 // Aquí queda el estado que leen las pruebas (ANSEC), legado 074 (ANSEC) y 109 (AN_MED), y los nombres que llaman otras partes.
 
@@ -59430,6 +59458,7 @@ function cargarAnalitica() { return window.delcos.screens.analytics.loadAnalytic
 
 // «Pedidos tras la visita» y «Explorar datos» están en src/app/screens/analytics (v2.412.0). Estos nombres se quedan: la página
 // (src/app/screens/analytics/page), legado 109 y las pruebas los llaman.
+// @ts-check
 // pantallas/calidad.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59448,6 +59477,7 @@ function cargarDuplicados() { return window.delcos.screens.accounts.loadDuplicat
 
 // Calidad del dato está en src/app/screens/quality (v2.410.0). Estos nombres se quedan: el mapa de pantallas (legado 001) y el
 // arranque (legado 018) los usan.
+// @ts-check
 // pantallas/ciclo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59466,6 +59496,7 @@ function pintarCobertura() { return window.delcos.screens.cycle.paintCoverage();
 function pintarClasificar() { return window.delcos.screens.cycle.paintClassify(); }
 function pintarCicloEquipo() { return window.delcos.screens.cycle.paintCycleTeam(); }
 function editorCiclo() { return window.delcos.screens.cycle.editCycle(); }
+// @ts-check
 // pantallas/cirugias.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59483,6 +59514,7 @@ function editorCiclo() { return window.delcos.screens.cycle.editCycle(); }
 function pintarCirugias() { return window.delcos.screens.surgeries.paintSurgeries(); }
 function editarCirugia(c) { return window.delcos.screens.surgeries.editSurgery(c || null); }
 function verCirugia(id, aviso) { return window.delcos.screens.surgeries.showSurgery(id, aviso || ''); }
+// @ts-check
 // pantallas/clientes.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59510,6 +59542,7 @@ function fichaPaciente(id) { return window.delcos.screens.customers.showCustomer
 function selectorPaciente(el, o) { return window.delcos.screens.customers.pickCustomer(el, o || {}); }
 function bajaCliente(id, baja) { return window.delcos.screens.customers.setCustomerOff(id, baja); }
 function buscarClientes(q) { return window.delcos.screens.customers.searchCustomers(q); }
+// @ts-check
 // pantallas/comisiones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59524,6 +59557,7 @@ let COMS = [];
 function pintarComisiones() { return window.delcos.screens.commissions.paintCommissions(); }
 function tarjetaComision() { return window.delcos.screens.commissions.paintCommissionCard(); }
 function editorEsquema(id) { return window.delcos.screens.commissions.editScheme(id || null, () => { pintarComisiones(); }); }
+// @ts-check
 // pantallas/compras.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59542,6 +59576,7 @@ const PROVEEDORES_CORREO = {
 // legado 058 (ventana amplia de editorCompra) y las pruebas los usan.
 function editorCompra(id) { return window.delcos.screens.purchases.editPurchase(id || null); }
 function editorProveedor(p) { return window.delcos.screens.purchases.editSupplier(p || null); }
+// @ts-check
 // pantallas/concursos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59565,6 +59600,7 @@ const EQ_CONTRATOS = ['Venta', 'Alquiler', 'Cesión'];
 // ventana (legado 080), los avisos y enlaces (nucleo/navegacion.js), la ficha, «‹ Volver» y las pruebas los usan.
 function pintarConcursos(vista) { return window.delcos.screens.tenders.paintTenders(vista); }
 function verConcurso(id) { return window.delcos.screens.tenders.showTender(id); }
+// @ts-check
 // pantallas/configuracion.js · Configuración está en src/app (pantallas en src/app/screens/settings, el núcleo de ajustes en
 // src/app/core/settings; v2.415.0–v2.428.0). Aquí solo queda el estado compartido que otras partes leen o cambian por su nombre y
 // los adaptadores de una línea. Normas: docs/normas_codigo.md.
@@ -59674,6 +59710,7 @@ function cargarConfig() { return window.delcos.screens.settingsShell.loadSetting
 function cfgSecDespertar(sec) { return window.delcos.screens.settingsShell.wakeSection(sec); }
 function cfgClonarEstilos() { return window.delcos.screens.settingsShell.copyPartStyles(); }
 function claveCfgVieja(sec, sub) { return window.delcos.screens.settingsShell.oldSettingsKey(sec, sub); }
+// @ts-check
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59763,6 +59800,7 @@ function optFiltro(lista, v, todo) { return window.delcos.screens.accounts.filte
 function consultaPrivada(cn) { return window.delcos.screens.accounts.privateConsultation(cn || 'C'); }
 function esConsultaPrivada(c) { return window.delcos.screens.accounts.isPrivateConsultation(c); }
 function barraCuentas() { return window.delcos.screens.accounts.refreshBar(); }
+// @ts-check
 // pantallas/eventos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59785,6 +59823,7 @@ function pintarEventos() { return window.delcos.screens.events.paintEvents(); }
 function pintarTransparencia(anio) { return window.delcos.screens.events.paintExpenseReport(anio); }
 function editarEvento(ev) { window.delcos.screens.events.editEvent(ev || null); }
 function verEvento(id) { return window.delcos.screens.events.showEvent(id); }
+// @ts-check
 // pantallas/facturacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59830,6 +59869,7 @@ function cobroDe(p) { return window.delcos.screens.billing.paymentStateOf(p); }
 function ajustarFacturacion() { return window.delcos.screens.billing.arrangeBilling(); }
 function pedidoFacturas(id) { return window.delcos.screens.billing.paintOrderInvoices(id); }
 function enviarFacturaEmail(f, rn) { return window.delcos.screens.billing.sendInvoiceByEmail(f, rn); }
+// @ts-check
 // pantallas/importar.js · Importar datos está en src/app/screens/import (v2.410.0). Estos nombres se quedan:
 // Configuración → Importar datos abre las dos pantallas, y Configuración y el manual comparan textos con impNorm.
 
@@ -59837,6 +59877,7 @@ function pintarImportar() { return window.delcos.screens.importing.paintImport()
 
 function pintarImportaciones() { return window.delcos.screens.importing.paintImports(); }
 
+// @ts-check
 // pantallas/inicio.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59854,6 +59895,7 @@ function cargarInicio() { return window.delcos.screens.home.load(); }
 // quedan: legado 040 (filtrarAlertasInicio) y 112 (inicioCabecera, al cargar, quizá antes de window.delcos) los usan.
 function filtrarAlertasInicio() { return window.delcos.screens.portalHome.filterHiddenAlerts(); }
 function inicioCabecera() { if (window.delcos && window.delcos.screens) window.delcos.screens.portalHome.placeHeader(); }
+// @ts-check
 // pantallas/manual.js · El Manual de uso está en src/app/screens/manual (v2.410.0). Aquí quedan los datos que usan otras partes
 // (MANUAL_ANCLA: el capítulo de cada pantalla, que leen la «i» y las pruebas; MANUAL_VUELTA: de dónde se vino, que guarda la
 // navegación) y los nombres que usan la tabla de pantallas (legado 001), la «i», la navegación y las pruebas.
@@ -59869,6 +59911,7 @@ function cargarManual() { return window.delcos.screens.manual.paintManual(); }
 function abrirManual(ancla) { window.delcos.screens.manual.openManual(ancla || ''); }
 
 function ponerAyudaManual() { window.delcos.screens.manual.putHelpButton(); }
+// @ts-check
 // pantallas/oportunidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59880,6 +59923,7 @@ function hayOportunidades() { return hayExtra('oportunidades'); }
 // llamada), «‹ Volver» y las pruebas los usan.
 function pintarLlamadas() { return window.delcos.screens.opportunities.paintOpportunities(); }
 function editorOportunidad(l, previa) { return window.delcos.screens.opportunities.editOpportunity(l || null, previa || null); }
+// @ts-check
 // pantallas/panel_delcos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59954,6 +59998,7 @@ function franjaVista() { return window.delcos.screens.platform.paintViewBand(); 
 
 // La ventana dentro del panel está en src/app/components/embedded-window (v2.422.0); este nombre se queda: Configuración y legado 001 lo usan.
 function salirPanel() { return window.delcos.components.embeddedWindow.leavePanel(); }
+// @ts-check
 // pantallas/parque.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59963,6 +60008,7 @@ function salirPanel() { return window.delcos.components.embeddedWindow.leavePane
 // (legado 080), la ficha, los enlaces, «‹ Volver» y las pruebas los usan.
 function editarEquipo(e, cuenta) { return window.delcos.screens.equipment.editEquipment(e || null, cuenta || null); }
 function verEquipo(id) { return window.delcos.screens.equipment.showEquipment(id); }
+// @ts-check
 // pantallas/pedidos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -60073,6 +60119,7 @@ function pkContar(els, fmt) { return window.delcos.screens.orders.countUp(els, f
 function menuPedidos2139() { return window.delcos.screens.orders.addOrderMenuEntries(); }
 function abrirKpis() { return window.delcos.screens.home.openIndicatorSettings(); }
 function esPorcentajeIva(i) { return window.delcos.screens.orders.isVatPercentField(i); }
+// @ts-check
 // pantallas/portal.js · el portal del profesional y del centro está en src/app/screens/portal (v2.413.0).
 // Aquí quedan el pago del plan desde el portal (Configuración y Pedidos), la «i» que usan muchas pantallas y los nombres que
 // usan la tabla de pantallas (legado 001), los avisos en vivo, Configuración y las pruebas.
@@ -60089,6 +60136,7 @@ function centroPintar() { return window.delcos.screens.portal.paintCentre(); }
 function pmTab(k) { window.delcos.screens.portal.showTab(k); }
 function pmRepintarConsultas() { window.delcos.screens.portal.repaintPlaces(); }
 function pintarCfgPortal() { return window.delcos.screens.portal.paintPortalSettings(); }
+// @ts-check
 // pantallas/productos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -60197,6 +60245,7 @@ function movimientoStock(s, tipo, loteId, almId) { return window.delcos.screens.
 function editorProducto(p) { return window.delcos.screens.products.editProduct(p || null); }
 function pintarMaterial() { return window.delcos.screens.products.paintVisitMaterial(); }
 function productosPromocionados() { return window.delcos.screens.products.promotedProducts(); }
+// @ts-check
 // pantallas/rutas.js · Rutas está en src/app/screens/routes (v2.414.0 y v2.418.0): «Mis rutas», el asistente, el planificador, el
 // plan del día, el mapa de hoy, la barra de la jornada, el editor de rutas y la frecuencia. Aquí queda el estado que comparten otros
 // archivos y los nombres que usan Configuración (pintarPlan), Agenda, Inicio, Analítica, Parque, legado 001/003/007/018/019/024/083,
@@ -60230,7 +60279,7 @@ function planAvisoSinSalida() { return window.delcos.screens.routes.planNoStartN
 function planFichasYNotas() { return window.delcos.screens.routes.planCardsAndNotes(); }
 function mapaDelPlan() { return window.delcos.screens.routes.showPlanMap(); }
 function programarVisitas(items, t0) { return window.delcos.screens.routes.scheduleVisits(items, t0); }
-function ordenarPorCercania(citas) { const r = window.delcos.screens.routes.orderByDistance(citas); ordenarPorCercania.fuera = r.left; return r.list; }
+function ordenarPorCercania(citas) { const r = window.delcos.screens.routes.orderByDistance(citas); /** @type {any} */ (ordenarPorCercania).fuera = r.left; return r.list; }
 function conHor(h, fn) { return window.delcos.screens.routes.withHours(h, fn); }
 function PLANCFG() { return window.delcos.screens.routes.planSettings(); }
 function prefsActivas() { return window.delcos.screens.routes.activePreferences(); }
@@ -60252,6 +60301,7 @@ function rpTiempos(sel, t0) {
   });
   return { fin: t, km: kms, paradas };
 }
+// @ts-check
 // pantallas/visita.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -60344,11 +60394,13 @@ function presMateriales(forzar) { return window.delcos.screens.visit.loadMateria
 function presentarSolo(p, idm) { return window.delcos.screens.visit.presentOnly(p, idm); }
 function editorMuestras() { return window.delcos.screens.visit.editSamples(); }
 function guardarAvisoRevisita(v) { return window.delcos.screens.visit.saveRevisitNotice(v); }
+// @ts-check
 /* v2.424.0: lo de este archivo está en src/app/core/legacy-a/early.ts. Aquí queda, en su sitio del orden de carga:
    - ENLACE_ERROR (legado 129 lo lee): el error del enlace de activación caducado, leído antes de nada
    - la lista de clases que no cuenta como cambio añadir una clase que ya está o quitar una que no está */
 const ENLACE_ERROR = window.delcos.legacyA.readLinkError();
 window.delcos.legacyA.patchClassList();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 2: inicio, navegación y directorio
    v2.424.0: lo que hacía este archivo está en src/app (core/legacy-a: arranque, base de datos, cambio de pantalla y escuchas
@@ -60389,6 +60441,7 @@ let UDS_SERIE = (() => { try { const v = localStorage.getItem('dlc-uds-serie'); 
 const leyendaUnidades = k => window.delcos.legacyA.unitsLegend(k);
 
 window.delcos.legacyA.registerServiceWorker();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 3: registrar visitas, editar fichas y altas
    v2.424.0: las acciones de la ficha, los botones de cerrar y «Crear nuevo» están en src/app/screens/accounts/card-actions.ts.
@@ -60398,6 +60451,7 @@ window.delcos.legacyA.registerServiceWorker();
 function alternarUrgenteBase(id, esUrgente) { return window.delcos.legacyA.toggleUrgent(id, esUrgente); }
 
 window.delcos.legacyA.listenToCardActions();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 4: agenda, rutas, plan del día y cola sin conexión
    v2.424.0: el indicador de conexión, los botones de las citas, «Añadir a mi agenda», los botones [data-ruta] y la distancia
@@ -60418,6 +60472,7 @@ window.delcos.legacyA.listenToRouteButtons();
 function km(a, b) { return window.delcos.legacyA.km(a, b); }
 
 window.delcos.legacyA.listenToAddToAgenda();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 5: configuración, gestor de rutas y usuarios
    v2.424.0: la página antigua de Administración y los botones de sección están en src/app/screens/settings/admin-page.ts.
@@ -60432,6 +60487,7 @@ window.delcos.legacyA.listenToSectionButtons();
 const punto = k => (PERFIL.preferencias || {})[k] || null;
 
 function cargarAdminBase() { return window.delcos.legacyA.loadAdmin(); }
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 6: seguimiento, duplicados, exportar y contraseñas
    v2.424.0: «He olvidado la contraseña», la contraseña nueva desde el correo y «Cambiar contraseña» están en
@@ -60439,6 +60495,7 @@ function cargarAdminBase() { return window.delcos.legacyA.loadAdmin(); }
    ============================================================ */
 
 window.delcos.legacyA.startPasswordFlows();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 7: mapa, móvil y avisos de versión
    v2.424.0: la barra inferior, «Ver mapa» y el aviso de versión nueva están en src/app/core/legacy-a/shell-extras.ts.
@@ -60447,6 +60504,7 @@ window.delcos.legacyA.startPasswordFlows();
 let MODO_MAPA = false;
 window.delcos.legacyA.listenToBottomBarAndMap();
 window.delcos.legacyA.watchNewVersion();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 8: ruta en curso, indicadores e filtros guardados
    v2.424.0: «★ Guardar filtro» está en src/app/screens/accounts/list/save-filter.ts y el refresco de la barra de ruta en
@@ -60457,18 +60515,21 @@ const KPI_CAT = window.delcos.content.indicators();
 window.delcos.legacyA.listenToSaveFilter();
 const RKEY = () => 'dlc-ruta-' + (PERFIL ? PERFIL.id : '');
 window.delcos.legacyA.refreshRouteBar();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 9: ventanas propias y columnas configurables
    v2.424.0: «Cerca de mí», «Duplicados» y las herramientas del directorio están en src/app/core/legacy-a/shell-extras.ts.
    ============================================================ */
 
 window.delcos.legacyA.listenToDirectoryButtons();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 10: pedidos, unidades y analítica
    v2.424.0: fuera SIN_ATRIB (nadie la usaba).
    ============================================================ */
 
 let PRODUCTOS = [], PEDIDOS = [];
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 12 · Bloque A: rutas, plan y agenda
    v2.424.0: los enlaces [data-nav] al navegador están en src/app/screens/routes/route-listeners.ts.
@@ -60476,12 +60537,14 @@ let PRODUCTOS = [], PEDIDOS = [];
 
 let RSEC = 'mis', PROPUESTAS = null;
 window.delcos.legacyA.listenToNavigationLinks();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 14 · Bloque C
    v2.424.0: los menús de descarga y el buscador global agrupado están en src/app/core/legacy-a/global-search.ts.
    ============================================================ */
 
 window.delcos.legacyA.startGlobalSearch();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 15 · Bloque F
    v2.424.0: el panel «Herramientas» está en src/app/screens/accounts/list/tools-panel.ts. abrirHerramientasBase se
@@ -60489,6 +60552,7 @@ window.delcos.legacyA.startGlobalSearch();
    ============================================================ */
 
 function abrirHerramientasBase(contexto) { window.delcos.legacyA.openTools(contexto); }
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.17.0 · Velocidad, ventanas, paginación,
    duplicados, auditoría y ayudas
@@ -60509,6 +60573,7 @@ window.delcos.legacyA.watchListsAndHelp();
 const AYUDA_KPI = window.delcos.content.indicatorHelp();
 const AYUDA = window.delcos.content.screenHelp();
 window.delcos.legacyA.listenToHelpButtons();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.18.0 · Arranque rápido, Inicio progresivo,
    pedidos con IVA y borrador, productos, pacientes y agenda
@@ -60521,6 +60586,7 @@ const T0 = performance.now();
 const PKEY = 'dlc-perfil';
 
 function mostrarAppBase(perfil) { window.delcos.legacyA.showApp(perfil); }
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.19.0 · Selectores con tarjeta, rutas en curso,
    Pacientes y Productos como módulos, comerciales en el directorio,
@@ -60537,6 +60603,7 @@ function asignarCarteraBase(id) { return window.delcos.legacyA.assignPortfolio(i
 
 window.delcos.legacyA.refreshRouteAfterDialog();
 window.delcos.legacyA.addHelpAnchors();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.21.0 · Periodos de fechas, ventas y analítica
    con totales, indicadores en tarjetas, ruta en curso reordenable
@@ -60547,6 +60614,7 @@ window.delcos.legacyA.addHelpAnchors();
 function montarPeriodoBase(el, o) { return window.delcos.legacyA.mountPeriod(el, o); }
 
 var PEDSEC_CARGA = null;
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.24.0 · «Tu día»: la agenda del día es la ruta.
    Estados de cita, orden del día, jornada en curso
@@ -60556,6 +60624,7 @@ var PEDSEC_CARGA = null;
 
 window.delcos.legacyA.appointmentStates();
 window.delcos.legacyA.listenToDayMenus();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.24.1 · Entorno de pruebas
    v2.424.0: la franja del entorno de pruebas está en src/app/core/legacy-a/test-strip.ts y su ayuda, en legacy-a-help.ts.
@@ -60567,6 +60636,7 @@ function pintarFranjaPruebas() { window.delcos.legacyA.paintTestStrip(); }
 if (EN_PRUEBAS) {
   pintarFranjaPruebas();
 }
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.25.0 · Rutas y Agenda, bloque 2:
    horario de atención en la planificación, reprogramación de lo
@@ -60577,6 +60647,7 @@ if (EN_PRUEBAS) {
 
 function estimarDiaBase2(citas, fecha) { return window.delcos.legacyA.estimateDayWithRouteHours(citas, fecha); }
 function estimarDiaBaseBase(citas, fecha) { return window.delcos.legacyA.estimateDayBase(citas, fecha); }
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.26.0 · Rutas y Agenda, bloques 3 y 4:
    planificador semanal, días bloqueados, frecuencia objetivo,
@@ -60591,6 +60662,7 @@ window.delcos.legacyB.listenToTeamButton();
 
 /* ---------------- ayudas ---------------- */
 
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.27.0 · Clasificadores con dato en las visitas,
    material comercial, Clientes con filtros, columnas en el panel
@@ -60612,6 +60684,7 @@ window.delcos.legacyB.renameMenuEntry('pacientes');
 
 /* ---------------- ayudas ---------------- */
 
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.28.0 · Móvil con todos los módulos, entrar como
    otro usuario, manual, alertas de cruce, cartera exclusiva, aviso
@@ -60655,6 +60728,7 @@ RSEC = 'inicio';
 
 /* ---------------- ayudas ---------------- */
 
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.29.0 · Pantalla de carga al cambiar de sesión,
    agenda sin parpadeos, más indicadores en Inicio y Analítica visual
@@ -60675,6 +60749,7 @@ window.delcos.legacyB.listenToIndicatorLinks();
 
 // (v2.183.0: aquí iba la primera versión de pintarResumenAnalitica; se redefine entera más abajo)
 
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.30.0 · Pedidos (Ventas, Compras y Proveedores)
    y Stock por lotes con trazabilidad
@@ -60688,6 +60763,7 @@ let PEDSEC = 'ventas', PROVEEDORES = [], ALMACENES = [];
 
 window.delcos.legacyB.renameMenuEntry('ventas');
 
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.31.0 · Facturación: facturas desde pedidos,
    series y numeración, rectificativas, cobros, PDF y VeriFactu preparado
@@ -60710,6 +60786,7 @@ window.delcos.legacyB.invoiceOnConfirm();
 
 /* ---------------- ayudas ---------------- */
 
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.32.0 · Ayudas del horario de rutas y mejoras en móvil
    (mapa con botón de cerrar, «Cerca de mí» paginado, panel lateral
@@ -60719,6 +60796,7 @@ window.delcos.legacyB.invoiceOnConfirm();
 /* ---------------- mapa del directorio: botón de cerrar siempre visible ---------------- */
 
 window.delcos.legacyB.addMapCloseButton();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.34.0 · Permisos por módulo e indicadores, zonas de
    los comerciales, operativa de pedidos, registro de llamadas,
@@ -60748,6 +60826,7 @@ window.delcos.legacyB.renameMenuEntry('seguimiento');
 
 /* ---------------- ayudas y manual ---------------- */
 
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.35.0 · Pedidos paginados y guardados en el dispositivo,
    factura en PDF como la de Holded y envío por email con el PDF adjunto,
@@ -60783,6 +60862,7 @@ const PRIMEROS_PASOS = window.delcos.content.firstSteps();
 /* ---------------- ayudas ---------------- */
 
 // Aviso de punto de salida en el plan y en «Tu día»
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.36.0 · Identidad visual, selectores propios de fecha,
    hora y número, espacio del médico con avisos, alertas en ventana,
@@ -60807,11 +60887,13 @@ window.delcos.legacyB.listenToPickers();
 
 // Vincular un usuario de tipo Médico con su ficha (Administración → Usuarios → Editar)
 
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.36.1 · Móvil: tamaño estable al abrir y solo vertical
    ============================================================ */
 
 window.delcos.legacyB.keepPortrait();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.37.0 · Experiencia móvil ordenada y fluida,
    navegación sin rebotes (solo vale la última petición), configuración
@@ -60859,6 +60941,7 @@ window.delcos.legacyB.keepOnlySalespeople();
 /* ---------------- Administración en el móvil: cada persona como tarjeta ---------------- */
 
 window.delcos.legacyB.cardsForPeopleOnMobile();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.38.0 · Llamada → cliente → pedido en un solo flujo,
    seguimientos de quien no compra, análisis por comercial, personas
@@ -60890,6 +60973,7 @@ function colocarPop(pop, ref) { return window.delcos.legacyB.placePicker(ref); }
 /* ---------------- comisiones: quién cobra, dentro del propio esquema ---------------- */
 
 // En la ficha de la persona solo se informa: el esquema se gestiona en Comisiones
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.39.0 · Paradas del plan con ficha y nota,
    configuración completa en el panel (sin ventanas ni saltos),
@@ -60912,6 +60996,7 @@ window.delcos.components.embeddedWindow.guardPanelDialog($('dlg'));
 /* ---------------- Manual: se explica antes de llevarte a ningún sitio ---------------- */
 
 window.delcos.legacyB.listenToManualSearch();
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.40.0 · Pantallas y ventanas que aparecen completas
    (con indicador de carga mientras llegan los datos), alertas que se
@@ -60939,6 +61024,7 @@ window.delcos.legacyB.markSignedOut();
 /* ---------------- pruebas: volver a los datos de partida con confirmación ---------------- */
 
 window.delcos.legacyB.guardTestReset();
+// @ts-check
 /* ============================================================
    v2.41.0 · Marca propia de cada empresa, planes contratables,
    Usuarios renovado, Roles y permisos, configuración sin redundancias
@@ -60979,6 +61065,7 @@ window.delcos.legacyB.hideAdminMenu();
 /* ---------------- menú «Más» del móvil: continuación de la barra ---------------- */
 
 // Intentar entrar en un módulo que no incluye el plan
+// @ts-check
 /* ============================================================
    v2.42.0 · Notificaciones para todos y configurables, Mi perfil,
    Rutas y Mensajes como apartados propios, Material de visita y
@@ -61001,6 +61088,7 @@ window.delcos.legacyB.pollBell();
 /* ---------------- Mi perfil ---------------- */
 
 // Al entrar, se abre el módulo elegido
+// @ts-check
 /* ============================================================
    v2.43.0 · Idiomas por persona (castellano, inglés, alemán,
    francés e italiano), precios alineados con el mercado, paquete
@@ -61023,6 +61111,7 @@ window.delcos.legacyB.pollBell();
 let MAPA_I18N = null;   // (IDIOMA está en nucleo/idioma.js)
 window.delcos.legacyB.watchTranslations();
 // Selector de idioma en Mi perfil
+// @ts-check
 /* ============================================================
    v2.44.0 · Sin aviso de horizontal (tapaba la app al abrir el
    teclado), idioma que se guarda de verdad, Configuración en el
@@ -61039,6 +61128,7 @@ window.delcos.legacyB.watchTranslations();
 
 window.delcos.legacyB.listenToMobileSettings();
 // «Elegir qué notificaciones recibo» abre ese apartado directamente
+// @ts-check
 /* ============================================================
    v2.45.1 · Recuperar contraseña en una pantalla limpia: la
    plataforma no se abre con la sesión del enlace; al guardar se
@@ -61048,6 +61138,7 @@ window.delcos.legacyB.listenToMobileSettings();
 let RECUPERANDO = RECUPERACION_URL;
 // Avisos en la pantalla de acceso: contraseña cambiada o enlace caducado
 window.delcos.legacyB.showAccessNotices();
+// @ts-check
 /* ============================================================
    v2.45.2 · Contraseñas con indicador de seguridad y formularios
    de acceso sin avisos nativos del navegador
@@ -61062,12 +61153,14 @@ window.delcos.legacyB.completeRecoveryForm();
 
 // Acceso: «Entrar» se activa al rellenar correo y contraseña; avisos con el diseño de la plataforma
 window.delcos.legacyB.prepareLoginForm();
+// @ts-check
 /* ============================================================
    v2.45.4 · Botones con indicador de carga y emails comprobados al escribir
    ============================================================ */
 
 // Botón en espera: se desactiva, muestra un indicador y recupera su texto al terminar
 function conCargaBase(btn, texto, fn) { return window.delcos.legacyB.withLoading(btn, texto, fn); }
+// @ts-check
 /* ============================================================
    v2.45.5 · Iconos de línea de un solo color (Lucide) en toda la
    plataforma, textos genéricos para el acceso al servidor de correo,
@@ -61078,118 +61171,145 @@ const RE_ICO = new RegExp(Object.keys(ICON_EMOJI).sort((a, b) => b.length - a.le
 
 window.delcos.legacyB.watchIcons();
 // En el perfil no se cambia la contraseña (se hace con «He olvidado la contraseña» en el acceso)
+// @ts-check
 // legado 050 · v2.46.0 menú ordenado, aviso de versión y notificaciones explicadas: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start050();
 const EXPLICA_NOTIF = window.delcos.legacyC.notificationExplanations();
+// @ts-check
 // legado 051 · v2.46.1 nombre del módulo de contactos y consultas con tiempo límite: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start051();
 const ETIQUETAS = window.delcos.legacyC.contactLabels();
 function aplicarEtiquetaBase() { return window.delcos.legacyC.applyContactsLabel(); }
+// @ts-check
 /* ============================================================
    v2.47.0 · Correcciones encontradas por la batería de QA
    ============================================================ */
 
 ;
 
-async function asignarCartera(id, ...r) { await asegurarUsuario(id); return asignarCarteraBase(id, ...r); }
+async function asignarCartera(id, ...r) { await asegurarUsuario(id); return asignarCarteraBase.apply(null, [id, ...r]); }
 // Una llamada sin fecha se abre con la fecha de ahora (antes fallaba al abrirse)
 
 
 
+// @ts-check
 // legado 053 · v2.52.0 registro de errores y «Reportar un problema»: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
-const VERSION_APP = (((document.querySelector('script[src*="app.js"]') || {}).src || '').split('v=')[1]) || '';
+const VERSION_APP = (((/** @type {HTMLScriptElement | null} */ (document.querySelector('script[src*="app.js"]')) || { src: '' }).src || '').split('v=')[1]) || '';
 window.delcos.legacyC.start053();
+// @ts-check
 // legado 054 · v2.53.0 «Filtros y columnas» y páginas de Perfil, Empresa y Plan: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start054();
 let PAG_TAB = {};
 const MOD_PLAN = window.delcos.legacyC.planModules();
+// @ts-check
 // legado 055 · v2.54.0 panel lateral, sin parpadeo y IVA con selector: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start055();
+// @ts-check
 // legado 056 · v2.55.0 segundo panel de columnas y vista previa de la factura: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start056();
 function pintarEmpresa(...a) { return window.delcos.legacyC.paintCompany(a); }
+// @ts-check
 // legado 057 · v2.56.0 caché de pantallas, anchos de columna y campos de formulario: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 const ESTADO_MOD = window.delcos.legacyC.moduleStates();
 window.delcos.legacyC.start057();
+// @ts-check
 // legado 058 · v2.57.0 criterio único de pantallas y ventanas: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 const PILA_VENT = []; let APILANDO = false;
 const RASTRO = [];   // últimas acciones de la persona (para reproducir el problema)
 window.delcos.legacyC.start058();
+// @ts-check
 // legado 059 · v2.60.0 revelado atómico: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start059();
 const pendientesDesde = t0 => window.delcos.legacyC.pendingSince(t0);
+// @ts-check
 // legado 060 · v2.61.0 pestañas, ayudas breves y acceso que recuerda: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start060();
+// @ts-check
 // legado 061 · v2.64.0 el plan aparta a los ya citados: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 function pintarPlan(...a) { return window.delcos.legacyC.paintPlan(a); }
+// @ts-check
 // legado 062 · v2.65.0 iconos de Importar: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.addIconsOf('062');
+// @ts-check
 // legado 065 · v2.88.0 clasificadores en filtros y columnas: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 function abrirHerramientas(ctx, ...r) { return window.delcos.legacyC.openTools(ctx, ...r); }
 window.delcos.legacyC.start065();
+// @ts-check
 // legado 067 · v2.96.0 iconos de la ficha: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.addIconsOf('067');
+// @ts-check
 // legado 069 · v2.71.0 textos fijos con el vocabulario: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start069();
+// @ts-check
 // legado 071 · v2.101.0 fechas, números, teclado y planes: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start071();
+// @ts-check
 // legado 072 · v2.117.0 Organización y ventanas encajadas: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start072();
 function mostrarApp(...a) { return window.delcos.legacyC.showApp(a); }
 const CAMPO_TXT = window.delcos.legacyC.fieldNames();
+// @ts-check
 // legado 073 · v2.131.0 páginas, menú lateral, entorno de pruebas y avisos de pedidos: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start073();
+// @ts-check
 // legado 074 · v2.140.0 botones de solo icono y filtros en el panel: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 async function conCarga(btn, texto, fn) { return window.delcos.legacyC.withLoading(btn, texto, fn); }
 window.delcos.legacyC.start074();
+// @ts-check
 // legado 075 · v2.152.0 notificaciones, extras, errores y suscripción: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start075();
 function hayExtra(k) { return window.delcos.legacyC.hasExtra(k); }
 function montarMenuLateral() { return window.delcos.legacyC.mountSideMenu(); }
+// @ts-check
 // legado 076 · v2.166.0 baja, vuelta de Stripe, altas y Panel delcos: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
 let TD_ULTIMO = null, TD_PRESET = null;
 window.delcos.legacyC.start076();
 async function pintarPaginaPlan(...a) { return window.delcos.legacyC.paintPlanPage(a); }
+// @ts-check
 // legado 077 · v2.174.0 avisos de «Tu día», recibo anual y Agenda en el móvil: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start077();
 function explicarAviso(inf) { return window.delcos.legacyC.explainNotice(inf); }
+// @ts-check
 // legado 078 · v2.184.0 la app se pone al día sola y Agenda sin recargas: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 const PANTALLA_TACTIL = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
 let DLG_EPOCA = 0;
 let DISTRIBUIDORES = null;   // v2.417.0: el bloque «Lo sirve» lo pinta y lo guarda el editor (src/app/screens/orders/editor/distributor.ts)
 window.delcos.legacyC.start078();
+// @ts-check
 // legado 079 · v2.195.0 Eventos, Ciclo de visitas e Intervenciones: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start079();
 function aplicarPermisosMenuBase9(...a) { return window.delcos.legacyC.applyMenuPermissions(a); }
+// @ts-check
 // Concursos y Parque en el menú, sus avisos y el «?» del manual: en src/app/core/layers/sales-modules.ts (v2.424.0).
 window.delcos.layers.installSalesModules();
 function aplicarPermisosMenu(...a) { return window.delcos.layers.applyMenuPermissions(a); }
 async function cargarAdmin(...a) { return window.delcos.layers.loadAdmin(a); }
+// @ts-check
 // El índice de Configuración, su repaso y los detalles de la Agenda y del «+»: en src/app/core/layers (v2.424.0).
 var VISITA_FECHA = '';
 const ES_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -61209,13 +61329,15 @@ const ICU = {
 window.delcos.layers.installAgendaListeners();
 window.delcos.layers.installFloatingButton();
 let KV_INI = null, KV_GRAF = null;
+// @ts-check
 // «Equipo», el orden de las tablas y el que viaja con la consulta: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installTeamToggle();
 async function pintarSinAtribuir() { const c = $('cardsinatr'); if (c) c.remove(); }
 window.delcos.layers.installTableSort();
 window.delcos.layers.installOrderParameter();
-document.addEventListener('change', e => { if (e.target && e.target.id === 'popf') pkMarcar(); });
+document.addEventListener('change', e => { if (e.target && /** @type {HTMLElement} */ (e.target).id === 'popf') pkMarcar(); });
 var AN_REP = '';   // v2.329.0: Analítica → Resumen, «Reporte»
+// @ts-check
 // Logotipo, lecturas lentas del iPhone, rutas que se rellenan y nombres del menú: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installMenuDetails();
 window.delcos.layers.installSlowReadRetry();
@@ -61224,111 +61346,154 @@ let RN_LISTA = null, RN_MAPA_P = null;    // tarjetas de Mis rutas: [{r, ms}]
 function aplicarEtiqueta(...a) { return window.delcos.layers.applyLabel(a); }
 window.delcos.layers.installMenuNames();
 window.delcos.layers.installSettingsSearchWords();
+// @ts-check
 // v2.236.0 · Modelo de página «Lista»: la barra está en src/app/components/list-bar (v2.421.0). Aquí, en su sitio del orden de
 // carga, se observan Cuentas y Clientes y se ponen sus escuchas.
 window.delcos.components.listBar.startScreens();
 
-const normalizar = typeof quitarAcentos === 'function' ? (s => quitarAcentos(String(s || '').toLowerCase())) : (s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''));
+const normalizar = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+// @ts-check
 // La primera pantalla también espera a estar completa: en src/app/core/layers/navigation-glue.ts (v2.424.0).
 window.delcos.layers.installFirstReveal();
+// @ts-check
 // v2.238.0 · Modelo «Lista» en Ventas, Facturas y Productos: sus configuraciones y escuchas están en src/app/components/list-bar
 // (v2.421.0). Aquí, en su sitio del orden de carga (antes que las escuchas generales), se observan y se ponen sus escuchas.
 window.delcos.components.listBar.startSections();
+// @ts-check
 // v2.239.0 · Modelo «Lista» en Eventos, Intervenciones, Concursos y Parque instalado: en src/app/components/list-bar (v2.421.0).
 // Aquí, en su sitio del orden de carga, se observan, se pone la escucha de los bloques y se vigilan todas las pantallas de lista.
 window.delcos.components.listBar.startBlocks();
+// @ts-check
 // Las fichas con su aspecto de ficha: en src/app/core/layers/dialogs.ts (v2.424.0).
 window.delcos.layers.installSheetLook();
+// @ts-check
 let AG_MET = null, AG_SUG = null, AG_PEND = null;
+// @ts-check
 // Respuestas leídas de antemano y volver de «Cerca de mí»: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installPreloadedAnswers();
 window.delcos.layers.installListListeners();
+// @ts-check
 // Configuración sin fantasmas al cambiar de apartado: en src/app/core/layers/page-glue.ts (v2.424.0).
 window.delcos.layers.installFrozenChanges();
+// @ts-check
 // Pestañas de página sin fantasmas: en src/app/core/layers/page-glue.ts (v2.424.0).
 window.delcos.layers.installFrozenTabs();
+// @ts-check
 // Quitar el filtro por profesional en Clientes: en src/app/core/layers/list-glue.ts (v2.424.0).
 window.delcos.layers.installCustomerDoctorFilter();
+// @ts-check
 // «Tu día» con tiempos reales: en src/app/core/layers/agenda-glue.ts (v2.424.0).
 let TD_REAL = null, TD_CALC = false;   // { k, mapa: Map('a>b' → minutos), t } · TD_CALC: calculando la clave (sin volver a entrar)
 function estimarDia(citas, fecha, ...x) { return window.delcos.layers.estimateDay(citas, fecha, x); }
+// @ts-check
 // El aviso de conexión con lo que no se ha podido enviar: en src/app/core/layers/device-glue.ts (v2.424.0).
 function pintarConexion(...a) { return window.delcos.layers.paintConnection(a); }
 window.delcos.layers.installRefusedChanges();
+// @ts-check
 // El botón de la cámara en lotes y números de serie: en src/app/core/layers/device-glue.ts (v2.424.0).
 window.delcos.layers.installScanner();
+// @ts-check
 // Facturas y Llamadas ordenadas por la base: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installRememberedSortColumns();
 window.delcos.layers.installRememberedSorts();
+// @ts-check
 let PRES_MAT = null, PRES_T = 0;           // [{id, producto_id, nombre, tipo, orden}] · cuándo se leyó
+// @ts-check
 // Cabecera de Inicio, «Usuarios» y el «+» redondo: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installStartDetails();
 window.delcos.layers.installRoundAddButton();
+// @ts-check
 // Filtros que se mantienen: en src/app/core/layers/list-glue.ts (v2.424.0).
 window.delcos.layers.installFilterMemory();
 function montarPeriodo(el, ...a) { return window.delcos.layers.mountPeriod(el, a); }
+// @ts-check
 // La ayuda de Configuración para el profesional: en src/app/core/layers/session-glue.ts (v2.424.0).
 window.delcos.layers.installProfessionalSettingsHelp();
+// @ts-check
 // «Urgente» se ve al momento: en src/app/core/layers/agenda-glue.ts (v2.424.0).
 var AG_HOY_VISTO = null;
 async function alternarUrgente(id, ...x) { return window.delcos.layers.toggleUrgent(id, x); }
+// @ts-check
 // El ojo de las contraseñas: en src/app/core/layers/device-glue.ts (v2.424.0).
 window.delcos.layers.installPasswordEyes();
+// @ts-check
 // Fuera al momento quien ya no tiene acceso, y avisos en vivo: en src/app/core/layers/session-glue.ts (v2.424.0).
 let ACCESO_MIRADO = 0, ACCESO_FUERA = false;
 window.delcos.layers.installAccessChecks();
+// @ts-check
 // «Pendiente de pago» en el portal del centro: en src/app/core/layers/session-glue.ts (v2.424.0).
 window.delcos.layers.installCentrePaymentState();
+// @ts-check
 // El material también para los centros: en src/app/core/layers/session-glue.ts (v2.424.0).
 window.delcos.layers.installMaterialForCentres();
+// @ts-check
 // «‹ Volver» siempre al punto de partida: en src/app/core/layers/dialogs.ts (v2.424.0).
 let VISTA = null, VUELTA_REABRIENDO = false, VUELTA_CLIC = null, VUELTA_PONER = false;
 window.delcos.layers.installBack();
+// @ts-check
 // Lo de debajo se pone al día solo: en src/app/core/layers/rpc-hooks.ts (v2.424.0).
 window.delcos.layers.installRefreshAfterAccountWrites();
+// @ts-check
 // El filtro rápido «Tipo» de Cuentas: en src/app/core/layers/list-glue.ts (v2.424.0).
 window.delcos.layers.installAccountTypeFilter();
 // La búsqueda de Cuentas está en src/app/screens/accounts/list (v2.405.0); estos nombres se quedan porque los llaman muchos archivos
 function buscar(reiniciar) { return window.delcos.screens.accounts.searchAccounts(reiniciar); }
+// @ts-check
 // Enlace de activación caducado: en src/app/core/layers/session-glue.ts (v2.424.0).
 window.delcos.layers.installExpiredLink();
+// @ts-check
 // Guardar con respuesta inmediata: en src/app/core/layers/save-feedback.ts (v2.424.0).
 let RED_VUELO = 0, RED_ULT = 0;
 window.delcos.layers.installSaveFeedback();
+// @ts-check
 const ES_ANDROID = /Android/i.test(navigator.userAgent);
+// @ts-check
 // Un solo centro: el centro y su cuenta se abren uno a otro, en src/app/core/layers/dialogs.ts (v2.424.0).
 window.delcos.layers.installCentreLinks();
+// @ts-check
 // Dar de baja y eliminar fichas: en src/app/core/layers/removed-records.ts (v2.424.0).
 window.delcos.layers.installRemovedAccounts();
+// @ts-check
 // Dar de baja y eliminar clientes: en src/app/core/layers/removed-records.ts (v2.424.0).
 window.delcos.layers.installRemovedCustomers();
+// @ts-check
 // Cada pedido en tres líneas en el móvil: en src/app/core/layers/list-glue.ts (v2.424.0).
 window.delcos.layers.installOrderCards();
+// @ts-check
 // Productos eliminados con «Recuperar»: en src/app/core/layers/removed-records.ts (v2.424.0).
 const PROD_USOS = { ventas: 'pedidos', borradores: 'borradores', servicio: 'pedidos con este servicio', compras: 'compras', lotes: 'lotes',
   movimientos: 'movimientos de stock', muestras: 'entregas de muestras', cirugias: 'intervenciones', concursos: 'precios de concurso', equipos: 'equipos',
   visitas: TT('visita', 'p', '', 'l', 'l'), comisiones: 'esquemas de comisión' };
 window.delcos.layers.installRemovedProducts();
+// @ts-check
 // «Reporte» en Analítica: en src/app/core/layers/rpc-hooks.ts (v2.424.0).
 window.delcos.layers.installReportedFilter();
+// @ts-check
 // v2.345.0: solo en pruebas hasta tener el terminal del banco (decisión de Eric); para abrirlo en producción, TPV_VISIBLE = true
 const TPV_VISIBLE = EN_PRUEBAS || /^(localhost|127\.)/.test(location.hostname);   // en local, para la batería
+// @ts-check
 var USR_ACC = null;
+// @ts-check
 // La barra de abajo del móvil: en src/app/core/layers/navigation-glue.ts (v2.424.0).
 window.delcos.layers.installBottomBarMeasure();
 function pintarBnav(...a) { return window.delcos.layers.paintBottomBar(a); }
+// @ts-check
 // Los indicadores de las listas cuentan con los filtros: en src/app/core/layers/list-glue.ts (v2.424.0).
 window.delcos.layers.installListIndicators();
+// @ts-check
 // Plantillas del PDF y el «+» al cambiar de tamaño: en src/app/core/layers (v2.424.0).
 let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
 const RPC_V2342 = db.rpc;
 window.delcos.layers.installPdfTemplates();
 window.delcos.layers.installDesktopAddButton();
+// @ts-check
 // Las partes de un apartado y los botones de los KPIs de Inicio: en src/app/core/layers/page-glue.ts; el índice, en settings-tree.ts (v2.424.0).
 window.delcos.layers.installSettingsParts();
 function arbolCfgUnico() { return window.delcos.layers.settingsTree(); }
+// @ts-check
 // Una ventana cerrada mientras cargaba no se vuelve a abrir sola: en src/app/core/layers/dialogs.ts (v2.424.0).
 window.delcos.layers.installClosedWhileLoading();
+// @ts-check
 // D-042: el «Guardar» de una página sabe qué ha cambiado, en src/app/core/layers/page-glue.ts (v2.424.0).
 const PAG_GUARDA_RE = /^guardar(\s|$)/i, PAG_GUARDA_NO = '#coprueba, #copruebaarriba, .cfuguarda .btn';
 window.delcos.layers.installPageSave();

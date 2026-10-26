@@ -69,7 +69,7 @@ function lockOutOfPlan(box: HTMLElement): void {
     const button = sectionButton(row.dataset.k ?? ''); if (!button || !legacyFreeCoreServices.session.outOfPlan(button)) return;
     row.classList.add('off', 'fueraplan'); row.title = t('navigationCore.menu.notInPlan', { plan: PLAN_NOMBRE() });
     const toggle = row.querySelector<HTMLInputElement>('[data-vk]'); if (toggle) { toggle.checked = false; toggle.disabled = true; }
-    if (!row.querySelector('.mlpcand')) row.querySelector('.mlpn')?.insertAdjacentHTML('afterend', `<span class="mlpcand" aria-label="${t('navigationCore.menu.notInPlanShort')}"></span>`);
+    if (!row.querySelector('.mlpcand')) row.querySelector('.mlpn')?.insertAdjacentHTML('afterend', `<span class="mlpcand" role="img" aria-label="${t('navigationCore.menu.notInPlanShort')}"></span>`);
   });
   box.querySelectorAll('.mlpg').forEach(group => {
     const rows = [...group.querySelectorAll('.mlpi[data-k]')], count = group.querySelector('.mlpcnt');

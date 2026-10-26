@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.27.0 · Clasificadores con dato en las visitas,
    material comercial, Clientes con filtros, columnas en el panel

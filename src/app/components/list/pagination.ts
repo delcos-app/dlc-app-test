@@ -33,7 +33,7 @@ export function pageHtml(total: number, page: number, size: number): string {
       ${buttons}
       <button data-pg="${page + 1}" ${page >= pages - 1 ? 'disabled' : ''} aria-label="${t('listComponents.pagination.next')}">›</button>
     </span>
-    <span class="ptam">${t('listComponents.pagination.show')} <select class="chico" data-pgtam>${listsLegacy.pageSizes().map(option =>
+    <span class="ptam">${t('listComponents.pagination.show')} <select class="chico" data-pgtam aria-label="${t('listComponents.pagination.pageSize')}">${listsLegacy.pageSizes().map(option =>
       `<option value="${option}" ${option === size ? 'selected' : ''}>${option}</option>`).join('')}</select></span></div>`;
 }
 

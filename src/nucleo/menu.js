@@ -1,3 +1,4 @@
+// @ts-check
 // nucleo/menu.js · el menú está en src/app/core/navigation/menu (v2.426.0). Aquí quedan el estado que leen y cambian otras partes
 // (MENU_FIRMA, FAB_RZ), los objetos compartidos (los mismos que en src/app) y los nombres que usan el legado, los puentes y las pruebas.
 

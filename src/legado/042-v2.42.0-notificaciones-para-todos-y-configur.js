@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    v2.42.0 · Notificaciones para todos y configurables, Mi perfil,
    Rutas y Mensajes como apartados propios, Material de visita y

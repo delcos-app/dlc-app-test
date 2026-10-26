@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.35.0 · Pedidos paginados y guardados en el dispositivo,
    factura en PDF como la de Holded y envío por email con el PDF adjunto,

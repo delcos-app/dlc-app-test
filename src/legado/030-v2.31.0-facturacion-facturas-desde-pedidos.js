@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.31.0 · Facturación: facturas desde pedidos,
    series y numeración, rectificativas, cobros, PDF y VeriFactu preparado

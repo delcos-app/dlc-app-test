@@ -7,6 +7,7 @@
 import { notices } from '../../legacy/bridge';
 import { switchLegacy } from '../../legacy/legado-a-bridge';
 import { t } from '../../i18n';
+import { markCurrent } from '../navigation/current';
 
 const LOADER_MAX_MS = 8000, LOADER_MIN_MS = 300, LOADER_STEP_MS = 80, QUIET_STEPS = 3;
 const PROFESSIONAL_SCREENS = ['informe', 'manual', 'config'];
@@ -46,7 +47,7 @@ function show(target: string): void {
   document.getElementById('tools')?.classList.remove('abierto');
   if (target !== 'agenda') switchLegacy.forgetViewedAgenda();
   switchLegacy.setScreen(target);
-  document.querySelectorAll<HTMLElement>('nav.main [data-t], #bnav [data-t]').forEach(button => { button.setAttribute('aria-selected', String(button.dataset.t === target)); });
+  document.querySelectorAll<HTMLElement>('nav.main [data-t], #bnav [data-t]').forEach(button => { markCurrent(button, button.dataset.t === target); });
   document.querySelectorAll('main > section').forEach(section => { section.classList.toggle('hide', section.id !== `v-${target}`); });
   window.scrollTo({ top: 0 });
 }

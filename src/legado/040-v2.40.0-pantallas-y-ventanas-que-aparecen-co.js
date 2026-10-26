@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.40.0 · Pantallas y ventanas que aparecen completas
    (con indicador de carga mientras llegan los datos), alertas que se

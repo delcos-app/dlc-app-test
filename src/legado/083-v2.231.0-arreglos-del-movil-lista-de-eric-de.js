@@ -1,3 +1,4 @@
+// @ts-check
 // Logotipo, lecturas lentas del iPhone, rutas que se rellenan y nombres del menú: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installMenuDetails();
 window.delcos.layers.installSlowReadRetry();

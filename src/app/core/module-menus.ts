@@ -17,7 +17,7 @@ function placeEntry(entry: ModuleEntry): void {
   if (!button) {
     const neighbour = entry.after.map(screen => nav.querySelector(`[data-t="${screen}"]`)).find(Boolean);
     if (!neighbour) return;
-    neighbour.insertAdjacentHTML('afterend', `<button data-t="${entry.screen}" aria-selected="false">${entry.title()}</button>`);
+    neighbour.insertAdjacentHTML('afterend', `<button data-t="${entry.screen}">${entry.title()}</button>`);
     button = nav.querySelector(`[data-t="${entry.screen}"]`);
   }
   button?.classList.toggle('hide', leftoversLegacy.isProfessionalPortal() || !leftoversLegacy.canUseModule(entry.area));

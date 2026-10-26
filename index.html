@@ -83,8 +83,8 @@ nav.main{border-bottom:1px solid var(--line);background:var(--panel)}
 nav.main .in{max-width:1280px;margin:0 auto;padding:0 18px;display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none}
 nav.main .in::-webkit-scrollbar{display:none}
 nav.main button{position:relative;border:0;background:none;padding:12px 14px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
-nav.main button[aria-selected=true]{color:var(--navy)}
-nav.main button[aria-selected=true]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--navy);border-radius:2px}
+nav.main button[aria-current=page]{color:var(--navy)}
+nav.main button[aria-current=page]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--navy);border-radius:2px}
 nav.main button:disabled{opacity:.45;cursor:default}
 nav.main .pronto{font-size:10px;font-weight:700;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 6px;margin-left:6px;color:var(--muted)}
 main{max-width:1280px;margin:0 auto;padding:20px 18px 60px}
@@ -693,8 +693,8 @@ header .logo{width:46px;max-width:none;border-radius:50%;object-fit:cover;backgr
 nav.main{background:transparent;border-bottom:0}
 nav.main button{border-radius:10px;margin:4px 0;transition:background .15s,color .15s}
 nav.main button:hover{background:var(--hielo);color:var(--navy)}
-nav.main button[aria-selected=true]{color:var(--navy);background:transparent}
-nav.main button[aria-selected=true]::after{height:3px;bottom:-4px;background:var(--navy);left:10px;right:10px;border-radius:3px 3px 0 0}
+nav.main button[aria-current=page]{color:var(--navy);background:transparent}
+nav.main button[aria-current=page]::after{height:3px;bottom:-4px;background:var(--navy);left:10px;right:10px;border-radius:3px 3px 0 0}
 /* Superficies */
 .card,.kpi,.panel{background:#FFFFFF;border:1px solid var(--line);box-shadow:var(--sh)}
 
@@ -741,7 +741,7 @@ dialog::backdrop{background:rgba(11,37,64,.42)}
 .lbox h1{font-size:24px}
 /* Barra inferior del móvil */
 .bnav{background:#FFFFFF;border-top:1px solid var(--line)}
-.bnav button[aria-selected=true]{color:var(--navy)}
+.bnav button[aria-current=page]{color:var(--navy)}
 /* Resumen de Inicio con la ola */
 #v-inicio .saludo{position:relative;border-radius:16px;padding:22px 22px;margin-bottom:16px;overflow:hidden;background:#FFFFFF;box-shadow:var(--sh);border:1px solid var(--line)}
 /* Selectores propios */
@@ -1161,7 +1161,7 @@ input:-webkit-autofill{animation-name:autorelleno;animation-duration:1ms}
 .icw svg{width:1.1em;height:1.1em;flex:0 0 auto}
 nav.main .navico{display:inline-flex;margin-right:7px;vertical-align:-3px;opacity:.75}
 nav.main .navico svg{width:17px;height:17px}
-nav.main button[aria-selected=true] .navico{opacity:1}
+nav.main button[aria-current=page] .navico{opacity:1}
 .bnav .icw svg{width:22px;height:22px}
 .bmasgrid .icw svg{width:22px;height:22px}
 .bmasgrid button span{color:var(--navy)}
@@ -1691,7 +1691,7 @@ nav.main button{transition:background-color var(--t-rapido) var(--ease-sal),colo
 .bnav button{gap:4px;padding:6px 4px 8px;font-size:12px;min-height:56px;transition:color var(--t-rapido) var(--ease-sal)}
 .bnav button > span:first-child{display:inline-flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:999px;
   transition:background-color var(--t-medio) var(--ease-sal)}
-.bnav button[aria-selected=true] > span:first-child{background:var(--sky-soft)}
+.bnav button[aria-current=page] > span:first-child{background:var(--sky-soft)}
 /* Pestañas y selectores de sección */
 .subnav button{transition:background-color var(--t-rapido) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal)}
 .subnav button:hover{background:var(--hielo);border-color:var(--sky)}
@@ -2419,9 +2419,9 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
   body.menulat nav.main .mllab{overflow:hidden;text-overflow:ellipsis}
   body.menulat nav.main .in button[data-t]:hover,body.menulat .mlitem:hover{background:var(--hielo);color:var(--navy)}
   body.menulat nav.main .in button[data-t]:active,body.menulat .mlitem:active{background:var(--sky-soft)}
-  body.menulat nav.main .in button[data-t][aria-selected=true]{background:var(--sky-soft);color:var(--navy)}
-  body.menulat nav.main .in button[data-t][aria-selected=true] .navico{opacity:1}
-  body.menulat nav.main .in button[data-t][aria-selected=true]::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--navy)}
+  body.menulat nav.main .in button[data-t][aria-current=page]{background:var(--sky-soft);color:var(--navy)}
+  body.menulat nav.main .in button[data-t][aria-current=page] .navico{opacity:1}
+  body.menulat nav.main .in button[data-t][aria-current=page]::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--navy)}
   body.menulat nav.main .in button[data-t]:focus-visible,body.menulat .mlitem:focus-visible,body.menulat .mlplegar:focus-visible{outline:none;box-shadow:var(--foco)}
   body.menulat .mlpie{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
   body.menulat .mlplegar{align-self:flex-end;width:36px;height:36px;margin-top:4px;display:grid;place-items:center;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;
@@ -4983,16 +4983,16 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
       </div>
     </div>
     <nav class="main"><div class="in" id="nav">
-      <button data-t="inicio" aria-selected="true">Inicio</button>
-      <button data-t="agenda" aria-selected="false">Agenda</button>
-      <button data-t="rutas" aria-selected="false">Rutas</button>
-      <button data-t="directorio" aria-selected="false">Profesionales</button>
-      <button data-t="pacientes" aria-selected="false">Clientes</button>
-      <button data-t="productos" aria-selected="false">Productos</button>
-      <button data-t="seguimiento" aria-selected="false">Calidad del dato</button>
-      <button data-t="ventas" aria-selected="false">Pedidos</button>
-      <button data-t="analitica" aria-selected="false">Analítica</button>
-      <button data-t="facturacion" aria-selected="false" class="hide">Facturación</button>
+      <button data-t="inicio" aria-current="page">Inicio</button>
+      <button data-t="agenda">Agenda</button>
+      <button data-t="rutas">Rutas</button>
+      <button data-t="directorio">Profesionales</button>
+      <button data-t="pacientes">Clientes</button>
+      <button data-t="productos">Productos</button>
+      <button data-t="seguimiento">Calidad del dato</button>
+      <button data-t="ventas">Pedidos</button>
+      <button data-t="analitica">Analítica</button>
+      <button data-t="facturacion" class="hide">Facturación</button>
     </div></nav>
   </header>
 
@@ -5080,6 +5080,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./min/app.js?v=2.437.0"></script>
+<script src="./min/app.js?v=2.438.0"></script>
 </body>
 </html>

@@ -90,7 +90,7 @@ export function showColumnsPanel(title: string, columns: readonly ColumnChoice[]
 /** v2.55.0: the second side panel and the backdrop that closes both panels. */
 export function createColumnsPanel(): void {
   if (byId('tools2')) return;
-  document.body.insertAdjacentHTML('beforeend', `<div class="tools tools2" id="tools2" aria-label="${t('legacyC.tools.columnsHeading')}"></div><div class="toolsfondo hide" id="toolsfondo"></div>`);
+  document.body.insertAdjacentHTML('beforeend', `<div class="tools tools2" id="tools2" role="group" aria-label="${t('legacyC.tools.columnsHeading')}"></div><div class="toolsfondo hide" id="toolsfondo"></div>`);
   const tools = byId('tools'), second = byId('tools2'), backdrop = byId('toolsfondo');
   backdrop?.addEventListener('pointerdown', () => { second?.classList.remove('abierto'); tools?.classList.remove('abierto'); });
   const toggle = (): void => { backdrop?.classList.toggle('hide', !(Boolean(tools?.classList.contains('abierto')) || Boolean(second?.classList.contains('abierto')))); };

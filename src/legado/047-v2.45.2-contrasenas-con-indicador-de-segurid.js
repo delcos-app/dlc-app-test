@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    v2.45.2 · Contraseñas con indicador de seguridad y formularios
    de acceso sin avisos nativos del navegador

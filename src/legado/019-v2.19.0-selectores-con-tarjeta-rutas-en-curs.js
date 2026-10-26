@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.19.0 · Selectores con tarjeta, rutas en curso,
    Pacientes y Productos como módulos, comerciales en el directorio,

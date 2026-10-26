@@ -17,7 +17,7 @@ const ORDERED_VIEWS: Readonly<Record<string, string>> = { agenda: 'v-agenda', ru
 const menuName = (tab: string): string => document.querySelector(`nav.main [data-t="${tab}"]`)?.textContent ?? tab;
 
 function paintPortalBar(bar: HTMLElement): void {
-  bar.innerHTML = `<button data-t="informe" aria-selected="true"><span>◉</span>${t(legacyBActions.can('portal_centro') ? 'legacyB.mobile.myCentre' : 'legacyB.mobile.myReport')}</button>`;
+  bar.innerHTML = `<button data-t="informe" aria-current="page"><span>◉</span>${t(legacyBActions.can('portal_centro') ? 'legacyB.mobile.myCentre' : 'legacyB.mobile.myReport')}</button>`;
   (bar.firstChild as HTMLElement).onclick = (): void => { legacyBActions.goTo('informe'); };
 }
 
@@ -26,8 +26,8 @@ export function paintBottomNav(): void {
   const bar = document.getElementById('bnav'); if (!bar) return;
   if (legacyBActions.isProfessionalPortal()) { paintPortalBar(bar); return; }
   const tab = legacyBState.tab();
-  bar.innerHTML = MAIN_TABS.map(main => `<button data-t="${main}" aria-selected="${String(tab === main)}"><span>${MAIN_ICONS[main] ?? ''}</span>${escapeHtml(menuName(main) || main)}</button>`).join('')
-    + `<button id="bmasbtn" aria-selected="${String(!MAIN_TABS.includes(tab))}"><span>⋯</span>${t('legacyB.mobile.more')}</button>`;
+  bar.innerHTML = MAIN_TABS.map(main => `<button data-t="${main}"${tab === main ? ' aria-current="page"' : ''}><span>${MAIN_ICONS[main] ?? ''}</span>${escapeHtml(menuName(main) || main)}</button>`).join('')
+    + `<button id="bmasbtn"${!MAIN_TABS.includes(tab) ? ' aria-current="page"' : ''}><span>⋯</span>${t('legacyB.mobile.more')}</button>`;
   bar.querySelectorAll<HTMLElement>('[data-t]').forEach(button => { button.onclick = (): void => { legacyBActions.goTo(button.dataset.t ?? ''); }; });
   const more = document.getElementById('bmasbtn'); if (more) more.onclick = (): void => { legacyBActions.openMoreMenu(); };
 }

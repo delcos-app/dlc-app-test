@@ -1,5 +1,5 @@
 {
-  "//": "Comprobación de tipos (plan de migración, bloque 7.4; decisión de Eric: código tipado). No compila nada: «tsc --noEmit» solo revisa. Todos los archivos de src/ comparten el ámbito global (se juntan en app.js), así que TypeScript ve las funciones y constantes de todos. Se activa archivo a archivo con «// @ts-check» en la primera línea; los tipos se escriben con comentarios JSDoc. Las globales de fuera (supabase, L, jsPDF…) están en src/tipos/globales.d.ts.",
+  "//": "Comprobación de tipos (plan de migración, bloque 7.4; decisión de Eric: código tipado). No compila nada: «tsc --noEmit» solo revisa. Todos los archivos de src/ comparten el ámbito global (se juntan en app.js), así que TypeScript ve las funciones y constantes de todos. Todos los archivos llevan «// @ts-check» en la primera línea (v2.439.0); los tipos se escriben con comentarios JSDoc. Las globales de fuera (supabase, L, jsPDF…) están en src/tipos/globales.d.ts.",
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,
@@ -12,7 +12,9 @@
     ],
     "strict": false,
     "noImplicitAny": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   },
   "include": [
     "src/**/*.js",

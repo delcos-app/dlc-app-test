@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.39.0 · Paradas del plan con ficha y nota,
    configuración completa en el panel (sin ventanas ni saltos),

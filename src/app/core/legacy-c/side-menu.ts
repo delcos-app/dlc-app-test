@@ -59,14 +59,16 @@ function labelButtons(buttons: readonly HTMLElement[]): void {
       const label = button.querySelector('.mllab'); if (label) label.textContent = text; else button.insertAdjacentHTML('beforeend', `<span class="mllab">${escapeHtml(text)}</span>`);
     }
     button.dataset.tip = (button.querySelector('.mllab') ?? button).textContent?.trim() ?? '';
+    // Folded, the label is hidden: the tip is also its accessible name (v2.438.0)
+    button.setAttribute('aria-label', button.dataset.tip);
   });
 }
 
 function paintFooter(nav: HTMLElement): void {
   if (!nav.querySelector('.mlpie')) {
     nav.insertAdjacentHTML('beforeend', `<div class="mlpie">
-      <button type="button" class="mlitem" id="mlcfg" data-tip="${t('legacyC.sideMenu.settings')}">${svgIco(ICON_NOM.settings ?? '')}<span class="mllab">${t('legacyC.sideMenu.settings')}</span></button>
-      <button type="button" class="mlitem" id="mlpers" data-tip="${t('legacyC.sideMenu.customise')}">${svgIco(ICON_NOM['sliders-horizontal'] ?? '')}<span class="mllab">${t('legacyC.sideMenu.customise')}</span></button>
+      <button type="button" class="mlitem" id="mlcfg" data-tip="${t('legacyC.sideMenu.settings')}" aria-label="${t('legacyC.sideMenu.settings')}">${svgIco(ICON_NOM.settings ?? '')}<span class="mllab">${t('legacyC.sideMenu.settings')}</span></button>
+      <button type="button" class="mlitem" id="mlpers" data-tip="${t('legacyC.sideMenu.customise')}" aria-label="${t('legacyC.sideMenu.customise')}">${svgIco(ICON_NOM['sliders-horizontal'] ?? '')}<span class="mllab">${t('legacyC.sideMenu.customise')}</span></button>
       <button type="button" class="mlplegar" id="mlplegar" aria-label="${t('legacyC.sideMenu.foldLabel')}">${svgIco(ICO_PLEGAR)}</button></div>`);
     const settings = byId('mlcfg'), customise = byId('mlpers'), fold = byId('mlplegar');
     if (settings) settings.onclick = (): void => { ir('config'); };

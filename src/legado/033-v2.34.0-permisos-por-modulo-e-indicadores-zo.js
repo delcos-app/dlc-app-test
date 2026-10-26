@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.34.0 · Permisos por módulo e indicadores, zonas de
    los comerciales, operativa de pedidos, registro de llamadas,

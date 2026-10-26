@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    v2.45.1 · Recuperar contraseña en una pantalla limpia: la
    plataforma no se abre con la sesión del enlace; al guardar se

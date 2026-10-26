@@ -6,7 +6,7 @@
   "scripts": {
     "build:core": "esbuild src/app/main.ts --bundle --format=iife --target=es2020 --charset=utf8 --legal-comments=none --outfile=src/generated/core.js",
     "build": "npm run build:core && node herramientas/construir.mjs",
-    "check": "node herramientas/construir.mjs --comprobar && tsc -p tsconfig.app.json && tsc -p tsconfig.json && eslint src/app",
+    "check": "node herramientas/construir.mjs --comprobar && tsc -p tsconfig.app.json && tsc -p tsconfig.tipos.json && tsc -p tsconfig.json && eslint src/app",
     "lint": "eslint src/app",
     "typecheck": "tsc -p tsconfig.app.json"
   },

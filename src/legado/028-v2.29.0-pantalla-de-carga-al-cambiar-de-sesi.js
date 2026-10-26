@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.29.0 · Pantalla de carga al cambiar de sesión,
    agenda sin parpadeos, más indicadores en Inicio y Analítica visual

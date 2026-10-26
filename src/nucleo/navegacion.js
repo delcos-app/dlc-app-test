@@ -1,3 +1,4 @@
+// @ts-check
 // nucleo/navegacion.js · páginas, revelado, enlaces, «‹ Volver» y arranque están en src/app/core/navigation y core/startup (v2.426.0).
 // Aquí quedan el estado que leen y cambian otras partes, los objetos compartidos (los mismos que en src/app) y los nombres que usan el
 // legado, los puentes, «‹ Volver» y las pruebas.

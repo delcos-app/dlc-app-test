@@ -99,7 +99,7 @@ export function addPlatformTabs(): void {
 function addPanelButtons(): void {
   const nav = document.getElementById('nav'); if (!nav) return;
   PANEL_SECCIONES.forEach(([key = '', , text = '', icon = '']) => {
-    if (!nav.querySelector(`[data-t="${key}"]`)) nav.insertAdjacentHTML('beforeend', `<button data-t="${key}" aria-selected="false" class="hide pdsec">${escapeHtml(text)}</button>`);
+    if (!nav.querySelector(`[data-t="${key}"]`)) nav.insertAdjacentHTML('beforeend', `<button data-t="${key}" class="hide pdsec">${escapeHtml(text)}</button>`);
     navIcons()[key] = icon;
   });
 }

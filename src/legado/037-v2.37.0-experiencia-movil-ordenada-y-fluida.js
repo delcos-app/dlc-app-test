@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.37.0 · Experiencia móvil ordenada y fluida,
    navegación sin rebotes (solo vale la última petición), configuración

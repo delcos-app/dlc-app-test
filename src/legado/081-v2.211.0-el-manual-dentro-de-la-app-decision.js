@@ -1,3 +1,4 @@
+// @ts-check
 // El índice de Configuración, su repaso y los detalles de la Agenda y del «+»: en src/app/core/layers (v2.424.0).
 var VISITA_FECHA = '';
 const ES_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

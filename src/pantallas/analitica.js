@@ -1,3 +1,4 @@
+// @ts-check
 // pantallas/analitica.js · la página de Analítica está en src/app/screens/analytics (v2.412.0 y v2.419.0).
 // Aquí queda el estado que leen las pruebas (ANSEC), legado 074 (ANSEC) y 109 (AN_MED), y los nombres que llaman otras partes.
 

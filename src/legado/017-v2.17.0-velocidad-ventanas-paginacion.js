@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.17.0 · Velocidad, ventanas, paginación,
    duplicados, auditoría y ayudas

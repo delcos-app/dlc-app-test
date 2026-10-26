@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.24.0 · «Tu día»: la agenda del día es la ruta.
    Estados de cita, orden del día, jornada en curso

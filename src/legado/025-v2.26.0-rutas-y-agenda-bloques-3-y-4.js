@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.26.0 · Rutas y Agenda, bloques 3 y 4:
    planificador semanal, días bloqueados, frecuencia objetivo,

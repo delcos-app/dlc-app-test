@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.36.0 · Identidad visual, selectores propios de fecha,
    hora y número, espacio del médico con avisos, alertas en ventana,

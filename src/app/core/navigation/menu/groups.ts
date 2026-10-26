@@ -146,7 +146,7 @@ export function showAllowedModules(): void {
 
 function placePageButton(nav: Element, key: string, text: string, shown: boolean): void {
   let button = nav.querySelector(`[data-t="${key}"]`);
-  if (!button && shown) { nav.insertAdjacentHTML('beforeend', `<button data-t="${key}" aria-selected="false">${text}</button>`); button = nav.querySelector(`[data-t="${key}"]`); }
+  if (!button && shown) { nav.insertAdjacentHTML('beforeend', `<button data-t="${key}">${text}</button>`); button = nav.querySelector(`[data-t="${key}"]`); }
   if (!button) return;
   button.classList.toggle('hide', !shown);
   // v2.132.0: if it is already in its block of the side menu, it stays

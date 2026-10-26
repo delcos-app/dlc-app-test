@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.30.0 · Pedidos (Ventas, Compras y Proveedores)
    y Stock por lotes con trazabilidad

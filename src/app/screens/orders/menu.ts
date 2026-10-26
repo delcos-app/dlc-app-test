@@ -18,7 +18,7 @@ export function addOrderMenuEntries(): void {
   ENTRIES.forEach(([key, label, needsTeam]) => {
     const visible = sees && (!needsTeam || (permissions.seesEverything() && permissions.hasOpportunities()));
     let button = nav.querySelector(`[data-t="${key}"]`);
-    if (!button) { after.insertAdjacentHTML('afterend', `<button data-t="${key}" aria-selected="false">${t(label)}</button>`); button = nav.querySelector(`[data-t="${key}"]`); }
+    if (!button) { after.insertAdjacentHTML('afterend', `<button data-t="${key}">${t(label)}</button>`); button = nav.querySelector(`[data-t="${key}"]`); }
     if (!button) return;
     button.classList.toggle('hide', !visible);
     if (!button.closest('.mlbs')) after = button;

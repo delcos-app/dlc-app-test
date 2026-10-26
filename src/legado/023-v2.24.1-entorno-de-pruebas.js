@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.24.1 · Entorno de pruebas
    v2.424.0: la franja del entorno de pruebas está en src/app/core/legacy-a/test-strip.ts y su ayuda, en legacy-a-help.ts.

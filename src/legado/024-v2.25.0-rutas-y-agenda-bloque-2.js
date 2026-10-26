@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    DLC OS 2.0 · v2.25.0 · Rutas y Agenda, bloque 2:
    horario de atención en la planificación, reprogramación de lo

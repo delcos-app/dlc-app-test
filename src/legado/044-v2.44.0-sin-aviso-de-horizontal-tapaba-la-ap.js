@@ -1,3 +1,4 @@
+// @ts-check
 /* ============================================================
    v2.44.0 · Sin aviso de horizontal (tapaba la app al abrir el
    teclado), idioma que se guarda de verdad, Configuración en el
