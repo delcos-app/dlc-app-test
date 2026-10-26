@@ -124,7 +124,7 @@ main{max-width:1280px;margin:0 auto;padding:20px 18px 60px}
 .filtros label{margin-top:0}
 .chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px}
 .chips:not(:empty){padding:12px 14px 0}
-.chip{background:var(--sky-soft);color:var(--navy);border:0;padding:5px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.chip{background:var(--sky-soft);color:var(--navy);border:0;font-size:12.5px;font-weight:600;cursor:pointer}
 .cuenta{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--muted);font-size:13.5px}
 .cuenta b{color:var(--navy);font-size:17px}
 .fila{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.6fr) auto auto;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left}
@@ -504,7 +504,7 @@ body.conruta{padding-top:46px}
   .fbox{padding:16px 16px 20px}
   .fh{margin-bottom:8px}
   .fh h2{font-size:17px;line-height:1.3}
-  .x{background:var(--bg);}
+  
   dialog .acts{flex-wrap:wrap}
   dialog .acts .btn{flex:1 1 auto}
   .tools{bottom:calc(62px + env(safe-area-inset-bottom,0px));width:100%;border-left:0;border-top:1px solid var(--line)}
@@ -1065,7 +1065,7 @@ body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
 .selw input::selection{background:transparent}
 
 /* v2.43.0 · ayuda «i» renovada y apartados de Configuración alineados */
-.ai{border:0;color:var(--sky);font:700 9.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-style:normal;
+.ai{border:0;color:var(--sky);font:700 9.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   border-radius:50%;margin-left:5px;transition:opacity .15s,background .15s,transform .15s}
 .ai:hover{opacity:1;background:var(--sky);color:#fff;transform:scale(1.08)}
 .kpi .ai{position:absolute;margin:0}
@@ -1089,7 +1089,7 @@ body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
 .cfgcuerpo .usrlista{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
 .cfgcuerpo .kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .cfgcuerpo .dgrid-wrap{max-width:100%;overflow-x:auto}
-.cfgvolver{display:none}
+
 .cfghub.movil{display:block}
 .cfghub.movil .cfgcuerpo{display:none}
 .cfghub.movil.detalle .cfgnav{display:none}
@@ -1195,7 +1195,7 @@ nav.main button[aria-selected=true] .navico{opacity:1}
 .pill.p-plan .ico{width:12px;height:12px}
 .planup{text-align:left}.planupico{width:48px;height:48px;border-radius:14px;background:#F3E8FF;color:#6B21A8;display:grid;place-items:center;margin-bottom:8px}
 .planupico .ico{width:24px;height:24px}
-.cfgvolver.visible{display:inline-flex;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 8px;cursor:pointer}
+.cfgvolver.visible{display:inline-flex;border:0;background:none;color:var(--sky);font:inherit;padding:0 0 8px;cursor:pointer}
 nav.main [data-t="seguimiento"]{display:none}
 
 /* v2.46.1 */
@@ -1844,7 +1844,7 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
    pantallas vacías, esqueletos de carga, casillas, contadores y avatares
    ============================================================ */
 /* Ayuda: icono «info» de trazo en azul (antes una «i» dentro de un círculo) */
-.ai{width:18px;height:18px;border:0;border-radius:50%;background:transparent;color:var(--sky);font-size:0;opacity:1;
+.ai{width:18px;height:18px;border:0;border-radius:50%;background:transparent;color:var(--sky);font-size:0;
   transition:background-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal)}
 .ai svg{width:16px;height:16px}
 .ai:hover{background:var(--sky-soft);color:var(--navy);transform:none}
@@ -2806,7 +2806,7 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 .anarea{margin:0 0 18px}
 .anarea > h3{font-family:Manrope,system-ui,sans-serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .ankgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
-.ankpi{background:var(--panel,#fff);border:1px solid var(--line);padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.ankpi{background:var(--panel,#fff);border:1px solid var(--line);display:flex;flex-direction:column;gap:4px;min-width:0}
 .ankcab{display:flex;align-items:center;gap:6px}
 .anktit{flex:1;min-width:0;font-size:13.5px;color:var(--muted);font-weight:600}
 .ankcfg{border:0;background:none;cursor:pointer;color:var(--muted);display:inline-grid;place-items:center}
@@ -2826,7 +2826,7 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 .anvista > div{min-width:180px}
 .anpers .anpf{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}
 .anpers .anpf .tx{flex:1;display:flex;flex-direction:column;min-width:0}
-@media (max-width:760px){.ankgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.ankpi{padding:10px 12px}.ankval{font-size:20px}.ankdel .sm{display:block}}
+@media (max-width:760px){.ankgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.ankval{font-size:20px}.ankdel .sm{display:block}}
 /* ============================================================
    v2.149.0 · Rutas: propuestas como tarjeta con croquis
    ============================================================ */
@@ -4344,7 +4344,7 @@ body.modo-medico nav.main [data-t=inicio],body.modo-medico [data-u=manual],body.
 #v-informe .pmccab > div{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 #v-informe .pmcnuevo{flex:1}
 #v-informe .pmhzpre{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-#v-informe .pmhzpre .chip{border:1px solid var(--line);background:var(--panel);padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+#v-informe .pmhzpre .chip{border:1px solid var(--line);background:var(--panel);padding:5px 10px;font:inherit;font-size:12.5px;}
 #v-informe .pmhd{display:grid;grid-template-columns:104px minmax(0,1fr);gap:8px;align-items:center;padding:4px 0;border-top:1px solid #EEF3F8}
 #v-informe .pmhdia{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 8px;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted)}
 
@@ -5079,6 +5079,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.432.0"></script>
+<script src="./app.js?v=2.433.0"></script>
 </body>
 </html>
