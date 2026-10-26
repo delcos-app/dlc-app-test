@@ -53,6 +53,7 @@ import * as tenders from './screens/tenders';
 import * as equipment from './screens/equipment';
 import * as surgeries from './screens/surgeries';
 import * as cycle from './screens/cycle';
+import { listenToPolicyViolations } from './core/csp-watch';
 import { listenToSameCentre } from './screens/agenda/same-centre';
 import { listenToYourDay } from './screens/agenda/your-day';
 import { listenToCards } from './screens/agenda/your-day/card-buttons';
@@ -183,6 +184,7 @@ window.delcos = {
   },
 };
 
+listenToPolicyViolations();
 listenToSameCentre();
 listenToDuplicates();
 listenToDayPickers();

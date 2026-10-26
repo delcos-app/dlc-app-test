@@ -21,7 +21,8 @@ for (const f of archivos) {
   for (const m of t.matchAll(URL_RE)) {
     const u = m[0];
     // la huella va en el mismo elemento o en la línea siguiente de código: se busca cerca
-    const cerca = t.slice(m.index, m.index + 400).match(/integrity\s*=\s*['"]?(sha384-[A-Za-z0-9+/=]+)/);
+    // v2.435.0: también en una constante junto a la dirección (XLSX_HASH = 'sha384-…', INTEGRITY = 'sha384-…')
+    const cerca = t.slice(m.index, m.index + 400).match(/(?:integrity\s*=\s*['"]?|_HASH\s*=\s*['"]|INTEGRITY\s*=\s*['"])(sha384-[A-Za-z0-9+/=]+)/i);
     const e = usos.get(u) || { archivos: new Set(), huella: null };
     e.archivos.add(f.replace(/\\/g, '/')); if (cerca) e.huella = cerca[1];
     usos.set(u, e);
@@ -37,7 +38,8 @@ for (const [u, e] of usos) {
   else if (!e.huella) { linea.push('   sin huella de integridad'); mal++; }
   else {
     try {
-      const r = await fetch(u); const b = Buffer.from(await r.arrayBuffer());
+      // Una dirección sin extensión es la base de la librería (MapLibre): el código le añade «.js»
+      const r = await fetch(/\.(js|css)$/.test(u) ? u : u + '.js'); const b = Buffer.from(await r.arrayBuffer());
       const h = 'sha384-' + crypto.createHash('sha384').update(b).digest('base64');
       if (h !== e.huella) { linea.push(`   ✗ la huella no coincide con lo que sirve la CDN (${h})`); mal++; } else linea.push('   huella correcta');
     } catch (err) { linea.push('   no se ha podido descargar: ' + err.message); mal++; }

@@ -58012,6 +58012,19 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     });
   }
 
+  // src/app/core/csp-watch.ts
+  var MAX_SAMPLE = 80;
+  function describe(event) {
+    const blocked = event.blockedURI || "inline";
+    const where = event.sourceFile ? ` (${event.sourceFile}:${event.lineNumber})` : "";
+    return `${event.effectiveDirective} ${blocked}${where}`;
+  }
+  function listenToPolicyViolations() {
+    document.addEventListener("securitypolicyviolation", (event) => {
+      registerError("csp", describe(event), { muestra: event.sample.slice(0, MAX_SAMPLE), politica: event.disposition });
+    });
+  }
+
   // src/app/screens/agenda/your-day/card-buttons.ts
   function swapWithNeighbour(item, action) {
     const all2 = legacyAgenda.dayAppointments(), open2 = all2.filter((entry2) => isOpen(entry2.estado));
@@ -58239,6 +58252,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       cycle: cycle_exports
     }
   };
+  listenToPolicyViolations();
   listenToSameCentre();
   listenToDuplicates();
   listenToDayPickers();

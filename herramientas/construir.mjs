@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -82,6 +83,30 @@ const enOrden = new Set(Object.values(ORDEN.salidas).flat());
 const sueltos = ['src', 'estilos'].flatMap(d => fs.existsSync(path.join(RAIZ, d)) ? fs.readdirSync(path.join(RAIZ, d), { recursive: true }).map(f => `${d}/${f}`.replace(/\\/g, '/')) : [])
   .filter(f => /\.(js|css|html)$/.test(f) && !enOrden.has(f));
 if (sueltos.length) { console.error('✗ No están en src/orden.json: ' + sueltos.join(', ')); mal++; }
+
+// v2.435.0 (plan 9.1): la política de seguridad (CSP) de index.html. Cada <script> en línea lleva su huella en script-src (si se
+// cambia su texto sin cambiar la huella, el navegador no lo ejecuta) y cada base de config.js está en connect-src.
+function comprobarPolitica() {
+  if (!fs.existsSync(path.join(RAIZ, 'index.html'))) return 0;
+  const html = leer('index.html'), meta = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/);
+  if (!meta) { console.error('✗ index.html no tiene la política de seguridad (Content-Security-Policy)'); return 1; }
+  const directiva = nombre => (meta[1].split(';').map(d => d.trim()).find(d => d.startsWith(nombre + ' ')) || '').split(/\s+/).slice(1);
+  const scripts = directiva('script-src'), conexiones = directiva('connect-src');
+  let fallos = 0;
+  for (const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
+    const huella = `'sha256-${crypto.createHash('sha256').update(m[1], 'utf8').digest('base64')}'`;
+    if (!scripts.includes(huella)) { console.error(`✗ Un <script> en línea de index.html no tiene su huella en script-src: añade ${huella}`); fallos++; }
+  }
+  const config = fs.existsSync(path.join(RAIZ, 'config.js')) ? leer('config.js') : '';
+  for (const [, base] of config.matchAll(/url:\s*'(https:\/\/[^'/]+)'/g)) {
+    for (const origen of [base, base.replace('https://', 'wss://')]) {
+      if (!conexiones.includes(origen)) { console.error(`✗ connect-src no permite ${origen} (está en config.js)`); fallos++; }
+    }
+  }
+  if (!fallos) console.log('✓ política de seguridad (huellas en línea y bases de config.js)');
+  return fallos;
+}
+mal += comprobarPolitica();
 
 // Lo que se publica: min/app.js y su mapa, desde app.js
 const MIN = 'min/app.js', MAPA = 'min/app.js.map';
