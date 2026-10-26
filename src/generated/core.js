@@ -30864,8 +30864,8 @@
   var NOTICE_DELAY_MS = 2600;
   var THUMB_MAX = 120;
   var KB = 1024;
-  var XLSX_URL = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
-  var XLSX_HASH = "sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw";
+  var XLSX_URL = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+  var XLSX_HASH = "sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT";
   function download2() {
     coreLegacy.toast(t("core.files.downloadOff"), true);
   }

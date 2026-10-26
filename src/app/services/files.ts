@@ -10,8 +10,9 @@ import { wordFor } from '../core/vocabulary';
 export const RECEIPT_MAX = 3000000;
 export const VISIT_PHOTOS_MAX = 6;
 const PHOTOS_DB = 'delcos-fotos', STORE = 'pend', RECEIPT_SIDE = 1600, RECEIPT_QUALITY = 0.82, NOTICE_DELAY_MS = 2600, THUMB_MAX = 120, KB = 1024;
-const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-const XLSX_HASH = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';
+// v2.437.0: 0.20.3 from SheetJS's own CDN (npm and cdnjs stopped at 0.18.5, which has CVE-2023-30533 and CVE-2024-22363)
+const XLSX_URL = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+const XLSX_HASH = 'sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT';
 
 /** Downloads are off to protect the data. */
 export function download(): void { coreLegacy.toast(t('core.files.downloadOff'), true); }
