@@ -6,7 +6,6 @@ function rangoPeriodo(k) { return window.delcos.core.calendar.periodRange(k); }
 // Avisos de Pedidos (v2.330.0): festivos nacionales, con el Viernes Santo
 function mesesEntre(d, h) { return window.delcos.core.calendar.monthsBetween(d, h); }
 // Fechas SIEMPRE en hora local (España): convertir a hora universal restaba un día de 00:00 a 02:00
-function isoLocal(d) { return window.delcos.core.calendar.localIso(d); }
 function hoyISO() { return window.delcos.core.calendar.today(); }
 function isoMas(iso, n) { return window.delcos.core.calendar.plusDays(iso, n); }
 function lunesDe(iso) { return window.delcos.core.calendar.mondayOfWeek(iso); }
@@ -15,8 +14,6 @@ function pedirFecha(msg, valor, o) { return window.delcos.core.calendar.askDate(
 function periodoActual() { return window.delcos.core.calendar.currentPeriod(); }
 function periodoTxt(p) { return window.delcos.core.calendar.periodText(p); }
 function siguienteLaborable() { return window.delcos.core.calendar.nextWorkingDay(); }
-function fechaLocal(d) { return window.delcos.core.calendar.localIso(d); }
-function minHora(h) { return window.delcos.core.calendar.timeToMinutes(h); }
 function LETRA_DIA(f) { return window.delcos.core.calendar.dayLetter(f); }
 function txtReciente(l) { return window.delcos.core.calendar.recentText(l); }
 function hoyLetra() { return window.delcos.core.calendar.todayLetter(); }

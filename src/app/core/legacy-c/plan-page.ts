@@ -6,6 +6,7 @@
 import { t } from '../../i18n';
 import { byId, signedIn, whenSignedIn } from './dom';
 import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeCoreLegacyC from './';
 
 const CHECK_EVERY_MS = 1500, CHECKS = 90, VERSION_EVERY_MS = 2000, WELCOME_EVERY_MS = 1000, WELCOME_CHECKS = 60, WELCOME_DELAY_MS = 900;
 const SIGNUP_NOTICE_DELAY_MS = 400, BACK_TO_PLAN_FOR_MS = 30000, ANNUAL_MONTHS = 10, MIN_USERS = 3;
@@ -77,7 +78,7 @@ export function paintNextReceipt(): void {
 /** The plan page, then the next receipt (the legacy pintarPaginaPlan). */
 export async function paintPlanPage(args: readonly unknown[]): Promise<unknown> {
   const result = await pintarPaginaPlanBase10(...args);
-  try { pintarProximoRecibo(); } catch { /* the receipt is optional */ }
+  try { legacyFreeCoreLegacyC.paintNextReceipt(); } catch { /* the receipt is optional */ }
   return result;
 }
 

@@ -3,7 +3,6 @@
 
 // El PDF de la factura está en src/app/services/pdf (v2.427.0). Estos nombres se quedan: Pedidos, el portal, Facturación,
 // Configuración, Organización, legado 156 y las pruebas los usan.
-function cargarJsPDF() { return window.delcos.core.pdf.loadJsPdf(); }
 const nombrePDF = f => window.delcos.core.pdf.pdfFileName(f);
 const PDF_DEF = window.delcos.core.pdf.DEFAULT_DESIGN;
 function listaPDF() { return window.delcos.core.pdf.templateList(); }

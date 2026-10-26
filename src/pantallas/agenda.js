@@ -3,7 +3,6 @@
 
 function citasDelDia(fecha) { return window.delcos.leftovers.appointmentsOfDay(fecha); }
 
-function agUid() { return window.delcos.leftovers.agendaOwnerId(); }
 
 
 

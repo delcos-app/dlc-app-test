@@ -12,7 +12,6 @@ declare let ACCION_PAG_PEND: boolean;
 declare function teclaLista(target: EventTarget | null): Element | null;
 declare function teclaItems(list: Element): HTMLElement[];
 declare function pkMarcar(): void;
-declare function pintarProximoRecibo(): void;
 declare function pintarOrganizaciones(): unknown;
 declare function menuTip(button: HTMLElement | null): void;
 declare function menuPrefs(): unknown;

@@ -28,7 +28,6 @@ declare let RN_MAPA_P: PendingMap | null;
 declare let RM_MAPA: RouteMap | null;
 declare let RUTAS: SavedRoute[];
 declare function salidaUsuario(): PlanStart;
-declare function minHora(time: string | null | undefined): number | null;
 declare function minutosEntre(from: [number, number], to: [number, number]): number;
 declare function siguienteLaborable(): string;
 declare function mejorarCampos(root: Element): void;

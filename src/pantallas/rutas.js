@@ -19,7 +19,6 @@ let RN = null;          // la ruta que se está creando o editando
 
 function rnAbrir(item, paso) { return window.delcos.screens.routes.openRoute(item || null, paso || 1); }
 function pintarRutaEnCurso() { return window.delcos.screens.routes.paintDayInProgress(); }
-function pintarRutaBarra() { return window.delcos.screens.routes.paintRouteBar(); }
 function rutasMapaBase() { return window.delcos.screens.routes.loadDayMap(); }
 function planificar(rutaId, btn) { return window.delcos.screens.routes.planRoute(rutaId, btn); }
 function planDesdeLista(lista, nombre, btn) { return window.delcos.screens.routes.planFromList(lista, nombre, btn || null); }

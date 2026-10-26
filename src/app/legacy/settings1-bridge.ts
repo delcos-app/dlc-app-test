@@ -2,6 +2,7 @@ import * as components from '../components';
 import * as legacyFreeCoreSettings from '../core/settings';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
 import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
+import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
 /**
  * Bridge of Configuración part 1 to the legacy code (kept apart from bridge.ts, which is at its size limit): the user profile and
  * its preferences, the classifier catalog, the undo helpers of the audit, the custom field definitions and the test environment.
@@ -22,7 +23,7 @@ export const settingsLegacy = {
   moduleIcon: (module: string): string | undefined => ICO_MOD[module],
   classifiers: (): Classifier[] => CATS,
   setClassifiers: (list: Classifier[]): void => { CATS = list; },
-  openClassifier: (id: string): void => { abrirClasificador(id); },
+  openClassifier: (id: string): void => { legacyFreeScreensSettingsMore.openClassifier(id); },
   reloadCatalogs: (): void => { void legacyFreeCoreSettings.loadCatalogs(); },
   undoable: (entry: object): boolean => deshacible(entry),
   undoPersonBox: (box: HTMLElement | null, options: { userId: string; from: string | null; name: string; then: () => void }): void => {

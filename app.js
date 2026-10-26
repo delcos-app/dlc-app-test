@@ -8949,14 +8949,14 @@
       if (own) own.preferencias = preferences;
     },
     viewedPreferences: () => AG_VISTA?.preferencias ?? null,
-    agendaOwner: () => agUid(),
+    agendaOwner: () => agendaOwnerId(),
     selectedDate: () => AG_FECHA,
     // Places, hours and times
     start: () => salidaUsuario(),
     pointOf: (item) => xyCita(item),
     travelMinutes: (from2, to) => minutosEntre(from2, to),
     km: (from2, to) => km(from2, to),
-    minutesOf: (time) => minHora(time),
+    minutesOf: (time) => calendar_exports.timeToMinutes(time),
     possibleStart: (item, arrival, length) => inicioPosible(item, arrival, length),
     windowsOf: (days, isoDate) => ventanasDe(days, isoDate),
     windowsText: (windows) => txtVentanas(windows),
@@ -9250,7 +9250,7 @@
     schedule: (items, start4) => scheduleVisits(items, start4),
     settings: () => planSettings(),
     start: () => salidaUsuario(),
-    minutesOf: (time) => minHora(time),
+    minutesOf: (time) => calendar_exports.timeToMinutes(time),
     travelMinutes: (from2, to) => minutosEntre(from2, to),
     nextWorkingDay: () => siguienteLaborable(),
     mapLibrary: () => mapLibrary(),
@@ -14387,7 +14387,7 @@
   var profile3 = () => PERFIL;
   var settingsExtraLegacy = {
     // Settings and profile
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     setting: (key) => AJUSTES[key],
     setSetting: (key, value27) => {
       AJUSTES[key] = value27;
@@ -16466,7 +16466,7 @@
       try {
         if (name === "pagos" && options5?.body?.accion === "datos" && result.data?.ok) {
           PAGO_PROXIMO = result.data.proximo ?? null;
-          pintarProximoRecibo();
+          paintNextReceipt();
         }
       } catch {
       }
@@ -18421,7 +18421,7 @@
   async function paintPlanPage(args) {
     const result = await pintarPaginaPlanBase10(...args);
     try {
-      pintarProximoRecibo();
+      paintNextReceipt();
     } catch {
     }
     return result;
@@ -28993,7 +28993,7 @@
       CATS = list;
     },
     openClassifier: (id) => {
-      abrirClasificador(id);
+      openClassifier(id);
     },
     reloadCatalogs: () => {
       void loadCatalogs();
@@ -31039,7 +31039,7 @@
   // src/app/legacy/billing2-bridge.ts
   var billing2Legacy = {
     settings: () => AJUSTES,
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     products: () => PRODUCTOS,
     services: () => SERVICIOS,
     loadProducts: () => cargarProductos(),
@@ -32528,7 +32528,7 @@
   var indicatorCatalog = {
     definitions: () => KPI_CAT,
     settings: () => kpiConfig(),
-    allowed: (definition) => kpiPermitido(definition),
+    allowed: (definition) => indicatorAllowed(definition),
     help: (id) => AYUDA_KPI[id],
     icon: (id) => KPI_ICO[id],
     description: (id) => KPI_TXT[id]
@@ -32589,8 +32589,8 @@
   };
   var agendaSources = {
     /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
-    ownerId: () => agUid(),
-    isOwnAgenda: () => agUid() === PERFIL.id,
+    ownerId: () => agendaOwnerId(),
+    isOwnAgenda: () => agendaOwnerId() === PERFIL.id,
     stripStart: () => CINTA_INI,
     /** «Tu día» of this date arrives already loaded (from Inicio). */
     hasPresetDay: (isoDate) => TD_PRESET?.fecha === isoDate,
@@ -32900,7 +32900,7 @@
     currentUserName: () => PERFIL.nombre ?? ""
   };
   var cycleLegacy = {
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     setting: (key) => AJUSTES[key],
     setSetting: (key, value27) => {
       AJUSTES[key] = value27;
@@ -37750,7 +37750,7 @@
     withCatch: (promise) => conCatch(promise),
     rpcOriginal: (name, params2) => RPC_ORIG(name, params2),
     canInvoice: () => Boolean(permissions_exports.canInvoice()),
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     clearLocalData: () => {
       limpiarDatosLocales();
     },
@@ -39521,7 +39521,7 @@
     },
     routeInProgress: () => Boolean(rutaActiva()),
     paintBar: () => {
-      void pintarRutaBarra();
+      void paintRouteBar();
     },
     paintInProgress: () => {
       void pintarRutaEnCurso();
@@ -39721,7 +39721,7 @@
       void loadCatalogs();
     },
     paintRouteBar: () => {
-      void pintarRutaBarra();
+      void paintRouteBar();
     },
     loadHome: () => {
       void cargarInicio();
@@ -39733,7 +39733,7 @@
       void cargarComerciales();
     },
     loadSettings: () => {
-      void cargarAjustes();
+      void loadSettings();
     },
     inTestEnvironment: () => EN_PRUEBAS,
     paintTestStrip: () => {
@@ -39809,9 +39809,9 @@
     planSettings: () => PLANCFG(),
     // The legacy arithmetic takes the stored values as they are
     startPoint: () => salidaUsuario(),
-    minutesOf: (time) => minHora(time) ?? 0,
+    minutesOf: (time) => calendar_exports.timeToMinutes(time) ?? 0,
     // the settings always have their hours
-    minutesOrNull: (time) => minHora(time),
+    minutesOrNull: (time) => calendar_exports.timeToMinutes(time),
     pointOf: (appointment) => xyCita(appointment) ?? null,
     isOpen: (state2) => CITA_ABIERTA.includes(state2),
     windowsOf: (days, isoDate) => ventanasDe(days, isoDate),
@@ -42292,7 +42292,7 @@
     fieldsForm: (values2) => customFieldsHtml("pedido", values2),
     readFields: (root) => camposLeer(root),
     saveFields: (read6, id) => camposGuardar(read6, id),
-    loadPdf: () => cargarJsPDF(),
+    loadPdf: () => pdf_exports.loadJsPdf(),
     appName: () => nombreApp(),
     askText: (message4, value27, options5) => askText(message4, value27, options5)
   };
@@ -50908,7 +50908,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     sendByEmail: (invoice2, rectifies) => {
       void enviarFacturaEmail(invoice2, rectifies);
     },
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     setting: (key) => AJUSTES[key],
     setSetting: (key, value27) => {
       AJUSTES[key] = value27;
@@ -58555,7 +58555,6 @@ function rangoPeriodo(k) { return window.delcos.core.calendar.periodRange(k); }
 // Avisos de Pedidos (v2.330.0): festivos nacionales, con el Viernes Santo
 function mesesEntre(d, h) { return window.delcos.core.calendar.monthsBetween(d, h); }
 // Fechas SIEMPRE en hora local (España): convertir a hora universal restaba un día de 00:00 a 02:00
-function isoLocal(d) { return window.delcos.core.calendar.localIso(d); }
 function hoyISO() { return window.delcos.core.calendar.today(); }
 function isoMas(iso, n) { return window.delcos.core.calendar.plusDays(iso, n); }
 function lunesDe(iso) { return window.delcos.core.calendar.mondayOfWeek(iso); }
@@ -58564,8 +58563,6 @@ function pedirFecha(msg, valor, o) { return window.delcos.core.calendar.askDate(
 function periodoActual() { return window.delcos.core.calendar.currentPeriod(); }
 function periodoTxt(p) { return window.delcos.core.calendar.periodText(p); }
 function siguienteLaborable() { return window.delcos.core.calendar.nextWorkingDay(); }
-function fechaLocal(d) { return window.delcos.core.calendar.localIso(d); }
-function minHora(h) { return window.delcos.core.calendar.timeToMinutes(h); }
 function LETRA_DIA(f) { return window.delcos.core.calendar.dayLetter(f); }
 function txtReciente(l) { return window.delcos.core.calendar.recentText(l); }
 function hoyLetra() { return window.delcos.core.calendar.todayLetter(); }
@@ -58613,7 +58610,6 @@ const ES_IMPORTE = window.delcos.core.money.AMOUNT_FIELD;
 function enlaceNav(destino, paradas, n) { return window.delcos.core.maps.webLink(destino, paradas, n); }
 function navegarA(destino, paradas) { return window.delcos.core.maps.navigateTo(destino, paradas); }
 function geoInversa(lat, lon) { return window.delcos.core.maps.reverseGeocode(lat, lon); }
-function enlaceNavApp(destino, paradas, n) { return window.delcos.core.maps.appLink(destino, paradas, n); }
 function cambiarNavegador(n) { return window.delcos.core.maps.changeNavigator(n); }
 function rellenarDireccion(box, i, a) { return window.delcos.core.maps.fillAddress(box, i, a); }
 // «Estoy aquí»: primero los centros que ya tenemos a menos de 250 m; si no, centro nuevo con los datos del mapa
@@ -58631,7 +58627,6 @@ async function rutasMapa(...a) { if (RN) return; const r = await rutasMapaBase.a
 
 // El PDF de la factura está en src/app/services/pdf (v2.427.0). Estos nombres se quedan: Pedidos, el portal, Facturación,
 // Configuración, Organización, legado 156 y las pruebas los usan.
-function cargarJsPDF() { return window.delcos.core.pdf.loadJsPdf(); }
 const nombrePDF = f => window.delcos.core.pdf.pdfFileName(f);
 const PDF_DEF = window.delcos.core.pdf.DEFAULT_DESIGN;
 function listaPDF() { return window.delcos.core.pdf.templateList(); }
@@ -58922,7 +58917,6 @@ const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visita
   sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
   importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
 
-function kpiPermitido(c) { return window.delcos.leftovers.indicatorAllowed(c); }
 // componentes/guardar_pagina.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -59159,7 +59153,6 @@ function mostrarLogin(msg) { window.delcos.screens.access.showLogin(msg); }
 
 function citasDelDia(fecha) { return window.delcos.leftovers.appointmentsOfDay(fecha); }
 
-function agUid() { return window.delcos.leftovers.agendaOwnerId(); }
 
 
 
@@ -59536,7 +59529,6 @@ const CFG_CLAVES = window.delcos.settingsCore.SEARCH_WORDS;
 const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
 
 // ---------- Adaptadores: src/app/core/settings (v2.428.0). Los usan otras pantallas, los puentes, legado y las pruebas ----------
-function cargarAjustes() { return window.delcos.settingsCore.loadSettings(); }
 function cargarRoles() { return window.delcos.settingsCore.loadRoles(); }
 function logoData() { return window.delcos.settingsCore.invoiceLogo(); }
 function rolesNombres() { return window.delcos.settingsCore.roleNames(); }
@@ -59577,7 +59569,6 @@ function pintarAccesos() { return window.delcos.screens.settingsMore.paintAccess
 function facccon(uid) { return window.delcos.screens.settingsMore.fillConnection(uid); }
 function textoValor(v) { return window.delcos.screens.settingsMore.valueText(v); }
 function resumenDetalle(d) { return window.delcos.screens.settingsMore.detailSummary(d); }
-function abrirClasificador(id) { return window.delcos.screens.settingsMore.openClassifier(id); }
 function decorarResultados() { return window.delcos.screens.settingsMore.decorateResults(); }
 
 // Correo y firma, notificaciones y textos personalizados están en src/app/screens/settings (v2.417.0). Estos nombres se quedan:
@@ -59588,7 +59579,6 @@ function elegirPlantillaCorreo(uso) { return window.delcos.screens.settingsExtra
 function idPlant() { return window.delcos.screens.settingsExtra.newTemplateId(); }
 function panelNotificaciones(l) { return window.delcos.screens.settingsExtra.showNotifications(l); }
 function pintarNotif() { return window.delcos.screens.settingsExtra.paintNotificationSettings(); }
-function notifModo(k) { return window.delcos.screens.settingsExtra.notificationMode(k); }
 function guardarPrefsAvisos(avisos) { return window.delcos.screens.settingsExtra.saveOrderAlerts(avisos); }
 
 // Usuarios, Mi perfil y «Plan y suscripción» están en src/app/screens/settings (v2.420.0). Estos nombres se quedan: el árbol de
@@ -59596,7 +59586,6 @@ function guardarPrefsAvisos(avisos) { return window.delcos.screens.settingsExtra
 function editarUsuario(id) { return window.delcos.screens.settingsRest.editUser(id); }
 function nuevoUsuario(pre) { return window.delcos.screens.settingsRest.newUser(pre && pre.medico ? pre : null); }
 function pintarUsuarios2() { return window.delcos.screens.settingsRest.paintUsers(); }
-function detalleUsuario(u) { return window.delcos.screens.settingsRest.showUser(u); }
 function asegurarUsuario(id) { return window.delcos.screens.settingsRest.ensureUser(id); }
 function guardarKpis(lista) { return window.delcos.screens.settingsRest.saveIndicators(lista); }
 function pintarPrefsParte(parte) { return window.delcos.screens.settingsRest.paintPreferencesPart(parte); }
@@ -60155,7 +60144,6 @@ let RN = null;          // la ruta que se está creando o editando
 
 function rnAbrir(item, paso) { return window.delcos.screens.routes.openRoute(item || null, paso || 1); }
 function pintarRutaEnCurso() { return window.delcos.screens.routes.paintDayInProgress(); }
-function pintarRutaBarra() { return window.delcos.screens.routes.paintRouteBar(); }
 function rutasMapaBase() { return window.delcos.screens.routes.loadDayMap(); }
 function planificar(rutaId, btn) { return window.delcos.screens.routes.planRoute(rutaId, btn); }
 function planDesdeLista(lista, nombre, btn) { return window.delcos.screens.routes.planFromList(lista, nombre, btn || null); }
@@ -61114,7 +61102,6 @@ async function pintarPaginaPlan(...a) { return window.delcos.legacyC.paintPlanPa
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start077();
 function explicarAviso(inf) { return window.delcos.legacyC.explainNotice(inf); }
-function pintarProximoRecibo() { return window.delcos.legacyC.paintNextReceipt(); }
 // legado 078 · v2.184.0 la app se pone al día sola y Agenda sin recargas: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 const PANTALLA_TACTIL = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);

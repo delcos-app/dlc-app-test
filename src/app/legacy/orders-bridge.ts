@@ -52,7 +52,7 @@ export const orderSheetLegacy = {
   fieldsForm: (values: Record<string, unknown>): string => legacyFreeScreensSettings.customFieldsHtml(('pedido'), values),
   readFields: (root: Element | null): OrderFieldsRead | null => camposLeer(root),
   saveFields: (read: OrderFieldsRead | null, id: string): Promise<boolean> => camposGuardar(read, id),
-  loadPdf: (): Promise<unknown> => cargarJsPDF(),
+  loadPdf: (): Promise<unknown> => legacyFreeCoreServices.pdf.loadJsPdf(),
   appName: (): string => nombreApp(),
   askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => components.askText(message, value, options),
 };

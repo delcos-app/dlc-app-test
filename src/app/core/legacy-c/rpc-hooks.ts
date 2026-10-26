@@ -4,6 +4,7 @@
  * network counters of the atomic reveal (v2.60.0), and the next receipt read with the payment data (v2.166.0). Folded from legado 051,
  * 053, 057, 059 and 076 (v2.425.0).
  */
+import * as legacyFreeCoreLegacyC from './';
 interface RpcAnswer { data?: unknown; error?: { message?: string; code?: string } | null }
 type Rpc = (name: string, params?: unknown, options?: unknown) => unknown;
 type Invoke = (name: string, options?: { body?: { accion?: string } }, ...rest: unknown[]) => Promise<{ data?: { ok?: boolean; proximo?: unknown } | null }>;
@@ -107,7 +108,7 @@ export function readNextReceipt(): void {
   functions.invoke = async (name, options, ...rest) => {
     const result = await original(name, options, ...rest);
     try {
-      if (name === 'pagos' && options?.body?.accion === 'datos' && result.data?.ok) { PAGO_PROXIMO = result.data.proximo ?? null; pintarProximoRecibo(); }
+      if (name === 'pagos' && options?.body?.accion === 'datos' && result.data?.ok) { PAGO_PROXIMO = result.data.proximo ?? null; legacyFreeCoreLegacyC.paintNextReceipt(); }
     } catch { /* the receipt is optional */ }
     return result;
   };

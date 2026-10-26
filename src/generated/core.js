@@ -8949,14 +8949,14 @@
       if (own) own.preferencias = preferences;
     },
     viewedPreferences: () => AG_VISTA?.preferencias ?? null,
-    agendaOwner: () => agUid(),
+    agendaOwner: () => agendaOwnerId(),
     selectedDate: () => AG_FECHA,
     // Places, hours and times
     start: () => salidaUsuario(),
     pointOf: (item) => xyCita(item),
     travelMinutes: (from2, to) => minutosEntre(from2, to),
     km: (from2, to) => km(from2, to),
-    minutesOf: (time) => minHora(time),
+    minutesOf: (time) => calendar_exports.timeToMinutes(time),
     possibleStart: (item, arrival, length) => inicioPosible(item, arrival, length),
     windowsOf: (days, isoDate) => ventanasDe(days, isoDate),
     windowsText: (windows) => txtVentanas(windows),
@@ -9250,7 +9250,7 @@
     schedule: (items, start4) => scheduleVisits(items, start4),
     settings: () => planSettings(),
     start: () => salidaUsuario(),
-    minutesOf: (time) => minHora(time),
+    minutesOf: (time) => calendar_exports.timeToMinutes(time),
     travelMinutes: (from2, to) => minutosEntre(from2, to),
     nextWorkingDay: () => siguienteLaborable(),
     mapLibrary: () => mapLibrary(),
@@ -14387,7 +14387,7 @@
   var profile3 = () => PERFIL;
   var settingsExtraLegacy = {
     // Settings and profile
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     setting: (key) => AJUSTES[key],
     setSetting: (key, value27) => {
       AJUSTES[key] = value27;
@@ -16466,7 +16466,7 @@
       try {
         if (name === "pagos" && options5?.body?.accion === "datos" && result.data?.ok) {
           PAGO_PROXIMO = result.data.proximo ?? null;
-          pintarProximoRecibo();
+          paintNextReceipt();
         }
       } catch {
       }
@@ -18421,7 +18421,7 @@
   async function paintPlanPage(args) {
     const result = await pintarPaginaPlanBase10(...args);
     try {
-      pintarProximoRecibo();
+      paintNextReceipt();
     } catch {
     }
     return result;
@@ -28993,7 +28993,7 @@
       CATS = list;
     },
     openClassifier: (id) => {
-      abrirClasificador(id);
+      openClassifier(id);
     },
     reloadCatalogs: () => {
       void loadCatalogs();
@@ -31039,7 +31039,7 @@
   // src/app/legacy/billing2-bridge.ts
   var billing2Legacy = {
     settings: () => AJUSTES,
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     products: () => PRODUCTOS,
     services: () => SERVICIOS,
     loadProducts: () => cargarProductos(),
@@ -32528,7 +32528,7 @@
   var indicatorCatalog = {
     definitions: () => KPI_CAT,
     settings: () => kpiConfig(),
-    allowed: (definition) => kpiPermitido(definition),
+    allowed: (definition) => indicatorAllowed(definition),
     help: (id) => AYUDA_KPI[id],
     icon: (id) => KPI_ICO[id],
     description: (id) => KPI_TXT[id]
@@ -32589,8 +32589,8 @@
   };
   var agendaSources = {
     /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
-    ownerId: () => agUid(),
-    isOwnAgenda: () => agUid() === PERFIL.id,
+    ownerId: () => agendaOwnerId(),
+    isOwnAgenda: () => agendaOwnerId() === PERFIL.id,
     stripStart: () => CINTA_INI,
     /** «Tu día» of this date arrives already loaded (from Inicio). */
     hasPresetDay: (isoDate) => TD_PRESET?.fecha === isoDate,
@@ -32900,7 +32900,7 @@
     currentUserName: () => PERFIL.nombre ?? ""
   };
   var cycleLegacy = {
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     setting: (key) => AJUSTES[key],
     setSetting: (key, value27) => {
       AJUSTES[key] = value27;
@@ -37750,7 +37750,7 @@
     withCatch: (promise) => conCatch(promise),
     rpcOriginal: (name, params2) => RPC_ORIG(name, params2),
     canInvoice: () => Boolean(permissions_exports.canInvoice()),
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     clearLocalData: () => {
       limpiarDatosLocales();
     },
@@ -39521,7 +39521,7 @@
     },
     routeInProgress: () => Boolean(rutaActiva()),
     paintBar: () => {
-      void pintarRutaBarra();
+      void paintRouteBar();
     },
     paintInProgress: () => {
       void pintarRutaEnCurso();
@@ -39721,7 +39721,7 @@
       void loadCatalogs();
     },
     paintRouteBar: () => {
-      void pintarRutaBarra();
+      void paintRouteBar();
     },
     loadHome: () => {
       void cargarInicio();
@@ -39733,7 +39733,7 @@
       void cargarComerciales();
     },
     loadSettings: () => {
-      void cargarAjustes();
+      void loadSettings();
     },
     inTestEnvironment: () => EN_PRUEBAS,
     paintTestStrip: () => {
@@ -39809,9 +39809,9 @@
     planSettings: () => PLANCFG(),
     // The legacy arithmetic takes the stored values as they are
     startPoint: () => salidaUsuario(),
-    minutesOf: (time) => minHora(time) ?? 0,
+    minutesOf: (time) => calendar_exports.timeToMinutes(time) ?? 0,
     // the settings always have their hours
-    minutesOrNull: (time) => minHora(time),
+    minutesOrNull: (time) => calendar_exports.timeToMinutes(time),
     pointOf: (appointment) => xyCita(appointment) ?? null,
     isOpen: (state2) => CITA_ABIERTA.includes(state2),
     windowsOf: (days, isoDate) => ventanasDe(days, isoDate),
@@ -42292,7 +42292,7 @@
     fieldsForm: (values2) => customFieldsHtml("pedido", values2),
     readFields: (root) => camposLeer(root),
     saveFields: (read6, id) => camposGuardar(read6, id),
-    loadPdf: () => cargarJsPDF(),
+    loadPdf: () => pdf_exports.loadJsPdf(),
     appName: () => nombreApp(),
     askText: (message4, value27, options5) => askText(message4, value27, options5)
   };
@@ -50908,7 +50908,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     sendByEmail: (invoice2, rectifies) => {
       void enviarFacturaEmail(invoice2, rectifies);
     },
-    loadSettings: () => cargarAjustes(),
+    loadSettings: () => loadSettings(),
     setting: (key) => AJUSTES[key],
     setSetting: (key, value27) => {
       AJUSTES[key] = value27;

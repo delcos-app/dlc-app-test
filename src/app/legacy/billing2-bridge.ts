@@ -11,7 +11,7 @@ export interface MailTemplate { id: string; nombre: string; defecto?: boolean }
 
 export const billing2Legacy = {
   settings: (): Record<string, unknown> => AJUSTES,
-  loadSettings: (): Promise<void> => cargarAjustes(),
+  loadSettings: (): Promise<void> => legacyFreeCoreSettings.loadSettings(),
   products: (): CatalogItem[] => PRODUCTOS as CatalogItem[],
   services: (): readonly CatalogItem[] => SERVICIOS as CatalogItem[],
   loadProducts: (): Promise<void> => cargarProductos(),

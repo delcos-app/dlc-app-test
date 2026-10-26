@@ -2,4 +2,3 @@
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start077();
 function explicarAviso(inf) { return window.delcos.legacyC.explainNotice(inf); }
-function pintarProximoRecibo() { return window.delcos.legacyC.paintNextReceipt(); }

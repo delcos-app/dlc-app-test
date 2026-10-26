@@ -18,4 +18,3 @@ declare function guardarPrefsAvisos(alerts: Record<string, boolean>): Promise<bo
 declare function rolesNombres(): string[];
 declare function camposLeer(root: Element | null): { falta: string[] } | null;
 declare function camposGuardar(read: { falta: string[] } | null, id: string): Promise<boolean>;
-declare function cargarJsPDF(): Promise<unknown>;

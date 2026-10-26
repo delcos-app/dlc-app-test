@@ -5,8 +5,16 @@
 //
 // app.js e index.html son GENERADOS: no se editan a mano (docs/normas_codigo.md). La construcción solo encadena los archivos tal cual,
 // así que el resultado se puede comparar byte a byte. Los saltos de línea se normalizan a LF.
+//
+// v2.433.0 (plan 7.3 y 10.3): lo que carga index.html es min/app.js, el mismo app.js minimizado con esbuild, con su mapa
+// min/app.js.map (los errores se leen sobre app.js con «node herramientas/pila.mjs»). app.js sigue siendo el legible: lo leen las
+// pruebas y las herramientas de análisis. La ruta conserva «app.js?v=» (la comprobación de versión, VERSION_APP y el cambio de
+// versión con sed lo buscan así). Presupuesto de peso: si min/app.js pasa de PESO, --comprobar falla.
+// Sin esbuild (WSL con node_modules de Windows, o los flujos de publicación sin npm ci) no se minimiza: se deja el min/app.js que
+// hay y --comprobar solo mira su peso.
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -74,4 +82,48 @@ const enOrden = new Set(Object.values(ORDEN.salidas).flat());
 const sueltos = ['src', 'estilos'].flatMap(d => fs.existsSync(path.join(RAIZ, d)) ? fs.readdirSync(path.join(RAIZ, d), { recursive: true }).map(f => `${d}/${f}`.replace(/\\/g, '/')) : [])
   .filter(f => /\.(js|css|html)$/.test(f) && !enOrden.has(f));
 if (sueltos.length) { console.error('✗ No están en src/orden.json: ' + sueltos.join(', ')); mal++; }
+
+// Lo que se publica: min/app.js y su mapa, desde app.js
+const MIN = 'min/app.js', MAPA = 'min/app.js.map';
+// Presupuesto de la primera carga (v2.433.0: 2,02 MB y 620 KB comprimido; un 10 % de margen)
+const PESO = { bruto: 2_230_000, gzip: 690_000 };
+const kb = n => `${Math.round(n / 1024)} KB`;
+
+async function minimizar(texto) {
+  let esbuild;
+  try { esbuild = await import('esbuild'); } catch { return null; }
+  try {
+    const r = await esbuild.transform(texto, { minify: true, sourcemap: 'external', sourcefile: '../app.js', target: 'es2020', charset: 'utf8', legalComments: 'none' });
+    return { codigo: r.code + '//# sourceMappingURL=app.js.map\n', mapa: r.map };
+  } catch (e) {
+    // esbuild instalado para otro sistema (node_modules de Windows usado desde WSL): no se puede minimizar aquí
+    if (/platform/i.test(String(e && e.message))) return null;
+    throw e;
+  }
+}
+
+function pesar(codigo) {
+  const bruto = Buffer.byteLength(codigo), gzip = zlib.gzipSync(codigo).length;
+  const sobra = bruto > PESO.bruto || gzip > PESO.gzip;
+  (sobra ? console.error : console.log)(`${sobra ? '✗' : '✓'} ${MIN}: ${kb(bruto)} (${kb(gzip)} comprimido; presupuesto ${kb(PESO.bruto)} y ${kb(PESO.gzip)})`);
+  return sobra ? 1 : 0;
+}
+
+const appJs = fs.existsSync(path.join(RAIZ, 'app.js')) ? leer('app.js') : '';
+const min = appJs ? await minimizar(appJs) : null;
+const hay = fs.existsSync(path.join(RAIZ, MIN));
+if (min) {
+  if (comprobar) {
+    const igual = hay && leer(MIN) === min.codigo && fs.existsSync(path.join(RAIZ, MAPA)) && leer(MAPA) === min.mapa;
+    if (!igual) { console.error(`✗ ${MIN} no es app.js minimizado: ejecuta «node herramientas/construir.mjs»`); mal++; }
+  } else {
+    fs.mkdirSync(path.join(RAIZ, 'min'), { recursive: true });
+    fs.writeFileSync(path.join(RAIZ, MIN), min.codigo);
+    fs.writeFileSync(path.join(RAIZ, MAPA), min.mapa);
+  }
+  mal += pesar(min.codigo);
+} else if (hay) {
+  console.log(`· sin esbuild: no se minimiza; se mira el peso del ${MIN} que hay`);
+  mal += pesar(leer(MIN));
+} else { console.error(`✗ Falta ${MIN} y no hay esbuild para hacerlo (npm ci)`); mal++; }
 process.exit(mal ? 1 : 0);

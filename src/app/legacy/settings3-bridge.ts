@@ -16,7 +16,7 @@ const profile = (): Profile => PERFIL as Profile;
 
 export const settingsExtraLegacy = {
   // Settings and profile
-  loadSettings: (): Promise<void> => cargarAjustes(),
+  loadSettings: (): Promise<void> => legacyFreeCoreSettings.loadSettings(),
   setting: (key: string): unknown => AJUSTES[key],
   setSetting: (key: string, value: unknown): void => { AJUSTES[key] = value; },
   profileName: (): string => profile().nombre ?? '',

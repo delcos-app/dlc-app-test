@@ -4,7 +4,6 @@
 function enlaceNav(destino, paradas, n) { return window.delcos.core.maps.webLink(destino, paradas, n); }
 function navegarA(destino, paradas) { return window.delcos.core.maps.navigateTo(destino, paradas); }
 function geoInversa(lat, lon) { return window.delcos.core.maps.reverseGeocode(lat, lon); }
-function enlaceNavApp(destino, paradas, n) { return window.delcos.core.maps.appLink(destino, paradas, n); }
 function cambiarNavegador(n) { return window.delcos.core.maps.changeNavigator(n); }
 function rellenarDireccion(box, i, a) { return window.delcos.core.maps.fillAddress(box, i, a); }
 // «Estoy aquí»: primero los centros que ya tenemos a menos de 250 m; si no, centro nuevo con los datos del mapa

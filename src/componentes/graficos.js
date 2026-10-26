@@ -31,4 +31,3 @@ const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visita
   sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
   importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
 
-function kpiPermitido(c) { return window.delcos.leftovers.indicatorAllowed(c); }

@@ -2,7 +2,6 @@
 declare function pantallaRecuperacion(): void;
 declare function intentarCerrar(box: HTMLDialogElement): void;
 declare let temporizador: ReturnType<typeof setTimeout> | undefined;
-declare function pintarRutaBarra(): unknown;
 declare function pintarRutaEnCurso(): unknown;
 declare function cerrarSelector(): void;
 declare function arrancar(): unknown;

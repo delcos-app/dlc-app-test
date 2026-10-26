@@ -111,7 +111,7 @@ export const agendaClicksLegacy = {
 export const routeListenersLegacy = {
   plan: (route: string, button: HTMLElement): void => { void planificar(route, button); },
   routeInProgress: (): boolean => Boolean(rutaActiva()),
-  paintBar: (): void => { void pintarRutaBarra(); },
+  paintBar: (): void => { void legacyFreeScreensRoutes.paintRouteBar(); },
   paintInProgress: (): void => { void pintarRutaEnCurso(); },
   navigate: (destination: unknown, stops: unknown): void => { void (navegarA as unknown as (to: unknown, via: unknown) => Promise<void>)(destination, stops); },
 };
@@ -251,11 +251,11 @@ export const showAppLegacy = {
   seesSales: (): boolean => Boolean(veVentas()),
   seesEverything: (): boolean => VE_TODO(),
   loadCatalogs: (): void => { void legacyFreeCoreSettings.loadCatalogs(); },
-  paintRouteBar: (): void => { void pintarRutaBarra(); },
+  paintRouteBar: (): void => { void legacyFreeScreensRoutes.paintRouteBar(); },
   loadHome: (): void => { void cargarInicio(); },
   loadFilters: (): void => { void cargarFiltros(); },
   loadSalesTeam: (): void => { void cargarComerciales(); },
-  loadSettings: (): void => { void cargarAjustes(); },
+  loadSettings: (): void => { void legacyFreeCoreSettings.loadSettings(); },
   inTestEnvironment: (): boolean => EN_PRUEBAS,
   paintTestStrip: (): void => { pintarFranjaPruebas(); },
   paintImpersonationBar: (): void => { pintarBarraSuplantacion(); },
@@ -315,8 +315,8 @@ export const dayEstimateLegacy = {
   planSettings: (): PlanSettings => PLANCFG() as PlanSettings,
   // The legacy arithmetic takes the stored values as they are
   startPoint: (): { lat: number; lon: number } => salidaUsuario() as unknown as { lat: number; lon: number },
-  minutesOf: (time: string | null | undefined): number => minHora(time) ?? 0,   // the settings always have their hours
-  minutesOrNull: (time: string | null | undefined): number | null => minHora(time),
+  minutesOf: (time: string | null | undefined): number => legacyFreeCoreServices.calendar.timeToMinutes(time) ?? 0,   // the settings always have their hours
+  minutesOrNull: (time: string | null | undefined): number | null => legacyFreeCoreServices.calendar.timeToMinutes(time),
   pointOf: (appointment: EstimatedAppointment): [number, number] | null => xyCita(appointment) ?? null,
   isOpen: (state: string): boolean => CITA_ABIERTA.includes(state),
   windowsOf: (days: Record<string, string | null> | null | undefined, isoDate: string): [number, number][] | null => ventanasDe(days, isoDate) as [number, number][] | null,

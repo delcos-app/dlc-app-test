@@ -66,7 +66,7 @@ export const icon = (name: string): string => svgIco(ICON_NOM[name] ?? ICON_NOM.
 export const indicatorCatalog = {
   definitions: (): readonly KpiDefinition[] => KPI_CAT,
   settings: (): readonly KpiSetting[] => kpiConfig(),
-  allowed: (definition: KpiDefinition | undefined): boolean => kpiPermitido(definition),
+  allowed: (definition: KpiDefinition | undefined): boolean => legacyFreeCoreLeftovers.indicatorAllowed(definition),
   help: (id: string): string | undefined => AYUDA_KPI[id],
   icon: (id: string): string | undefined => KPI_ICO[id],
   description: (id: string): string | undefined => KPI_TXT[id],
@@ -126,8 +126,8 @@ export const legacyAgendaParts = {
 /** What the Agenda data loader needs from legacy: whose agenda, the strip start and the day tasks. */
 export const agendaSources = {
   /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
-  ownerId: (): string => agUid(),
-  isOwnAgenda: (): boolean => agUid() === (PERFIL as { id: string }).id,
+  ownerId: (): string => legacyFreeCoreLeftovers.agendaOwnerId(),
+  isOwnAgenda: (): boolean => legacyFreeCoreLeftovers.agendaOwnerId() === (PERFIL as { id: string }).id,
   stripStart: (): string | null => CINTA_INI,
   /** «Tu día» of this date arrives already loaded (from Inicio). */
   hasPresetDay: (isoDate: string): boolean => TD_PRESET?.fecha === isoDate,
@@ -381,7 +381,7 @@ export const appLegacy = {
 
 /** Ciclo de visitas: the company settings it reads and writes, and the tabs of its page. */
 export const cycleLegacy = {
-  loadSettings: (): Promise<void> => cargarAjustes(),
+  loadSettings: (): Promise<void> => legacyFreeCoreSettings.loadSettings(),
   setting: (key: string): unknown => AJUSTES[key],
   setSetting: (key: string, value: unknown): void => { AJUSTES[key] = value; },
   openTab: (tab: string): void => { PAG_TAB.ciclo = tab; cargarPagina('ciclo'); },

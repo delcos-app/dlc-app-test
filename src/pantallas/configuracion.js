@@ -36,7 +36,6 @@ const CFG_CLAVES = window.delcos.settingsCore.SEARCH_WORDS;
 const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
 
 // ---------- Adaptadores: src/app/core/settings (v2.428.0). Los usan otras pantallas, los puentes, legado y las pruebas ----------
-function cargarAjustes() { return window.delcos.settingsCore.loadSettings(); }
 function cargarRoles() { return window.delcos.settingsCore.loadRoles(); }
 function logoData() { return window.delcos.settingsCore.invoiceLogo(); }
 function rolesNombres() { return window.delcos.settingsCore.roleNames(); }
@@ -77,7 +76,6 @@ function pintarAccesos() { return window.delcos.screens.settingsMore.paintAccess
 function facccon(uid) { return window.delcos.screens.settingsMore.fillConnection(uid); }
 function textoValor(v) { return window.delcos.screens.settingsMore.valueText(v); }
 function resumenDetalle(d) { return window.delcos.screens.settingsMore.detailSummary(d); }
-function abrirClasificador(id) { return window.delcos.screens.settingsMore.openClassifier(id); }
 function decorarResultados() { return window.delcos.screens.settingsMore.decorateResults(); }
 
 // Correo y firma, notificaciones y textos personalizados están en src/app/screens/settings (v2.417.0). Estos nombres se quedan:
@@ -88,7 +86,6 @@ function elegirPlantillaCorreo(uso) { return window.delcos.screens.settingsExtra
 function idPlant() { return window.delcos.screens.settingsExtra.newTemplateId(); }
 function panelNotificaciones(l) { return window.delcos.screens.settingsExtra.showNotifications(l); }
 function pintarNotif() { return window.delcos.screens.settingsExtra.paintNotificationSettings(); }
-function notifModo(k) { return window.delcos.screens.settingsExtra.notificationMode(k); }
 function guardarPrefsAvisos(avisos) { return window.delcos.screens.settingsExtra.saveOrderAlerts(avisos); }
 
 // Usuarios, Mi perfil y «Plan y suscripción» están en src/app/screens/settings (v2.420.0). Estos nombres se quedan: el árbol de
@@ -96,7 +93,6 @@ function guardarPrefsAvisos(avisos) { return window.delcos.screens.settingsExtra
 function editarUsuario(id) { return window.delcos.screens.settingsRest.editUser(id); }
 function nuevoUsuario(pre) { return window.delcos.screens.settingsRest.newUser(pre && pre.medico ? pre : null); }
 function pintarUsuarios2() { return window.delcos.screens.settingsRest.paintUsers(); }
-function detalleUsuario(u) { return window.delcos.screens.settingsRest.showUser(u); }
 function asegurarUsuario(id) { return window.delcos.screens.settingsRest.ensureUser(id); }
 function guardarKpis(lista) { return window.delcos.screens.settingsRest.saveIndicators(lista); }
 function pintarPrefsParte(parte) { return window.delcos.screens.settingsRest.paintPreferencesPart(parte); }
