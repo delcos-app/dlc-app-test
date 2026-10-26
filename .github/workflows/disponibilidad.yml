@@ -1,0 +1,64 @@
+# Comprobación externa cada 5 minutos de la app y de la base (plan de migración, 10.4).
+# Si algo no responde, el trabajo falla y GitHub avisa por correo a quien tenga activadas las notificaciones de Actions del
+# repositorio (Settings personal → Notifications → Actions: «Send notifications for failed workflows only»).
+# Las claves anon de config.js son públicas por diseño (la seguridad la ponen las reglas de la base) y no se escriben en el registro.
+name: Disponibilidad
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: disponibilidad
+  cancel-in-progress: true
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # actions/checkout v4.4.0, fijada por su commit
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: config.js
+          sparse-checkout-cone-mode: false
+      - name: App, app minimizada y base de producción y de pruebas
+        shell: bash
+        run: |
+          set -u
+          fallos=0
+          resumen() { echo "$1" >> "$GITHUB_STEP_SUMMARY"; }
+          resumen "## Disponibilidad · $(date -u '+%d/%m/%Y %H:%M') UTC"
+          resumen ''
+          resumen '| Qué | Resultado |'
+          resumen '|---|---|'
+          pedir() { curl -sS -o "$2" -w '%{http_code}' --max-time 20 --retry 2 --retry-delay 5 --retry-all-errors "${@:3}" "$1" 2>/dev/null || echo 000; }
+          # Las dos apps: la página responde y la app minimizada a la que apunta también
+          for web in https://app.delcos.cloud https://apptest.delcos.cloud; do
+            codigo=$(pedir "$web/?comprobacion=$(date +%s)" pagina.html)
+            app=$(grep -o 'min/app\.js?v=[0-9.]*' pagina.html 2>/dev/null | head -1 || true)
+            if [ "$codigo" = 200 ] && [ -n "$app" ]; then
+              codigo_js=$(pedir "$web/$app" app.js)
+              if [ "$codigo_js" = 200 ] && [ "$(wc -c < app.js)" -gt 100000 ]; then resumen "| $web | ✓ ${app#min/app.js?v=} |"
+              else resumen "| $web | ✗ la app ($app) responde $codigo_js |"; fallos=$((fallos+1)); fi
+            else resumen "| $web | ✗ la página responde $codigo o no carga min/app.js |"; fallos=$((fallos+1)); fi
+          done
+          # Las dos bases: la salud del servicio de acceso de Supabase, con la clave anon pública de config.js
+          for entorno in produccion pruebas; do
+            datos=$(node -e "
+              const vm = require('vm'), src = require('fs').readFileSync('config.js', 'utf8');
+              const ctx = { location: { hostname: process.argv[1] === 'pruebas' ? 'apptest.delcos.cloud' : 'app.delcos.cloud', pathname: '/' }, window: {} };
+              vm.runInNewContext(src, ctx); const c = ctx.window.DLC_CONFIG; console.log(c.url + ' ' + c.anon);" "$entorno")
+            url=${datos%% *}; clave=${datos#* }
+            echo "::add-mask::$clave"
+            codigo=$(pedir "$url/auth/v1/health" salud.json -H "apikey: $clave")
+            if [ "$codigo" = 200 ]; then resumen "| Base de $entorno | ✓ |"
+            else resumen "| Base de $entorno | ✗ responde $codigo |"; fallos=$((fallos+1)); fi
+            # Funciones del servidor: la pasarela responde (sin llamar a ninguna función; 4xx también vale, 5xx o nada no)
+            codigo=$(pedir "$url/functions/v1/" funciones.txt -H "apikey: $clave")
+            if [ "$codigo" -ge 200 ] && [ "$codigo" -lt 500 ]; then resumen "| Funciones de $entorno | ✓ |"
+            else resumen "| Funciones de $entorno | ✗ responde $codigo |"; fallos=$((fallos+1)); fi
+          done
+          resumen ''
+          if [ "$fallos" -gt 0 ]; then resumen "**$fallos comprobaciones han fallado.**"; exit 1; fi
+          resumen 'Todo responde.'
