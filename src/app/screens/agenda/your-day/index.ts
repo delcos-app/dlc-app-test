@@ -70,6 +70,16 @@ function bindHeader(data: DayData, open: readonly DayAppointmentFull[]): void {
   });
 }
 
+/**
+ * The cards of the day, or why there are none. v2.443.0: without network and without a copy of that day it says so (an empty day
+ * would look like a day with no appointments).
+ */
+function cardsHtml(mine: readonly DayAppointmentFull[], context: DayContext, isToday: boolean, noCopy: boolean): string {
+  if (noCopy) return `<div class="vacio">${t('agenda.yourDay.offlineNoCopy')}</div>`;
+  if (!mine.length) return `<div class="vacio">${t(isToday ? 'agenda.yourDay.emptyToday' : 'agenda.yourDay.emptyOther')}</div>`;
+  return `<div class="tdesc" role="group" aria-label="${t('agenda.yourDay.dayAppointments')}">${mine.map((item, index) => appointmentCard(item, index, context)).join('')}</div>`;
+}
+
 /** Paints the cards of the shown day (tdPintar). */
 async function paintDay(): Promise<void> {
   const day = legacyAgenda.selectedDate() ?? todayIso(), today = todayIso();
@@ -80,8 +90,7 @@ async function paintDay(): Promise<void> {
   const data: DayData = { day, today, mine: all.filter(item => item.usuario_id === owner), others: all.filter(item => item.usuario_id !== owner) };
   yourDayLegacy.setDayAppointments(data.mine);
   const { context, summary, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-  const cards = data.mine.length ? `<div class="tdesc" role="group" aria-label="${t('agenda.yourDay.dayAppointments')}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join('')}</div>`
-    : `<div class="vacio">${t(summary.isToday ? 'agenda.yourDay.emptyToday' : 'agenda.yourDay.emptyOther')}</div>`;
+  const cards = cardsHtml(data.mine, context, summary.isToday, !result.data && Boolean(result.cache));
   body.innerHTML = `${headerHtml(summary)}
     ${workingDayHtml(summary, summary.workingDay ? formatDuration(Date.now() - summary.workingDay.inicio) : '')}
     ${noFitHtml(noFit)}

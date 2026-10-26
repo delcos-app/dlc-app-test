@@ -157,6 +157,8 @@ export const openEditorDistributor = (): Record<string, unknown> =>
 
 /** Opens the editor of an order (its window's detail) or of a new one (a preset or nothing). */
 export async function editOrder(preset: EditorPreset | null): Promise<void> {
+  // v2.443.0: orders are not kept for later (they are not in the offline queue): without network it says so instead of waiting
+  if (!navigator.onLine) { notices.toast(t('core.offline.orderNeedsNetwork'), true); return; }
   const order = preset?.pedido ?? null, distributor = choiceOf(order);
   await loadDistributors().catch(() => []);
   await orderEditorLegacy.loadProducts();

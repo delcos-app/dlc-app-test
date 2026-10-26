@@ -55,6 +55,8 @@ export async function tasksOfDay(isoDate: string): Promise<unknown[] | null> {
   if (viewed && viewed.id !== leftoversLegacy.userId()) return null;
   const kept = leftoversLegacy.dayTasks();
   if (kept?.f === isoDate) return kept.l;
+  // v2.443.0: without network the read is not sent (the client retries it for seconds and the day would wait without painting)
+  if (!navigator.onLine) return null;
   const { data, error } = await leftoversLegacy.tasks(isoDate);
   if (error) return null;
   const list = data ?? [];

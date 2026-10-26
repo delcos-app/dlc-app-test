@@ -1735,6 +1735,10 @@
       oneRefused: "Un cambio guardado sin conexión no se ha podido enviar: pulsa el aviso de arriba para verlos",
       refused: "{count} cambios guardados sin conexión no se han podido enviar: pulsa el aviso de arriba para verlos"
     },
+    offline: {
+      needsNetwork: "Sin conexión: esta pantalla necesita conexión y se cargará al volver la red",
+      orderNeedsNetwork: "Sin conexión: los pedidos necesitan conexión para guardarse"
+    },
     visit: {
       samplesRefused: "{visit}, pero las muestras no: {reason}",
       samplesFailed: "{visit}, pero las muestras no se han podido guardar"
@@ -7738,6 +7742,7 @@
       endAfterMidnight: "pasada la medianoche (hacia las {time} del día siguiente)",
       emptyToday: "No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.",
       emptyOther: "Sin citas este día.",
+      offlineNoCopy: "Sin conexión y sin copia guardada de este día: se verá al volver la red.",
       dayAppointments: "Citas del día",
       othersTitle: "Citas de otras personas · {count}",
       pendingOf: "Pendientes del {date}",
@@ -27938,6 +27943,7 @@
     if (viewed && viewed.id !== leftoversLegacy.userId()) return null;
     const kept = leftoversLegacy.dayTasks();
     if (kept?.f === isoDate) return kept.l;
+    if (!navigator.onLine) return null;
     const { data, error } = await leftoversLegacy.tasks(isoDate);
     if (error) return null;
     const list = data ?? [];
@@ -37198,6 +37204,11 @@
       if (button3) openDayMenu(button3, data.day, Boolean(stripDay?.classList.contains("bloq")));
     });
   }
+  function cardsHtml(mine, context, isToday, noCopy) {
+    if (noCopy) return `<div class="vacio">${t("agenda.yourDay.offlineNoCopy")}</div>`;
+    if (!mine.length) return `<div class="vacio">${t(isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    return `<div class="tdesc" role="group" aria-label="${t("agenda.yourDay.dayAppointments")}">${mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>`;
+  }
   async function paintDay() {
     const day = legacyAgenda.selectedDate() ?? todayIso(), today2 = todayIso();
     const result = await cachedRpc("agenda_rango", { p_desde: day, p_hasta: day, p_usuario: legacyAgenda.userFilter() }, `agenda-${day}`);
@@ -37207,7 +37218,7 @@
     const data = { day, today: today2, mine: all2.filter((item) => item.usuario_id === owner), others: all2.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
     const { context, summary: summary5, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-    const cards2 = data.mine.length ? `<div class="tdesc" role="group" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary5.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    const cards2 = cardsHtml(data.mine, context, summary5.isToday, !result.data && Boolean(result.cache));
     body4.innerHTML = `${headerHtml7(summary5)}
     ${workingDayHtml(summary5, summary5.workingDay ? formatDuration(Date.now() - summary5.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
@@ -40406,6 +40417,14 @@
     global: { fetch: timedFetch }
   });
 
+  // src/app/core/offline-notice.ts
+  var WITH_COPY = /* @__PURE__ */ new Set(["inicio", "agenda", "directorio", "ventas"]);
+  function warnIfOffline(screen3) {
+    if (navigator.onLine || WITH_COPY.has(screen3)) return false;
+    notices.toast(t("core.offline.needsNetwork"), true);
+    return true;
+  }
+
   // src/app/core/legacy-a/switch-screen.ts
   var LOADER_MAX_MS = 8e3;
   var LOADER_MIN_MS = 300;
@@ -40481,6 +40500,7 @@
     cancelPending(redirected);
     const target = allowedTarget(redirected);
     show2(target);
+    warnIfOffline(target);
     switchLegacy.loadModule(target);
     switchLegacy.paintBottomBar();
     watchLoading(target);
@@ -49753,6 +49773,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var openState = null;
   var openEditorDistributor = () => openState && document.getElementById("pdist") ? distributorFields(openState.distributor) : {};
   async function editOrder(preset) {
+    if (!navigator.onLine) {
+      notices.toast(t("core.offline.orderNeedsNetwork"), true);
+      return;
+    }
     const order = preset?.pedido ?? null, distributor = choiceOf(order);
     await loadDistributors().catch(() => []);
     await orderEditorLegacy.loadProducts();
@@ -54110,7 +54134,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <label for="mdmatt">${t("portal.material.note")}</label><input id="mdmatt" placeholder="${t("portal.material.optional")}">
         <div class="acts u-start"><button type="button" class="btn" id="mdmatok">${t("portal.material.ask")}</button></div>`;
   }
-  function cardsHtml(allowed2, requests2, messages) {
+  function cardsHtml2(allowed2, requests2, messages) {
     const askTitle = t("portal.material.title"), questionsTitle = t("portal.material.questionsTitle");
     return `
     <div class="card ancard" id="mdmat"><h2>${askTitle} ${helpButton2(askTitle, t("portal.material.help"))}</h2>
@@ -54203,7 +54227,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const box5 = document.getElementById("mdportal");
     if (!box5) return;
     const list = messages ?? [];
-    box5.innerHTML = cardsHtml(Array.isArray(allowed2) ? allowed2 : [], requests2 ?? [], list);
+    box5.innerHTML = cardsHtml2(Array.isArray(allowed2) ? allowed2 : [], requests2 ?? [], list);
     bind35(box5);
     if (list.some((message4) => !message4.del_portal && !message4.leido_en)) void callRpc("leer_mensajes_cuenta", { p_cuenta: null });
   }

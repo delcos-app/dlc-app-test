@@ -86,6 +86,7 @@ export const agenda = {
     endAfterMidnight: 'pasada la medianoche (hacia las {time} del día siguiente)',
     emptyToday: 'No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.',
     emptyOther: 'Sin citas este día.',
+    offlineNoCopy: 'Sin conexión y sin copia guardada de este día: se verá al volver la red.',
     dayAppointments: 'Citas del día',
     othersTitle: 'Citas de otras personas · {count}',
     pendingOf: 'Pendientes del {date}',

@@ -8,6 +8,7 @@ import { notices } from '../../legacy/bridge';
 import { switchLegacy } from '../../legacy/legado-a-bridge';
 import { t } from '../../i18n';
 import { markCurrent } from '../navigation/current';
+import { warnIfOffline } from '../offline-notice';
 
 const LOADER_MAX_MS = 8000, LOADER_MIN_MS = 300, LOADER_STEP_MS = 80, QUIET_STEPS = 3;
 const PROFESSIONAL_SCREENS = ['informe', 'manual', 'config'];
@@ -77,6 +78,7 @@ export function switchScreen(screen: string): void {
   cancelPending(redirected);
   const target = allowedTarget(redirected);
   show(target);
+  warnIfOffline(target);   // v2.443.0: a screen with no device copy says at once that it needs the network
   switchLegacy.loadModule(target);   // 5. loading the module
   switchLegacy.paintBottomBar();
   watchLoading(target);

@@ -208,6 +208,10 @@ export const core = {
     oneRefused: 'Un cambio guardado sin conexión no se ha podido enviar: pulsa el aviso de arriba para verlos',
     refused: '{count} cambios guardados sin conexión no se han podido enviar: pulsa el aviso de arriba para verlos',
   },
+  offline: {
+    needsNetwork: 'Sin conexión: esta pantalla necesita conexión y se cargará al volver la red',
+    orderNeedsNetwork: 'Sin conexión: los pedidos necesitan conexión para guardarse',
+  },
   visit: {
     samplesRefused: '{visit}, pero las muestras no: {reason}',
     samplesFailed: '{visit}, pero las muestras no se han podido guardar',
