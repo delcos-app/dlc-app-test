@@ -99,7 +99,6 @@ export const accountsEditor = {
     locationFailed: 'No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador',
     writeTown: 'Escribe al menos la población',
     /** The name the private consultation is saved with */
-    savedName: 'CONSULTA PRIVADA',
     ready: '{privateConsultation} lista: se guarda con la ficha',
     readyNoPoint: 'Dirección puesta, sin punto en el mapa: se guarda con la ficha',
   },

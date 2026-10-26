@@ -6,8 +6,9 @@ import { legacyDb, notices } from '../../../legacy/bridge';
 import { settingsLegacy, type Place } from '../../../legacy/settings1-bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
+import { countryCode } from '../../../core/organisation';
 
-const SEARCH_URL = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=es&q=';
+const searchUrl = (): string => `https://nominatim.openstreetmap.org/search?format=json&limit=1${countryCode() ? `&countrycodes=${countryCode()}` : ''}&q=`;
 const GPS_TIMEOUT_MS = 15000, GPS_DECIMALS = 6, SHOWN_ADDRESS_PARTS = 3;
 const KEYS = { start: 'salida', end: 'llegada' } as const;
 
@@ -35,7 +36,7 @@ async function findAddress(box: HTMLElement, button: HTMLButtonElement): Promise
   if (!address) { notices.toast(t('settings.preferences.writeAddress'), true); return; }
   button.disabled = true; button.textContent = t('settings.preferences.finding');
   try {
-    const found = await (await fetch(SEARCH_URL + encodeURIComponent(address))).json() as { lat: string; lon: string; display_name: string }[];
+    const found = await (await fetch(searchUrl() + encodeURIComponent(address))).json() as { lat: string; lon: string; display_name: string }[];
     button.disabled = false; button.textContent = t('settings.preferences.findAddress');
     const first = found[0];
     if (!first) { notices.toast(t('settings.preferences.addressNotFound'), true); return; }

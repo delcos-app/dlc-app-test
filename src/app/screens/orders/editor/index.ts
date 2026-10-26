@@ -18,8 +18,9 @@ import { bindLineInputs, paintBreakdown } from './lines';
 import { saveOrder, type SaveOptions } from './save';
 import { autoAmount, buildState, editableProblem, newLine, readForm, type EditorAccount, type EditorCustomer, type EditorPreset, type EditorState } from './state';
 import { editorHtml, showsCardLink, showsTransfer } from './view';
+import { generalVat } from '../../../core/organisation';
 
-const FULL_DISCOUNT = 100, SALES_SCREEN = 'ventas', DEFAULT_SERVICE_VAT = 21;
+const FULL_DISCOUNT = 100, SALES_SCREEN = 'ventas';
 
 const element = (id: string): HTMLInputElement | null => document.getElementById(id) as HTMLInputElement | null;
 const choice = (id: string): HTMLSelectElement | null => document.getElementById(id) as HTMLSelectElement | null;
@@ -86,7 +87,7 @@ function bindService(state: EditorState): void {
   if (service) service.onchange = (): void => {
     const chosen = orderEditorLegacy.services().find(item => item.id === service.value), shipping = element('penv'), amount = element('penvi'), vat = element('penvv');
     if (shipping) shipping.checked = Boolean(chosen);
-    if (chosen && amount && vat) { amount.value = String(round2(chosen.pvp ?? 0)); vat.value = String(chosen.iva ?? DEFAULT_SERVICE_VAT); }
+    if (chosen && amount && vat) { amount.value = String(round2(chosen.pvp ?? 0)); vat.value = String(chosen.iva ?? generalVat()); }
     paintBreakdown(state);
   };
 }

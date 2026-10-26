@@ -15,9 +15,18 @@ export type Params = Readonly<Record<string, string | number>>;
 const catalogs: Readonly<Record<Language, Messages>> = { es };
 let currentLanguage: Language = 'es';
 let vocabulary: Readonly<Record<string, string>> = {};
+let resolveWord: ((name: string) => string | undefined) | null = null;
 
 export function setLanguage(language: Language): void {
   currentLanguage = language;
+}
+
+/**
+ * Words that depend on the company's vocabulary at the moment of each text ({surgery}, {surgeryThe}…): core/vocabulary.ts
+ * registers the resolver, so a text follows the company's word without each caller passing it (v2.436.0).
+ */
+export function setVocabularyResolver(resolver: (name: string) => string | undefined): void {
+  resolveWord = resolver;
 }
 
 /** Company words ({visita}, {profesional}…), loaded with the company settings. */
@@ -36,7 +45,7 @@ function lookup(catalog: Messages, key: MessageKey): string | undefined {
 
 function fill(text: string, params: Params): string {
   return text.replace(/\{(\w+)\}/g, (whole, name: string) => {
-    const value = params[name] ?? vocabulary[name];
+    const value = params[name] ?? vocabulary[name] ?? resolveWord?.(name);
     return value === undefined ? whole : String(value);
   });
 }

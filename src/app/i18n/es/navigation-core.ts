@@ -22,7 +22,7 @@ export const navigationCore = {
     order: 'el pedido',
     invoice: 'la factura',
     event: 'el evento',
-    surgery: 'la intervención',
+    surgery: '{surgeryThe} {surgery}',
     tender: 'el concurso',
     equipment: 'el equipo',
     deposit: 'el depósito',

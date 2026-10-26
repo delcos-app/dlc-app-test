@@ -7,6 +7,7 @@ import { notices, qualityLegacy } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { consultationField, fieldValue } from './model';
 import type { SaveHooks } from './save';
+import { addressQuery } from '../../../core/organisation';
 
 const ADDRESS = ['direccion', 'cp', 'municipio', 'provincia'] as const;
 
@@ -26,7 +27,7 @@ function locateBeforeSaving(box: HTMLElement, index: string, saved: { address: s
     const name = value('en').toUpperCase(), field = consultationField(box, index, 'centro_nombre'); if (field) field.value = name;
     const address = value('edcd'), town = value('edcm');
     if (!address || (address === saved.address && town === saved.town && saved.located)) return;
-    const found = await qualityLegacy.geocode([address, value('edcc'), town, value('edcp'), 'España'].filter(Boolean).join(', '), { direccion: address, municipio: town, cp: value('edcc') }).catch(() => null);
+    const found = await qualityLegacy.geocode(addressQuery([address, value('edcc'), town, value('edcp')]), { direccion: address, municipio: town, cp: value('edcc') }).catch(() => null);
     if (found && !found.fuera) {
       const lat = consultationField(box, index, 'lat'), lon = consultationField(box, index, 'lon');
       if (lat) lat.value = String(found.lat); if (lon) lon.value = String(found.lon);

@@ -8,10 +8,11 @@ import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { isPresent } from '../../services/values';
 import { euros, round2 } from './model';
+import { generalVat } from '../../core/organisation';
 
 interface Service { id?: string; nombre?: string; tipo?: string | null; activo?: boolean; precio?: number | null; iva?: number | null; pvp?: number | null; por_defecto?: boolean }
 
-const DEFAULT_VAT = 21, PRICE_DECIMALS = 4;
+const PRICE_DECIMALS = 4;
 const money = (value: number | null | undefined): string => (isPresent(value) ? euros(value) : '—');
 const field = (id: string): HTMLInputElement | null => document.getElementById(id) as HTMLInputElement | null;
 
@@ -49,7 +50,7 @@ function prices(service: Service): readonly [string, string] {
 const checkbox = (id: string, on: boolean | undefined, locked: string): string => `<input type="checkbox" id="${id}" ${on ? 'checked' : ''} ${locked}>`;
 
 function editorHtml(service: Service, admin: boolean): string {
-  const locked = admin ? '' : 'disabled', vat = service.iva ?? DEFAULT_VAT, [price, withVat] = prices(service);
+  const locked = admin ? '' : 'disabled', vat = service.iva ?? generalVat(), [price, withVat] = prices(service);
   return `
     <div class="fh"><div><h2>${service.id ? escapeHtml(service.nombre ?? '') : t('products.services.newTitle')}</h2>
       <div class="sm">${t('products.services.hint')}</div></div>
@@ -93,7 +94,7 @@ async function save(service: Service): Promise<void> {
 }
 
 export function editService(existing: Service | null): void {
-  const admin = cardSectionsLegacy.can('administrar'), service = existing ?? { iva: DEFAULT_VAT, activo: true };
+  const admin = cardSectionsLegacy.can('administrar'), service = existing ?? { iva: generalVat(), activo: true };
   const body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;
   body.innerHTML = editorHtml(service, admin);

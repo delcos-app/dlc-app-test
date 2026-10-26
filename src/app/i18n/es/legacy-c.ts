@@ -159,7 +159,7 @@ export const legacyC = {
       team: 'Equipo',
     },
     surgeries: {
-      title: 'Intervenciones',
+      title: '{Surgeries}',
       description: 'Programación, material usado con lote y número de serie, y reposición en 48 horas',
     },
   },

@@ -8,6 +8,7 @@ import { coreLegacy } from '../legacy/core-bridge';
 import { t } from '../i18n';
 import { escapeHtml } from './format';
 import { isPresent } from './values';
+import { countryCode } from '../core/organisation';
 
 type Point = readonly (number | null | undefined)[];
 
@@ -136,7 +137,7 @@ const inTown = (town: string) => (found: Found): boolean => {
 };
 
 async function search(query: string): Promise<Found[]> {
-  try { const response = await fetch(`${NOMINATIM}/search?format=json&addressdetails=1&limit=5&countrycodes=es&${query}`); return response.ok ? await response.json() as Found[] : []; } catch { return []; }
+  try { const response = await fetch(`${NOMINATIM}/search?format=json&addressdetails=1&limit=5${countryCode() ? `&countrycodes=${countryCode()}` : ''}&${query}`); return response.ok ? await response.json() as Found[] : []; } catch { return []; }
 }
 
 /** Street, town and postcode apart (when the free text does not find it). */

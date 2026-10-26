@@ -3,12 +3,17 @@
  * Migrated from the legacy seguridadClave and medidorClave (v2.414.0); medidorClave stays as an adapter (Configuración, legado 047).
  */
 import { t, type MessageKey } from '../../i18n';
+import { obviousPasswordWords } from '../../core/organisation';
 
 const MIN_LENGTH = 8, GOOD_LENGTH = 12, LONG_LENGTH = 16, MAX_LEVEL = 4;
 const LEVELS: readonly MessageKey[] = ['access.strength.veryWeak', 'access.strength.weak', 'access.strength.fair', 'access.strength.strong', 'access.strength.veryStrong'];
 const COLOURS = ['#C24141', '#D9480F', '#D97706', '#12805C', '#0F6E4C'];
 const CHARACTER_KINDS = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/];
-const OBVIOUS = /^(1234|abcd|qwer|contrase|password|dlc)/i;
+const OBVIOUS = /^(1234|abcd|qwer|contrase|password)/i;
+
+/** A password that starts like the usual ones or with the platform's or the organisation's name. */
+const isObvious = (password: string): boolean =>
+  OBVIOUS.test(password) || obviousPasswordWords().some(word => password.toLowerCase().startsWith(word));
 
 export interface Strength { readonly level: number; readonly text: string }
 
@@ -17,7 +22,7 @@ export function passwordStrength(password: string): Strength {
   if (!password) return { level: -1, text: '' };
   let points = [MIN_LENGTH, GOOD_LENGTH, LONG_LENGTH].filter(length => password.length >= length).length;
   points += Math.max(0, CHARACTER_KINDS.filter(kind => kind.test(password)).length - 1);
-  if (/^(.)\1+$/.test(password) || (OBVIOUS.test(password) && password.length < GOOD_LENGTH)) points = Math.min(points, 1);
+  if (/^(.)\1+$/.test(password) || (isObvious(password) && password.length < GOOD_LENGTH)) points = Math.min(points, 1);
   const level = password.length < MIN_LENGTH ? 0 : Math.min(MAX_LEVEL, Math.max(1, points - 1));
   return { level, text: t(LEVELS[level] ?? 'access.strength.veryWeak') };
 }

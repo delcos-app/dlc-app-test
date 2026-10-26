@@ -8,7 +8,8 @@ import { accountsEditorLegacy } from '../../../legacy/accounts2-bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { paintCentrePicker, setCentre } from './centre-picker';
-import { fieldValue, privateConsultation } from './model';
+import { fieldValue, PRIVATE_SAVED_NAME, privateConsultation } from './model';
+import { addressQuery } from '../../../core/organisation';
 
 const LOCATION_TIMEOUT_MS = 12000, LOCATION_MAX_AGE_MS = 30000, DECIMALS = 6;
 
@@ -48,7 +49,7 @@ function fillFrom(context: PrivateContext, address: Record<string, string | unde
 async function search(context: PrivateContext, quiet: boolean): Promise<boolean> {
   const value = (suffix: string): string => valueOf(context, suffix);
   if (!value('d') && !value('m')) { if (!quiet) notices.toast(t('accountsEditor.centreForm.writeAddress'), true); return false; }
-  const query = [value('d'), value('c'), value('m'), value('p'), 'España'].filter(Boolean).join(', ');
+  const query = addressQuery([value('d'), value('c'), value('m'), value('p')]);
   const found = await qualityLegacy.geocode(query, { direccion: value('d'), municipio: value('m'), cp: value('c') }).catch(() => null);
   if (!found) { if (!quiet) notices.toast(t('accountsEditor.centreForm.notFound'), true); return false; }
   if (found.fuera) { notices.toast(t('accountsEditor.private.elsewhere', { place: found.fuera, town: value('m') }), true); return false; }
@@ -76,7 +77,7 @@ async function accept(context: PrivateContext, button: HTMLButtonElement): Promi
     button.disabled = true; const found = await search(context, true); button.disabled = false;
     if (!found) context.point = { lat: null, lon: null };
   }
-  setCentre(context.box, context.index, { nombre: t('accountsEditor.private.savedName'), direccion: value('d'), cp: value('c'), municipio: value('m').toUpperCase(), provincia: value('p').toUpperCase(), ...context.point });
+  setCentre(context.box, context.index, { nombre: PRIVATE_SAVED_NAME, direccion: value('d'), cp: value('c'), municipio: value('m').toUpperCase(), provincia: value('p').toUpperCase(), ...context.point });
   void paintCentrePicker(context.box, context.index);
   notices.toast(context.point.lat !== null ? t('accountsEditor.private.ready', { privateConsultation: privateConsultation() }) : t('accountsEditor.private.readyNoPoint'));
 }

@@ -78,7 +78,7 @@ export const leftovers = {
   },
   menu: {
     cycle: 'Ciclo de {visits}',
-    surgeries: 'Intervenciones',
+    surgeries: '{Surgeries}',
     tenders: 'Concursos',
     events: 'Eventos',
     equipment: 'Parque instalado',

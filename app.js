@@ -355,8 +355,8 @@
       depositNone: "Sin material en depósito.",
       depositOpen: "Abrir el depósito",
       depositLeave: "Dejar material en depósito",
-      surgeriesTitle: "Intervenciones",
-      surgery: "Intervención",
+      surgeriesTitle: "{Surgeries}",
+      surgery: "{Surgery}",
       tendersTitle: "Concursos",
       tenderExpired: "vencido",
       tenderExpiresOn: "vence el {date}",
@@ -582,7 +582,7 @@
     },
     menu: {
       cycle: "Ciclo de {visits}",
-      surgeries: "Intervenciones",
+      surgeries: "{Surgeries}",
       tenders: "Concursos",
       events: "Eventos",
       equipment: "Parque instalado",
@@ -934,7 +934,7 @@
     },
     remove: {
       button: "Eliminar producto",
-      text: "Si no se ha vendido nunca, se borra del todo, también su stock, sus lotes y sus compras. Si tiene ventas, muestras firmadas, intervenciones o equipos, deja de salir en todas partes pero se conserva para el histórico (los pedidos y las facturas siguen con su nombre) y se puede recuperar.",
+      text: "Si no se ha vendido nunca, se borra del todo, también su stock, sus lotes y sus compras. Si tiene ventas, muestras firmadas, {surgeries} o equipos, deja de salir en todas partes pero se conserva para el histórico (los pedidos y las facturas siguen con su nombre) y se puede recuperar.",
       title: "¿Eliminar «{name}»?",
       ok: "Eliminar",
       stock: "Tiene ventas y {units} unidades en stock: sácalas o regulariza el stock antes de eliminarlo",
@@ -1001,7 +1001,7 @@
       order: "el pedido",
       invoice: "la factura",
       event: "el evento",
-      surgery: "la intervención",
+      surgery: "{surgeryThe} {surgery}",
       tender: "el concurso",
       equipment: "el equipo",
       deposit: "el depósito",
@@ -1117,6 +1117,8 @@
       locations: "ubicaciones",
       segment: "segmento",
       segments: "segmentos",
+      surgery: "intervención",
+      surgeries: "intervenciones",
       allMasculine: "Todos",
       allFeminine: "Todas",
       freeDelivery: "Entrega sin cargo",
@@ -1192,7 +1194,7 @@
       purchasesDetail: "Lo enviado, lo que está en camino y lo recibido",
       deposit: "Material en depósito",
       depositDetail: "Lo que tienes en cada centro, lo usado y su reposición",
-      surgeries: "Intervenciones con lote y número de serie",
+      surgeries: "{Surgeries} con lote y número de serie",
       surgeriesDetail: "Programación, lo usado por unidad, pedido y reposición en 48 horas",
       tenders: "Concursos y contratos",
       tendersDetail: "Pliegos, lotes adjudicados y precios de contrato en los pedidos",
@@ -1479,7 +1481,7 @@
         team: "Equipo"
       },
       surgeries: {
-        title: "Intervenciones",
+        title: "{Surgeries}",
         description: "Programación, material usado con lote y número de serie, y reposición en 48 horas"
       }
     },
@@ -1649,10 +1651,10 @@
       equipmentTab: "Equipos",
       equipmentHint: "Equipos instalados con su número de serie, contrato, garantía y revisiones",
       searchPlaceholder: "Buscar {professional}, centro o municipio",
-      replenishTitle: "Reposiciones de intervención",
-      replenishHint: "Cuando pasan 48 horas de una intervención sin reponer lo usado",
-      replenishWhat: "Una intervención hecha lleva más de 48 horas sin reponer lo que se usó en su almacén (depósito del centro o el de quien asistió).",
-      replenishTodo: "Abre la intervención y pulsa «Reponer ahora».",
+      replenishTitle: "Reposiciones de {surgery}",
+      replenishHint: "Cuando pasan 48 horas de {surgeryOne} {surgery} sin reponer lo usado",
+      replenishWhat: "{SurgeryOne} {surgery} hech{surgeryEnd} lleva más de 48 horas sin reponer lo que se usó en su almacén (depósito del centro o el de quien asistió).",
+      replenishTodo: "Abre {surgeryThe} {surgery} y pulsa «Reponer ahora».",
       contractTitle: "Contratos que vencen",
       contractHint: "Antes de que venza un contrato de concurso, con los días que elige la empresa",
       contractWhat: "Un contrato adjudicado de un concurso vence pronto. Avisa una vez por cada plazo que elige la administración (de partida, 90 y 30 días).",
@@ -2212,13 +2214,13 @@
     },
     blocks: {
       events: "eventos",
-      surgeries: "intervenciones",
+      surgeries: "{surgeries}",
       tenders: "concursos",
       equipment: "equipos",
       when: "Cuándo",
       block: "Bloque",
       allEvents: "Eventos",
-      allSurgeries: "Intervenciones",
+      allSurgeries: "{Surgeries}",
       allTenders: "Concursos",
       allEquipment: "Todos los equipos",
       event: "Evento",
@@ -2227,7 +2229,7 @@
       place: "Lugar",
       attendees: "Asistentes",
       spending: "Gasto",
-      surgery: "Intervención",
+      surgery: "{Surgery}",
       teamAndPlace: "Equipo y lugar",
       state: "Estado",
       tender: "Concurso",
@@ -2879,7 +2881,6 @@
       locationFailed: "No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador",
       writeTown: "Escribe al menos la población",
       /** The name the private consultation is saved with */
-      savedName: "CONSULTA PRIVADA",
       ready: "{privateConsultation} lista: se guarda con la ficha",
       readyNoPoint: "Dirección puesta, sin punto en el mapa: se guarda con la ficha"
     },
@@ -3334,8 +3335,7 @@
       writeName: "Escribe el nombre del centro",
       elsewhere: "La dirección sale en {place}, no en {town}: se guarda sin mover el punto del mapa",
       couldNotSave: "No se ha podido guardar",
-      saved: "Centro guardado",
-      country: "España"
+      saved: "Centro guardado"
     },
     nearby: {
       noLocation: "Este dispositivo no tiene ubicación",
@@ -5157,7 +5157,7 @@
       transferIn: "Traspaso (entra)",
       returned: "Devolución",
       depositUse: "Usado en un depósito",
-      surgeryUse: "Usado en una intervención"
+      surgeryUse: "Usado en {surgeryOne} {surgery}"
     },
     movement: {
       entryTitle: "Entrada de stock",
@@ -5246,7 +5246,7 @@
       left: "quedan {units}",
       usedOf: "Usadas de {name}",
       reference: "Referencia",
-      referencePlaceholder: "p. ej. Intervención del martes, sala 2 (sin datos del paciente)",
+      referencePlaceholder: "p. ej. {Surgery} del martes, sala 2 (sin datos del paciente)",
       record: "Apuntar",
       countTitle: "Recuento",
       countHint: "Escribe lo que hay ahora; lo que falte se apunta como usado.",
@@ -7598,16 +7598,16 @@
 
   // src/app/i18n/es/surgeries.ts
   var surgeries = {
-    surgery: "Intervención",
+    surgery: "{Surgery}",
     list: {
-      couldNotLoad: "No se han podido cargar las intervenciones.",
-      newSurgery: "+ Nueva intervención",
+      couldNotLoad: "No se han podido cargar {surgeriesThe} {surgeries}.",
+      newSurgery: "+ Nuev{surgeryEnd} {surgery}",
       replenishmentsPending: "Reposiciones pendientes",
       usedNotRecorded: "Sin registrar lo usado",
       upcoming: "Próximas",
-      noUpcoming: "No hay intervenciones programadas.",
+      noUpcoming: "No hay {surgeries} programad{surgeryEnds}.",
       doneLast30: "Hechas en los últimos 30 días",
-      noneDone: "Todavía no hay intervenciones hechas.",
+      noneDone: "Todavía no hay {surgeries} hech{surgeryEnds}.",
       assists: " · asiste {name}",
       noOrder: "Sin pedido"
     },
@@ -7617,8 +7617,8 @@
       replenished: "Repuesta"
     },
     editor: {
-      changeTitle: "Cambiar la intervención",
-      newTitle: "Nueva intervención",
+      changeTitle: "Cambiar {surgeryThe} {surgery}",
+      newTitle: "Nuev{surgeryEnd} {surgery}",
       subtitle: "Sale también en la Agenda de quien asiste",
       date: "Fecha",
       time: "Hora",
@@ -7641,18 +7641,18 @@
       schedule: "Programar",
       missing: "Elige la fecha, el centro y el responsable",
       couldNotSave: "No se ha podido guardar: {error}",
-      cancelled: "Intervención anulada",
-      saved: "Intervención guardada",
-      scheduled: "Intervención programada",
+      cancelled: "{Surgery} anulad{surgeryEnd}",
+      saved: "{Surgery} guardad{surgeryEnd}",
+      scheduled: "{Surgery} programad{surgeryEnd}",
       cancelText: "La cita de la Agenda queda descartada.",
-      cancelTitle: "¿Anular la intervención?"
+      cancelTitle: "¿Anular {surgeryThe} {surgery}?"
     },
     origins: {
       deposito: "Depósito del centro",
       personal: "Material de quien asiste"
     },
     sheet: {
-      notFound: "No se ha encontrado la intervención",
+      notFound: "No se ha encontrado {surgeryThe} {surgery}",
       responsible: "Responsable",
       centre: "Centro",
       assists: "Asiste",
@@ -7695,17 +7695,17 @@
       savedWithoutOrder: "Guardado lo usado. Queda la reposición pendiente: hay 48 horas para reponer lo usado."
     },
     errors: {
-      permission: "No puedes cambiar esta intervención",
+      permission: "No puedes cambiar {surgeryThis} {surgery}",
       missing: "Faltan la fecha, el centro o el responsable",
       centre: "El centro tiene que ser una ficha de tipo centro",
       noDeposit: "Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste",
       noStore: "Quien asiste no tiene almacén propio con material",
-      done: "La intervención ya está hecha: no se puede cambiar",
-      noStock: "No hay bastante en el almacén de la intervención",
+      done: "{SurgeryThe} {surgery} ya está hech{surgeryEnd}: no se puede cambiar",
+      noStock: "No hay bastante en el almacén {surgeryOfThe} {surgery}",
       serials: "Hay más números de serie que unidades",
       line: "Revisa las unidades de cada línea",
       empty: "Apunta al menos una unidad usada",
-      cancelled: "La intervención está anulada",
+      cancelled: "{SurgeryThe} {surgery} está anulad{surgeryEnd}",
       notDone: "Primero registra lo usado",
       noSource: "No hay almacén central del que reponer",
       responsible: "Elige un responsable de tu empresa",
@@ -7931,7 +7931,7 @@
         pendingPaymentDetail: "Pedidos confirmados que aún no están cobrados",
         urgentUnvisited: "{professionals} sin visitar",
         urgentUnvisitedDetail: "Marcados como urgentes en su ficha",
-        surgeryRestock: "Material de intervenciones por reponer",
+        surgeryRestock: "Material de {surgeries} por reponer",
         surgeryRestockDetail: "Reposición en 48 horas",
         packagesToPrepare: "Paquetes por preparar",
         packagesToPrepareDetail: "Pedidos confirmados sin enviar",
@@ -7998,8 +7998,12 @@
   var catalogs = { es };
   var currentLanguage = "es";
   var vocabulary = {};
+  var resolveWord = null;
   function setLanguage(language) {
     currentLanguage = language;
+  }
+  function setVocabularyResolver(resolver) {
+    resolveWord = resolver;
   }
   function setVocabulary(words17) {
     vocabulary = { ...words17 };
@@ -8014,7 +8018,7 @@
   }
   function fill(text5, params2) {
     return text5.replace(/\{(\w+)\}/g, (whole2, name) => {
-      const value27 = params2[name] ?? vocabulary[name];
+      const value27 = params2[name] ?? vocabulary[name] ?? resolveWord?.(name);
       return value27 === void 0 ? whole2 : String(value27);
     });
   }
@@ -10963,6 +10967,7 @@
     return { nombre: t("accountsEditor.account"), nueva: t("accountsEditor.newAccount") };
   }
   var privateConsultation = (capital = "C") => capital === "U" ? term("consulta", { capital: "C", adjective: "privado" }).toUpperCase() : term("consulta", { capital, adjective: "privado" });
+  var PRIVATE_SAVED_NAME = "CONSULTA PRIVADA";
   function isPrivateConsultation(centre) {
     if (centre?.id) return false;
     const name = String(centre?.nombre ?? "").trim().toLowerCase();
@@ -21701,6 +21706,35 @@
   }
   var centreCard = (centre, linked) => linked || !isPrivateConsultation(centre) ? centreCardHtml(centre, linked) : privateCardHtml(centre);
 
+  // src/app/legacy/organisation-bridge.ts
+  var organisationLegacy = {
+    setting: (key) => AJUSTES[key],
+    name: () => nombreApp()
+  };
+
+  // src/app/core/organisation.ts
+  var DEFAULT_COUNTRY = "España";
+  var COUNTRY_CODES = { "españa": "es", "portugal": "pt", "francia": "fr", "italia": "it", "andorra": "ad" };
+  var DEFAULT_GENERAL_VAT = 21;
+  var MAX_RATE = 100;
+  var MIN_NAME_LENGTH = 3;
+  function organisationCountry() {
+    const company = organisationLegacy.setting("empresa");
+    return String(company?.pais ?? "").trim() || DEFAULT_COUNTRY;
+  }
+  var countryCode = () => COUNTRY_CODES[organisationCountry().toLowerCase()] ?? "";
+  var addressQuery = (parts) => [...parts, organisationCountry()].filter(Boolean).join(", ");
+  function generalVat() {
+    const raw = organisationLegacy.setting("impuestos")?.general;
+    if (raw === void 0 || raw === null || raw === "") return DEFAULT_GENERAL_VAT;
+    const rate = Number(raw);
+    return Number.isFinite(rate) && rate >= 0 && rate <= MAX_RATE ? rate : DEFAULT_GENERAL_VAT;
+  }
+  function obviousPasswordWords() {
+    const first2 = /[a-zñ]+/.exec(organisationLegacy.name().toLowerCase())?.[0] ?? "";
+    return ["delcos", ...first2.length >= MIN_NAME_LENGTH ? [first2] : []];
+  }
+
   // src/app/screens/accounts/editor-form/private-form.ts
   var LOCATION_TIMEOUT_MS = 12e3;
   var LOCATION_MAX_AGE_MS = 3e4;
@@ -21740,7 +21774,7 @@
       if (!quiet) notices.toast(t("accountsEditor.centreForm.writeAddress"), true);
       return false;
     }
-    const query = [value27("d"), value27("c"), value27("m"), value27("p"), "España"].filter(Boolean).join(", ");
+    const query = addressQuery([value27("d"), value27("c"), value27("m"), value27("p")]);
     const found = await qualityLegacy.geocode(query, { direccion: value27("d"), municipio: value27("m"), cp: value27("c") }).catch(() => null);
     if (!found) {
       if (!quiet) notices.toast(t("accountsEditor.centreForm.notFound"), true);
@@ -21792,7 +21826,7 @@
       button3.disabled = false;
       if (!found) context.point = { lat: null, lon: null };
     }
-    setCentre(context.box, context.index, { nombre: t("accountsEditor.private.savedName"), direccion: value27("d"), cp: value27("c"), municipio: value27("m").toUpperCase(), provincia: value27("p").toUpperCase(), ...context.point });
+    setCentre(context.box, context.index, { nombre: PRIVATE_SAVED_NAME, direccion: value27("d"), cp: value27("c"), municipio: value27("m").toUpperCase(), provincia: value27("p").toUpperCase(), ...context.point });
     void paintCentrePicker(context.box, context.index);
     notices.toast(context.point.lat !== null ? t("accountsEditor.private.ready", { privateConsultation: privateConsultation() }) : t("accountsEditor.private.readyNoPoint"));
   }
@@ -21863,7 +21897,7 @@
       return;
     }
     button3.textContent = t("accountsEditor.centreForm.searching");
-    const query = [value27("d"), value27("c"), value27("m"), value27("p"), "España"].filter(Boolean).join(", ");
+    const query = addressQuery([value27("d"), value27("c"), value27("m"), value27("p")]);
     const found = await qualityLegacy.geocode(query, { direccion: value27("d"), municipio: value27("m"), cp: value27("c") }).catch(() => null);
     button3.textContent = t("accountsEditor.centreForm.findOnMap");
     if (!found) {
@@ -22154,7 +22188,7 @@
       if (field22) field22.value = name;
       const address2 = value5("edcd"), town = value5("edcm");
       if (!address2 || address2 === saved3.address && town === saved3.town && saved3.located) return;
-      const found = await qualityLegacy.geocode([address2, value5("edcc"), town, value5("edcp"), "España"].filter(Boolean).join(", "), { direccion: address2, municipio: town, cp: value5("edcc") }).catch(() => null);
+      const found = await qualityLegacy.geocode(addressQuery([address2, value5("edcc"), town, value5("edcp")]), { direccion: address2, municipio: town, cp: value5("edcc") }).catch(() => null);
       if (found && !found.fuera) {
         const lat = consultationField(box5, index, "lat"), lon = consultationField(box5, index, "lon");
         if (lat) lat.value = String(found.lat);
@@ -23666,7 +23700,7 @@
   async function pointOf3(centre) {
     const moved = value7("ecd") !== orFallback(centre.direccion, "") || value7("ecm") !== orFallback(centre.municipio, "") || value7("ecc") !== orFallback(centre.cp, "");
     if (!moved || !(value7("ecd") || value7("ecm"))) return { lat: centre.lat, lon: centre.lon };
-    const query = [value7("ecd"), value7("ecc"), value7("ecm"), value7("ecp"), t("accountsMore.centreEditor.country")].filter(Boolean).join(", ");
+    const query = addressQuery([value7("ecd"), value7("ecc"), value7("ecm"), value7("ecp")]);
     const found = await qualityLegacy.geocode(query, { direccion: value7("ecd"), municipio: value7("ecm"), cp: value7("ecc") }).catch(() => null);
     if (found && !found.fuera) return { lat: Number(found.lat), lon: Number(found.lon) };
     if (found?.fuera) notices.toast(t("accountsMore.centreEditor.elsewhere", { place: found.fuera, town: value7("ecm") }), true);
@@ -28441,6 +28475,7 @@
   __export(vocabulary_exports, {
     DEFAULT_TERMS: () => DEFAULT_TERMS,
     DETERMINERS: () => DETERMINERS,
+    EXTRA_TERMS: () => EXTRA_TERMS,
     TERMS_KEY: () => TERMS_KEY,
     TITLE: () => TITLE,
     allOf: () => allOf,
@@ -28461,6 +28496,9 @@
     consulta: { s: t("core.terms.location"), p: t("core.terms.locations"), g: "f" },
     especialidad: { s: t("core.terms.segment"), p: t("core.terms.segments"), g: "m" }
   };
+  var EXTRA_TERMS = {
+    intervencion: { s: t("core.terms.surgery"), p: t("core.terms.surgeries"), g: "f" }
+  };
   var DETERMINERS = {
     el: ["el", "los", "la", "las"],
     un: ["un", "unos", "una", "unas"],
@@ -28476,8 +28514,15 @@
   };
   var TERMS_KEY = "dlc-terminos";
   var TITLE = /^(dr|dra|d|dña|dª|sr|sra|srta|prof|profa|lic|ldo|lda)\.?$/i;
+  function ownTerms() {
+    try {
+      return coreLegacy.terms();
+    } catch {
+      return {};
+    }
+  }
   function termOf(key) {
-    const fallback = DEFAULT_TERMS[key] ?? { s: key, p: `${key}s`, g: "m" }, own = coreLegacy.terms()[key] ?? {};
+    const fallback = DEFAULT_TERMS[key] ?? EXTRA_TERMS[key] ?? { s: key, p: `${key}s`, g: "m" }, own = ownTerms()[key] ?? {};
     return { s: String(own.s ?? "").trim() || fallback.s, p: String(own.p ?? "").trim() || fallback.p, g: own.g === "f" || own.g === "m" ? own.g : fallback.g };
   }
   var withCase = (text5, mode) => mode === "U" ? text5.toUpperCase() : mode === "C" ? text5.charAt(0).toUpperCase() + text5.slice(1) : text5;
@@ -28502,6 +28547,23 @@
   };
   var firstName = (name) => nameParts(name)[0] ?? "";
   var initials = (name) => nameParts(name).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase();
+  var ending = (key, plural2) => `${termOf(key).g === "f" ? "a" : "o"}${plural2 ? "s" : ""}`;
+  var SURGERY_WORDS = /* @__PURE__ */ new Map([
+    ["surgery", () => wordFor("intervencion", "s")],
+    ["surgeries", () => wordFor("intervencion", "p")],
+    ["Surgery", () => wordFor("intervencion", "s", { nounCase: "C" })],
+    ["Surgeries", () => wordFor("intervencion", "p", { nounCase: "C" })],
+    ["surgeryThe", () => termOf("intervencion").g === "f" ? "la" : "el"],
+    ["SurgeryThe", () => termOf("intervencion").g === "f" ? "La" : "El"],
+    ["surgeryOfThe", () => termOf("intervencion").g === "f" ? "de la" : "del"],
+    ["surgeriesThe", () => termOf("intervencion").g === "f" ? "las" : "los"],
+    ["surgeryOne", () => termOf("intervencion").g === "f" ? "una" : "un"],
+    ["SurgeryOne", () => termOf("intervencion").g === "f" ? "Una" : "Un"],
+    ["surgeryThis", () => termOf("intervencion").g === "f" ? "esta" : "este"],
+    ["surgeryEnd", () => ending("intervencion", false)],
+    ["surgeryEnds", () => ending("intervencion", true)]
+  ]);
+  setVocabularyResolver((name) => SURGERY_WORDS.get(name)?.());
 
   // src/app/core/session.ts
   var ACCESS_CHECK_MS2 = 3e3;
@@ -29327,7 +29389,7 @@
   }
 
   // src/app/screens/settings/preferences/places.ts
-  var SEARCH_URL = "https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=es&q=";
+  var searchUrl = () => `https://nominatim.openstreetmap.org/search?format=json&limit=1${countryCode() ? `&countrycodes=${countryCode()}` : ""}&q=`;
   var GPS_TIMEOUT_MS = 15e3;
   var GPS_DECIMALS = 6;
   var SHOWN_ADDRESS_PARTS = 3;
@@ -29355,7 +29417,7 @@
     button3.disabled = true;
     button3.textContent = t("settings.preferences.finding");
     try {
-      const found = await (await fetch(SEARCH_URL + encodeURIComponent(address2))).json();
+      const found = await (await fetch(searchUrl() + encodeURIComponent(address2))).json();
       button3.disabled = false;
       button3.textContent = t("settings.preferences.findAddress");
       const first2 = found[0];
@@ -30159,7 +30221,7 @@
   };
   async function search4(query) {
     try {
-      const response = await fetch(`${NOMINATIM}/search?format=json&addressdetails=1&limit=5&countrycodes=es&${query}`);
+      const response = await fetch(`${NOMINATIM}/search?format=json&addressdetails=1&limit=5${countryCode() ? `&countrycodes=${countryCode()}` : ""}&${query}`);
       return response.ok ? await response.json() : [];
     } catch {
       return [];
@@ -39119,7 +39181,7 @@
     const text5 = button3.textContent;
     button3.disabled = true;
     button3.textContent = t("quality.addresses.searching");
-    const query = [place5.direccion, place5.cp, place5.municipio, place5.provincia, "España"].filter(Boolean).join(", ");
+    const query = addressQuery([place5.direccion, place5.cp, place5.municipio, place5.provincia]);
     const found = await qualityLegacy.geocode(query, { direccion: place5.direccion, municipio: place5.municipio, cp: place5.cp });
     button3.disabled = false;
     button3.textContent = text5;
@@ -43127,12 +43189,13 @@
   var LEVELS = ["access.strength.veryWeak", "access.strength.weak", "access.strength.fair", "access.strength.strong", "access.strength.veryStrong"];
   var COLOURS2 = ["#C24141", "#D9480F", "#D97706", "#12805C", "#0F6E4C"];
   var CHARACTER_KINDS = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/];
-  var OBVIOUS = /^(1234|abcd|qwer|contrase|password|dlc)/i;
+  var OBVIOUS = /^(1234|abcd|qwer|contrase|password)/i;
+  var isObvious = (password) => OBVIOUS.test(password) || obviousPasswordWords().some((word) => password.toLowerCase().startsWith(word));
   function passwordStrength(password) {
     if (!password) return { level: -1, text: "" };
     let points = [MIN_LENGTH3, GOOD_LENGTH, LONG_LENGTH].filter((length) => password.length >= length).length;
     points += Math.max(0, CHARACTER_KINDS.filter((kind) => kind.test(password)).length - 1);
-    if (/^(.)\1+$/.test(password) || OBVIOUS.test(password) && password.length < GOOD_LENGTH) points = Math.min(points, 1);
+    if (/^(.)\1+$/.test(password) || isObvious(password) && password.length < GOOD_LENGTH) points = Math.min(points, 1);
     const level2 = password.length < MIN_LENGTH3 ? 0 : Math.min(MAX_LEVEL, Math.max(1, points - 1));
     return { level: level2, text: t(LEVELS[level2] ?? "access.strength.veryWeak") };
   }
@@ -48557,7 +48620,6 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/orders/editor/state.ts
   var CHANNELS = { patient: "paciente", centre: "centro" };
-  var DEFAULT_SERVICE_VAT = 21;
   var WEB_ORIGINS = ["web", "portal"];
   var MANUAL2 = "manual";
   var PERCENT2 = "porcentaje";
@@ -48600,7 +48662,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function serviceFields(order) {
     if (order?.envio) return serviceOfOrder(order);
-    const service = defaultService(), fallback = { envio_iva: Number(service?.iva ?? DEFAULT_SERVICE_VAT), envio_con: nonZeroOr(service?.pvp, 0) };
+    const service = defaultService(), fallback = { envio_iva: Number(service?.iva ?? generalVat()), envio_con: nonZeroOr(service?.pvp, 0) };
     return order ? { servicio_id: "", envio: false, ...fallback } : { servicio_id: service?.id ?? "", envio: Boolean(service), ...fallback };
   }
   var newForm = (preset) => ({
@@ -49012,7 +49074,6 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/orders/editor/index.ts
   var FULL_DISCOUNT2 = 100;
   var SALES_SCREEN4 = "ventas";
-  var DEFAULT_SERVICE_VAT2 = 21;
   var element = (id) => document.getElementById(id);
   var choice = (id) => document.getElementById(id);
   var on3 = (id, handler) => {
@@ -49122,7 +49183,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       if (shipping) shipping.checked = Boolean(chosen5);
       if (chosen5 && amount3 && vat) {
         amount3.value = String(round2(chosen5.pvp ?? 0));
-        vat.value = String(chosen5.iva ?? DEFAULT_SERVICE_VAT2);
+        vat.value = String(chosen5.iva ?? generalVat());
       }
       paintBreakdown(state2);
     };
@@ -49825,7 +49886,6 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
 
   // src/app/screens/products/services.ts
-  var DEFAULT_VAT = 21;
   var PRICE_DECIMALS = 4;
   var money2 = (value27) => isPresent(value27) ? euros4(value27) : "—";
   var field15 = (id) => document.getElementById(id);
@@ -49863,7 +49923,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   var checkbox = (id, on6, locked) => `<input type="checkbox" id="${id}" ${on6 ? "checked" : ""} ${locked}>`;
   function editorHtml15(service, admin) {
-    const locked = admin ? "" : "disabled", vat = service.iva ?? DEFAULT_VAT, [price, withVat3] = prices(service);
+    const locked = admin ? "" : "disabled", vat = service.iva ?? generalVat(), [price, withVat3] = prices(service);
     return `
     <div class="fh"><div><h2>${service.id ? escapeHtml(service.nombre ?? "") : t("products.services.newTitle")}</h2>
       <div class="sm">${t("products.services.hint")}</div></div>
@@ -49921,7 +49981,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (currentScreen() === "productos") void paintServices();
   }
   function editService(existing) {
-    const admin = cardSectionsLegacy.can("administrar"), service = existing ?? { iva: DEFAULT_VAT, activo: true };
+    const admin = cardSectionsLegacy.can("administrar"), service = existing ?? { iva: generalVat(), activo: true };
     const body4 = document.getElementById("dbody"), box5 = document.getElementById("dlg");
     if (!body4 || !box5) return;
     body4.innerHTML = editorHtml15(service, admin);
@@ -55577,8 +55637,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     forgetSchemes();
     repaint5();
   }
-  async function remove9(user, since2, ending) {
-    const asked2 = ending ? { text: "commissions.people.endText", titulo: "commissions.people.endTitle", ok: "commissions.people.endOk" } : { text: "commissions.people.cancelText", titulo: "commissions.people.cancelTitle", ok: "commissions.people.cancelIt" };
+  async function remove9(user, since2, ending2) {
+    const asked2 = ending2 ? { text: "commissions.people.endText", titulo: "commissions.people.endTitle", ok: "commissions.people.endOk" } : { text: "commissions.people.cancelText", titulo: "commissions.people.cancelTitle", ok: "commissions.people.cancelIt" };
     if (!await notices.confirm(t(asked2.text), { titulo: t(asked2.titulo), ok: t(asked2.ok), peligro: true })) return;
     await legacyDb().rpc("asignar_esquema", { p_usuario: user, p_esquema: null, p_quitar: true, p_desde: since2 });
   }

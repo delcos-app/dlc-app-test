@@ -10,6 +10,7 @@ import { escapeHtml } from '../../../services/format';
 import { paintCentrePicker, setCentre } from './centre-picker';
 import { isPrivateConsultation, type CentreData } from './model';
 import { privateForm } from './private-form';
+import { addressQuery } from '../../../core/organisation';
 
 const WEEKDAYS = ['M', 'X', 'J', 'V'];
 
@@ -41,7 +42,7 @@ async function locate(context: FormContext, button: HTMLElement): Promise<void> 
   const value = (suffix: string): string => valueOf(context, suffix);
   if (!value('d') && !value('m')) { notices.toast(t('accountsEditor.centreForm.writeAddress'), true); return; }
   button.textContent = t('accountsEditor.centreForm.searching');
-  const query = [value('d'), value('c'), value('m'), value('p'), 'España'].filter(Boolean).join(', ');
+  const query = addressQuery([value('d'), value('c'), value('m'), value('p')]);
   const found = await qualityLegacy.geocode(query, { direccion: value('d'), municipio: value('m'), cp: value('c') }).catch(() => null);
   button.textContent = t('accountsEditor.centreForm.findOnMap');
   if (!found) { notices.toast(t('accountsEditor.centreForm.notFound'), true); return; }

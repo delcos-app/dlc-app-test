@@ -26,6 +26,9 @@ export function newAccountNames(): { nombre: string; nueva: string } {
 export const privateConsultation = (capital: 'C' | 'l' | 'U' = 'C'): string =>
   (capital === 'U' ? term('consulta', { capital: 'C', adjective: 'privado' }).toUpperCase() : term('consulta', { capital, adjective: 'privado' }));
 
+/** Name stored for a private consultation: a database value, fixed (never from the language files); it is recognised by it. */
+export const PRIVATE_SAVED_NAME = 'CONSULTA PRIVADA';
+
 /** A consultation without a centre whose name starts like «Consulta privada» (with any vocabulary word). */
 export function isPrivateConsultation(centre: CentreData | null | undefined): boolean {
   if (centre?.id) return false;

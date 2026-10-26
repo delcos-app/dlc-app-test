@@ -168,7 +168,7 @@ export const es = {
       pendingPaymentDetail: 'Pedidos confirmados que aún no están cobrados',
       urgentUnvisited: '{professionals} sin visitar',
       urgentUnvisitedDetail: 'Marcados como urgentes en su ficha',
-      surgeryRestock: 'Material de intervenciones por reponer',
+      surgeryRestock: 'Material de {surgeries} por reponer',
       surgeryRestockDetail: 'Reposición en 48 horas',
       packagesToPrepare: 'Paquetes por preparar',
       packagesToPrepareDetail: 'Pedidos confirmados sin enviar',

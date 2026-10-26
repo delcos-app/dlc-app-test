@@ -117,7 +117,6 @@ export const accountsMore = {
     elsewhere: 'La dirección sale en {place}, no en {town}: se guarda sin mover el punto del mapa',
     couldNotSave: 'No se ha podido guardar',
     saved: 'Centro guardado',
-    country: 'España',
   },
   nearby: {
     noLocation: 'Este dispositivo no tiene ubicación',

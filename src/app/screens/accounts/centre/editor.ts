@@ -8,6 +8,7 @@ import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
 import type { Centre } from './model';
+import { addressQuery } from '../../../core/organisation';
 
 const value = (id: string): string => ((document.getElementById(id) as HTMLInputElement | null)?.value ?? '').trim();
 
@@ -35,7 +36,7 @@ function editorHtml(centre: Centre): string {
 async function pointOf(centre: Centre): Promise<{ lat: Centre['lat']; lon: Centre['lon'] }> {
   const moved = value('ecd') !== orFallback(centre.direccion, '') || value('ecm') !== orFallback(centre.municipio, '') || value('ecc') !== orFallback(centre.cp, '');
   if (!moved || !(value('ecd') || value('ecm'))) return { lat: centre.lat, lon: centre.lon };
-  const query = [value('ecd'), value('ecc'), value('ecm'), value('ecp'), t('accountsMore.centreEditor.country')].filter(Boolean).join(', ');
+  const query = addressQuery([value('ecd'), value('ecc'), value('ecm'), value('ecp')]);
   const found = await qualityLegacy.geocode(query, { direccion: value('ecd'), municipio: value('ecm'), cp: value('ecc') }).catch(() => null);
   if (found && !found.fuera) return { lat: Number(found.lat), lon: Number(found.lon) };
   if (found?.fuera) notices.toast(t('accountsMore.centreEditor.elsewhere', { place: found.fuera, town: value('ecm') }), true);

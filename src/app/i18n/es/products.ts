@@ -115,7 +115,7 @@ export const products = {
     transferIn: 'Traspaso (entra)',
     returned: 'Devolución',
     depositUse: 'Usado en un depósito',
-    surgeryUse: 'Usado en una intervención',
+    surgeryUse: 'Usado en {surgeryOne} {surgery}',
   },
   movement: {
     entryTitle: 'Entrada de stock',
@@ -204,7 +204,7 @@ export const products = {
     left: 'quedan {units}',
     usedOf: 'Usadas de {name}',
     reference: 'Referencia',
-    referencePlaceholder: 'p. ej. Intervención del martes, sala 2 (sin datos del paciente)',
+    referencePlaceholder: 'p. ej. {Surgery} del martes, sala 2 (sin datos del paciente)',
     record: 'Apuntar',
     countTitle: 'Recuento',
     countHint: 'Escribe lo que hay ahora; lo que falte se apunta como usado.',

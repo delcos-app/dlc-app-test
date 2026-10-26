@@ -98,7 +98,7 @@ export const productsMore = {
   },
   remove: {
     button: 'Eliminar producto',
-    text: 'Si no se ha vendido nunca, se borra del todo, también su stock, sus lotes y sus compras. Si tiene ventas, muestras firmadas, intervenciones o equipos, deja de salir en todas partes pero se conserva para el histórico (los pedidos y las facturas siguen con su nombre) y se puede recuperar.',
+    text: 'Si no se ha vendido nunca, se borra del todo, también su stock, sus lotes y sus compras. Si tiene ventas, muestras firmadas, {surgeries} o equipos, deja de salir en todas partes pero se conserva para el histórico (los pedidos y las facturas siguen con su nombre) y se puede recuperar.',
     title: '¿Eliminar «{name}»?',
     ok: 'Eliminar',
     stock: 'Tiene ventas y {units} unidades en stock: sácalas o regulariza el stock antes de eliminarlo',

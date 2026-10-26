@@ -7,6 +7,7 @@ import { agendaActions, callRpc, legacyDb, notices, qualityLegacy, term } from '
 import { t, type MessageKey } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
+import { addressQuery } from '../../core/organisation';
 
 interface DataQuality {
   total: number; completas: number; sin_ubicacion: number; sin_horario: number; sin_especialidad: number; sin_contacto: number;
@@ -80,7 +81,7 @@ function removeRow(box: HTMLElement, id: string): void {
 
 async function relocate(box: HTMLElement, place: DoubtfulPlace, button: HTMLButtonElement): Promise<void> {
   const text = button.textContent; button.disabled = true; button.textContent = t('quality.addresses.searching');
-  const query = [place.direccion, place.cp, place.municipio, place.provincia, 'España'].filter(Boolean).join(', ');
+  const query = addressQuery([place.direccion, place.cp, place.municipio, place.provincia]);
   const found = await qualityLegacy.geocode(query, { direccion: place.direccion, municipio: place.municipio, cp: place.cp });
   button.disabled = false; button.textContent = text;
   if (!found) { notices.toast(t('quality.addresses.notFound'), true); return; }
