@@ -5945,7 +5945,20 @@
       companyTitle: "Errores y reportes",
       companyText: "Errores que se producen al usar la plataforma y problemas que reportan las personas. Descarga el archivo para enviárselo a quien da soporte técnico.",
       allKinds: "Todos los tipos",
-      allStates: "Todos los estados"
+      allStates: "Todos los estados",
+      view: "Ver",
+      byError: "Por error",
+      byVersion: "Por versión",
+      versionTitle: "Versión {version} · {count} errores distintos"
+    },
+    errorCode: {
+      show: "Ver en el código",
+      loading: "Leyendo el mapa del código…",
+      noStack: "Este error no guardó dónde ocurrió.",
+      otherVersion: "El error es de la versión {version} y el mapa del código solo sirve para la versión publicada ahora ({current}).",
+      notMinified: "La pila no apunta al código publicado (min/app.js): ya se lee tal cual arriba.",
+      noMap: "No se ha podido leer el mapa del código: {error}",
+      unmapped: "(sin correspondencia)"
     },
     billing: {
       all: "Todas",
@@ -52398,6 +52411,204 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     paintRows4(rows2, "todas");
   }
 
+  // src/app/services/source-map.ts
+  var BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  var DIGIT = new Map([...BASE64].map((char, index) => [char, index]));
+  var VLQ_SHIFT = 5;
+  var VLQ_CONTINUE = 32;
+  var VLQ_MASK = 31;
+  function decodeVlq(segment) {
+    const values2 = [];
+    let value27 = 0, shift = 0;
+    for (const char of segment) {
+      const digit = DIGIT.get(char);
+      if (digit === void 0) throw new Error(`VLQ: invalid character «${char}»`);
+      value27 += (digit & VLQ_MASK) << shift;
+      if (digit & VLQ_CONTINUE) {
+        shift += VLQ_SHIFT;
+        continue;
+      }
+      values2.push(value27 & 1 ? -(value27 >>> 1) : value27 >>> 1);
+      value27 = 0;
+      shift = 0;
+    }
+    if (shift !== 0) throw new Error("VLQ: unfinished segment");
+    return values2;
+  }
+  function parseMappings(mappings) {
+    const lines4 = [];
+    let source = 0, line3 = 0, sourceColumn = 0, name = 0;
+    for (const text5 of mappings.split(";")) {
+      const current = [];
+      let column = 0;
+      for (const segment of text5.split(",")) {
+        if (!segment) continue;
+        const [delta2 = 0, sourceDelta, lineDelta, columnDelta, nameDelta] = decodeVlq(segment);
+        column += delta2;
+        if (sourceDelta === void 0 || lineDelta === void 0 || columnDelta === void 0) continue;
+        source += sourceDelta;
+        line3 += lineDelta;
+        sourceColumn += columnDelta;
+        if (nameDelta !== void 0) name += nameDelta;
+        current.push({ column, source, line: line3, sourceColumn, name: nameDelta === void 0 ? null : name });
+      }
+      current.sort((first2, second) => first2.column - second.column);
+      lines4.push(current);
+    }
+    return lines4;
+  }
+  function readSourceMap(data) {
+    const root = data.sourceRoot ? data.sourceRoot.replace(/\/?$/, "/") : "";
+    return { sources: data.sources.map((source) => root + source), names: data.names ?? [], lines: parseMappings(data.mappings) };
+  }
+  function originalPosition(map2, line3, column) {
+    const segments2 = map2.lines[line3 - 1];
+    if (!segments2?.length) return null;
+    const target = column - 1;
+    let low = 0, high = segments2.length - 1, found = -1;
+    while (low <= high) {
+      const middle = low + high >> 1, segment = segments2[middle];
+      if (segment && segment.column <= target) {
+        found = middle;
+        low = middle + 1;
+      } else high = middle - 1;
+    }
+    const hit = segments2[found];
+    if (!hit) return null;
+    return { source: map2.sources[hit.source] ?? "?", line: hit.line + 1, column: hit.sourceColumn + 1, name: hit.name === null ? null : map2.names[hit.name] ?? null };
+  }
+  var FRAME = /((?:min\/)?app\.js)(?:\?v=([\d.]+))?:(\d+):(\d+)/;
+  function stackFrames(stack) {
+    return stack.split("\n").map((text5) => {
+      const match = FRAME.exec(text5);
+      return match ? { file: match[1] ?? "", version: match[2] ?? null, line: Number(match[3]), column: Number(match[4]), text: text5.trim() } : null;
+    }).filter((frame) => frame !== null);
+  }
+
+  // src/app/screens/platform/error-code.ts
+  var MAP_PATH = "min/app.js.map";
+  var MINIFIED = "min/app.js";
+  var mapRequest = null;
+  function loadMap() {
+    mapRequest ?? (mapRequest = fetch(new URL(MAP_PATH, location.href).href, { cache: "force-cache" }).then(async (response) => {
+      if (!response.ok) throw new Error(String(response.status));
+      return readSourceMap(await response.json());
+    }));
+    mapRequest.catch(() => {
+      mapRequest = null;
+    });
+    return mapRequest;
+  }
+  var stackOf = (detail) => {
+    const stack = detail && typeof detail === "object" ? detail.pila : null;
+    return typeof stack === "string" ? stack : "";
+  };
+  function frameLine(map2, frame) {
+    const position = frame.file === MINIFIED ? originalPosition(map2, frame.line, frame.column) : null;
+    if (!position) return `${escapeHtml(frame.text)}  ${t("platform.errorCode.unmapped")}`;
+    const source = position.source.replace(/^(\.\.\/)+/, "");
+    return `${escapeHtml(source)}:${position.line}:${position.column}${position.name ? `  (${escapeHtml(position.name)})` : ""}`;
+  }
+  async function codeOfStack(detail, currentVersion) {
+    const frames = stackFrames(stackOf(detail));
+    if (!frames.length) return t("platform.errorCode.noStack");
+    const other = frames.find((frame) => frame.version && frame.version !== currentVersion);
+    if (other) return t("platform.errorCode.otherVersion", { version: other.version ?? "", current: currentVersion });
+    if (!frames.some((frame) => frame.file === MINIFIED)) return t("platform.errorCode.notMinified");
+    try {
+      const map2 = await loadMap();
+      return frames.map((frame) => frameLine(map2, frame)).join("\n");
+    } catch (error) {
+      return t("platform.errorCode.noMap", { error: escapeHtml(error instanceof Error ? error.message : String(error)) });
+    }
+  }
+
+  // src/app/screens/platform/error-signature.ts
+  var STATE_ORDER = ["Nuevo", "Revisado", "Resuelto"];
+  function normaliseMessage(message4) {
+    return message4.replace(/https?:\/\/\S+/g, "<url>").replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<id>").replace(/(["'«`])[^"'»`]{0,120}(["'»`])/g, "$1…$2").replace(/\d+([.,]\d+)?/g, "<n>").replace(/\s+/g, " ").trim();
+  }
+  var stackOf2 = (detail) => {
+    if (!detail || typeof detail !== "object") return "";
+    const stack = detail.pila;
+    return typeof stack === "string" ? stack : "";
+  };
+  function firstAppFrame(detail) {
+    const frame = stackFrames(stackOf2(detail))[0];
+    if (!frame) return "";
+    const name = /^\s*(?:at\s+)?([\w$.<>]+)\s*[(@]/.exec(frame.text)?.[1];
+    return name && name !== "at" ? name : frame.file;
+  }
+  var signatureOf2 = (group) => `${group.tipo}|${normaliseMessage(group.mensaje)}|${firstAppFrame(group.detalle)}`;
+  var versionsOf = (group) => String(group.versiones ?? "").split(",").map((version) => version.trim()).filter(Boolean);
+  function compareVersions(first2, second) {
+    const parts = (version) => version.replace(/^v/, "").split(".").map(Number);
+    const one = parts(first2), other = parts(second);
+    for (let index = 0; index < Math.max(one.length, other.length); index++) {
+      const difference2 = (other[index] ?? 0) - (one[index] ?? 0);
+      if (difference2) return difference2;
+    }
+    return 0;
+  }
+  var earliest = (first2, second) => first2 <= second ? first2 : second;
+  var openest = (first2, second) => STATE_ORDER.indexOf(first2) <= STATE_ORDER.indexOf(second) ? first2 : second;
+  function mergeInto(target, group) {
+    target.veces += group.veces;
+    target.personas = Math.max(target.personas, group.personas);
+    target.primera = earliest(target.primera, group.primera);
+    if (group.ultima > target.ultima) {
+      target.ultima = group.ultima;
+      target.detalle = group.detalle;
+      target.mensaje = group.mensaje;
+    }
+    target.estado = openest(target.estado, group.estado);
+    if (group.pantalla && !target.pantallas.includes(group.pantalla)) target.pantallas.push(group.pantalla);
+    versionsOf(group).forEach((version) => {
+      if (!target.versiones.includes(version)) target.versiones.push(version);
+    });
+    target.members.push(group);
+  }
+  function mergeBySignature(groups3) {
+    const bySignature = /* @__PURE__ */ new Map();
+    groups3.forEach((group) => {
+      const signature = signatureOf2(group), found = bySignature.get(signature);
+      if (found) {
+        mergeInto(found, group);
+        return;
+      }
+      bySignature.set(signature, {
+        signature,
+        tipo: group.tipo,
+        mensaje: group.mensaje,
+        veces: group.veces,
+        personas: group.personas,
+        primera: group.primera,
+        ultima: group.ultima,
+        estado: group.estado,
+        pantallas: group.pantalla ? [group.pantalla] : [],
+        versiones: versionsOf(group),
+        detalle: group.detalle,
+        members: [group]
+      });
+    });
+    const merged = [...bySignature.values()];
+    merged.forEach((error) => {
+      error.versiones.sort(compareVersions);
+    });
+    return merged.sort((first2, second) => second.ultima.localeCompare(first2.ultima));
+  }
+  function byVersion(errors) {
+    const versions = /* @__PURE__ */ new Map();
+    errors.forEach((error) => {
+      (error.versiones.length ? error.versiones : ["?"]).forEach((version) => {
+        const list = versions.get(version);
+        if (list) list.push(error);
+        else versions.set(version, [error]);
+      });
+    });
+    return [...versions.entries()].sort(([first2], [second]) => compareVersions(first2, second));
+  }
+
   // src/app/screens/platform/errors.ts
   var STATES8 = ["Nuevo", "Revisado", "Resuelto"];
   var SOLVED = "Resuelto";
@@ -52409,15 +52620,27 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   };
   var stateOptions2 = (current) => STATES8.map((state2) => `<option ${current === state2 ? "selected" : ""}>${state2}</option>`).join("");
   var select = (id) => document.getElementById(id);
-  function groupRow(group, index) {
-    const solved = group.resuelto_en_version ? t(group.resuelto_auto ? "platform.errors.solvedAuto" : "platform.errors.solvedIn", { version: escapeHtml(group.resuelto_en_version) }) : "";
-    return `<div class="errfila e-${group.tipo}">
-        <div><b>${escapeHtml(kindName(group.tipo))}</b> <span class="sm">· ${escapeHtml(orFallback(group.pantalla, "—"))} · ${formatNumber(group.veces)} ${t(group.veces === 1 ? "platform.errors.time" : "platform.errors.times")} · ${formatNumber(group.personas)} ${t(group.personas === 1 ? "platform.errors.person" : "platform.errors.people")}
-          · ${t("platform.errors.last", { date: shortDateTime4(group.ultima) })}${solved}</span>
-          <div class="errmsg">${escapeHtml(group.mensaje)}</div>
-          <details class="errdet"><summary class="sm">${t("platform.errors.details")}</summary><div class="sm">${t("platform.errors.versions", { versions: escapeHtml(orFallback(group.versiones, "—")), date: shortDateTime4(group.primera) })}</div>
-            <pre>${escapeHtml(JSON.stringify(group.detalle ?? {}, null, 1))}</pre></details></div>
-        <select class="chico" data-egh="${index}" aria-label="${t("platform.errors.groupState")}">${stateOptions2(group.estado)}</select></div>`;
+  var errorView = "error";
+  function solvedText(error) {
+    const solved = error.members.find((member) => member.resuelto_en_version);
+    if (!solved?.resuelto_en_version) return "";
+    return t(solved.resuelto_auto ? "platform.errors.solvedAuto" : "platform.errors.solvedIn", { version: escapeHtml(solved.resuelto_en_version) });
+  }
+  function errorRow(error, index) {
+    const screens = error.pantallas.length ? error.pantallas.join(", ") : "—";
+    return `<div class="errfila e-${error.tipo}">
+        <div><b>${escapeHtml(kindName(error.tipo))}</b> <span class="sm">· ${escapeHtml(screens)} · ${formatNumber(error.veces)} ${t(error.veces === 1 ? "platform.errors.time" : "platform.errors.times")} · ${formatNumber(error.personas)} ${t(error.personas === 1 ? "platform.errors.person" : "platform.errors.people")}
+          · ${t("platform.errors.last", { date: shortDateTime4(error.ultima) })}${solvedText(error)}</span>
+          <div class="errmsg">${escapeHtml(error.mensaje)}</div>
+          <details class="errdet"><summary class="sm">${t("platform.errors.details")}</summary><div class="sm">${t("platform.errors.versions", { versions: escapeHtml(error.versiones.join(", ") || "—"), date: shortDateTime4(error.primera) })}</div>
+            <pre>${escapeHtml(JSON.stringify(error.detalle ?? {}, null, 1))}</pre>
+            <button type="button" class="btn sec chico" data-egmap="${index}">${t("platform.errorCode.show")}</button><pre class="errcode" hidden></pre></details></div>
+        <select class="chico" data-egh="${index}" aria-label="${t("platform.errors.groupState")}">${stateOptions2(error.estado)}</select></div>`;
+  }
+  function listHtml6(list) {
+    if (errorView === "error") return list.map(errorRow).join("");
+    return byVersion(list).map(([version, errors]) => `<h3 class="errver">${t("platform.errors.versionTitle", { version: escapeHtml(version), count: formatNumber(errors.length) })}</h3>
+      ${errors.map((error) => errorRow(error, list.indexOf(error))).join("")}`).join("");
   }
   function platformHtml(list, error) {
     const filters3 = platformState.platformErrors;
@@ -52427,18 +52650,32 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${error ? `<div class="banda-peligro">${t("platform.errors.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
     <div class="usrbar"><select id="egest">${states.map(([key, label]) => `<option value="${key}" ${filters3.estado === key ? "selected" : ""}>${t(label)}</option>`).join("")}</select>
       <select id="egdias">${DAY_OPTIONS.map((days) => `<option value="${days}" ${filters3.dias === days ? "selected" : ""}>${t("platform.errors.lastDays", { days })}</option>`).join("")}</select>
+      <select id="egvista" aria-label="${t("platform.errors.view")}"><option value="error" ${errorView === "error" ? "selected" : ""}>${t("platform.errors.byError")}</option><option value="version" ${errorView === "version" ? "selected" : ""}>${t("platform.errors.byVersion")}</option></select>
       <button class="btn sec" id="egdesc">${icon("download")} ${t("platform.errors.download")}</button></div>
-    <div class="errlista">${list.map(groupRow).join("") || `<div class="vacio">${t(filters3.estado === "abiertos" ? "platform.errors.noneOpen" : "platform.errors.none")}</div>`}</div></div>`;
+    <div class="errlista">${listHtml6(list) || `<div class="vacio">${t(filters3.estado === "abiertos" ? "platform.errors.noneOpen" : "platform.errors.none")}</div>`}</div></div>`;
   }
   var shown2 = (group) => {
     const filter = platformState.platformErrors.estado;
     return filter === "todos" || (filter === "abiertos" ? group.estado !== SOLVED : group.estado === SOLVED);
   };
-  async function markGroup(group, state2) {
-    const { data: result } = await callRpc("marcar_errores_huella", { p_huella: group.huella, p_estado: state2 });
-    const ok = Boolean(result?.ok);
+  async function markGroup(error, state2) {
+    const results = await Promise.all(error.members.map((member) => callRpc("marcar_errores_huella", { p_huella: member.huella, p_estado: state2 })));
+    const ok = results.every(({ data: result }) => Boolean(result?.ok));
     notices.toast(ok ? t(state2 === SOLVED ? "platform.errors.groupSolved" : "platform.errors.stateChanged") : t("platform.errors.couldNotChange"), !ok);
     if (ok) void paintPlatformErrors();
+  }
+  function bindCode(box5, list) {
+    box5.querySelectorAll("[data-egmap]").forEach((button3) => {
+      button3.onclick = async () => {
+        const error = list[Number(button3.dataset.egmap)], out = button3.nextElementSibling;
+        if (!error || !out) return;
+        button3.disabled = true;
+        out.hidden = false;
+        out.textContent = t("platform.errorCode.loading");
+        out.innerHTML = await codeOfStack(error.detalle, platformLegacy.appVersion());
+        button3.disabled = false;
+      };
+    });
   }
   async function paintPlatformErrors() {
     const start4 = panelBox();
@@ -52447,7 +52684,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const { data, error } = await callRpc("errores_resumen", { p_dias: platformState.platformErrors.dias });
     const box5 = panelBox();
     if (!box5) return;
-    const all2 = error ? [] : data ?? [], list = all2.filter(shown2);
+    const all2 = error ? [] : data ?? [], list = mergeBySignature(all2).filter(shown2);
     box5.innerHTML = platformHtml(list, error);
     const refilter = () => {
       platformState.platformErrors = { estado: select("egest")?.value ?? "abiertos", dias: Number(select("egdias")?.value) };
@@ -52456,12 +52693,18 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const states = select("egest"), days = select("egdias");
     if (states) states.onchange = refilter;
     if (days) days.onchange = refilter;
+    const view = select("egvista");
+    if (view) view.onchange = () => {
+      errorView = view.value === "version" ? "version" : "error";
+      void paintPlatformErrors();
+    };
     box5.querySelectorAll("[data-egh]").forEach((field22) => {
       field22.onchange = () => {
         const group = list[Number(field22.dataset.egh)];
         if (group) void markGroup(group, field22.value);
       };
     });
+    bindCode(box5, list);
     const save48 = document.getElementById("egdesc");
     if (save48) save48.onclick = () => {
       downloadJson({ generado: (/* @__PURE__ */ new Date()).toISOString(), version: platformLegacy.appVersion(), errores: all2 }, `errores_${todayIso()}.json`);
@@ -52997,14 +53240,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var ROUTES_PER_USER = 30;
   var WARNING_SHARE = 0.8;
   function versionsHtml(list) {
-    const byVersion = /* @__PURE__ */ new Map();
+    const byVersion2 = /* @__PURE__ */ new Map();
     list.forEach((item) => {
-      byVersion.set(item.version, [...byVersion.get(item.version) ?? [], item]);
+      byVersion2.set(item.version, [...byVersion2.get(item.version) ?? [], item]);
     });
-    const versions = [...byVersion.keys()].sort((first2, second) => second.localeCompare(first2, "es", { numeric: true }));
+    const versions = [...byVersion2.keys()].sort((first2, second) => second.localeCompare(first2, "es", { numeric: true }));
     if (!versions.length) return `<div class="vacio">${t("platform.status.noVersions")}</div>`;
     return versions.map((version) => {
-      const users = byVersion.get(version) ?? [], number3 = version.replace(/^v/, "");
+      const users = byVersion2.get(version) ?? [], number3 = version.replace(/^v/, "");
       return `<div class="pdver"><div class="pdvercab"><b>v${escapeHtml(number3)}</b>${number3 === platformLegacy.appVersion() ? ` <span class="pill p-est">${t("platform.status.current")}</span>` : ` <span class="pill p-warn">${t("platform.status.previous")}</span>`}
         <span class="sm">${users.length} ${t(users.length === 1 ? "platform.status.company" : "platform.status.companies")}</span></div>
       <div class="sm">${users.map((item) => `${escapeHtml(item.organizacion)} (${platformLegacy.timeAgo(item.ultima_vez)})`).join(" · ")}</div></div>`;
@@ -58251,7 +58494,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <span class="cicfal"><b>${formatNumber(item.actividades_12m)}</b><span class="sm">${t("cycle.classifyPage.in12Months")}</span></span>
         ${classButtons(item.id, item.clase)}</div>`;
   }
-  function listHtml6(rows2) {
+  function listHtml7(rows2) {
     if (!rows2.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
     return `<section class="card cicbloque"><div class="lista">${rows2.map(rowHtml41).join("")}</div></section>${rows2.length >= SHOWN7 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
   }
@@ -58260,7 +58503,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="${t("cycle.classifyPage.show")}">${filters3}</span>
       <span class="cicacc"><input id="cicq" type="search" placeholder="${t("cycle.classifyPage.search", words3())}" value="${escapeHtml(cycleState.query)}" aria-label="${t("cycle.classifyPage.searchLabel")}">${selector}</span></div>
     <p class="sm">${t("cycle.classifyPage.hint", words3())}</p>
-    ${listHtml6(rows2)}</div>`;
+    ${listHtml7(rows2)}</div>`;
   }
   var searchTimer9;
   function bind43(box5, wasSearching) {
