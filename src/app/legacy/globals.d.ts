@@ -25,10 +25,7 @@ interface LegacyDb {
 
 declare const db: LegacyDb;
 declare function RPC_ORIG<T>(name: string, params: Record<string, unknown>): PromiseLike<LegacyResult<T>>;
-declare let TAB: string;
-declare let PEDSEC: string;
-declare let KV_INI: HomePanel | null;
-declare let KV_GRAF: HomeCharts | null;
+
 declare const CITA_ABIERTA: readonly string[];
 declare const ICON_NOM: Readonly<Record<string, string>>;
 declare function ir(screen: string): unknown;
@@ -46,30 +43,22 @@ declare function puedeDuplicados(): boolean;
 // ---- Navigation (src/app/core/navigation): state and helpers the navigation steps still read or change
 type PageTab = Record<string, string | undefined>;
 declare const VUELTA: unknown[];
-declare let VISTA: unknown;
+
 declare const PL: Readonly<Record<string, unknown>>;
-declare let MANUAL_VUELTA: { tab: string; y: number } | null;
-declare let CFG_SEC: string | null;
-declare let CFG_SUB: string | null;
+
 declare let CFG_KEY: string;
-declare let CFG_DETALLE: boolean;
-declare let PAG_TAB: PageTab;
+
 declare let IR_DESDE_MENU_CFG: boolean;
 declare let IR_DESDE_MENU: boolean;
 declare const PANEL_SECCIONES: readonly (readonly string[])[];
-declare let MODO_PLATAFORMA: boolean;
+
 declare let PAGO_IR_PLAN: boolean;
 declare const PLAN_SECCIONES: Readonly<Record<string, readonly string[]>>;
-declare let PERFIL: unknown;
-declare let AG_MODO: string;
-declare let AG_FECHA: string | null;
+
 declare const ALIAS_PEDIDOS: Readonly<Record<string, string>>;
 declare const ORG_DESDE: Readonly<Record<string, string>>;
 declare const PAGINAS: Readonly<Record<string, unknown>>;
-declare let FAC_ULTIMA: string | null;
-declare let FSEC: string;
-declare let PEND: number;
-declare let VIA_IR: string | null;
+
 declare function irBase(screen: string): void;
 declare function cometa(): void;
 declare function plVigilar(screen: string): void;
@@ -111,7 +100,7 @@ declare const KPI_CAT: readonly KpiDefinition[];
 declare const AYUDA_KPI: Readonly<Record<string, string>>;
 declare const KPI_ICO: Readonly<Record<string, string>>;
 declare const KPI_TXT: Readonly<Record<string, string>>;
-declare let ESTADOS_DEF: readonly { valor: string; papel: string }[];
+
 declare const EST_COL: Readonly<Record<string, string>>;
 declare function kpiConfig(): readonly KpiSetting[];
 declare function rpcCache<T>(name: string, params: Record<string, unknown>, key: string): Promise<{ data: T | null; cache?: boolean; fecha?: string }>;
@@ -126,11 +115,9 @@ interface AgendaMetrics {
   pendientes?: { urgentes?: number | null; sin_visita?: number | null };
   media_dia?: number | null;
 }
-declare let AG_MET: AgendaMetrics | null;
-declare let AG_VISTA: { id: string; nombre: string } | null;
+
 interface AgendaAppointment { id: string; cuenta_id?: string; estado: string; lat?: number | string | null; lon?: number | string | null; centro_nombre?: string | null }
-declare let TD_CITAS: AgendaAppointment[];
-declare let TD_ULTIMO: { fecha: string; data?: AgendaAppointment[] } | null;
+
 declare function agVerDia(isoDate: string): Promise<void>;
 declare function agN(): boolean;
 
@@ -138,29 +125,24 @@ interface SameCentrePerson { id: string; nombre: string; visitar?: string | null
 interface SameCentreGroup { centro_id?: string | null; centro_nombre?: string | null; lat?: number | null; lon?: number | null; cuentas?: SameCentrePerson[]; medicos?: SameCentrePerson[] }
 interface DueAccount { id?: string; cuenta_id?: string; nombre: string; estado_comercial?: string | null; dias_sin_visita?: number | null; municipio?: string | null; lat?: number | null; lon?: number | null }
 interface PendingAppointment { id: string; nombre: string; fecha: string; centro_nombre?: string | null }
-declare let AG_SUG: { fecha: string; toca: DueAccount[]; centros: SameCentreGroup[] } | null;
-declare let AG_PEND: PendingAppointment[] | null;
-declare let HERR_CTX: string | null;
+
 declare function abrirFicha(id: string): Promise<void>;
 declare function nuevaCita(accountId: string, isoDate: string | null): Promise<void>;
 interface RangeAppointment { fecha: string; estado: string; usuario_id?: string; hora?: string | null; medico?: string | null; nombre?: string | null }
 declare function agBloqueos(fromIsoDate: string, days: number): Promise<Record<string, string>>;
-declare let TD_PRESET: { fecha: string; data?: AgendaAppointment[] } | null;
-declare let CINTA_INI: string | null;
+
 declare function tareasDelDia(isoDate: string): Promise<unknown>;
 declare function bloqueadosSemanaBase(fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>>;
-declare let AG_SEM_ABIERTA: boolean;
+
 declare let AG_HOY_VISTO: string | null;
-declare let TAREAS_DIA: { f: string; l: (DayTask & { orden?: number })[] } | null;
-declare let ABRIR_PLAN_SEMANA: boolean;
-declare let COMS: { id: string; nombre: string }[];
+
 declare function pintarTuDia(): Promise<void>;
 declare function pintarEquipo(): Promise<void>;
 declare function cargarComerciales(): Promise<void>;
 interface WeekAppointment extends RangeAppointment { id: string; cuenta_id: string; usuario?: string | null; dias?: Record<string, string | null> | null }
 interface WeekDraftItem { m: { nombre: string; municipio?: string | null }; ini?: number | null; cita?: Record<string, unknown>; motivo?: string }
 interface WeekDraft { semana: string; uid: string; total: number; dias: Record<string, WeekDraftItem[]>; sinDia: WeekDraftItem[]; horario?: Record<string, unknown> | null }
-declare let SEM_BORRADOR: WeekDraft | null;
+
 declare function estimarDia(appointments: readonly object[], isoDate: string): { fin: number; tope: number };
 declare function ventanasDe(days: Record<string, string | null> | null | undefined, isoDate: string): unknown[] | null;
 declare function preguntar(message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean>;
@@ -174,7 +156,7 @@ interface DayAppointmentFull extends WeekAppointment {
 }
 interface StopInfo { otroCentro?: string | null; aviso?: string | null; lejos?: number | null; llegada?: number | null; ventanas?: [number, number][] | null; espera?: number | null }
 interface DayTask { id: string; titulo: string; nota?: string | null; hora?: string | null; hecha?: boolean | null }
-declare let TD_INFO: Record<string, StopInfo>;
+
 declare const ICO: Readonly<Record<string, string>>;
 declare const ICU: Readonly<Record<string, string>>;
 declare function SVA(path: string): string;
@@ -190,7 +172,7 @@ interface SheetAppointment extends DayAppointmentFull {
 }
 interface ChoiceButton { k: string; t: string; cls?: string }
 declare let VISITA_FECHA: string;
-declare let FICHA_CENTRO: string | null;
+
 declare const CAT: Record<string, { valor: string; extra?: string | null }[]>;
 declare function escribir(name: string, payload: Record<string, unknown>): Promise<{ error?: unknown } | null>;
 declare function escribirRpc(name: string, payload: Record<string, unknown>): Promise<{ error?: { message?: string } | null }>;
@@ -201,8 +183,7 @@ declare function abrirVisita(accountId: string): Promise<void>;
 declare function agUnida(): boolean;
 declare const RC: Map<string, unknown>;
 declare const RC_VUELO: Map<string, unknown>;
-declare let RC_EPOCA: number;
-declare let DLG_EPOCA: number;
+
 declare const AG_DIAS_DATOS: Record<string, AgendaAppointment[] | undefined>;
 interface PickedAccount { id: string; nombre?: string; centro_nombre?: string | null; centro?: string | null }
 interface Consultation { centro_nombre?: string | null; municipio?: string | null; principal?: boolean | null }
@@ -212,9 +193,7 @@ declare function recientesDe(ids: string[], isoDate: string): Promise<Record<str
 declare function txtReciente(list: RecentContact[]): string;
 declare function avisoRevisita(): { on: boolean; dias: number };
 declare function guardarAvisoRevisita(value: { on: boolean; dias: number }): Promise<void>;
-declare let FICHA_ID: string | null;
-declare let FICHA_PAC: unknown;
-declare let AJUSTES: Record<string, unknown>;
+
 declare function verFotosVisita(activityId: string, accountId: string): Promise<void>;
 declare function verEvento(id: string): Promise<void>;
 declare function verDeposito(accountId: string, name: string, notice?: string): Promise<void>;
@@ -247,8 +226,7 @@ interface PortalMessage { id: string; texto: string; del_portal: boolean; creado
 interface PortalResult { ok?: boolean; motivo?: string; productos?: number }
 interface CatalogProduct { id: string; nombre: string; tipo?: string | null; estado?: string | null; precio?: number | null }
 interface PlatformUser { id: string; cuenta_id?: string | null; email?: string | null; activo?: boolean }
-declare let PRODUCTOS: CatalogProduct[];
-declare let MED_ACCESO: unknown;
+
 declare const CFG: { url: string; anon: string };
 declare function hayExtra(extra: string): boolean;
 declare function pillMaterial(state: string): string;
@@ -261,7 +239,7 @@ interface AccountFilters { q: string; prov: string; muni: string; esp: string; e
 interface AccountRow { id: string; nombre?: string | null; urgente?: boolean | null; centro_nombre?: string | null; municipio?: string | null; estado_comercial?: string | null }
 interface ColumnSetting { k: string; on: boolean; w: number }
 declare const F: AccountFilters;
-declare let MODO_MAPA: boolean;
+
 declare const ORD_DIR: Readonly<Record<string, string>>;
 declare function clasChips(scope: string, state: Record<string, unknown>): { k: string; t: string }[];
 declare function etiquetaContactos(): string;
@@ -278,7 +256,7 @@ declare function verPedido(id: string): Promise<void>;
 declare function pintarCirugias(): Promise<void>;
 
 // ---- Parque instalado (src/app/screens/equipment): contract warnings and kinds live in Concursos (not migrated yet)
-declare let CON_AVISOS: number[];
+
 declare const EQ_CONTRATOS: readonly string[];
 
 // ---- Compras (src/app/screens/purchases): the catalogs stay in legacy, Productos uses them too
@@ -288,8 +266,7 @@ interface PurchaseSupplier {
   [field: string]: unknown;
 }
 interface PurchaseStore { id: string; nombre: string; tipo?: string | null; activo?: boolean }
-declare let PROVEEDORES: PurchaseSupplier[];
-declare let ALMACENES: PurchaseStore[];
+
 declare function cargarProveedores(): Promise<void>;
 declare function cargarAlmacenes(): Promise<void>;
 declare function loteRecepcion(line: object, units: number | string, storeId: string | undefined): string;
@@ -305,8 +282,6 @@ interface SheetReader { read(data: ArrayBuffer | string, options: Record<string,
 declare function cargarLectorExcel(): Promise<SheetReader>;
 
 declare function registrarError(type: string, message: string, detail?: Record<string, unknown>): void;
-
-declare let ESCRITURAS: number;
 
 // ---- Manual de uso (src/app/screens/manual): the portal manual content and the checks it needs
 
@@ -348,7 +323,6 @@ declare const ES_IOS: boolean;
 
 declare function nombrePantalla(screen: string): string;
 
-
 interface GeocodeHints { direccion?: string | null | undefined; municipio?: string | null | undefined; cp?: string | null | undefined }
 
 interface GeocodeResult { lat: string | number; lon: string | number; fuera?: string }
@@ -356,7 +330,6 @@ interface GeocodeResult { lat: string | number; lon: string | number; fuera?: st
 declare function geocodificar(query: string, hints: GeocodeHints): Promise<GeocodeResult | null>;
 
 declare function descargar(rows: unknown[], name: string, format: string): void;
-
 
 declare function productoPorDefecto(): string;
 
@@ -366,14 +339,9 @@ declare function editorContacto(preset: Record<string, unknown>, onSave: (client
 
 declare function editorPedido(preset?: Record<string, unknown>): Promise<void>;
 
-declare let LLAMADA_PEND: string | null;
-
 declare function montarPeriodo(element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void;
 
-
 declare function vacioGrafico(text: string): string;
-
-declare let LLPAG: number;
 
 declare function pintarLlamadas(): Promise<void>;
 
@@ -392,4 +360,4 @@ declare const DB_PRE: Map<string, unknown>;
 declare function listaPacientes(): Promise<void>;
 
 // ---- Comisiones (src/app/screens/commissions): the schemes are shared with the user editor of Configuración
-declare let ESQUEMAS: unknown[];
+

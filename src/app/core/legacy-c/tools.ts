@@ -7,6 +7,8 @@
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { byId, closestTo, currentSection, observe } from './dom';
+import { navigationStore } from '../navigation/store';
+import { homeStore } from '../../screens/home/store';
 
 const SAVE_FILTER_DELAY_MS = 60;
 interface ColumnChoice { i: number; n: string; on?: boolean; fija?: boolean }
@@ -20,7 +22,7 @@ function addSaveFilter(): void {
   const tools = byId('tools'), openDialog = document.querySelector<HTMLDialogElement>('dialog[open]');
   const container = tools?.classList.contains('abierto') ? tools : document.querySelector('dialog[open] .fh') ? openDialog : null;
   const save = byId('guardarFiltro');
-  if (!container || container.querySelector('#hguardarf') || !save || TAB !== 'directorio') return;
+  if (!container || container.querySelector('#hguardarf') || !save || navigationStore.screen !== 'directorio') return;
   container.insertAdjacentHTML('beforeend', `<div class="acts" style="margin:12px 0 0"><button class="btn sec" id="hguardarf">${svgIco(ICON_NOM.star ?? '')} ${t('legacyC.tools.saveFilter')}</button></div>`);
   const button = byId('hguardarf');
   if (button) button.onclick = (): void => { if (container instanceof HTMLDialogElement) container.close(); else container.classList.remove('abierto'); save.click(); };
@@ -121,7 +123,7 @@ export function setPanelFilters(): void {
   const panelFilters = HT_FILTROS as Record<string, string>;
   panelFilters.ventas = '#v-ventas .filtros';
   Object.defineProperty(panelFilters, 'analitica', { configurable: true, enumerable: true,
-    get: (): string => (ANSEC === 'explorar' ? '#v-analitica .panel > .filtros' : '#anfil') });
+    get: (): string => (homeStore.analyticsSection === 'explorar' ? '#v-analitica .panel > .filtros' : '#anfil') });
 }
 
 const MIN_COLUMN_PX = 60;

@@ -9,6 +9,7 @@ import { escapeHtml } from '../../services/format';
 import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
 import * as legacyFreeScreensSettingsExtra from '../../screens/settings/extra';
 import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-window';
+import { navigationStore } from '../navigation/store';
 
 type Tab = [string, string, () => unknown];
 interface Page { t?: string; d?: string; tabs: Tab[]; permiso?: () => boolean; admin?: boolean }
@@ -91,7 +92,7 @@ export function addRequestsTab(): void {
 export function addPlatformTabs(): void {
   const panel = pages().delcos; if (!panel) return;
   const base = panel.tabs;
-  Object.defineProperty(panel, 'tabs', { configurable: true, get: (): Tab[] => (MODO_PLATAFORMA
+  Object.defineProperty(panel, 'tabs', { configurable: true, get: (): Tab[] => (navigationStore.platformMode
     ? [...base, ['equipo', t('legacyC.pages.panel.team'), () => pintarUsuarios2()], ['plantilla', t('legacyC.pages.panel.template'), () => pintarPlantillaDelcos()]] : base) });
 }
 
@@ -120,7 +121,7 @@ export function completePanel(): void {
   addPanelButtons();
   const group = groups().find(item => item.id === 'panel'); if (group) group.items = sections.map(section => section[0] ?? '');
   const extra: Record<string, () => unknown> = { cobros: () => pintarCobrosDelcos(), altas: () => pintarAltasDelcos(), estado: () => pintarEstadoDelcos() };
-  wrapTabs('delcos', base => (MODO_PLATAFORMA
+  wrapTabs('delcos', base => (navigationStore.platformMode
     ? sections.map(([, key = '', name = '']): Tab | null => { const tab = base.find(item => item[0] === key); return tab ? [key, name, tab[2]] : extra[key] ? [key, name, extra[key]] : null; })
       .filter((tab): tab is Tab => tab !== null)
     : base));

@@ -12,7 +12,7 @@
      y precios de cada lote.
    - Pedidos: si la ficha tiene un contrato en vigor, el precio de sus productos es el adjudicado («Precio de concurso»).
    - Ficha: sus concursos. Los avisos de vencimiento abren el concurso. */
-let CON_AVISOS = [90, 30];
+ // v2.440.0: CON_AVISOS → estado de src/app (plan 6.6), accesible en window
 
 const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id]; return x ? Object.assign({}, p, { precio: +x.precio, contrato: x.concurso }) : p; };
 

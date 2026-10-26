@@ -1,10 +1,11 @@
 import * as components from '../components';
+import { homeStore } from '../screens/home/store';
 /**
  * Bridge of Analítica to the legacy code (kept apart from bridge.ts, which is at its size limit). The page, its filters and the
  * panel of indicators are still legacy: the professional chosen stays in AN_MED (legado 109 and the tests read it).
  */
 export const analyticsLegacy = {
-  professional: (): { id: string; nombre: string } | null => AN_MED,
+  professional: (): { id: string; nombre: string } | null => homeStore.analyticsAccount,
   /** The range of a period picker (montarPeriodo). */
   period: (id: string): { desde: string | null; hasta: string | null } => {
     const range: unknown = Reflect.get(document.getElementById(id) ?? {}, '__rango');

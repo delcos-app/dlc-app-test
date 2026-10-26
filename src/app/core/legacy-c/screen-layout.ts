@@ -7,6 +7,7 @@ import { t } from '../../i18n';
 import { byId, closestTo, currentSection, observe, onMainChanges } from './dom';
 import * as legacyFreeCoreSettings from '../settings';
 import * as legacyFreeCoreLeftovers from '../leftovers';
+import { navigationStore } from '../navigation/store';
 
 const MIN_DESKTOP = 900;
 const ACTION_WEIGHT = 3, TOOLS_WEIGHT = 4;
@@ -95,12 +96,12 @@ export function listenToSeeMore(): void {
 
 /** v2.56.0 and later: Cuentas, Facturación and Analítica repaint their own parts when their section changes. */
 export function watchModuleSections(): void {
-  observe(byId('v-directorio'), () => { if (TAB === 'directorio') barraCuentas(); }, { childList: true, subtree: true, characterData: true });
-  observe(byId('v-facturacion'), () => { if (TAB === 'facturacion') legacyFreeCoreLeftovers.billingSettingsSubnav(); }, { childList: true, subtree: true });
+  observe(byId('v-directorio'), () => { if (navigationStore.screen === 'directorio') barraCuentas(); }, { childList: true, subtree: true, characterData: true });
+  observe(byId('v-facturacion'), () => { if (navigationStore.screen === 'facturacion') legacyFreeCoreLeftovers.billingSettingsSubnav(); }, { childList: true, subtree: true });
 }
 
 export function watchAnalyticsChannel(): void {
-  observe(byId('v-analitica'), () => { if (TAB === 'analitica' && !byId('ancanal')) graficoCanal(); }, { childList: true, subtree: true });
+  observe(byId('v-analitica'), () => { if (navigationStore.screen === 'analitica' && !byId('ancanal')) graficoCanal(); }, { childList: true, subtree: true });
 }
 
 export function watchBillingSettings(): void {

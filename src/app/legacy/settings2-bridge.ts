@@ -1,6 +1,8 @@
 import * as components from '../components';
 import * as legacyFreeCoreSettings from '../core/settings';
 import * as legacyFreeScreensSettings from '../screens/settings';
+import { sessionStore } from '../core/session-store';
+import { settingsStore } from '../screens/settings/store';
 /**
  * Bridge of Configuración (second part: portfolio rules, backups, undo, commercial states, visit material, accesses, classifiers,
  * roles and brand) to the legacy code (kept apart from bridge.ts, which is at its size limit). The settings, the catalogs, the
@@ -18,7 +20,7 @@ export interface BrandSettings { nombre: string; logo: string | null; logo_factu
 export interface TermSettings { s?: string; p?: string; g?: string }
 
 const profile = (): { id: string; nombre?: string; areas?: Record<string, number>; capacidades?: string[] } =>
-  PERFIL as { id: string; nombre?: string; areas?: Record<string, number>; capacidades?: string[] };
+  sessionStore.profile as { id: string; nombre?: string; areas?: Record<string, number>; capacidades?: string[] };
 
 export const settingsMoreLegacy = {
   loading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
@@ -31,8 +33,8 @@ export const settingsMoreLegacy = {
   settingsKey: (): string => CFG_KEY,
   stateRoles: (): readonly (readonly [string, string, string])[] => PAPELES_ESTADO,
   // Classifiers: the catalog list, the custom field box and the list repaint stay in legacy
-  classifiers: (): ClassifierData[] => CATS as unknown as ClassifierData[],
-  setClassifiers: (list: ClassifierData[]): void => { CATS = list as unknown as typeof CATS; },
+  classifiers: (): ClassifierData[] => settingsStore.catalogs as unknown as ClassifierData[],
+  setClassifiers: (list: ClassifierData[]): void => { settingsStore.catalogs = list as unknown as typeof settingsStore.catalogs; },
   fieldBox: (classifier: ClassifierData, complete: boolean): string => cajaCampo(classifier, complete),
   fieldTable: (area: string | null | undefined): string | undefined => CAMPO_TABLA[area ?? ''],
   loadCustomFields: (): Promise<void> => legacyFreeScreensSettings.loadCustomFields(),
@@ -49,13 +51,13 @@ export const settingsMoreLegacy = {
   setCapabilities: (list: string[]): void => { profile().capacidades = list; },
   // Brand and vocabulary
   setBrand: (brand: { nombre: string; logo: string | null }): void => {
-    MARCA = brand; localStorage.setItem('app-marca', JSON.stringify(brand)); LOGO_DATA = null; legacyFreeCoreSettings.applyBrand();
+    MARCA = brand; localStorage.setItem('app-marca', JSON.stringify(brand)); settingsStore.invoiceLogo = null; legacyFreeCoreSettings.applyBrand();
   },
   contactsLabel: (): string => etiquetaContactos(),
   contactLabels: (): readonly string[] => ETIQUETAS,
   applyLabel: (): void => { aplicarEtiqueta(); },
   termDefaults: (): Readonly<Record<string, { s: string; p: string; g?: string }>> => TERM_DEF as Readonly<Record<string, { s: string; p: string; g?: string }>>,
-  terms: (): Readonly<Record<string, TermSettings>> => (TERMINOS ?? {}) as Readonly<Record<string, TermSettings>>,
+  terms: (): Readonly<Record<string, TermSettings>> => (sessionStore.terms ?? {}) as Readonly<Record<string, TermSettings>>,
   saveTermsCopy: (terms: Record<string, TermSettings>): void => { try { localStorage.setItem(TERMKEY, JSON.stringify(terms)); } catch { /* not remembered */ } },
   helpButton: (title: string, text: string): string => pmAyu(title, text),
 };

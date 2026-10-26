@@ -7,6 +7,8 @@
 import { navLegacy } from '../../legacy/nav-bridge';
 import { PAGES } from './pages';
 import * as legacyFreeScreensHome from '../../screens/home';
+import { settingsStore } from '../../screens/settings/store';
+import { navigationStore } from './store';
 
 const QUIET_MS = 50, CHECK_EVERY_MS = 15, DEFAULT_MAX_MS = 4000, ARRIVAL_MS = 700, CARD_MAX_MS = 5000, LIST_MAX_MS = 6000, MIN_WAIT_MS = 300, RETRY_MS = 60;
 /** v2.144.0: the main action of own pages goes up to the header */
@@ -111,16 +113,16 @@ export function comet(): void {
 
 /** After a change that other screens show: the screen below is refreshed (or marked, if a window is open). */
 export function refreshBelow(): void {
-  if (document.querySelector('dialog[open]')) { DATOS_CAMBIADOS = true; return; }
-  DATOS_CAMBIADOS = false;
-  if (TAB === 'agenda' && document.getElementById('agcuerpo')) navLegacy.refreshAgenda();
-  else if (TAB === 'directorio') void buscar(true);
+  if (document.querySelector('dialog[open]')) { settingsStore.unsavedChanges = true; return; }
+  settingsStore.unsavedChanges = false;
+  if (navigationStore.screen === 'agenda' && document.getElementById('agcuerpo')) navLegacy.refreshAgenda();
+  else if (navigationStore.screen === 'directorio') void buscar(true);
 }
 
 /** The main action of own pages («+ Nuevo usuario», «+ Nueva organización») goes to the right of the header. */
 export function raisePageAction(): void {
-  if (!PAGES[TAB]) return;
-  const section = document.getElementById(`v-${TAB}`), header = section?.querySelector(':scope > .saludo');
+  if (!PAGES[navigationStore.screen]) return;
+  const section = document.getElementById(`v-${navigationStore.screen}`), header = section?.querySelector(':scope > .saludo');
   if (!section || !header) return;
   PAGE_ACTIONS.forEach(id => {
     const button = document.getElementById(id); if (!button || !section.contains(button) || button.closest('.saludo')) return;

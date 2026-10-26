@@ -21,7 +21,7 @@ const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.val
      actividad_fotos al registrar la visita. Sin conexión la visita se guarda igual y las fotos se añaden después desde su historial
      («📷 Fotos»), donde también se ven y se borran. */
 
-let VISITA_ACTUAL = null;   // { id, modo, fotos } de la ventana «Registrar visita» abierta
+ // v2.440.0: VISITA_ACTUAL → estado de src/app (plan 6.6), accesible en window   // { id, modo, fotos } de la ventana «Registrar visita» abierta
 
 /* v2.192.0 · Muestras con control legal (primera tanda del estudio por sectores, SQL 119; RD 1416/1994, art. 16).
    - Producto: «Muestra con control legal» con fecha de autorización (se pueden dar los 2 años siguientes) y máximo por profesional y año.

@@ -1,3 +1,6 @@
+import { sessionStore } from '../session-store';
+import { navigationStore } from '../navigation/store';
+import { settingsStore } from '../../screens/settings/store';
 /**
  * Keyboard: ↑ ↓ and Enter in the search suggestions (the mouse moves the mark too), and F5 / Ctrl+R remembers the screen to come back to
  * it (Ctrl+F5 and Shift start again). Folded from legado 071 (v2.425.0).
@@ -48,8 +51,8 @@ export function rememberScreenOnReload(): void {
     if (!f5 && !reload) return;
     const full = f5 ? event.ctrlKey || event.shiftKey : event.shiftKey;
     try {
-      if (full || !PERFIL) sessionStorage.removeItem('dlc-f5');
-      else sessionStorage.setItem('dlc-f5', JSON.stringify({ t: TAB, c: CFG_SEC, s: CFG_SUB, p: PAG_TAB, h: Date.now() }));
+      if (full || !sessionStore.profile) sessionStorage.removeItem('dlc-f5');
+      else sessionStorage.setItem('dlc-f5', JSON.stringify({ t: navigationStore.screen, c: settingsStore.section, s: settingsStore.subsection, p: navigationStore.pageTabs, h: Date.now() }));
     } catch { /* private mode: nothing is remembered */ }
   });
 }

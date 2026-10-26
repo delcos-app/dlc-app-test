@@ -8,6 +8,8 @@ import { t, type MessageKey } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { menuPrefs } from './groups';
 import { availableScreens, BAR_DEFAULT, bottomBar, mobileName, moreOrder } from './mobile';
+import { sessionStore } from '../../session-store';
+import { navigationStore } from '../store';
 
 type Zone = 'barra' | 'mas' | 'oculta';
 interface State { groups: Record<Zone, string[]>; fixed: string | null; available: string[] }
@@ -70,7 +72,7 @@ function changeZone(state: State, data: string): void {
 async function save(state: State, button: HTMLButtonElement): Promise<void> {
   const prefs = menuPrefs(), hidden = [...new Set([...(prefs.ocultos ?? []).filter(key => !state.available.includes(key)), ...state.groups.oculta])];
   const bar = state.fixed ? [state.fixed, ...state.groups.barra] : [...state.groups.barra];
-  const profile = PERFIL as { preferencias?: Record<string, unknown> };
+  const profile = sessionStore.profile as { preferencias?: Record<string, unknown> };
   const saved = { ...(profile.preferencias ?? {}), menu: { ...prefs, barra: bar, mas: [...state.groups.mas, ...state.groups.oculta], ocultos: hidden } };
   button.disabled = true;
   const { data, error } = await db.rpc<Record<string, unknown>>('guardar_preferencias', { p: saved });
@@ -78,7 +80,7 @@ async function save(state: State, button: HTMLButtonElement): Promise<void> {
   if (error) { toast(t('navigationCore.menu.couldNotSave'), true); return; }
   profile.preferencias = data ?? saved;
   (document.getElementById('dlg2') as HTMLDialogElement | null)?.close();
-  pintarBnav(); MENU_FIRMA = ''; try { montarMenuLateral(); } catch { /* the side menu is optional on the phone */ }
+  pintarBnav(); navigationStore.menuSignature = ''; try { montarMenuLateral(); } catch { /* the side menu is optional on the phone */ }
   toast(t('navigationCore.menu.saved'));
 }
 

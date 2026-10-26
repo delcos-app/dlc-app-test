@@ -9,6 +9,9 @@ import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { byId, closestTo, observe } from './dom';
 import * as legacyFreeCoreServices from '../services';
+import { navigationStore } from '../navigation/store';
+import { accountsStore } from '../../screens/accounts/store';
+import { routesStore } from '../../screens/routes/store';
 
 const PULL_FACTOR = 0.6, PULL_READY = 80, PULL_MAX = 90, PULL_SHOW = 70, PULL_OFFSET = 50, PULL_MIN_MS = 600;
 
@@ -76,7 +79,7 @@ export function pullToReload(): void {
     if (distance * PULL_FACTOR <= PULL_READY) { hidePull(); return; }
     loading = true; pullIndicator().classList.add('gira'); showPull(PULL_READY);
     const started = Date.now();
-    try { if (TAB === 'agenda') await cargarAgenda(); else await ir(TAB); } catch { /* the indicator goes anyway */ }
+    try { if (navigationStore.screen === 'agenda') await cargarAgenda(); else await ir(navigationStore.screen); } catch { /* the indicator goes anyway */ }
     await new Promise(resolve => { setTimeout(resolve, Math.max(0, PULL_MIN_MS - (Date.now() - started))); });
     loading = false; hidePull();
   })(); });
@@ -104,7 +107,7 @@ export function decorateVisitResults(): void {
 export function checkSamplesBeforeSaving(): void {
   document.addEventListener('click', event => {
     const button = closestTo(event.target, '#vguardar');
-    const visit = VISITA_ACTUAL as { muestras?: { validar: () => string | null } } | null;
+    const visit = accountsStore.currentVisit as { muestras?: { validar: () => string | null } } | null;
     if (!button || !visit?.muestras) return;
     const message = visit.muestras.validar();
     if (message) { event.stopImmediatePropagation(); event.preventDefault(); toast(message, true); }
@@ -116,7 +119,7 @@ interface Booked { m: { nombre: string; municipio?: string | null }; fecha: stri
 /** v2.64.0: the plan shows apart the professionals that already have an appointment (the legacy pintarPlan). */
 export function paintPlan(args: readonly unknown[]): unknown {
   const result = pintarPlanBase2(...args);
-  const box = byId('rplan'), booked = (PLAN as { citados?: Booked[] } | null)?.citados ?? [];
+  const box = byId('rplan'), booked = (routesStore.plan as { citados?: Booked[] } | null)?.citados ?? [];
   if (box && booked.length && !box.querySelector('.plancitados')) {
     box.insertAdjacentHTML('beforeend', `<div class="plancitados"><h3>${t('legacyC.plan.booked', { count: booked.length })}</h3>
       <p class="sm">${t('legacyC.plan.bookedHint')}</p>

@@ -6,13 +6,14 @@
 import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import * as legacyFreeCoreServices from '../services';
+import { agendaStore } from '../../screens/agenda/store';
 
 const FAR_MINUTES = 240;
 interface Stop { id: string; estado: string; dias?: unknown }
 interface Info { llegada?: number | null | undefined; fecha?: string; lejos?: number; ventanas?: [number, number][] | null; aviso?: string; orden?: boolean; otroCentro?: string | undefined }
 interface Estimate { est: Record<string, number> }
 
-const infoOf = (id: string): Info | undefined => (TD_INFO as Record<string, Info | undefined>)[id];
+const infoOf = (id: string): Info | undefined => (agendaStore.stopInfo as Record<string, Info | undefined>)[id];
 
 /** Marks the stops far from the previous one (or from the start point) and keeps the estimated arrival in their info. */
 function markFarStops(stops: readonly Stop[], date: string, estimate: Estimate): void {
@@ -38,7 +39,7 @@ export function estimateDay(stops: readonly Stop[] | null | undefined, date: str
   const estimate = estimarDiaBaseBase(withCentre, date) as Estimate;
   markFarStops(withCentre, date, estimate);
   // A fixed time that the order leaves late: the notice says what to do, and the «i» talks about the order
-  Object.values(TD_INFO as Record<string, Info>).forEach(info => {
+  Object.values(agendaStore.stopInfo as Record<string, Info>).forEach(info => {
     if (info.aviso && info.aviso.startsWith(t('legacyC.agenda.wouldArrive')) && !info.aviso.includes(t('legacyC.agenda.moveUpWord'))) { info.orden = true; info.aviso += t('legacyC.agenda.moveUp'); }
   });
   Object.keys(otherCentre).forEach(id => { const info = infoOf(id); if (info) info.otroCentro = otherCentre[id]?.lugar; });

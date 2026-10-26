@@ -7,15 +7,9 @@ interface SavedRoute { tipo?: string | null; desde?: string | null; usuario_id?:
 interface StreetRoute { retraso_min?: number }
 interface RouteMap { jumpTo(options: { center: [number, number]; zoom: number }): void }
 interface Leaflet { marker(point: [number, number], options: Record<string, unknown>): LeafletLayer; divIcon(options: Record<string, unknown>): unknown; polyline(points: [number, number][], options: Record<string, unknown>): LeafletLayer }
-declare let PLAN: unknown;
-declare let ULTIMO_PLAN: unknown;
-declare let RSEC: string;
-declare let PROPUESTAS: Record<string, unknown> | null;
-declare let TD_PARADAS: RouteAppointment[];
-declare let TD_REAL: RealTraffic | null;
-declare let TD_CALC: boolean;
+
 declare const RM_MEM: Map<string, { t: number; r: StreetRoute }>;
-declare let RM_ANIM: number | null;
+
 declare const DIAN: Readonly<Record<string, string | undefined>>;
 declare function pintarPlan(): void;
 declare function xyCita(item: object): [number, number] | null;

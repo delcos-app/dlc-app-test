@@ -5,6 +5,7 @@
  */
 import { t } from '../../i18n';
 import { byId, closestTo } from './dom';
+import { sessionStore } from '../session-store';
 
 const DAYS = 10, DAY_MS = 864e5, MIN_BAR = 14, EMPTY_BAR = 6;
 interface Entry { fecha?: string; total?: number }
@@ -75,7 +76,7 @@ export async function paintOrderAlerts(): Promise<void> {
   const box = byId('operativa'); if (!box) return;
   box.className = 'pkop';
   document.querySelectorAll('#opcfg').forEach(gear => { gear.remove(); });
-  const profile = PERFIL as { rol: string; preferencias?: { avisos_pedidos?: Record<string, boolean> } };
+  const profile = sessionStore.profile as { rol: string; preferencias?: { avisos_pedidos?: Record<string, boolean> } };
   const mandatory = settings?.valor?.obligatorios?.[profile.rol] ?? [], preferences = profile.preferencias?.avisos_pedidos ?? {};
   const shown = (PK_TARJ as readonly AlertCard[]).filter(([key]) => mandatory.includes(key) || preferences[key] !== false);
   const gear = `<button type="button" class="pkcfg" id="opcfg" aria-label="${t('legacyC.orderAlerts.choose')}" title="${t('legacyC.orderAlerts.choose')}">${svgIco(ICON_NOM.settings ?? '')}</button>`;

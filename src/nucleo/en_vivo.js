@@ -5,4 +5,4 @@
 function avisosEnVivo() { return window.delcos.core.live.listenLive(); }
 
 // ——— En vivo ———
-let VIVO = null;
+ // v2.440.0: VIVO → estado de src/app (plan 6.6), accesible en window

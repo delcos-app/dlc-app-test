@@ -8,14 +8,19 @@ import { t } from '../../i18n';
 import { navLegacy } from '../../legacy/nav-bridge';
 import { orFallback } from '../../services/values';
 import { PAGES } from './pages';
+import { agendaStore } from '../../screens/agenda/store';
+import { ordersStore } from '../../screens/orders/store';
+import { productsStore } from '../../screens/products/store';
+import { settingsStore } from '../../screens/settings/store';
+import { navigationStore } from './store';
 
 const RELOAD_WINDOW_MS = 60000;
 const OWN_PAGES = ['config', 'perfil', 'empresa', 'plan'];
 
 type LinkHandler = (id: string | undefined) => unknown;
 
-const toToday = (): unknown => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); return ir('agenda'); };
-const toOrders = (section: string): unknown => { PEDSEC = section; return ir('ventas'); };
+const toToday = (): unknown => { agendaStore.mode = 'dia'; agendaStore.selectedDate = hoyISO(); return ir('agenda'); };
+const toOrders = (section: string): unknown => { ordersStore.section = section; return ir('ventas'); };
 
 const LINKS = new Map<string, LinkHandler>([
   ['plan', (): unknown => ir('plan')],
@@ -25,7 +30,7 @@ const LINKS = new Map<string, LinkHandler>([
   ['cliente', (id): unknown => (id ? nuevaVenta({ contacto_id: id }) : undefined)],
   ['cita', toToday], ['agenda', toToday],
   ['llamadas', (): unknown => toOrders('llamadas')], ['ventas', (): unknown => toOrders('ventas')],
-  ['stock', (): unknown => { PSEC = 'stock'; return ir('productos'); }],
+  ['stock', (): unknown => { productsStore.section = 'stock'; return ir('productos'); }],
   ['facturacion', (): unknown => ir('facturacion')], ['duplicados', (): unknown => ir('duplicados')],
   ['ficha', (id): unknown => (id ? abrirFicha(id) : undefined)], ['pedido', (id): unknown => (id ? verPedido(id) : undefined)],
   ['informe', (): unknown => ir('informe')], ['directorio', (): unknown => ir('directorio')],
@@ -50,9 +55,9 @@ export function screenAfterReload(): ReloadPoint | null {
 
 /** Goes back to that screen (with its Configuración section and page tabs). */
 export function returnAfterReload(point: ReloadPoint): void {
-  if (point.c) CFG_SEC = point.c;
-  if (point.s) CFG_SUB = point.s;
-  if (point.p) Object.assign(PAG_TAB, point.p);
+  if (point.c) settingsStore.section = point.c;
+  if (point.s) settingsStore.subsection = point.s;
+  if (point.p) Object.assign(navigationStore.pageTabs, point.p);
   if (point.t && (OWN_PAGES.includes(point.t) || puedeModulo(point.t))) ir(point.t);
 }
 

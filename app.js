@@ -7,6 +7,336 @@
   };
   var __publicField = (obj, key, value27) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value27);
 
+  // src/app/state/legacy-names.ts
+  function exposeLegacyNames(state2, names) {
+    for (const [name, key] of names) {
+      Object.defineProperty(window, name, {
+        get: () => state2[key],
+        set: (value27) => {
+          state2[key] = value27;
+        },
+        configurable: true,
+        enumerable: true
+      });
+    }
+  }
+
+  // src/app/screens/agenda/store.ts
+  var agendaStore = {
+    selectedDate: null,
+    mode: "dia",
+    metrics: null,
+    pendingSuggestions: null,
+    suggestions: null,
+    weekOpen: false,
+    viewedUser: null,
+    stripStart: null,
+    dayTasks: null,
+    dayAppointments: [],
+    stopInfo: {},
+    dayStops: [],
+    presetDay: null,
+    lastPaintedDay: null,
+    trafficCalculated: false,
+    realTimes: null,
+    dialogEpoch: 0,
+    openWeekPlan: false
+  };
+  exposeLegacyNames(agendaStore, [
+    ["AG_FECHA", "selectedDate"],
+    ["AG_MODO", "mode"],
+    ["AG_MET", "metrics"],
+    ["AG_PEND", "pendingSuggestions"],
+    ["AG_SUG", "suggestions"],
+    ["AG_SEM_ABIERTA", "weekOpen"],
+    ["AG_VISTA", "viewedUser"],
+    ["CINTA_INI", "stripStart"],
+    ["TAREAS_DIA", "dayTasks"],
+    ["TD_CITAS", "dayAppointments"],
+    ["TD_INFO", "stopInfo"],
+    ["TD_PARADAS", "dayStops"],
+    ["TD_PRESET", "presetDay"],
+    ["TD_ULTIMO", "lastPaintedDay"],
+    ["TD_CALC", "trafficCalculated"],
+    ["TD_REAL", "realTimes"],
+    ["DLG_EPOCA", "dialogEpoch"],
+    ["ABRIR_PLAN_SEMANA", "openWeekPlan"]
+  ]);
+
+  // src/app/screens/routes/store.ts
+  var routesStore = {
+    plan: null,
+    routes: [],
+    proposals: null,
+    section: "mis",
+    wizard: null,
+    routeList: null,
+    wizardMapPoints: null,
+    todayMap: null,
+    todayMapAnimation: null,
+    dayProposals: null,
+    weekDraft: null,
+    lastPlan: null
+  };
+  exposeLegacyNames(routesStore, [
+    ["PLAN", "plan"],
+    ["RUTAS", "routes"],
+    ["PROPUESTAS", "proposals"],
+    ["RSEC", "section"],
+    ["RN", "wizard"],
+    ["RN_LISTA", "routeList"],
+    ["RN_MAPA_P", "wizardMapPoints"],
+    ["RM_MAPA", "todayMap"],
+    ["RM_ANIM", "todayMapAnimation"],
+    ["RPROP", "dayProposals"],
+    ["SEM_BORRADOR", "weekDraft"],
+    ["ULTIMO_PLAN", "lastPlan"]
+  ]);
+
+  // src/app/screens/settings/store.ts
+  var settingsStore = {
+    settings: {},
+    section: "prefs",
+    subsection: null,
+    detail: false,
+    adminSection: "usuarios",
+    catalogs: [],
+    users: [],
+    roles: [],
+    activePanel: null,
+    indexFrame: 0,
+    notificationCount: 0,
+    textsObserverTimer: 0,
+    invoiceLogo: null,
+    stacking: false,
+    unsavedChanges: false,
+    lastAction: 0
+  };
+  exposeLegacyNames(settingsStore, [
+    ["AJUSTES", "settings"],
+    ["CFG_SEC", "section"],
+    ["CFG_SUB", "subsection"],
+    ["CFG_DETALLE", "detail"],
+    ["ADM_SEC", "adminSection"],
+    ["CATS", "catalogs"],
+    ["USUARIOS", "users"],
+    ["ROLES_DEF", "roles"],
+    ["PANEL_ACTIVO", "activePanel"],
+    ["CFU_RAF", "indexFrame"],
+    ["NOTIF_N", "notificationCount"],
+    ["TX_OBS", "textsObserverTimer"],
+    ["LOGO_DATA", "invoiceLogo"],
+    ["APILANDO", "stacking"],
+    ["DATOS_CAMBIADOS", "unsavedChanges"],
+    ["ULT_ACCION", "lastAction"]
+  ]);
+
+  // src/app/screens/orders/store.ts
+  var ordersStore = {
+    section: "ventas",
+    filters: {},
+    page: 0,
+    orders: [],
+    contractPrices: { cuenta: null, precios: {} },
+    paymentState: null,
+    stores: [],
+    suppliers: [],
+    distributors: null,
+    pendingCall: null,
+    invoicePage: 0,
+    callsPage: 0
+  };
+  exposeLegacyNames(ordersStore, [
+    ["PEDSEC", "section"],
+    ["PEDF", "filters"],
+    ["PEDPAG", "page"],
+    ["PEDIDOS", "orders"],
+    ["PED_PRECIOS", "contractPrices"],
+    ["PAGO_ESTADO", "paymentState"],
+    ["ALMACENES", "stores"],
+    ["PROVEEDORES", "suppliers"],
+    ["DISTRIBUIDORES", "distributors"],
+    ["LLAMADA_PEND", "pendingCall"],
+    ["FACPAG", "invoicePage"],
+    ["LLPAG", "callsPage"]
+  ]);
+
+  // src/app/screens/products/store.ts
+  var productsStore = {
+    section: "productos",
+    filters: {},
+    products: [],
+    services: [],
+    productStates: {},
+    promoted: null,
+    presentationMaterials: null,
+    presentationTime: 0
+  };
+  exposeLegacyNames(productsStore, [
+    ["PSEC", "section"],
+    ["PRODF", "filters"],
+    ["PRODUCTOS", "products"],
+    ["SERVICIOS", "services"],
+    ["ESTADO_PROD", "productStates"],
+    ["PROMO_PRODS", "promoted"],
+    ["PRES_MAT", "presentationMaterials"],
+    ["PRES_T", "presentationTime"]
+  ]);
+
+  // src/app/screens/billing/store.ts
+  var billingStore = {
+    section: "facturas",
+    lastSection: "empresa",
+    pdfEditing: null,
+    pdfChosen: null,
+    chosenTemplates: { pago: null, factura: null }
+  };
+  exposeLegacyNames(billingStore, [
+    ["FSEC", "section"],
+    ["FAC_ULTIMA", "lastSection"],
+    ["PDF_EDITANDO", "pdfEditing"],
+    ["PDF_ELEGIDO", "pdfChosen"],
+    ["PLANT_ELEGIDA", "chosenTemplates"]
+  ]);
+
+  // src/app/screens/accounts/store.ts
+  var accountsStore = {
+    shownId: null,
+    cardPatients: null,
+    cardCentre: null,
+    cardEffect: 0,
+    nearby: null,
+    filterOptions: { provincias: [], municipios: [], especialidades: [], estados: [], centros: [] },
+    mapMode: false,
+    portalAccess: null,
+    duplicates: null,
+    currentVisit: null,
+    toolsContext: null
+  };
+  exposeLegacyNames(accountsStore, [
+    ["FICHA_ID", "shownId"],
+    ["FICHA_PAC", "cardPatients"],
+    ["FICHA_CENTRO", "cardCentre"],
+    ["FX_FICHA", "cardEffect"],
+    ["CERCA", "nearby"],
+    ["OPF", "filterOptions"],
+    ["MODO_MAPA", "mapMode"],
+    ["MED_ACCESO", "portalAccess"],
+    ["DUP_RES", "duplicates"],
+    ["VISITA_ACTUAL", "currentVisit"],
+    ["HERR_CTX", "toolsContext"]
+  ]);
+
+  // src/app/screens/home/store.ts
+  var homeStore = {
+    panel: null,
+    charts: null,
+    hiddenAlerts: null,
+    analyticsAccount: null,
+    analyticsSection: "resumen",
+    salesTeam: [],
+    commissionSchemes: [],
+    contractWarningDays: [90, 30],
+    manualReturn: null
+  };
+  exposeLegacyNames(homeStore, [
+    ["KV_INI", "panel"],
+    ["KV_GRAF", "charts"],
+    ["ALERTAS_OCULTAS", "hiddenAlerts"],
+    ["AN_MED", "analyticsAccount"],
+    ["ANSEC", "analyticsSection"],
+    ["COMS", "salesTeam"],
+    ["ESQUEMAS", "commissionSchemes"],
+    ["CON_AVISOS", "contractWarningDays"],
+    ["MANUAL_VUELTA", "manualReturn"]
+  ]);
+
+  // src/app/core/navigation/store.ts
+  var navigationStore = {
+    screen: "inicio",
+    previousScreen: "inicio",
+    appVisible: false,
+    via: null,
+    pageTabs: {},
+    view: null,
+    backClick: null,
+    backPending: false,
+    backReopening: false,
+    abort: new AbortController(),
+    generation: 0,
+    menuSignature: "",
+    fabResize: 0,
+    pendingReads: 0,
+    platformMode: false,
+    pageKey: "",
+    saveButtonFrame: 0,
+    pickerPopup: null,
+    pendingEnhancements: /* @__PURE__ */ new Set(),
+    enhanceFrame: 0,
+    scannerPending: false
+  };
+  exposeLegacyNames(navigationStore, [
+    ["TAB", "screen"],
+    ["TAB_ANTERIOR", "previousScreen"],
+    ["APP_VISIBLE", "appVisible"],
+    ["VIA_IR", "via"],
+    ["PAG_TAB", "pageTabs"],
+    ["VISTA", "view"],
+    ["VUELTA_CLIC", "backClick"],
+    ["VUELTA_PONER", "backPending"],
+    ["VUELTA_REABRIENDO", "backReopening"],
+    ["NAV_CTRL", "abort"],
+    ["NAV_GEN", "generation"],
+    ["MENU_FIRMA", "menuSignature"],
+    ["FAB_RZ", "fabResize"],
+    ["PEND", "pendingReads"],
+    ["MODO_PLATAFORMA", "platformMode"],
+    ["PAG_CLAVE", "pageKey"],
+    ["PAG_GUARDA_RAF", "saveButtonFrame"],
+    ["SELPOP", "pickerPopup"],
+    ["MEJ_PEND", "pendingEnhancements"],
+    ["MEJ_RAF", "enhanceFrame"],
+    ["ESC_PEND", "scannerPending"]
+  ]);
+
+  // src/app/core/session-store.ts
+  var sessionStore = {
+    profile: null,
+    language: "es",
+    translationMap: null,
+    terms: {},
+    commercialStates: [],
+    plan: { plan: "medida" },
+    provinces: null,
+    roundLogo: false,
+    writes: 0,
+    cacheEpoch: 0,
+    lastNetworkEnd: 0,
+    networkInFlight: 0,
+    versionSeen: 0,
+    live: null,
+    accessOut: false,
+    accessChecked: 0
+  };
+  exposeLegacyNames(sessionStore, [
+    ["PERFIL", "profile"],
+    ["IDIOMA", "language"],
+    ["MAPA_I18N", "translationMap"],
+    ["TERMINOS", "terms"],
+    ["ESTADOS_DEF", "commercialStates"],
+    ["PLAN_ACTUAL", "plan"],
+    ["PROV_CCAA", "provinces"],
+    ["LOGO_CIRC", "roundLogo"],
+    ["ESCRITURAS", "writes"],
+    ["RC_EPOCA", "cacheEpoch"],
+    ["RED_ULT", "lastNetworkEnd"],
+    ["RED_VUELO", "networkInFlight"],
+    ["VERSION_VISTA", "versionSeen"],
+    ["VIVO", "live"],
+    ["ACCESO_FUERA", "accessOut"],
+    ["ACCESO_MIRADO", "accessChecked"]
+  ]);
+
   // src/app/components/index.ts
   var components_exports = {};
   __export(components_exports, {
@@ -8912,33 +9242,33 @@
   });
 
   // src/app/legacy/routes2-bridge.ts
-  var profile = () => PERFIL;
+  var profile = () => sessionStore.profile;
   var routes2Legacy = {
     // Plan and route state
-    plan: () => PLAN,
+    plan: () => routesStore.plan,
     setPlan: (plan3) => {
-      PLAN = plan3;
+      routesStore.plan = plan3;
     },
-    lastPlan: () => ULTIMO_PLAN,
+    lastPlan: () => routesStore.lastPlan,
     setLastPlan: (value27) => {
-      ULTIMO_PLAN = value27;
+      routesStore.lastPlan = value27;
     },
     paintPlan: () => {
       pintarPlan();
     },
-    savedRoutes: () => Array.isArray(RUTAS) ? RUTAS : [],
+    savedRoutes: () => Array.isArray(routesStore.routes) ? routesStore.routes : [],
     setSection: (section2) => {
-      RSEC = section2;
+      routesStore.section = section2;
     },
-    proposals: () => PROPUESTAS,
+    proposals: () => routesStore.proposals,
     setProposals: (data) => {
-      PROPUESTAS = data;
+      routesStore.proposals = data;
     },
-    weekDraft: () => SEM_BORRADOR,
+    weekDraft: () => routesStore.weekDraft,
     setWeekDraft: (draft) => {
-      SEM_BORRADOR = draft;
+      routesStore.weekDraft = draft;
     },
-    draft: () => RN,
+    draft: () => routesStore.wizard,
     reloadRoutes: () => {
       void loadRoutesPage();
     },
@@ -8953,9 +9283,9 @@
       const own = profile();
       if (own) own.preferencias = preferences;
     },
-    viewedPreferences: () => AG_VISTA?.preferencias ?? null,
+    viewedPreferences: () => agendaStore.viewedUser?.preferencias ?? null,
     agendaOwner: () => agendaOwnerId(),
-    selectedDate: () => AG_FECHA,
+    selectedDate: () => agendaStore.selectedDate,
     // Places, hours and times
     start: () => salidaUsuario(),
     pointOf: (item) => xyCita(item),
@@ -8990,29 +9320,29 @@
     workingDay: () => jornadaActiva(),
     endWorkingDay: () => terminarJornada(),
     // Stops of «Tu día» and their real times
-    stops: () => TD_PARADAS,
+    stops: () => agendaStore.dayStops,
     setStops: (list) => {
-      TD_PARADAS = list;
+      agendaStore.dayStops = list;
     },
-    realTraffic: () => TD_REAL,
+    realTraffic: () => agendaStore.realTimes,
     setRealTraffic: (value27) => {
-      TD_REAL = value27;
+      agendaStore.realTimes = value27;
     },
     realTrafficValid: () => tdRealVigente(),
     setCalculating: (on6) => {
-      TD_CALC = on6;
+      agendaStore.trafficCalculated = on6;
     },
     legKey: (from2, to) => tdClaveXY(from2, to),
     routeMemory: () => RM_MEM,
     // Maps
     mapLibre: () => window.maplibregl ?? null,
-    dayMap: () => RM_MAPA,
+    dayMap: () => routesStore.todayMap,
     setDayMap: (map2) => {
-      RM_MAPA = map2;
+      routesStore.todayMap = map2;
     },
-    animation: () => RM_ANIM,
+    animation: () => routesStore.todayMapAnimation,
     setAnimation: (frame) => {
-      RM_ANIM = frame;
+      routesStore.todayMapAnimation = frame;
     },
     invokeRoutes: (body4) => db.functions.invoke("rutas", { body: body4 })
   };
@@ -9237,15 +9567,15 @@
 
   // src/app/legacy/routes-bridge.ts
   var routesLegacy = {
-    draft: () => RN,
+    draft: () => routesStore.wizard,
     setDraft: (draft) => {
-      RN = draft;
+      routesStore.wizard = draft;
     },
     setCards: (cards2) => {
-      RN_LISTA = cards2;
+      routesStore.routeList = cards2;
     },
     setRoutes: (list) => {
-      RUTAS = list;
+      routesStore.routes = list;
     },
     /** Repaints the whole page (list, day in progress and today's map). */
     reload: () => {
@@ -9263,13 +9593,13 @@
     durationText: (minutes2) => durationText(minutes2),
     reasonText: (reason) => reasonText(reason),
     palette: () => PALETTE,
-    map: () => RM_MAPA,
+    map: () => routesStore.todayMap,
     setMap: (map2) => {
-      RM_MAPA = map2;
+      routesStore.todayMap = map2;
     },
-    pendingMap: () => RN_MAPA_P,
+    pendingMap: () => routesStore.wizardMapPoints,
     setPendingMap: (pending) => {
-      RN_MAPA_P = pending;
+      routesStore.wizardMapPoints = pending;
     },
     improveFields: (root) => {
       enhanceFields(root);
@@ -10431,12 +10761,12 @@
   var restLegacy = {
     appName: () => nombreApp(),
     setSettingsSection: (section2) => {
-      CFG_SEC = section2;
+      settingsStore.section = section2;
     },
     loadPlan: () => pagoCargarEstado(),
-    plan: () => PLAN_ACTUAL,
+    plan: () => sessionStore.plan,
     setAppVisible: (visible3) => {
-      APP_VISIBLE = visible3;
+      navigationStore.appVisible = visible3;
     },
     reloadHome: () => {
       void cargarInicio();
@@ -10944,13 +11274,13 @@
     imHere: (box5, index, button3) => {
       void estoyAqui(box5, index, button3);
     },
-    hasOwnTerm: () => Boolean(TERMINOS?.medico?.s),
+    hasOwnTerm: () => Boolean(sessionStore.terms?.medico?.s),
     allOf: (word) => todosLos(word),
-    filterOptions: () => OPF,
+    filterOptions: () => accountsStore.filterOptions,
     setFilterOptions: (options5) => {
-      OPF = options5;
+      accountsStore.filterOptions = options5;
     },
-    teamUsers: () => USUARIOS,
+    teamUsers: () => settingsStore.users,
     reloadAdmin: () => {
       void cargarAdmin();
     },
@@ -12238,8 +12568,8 @@
   var MENU_FIXED = { id: "plataforma", t: t("navigationCore.menu.groupPlatform"), items: ["delcos"] };
   var MENU_ORDER = ["inicio", "agenda", "rutas", "directorio", "ventas", "pacientes", "productos", "facturacion", "analitica", "informe"];
   var redoFrame = 0;
-  var menuPrefs2 = () => PERFIL?.preferencias?.menu ?? {};
-  var menuNames = () => AJUSTES?.menu_nombres ?? {};
+  var menuPrefs2 = () => sessionStore.profile?.preferencias?.menu ?? {};
+  var menuNames = () => settingsStore.settings?.menu_nombres ?? {};
   var isDesktopMenu = () => innerWidth >= DESKTOP_FROM;
   function isMenuFolded() {
     try {
@@ -12312,7 +12642,7 @@
   }
   var originalName = (screen3) => screen3 && screen3 !== "directorio" ? document.querySelector(`nav.main [data-t="${screen3}"]`)?.dataset.txdef : void 0;
   function renameTitle(names) {
-    const screen3 = TAB, original = originalName(screen3);
+    const screen3 = navigationStore.screen, original = originalName(screen3);
     if (!original) return;
     const node = titleText(screen3), current = node?.nodeValue?.trim() ?? "", name = orFallback(names[screen3], original);
     const known = current === original || Object.values(names).includes(current);
@@ -12432,8 +12762,8 @@
   };
   function preview(session2) {
     const draft = session2.draft;
-    PERFIL.preferencias = menuWith(session2, { orden: [...draft.orden], items: JSON.parse(JSON.stringify(draft.items)), ocultos: [...draft.ocultos] });
-    MENU_FIRMA = "";
+    sessionStore.profile.preferencias = menuWith(session2, { orden: [...draft.orden], items: JSON.parse(JSON.stringify(draft.items)), ocultos: [...draft.ocultos] });
+    navigationStore.menuSignature = "";
     montarMenuLateral();
   }
   function lockOutOfPlan(box5) {
@@ -12471,8 +12801,8 @@
     session2.box.remove();
     detach(session2);
     if (!session2.saved) {
-      PERFIL.preferencias = session2.original;
-      MENU_FIRMA = "";
+      sessionStore.profile.preferencias = session2.original;
+      navigationStore.menuSignature = "";
       montarMenuLateral();
     }
     document.getElementById("mlpers")?.focus();
@@ -12487,10 +12817,10 @@
       toast(t("navigationCore.menu.couldNotSave"), true);
       return;
     }
-    PERFIL.preferencias = data ?? prefs;
+    sessionStore.profile.preferencias = data ?? prefs;
     session2.saved = true;
     close(session2);
-    MENU_FIRMA = "";
+    navigationStore.menuSignature = "";
     montarMenuLateral();
     toast(t("navigationCore.menu.saved"));
   }
@@ -12557,7 +12887,7 @@
     document.body.insertAdjacentHTML("beforeend", `<div id="mlpanel" class="mlp2" role="dialog" aria-label="${t("navigationCore.menu.customise")}"></div>`);
     const box5 = document.getElementById("mlpanel");
     if (!box5) return;
-    const session2 = { box: box5, draft, saved: false, original: PERFIL.preferencias };
+    const session2 = { box: box5, draft, saved: false, original: sessionStore.profile.preferencias };
     const outside2 = (event) => {
       if (!event.target.closest("#mlpanel, #mlpers")) close(session2);
     };
@@ -12680,7 +13010,7 @@
   var CLOSE_MS = 180;
   var UNKNOWN = 999;
   var NEW_AFTER = 900;
-  var menuTab = () => TAB === "ventas" && SUBSECTION_MENU[pedsecVista()] ? SUBSECTION_MENU[pedsecVista()] ?? TAB : TAB;
+  var menuTab = () => navigationStore.screen === "ventas" && SUBSECTION_MENU[pedsecVista()] ? SUBSECTION_MENU[pedsecVista()] ?? navigationStore.screen : navigationStore.screen;
   function mobileName(key) {
     const button3 = document.querySelector(`nav.main [data-t="${key}"]`);
     if (!button3) return key;
@@ -12909,7 +13239,7 @@
   async function save5(state2, button3) {
     const prefs = menuPrefs2(), hidden2 = [.../* @__PURE__ */ new Set([...(prefs.ocultos ?? []).filter((key) => !state2.available.includes(key)), ...state2.groups.oculta])];
     const bar2 = state2.fixed ? [state2.fixed, ...state2.groups.barra] : [...state2.groups.barra];
-    const profile6 = PERFIL;
+    const profile6 = sessionStore.profile;
     const saved3 = { ...profile6.preferencias ?? {}, menu: { ...prefs, barra: bar2, mas: [...state2.groups.mas, ...state2.groups.oculta], ocultos: hidden2 } };
     button3.disabled = true;
     const { data, error } = await db.rpc("guardar_preferencias", { p: saved3 });
@@ -12921,7 +13251,7 @@
     profile6.preferencias = data ?? saved3;
     document.getElementById("dlg2")?.close();
     pintarBnav();
-    MENU_FIRMA = "";
+    navigationStore.menuSignature = "";
     try {
       montarMenuLateral();
     } catch {
@@ -13104,17 +13434,17 @@
       localStorage.setItem(PKEY, JSON.stringify(profile6));
     } catch {
     }
-    if (!await roles2 && !(ROLES_DEF.length && ESTADOS_DEF.length)) await cargarRoles().catch(() => false);
+    if (!await roles2 && !(settingsStore.roles.length && sessionStore.commercialStates.length)) await cargarRoles().catch(() => false);
     const changed = !saved3 || JSON.stringify(saved3) !== JSON.stringify(profile6);
-    if (!APP_VISIBLE) mostrarApp(profile6);
+    if (!navigationStore.appVisible) mostrarApp(profile6);
     else if (changed) {
       mostrarApp(profile6);
-      if (TAB === "inicio") void cargarInicio();
+      if (navigationStore.screen === "inicio") void cargarInicio();
     }
     Promise.resolve(db.rpc("registrar_acceso", { p_evento: "Entrada", p_agente: navigator.userAgent })).catch(() => void 0);
   }
   function showSaved(saved3) {
-    if (saved3 && ROLES_DEF.length && ESTADOS_DEF.length && localStorage.getItem("dlc-os-sesion") && !APP_VISIBLE) {
+    if (saved3 && settingsStore.roles.length && sessionStore.commercialStates.length && localStorage.getItem("dlc-os-sesion") && !navigationStore.appVisible) {
       mostrarApp(saved3);
       marca("app visible con el perfil guardado");
     }
@@ -13130,7 +13460,7 @@
     const { data: { session: session2 } } = await navLegacy.auth().getSession();
     marca("sesión comprobada");
     if (!session2) {
-      if (!navigator.onLine && saved3 && APP_VISIBLE) return;
+      if (!navigator.onLine && saved3 && navigationStore.appVisible) return;
       localStorage.removeItem(PKEY);
       mostrarLogin();
       return;
@@ -13157,8 +13487,8 @@
     pintarConexion();
     vaciarCola();
     void start3();
-    if (PERFIL) menuOrganizacion();
-    if (PAGO_IR_PLAN && PERFIL) setTimeout(() => {
+    if (sessionStore.profile) menuOrganizacion();
+    if (PAGO_IR_PLAN && sessionStore.profile) setTimeout(() => {
       if (PAGO_IR_PLAN) ir("plan");
     }, 0);
   }
@@ -13185,7 +13515,7 @@
   });
 
   // src/app/legacy/settings2-bridge.ts
-  var profile2 = () => PERFIL;
+  var profile2 = () => sessionStore.profile;
   var settingsMoreLegacy = {
     loading: (element4, text5) => {
       showLoading(element4, text5);
@@ -13199,9 +13529,9 @@
     settingsKey: () => CFG_KEY,
     stateRoles: () => PAPELES_ESTADO,
     // Classifiers: the catalog list, the custom field box and the list repaint stay in legacy
-    classifiers: () => CATS,
+    classifiers: () => settingsStore.catalogs,
     setClassifiers: (list) => {
-      CATS = list;
+      settingsStore.catalogs = list;
     },
     fieldBox: (classifier, complete2) => cajaCampo(classifier, complete2),
     fieldTable: (area) => CAMPO_TABLA[area ?? ""],
@@ -13225,7 +13555,7 @@
     setBrand: (brand2) => {
       MARCA = brand2;
       localStorage.setItem("app-marca", JSON.stringify(brand2));
-      LOGO_DATA = null;
+      settingsStore.invoiceLogo = null;
       applyBrand();
     },
     contactsLabel: () => etiquetaContactos(),
@@ -13234,7 +13564,7 @@
       aplicarEtiqueta();
     },
     termDefaults: () => TERM_DEF,
-    terms: () => TERMINOS ?? {},
+    terms: () => sessionStore.terms ?? {},
     saveTermsCopy: (terms) => {
       try {
         localStorage.setItem(TERMKEY, JSON.stringify(terms));
@@ -14390,13 +14720,13 @@
   });
 
   // src/app/legacy/settings3-bridge.ts
-  var profile3 = () => PERFIL;
+  var profile3 = () => sessionStore.profile;
   var settingsExtraLegacy = {
     // Settings and profile
     loadSettings: () => loadSettings(),
-    setting: (key) => AJUSTES[key],
+    setting: (key) => settingsStore.settings[key],
     setSetting: (key, value27) => {
-      AJUSTES[key] = value27;
+      settingsStore.settings[key] = value27;
     },
     profileName: () => profile3().nombre ?? "",
     profileEmail: () => profile3().email ?? "",
@@ -14418,9 +14748,9 @@
     helpButton: (title2, text5) => pmAyu(title2, text5),
     sendTestEmail: () => db.functions.invoke("enviar_email", { body: { prueba: true } }),
     /** Template chosen when sending (shared with Pedidos and Facturación). */
-    chosenTemplate: (use) => PLANT_ELEGIDA[use] ?? null,
+    chosenTemplate: (use) => billingStore.chosenTemplates[use] ?? null,
     chooseTemplate: (use, id) => {
-      PLANT_ELEGIDA[use] = id;
+      billingStore.chosenTemplates[use] = id;
     },
     // Notifications
     notificationAreas: () => NOTIF_AREAS,
@@ -14428,9 +14758,9 @@
     areaOf: (type) => notificationArea(type),
     iconOf: (type) => notificationIcon(type),
     typesForMyRole: () => tiposDeMiRol(),
-    unread: () => NOTIF_N,
+    unread: () => settingsStore.notificationCount,
     setUnread: (count2) => {
-      NOTIF_N = count2;
+      settingsStore.notificationCount = count2;
     },
     refreshBell: () => {
       void refrescarCampana();
@@ -14446,7 +14776,7 @@
       void abrirVisita(accountId);
     },
     openNotificationSettings: () => {
-      CFG_SEC = "notif";
+      settingsStore.section = "notif";
       window.__CFG_DIRECTO = true;
       void ir("config");
     },
@@ -14457,7 +14787,7 @@
     menuText: (button3) => txTexto(button3),
     applyMenuNames: () => {
       aplicarNombresMenu();
-      MENU_FIRMA = "";
+      navigationStore.menuSignature = "";
       try {
         montarMenuLateral();
         pintarBnav();
@@ -15339,7 +15669,7 @@
   };
   var byId = (id) => document.getElementById(id);
   var chosenTab = (screen3, page) => {
-    const wanted = PAG_TAB[screen3];
+    const wanted = navigationStore.pageTabs[screen3];
     return page.tabs.some((tab) => tab[0] === wanted) && wanted ? wanted : page.tabs[0]?.[0] ?? "";
   };
   var painterOf = (page, key) => page.tabs.find((tab) => tab[0] === key)?.[2];
@@ -15359,7 +15689,7 @@
     return section2;
   }
   function platformTitle() {
-    const section2 = byId("v-delcos"), tab = PAG_TAB.delcos ?? "orgs", found = PANEL_SECCIONES.find((item) => item[1] === tab);
+    const section2 = byId("v-delcos"), tab = navigationStore.pageTabs.delcos ?? "orgs", found = PANEL_SECCIONES.find((item) => item[1] === tab);
     if (!section2 || !found) return;
     const title2 = section2.querySelector(".saludo h1"), description = section2.querySelector(".saludo .fecha");
     if (title2) title2.textContent = found[2] ?? "";
@@ -15386,12 +15716,12 @@
     section2.innerHTML = headerHtml(screen3, page, tab);
     section2.querySelectorAll(".pagtabs [data-ptab]").forEach((button3) => {
       button3.onclick = () => {
-        PAG_TAB[screen3] = button3.dataset.ptab;
+        navigationStore.pageTabs[screen3] = button3.dataset.ptab;
         loadPage(screen3);
       };
     });
     void Promise.resolve().then(painterOf(page, tab));
-    if (screen3 === "delcos" && MODO_PLATAFORMA) platformTitle();
+    if (screen3 === "delcos" && navigationStore.platformMode) platformTitle();
   }
   function switchListTab(screen3, page, box5, tabs) {
     const tab = chosenTab(screen3, page);
@@ -15407,7 +15737,7 @@
     const page = PAGES[screen3];
     if (!page) return void 0;
     const section2 = byId(`v-${screen3}`), box5 = section2?.querySelector("#cfgcuerpo"), tabs = section2?.querySelector(":scope > .pagtabs");
-    if (BLQ[screen3] && TAB === screen3 && box5 && tabs && section2?.classList.contains("plantilla")) {
+    if (BLQ[screen3] && navigationStore.screen === screen3 && box5 && tabs && section2?.classList.contains("plantilla")) {
       const switched = switchListTab(screen3, page, box5, tabs);
       if (switched) return switched;
     }
@@ -15419,12 +15749,12 @@
   var RELOAD_WINDOW_MS = 6e4;
   var OWN_PAGES = ["config", "perfil", "empresa", "plan"];
   var toToday = () => {
-    AG_MODO = "dia";
-    AG_FECHA = hoyISO();
+    agendaStore.mode = "dia";
+    agendaStore.selectedDate = hoyISO();
     return ir("agenda");
   };
   var toOrders = (section2) => {
-    PEDSEC = section2;
+    ordersStore.section = section2;
     return ir("ventas");
   };
   var LINKS = /* @__PURE__ */ new Map([
@@ -15438,7 +15768,7 @@
     ["llamadas", () => toOrders("llamadas")],
     ["ventas", () => toOrders("ventas")],
     ["stock", () => {
-      PSEC = "stock";
+      productsStore.section = "stock";
       return ir("productos");
     }],
     ["facturacion", () => ir("facturacion")],
@@ -15464,9 +15794,9 @@
     return point?.t && Date.now() - (point.h ?? 0) < RELOAD_WINDOW_MS ? point : null;
   }
   function returnAfterReload(point) {
-    if (point.c) CFG_SEC = point.c;
-    if (point.s) CFG_SUB = point.s;
-    if (point.p) Object.assign(PAG_TAB, point.p);
+    if (point.c) settingsStore.section = point.c;
+    if (point.s) settingsStore.subsection = point.s;
+    if (point.p) Object.assign(navigationStore.pageTabs, point.p);
     if (point.t && (OWN_PAGES.includes(point.t) || puedeModulo(point.t))) ir(point.t);
   }
   function screenName(screen3) {
@@ -16300,7 +16630,7 @@
   }
   var addedElements = (mutations) => mutations.flatMap((mutation) => [...mutation.addedNodes].filter((node) => node.nodeType === Node.ELEMENT_NODE));
   var matchingIn = (node, selector) => [...node.matches(selector) ? [node] : [], ...node.querySelectorAll(selector)];
-  var currentSection = () => byId2(`v-${TAB}`);
+  var currentSection = () => byId2(`v-${navigationStore.screen}`);
   function whenSignedIn(then, everyMs, times) {
     let tries = 0;
     const timer3 = setInterval(() => {
@@ -16310,7 +16640,7 @@
       } else if (++tries > times) clearInterval(timer3);
     }, everyMs);
   }
-  var signedIn = () => typeof PERFIL !== "undefined" && Boolean(PERFIL) && !document.body.classList.contains("sin-sesion") && typeof RPC_ORIG === "function";
+  var signedIn = () => Boolean(sessionStore.profile) && !document.body.classList.contains("sin-sesion") && typeof RPC_ORIG === "function";
 
   // src/app/core/legacy-c/user-menu.ts
   var hideUserMenus = () => {
@@ -16425,7 +16755,7 @@
     client().rpc = (name, params2, options5) => {
       const result = original.call(db, name, params2, options5);
       if (ES_ESCRITURA.test(name) && isThenable(result)) Promise.resolve(result).then((answer) => {
-        if (!answer.error) ESCRITURAS++;
+        if (!answer.error) sessionStore.writes++;
       }, () => void 0);
       return result;
     };
@@ -16486,7 +16816,7 @@
     document.addEventListener("click", (event) => {
       const target = event.target instanceof Element ? event.target.closest("button, a, [data-t], [data-cfg], .dr, .trow") : null;
       if (!target) return;
-      RASTRO.push({ t: (/* @__PURE__ */ new Date()).toISOString().slice(11, 19), pantalla: TAB, que: firstText(target.getAttribute("aria-label"), target.title, target.textContent).trim().replace(/\s+/g, " ").slice(0, TRAIL_TEXT) });
+      RASTRO.push({ t: (/* @__PURE__ */ new Date()).toISOString().slice(11, 19), pantalla: navigationStore.screen, que: firstText(target.getAttribute("aria-label"), target.title, target.textContent).trim().replace(/\s+/g, " ").slice(0, TRAIL_TEXT) });
       if (RASTRO.length > TRAIL_LENGTH) RASTRO.shift();
     }, true);
   }
@@ -16555,7 +16885,7 @@
     }, { childList: true, subtree: true });
   }
   function applyVocabularyToFixedTexts() {
-    if (!Object.keys(TERMINOS ?? {}).length) return;
+    if (!Object.keys(sessionStore.terms ?? {}).length) return;
     const search9 = byId2("q");
     if (search9) search9.placeholder = t("legacyC.fixedTexts.search", { professional: term("medico") });
     const latest = document.querySelector("#c-ultimas h2");
@@ -16573,7 +16903,7 @@
     const tools = byId2("tools"), openDialog3 = document.querySelector("dialog[open]");
     const container = tools?.classList.contains("abierto") ? tools : document.querySelector("dialog[open] .fh") ? openDialog3 : null;
     const save48 = byId2("guardarFiltro");
-    if (!container || container.querySelector("#hguardarf") || !save48 || TAB !== "directorio") return;
+    if (!container || container.querySelector("#hguardarf") || !save48 || navigationStore.screen !== "directorio") return;
     container.insertAdjacentHTML("beforeend", `<div class="acts" style="margin:12px 0 0"><button class="btn sec" id="hguardarf">${svgIco(ICON_NOM.star ?? "")} ${t("legacyC.tools.saveFilter")}</button></div>`);
     const button3 = byId2("hguardarf");
     if (button3) button3.onclick = () => {
@@ -16696,7 +17026,7 @@
     Object.defineProperty(panelFilters, "analitica", {
       configurable: true,
       enumerable: true,
-      get: () => ANSEC === "explorar" ? "#v-analitica .panel > .filtros" : "#anfil"
+      get: () => homeStore.analyticsSection === "explorar" ? "#v-analitica .panel > .filtros" : "#anfil"
     });
   }
   var MIN_COLUMN_PX = 60;
@@ -16827,15 +17157,15 @@
   }
   function watchModuleSections() {
     observe(byId2("v-directorio"), () => {
-      if (TAB === "directorio") barraCuentas();
+      if (navigationStore.screen === "directorio") barraCuentas();
     }, { childList: true, subtree: true, characterData: true });
     observe(byId2("v-facturacion"), () => {
-      if (TAB === "facturacion") billingSettingsSubnav();
+      if (navigationStore.screen === "facturacion") billingSettingsSubnav();
     }, { childList: true, subtree: true });
   }
   function watchAnalyticsChannel() {
     observe(byId2("v-analitica"), () => {
-      if (TAB === "analitica" && !byId2("ancanal")) graficoCanal();
+      if (navigationStore.screen === "analitica" && !byId2("ancanal")) graficoCanal();
     }, { childList: true, subtree: true });
   }
   function watchBillingSettings() {
@@ -17087,18 +17417,18 @@
   function watchDialogWrites() {
     const dialog13 = byId2("dlg");
     observe(dialog13, () => {
-      if (dialog13?.open) writesWhenOpened = ESCRITURAS;
-      else if (ESCRITURAS === writesWhenOpened) unchangedUntil = Date.now() + UNCHANGED_FOR_MS;
+      if (dialog13?.open) writesWhenOpened = sessionStore.writes;
+      else if (sessionStore.writes === writesWhenOpened) unchangedUntil = Date.now() + UNCHANGED_FOR_MS;
     }, { attributes: true, attributeFilter: ["open"] });
   }
   var moduleStates = () => ({
     inicio: () => "",
-    ventas: () => PEDSEC,
-    productos: () => PSEC,
-    facturacion: () => FSEC,
+    ventas: () => ordersStore.section,
+    productos: () => productsStore.section,
+    facturacion: () => billingStore.section,
     analitica: () => typeof ASEC !== "undefined" ? ASEC : "",
     pacientes: () => "",
-    agenda: () => [AG_MODO, AG_FECHA, AG_VISTA ? AG_VISTA.id : ""].join("|")
+    agenda: () => [agendaStore.mode, agendaStore.selectedDate, agendaStore.viewedUser ? agendaStore.viewedUser.id : ""].join("|")
   });
   var LOADERS = [
     ["inicio", "cargarInicio"],
@@ -17119,7 +17449,7 @@
           if (screen3 === "inicio") paintUpdated();
           return void 0;
         }
-        if (screen3 === "agenda" && Date.now() < unchangedUntil && !VIA_IR) return void 0;
+        if (screen3 === "agenda" && Date.now() < unchangedUntil && !navigationStore.via) return void 0;
         const result = await original.apply(this, args);
         markModuleCache(screen3);
         if (screen3 === "inicio") paintUpdated();
@@ -17159,7 +17489,7 @@
   }
   function keepUpdateTime() {
     setInterval(() => {
-      if (TAB === "inicio") paintUpdated();
+      if (navigationStore.screen === "inicio") paintUpdated();
     }, MINUTE_MS2);
     setTimeout(() => {
       document.body.classList.add("inilisto");
@@ -17202,7 +17532,7 @@
   }
   function stackWindows() {
     byId2("dlg")?.addEventListener("close", () => {
-      if (APILANDO || !PILA_VENT.length) return;
+      if (settingsStore.stacking || !PILA_VENT.length) return;
       const previous = PILA_VENT.pop(), dialog13 = byId2("dlg"), body4 = byId2("dbody");
       if (!previous || !dialog13 || !body4) return;
       body4.replaceChildren(...previous.nodos);
@@ -17272,21 +17602,21 @@
   function trackDialogEpoch() {
     const dialog13 = byId2("dlg");
     observe(dialog13, () => {
-      if (dialog13?.open) DLG_EPOCA = RC_EPOCA;
+      if (dialog13?.open) agendaStore.dialogEpoch = sessionStore.cacheEpoch;
     }, { attributes: true, attributeFilter: ["open"] });
   }
   function forgetVisitOnClose() {
     const dialog13 = byId2("dlg");
     dialog13?.addEventListener("close", () => {
       setTimeout(() => {
-        if (!dialog13.open) VISITA_ACTUAL = null;
+        if (!dialog13.open) accountsStore.currentVisit = null;
       }, 0);
     });
   }
   function repaintEventsOnClose() {
     const dialog13 = byId2("dlg");
     dialog13?.addEventListener("close", () => {
-      if (TAB === "eventos" && (PAG_TAB.eventos ?? "lista") === "lista" && byId2("cfgcuerpo")) setTimeout(() => {
+      if (navigationStore.screen === "eventos" && (navigationStore.pageTabs.eventos ?? "lista") === "lista" && byId2("cfgcuerpo")) setTimeout(() => {
         if (!dialog13.open) void pintarEventos();
       }, REPAINT_AFTER_CLOSE_MS);
     });
@@ -17294,13 +17624,13 @@
   function repaintCycleOnClose() {
     const repaint5 = () => {
       const tabs = PAGINAS.ciclo.tabs;
-      (tabs.find((tab) => tab[0] === (PAG_TAB.ciclo ?? "ciclo")) ?? tabs[0])?.[2]();
+      (tabs.find((tab) => tab[0] === (navigationStore.pageTabs.ciclo ?? "ciclo")) ?? tabs[0])?.[2]();
     };
     ["dlg", "ficha"].forEach((id) => {
       const dialog13 = byId2(id);
       dialog13?.addEventListener("close", () => {
-        if (TAB === "ciclo" && byId2("cfgcuerpo")) setTimeout(() => {
-          if (!dialog13.open && TAB === "ciclo") repaint5();
+        if (navigationStore.screen === "ciclo" && byId2("cfgcuerpo")) setTimeout(() => {
+          if (!dialog13.open && navigationStore.screen === "ciclo") repaint5();
         }, REPAINT_AFTER_CLOSE_MS);
       });
     });
@@ -17308,8 +17638,8 @@
   function repaintSurgeriesOnClose() {
     const dialog13 = byId2("dlg");
     dialog13?.addEventListener("close", () => {
-      if (TAB === "cirugias" && byId2("cfgcuerpo")) setTimeout(() => {
-        if (!dialog13.open && TAB === "cirugias") void pintarCirugias();
+      if (navigationStore.screen === "cirugias" && byId2("cfgcuerpo")) setTimeout(() => {
+        if (!dialog13.open && navigationStore.screen === "cirugias") void pintarCirugias();
       }, REPAINT_AFTER_CLOSE_MS);
     });
   }
@@ -17359,7 +17689,7 @@
         modal();
         return;
       }
-      if (dialog13.id === "dlg" && typeof PANEL_ACTIVO !== "undefined" && PANEL_ACTIVO?.tipo === "dbody") return;
+      if (dialog13.id === "dlg" && settingsStore.activePanel?.tipo === "dbody") return;
       if (dialog13.open) return;
       openEmbedded(dialog13, area);
     };
@@ -17452,7 +17782,7 @@
       });
       shortenFirstSentence(popup);
     }
-    const screen3 = TAB;
+    const screen3 = navigationStore.screen;
     popup.insertAdjacentHTML("beforeend", `<a href="#" class="aiman">${t("legacyC.help.moreInManual")}</a>`);
     const link2 = popup.querySelector(".aiman");
     if (link2) link2.onclick = (event) => {
@@ -17560,8 +17890,8 @@
       if (!f5 && !reload) return;
       const full = f5 ? event.ctrlKey || event.shiftKey : event.shiftKey;
       try {
-        if (full || !PERFIL) sessionStorage.removeItem("dlc-f5");
-        else sessionStorage.setItem("dlc-f5", JSON.stringify({ t: TAB, c: CFG_SEC, s: CFG_SUB, p: PAG_TAB, h: Date.now() }));
+        if (full || !sessionStore.profile) sessionStorage.removeItem("dlc-f5");
+        else sessionStorage.setItem("dlc-f5", JSON.stringify({ t: navigationStore.screen, c: settingsStore.section, s: settingsStore.subsection, p: navigationStore.pageTabs, h: Date.now() }));
       } catch {
       }
     });
@@ -17809,7 +18139,7 @@
     const panel = pages().delcos;
     if (!panel) return;
     const base = panel.tabs;
-    Object.defineProperty(panel, "tabs", { configurable: true, get: () => MODO_PLATAFORMA ? [...base, ["equipo", t("legacyC.pages.panel.team"), () => pintarUsuarios2()], ["plantilla", t("legacyC.pages.panel.template"), () => pintarPlantillaDelcos()]] : base });
+    Object.defineProperty(panel, "tabs", { configurable: true, get: () => navigationStore.platformMode ? [...base, ["equipo", t("legacyC.pages.panel.team"), () => pintarUsuarios2()], ["plantilla", t("legacyC.pages.panel.template"), () => pintarPlantillaDelcos()]] : base });
   }
   function addPanelButtons() {
     const nav = document.getElementById("nav");
@@ -17833,7 +18163,7 @@
     const group = groups().find((item) => item.id === "panel");
     if (group) group.items = sections2.map((section2) => section2[0] ?? "");
     const extra = { cobros: () => pintarCobrosDelcos(), altas: () => pintarAltasDelcos(), estado: () => pintarEstadoDelcos() };
-    wrapTabs("delcos", (base) => MODO_PLATAFORMA ? sections2.map(([, key = "", name = ""]) => {
+    wrapTabs("delcos", (base) => navigationStore.platformMode ? sections2.map(([, key = "", name = ""]) => {
       const tab = base.find((item) => item[0] === key);
       return tab ? [key, name, tab[2]] : extra[key] ? [key, name, extra[key]] : null;
     }).filter((tab) => tab !== null) : base);
@@ -17951,21 +18281,21 @@
     return result;
   }
   function applyPlatformMode() {
-    document.body.classList.toggle("modo-plataforma", MODO_PLATAFORMA);
+    document.body.classList.toggle("modo-plataforma", navigationStore.platformMode);
     document.querySelectorAll("#nav [data-t]").forEach((button3) => {
       const panelSection = button3.classList.contains("pdsec");
-      if (MODO_PLATAFORMA) button3.classList.toggle("hide", !panelSection);
+      if (navigationStore.platformMode) button3.classList.toggle("hide", !panelSection);
       else if (panelSection) button3.classList.add("hide");
     });
-    if (MODO_PLATAFORMA) document.querySelectorAll('[data-u="organizacion"], [data-u="plan"], [data-u="empresa"]').forEach((button3) => {
+    if (navigationStore.platformMode) document.querySelectorAll('[data-u="organizacion"], [data-u="plan"], [data-u="empresa"]').forEach((button3) => {
       button3.classList.add("hide");
     });
     quietly(() => {
-      MENU_FIRMA = "";
+      navigationStore.menuSignature = "";
       montarMenuLateral();
     });
     try {
-      localStorage.setItem("dlc-modo", MODO_PLATAFORMA ? "plataforma" : "empresa");
+      localStorage.setItem("dlc-modo", navigationStore.platformMode ? "plataforma" : "empresa");
     } catch {
     }
   }
@@ -17983,14 +18313,14 @@
   var hiddenSections = () => menuPrefs().ocultos ?? [];
   function wantsSideMenu(nav) {
     const shown5 = [...nav.querySelectorAll("button[data-t]")].filter((button3) => !button3.classList.contains("hide") && button3.dataset.t !== "seguimiento" && button3.style.display !== "none" && (button3.classList.contains("mloculto") || visible(button3) || document.body.classList.contains("menulat")));
-    return menuEscritorio() && typeof PERFIL !== "undefined" && Boolean(PERFIL) && !isPortal() && shown5.length > 1;
+    return menuEscritorio() && Boolean(sessionStore.profile) && !isPortal() && shown5.length > 1;
   }
   function paintBrand2(nav) {
     if (!nav.querySelector(".mlmarca")) {
       const logo = document.querySelector("header .logo")?.src ?? "./logo-app.png";
       nav.insertAdjacentHTML("afterbegin", `<div class="mlmarca"><img src="${escapeHtml(logo)}" alt=""><b class="mllab"></b></div>`);
     }
-    const brand2 = typeof AJUSTES !== "undefined" && AJUSTES.marca || {};
+    const brand2 = settingsStore.settings.marca || {};
     const name = nav.querySelector(".mlmarca b");
     if (name) name.textContent = brand2.nombre ? brand2.nombre : document.title;
   }
@@ -18051,7 +18381,7 @@
         }
         document.body.classList.toggle("menupleg", folded3);
         menuTip(null);
-        MENU_FIRMA = "";
+        navigationStore.menuSignature = "";
         montarMenuLateral();
       };
     }
@@ -18071,8 +18401,8 @@
     document.body.classList.toggle("menupleg", menuPlegado());
     const buttons = [...nav.querySelectorAll("button[data-t]")];
     const signature = buttons.map((button3) => `${button3.dataset.t ?? ""}${button3.classList.contains("hide") ? "-" : "+"}${(button3.textContent ?? "").trim()}`).join("|") + JSON.stringify(menuPrefs()) + String(document.body.classList.contains("menupleg"));
-    if (signature === MENU_FIRMA && nav.querySelector(".mlmarca")) return;
-    MENU_FIRMA = signature;
+    if (signature === navigationStore.menuSignature && nav.querySelector(".mlmarca")) return;
+    navigationStore.menuSignature = signature;
     paintBrand2(nav);
     placeGroups(nav);
     labelButtons(buttons);
@@ -18169,7 +18499,7 @@
     const marker = byId2("indpruebas");
     if (marker) marker.onclick = () => {
       if (puedeOrganizacion()) {
-        PAG_TAB.organizacion = "pruebas";
+        navigationStore.pageTabs.organizacion = "pruebas";
         ir("organizacion");
       } else toast(t("legacyC.testEnvironment.markerHint"));
     };
@@ -18259,7 +18589,7 @@
     document.querySelectorAll("#opcfg").forEach((gear2) => {
       gear2.remove();
     });
-    const profile6 = PERFIL;
+    const profile6 = sessionStore.profile;
     const mandatory = settings2?.valor?.obligatorios?.[profile6.rol] ?? [], preferences = profile6.preferencias?.avisos_pedidos ?? {};
     const shown5 = PK_TARJ.filter(([key]) => mandatory.includes(key) || preferences[key] !== false);
     const gear = `<button type="button" class="pkcfg" id="opcfg" aria-label="${t("legacyC.orderAlerts.choose")}" title="${t("legacyC.orderAlerts.choose")}">${svgIco(ICON_NOM.settings ?? "")}</button>`;
@@ -18311,7 +18641,7 @@
       applyPlatformMode();
     } catch {
     }
-    if (MODO_PLATAFORMA && TAB !== "delcos") ir("pd-orgs");
+    if (navigationStore.platformMode && navigationStore.screen !== "delcos") ir("pd-orgs");
     for (let step = 0; step < REVEAL_STEPS; step++) {
       await pause(REVEAL_STEP_MS);
       if (!document.querySelector("main > section.preparando, main > section.cargando")) break;
@@ -18339,7 +18669,7 @@
         clearInterval(timer3);
         return;
       }
-      if (!(typeof PERFIL !== "undefined" && PERFIL && !document.body.classList.contains("sin-sesion") && typeof RPC_ORIG === "function")) {
+      if (!(sessionStore.profile && !document.body.classList.contains("sin-sesion") && typeof RPC_ORIG === "function")) {
         if (!byId2("login")?.classList.contains("hide")) {
           clearInterval(timer3);
           clearTimeout(limit);
@@ -18366,7 +18696,7 @@
   var BACK_TO_PLAN_FOR_MS = 3e4;
   var ANNUAL_MONTHS = 10;
   var MIN_USERS = 3;
-  var currentPlan = () => PLAN_ACTUAL ?? {};
+  var currentPlan = () => sessionStore.plan ?? {};
   function annualFee(cards2, plan3) {
     if (plan3.pago !== "anual" || plan3.plan === "medida") return;
     cards2.forEach((card4) => {
@@ -18453,7 +18783,7 @@
     if (new URLSearchParams(location.search).get("pago") !== "baja") return;
     let tries = 0;
     const timer3 = setInterval(() => {
-      if (typeof PERFIL !== "undefined" && PERFIL && !document.body.classList.contains("sin-sesion")) {
+      if (sessionStore.profile && !document.body.classList.contains("sin-sesion")) {
         clearInterval(timer3);
         pagoEsperarBaja();
       } else if (++tries > CHECKS2) clearInterval(timer3);
@@ -18470,7 +18800,7 @@
       history.replaceState(null, "", location.pathname + location.hash);
       setTimeout(() => {
         const message4 = byId2("lmsg");
-        if (message4 && !(typeof PERFIL !== "undefined" && PERFIL)) {
+        if (message4 && !sessionStore.profile) {
           message4.style.color = "var(--ok)";
           message4.textContent = t("legacyC.plan.signupLogin");
         } else toast(t("legacyC.plan.signupToast"));
@@ -18586,8 +18916,8 @@
         showPull(PULL_READY);
         const started = Date.now();
         try {
-          if (TAB === "agenda") await cargarAgenda();
-          else await ir(TAB);
+          if (navigationStore.screen === "agenda") await cargarAgenda();
+          else await ir(navigationStore.screen);
         } catch {
         }
         await new Promise((resolve) => {
@@ -18626,7 +18956,7 @@
   function checkSamplesBeforeSaving() {
     document.addEventListener("click", (event) => {
       const button3 = closestTo(event.target, "#vguardar");
-      const visit2 = VISITA_ACTUAL;
+      const visit2 = accountsStore.currentVisit;
       if (!button3 || !visit2?.muestras) return;
       const message4 = visit2.muestras.validar();
       if (message4) {
@@ -18638,7 +18968,7 @@
   }
   function paintPlan(args) {
     const result = pintarPlanBase2(...args);
-    const box5 = byId2("rplan"), booked = PLAN?.citados ?? [];
+    const box5 = byId2("rplan"), booked = routesStore.plan?.citados ?? [];
     if (box5 && booked.length && !box5.querySelector(".plancitados")) {
       box5.insertAdjacentHTML("beforeend", `<div class="plancitados"><h3>${t("legacyC.plan.booked", { count: booked.length })}</h3>
       <p class="sm">${t("legacyC.plan.bookedHint")}</p>
@@ -18736,13 +19066,13 @@
     ];
   }
   function hasExtra(key) {
-    const plan3 = PLAN_ACTUAL ?? {};
+    const plan3 = sessionStore.plan ?? {};
     return (plan3.extras ?? []).includes(key) || (PLAN_EXTRAS[key] ?? []).includes(plan3.plan ?? "");
   }
 
   // src/app/core/legacy-c/agenda-notices.ts
   var FAR_MINUTES = 240;
-  var infoOf = (id) => TD_INFO[id];
+  var infoOf = (id) => agendaStore.stopInfo[id];
   function markFarStops(stops, date, estimate) {
     try {
       const start4 = salidaUsuario();
@@ -18769,7 +19099,7 @@
     });
     const estimate = estimarDiaBaseBase(withCentre, date);
     markFarStops(withCentre, date, estimate);
-    Object.values(TD_INFO).forEach((info) => {
+    Object.values(agendaStore.stopInfo).forEach((info) => {
       if (info.aviso && info.aviso.startsWith(t("legacyC.agenda.wouldArrive")) && !info.aviso.includes(t("legacyC.agenda.moveUpWord"))) {
         info.orden = true;
         info.aviso += t("legacyC.agenda.moveUp");
@@ -18799,7 +19129,7 @@
   var NOTE_CHARS = 180;
   function previewHtml2() {
     const value27 = (key) => (byId2(`em_${key}`)?.value ?? "").trim();
-    const brand2 = AJUSTES.marca ?? {};
+    const brand2 = settingsStore.settings.marca ?? {};
     const logo = MARCA.logo && brand2.logo_factura !== false;
     const address2 = [value27("direccion"), [value27("cp"), value27("municipio") || value27("poblacion")].filter(Boolean).join(" "), value27("provincia")].filter(Boolean).join(", ");
     const note = (document.querySelector("#fcuerpo textarea")?.value ?? "").slice(0, NOTE_CHARS);
@@ -19025,23 +19355,23 @@
 
   // src/app/legacy/misc-bridge.ts
   var miscLegacy = {
-    canUnify: () => puede("administrar") || (PERFIL?.areas?.M ?? 0) >= 3,
-    previousScreen: () => TAB_ANTERIOR,
+    canUnify: () => puede("administrar") || (sessionStore.profile?.areas?.M ?? 0) >= 3,
+    previousScreen: () => navigationStore.previousScreen,
     weekDays: () => DIAS_SEM,
     setCardCentre: (name) => {
-      FICHA_CENTRO = name;
+      accountsStore.cardCentre = name;
     },
-    nearby: () => CERCA,
+    nearby: () => accountsStore.nearby,
     setNearby: (value27) => {
-      CERCA = value27;
+      accountsStore.nearby = value27;
     },
-    duplicatesSummary: () => DUP_RES,
+    duplicatesSummary: () => accountsStore.duplicates,
     setDuplicatesSummary: (value27) => {
-      DUP_RES = value27;
+      accountsStore.duplicates = value27;
     },
-    hiddenAlerts: () => ALERTAS_OCULTAS,
+    hiddenAlerts: () => homeStore.hiddenAlerts,
     setHiddenAlerts: (value27) => {
-      ALERTAS_OCULTAS = value27;
+      homeStore.hiddenAlerts = value27;
     },
     alertKey: (title2, item) => claveAlerta(title2, item),
     commissionCard: () => tarjetaComision(),
@@ -19052,7 +19382,7 @@
     },
     canBuy: () => Boolean(permissions_exports.canBuy()),
     openStock: () => {
-      PSEC = "stock";
+      productsStore.section = "stock";
       ir("productos");
     },
     openPurchase: (id) => {
@@ -20003,16 +20333,16 @@
   }
   function refreshBelow() {
     if (document.querySelector("dialog[open]")) {
-      DATOS_CAMBIADOS = true;
+      settingsStore.unsavedChanges = true;
       return;
     }
-    DATOS_CAMBIADOS = false;
-    if (TAB === "agenda" && document.getElementById("agcuerpo")) navLegacy.refreshAgenda();
-    else if (TAB === "directorio") void buscar(true);
+    settingsStore.unsavedChanges = false;
+    if (navigationStore.screen === "agenda" && document.getElementById("agcuerpo")) navLegacy.refreshAgenda();
+    else if (navigationStore.screen === "directorio") void buscar(true);
   }
   function raisePageAction2() {
-    if (!PAGES[TAB]) return;
-    const section2 = document.getElementById(`v-${TAB}`), header5 = section2?.querySelector(":scope > .saludo");
+    if (!PAGES[navigationStore.screen]) return;
+    const section2 = document.getElementById(`v-${navigationStore.screen}`), header5 = section2?.querySelector(":scope > .saludo");
     if (!section2 || !header5) return;
     PAGE_ACTIONS.forEach((id) => {
       const button3 = document.getElementById(id);
@@ -20122,24 +20452,24 @@
     closeMonth: () => {
       cerrarMesCinta();
     },
-    dayAppointments: () => TD_CITAS,
+    dayAppointments: () => agendaStore.dayAppointments,
     openAppointment: (appointment) => {
       void verCita(appointment);
     },
-    mode: () => AG_MODO,
+    mode: () => agendaStore.mode,
     backToDay: () => {
-      AG_MODO = "dia";
-      AG_VISTA = null;
+      agendaStore.mode = "dia";
+      agendaStore.viewedUser = null;
       const select3 = document.getElementById("agvista");
       if (select3) select3.value = "";
       void cargarAgenda();
     },
-    calculating: () => TD_CALC,
+    calculating: () => agendaStore.trafficCalculated,
     baseEstimate: (appointments2, isoDate, rest) => estimarDiaBase2(appointments2, isoDate, ...rest),
     dayRoute: (appointments2, isoDate) => tdRutaDia(appointments2, isoDate),
-    realTimes: () => TD_REAL,
+    realTimes: () => agendaStore.realTimes,
     setRealTimes: (value27) => {
-      TD_REAL = value27;
+      agendaStore.realTimes = value27;
     },
     realTimesValid: () => Boolean(tdRealVigente()),
     today: () => hoyISO(),
@@ -20155,7 +20485,7 @@
       } catch {
       }
     },
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     searchAccounts: () => {
       void buscar(true);
     },
@@ -20165,7 +20495,7 @@
   };
   var pages2 = () => PAGINAS;
   var navigationGlueLegacy = {
-    profileLoaded: () => Boolean(PERFIL),
+    profileLoaded: () => Boolean(sessionStore.profile),
     addIconIfMissing: (name, svg) => {
       const icons = ICON_NOM;
       if (!icons[name]) icons[name] = svg;
@@ -20174,18 +20504,18 @@
     refillRoutes: () => {
       void refillRepeating();
     },
-    routeDraft: () => RN,
+    routeDraft: () => routesStore.wizard,
     forgetRouteDraft: () => {
-      RN = null;
+      routesStore.wizard = null;
     },
     wrapGlobal,
     applyMenuNames: () => {
       aplicarNombresMenu();
     },
     applyMenuNamesSoon: () => {
-      if (!Object.keys(menuNombres()).length || TX_OBS) return;
-      TX_OBS = requestAnimationFrame(() => {
-        TX_OBS = 0;
+      if (!Object.keys(menuNombres()).length || settingsStore.textsObserverTimer) return;
+      settingsStore.textsObserverTimer = requestAnimationFrame(() => {
+        settingsStore.textsObserverTimer = 0;
         try {
           aplicarNombresMenu();
         } catch {
@@ -20193,7 +20523,7 @@
       });
     },
     baseApplyLabel: (args) => aplicarEtiquetaBase(...args),
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     hasReadyCheck: (screen3) => Boolean(LISTA_PARA[screen3]),
     setReadyCheck: (screen3, check3) => {
       LISTA_PARA[screen3] = check3;
@@ -20237,7 +20567,7 @@
   var lists = () => PL;
   var listGlueLegacy = {
     leaveNearby: () => {
-      CERCA = null;
+      accountsStore.nearby = null;
       void buscar(true);
     },
     clearCustomerDoctor: () => {
@@ -20265,7 +20595,7 @@
       const sales = lists().ventas;
       sales.pedidos.card = card4;
     },
-    orders: () => typeof PEDIDOS === "undefined" ? [] : PEDIDOS,
+    orders: () => typeof ordersStore.orders === "undefined" ? [] : ordersStore.orders,
     number: (value27) => num(value27),
     isFree: (order) => Boolean(sinCargoP(order, order.total)),
     shortDate: (isoDate) => calendar_exports.shortDate(isoDate),
@@ -20287,13 +20617,13 @@
     isMobile: () => ES_MOVIL(),
     icon: (name) => svgIco(ICON_NOM[name] ?? ""),
     debounceAddButton: (work, ms) => {
-      clearTimeout(FAB_RZ);
-      FAB_RZ = setTimeout(work, ms);
+      clearTimeout(navigationStore.fabResize);
+      navigationStore.fabResize = setTimeout(work, ms);
     },
     addButtonToDesktop: () => {
       fabAOrdenador();
     },
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     syncListBar: (screen3) => {
       if (typeof plSync === "function") plSync(screen3);
     },
@@ -20315,10 +20645,10 @@
       void vaciarCola();
     },
     addScannerButtonsSoon: () => {
-      if (ESC_PEND) return;
-      ESC_PEND = true;
+      if (navigationStore.scannerPending) return;
+      navigationStore.scannerPending = true;
       queueMicrotask(() => {
-        ESC_PEND = false;
+        navigationStore.scannerPending = false;
         addScannerButtons(void 0);
       });
     },
@@ -20341,7 +20671,7 @@
     refreshBell: () => {
       void refrescarCampana();
     },
-    profileLoaded: () => Boolean(PERFIL?.id),
+    profileLoaded: () => Boolean(sessionStore.profile?.id),
     liveNotices: () => {
       avisosEnVivo();
     },
@@ -20352,7 +20682,7 @@
     toast: (message4, isError = false) => {
       toast(message4, isError);
     },
-    materials: () => PRES_MAT,
+    materials: () => productsStore.presentationMaterials,
     linkError: () => ENLACE_ERROR,
     accessWithoutActivation: (text5) => {
       accesoSinActivar(text5);
@@ -20926,7 +21256,7 @@
   // src/app/legacy/visit-bridge.ts
   var visitLegacy = {
     setCurrent: (draft) => {
-      VISITA_ACTUAL = draft;
+      accountsStore.currentVisit = draft;
     },
     /** The day chosen in the Agenda for the visit (used once). */
     takeDate: () => {
@@ -20945,7 +21275,7 @@
     promotedProducts: () => productosPromocionados(),
     reloadProducts: async () => {
       await cargarProductos();
-      return PRODUCTOS;
+      return productsStore.products;
     },
     readPhoto: (file) => leerJustificante(file),
     photosMax: () => FOTOS_VISITA_MAX,
@@ -20959,17 +21289,17 @@
     loading: (element4, text5) => {
       showLoading(element4, text5);
     },
-    materials: () => PRES_MAT,
-    materialsTime: () => PRES_T,
+    materials: () => productsStore.presentationMaterials,
+    materialsTime: () => productsStore.presentationTime,
     setMaterials: (list, time) => {
-      PRES_MAT = list;
-      PRES_T = time;
+      productsStore.presentationMaterials = list;
+      productsStore.presentationTime = time;
     },
     /** Downloaded material files by id (Productos forgets one when it is removed). */
     materialFiles: () => PRES_DATOS,
-    preferences: () => PERFIL.preferencias ?? {},
+    preferences: () => sessionStore.profile.preferencias ?? {},
     setPreferences: (value27) => {
-      PERFIL.preferencias = value27;
+      sessionStore.profile.preferencias = value27;
     }
   };
 
@@ -21710,7 +22040,7 @@
 
   // src/app/legacy/organisation-bridge.ts
   var organisationLegacy = {
-    setting: (key) => AJUSTES[key],
+    setting: (key) => settingsStore.settings[key],
     name: () => nombreApp()
   };
 
@@ -24339,7 +24669,7 @@
     },
     menuGroups: () => MENU_GRUPOS,
     dialog: () => document.getElementById("dlg"),
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     isProfessionalPortal: () => ES_MEDICO(),
     canUseModule: (module) => puedeModulo(module),
     planIncludesSection: (section2) => planIncluyeSeccion(section2),
@@ -24348,7 +24678,7 @@
     setPage: (key, page) => {
       pages3()[key] = page;
     },
-    pageTab: (key) => PAG_TAB[key],
+    pageTab: (key) => navigationStore.pageTabs[key],
     tendersMenu: () => {
       menuTenders();
     },
@@ -24393,18 +24723,18 @@
   };
   var polishLegacy = {
     normalise: (text5) => normaliseHeader(text5 ?? ""),
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     polishedKeys: () => CFG_PULIR,
     settingsKey: () => CFG_KEY,
     roleNames: () => rolesNombres(),
     adjustIndexSoon: () => {
-      cancelAnimationFrame(CFU_RAF);
-      CFU_RAF = requestAnimationFrame(() => {
+      cancelAnimationFrame(settingsStore.indexFrame);
+      settingsStore.indexFrame = requestAnimationFrame(() => {
         fitIndex();
       });
     },
     markOpenedFromMenu: () => {
-      CFG_SEC = "__cfg";
+      settingsStore.section = "__cfg";
       IR_DESDE_MENU_CFG = true;
     },
     setManualAnchor: (screen3, anchor) => {
@@ -24415,7 +24745,7 @@
     }
   };
   var pageLegacy = {
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     isMobile: () => ES_MOVIL(),
     freeze: (element4) => {
       congelar(element4);
@@ -24434,18 +24764,18 @@
       markUnsaved();
     },
     placeSaveButtonSoon: () => {
-      if (PAG_GUARDA_RAF || !PAG_GUARDA.some((page) => page.tab === TAB)) return;
-      PAG_GUARDA_RAF = requestAnimationFrame(() => {
-        PAG_GUARDA_RAF = 0;
+      if (navigationStore.saveButtonFrame || !PAG_GUARDA.some((page) => page.tab === navigationStore.screen)) return;
+      navigationStore.saveButtonFrame = requestAnimationFrame(() => {
+        navigationStore.saveButtonFrame = 0;
         pagPonerGuardar();
       });
     }
   };
   var dialogLegacy = {
     dialog: (id) => document.getElementById(id),
-    openingSheet: () => Boolean(FX_FICHA),
+    openingSheet: () => Boolean(accountsStore.cardEffect),
     sheetOpening: (step) => {
-      FX_FICHA = Number(FX_FICHA) + step;
+      accountsStore.cardEffect = Number(accountsStore.cardEffect) + step;
     },
     wrapGlobal: wrapGlobal2,
     openAccount: (id) => {
@@ -24455,29 +24785,29 @@
       void fichaCentro(id);
     },
     setLastAction: (time) => {
-      ULT_ACCION = time;
+      settingsStore.lastAction = time;
     },
-    lastAction: () => ULT_ACCION
+    lastAction: () => settingsStore.lastAction
   };
   var backStack = () => VUELTA;
   var backLegacy = {
     titledViews: () => Object.keys(VISTA_TITULO),
     wrapGlobal: wrapGlobal2,
-    view: () => VISTA,
+    view: () => navigationStore.view,
     setView: (view) => {
-      VISTA = view;
+      navigationStore.view = view;
     },
-    lastClick: () => VUELTA_CLIC,
+    lastClick: () => navigationStore.backClick,
     setLastClick: (click) => {
-      VUELTA_CLIC = click;
+      navigationStore.backClick = click;
     },
-    reopening: () => VUELTA_REABRIENDO,
+    reopening: () => navigationStore.backReopening,
     setReopening: (on6) => {
-      VUELTA_REABRIENDO = on6;
+      navigationStore.backReopening = on6;
     },
-    putButton: () => VUELTA_PONER,
+    putButton: () => navigationStore.backPending,
     setPutButton: (on6) => {
-      VUELTA_PONER = on6;
+      navigationStore.backPending = on6;
     },
     sameView: (first2, second) => vistaIgual(first2, second),
     push: (view, max) => {
@@ -24498,15 +24828,15 @@
   };
   var saveLegacy = {
     requestStarted: () => {
-      RED_VUELO++;
-      RED_ULT = performance.now();
+      sessionStore.networkInFlight++;
+      sessionStore.lastNetworkEnd = performance.now();
     },
     requestEnded: () => {
-      RED_VUELO = Math.max(0, RED_VUELO - 1);
-      RED_ULT = performance.now();
+      sessionStore.networkInFlight = Math.max(0, sessionStore.networkInFlight - 1);
+      sessionStore.lastNetworkEnd = performance.now();
     },
-    inFlight: () => RED_VUELO,
-    lastRequest: () => RED_ULT,
+    inFlight: () => sessionStore.networkInFlight,
+    lastRequest: () => sessionStore.lastNetworkEnd,
     isSaveButton: (button3) => Boolean(esBotonGuardar(button3)),
     raiseNotice: () => {
       subirAviso();
@@ -24529,7 +24859,7 @@
     logError: (type, message4, detail) => {
       registrarError(type, message4, detail);
     },
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     preloaded: () => DB_PRE,
     rememberedSortOf: (name) => Object.keys(ORD_MEM).find((kind) => ORD_MEM[kind]?.fn === name),
     sortRemembered: (kind, rows2) => ordMemOrdenar(kind, rows2),
@@ -24543,18 +24873,18 @@
     refreshBelow: () => {
       refrescarDebajo();
     },
-    dataChanged: () => DATOS_CAMBIADOS,
+    dataChanged: () => settingsStore.unsavedChanges,
     reportedFilter: () => AN_REP,
-    pdfEditing: () => PDF_EDITANDO,
+    pdfEditing: () => billingStore.pdfEditing,
     pdfTemplates: () => listaPDF(),
     savePdfTemplates: (templates) => guardarPDFPlantillas(templates),
     setInvoicePdf: (design) => {
-      AJUSTES.factura_pdf = design ? design : AJUSTES.factura_pdf;
+      settingsStore.settings.factura_pdf = design ? design : settingsStore.settings.factura_pdf;
     }
   };
   var sortLegacy = {
     setOrdersPage: (page) => {
-      PEDPAG = page;
+      ordersStore.page = page;
     },
     listOrders: () => {
       if (typeof listaPedidos === "function") void listaPedidos();
@@ -24597,10 +24927,10 @@
     rememberedHasField: (kind, index) => (ORD_MEM[kind]?.campos?.[index] ?? null) !== null,
     isRemembered: (kind) => Boolean(ORD_MEM[kind]),
     setInvoicesPage: (page) => {
-      FACPAG = page;
+      ordersStore.invoicePage = page;
     },
     setCallsPage: (page) => {
-      LLPAG = page;
+      ordersStore.callsPage = page;
     }
   };
   var listsConfig = () => PL;
@@ -24618,7 +24948,7 @@
     toast: (message4, isError = false) => {
       toast(message4, isError);
     },
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     searchAccounts: () => {
       void buscar(true);
     },
@@ -26122,20 +26452,20 @@
 
   // src/app/legacy/shell-bridge.ts
   var shellLegacy = {
-    activePanel: () => PANEL_ACTIVO,
+    activePanel: () => settingsStore.activePanel,
     setActivePanel: (panel) => {
-      PANEL_ACTIVO = panel;
+      settingsStore.activePanel = panel;
     },
     setAdminSection: (section2) => {
-      ADM_SEC = section2;
+      settingsStore.adminSection = section2;
     },
     loadAdmin: () => cargarAdmin(),
-    openingCard: () => Boolean(FX_FICHA),
+    openingCard: () => Boolean(accountsStore.cardEffect),
     hasPage: (screen3) => Boolean(PAGINAS[screen3]),
     /** The stacked windows (legado 058 gives the previous one back when the top one closes). */
     windowStack: () => PILA_VENT,
     setStacking: (on6) => {
-      APILANDO = on6;
+      settingsStore.stacking = on6;
     },
     iconOf: (name) => svgIco(ICON_NOM[name ?? ""] ?? ""),
     tree: () => arbolCfgUnico(),
@@ -26151,9 +26481,9 @@
     setKey: (key) => {
       CFG_KEY = key;
     },
-    detail: () => CFG_DETALLE,
+    detail: () => settingsStore.detail,
     setDetail: (on6) => {
-      CFG_DETALLE = on6;
+      settingsStore.detail = on6;
     },
     /** Configuración again, through its global name (other code may wrap it). */
     reload: () => {
@@ -26161,7 +26491,7 @@
     },
     planIncludes: (module) => planIncluye(module),
     planMinimum: (module) => planMinimo(module),
-    currentPlanName: () => planDe(PLAN_ACTUAL.plan).nombre,
+    currentPlanName: () => planDe(sessionStore.plan.plan).nombre,
     canManageOrganisation: () => puedeOrganizacion(),
     canUseModule: (module) => puedeModulo(module),
     hasDeparture: () => Boolean(prefsActivas().salida),
@@ -26173,7 +26503,7 @@
     applyMenuPermissions: () => {
       aplicarPermisosMenu();
     },
-    platformTab: () => PAG_TAB.delcos ?? "orgs"
+    platformTab: () => navigationStore.pageTabs.delcos ?? "orgs"
   };
 
   // src/app/core/navigation/current.ts
@@ -26612,13 +26942,13 @@
 
   // src/app/legacy/leftovers-bridge.ts
   var RANGE_READER = "__rango";
-  var profile4 = () => PERFIL;
+  var profile4 = () => sessionStore.profile;
   var rawDb = () => db;
   var leftoversLegacy = {
     // Session and permissions
-    hasProfile: () => Boolean(PERFIL),
+    hasProfile: () => Boolean(sessionStore.profile),
     userId: () => profile4().id,
-    screen: () => TAB,
+    screen: () => navigationStore.screen,
     can: (capability) => puede(capability),
     seesEverything: () => VE_TODO(),
     levelOf: (letter) => permissions_exports.levelOrNone(letter),
@@ -26628,8 +26958,8 @@
     canManageOrganization: () => puedeOrganizacion(),
     canReviewDuplicates: () => puedeDuplicados(),
     // Data access
-    cacheEpoch: () => RC_EPOCA,
-    dialogEpoch: () => DLG_EPOCA,
+    cacheEpoch: () => sessionStore.cacheEpoch,
+    dialogEpoch: () => agendaStore.dialogEpoch,
     today: () => hoyISO(),
     addDays: (isoDate, days) => isoMas(isoDate, days),
     shortDate: (isoDate) => calendar_exports.shortDate(isoDate),
@@ -26642,20 +26972,20 @@
       cargando(element4, text5);
     },
     // Agenda
-    viewedAgenda: () => AG_VISTA,
+    viewedAgenda: () => agendaStore.viewedUser,
     setViewedAgenda: (viewed) => {
-      AG_VISTA = viewed;
+      agendaStore.viewedUser = viewed;
     },
     reloadAgenda: () => {
       void cargarAgenda();
     },
     showWeekFromToday: () => {
-      AG_MODO = "semana";
-      AG_FECHA = hoyISO();
+      agendaStore.mode = "semana";
+      agendaStore.selectedDate = hoyISO();
     },
-    dayTasks: () => TAREAS_DIA,
+    dayTasks: () => agendaStore.dayTasks,
     setDayTasks: (tasks) => {
-      TAREAS_DIA = tasks;
+      agendaStore.dayTasks = tasks;
     },
     tasks: (isoDate) => rawDb().from("tareas").select("*").eq("fecha", isoDate).order("orden", { ascending: true, nullsFirst: false }).order("hora", { ascending: true, nullsFirst: false }).order("creado_en"),
     planned: (states, from2, limit) => rawDb().from("agenda").select("cuenta_id,fecha").eq("usuario_id", profile4().id).in("estado", states).gte("fecha", from2).order("fecha").limit(limit),
@@ -26669,24 +26999,24 @@
     },
     // Cuentas
     setAccountAccess: (access2) => {
-      MED_ACCESO = access2;
+      accountsStore.portalAccess = access2;
     },
     revisitNotice: () => avisoRevisita(),
     people: () => rawDb().from("perfiles").select("id,nombre,rol,activo").order("nombre"),
     setSalesTeam: (team3) => {
-      COMS = team3;
+      homeStore.salesTeam = team3;
     },
     salespersonFilter: () => F.com,
     // Pedidos, Concursos, Oportunidades
-    contractPrices: () => PED_PRECIOS,
+    contractPrices: () => ordersStore.contractPrices,
     setContractPrices: (prices2) => {
-      PED_PRECIOS = prices2;
+      ordersStore.contractPrices = prices2;
     },
     setPendingCall: (id) => {
-      LLAMADA_PEND = id;
+      ordersStore.pendingCall = id;
     },
     editOrder: (preset) => editorPedido(preset),
-    ordersSection: () => PEDSEC,
+    ordersSection: () => ordersStore.section,
     repaintCalls: () => {
       void pintarLlamadas();
     },
@@ -26698,9 +27028,9 @@
     saveTextPattern: () => PAG_GUARDA_RE,
     notSaveSelector: () => PAG_GUARDA_NO,
     changedBlocks: () => PAG_SUCIO,
-    pageKey: () => PAG_CLAVE,
+    pageKey: () => navigationStore.pageKey,
     setPageKey: (key) => {
-      PAG_CLAVE = key;
+      navigationStore.pageKey = key;
     },
     markChanged: () => {
       markUnsaved();
@@ -26709,7 +27039,7 @@
       void cargarConfig();
     },
     settingsKey: () => CFG_KEY,
-    requestsInFlight: () => RED_VUELO,
+    requestsInFlight: () => sessionStore.networkInFlight,
     navIcon: (screen3) => ICO_NAV[screen3],
     namedIcon: (name) => ICON_NOM[name] ?? "",
     emojiIcon: (emoji) => ICON_EMOJI[emoji] ?? "",
@@ -26718,14 +27048,14 @@
     icon: (name) => icono(name),
     canScan: () => Boolean(window.ESC_FORZAR) || PANTALLA_TACTIL && typeof navigator.mediaDevices?.getUserMedia === "function",
     // Facturación
-    billingSection: () => FSEC,
+    billingSection: () => billingStore.section,
     // The legacy value may be null (no last settings section): it is kept as it was
     setBillingSection: (section2) => {
-      FSEC = section2;
+      billingStore.section = section2;
     },
-    lastBillingSettings: () => FAC_ULTIMA,
+    lastBillingSettings: () => billingStore.lastSection,
     setLastBillingSettings: (section2) => {
-      FAC_ULTIMA = section2;
+      billingStore.lastSection = section2;
     },
     billingSettingsSections: () => FAC_CONFIG,
     loadBilling: () => {
@@ -27855,12 +28185,12 @@
     newSale: (preset) => {
       void nuevaVenta(preset);
     },
-    shownCustomer: () => FICHA_PAC,
+    shownCustomer: () => accountsStore.cardPatients,
     setShownCustomer: (id) => {
-      FICHA_PAC = id;
+      accountsStore.cardPatients = id;
     },
     forgetShownAccount: () => {
-      FICHA_ID = null;
+      accountsStore.shownId = null;
     },
     visibleFieldColumns: () => visibleFields("cliente"),
     fieldHeaders: (fields) => columnHeaders(fields),
@@ -29046,11 +29376,11 @@
 
   // src/app/legacy/settings1-bridge.ts
   var settingsLegacy = {
-    user: () => PERFIL,
+    user: () => sessionStore.profile,
     setPreferences: (preferences) => {
-      PERFIL.preferencias = preferences;
+      sessionStore.profile.preferencias = preferences;
     },
-    place: (key) => PERFIL.preferencias?.[key] ?? null,
+    place: (key) => sessionStore.profile.preferencias?.[key] ?? null,
     changeNavigator: (name) => {
       void cambiarNavegador(name);
     },
@@ -29058,9 +29388,9 @@
     /** The legacy name answers whether it was saved (its declaration says void). */
     saveRevisitNotice: (value27) => guardarAvisoRevisita(value27),
     moduleIcon: (module) => ICO_MOD[module],
-    classifiers: () => CATS,
+    classifiers: () => settingsStore.catalogs,
     setClassifiers: (list) => {
-      CATS = list;
+      settingsStore.catalogs = list;
     },
     openClassifier: (id) => {
       openClassifier(id);
@@ -29704,34 +30034,34 @@
   // src/app/legacy/settings-core-bridge.ts
   var settingsCoreLegacy = {
     // Settings, roles, words and states
-    settings: () => AJUSTES,
+    settings: () => settingsStore.settings,
     setSettings: (value27) => {
-      AJUSTES = value27;
+      settingsStore.settings = value27;
     },
-    roles: () => ROLES_DEF,
+    roles: () => settingsStore.roles,
     setRoles: (list) => {
-      ROLES_DEF = list;
+      settingsStore.roles = list;
     },
-    terms: () => TERMINOS,
+    terms: () => sessionStore.terms,
     setCommercialStates: (list) => {
-      ESTADOS_DEF = list;
+      sessionStore.commercialStates = list;
     },
     catalogs: () => CAT,
     customFields: () => CAMPOS,
     loadCustomFields: () => loadCustomFields(),
     // Session, permissions and plan
-    hasProfile: () => Boolean(PERFIL),
+    hasProfile: () => Boolean(sessionStore.profile),
     can: (capability) => puede(capability),
     canEditCatalogs: () => permissions_exports.canManageLists(),
     hasExtra: (extra) => hayExtra(extra),
-    currentPlan: () => PLAN_ACTUAL,
+    currentPlan: () => sessionStore.plan,
     roundEuros: (value27) => eurI(value27),
     // Brand and labels
     appName: () => nombreApp(),
     brand: () => MARCA,
     setInvoiceLogo: (logo) => {
-      LOGO_DATA = logo;
-      LOGO_CIRC = true;
+      settingsStore.invoiceLogo = logo;
+      sessionStore.roundLogo = true;
     },
     applyLabel: () => {
       aplicarEtiqueta();
@@ -29744,12 +30074,13 @@
     // Module cache, preferences and day proposals
     moduleCache: () => CACHE_MOD,
     moduleState: (screen3) => ESTADO_MOD[screen3]?.(),
-    writes: () => ESCRITURAS,
+    writes: () => sessionStore.writes,
     activePreferences: () => prefsActivas(),
-    dayProposals: () => RPROP,
+    dayProposals: () => routesStore.dayProposals,
     rememberProposal: (key, selection) => {
-      PROPUESTAS ?? (PROPUESTAS = {});
-      PROPUESTAS[key] = selection;
+      var _a;
+      (_a = routesStore).proposals ?? (_a.proposals = {});
+      routesStore.proposals[key] = selection;
     }
   };
   var treePainters = {
@@ -30453,53 +30784,53 @@
     // ---- Session, profile and plan
     db: () => db,
     rpc: (name, params2) => RPC_ORIG(name, params2),
-    profile: () => PERFIL ?? null,
-    users: () => USUARIOS ?? [],
+    profile: () => sessionStore.profile ?? null,
+    users: () => settingsStore.users ?? [],
     roleCan: (role, capability) => roleCan(role, capability),
-    currentPlan: () => PLAN_ACTUAL,
+    currentPlan: () => sessionStore.plan,
     plans: () => PLANES,
     planPrice: (plan3) => precioPlan(plan3),
     billingReadOnly: () => facConsulta(),
     notificationTypes: () => TIPOS_NOTIF,
     sectionTitle: (section2) => TITULO_PEDSEC[section2]?.[0],
     openPlanSettings: () => {
-      CFG_SEC = "plan";
+      settingsStore.section = "plan";
       ir("config");
     },
-    paymentState: () => PAGO_ESTADO,
+    paymentState: () => ordersStore.paymentState,
     impersonationKey: () => SKEY,
     profileKey: () => PKEY,
-    accessLost: () => ACCESO_FUERA,
+    accessLost: () => sessionStore.accessOut,
     setAccessLost: () => {
-      ACCESO_FUERA = true;
+      sessionStore.accessOut = true;
     },
-    accessCheckedAt: () => ACCESO_MIRADO,
+    accessCheckedAt: () => sessionStore.accessChecked,
     setAccessCheckedAt: (time) => {
-      ACCESO_MIRADO = time;
+      sessionStore.accessChecked = time;
     },
     backToMySession: () => backToMySession(),
     isProfessionalPortal: () => ES_MEDICO(),
     // ---- Company words, states and language
-    terms: () => TERMINOS ?? {},
-    brandLabel: () => (AJUSTES.marca ?? {}).etiqueta,
+    terms: () => sessionStore.terms ?? {},
+    brandLabel: () => (settingsStore.settings.marca ?? {}).etiqueta,
     isFree: (order, total2) => Boolean(sinCargoP(order, total2)),
-    commercialStates: () => ESTADOS_DEF,
-    language: () => IDIOMA,
+    commercialStates: () => sessionStore.commercialStates,
+    language: () => sessionStore.language,
     setLanguage: (language) => {
-      IDIOMA = language;
+      sessionStore.language = language;
     },
-    translationMap: () => MAPA_I18N ?? null,
+    translationMap: () => sessionStore.translationMap ?? null,
     setTranslationMap: (map2) => {
-      MAPA_I18N = map2;
+      sessionStore.translationMap = map2;
     },
     greetings: () => SALUDOS,
     // ---- Screens and windows
-    currentScreen: () => TAB,
+    currentScreen: () => navigationStore.screen,
     appVersion: () => VERSION_APP,
     brandName: () => MARCA.nombre,
-    versionSeenAt: () => VERSION_VISTA,
+    versionSeenAt: () => sessionStore.versionSeen,
     setVersionSeenAt: (time) => {
-      VERSION_VISTA = time;
+      sessionStore.versionSeen = time;
     },
     trail: () => RASTRO,
     toast: (message4, isError = false) => {
@@ -30535,17 +30866,17 @@
       panelNotificaciones(list);
     },
     setUnreadNotifications: (count2) => {
-      NOTIF_N = count2;
+      settingsStore.notificationCount = count2;
     },
-    liveChannel: () => VIVO,
+    liveChannel: () => sessionStore.live,
     setLiveChannel: (channel) => {
-      VIVO = channel;
+      sessionStore.live = channel;
     },
     repaintPortal: (isCentre4) => {
       if (isCentre4 && typeof centroPintar === "function") centroPintar();
       else portalMedico();
     },
-    shownAccount: () => FICHA_ID,
+    shownAccount: () => accountsStore.shownId,
     refreshCardPortal: (id) => {
       window.delcos.screens.accounts.refreshPortal(id);
     },
@@ -30553,35 +30884,35 @@
     forgetReadCache: () => {
       RC.clear();
       RC_VUELO.clear();
-      RC_EPOCA++;
+      sessionStore.cacheEpoch++;
     },
     forgetSchemes: () => {
-      ESQUEMAS = [];
+      homeStore.commissionSchemes = [];
     },
-    writeCount: () => ESCRITURAS,
-    pendingReads: () => PEND,
-    arrivedVia: () => VIA_IR,
+    writeCount: () => sessionStore.writes,
+    pendingReads: () => navigationStore.pendingReads,
+    arrivedVia: () => navigationStore.via,
     moduleCache: (module) => CACHE_MOD[module],
     moduleState: (module) => ESTADO_MOD[module]?.(),
-    agendaPreset: () => TD_PRESET,
+    agendaPreset: () => agendaStore.presetDay,
     setAgendaPreset: (value27) => {
-      TD_PRESET = value27;
+      agendaStore.presetDay = value27;
     },
     setLastAgendaDay: (day, data) => {
-      TD_ULTIMO = { fecha: day, data };
+      agendaStore.lastPaintedDay = { fecha: day, data };
     },
     rememberAgendaDay: (day, data) => {
       AG_DIAS_DATOS[day] = data;
     },
     peekAgendaRange: (params2) => window.delcos.screens.agenda.data.peekRange(params2),
     setHomeData: (panel, charts) => {
-      KV_INI = panel;
-      KV_GRAF = charts;
+      homeStore.panel = panel;
+      homeStore.charts = charts;
     },
     ordersSort: () => HT_ORDEN.peds2,
-    visitDraft: () => VISITA_ACTUAL,
+    visitDraft: () => accountsStore.currentVisit,
     setVisitDraft: (value27) => {
-      VISITA_ACTUAL = value27;
+      accountsStore.currentVisit = value27;
     },
     sampleError: (result) => muestraError(result),
     uploadVisitPhotos: (activity, photos) => subirFotosVisita(activity, photos),
@@ -30589,7 +30920,7 @@
     isIos: () => ES_IOS,
     isAndroid: () => ES_ANDROID,
     km: (from2, to) => km(from2, to),
-    routePlan: () => PLAN,
+    routePlan: () => routesStore.plan,
     paintRoutePlan: () => {
       pintarPlan();
     },
@@ -31111,29 +31442,29 @@
 
   // src/app/legacy/billing2-bridge.ts
   var billing2Legacy = {
-    settings: () => AJUSTES,
+    settings: () => settingsStore.settings,
     loadSettings: () => loadSettings(),
-    products: () => PRODUCTOS,
-    services: () => SERVICIOS,
+    products: () => productsStore.products,
+    services: () => productsStore.services,
     loadProducts: () => cargarProductos(),
     refreshProducts: () => {
       void refrescarProductos();
     },
     logo: () => logoData(),
-    roundLogo: () => Boolean(LOGO_CIRC),
+    roundLogo: () => Boolean(sessionStore.roundLogo),
     rawRpc: (name, params2) => RPC_ORIG(name, params2),
     /** guardar_ajuste that also refreshes the copies of other tabs (legado 156's v2.342 write). */
     saveSettingEverywhere: (name, params2) => RPC_V2342(name, params2),
-    pdfChosen: () => PDF_ELEGIDO,
+    pdfChosen: () => billingStore.pdfChosen,
     setPdfChosen: (id) => {
-      PDF_ELEGIDO = id;
+      billingStore.pdfChosen = id;
     },
-    pdfEditing: () => PDF_EDITANDO,
+    pdfEditing: () => billingStore.pdfEditing,
     setPdfEditing: (id) => {
-      PDF_EDITANDO = id;
+      billingStore.pdfEditing = id;
     },
     setInvoiceMailChosen: (id) => {
-      PLANT_ELEGIDA.factura = id;
+      billingStore.chosenTemplates.factura = id;
     },
     mailTemplate: (kind, part, values2) => plantillaCorreo(kind, part, values2),
     mailValues: (values2) => varsCorreo(values2),
@@ -31149,15 +31480,15 @@
     openDesigner: () => {
       void disenoPDF();
     },
-    paymentState: () => PAGO_ESTADO,
-    currentPlan: () => String(PLAN_ACTUAL?.plan ?? ""),
+    paymentState: () => ordersStore.paymentState,
+    currentPlan: () => String(sessionStore.plan?.plan ?? ""),
     freeOfCharge: (order, total2) => Boolean(sinCargoP(order, total2)),
     configKey: () => CFG_KEY,
-    pageTab: (page) => PAG_TAB[page],
-    productStates: () => ESTADO_PROD,
-    promoted: () => PROMO_PRODS,
+    pageTab: (page) => navigationStore.pageTabs[page],
+    productStates: () => productsStore.productStates,
+    promoted: () => productsStore.promoted,
     setPromoted: (list) => {
-      PROMO_PRODS = list;
+      productsStore.promoted = list;
     },
     productUses: () => PROD_USOS,
     loadCatalogs: () => {
@@ -32562,12 +32893,12 @@
   // src/app/legacy/bridge.ts
   var legacyDb = () => db;
   var callRpc = (name, params2 = {}) => RPC_ORIG(name, params2);
-  var currentScreen = () => TAB;
+  var currentScreen = () => navigationStore.screen;
   var goTo = (screen3) => {
     ir(screen3);
   };
   var goToOrders = (section2) => {
-    PEDSEC = section2;
+    ordersStore.section = section2;
     ir("ventas");
   };
   function term(word, options5 = {}) {
@@ -32586,11 +32917,11 @@
     canReviewDuplicates: () => typeof puedeDuplicados === "function" && puedeDuplicados()
   };
   var homeCache = {
-    panel: () => KV_INI,
+    panel: () => homeStore.panel,
     setPanel: (value27) => {
-      KV_INI = value27;
+      homeStore.panel = value27;
     },
-    charts: () => KV_GRAF
+    charts: () => homeStore.charts
   };
   var appointments = {
     ofDay: citasDelDia,
@@ -32607,7 +32938,7 @@
     description: (id) => KPI_TXT[id]
   };
   var commercialStates = {
-    all: () => ESTADOS_DEF,
+    all: () => sessionStore.commercialStates,
     color: (state2) => EST_COL[state2]
   };
   var cachedRpc = (name, params2, key) => rpcCache(name, params2, key);
@@ -32622,25 +32953,25 @@
   };
   var isMobile = () => ES_MOVIL();
   var legacyAgenda = {
-    selectedDate: () => AG_FECHA,
+    selectedDate: () => agendaStore.selectedDate,
     /** The person whose agenda is shown (null: everybody the user sees, or the user). */
     userFilter: () => agendaUserFilter(),
-    viewedUserId: () => AG_VISTA?.id ?? null,
+    viewedUserId: () => agendaStore.viewedUser?.id ?? null,
     showDay: (isoDate) => {
       void agVerDia(isoDate);
     },
     isDayView: () => agN(),
-    metrics: () => AG_MET,
+    metrics: () => agendaStore.metrics,
     setMetrics: (value27) => {
-      AG_MET = value27;
+      agendaStore.metrics = value27;
     },
     /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
-    dayAppointments: () => TD_CITAS,
-    loadedDay: () => TD_ULTIMO?.fecha ?? null
+    dayAppointments: () => agendaStore.dayAppointments,
+    loadedDay: () => agendaStore.lastPaintedDay?.fecha ?? null
   };
   var agendaSuggestions = {
-    forDay: () => AG_SUG,
-    pending: () => AG_PEND ?? []
+    forDay: () => agendaStore.suggestions,
+    pending: () => agendaStore.pendingSuggestions ?? []
   };
   var agendaActions = {
     openAccount: (id) => {
@@ -32651,45 +32982,45 @@
     }
   };
   var sidePanel = {
-    context: () => HERR_CTX,
+    context: () => accountsStore.toolsContext,
     setContext: (value27) => {
-      HERR_CTX = value27;
+      accountsStore.toolsContext = value27;
     }
   };
   var legacyAgendaParts = {
-    mode: () => AG_MODO,
+    mode: () => agendaStore.mode,
     blockedDays: (fromIsoDate2, days) => agBloqueos(fromIsoDate2, days)
   };
   var agendaSources = {
     /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
     ownerId: () => agendaOwnerId(),
-    isOwnAgenda: () => agendaOwnerId() === PERFIL.id,
-    stripStart: () => CINTA_INI,
+    isOwnAgenda: () => agendaOwnerId() === sessionStore.profile.id,
+    stripStart: () => agendaStore.stripStart,
     /** «Tu día» of this date arrives already loaded (from Inicio). */
-    hasPresetDay: (isoDate) => TD_PRESET?.fecha === isoDate,
+    hasPresetDay: (isoDate) => agendaStore.presetDay?.fecha === isoDate,
     dayTasks: (isoDate) => tareasDelDia(isoDate),
     blockedDays: (fromIsoDate2, toIsoDate2) => bloqueadosSemanaBase(fromIsoDate2, toIsoDate2),
     setSuggestions: (isoDate, suggestions) => {
-      AG_PEND = suggestions.pend;
-      AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
+      agendaStore.pendingSuggestions = suggestions.pend;
+      agendaStore.suggestions = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
     }
   };
   var stripState = {
-    start: () => CINTA_INI,
+    start: () => agendaStore.stripStart,
     setStart: (isoDate) => {
-      CINTA_INI = isoDate;
+      agendaStore.stripStart = isoDate;
     },
-    weekOpen: () => AG_SEM_ABIERTA,
+    weekOpen: () => agendaStore.weekOpen,
     setWeekOpen: (open2) => {
-      AG_SEM_ABIERTA = open2;
+      agendaStore.weekOpen = open2;
     }
   };
   var agendaState = {
     setMode: (mode) => {
-      AG_MODO = mode;
+      agendaStore.mode = mode;
     },
     setSelectedDate: (isoDate) => {
-      AG_FECHA = isoDate;
+      agendaStore.selectedDate = isoDate;
     },
     /** The last day the agenda was opened on «today» (to jump to the new today after midnight). */
     lastTodaySeen: () => AG_HOY_VISTO,
@@ -32697,20 +33028,20 @@
       AG_HOY_VISTO = isoDate;
     },
     forgetDayTasks: () => {
-      TAREAS_DIA = null;
+      agendaStore.dayTasks = null;
     },
     /** Someone asked to open Agenda straight on «Repartir la semana». */
     takeWeekPlanRequest: () => {
-      const asked2 = ABRIR_PLAN_SEMANA;
-      ABRIR_PLAN_SEMANA = false;
+      const asked2 = agendaStore.openWeekPlan;
+      agendaStore.openWeekPlan = false;
       return asked2;
     },
-    viewed: () => AG_VISTA
+    viewed: () => agendaStore.viewedUser
   };
   var salesTeam = {
-    members: () => COMS,
+    members: () => homeStore.salesTeam,
     load: () => cargarComerciales(),
-    currentUserId: () => PERFIL.id,
+    currentUserId: () => sessionStore.profile.id,
     showAgendaOf: (userId) => {
       void showAgendaOf(userId);
     }
@@ -32723,9 +33054,9 @@
     }
   };
   var weekPlanner = {
-    draft: () => SEM_BORRADOR,
+    draft: () => routesStore.weekDraft,
     discardDraft: () => {
-      SEM_BORRADOR = null;
+      routesStore.weekDraft = null;
     },
     /** Estimated end of a day (minutes) and the latest return time. */
     estimateDay: (list, isoDate) => estimarDia(list, isoDate),
@@ -32747,10 +33078,10 @@
   };
   var yourDayLegacy = {
     setDayAppointments: (list) => {
-      TD_CITAS = list;
+      agendaStore.dayAppointments = list;
     },
     estimateDay: (list, isoDate) => estimarDia(list, isoDate),
-    stopInfo: () => TD_INFO,
+    stopInfo: () => agendaStore.stopInfo,
     explainWarning: (info) => explicarAviso(info),
     windowsText: (windows) => txtVentanas(windows),
     canRecordOn: (isoDate) => puedeRegistrarEnDia(isoDate),
@@ -32777,10 +33108,10 @@
       void abrirVisita(accountId);
     },
     openAccountFromCentre: (accountId, centre) => {
-      FICHA_CENTRO = centre ?? null;
+      accountsStore.cardCentre = centre ?? null;
       void abrirFicha(accountId);
     },
-    lastDayData: () => TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data ?? null : null,
+    lastDayData: () => agendaStore.lastPaintedDay && agendaStore.lastPaintedDay.fecha === agendaStore.selectedDate ? agendaStore.lastPaintedDay.data ?? null : null,
     isJoinedDayView: () => agUnida(),
     /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
     openSheet: (item) => {
@@ -32801,22 +33132,22 @@
     },
     /** The next «Tu día» paint of `isoDate` uses this data (no network), and it becomes the last painted day. */
     preset: (isoDate, data) => {
-      TD_PRESET = { fecha: isoDate, data };
-      TD_ULTIMO = { fecha: isoDate, data };
+      agendaStore.presetDay = { fecha: isoDate, data };
+      agendaStore.lastPaintedDay = { fecha: isoDate, data };
     },
-    lastPainted: (isoDate) => TD_ULTIMO?.fecha === isoDate ? TD_ULTIMO.data ?? null : null,
+    lastPainted: (isoDate) => agendaStore.lastPaintedDay?.fecha === isoDate ? agendaStore.lastPaintedDay.data ?? null : null,
     setLastPainted: (isoDate, data) => {
-      TD_ULTIMO = { fecha: isoDate, data };
+      agendaStore.lastPaintedDay = { fecha: isoDate, data };
     },
     /** Every day read alone (agenda_rango of one day), as it arrived. */
     dayData: (isoDate) => AG_DIAS_DATOS[isoDate],
     /** What is saved from now on is already shown: closing a dialog will not refresh again. */
     markDialogSeen: () => {
-      DLG_EPOCA = RC_EPOCA;
+      agendaStore.dialogEpoch = sessionStore.cacheEpoch;
     },
-    dayTasks: (isoDate) => TAREAS_DIA?.f === isoDate ? TAREAS_DIA.l : null,
+    dayTasks: (isoDate) => agendaStore.dayTasks?.f === isoDate ? agendaStore.dayTasks.l : null,
     setDayTasks: (isoDate, list) => {
-      TAREAS_DIA = list ? { f: isoDate, l: list } : null;
+      agendaStore.dayTasks = list ? { f: isoDate, l: list } : null;
     }
   };
   var editorLegacy = {
@@ -32826,19 +33157,19 @@
     recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
     recentText: (list) => txtReciente(list),
     turnOffRecentNotice: () => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
-    centreFromCard: () => FICHA_CENTRO,
-    viewedUserId: () => currentScreen() === "agenda" && AG_VISTA ? AG_VISTA.id : null
+    centreFromCard: () => accountsStore.cardCentre,
+    viewedUserId: () => currentScreen() === "agenda" && agendaStore.viewedUser ? agendaStore.viewedUser.id : null
   };
   var accountCardLegacy = {
-    shownId: () => FICHA_ID,
+    shownId: () => accountsStore.shownId,
     setShownId: (id) => {
-      FICHA_ID = id;
+      accountsStore.shownId = id;
     },
     forgetPatients: () => {
-      FICHA_PAC = null;
+      accountsStore.cardPatients = null;
     },
     forgetCentreFromAppointment: () => {
-      FICHA_CENTRO = null;
+      accountsStore.cardCentre = null;
     },
     planIncludes: (section2) => planIncluyeSeccion(section2),
     canEditType: (type) => permissions_exports.canEditType(type),
@@ -32890,7 +33221,7 @@
   var cardSectionsLegacy = {
     can: (capability) => puede(capability),
     /** Sales level of the user (area V). */
-    salesArea: () => PERFIL.areas?.V ?? 0,
+    salesArea: () => sessionStore.profile.areas?.V ?? 0,
     roleCan: (role, capability) => roleCan(role, capability),
     openPatient: (id) => {
       void fichaPaciente(id);
@@ -32912,8 +33243,8 @@
     hasPortal: () => hayExtra("portal"),
     materialPill: (state2) => pillMaterial(state2),
     products: async () => {
-      if (!PRODUCTOS.length) await cargarProductos();
-      return PRODUCTOS;
+      if (!productsStore.products.length) await cargarProductos();
+      return productsStore.products;
     },
     euros: (value27) => eurI(value27)
   };
@@ -32926,7 +33257,7 @@
       nuevoUsuario(preset);
     },
     forgetAccessCache: () => {
-      MED_ACCESO = null;
+      accountsStore.portalAccess = null;
     },
     /** A user is created with a separate client (no session kept), as the legacy sign-up did. */
     signUp: async (email, password, name) => {
@@ -32938,7 +33269,7 @@
   var accountListLegacy = {
     // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
     filters: () => F,
-    mapMode: () => MODO_MAPA,
+    mapMode: () => accountsStore.mapMode,
     /** The database order key of a column (only the sortable ones). */
     sortKey: (column) => ORD_DIR[column],
     fieldChips: (state2) => clasChips("medico", state2),
@@ -32953,9 +33284,9 @@
     fieldText: (field22, value27) => campoTexto(field22, value27),
     firstName: (name) => nombrePila(name),
     /** Platform access by account (loaded once; null until it arrives). */
-    accessOf: () => MED_ACCESO,
+    accessOf: () => accountsStore.portalAccess,
     loadAccess: () => loadAccountAccess(),
-    storageKey: () => `dlc-cols-${PERFIL?.id ?? ""}`
+    storageKey: () => `dlc-cols-${sessionStore.profile?.id ?? ""}`
   };
   var eventsLegacy = {
     repaintList: () => {
@@ -32970,44 +33301,44 @@
     openOrder: (id) => {
       void verPedido(id);
     },
-    currentUserName: () => PERFIL.nombre ?? ""
+    currentUserName: () => sessionStore.profile.nombre ?? ""
   };
   var cycleLegacy = {
     loadSettings: () => loadSettings(),
-    setting: (key) => AJUSTES[key],
+    setting: (key) => settingsStore.settings[key],
     setSetting: (key, value27) => {
-      AJUSTES[key] = value27;
+      settingsStore.settings[key] = value27;
     },
     openTab: (tab) => {
-      PAG_TAB.ciclo = tab;
+      navigationStore.pageTabs.ciclo = tab;
       cargarPagina("ciclo");
     }
   };
   var equipmentLegacy = {
-    warningDays: () => CON_AVISOS,
+    warningDays: () => homeStore.contractWarningDays,
     setWarningDays: (days) => {
-      CON_AVISOS = days;
+      homeStore.contractWarningDays = days;
     },
     contracts: () => EQ_CONTRATOS,
     loadProducts: async () => {
-      if (!PRODUCTOS.length) await cargarProductos();
+      if (!productsStore.products.length) await cargarProductos();
     }
   };
   var tendersLegacy = {
-    warningDays: () => CON_AVISOS,
+    warningDays: () => homeStore.contractWarningDays,
     setWarningDays: (days) => {
-      CON_AVISOS = days;
+      homeStore.contractWarningDays = days;
     }
   };
   var purchasesLegacy = {
-    section: () => PEDSEC,
+    section: () => ordersStore.section,
     canBuy: () => Boolean(permissions_exports.canBuy()),
     loadSuppliers: () => cargarProveedores(),
-    suppliers: () => PROVEEDORES,
+    suppliers: () => ordersStore.suppliers,
     loadStores: () => cargarAlmacenes(),
-    stores: () => ALMACENES,
+    stores: () => ordersStore.stores,
     loadProducts: () => cargarProductos(),
-    products: () => PRODUCTOS,
+    products: () => productsStore.products,
     /** The batch fields of «Recibir mercancía» (shared with the stock entries of Productos). */
     batchFields: (line3, units2, storeId) => loteRecepcion(line3, units2, storeId),
     reloadSales: () => {
@@ -33024,10 +33355,10 @@
       registrarError("error", message4);
     },
     countWrite: () => {
-      ESCRITURAS++;
+      sessionStore.writes++;
     },
     showHistory: () => {
-      CFG_SUB = "historial";
+      settingsStore.subsection = "historial";
     }
   };
   var manualLegacy = {
@@ -33042,22 +33373,22 @@
     canOpenModule: (id) => puedeModulo(id),
     moduleCount: () => Object.keys(MODULO_AREA).filter(puedeModulo).length,
     settingsOf: (id) => CFG_DE_MODULO[id],
-    profile: () => PERFIL,
+    profile: () => sessionStore.profile,
     planIncludes: (module) => planIncluye(module),
     cheapestPlan: (module) => planMinimo(module)?.nombre,
     showPlanNotice: (module) => {
       avisoPlan(module);
     },
     go: (screen3, configSection) => {
-      if (configSection !== void 0) CFG_SEC = configSection;
+      if (configSection !== void 0) settingsStore.section = configSection;
       ir(screen3);
     },
     vocabulary: () => ({ empresa: nombreApp(), terminos: Object.fromEntries(Object.keys(TERM_DEF).map((key) => [key, terminoDe(key)])) }),
     isIos: () => ES_IOS,
-    back: () => MANUAL_VUELTA,
+    back: () => homeStore.manualReturn,
     takeBack: () => {
-      const back = MANUAL_VUELTA;
-      MANUAL_VUELTA = null;
+      const back = homeStore.manualReturn;
+      homeStore.manualReturn = null;
       return back;
     },
     screenName: (screen3) => nombrePantalla(screen3),
@@ -33082,9 +33413,9 @@
     setCatalog: (key, list) => {
       CAT[key] = list;
     },
-    products: () => PRODUCTOS,
+    products: () => productsStore.products,
     loadProducts: async () => {
-      if (!PRODUCTOS.length) await cargarProductos();
+      if (!productsStore.products.length) await cargarProductos();
     },
     defaultProduct: () => productoPorDefecto(),
     searchClients: (query) => buscarClientes(query),
@@ -33096,7 +33427,7 @@
     },
     /** The order saved next is linked to this opportunity (legado 038). */
     setPendingCall: (id) => {
-      LLAMADA_PEND = id;
+      ordersStore.pendingCall = id;
     },
     /** The account picker; what is typed without choosing is kept in element.__texto. */
     pickReference: (options5) => {
@@ -33109,11 +33440,11 @@
     periodOf: (element4) => Reflect.get(element4 ?? {}, "__rango")?.() ?? { desde: null, hasta: null },
     barChart: (items, format) => rankingBars(items, format),
     emptyChart: (text5) => vacioGrafico(text5),
-    page: () => LLPAG,
+    page: () => ordersStore.callsPage,
     setPage: (page) => {
-      LLPAG = page;
+      ordersStore.callsPage = page;
     },
-    ordersSection: () => PEDSEC,
+    ordersSection: () => ordersStore.section,
     repaintList: () => {
       void pintarLlamadas();
     }
@@ -33218,9 +33549,9 @@
 
   // src/app/legacy/components-bridge.ts
   var componentsLegacy = {
-    popup: () => SELPOP,
+    popup: () => navigationStore.pickerPopup,
     setPopup: (popup) => {
-      SELPOP = popup;
+      navigationStore.pickerPopup = popup;
     },
     showValue: (input12) => {
       visibleValue(input12);
@@ -33231,10 +33562,10 @@
     emitChange: (input12) => {
       emitir(input12);
     },
-    pending: () => MEJ_PEND,
-    flushScheduled: () => Boolean(MEJ_RAF),
+    pending: () => navigationStore.pendingEnhancements,
+    flushScheduled: () => Boolean(navigationStore.enhanceFrame),
     setFlushScheduled: (scheduled) => {
-      MEJ_RAF = scheduled ? 1 : 0;
+      navigationStore.enhanceFrame = scheduled ? 1 : 0;
     },
     isVatField: (input12) => Boolean(ES_IVA(input12)),
     vatSelector: (input12) => {
@@ -33242,7 +33573,7 @@
     },
     touchScreen: () => PANTALLA_TACTIL,
     weekdayLetter: (isoDate) => LETRA_DIA(isoDate),
-    readOnlyCompany: () => Boolean(PAGO_ESTADO?.solo_lectura),
+    readOnlyCompany: () => Boolean(ordersStore.paymentState?.solo_lectura),
     hasStartPoint: () => Boolean(prefsActivas().salida),
     helpAnchors: () => ANCLAS_AYUDA,
     manualAnchors: () => MANUAL_ANCLA,
@@ -33256,16 +33587,16 @@
       PAC.pagina = 0;
       void listaPacientes();
     },
-    orderFilters: () => PEDF,
+    orderFilters: () => ordersStore.filters,
     reloadOrders: () => {
-      PEDPAG = 0;
+      ordersStore.page = 0;
       void listaPedidos();
     },
-    productFilters: () => PRODF,
+    productFilters: () => productsStore.filters,
     reloadProducts: () => {
       void pintarProductos();
     },
-    productsSection: () => PSEC
+    productsSection: () => productsStore.section
   };
 
   // src/app/components/charts/month-bars.ts
@@ -34405,7 +34736,7 @@
     name: "v2.300 · a new navigation empties the «Volver» stack",
     before: () => {
       VUELTA.length = 0;
-      VISTA = null;
+      navigationStore.view = null;
     }
   };
   var professionalPortalOnly = {
@@ -34417,7 +34748,7 @@
   var loadingComet = {
     name: "v2.267 · the loading line at the top when the screen changes",
     before: (nav) => {
-      if (nav.target && nav.target !== TAB) safely2(cometa);
+      if (nav.target && nav.target !== navigationStore.screen) safely2(cometa);
     }
   };
   var watchListPage = {
@@ -34445,7 +34776,7 @@
   var rememberManualReturn = {
     name: "v2.224 · entering the manual remembers where to come back to",
     before: (nav) => {
-      if (nav.target === "manual" && TAB !== "manual") MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
+      if (nav.target === "manual" && navigationStore.screen !== "manual") homeStore.manualReturn = { tab: navigationStore.screen, y: window.scrollY || 0 };
     }
   };
   var NAVIGATION_START_EVENT = "delcos:navigation-start";
@@ -34456,34 +34787,34 @@
     }
   };
   function configKey(target) {
-    if (target === "config") return claveCfgVieja(CFG_SEC, CFG_SUB);
-    if (target === "perfil") return PAG_TAB.perfil === "notif" ? "notif" : "datos";
-    if (target === "organizacion" || target === "empresa") return `o.${orFallback(PAG_TAB[target], "marca")}`;
+    if (target === "config") return claveCfgVieja(settingsStore.section, settingsStore.subsection);
+    if (target === "perfil") return navigationStore.pageTabs.perfil === "notif" ? "notif" : "datos";
+    if (target === "organizacion" || target === "empresa") return `o.${orFallback(navigationStore.pageTabs[target], "marca")}`;
     if (target === "plan") return "o.plan";
-    if (target === "usuarios") return PAG_TAB.usuarios === "roles" ? "roles" : "usuarios";
+    if (target === "usuarios") return navigationStore.pageTabs.usuarios === "roles" ? "roles" : "usuarios";
     return null;
   }
   var singleConfiguration = {
     name: "v2.215/v2.340 · profile, company, plan and users are parts of the single Configuración page",
     before: (nav) => {
-      if (nav.target === "config" && ["seguridad", "orgs"].includes(CFG_SEC ?? "")) return;
+      if (nav.target === "config" && ["seguridad", "orgs"].includes(settingsStore.section ?? "")) return;
       const key = configKey(nav.target);
       if (key === null) return;
       if (key) {
         CFG_KEY = key;
-        CFG_DETALLE = true;
+        settingsStore.detail = true;
       } else if (IR_DESDE_MENU_CFG) {
-        CFG_DETALLE = false;
+        settingsStore.detail = false;
         CFG_KEY = "datos";
       }
       if (nav.target !== "config") {
-        PAG_TAB.perfil = void 0;
-        PAG_TAB.organizacion = void 0;
-        PAG_TAB.empresa = void 0;
-        PAG_TAB.usuarios = void 0;
+        navigationStore.pageTabs.perfil = void 0;
+        navigationStore.pageTabs.organizacion = void 0;
+        navigationStore.pageTabs.empresa = void 0;
+        navigationStore.pageTabs.usuarios = void 0;
       }
-      CFG_SEC = "__cfg";
-      CFG_SUB = null;
+      settingsStore.section = "__cfg";
+      settingsStore.subsection = null;
       IR_DESDE_MENU_CFG = false;
       nav.target = "config";
     }
@@ -34505,11 +34836,11 @@
     before: (nav) => {
       const section2 = PANEL_SECCIONES.find((entry2) => entry2[0] === nav.target);
       if (section2) {
-        PAG_TAB.delcos = section2[1];
+        navigationStore.pageTabs.delcos = section2[1];
         nav.target = "delcos";
         return;
       }
-      if (MODO_PLATAFORMA && !PLATFORM_SCREENS.includes(nav.target)) nav.target = "delcos";
+      if (navigationStore.platformMode && !PLATFORM_SCREENS.includes(nav.target)) nav.target = "delcos";
     },
     after: (target) => {
       if (target === "delcos") markPlatformPanel();
@@ -34518,7 +34849,7 @@
   var stripeReturnToPlan = {
     name: "v2.167 · coming back from Stripe opens «Plan y suscripción»",
     before: (nav) => {
-      if (!PAGO_IR_PLAN || !PERFIL) return;
+      if (!PAGO_IR_PLAN || !sessionStore.profile) return;
       pagoAlPlan();
       if (!ES_MEDICO() && puedeOrganizacion()) nav.target = "plan";
     }
@@ -34526,7 +34857,7 @@
   var planSections = {
     name: "v2.152 · sections outside the contracted plan show the plan notice instead",
     before: (nav) => {
-      if (nav.target in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) {
+      if (nav.target in PLAN_SECCIONES && sessionStore.profile && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) {
         avisoPlan(nav.target);
         nav.blocked = true;
       }
@@ -34536,8 +34867,8 @@
     name: "v2.140 · Agenda from the menu always opens today",
     before: (nav) => {
       if (nav.target === "agenda" && IR_DESDE_MENU) {
-        AG_MODO = "dia";
-        AG_FECHA = hoyISO();
+        agendaStore.mode = "dia";
+        agendaStore.selectedDate = hoyISO();
       }
     }
   };
@@ -34546,11 +34877,11 @@
     before: (nav) => {
       const section2 = ALIAS_PEDIDOS[nav.target];
       if (section2 !== void 0) {
-        PEDSEC = section2;
+        ordersStore.section = section2;
         nav.target = "ventas";
         return;
       }
-      if (nav.target === "ventas" && IR_DESDE_MENU) PEDSEC = "ventas";
+      if (nav.target === "ventas" && IR_DESDE_MENU) ordersStore.section = "ventas";
     },
     after: (target) => {
       if (target === "ventas") markOrderSection();
@@ -34574,25 +34905,25 @@
   // src/app/core/navigation/steps-inner.ts
   var COMPANY_SECTIONS = ["__empresa", "empresa", "marca", "correo", "copias"];
   var MAIL_SECTIONS = ["correo", "copias"];
-  var screenSection = () => document.getElementById(`v-${TAB}`);
+  var screenSection = () => document.getElementById(`v-${navigationStore.screen}`);
   var configToOwnPages = {
     name: "v2.128 · team, security and organizations open their own pages",
     before: (nav) => {
-      if (nav.target === "config" && CFG_SEC === "equipo") {
-        PAG_TAB.usuarios = CFG_SUB === "roles" ? "roles" : "usuarios";
-        CFG_SEC = "inicio";
-        CFG_SUB = null;
+      if (nav.target === "config" && settingsStore.section === "equipo") {
+        navigationStore.pageTabs.usuarios = settingsStore.subsection === "roles" ? "roles" : "usuarios";
+        settingsStore.section = "inicio";
+        settingsStore.subsection = null;
         nav.target = "usuarios";
       }
-      if (nav.target === "config" && CFG_SEC === "seguridad" && puede("gestionar_plataforma")) {
-        PAG_TAB.delcos = CFG_SUB === "accesos" ? "accesos" : "auditoria";
-        CFG_SEC = "inicio";
-        CFG_SUB = null;
+      if (nav.target === "config" && settingsStore.section === "seguridad" && puede("gestionar_plataforma")) {
+        navigationStore.pageTabs.delcos = settingsStore.subsection === "accesos" ? "accesos" : "auditoria";
+        settingsStore.section = "inicio";
+        settingsStore.subsection = null;
         nav.target = "delcos";
       }
-      if (nav.target === "config" && CFG_SEC === "orgs" && puede("gestionar_plataforma")) {
-        PAG_TAB.delcos = "orgs";
-        CFG_SEC = "inicio";
+      if (nav.target === "config" && settingsStore.section === "orgs" && puede("gestionar_plataforma")) {
+        navigationStore.pageTabs.delcos = "orgs";
+        settingsStore.section = "inicio";
         nav.target = "delcos";
       }
     }
@@ -34606,16 +34937,16 @@
   var organizationPage = {
     name: "v2.121 · company and plan are parts of the Organización page (only for who may configure it)",
     before: (nav) => {
-      const fromConfig = nav.target === "config" && CFG_SEC !== null ? ORG_DESDE[CFG_SEC] : void 0;
+      const fromConfig = nav.target === "config" && settingsStore.section !== null ? ORG_DESDE[settingsStore.section] : void 0;
       if (nav.target === "empresa") {
-        PAG_TAB.organizacion = orFallback(PAG_TAB.empresa, "marca");
+        navigationStore.pageTabs.organizacion = orFallback(navigationStore.pageTabs.empresa, "marca");
         nav.target = "organizacion";
       } else if (nav.target === "plan") {
-        PAG_TAB.organizacion = "plan";
+        navigationStore.pageTabs.organizacion = "plan";
         nav.target = "organizacion";
       } else if (fromConfig) {
-        PAG_TAB.organizacion = orFallback(CFG_SUB !== null ? ORG_DESDE[CFG_SUB] : void 0, fromConfig);
-        CFG_SEC = "rutas";
+        navigationStore.pageTabs.organizacion = orFallback(settingsStore.subsection !== null ? ORG_DESDE[settingsStore.subsection] : void 0, fromConfig);
+        settingsStore.section = "rutas";
         nav.target = "organizacion";
       }
       if (nav.target === "organizacion" && !puedeOrganizacion()) nav.target = "inicio";
@@ -34652,10 +34983,10 @@
     }
   };
   function billingSection() {
-    const map2 = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(FAC_ULTIMA, "empresa") };
-    const section2 = CFG_SEC ?? "";
-    if (!(map2[section2] ?? (section2 === "fact" ? map2[CFG_SUB ?? ""] : void 0))) return void 0;
-    return orFallback(map2[section2 === "fact" ? orFallback(CFG_SUB, "fact") : section2], "empresa");
+    const map2 = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(billingStore.lastSection, "empresa") };
+    const section2 = settingsStore.section ?? "";
+    if (!(map2[section2] ?? (section2 === "fact" ? map2[settingsStore.subsection ?? ""] : void 0))) return void 0;
+    return orFallback(map2[section2 === "fact" ? orFallback(settingsStore.subsection, "fact") : section2], "empresa");
   }
   var billingSettings = {
     name: "v2.57 · fiscal data, series and VeriFactu open in Facturación",
@@ -34663,8 +34994,8 @@
       if (nav.target !== "config") return;
       const section2 = billingSection();
       if (section2 !== void 0) {
-        FSEC = section2;
-        CFG_SEC = "rutas";
+        billingStore.section = section2;
+        settingsStore.section = "rutas";
         nav.target = "facturacion";
       }
     }
@@ -34675,42 +35006,42 @@
       const section2 = screenSection();
       if (section2?.classList.contains("cargando-pend")) {
         section2.classList.remove("cargando-pend");
-        if (PEND > 0) section2.classList.add("cargando");
+        if (navigationStore.pendingReads > 0) section2.classList.add("cargando");
       }
     }
   };
   var markNavigationInProgress = {
     name: "v2.56 · VIA_IR tells the screens they are being opened by a navigation",
     before: (nav) => {
-      VIA_IR = nav.target;
+      navigationStore.via = nav.target;
     },
     cleanup: () => {
       setTimeout(() => {
-        VIA_IR = null;
+        navigationStore.via = null;
       }, 0);
     }
   };
   function companyTab() {
-    if (CFG_SUB !== null && MAIL_SECTIONS.includes(CFG_SUB)) return CFG_SUB;
-    if (CFG_SEC !== null && MAIL_SECTIONS.includes(CFG_SEC)) return CFG_SEC;
+    if (settingsStore.subsection !== null && MAIL_SECTIONS.includes(settingsStore.subsection)) return settingsStore.subsection;
+    if (settingsStore.section !== null && MAIL_SECTIONS.includes(settingsStore.section)) return settingsStore.section;
     return "marca";
   }
   var legacyConfigPages = {
     name: "v2.53 · notifications, company and plan have their own page; pages are loaded after switching",
     before: (nav) => {
-      if (nav.target === "config" && CFG_SEC === "notif") {
-        PAG_TAB.perfil = "notif";
-        CFG_SEC = "rutas";
+      if (nav.target === "config" && settingsStore.section === "notif") {
+        navigationStore.pageTabs.perfil = "notif";
+        settingsStore.section = "rutas";
         nav.target = "perfil";
       }
-      if (nav.target === "config" && ["perfil", "prefs"].includes(CFG_SEC ?? "")) CFG_SEC = "rutas";
-      if (nav.target === "config" && COMPANY_SECTIONS.includes(CFG_SEC ?? "")) {
-        PAG_TAB.empresa = companyTab();
-        CFG_SEC = "rutas";
+      if (nav.target === "config" && ["perfil", "prefs"].includes(settingsStore.section ?? "")) settingsStore.section = "rutas";
+      if (nav.target === "config" && COMPANY_SECTIONS.includes(settingsStore.section ?? "")) {
+        navigationStore.pageTabs.empresa = companyTab();
+        settingsStore.section = "rutas";
         nav.target = "empresa";
       }
-      if (nav.target === "config" && CFG_SEC === "plan") {
-        CFG_SEC = "rutas";
+      if (nav.target === "config" && settingsStore.section === "plan") {
+        settingsStore.section = "rutas";
         nav.target = "plan";
       }
     },
@@ -34725,7 +35056,7 @@
       if (!section2?.classList.contains("cargando")) return;
       section2.classList.remove("cargando");
       section2.classList.add("cargando-pend");
-      if (PEND > 0) section2.classList.add("cargando");
+      if (navigationStore.pendingReads > 0) section2.classList.add("cargando");
       section2.classList.remove("cargando-pend");
     }
   };
@@ -37742,35 +38073,35 @@
   // src/app/legacy/legado-b-bridge.ts
   var rawDb2 = () => db;
   var legacyBState = {
-    tab: () => TAB,
-    mapMode: () => MODO_MAPA,
+    tab: () => navigationStore.screen,
+    mapMode: () => accountsStore.mapMode,
     isMobile: () => ES_MOVIL(),
-    profile: () => PERFIL,
+    profile: () => sessionStore.profile,
     inTests: () => EN_PRUEBAS,
     rpcTtl: () => RPC_TTL,
-    navigationGeneration: () => NAV_GEN,
-    navigationSignal: () => NAV_CTRL.signal,
+    navigationGeneration: () => navigationStore.generation,
+    navigationSignal: () => navigationStore.abort.signal,
     addPendingRead: (delta2) => {
-      PEND = Math.max(0, PEND + delta2);
+      navigationStore.pendingReads = Math.max(0, navigationStore.pendingReads + delta2);
     },
-    pendingCall: () => LLAMADA_PEND,
+    pendingCall: () => ordersStore.pendingCall,
     forgetPendingCall: () => {
-      LLAMADA_PEND = null;
+      ordersStore.pendingCall = null;
     },
     setOrdersPage: (page) => {
-      PEDPAG = page;
+      ordersStore.page = page;
     },
     setSettingsSection: (section2) => {
-      CFG_SEC = section2;
+      settingsStore.section = section2;
     },
-    settings: () => AJUSTES,
+    settings: () => settingsStore.settings,
     setSetting: (key, value27) => {
-      AJUSTES[key] = value27;
+      settingsStore.settings[key] = value27;
     },
     paymentMethods: () => CAT.forma_pago ?? [],
-    adminSection: () => ADM_SEC,
-    selectedPopover: () => SELPOP,
-    i18nMap: () => MAPA_I18N,
+    adminSection: () => settingsStore.adminSection,
+    selectedPopover: () => navigationStore.pickerPopup,
+    i18nMap: () => sessionStore.translationMap,
     setRecovering: (on6) => {
       RECUPERANDO = on6;
     },
@@ -37783,23 +38114,23 @@
     },
     brand: () => MARCA,
     setPlan: (plan3) => {
-      PLAN_ACTUAL = plan3;
+      sessionStore.plan = plan3;
     },
     setAgendaWeek: (mode, isoDate) => {
-      AG_MODO = mode;
-      AG_FECHA = isoDate;
+      agendaStore.mode = mode;
+      agendaStore.selectedDate = isoDate;
     },
     setAgendaMode: (mode) => {
-      AG_MODO = mode;
+      agendaStore.mode = mode;
     },
     askWeekPlan: () => {
-      ABRIR_PLAN_SEMANA = true;
+      agendaStore.openWeekPlan = true;
     },
     setProductsSection: (section2) => {
-      PSEC = section2;
+      productsStore.section = section2;
     },
     forgetHiddenAlerts: () => {
-      ALERTAS_OCULTAS = null;
+      homeStore.hiddenAlerts = null;
     },
     navIcons: () => ICO_NAV,
     setModuleIcon: (key, svg) => {
@@ -39445,7 +39776,7 @@
   };
   var switchLegacy = {
     isModule: (screen3) => screen3 in MODULO_AREA,
-    hasProfile: () => Boolean(PERFIL),
+    hasProfile: () => Boolean(sessionStore.profile),
     moduleAllowedV2400: (screen3) => puedeModuloV2400(screen3),
     moduleAllowed: (screen3) => puedeModulo(screen3),
     planIncludes: (screen3) => planIncluye(screen3),
@@ -39453,34 +39784,34 @@
       avisoPlan(screen3);
     },
     openAdminSection: () => {
-      CFG_SEC = CFG_ADMIN[ADM_SEC] ?? "usuarios";
+      settingsStore.section = CFG_ADMIN[settingsStore.adminSection] ?? "usuarios";
     },
     clearPending: () => {
-      PEND = 0;
+      navigationStore.pendingReads = 0;
     },
     leavePanel: () => {
       salirPanel();
     },
     abortNavigation: () => {
-      NAV_CTRL.abort();
-      NAV_CTRL = new AbortController();
-      NAV_GEN++;
+      navigationStore.abort.abort();
+      navigationStore.abort = new AbortController();
+      navigationStore.generation++;
     },
     closeSelector: () => {
       if (typeof cerrarSelector === "function") cerrarSelector();
     },
     isProfessionalPortal: () => ES_MEDICO(),
     rememberPrevious: (target) => {
-      if (target !== TAB) TAB_ANTERIOR = TAB;
+      if (target !== navigationStore.screen) navigationStore.previousScreen = navigationStore.screen;
     },
     forgetViewedAgenda: () => {
-      AG_VISTA = null;
+      agendaStore.viewedUser = null;
     },
     setScreen: (screen3) => {
-      TAB = screen3;
+      navigationStore.screen = screen3;
     },
-    screen: () => TAB,
-    pending: () => PEND,
+    screen: () => navigationStore.screen,
+    pending: () => navigationStore.pendingReads,
     loadModule: (screen3) => {
       MODULE_LOADERS[screen3]?.();
     },
@@ -39500,7 +39831,7 @@
     goTo: (screen3) => {
       ir(screen3);
     },
-    screen: () => TAB,
+    screen: () => navigationStore.screen,
     applySavedFilter: (filter) => {
       aplicarFiltroGuardado(filter);
     },
@@ -39567,7 +39898,7 @@
   var agendaClicksLegacy = {
     // Without an account: the editor asks for it (the legacy signature takes null)
     newAppointment: () => {
-      void nuevaCita(null, AG_FECHA);
+      void nuevaCita(null, agendaStore.selectedDate);
     },
     write: (name, payload14) => escribir(name, payload14),
     openAccount: (id) => {
@@ -39582,7 +39913,7 @@
     reloadHome: () => {
       void cargarInicio();
     },
-    screen: () => TAB,
+    screen: () => navigationStore.screen,
     windowChangedData: () => agCambiosEnVentana(),
     quietRefresh: () => {
       agRefrescoQuieto();
@@ -39604,10 +39935,10 @@
     }
   };
   var adminLegacy = {
-    section: () => ADM_SEC,
-    users: () => USUARIOS,
+    section: () => settingsStore.adminSection,
+    users: () => settingsStore.users,
     setUsers: (users) => {
-      USUARIOS = users;
+      settingsStore.users = users;
     },
     initials: (name) => iniciales(name),
     canImpersonate: (user) => puedeVerComo(user),
@@ -39636,11 +39967,11 @@
       void restablecerPassword(user);
     },
     openSettingsSection: (section2) => {
-      CFG_SEC = section2;
+      settingsStore.section = section2;
       void cargarConfig();
     },
     openAdminSection: (section2) => {
-      ADM_SEC = section2;
+      settingsStore.adminSection = section2;
       void cargarAdmin();
     }
   };
@@ -39666,8 +39997,8 @@
       ir(screen3);
     },
     toggleMapMode: () => {
-      MODO_MAPA = !MODO_MAPA;
-      return MODO_MAPA;
+      accountsStore.mapMode = !accountsStore.mapMode;
+      return accountsStore.mapMode;
     },
     paintMap: () => {
       void paintMap2();
@@ -39705,13 +40036,13 @@
     }
   };
   var toolsPanelLegacy = {
-    context: () => HERR_CTX,
+    context: () => accountsStore.toolsContext,
     setContext: (context) => {
-      HERR_CTX = context;
+      accountsStore.toolsContext = context;
     },
     // eslint-disable-next-line id-length -- F is the legacy name of the directory filters
     filters: () => F,
-    options: () => OPF,
+    options: () => accountsStore.filterOptions,
     option: (list, value27, all2) => optFiltro(list, value27, all2),
     allOf: (word) => todosLos(word),
     seesEverything: () => VE_TODO(),
@@ -39751,7 +40082,7 @@
     withCatch: (request2) => conCatch(request2),
     storageKey: (key) => rcLS(key),
     copy: (answer) => rcCopia(answer),
-    epoch: () => RC_EPOCA,
+    epoch: () => sessionStore.cacheEpoch,
     cache: () => RC,
     flying: () => RC_VUELO
   };
@@ -39775,13 +40106,13 @@
     prepareLanguage: (language) => {
       prepararIdioma(language);
     },
-    appVisible: () => APP_VISIBLE,
+    appVisible: () => navigationStore.appVisible,
     setAppVisible: () => {
-      APP_VISIBLE = true;
+      navigationStore.appVisible = true;
     },
     indicatorCatalog: () => KPI_CAT,
     setProfile: (profile6) => {
-      PERFIL = profile6;
+      sessionStore.profile = profile6;
     },
     initials: (name) => iniciales(name),
     firstName: (name) => nombrePila(name),
@@ -39841,7 +40172,7 @@
       }, () => void 0);
     },
     translatePage: () => {
-      if (MAPA_I18N) traducir(document.body);
+      if (sessionStore.translationMap) traducir(document.body);
     },
     bookIcon: () => svgIco(ICON_NOM["book-open"] ?? ""),
     menuIcons: () => {
@@ -39865,7 +40196,7 @@
     }
   };
   var periodLegacy = {
-    userId: () => PERFIL ? PERFIL.id : "",
+    userId: () => sessionStore.profile ? sessionStore.profile.id : "",
     periods: () => PERIODOS,
     rangeOf: (period) => rangoPeriodo(period),
     shortDate: (isoDate) => calendar_exports.shortDate(isoDate ?? "")
@@ -39873,7 +40204,7 @@
   var testStripLegacy = {
     inTests: () => EN_PRUEBAS,
     notConfigured: () => Boolean(CFG.sinConfigurar),
-    isAdmin: () => Boolean(PERFIL) && puede("administrar"),
+    isAdmin: () => Boolean(sessionStore.profile) && puede("administrar"),
     environment: () => RPC_ORIG_FROM("entorno_pruebas").select("maestro_guardado_en, ultimo_reset").eq("id", 1).single(),
     askText: (message4, value27, options5) => pedirTexto(message4, value27, options5),
     reset: () => RPC_ORIG("pruebas_resetear", { p_confirmacion: "RESTABLECER" })
@@ -39893,7 +40224,7 @@
     hourText: (minutes2) => hm(minutes2),
     windowsText: (windows) => txtVentanas(windows ?? []),
     setStopInfo: (info) => {
-      TD_INFO = info;
+      agendaStore.stopInfo = info;
     },
     routeHours: (appointments2) => horDeCitas(appointments2),
     withHours: (hours2, run) => conHor(hours2, run),
@@ -42028,9 +42359,9 @@
 
   // src/app/legacy/settings4-bridge.ts
   var usersLegacy = {
-    list: () => USUARIOS,
+    list: () => settingsStore.users,
     setList: (list) => {
-      USUARIOS = list;
+      settingsStore.users = list;
     },
     setConnections: (connections) => {
       USR_ACC = connections;
@@ -42056,16 +42387,16 @@
     reloadAdmin: () => {
       void cargarAdmin();
     },
-    schemes: () => ESQUEMAS,
+    schemes: () => homeStore.commissionSchemes,
     setSchemes: (list) => {
-      ESQUEMAS = list;
+      homeStore.commissionSchemes = list;
     },
-    provinces: () => PROV_CCAA,
+    provinces: () => sessionStore.provinces,
     setProvinces: (value27) => {
-      PROV_CCAA = value27;
+      sessionStore.provinces = value27;
     },
     /** Configuración's open section (Usuarios repaints its list after creating or deleting). */
-    section: () => CFG_SEC,
+    section: () => settingsStore.section,
     settingsKey: () => CFG_KEY,
     /** Usuarios repaints through its legacy name (the page tabs and the tree of Configuración use it). */
     repaintList: () => {
@@ -42082,9 +42413,9 @@
     }
   };
   var planLegacy = {
-    current: () => PLAN_ACTUAL ?? {},
+    current: () => sessionStore.plan ?? {},
     setCurrent: (plan3) => {
-      PLAN_ACTUAL = plan3;
+      sessionStore.plan = plan3;
     },
     of: (id) => planDe(id),
     all: () => PLANES,
@@ -42093,7 +42424,7 @@
     rows: () => PLAN_FILAS(),
     moduleAreas: () => MODULO_AREA,
     paymentPlans: () => PAGO_PLANES,
-    paymentState: () => PAGO_ESTADO ?? {},
+    paymentState: () => ordersStore.paymentState ?? {},
     needs: () => PRESU_NECESITA,
     whenOptions: () => PRESU_CUANDO,
     requestState: (state2) => PRESU_ESTADO[state2] ?? state2,
@@ -42103,12 +42434,12 @@
     sectionTitle: (section2) => TITULO_PEDSEC[section2]?.[0],
     vatOf: (amount3) => ivaDe(amount3),
     euros: (value27) => eurI(value27),
-    brandName: () => (AJUSTES.marca ?? {}).nombre ?? ""
+    brandName: () => (settingsStore.settings.marca ?? {}).nombre ?? ""
   };
   var profileLegacy = {
-    me: () => PERFIL,
+    me: () => sessionStore.profile,
     languages: () => IDIOMAS,
-    language: () => IDIOMA,
+    language: () => sessionStore.language,
     applyLanguage: (id) => {
       aplicarIdioma(id);
     },
@@ -42309,9 +42640,9 @@
 
   // src/app/legacy/orders-bridge.ts
   var ordersLegacy = {
-    section: () => PEDSEC,
+    section: () => ordersStore.section,
     setSection: (section2) => {
-      PEDSEC = section2;
+      ordersStore.section = section2;
     },
     setLoadingSection: (section2) => {
       PEDSEC_CARGA = section2;
@@ -42322,13 +42653,13 @@
     },
     /** The open part of Configuración (Distribuidores lives there). */
     settingsSection: () => CFG_KEY,
-    page: () => PEDPAG,
+    page: () => ordersStore.page,
     setPage: (page) => {
-      PEDPAG = page;
+      ordersStore.page = page;
     },
-    fieldFilters: () => PEDF,
+    fieldFilters: () => ordersStore.filters,
     setRows: (rows2) => {
-      PEDIDOS = rows2;
+      ordersStore.orders = rows2;
     },
     /** Through the global name (legado 057 keeps the screen cached around it). */
     reload: () => {
@@ -42344,7 +42675,7 @@
     newSale: () => {
       void nuevaVenta();
     },
-    services: () => SERVICIOS,
+    services: () => productsStore.services,
     paymentState: (order) => cobroDe(order),
     channelLabel: (order, total2) => etiquetaCanal(order, total2),
     paymentMethods: () => CAT.forma_pago ?? [],
@@ -42373,12 +42704,12 @@
     template: (kind, field22, values2) => plantillaCorreo(kind, field22, varsCorreo(values2)),
     chooseTemplate: (kind) => elegirPlantillaCorreo(kind),
     forgetChosenTemplate: (kind) => {
-      PLANT_ELEGIDA[kind] = null;
+      billingStore.chosenTemplates[kind] = null;
     },
-    companyIban: () => String(AJUSTES.empresa?.iban ?? "").trim(),
+    companyIban: () => String(settingsStore.settings.empresa?.iban ?? "").trim(),
     /** A server function (the answer is read by the caller). */
     invoke: (name, body4) => db.functions.invoke(name, { body: body4 }),
-    alertPreferences: () => PERFIL.preferencias?.avisos_pedidos ?? {},
+    alertPreferences: () => sessionStore.profile.preferencias?.avisos_pedidos ?? {},
     saveAlertPreferences: (alerts) => guardarPrefsAvisos(alerts),
     roleNames: () => rolesNombres()
   };
@@ -42386,10 +42717,10 @@
   // src/app/legacy/orders2-bridge.ts
   var orderEditorLegacy = {
     loadProducts: async () => {
-      if (!PRODUCTOS.length) await cargarProductos();
+      if (!productsStore.products.length) await cargarProductos();
     },
-    product: (id) => conPrecioContrato(PRODUCTOS.find((product) => product.id === id) ?? {}),
-    services: () => SERVICIOS,
+    product: (id) => conPrecioContrato(productsStore.products.find((product) => product.id === id) ?? {}),
+    services: () => productsStore.services,
     defaultProduct: () => productoPorDefecto(),
     productOptions: (id, name) => opcionesProducto(id, name),
     /** The prices of the contract in force of the account (Concursos); true if it has one. */
@@ -42402,22 +42733,22 @@
     readReceipt: (file) => leerJustificante(file),
     uploadReceipts: (id, list) => subirJustificantes(id, list),
     orderFields: () => CAMPOS.pedido ?? [],
-    customerCardOpen: () => FICHA_PAC,
+    customerCardOpen: () => accountsStore.cardPatients,
     openCustomer: (id) => {
       void fichaPaciente(id);
     },
     repaintCustomers: () => {
       void listaPacientes();
     },
-    distributors: () => DISTRIBUIDORES,
+    distributors: () => ordersStore.distributors,
     setDistributors: (list) => {
-      DISTRIBUIDORES = list;
+      ordersStore.distributors = list;
     }
   };
   var tpvLegacy = {
-    settings: () => AJUSTES.cobro_tpv ?? {},
+    settings: () => settingsStore.settings.cobro_tpv ?? {},
     setSettings: (value27) => {
-      AJUSTES.cobro_tpv = value27;
+      settingsStore.settings.cobro_tpv = value27;
     },
     /** Only in the test environment until the bank terminal exists (legado 147). */
     visible: () => Boolean(TPV_VISIBLE),
@@ -42426,22 +42757,22 @@
     whileWorking: (button3, text5, work) => conCarga(button3, text5, work)
   };
   var subscriptionLegacy = {
-    state: () => PAGO_ESTADO,
+    state: () => ordersStore.paymentState,
     setState: (value27) => {
-      PAGO_ESTADO = value27;
+      ordersStore.paymentState = value27;
     },
-    plan: () => PLAN_ACTUAL,
+    plan: () => sessionStore.plan,
     setPlan: (value27) => {
-      PLAN_ACTUAL = value27;
+      sessionStore.plan = value27;
     },
     planOf: (id) => planDe(id),
     isDowngrade: (from2, to) => esBajada(from2, to),
     losses: (from2, to, data) => perdidasPlan(from2, to, data),
     setupFee: () => PUESTA_EN_MARCHA,
     plans: () => PAGO_PLANES,
-    platformMode: () => MODO_PLATAFORMA,
+    platformMode: () => navigationStore.platformMode,
     setPlatformMode: (value27) => {
-      MODO_PLATAFORMA = value27;
+      navigationStore.platformMode = value27;
     },
     applyPlatformMode: () => {
       applyPlatformMode();
@@ -44714,9 +45045,9 @@
   // src/app/legacy/panels-bridge.ts
   var panelsLegacy = {
     /** Analítica tab: 'resumen' or 'explorar'. */
-    section: () => ANSEC,
+    section: () => homeStore.analyticsSection,
     setSection: (section2) => {
-      ANSEC = section2;
+      homeStore.analyticsSection = section2;
     },
     reportFilter: () => AN_REP,
     setReportFilter: (value27) => {
@@ -44724,15 +45055,15 @@
     },
     seriesCache: () => AN_SERIE,
     setProfessional: (account) => {
-      AN_MED = account ? { id: account.id, nombre: account.nombre ?? "" } : null;
+      homeStore.analyticsAccount = account ? { id: account.id, nombre: account.nombre ?? "" } : null;
     },
     /** The user's Analítica settings (preferencias.analitica). */
     analyticsPreferences: () => Reflect.get(prefsActivas(), "analitica"),
-    profilePreferences: () => PERFIL?.preferencias ?? {},
+    profilePreferences: () => sessionStore.profile?.preferencias ?? {},
     setProfilePreferences: (preferences) => {
-      PERFIL.preferencias = preferences;
+      sessionStore.profile.preferencias = preferences;
     },
-    products: () => PRODUCTOS,
+    products: () => productsStore.products,
     loadProducts: () => cargarProductos(),
     stateWithRole: (role) => estadoPapel(role),
     canUseModule: (screen3) => puedeModulo(screen3),
@@ -44743,7 +45074,7 @@
     pickProfessional: (element4, options5) => {
       selectorMedico(element4, { valor: options5.value, placeholder: options5.placeholder, alElegir: options5.onPick });
     },
-    professional: () => AN_MED,
+    professional: () => homeStore.analyticsAccount,
     /** The second panel with the columns of a table (legado 056/057/065). */
     columnsPanel: (title2, columns, onChange) => {
       showColumnsPanel(title2, columns, onChange);
@@ -44752,7 +45083,7 @@
     filterTargets: () => HT_FILTROS,
     tableFilters: () => HT_ESTADO,
     /** Facturación outside its invoices has no table to filter. */
-    billingSection: () => typeof FSEC === "undefined" ? null : FSEC
+    billingSection: () => typeof billingStore.section === "undefined" ? null : billingStore.section
   };
 
   // src/app/components/filters-panel/side.ts
@@ -45203,14 +45534,14 @@
   // src/app/legacy/listbar-bridge.ts
   var listBarLegacy = {
     pageSize: () => tamPagina(),
-    userId: () => PERFIL?.id ?? "",
+    userId: () => sessionStore.profile?.id ?? "",
     /** First icon found among the names (line icons, then emoji ones). */
     icon: (names) => svgIco(names.map((name) => ICON_NOM[name] ?? ICON_EMOJI[name]).find(Boolean) ?? ""),
     lineIcon: (name) => svgIco(ICON_NOM[name] ?? ""),
-    cacheEpoch: () => typeof RC_EPOCA === "undefined" ? 0 : RC_EPOCA,
-    salesSection: () => typeof PEDSEC === "undefined" ? null : PEDSEC,
-    billingSection: () => typeof FSEC === "undefined" ? null : FSEC,
-    productsSection: () => typeof PSEC === "undefined" ? null : PSEC,
+    cacheEpoch: () => typeof sessionStore.cacheEpoch === "undefined" ? 0 : sessionStore.cacheEpoch,
+    salesSection: () => typeof ordersStore.section === "undefined" ? null : ordersStore.section,
+    billingSection: () => typeof billingStore.section === "undefined" ? null : billingStore.section,
+    productsSection: () => typeof productsStore.section === "undefined" ? null : productsStore.section,
     // eslint-disable-next-line id-length -- F is the legacy name of the Cuentas filters
     accountFilters: () => F,
     customerFilters: () => PAC,
@@ -45226,7 +45557,7 @@
     openAccountColumns: () => {
       abrirColumnas();
     },
-    toolsContext: () => HERR_CTX,
+    toolsContext: () => accountsStore.toolsContext,
     /** What the «Filtros y columnas» panel chose per table (the bar's search writes its free text when the screen has no search). */
     tableFilters: () => HT_ESTADO,
     countRows: (name, params2) => RPC_ORIG(name, params2)
@@ -49328,17 +49659,17 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     /** The platform's own plan may have changed. */
     reloadPlan: async () => {
       const { data } = await RPC_ORIG("plan_uso", {});
-      if (data?.plan) PLAN_ACTUAL = data.plan;
+      if (data?.plan) sessionStore.plan = data.plan;
     },
     askText: (message4, value27, options5) => askText(message4, value27, options5),
     prepareOrganizationChange: (name) => {
       prepararCambioOrg(name);
     },
-    hasProfile: () => Boolean(PERFIL),
+    hasProfile: () => Boolean(sessionStore.profile),
     can: (capability) => puede(capability),
     appVersion: () => VERSION_APP,
     isTestEnvironment: () => EN_PRUEBAS,
-    panelTab: () => PAG_TAB.delcos,
+    panelTab: () => navigationStore.pageTabs.delcos,
     skeleton: () => pdEsqueleto(),
     kpis: (figures) => pdKpis(figures),
     billingState: (organization) => pdCobroEstado(organization),
@@ -49498,9 +49829,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/legacy/products-bridge.ts
   var productsLegacy = {
-    section: () => PSEC,
+    section: () => productsStore.section,
     setSection: (section2) => {
-      PSEC = section2;
+      productsStore.section = section2;
     },
     /** Through the global names: legado 057 caches the screen and legado 089 wraps fichaStock and verDeposito («‹ Volver»). */
     reload: () => {
@@ -49522,8 +49853,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     showLoading: (element4, text5) => {
       showLoading(element4, text5);
     },
-    matchesFieldFilters: (values2) => Boolean(matchesFilters(values2, PRODF)),
-    hasFieldFilters: () => Object.keys(PRODF).length > 0,
+    matchesFieldFilters: (values2) => Boolean(matchesFilters(values2, productsStore.filters)),
+    hasFieldFilters: () => Object.keys(productsStore.filters).length > 0,
     visibleFieldColumns: () => visibleFields("producto"),
     fieldHeaders: (fields) => columnHeaders(fields),
     fieldCells: (fields, values2) => columnCells(fields, values2),
@@ -50941,13 +51272,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/legacy/billing-bridge.ts
   var billingLegacy = {
-    section: () => FSEC,
+    section: () => billingStore.section,
     setSection: (section2) => {
-      FSEC = section2;
+      billingStore.section = section2;
     },
-    page: () => FACPAG,
+    page: () => ordersStore.invoicePage,
     setPage: (page) => {
-      FACPAG = page;
+      ordersStore.invoicePage = page;
     },
     canInvoice: () => Boolean(permissions_exports.canInvoice()),
     /** Through the global names: legado 057 caches the screen and legado 089 / the wide window wrap verFactura. */
@@ -50962,7 +51293,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       showLoading(element4, text5);
     },
     readOnly: () => Boolean(facConsulta()),
-    planName: () => planDe(String(PLAN_ACTUAL.plan)).nombre,
+    planName: () => planDe(String(sessionStore.plan.plan)).nombre,
     paintCompany: () => {
       void pintarEmpresa();
     },
@@ -50980,9 +51311,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       void enviarFacturaEmail(invoice2, rectifies);
     },
     loadSettings: () => loadSettings(),
-    setting: (key) => AJUSTES[key],
+    setting: (key) => settingsStore.settings[key],
     setSetting: (key, value27) => {
-      AJUSTES[key] = value27;
+      settingsStore.settings[key] = value27;
     },
     paymentMethods: () => CAT.forma_pago ?? []
   };
@@ -52794,7 +53125,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     skeletonCard: (title2) => cardSkeleton(title2),
     /** A company word with its singular, plural and gender. */
     wordOf: (key) => terminoDe(key),
-    userName: () => PERFIL?.nombre ?? "",
+    userName: () => sessionStore.profile?.nombre ?? "",
     mountPeriod: (element4, options5) => {
       montarPeriodo(element4, options5);
     },
@@ -52802,15 +53133,15 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     /** On entering the portal the period is always «Esta semana»: the remembered one is forgotten. */
     forgetPeriod: () => {
       try {
-        localStorage.removeItem(`dlc-per-informe-${PERFIL?.id ?? ""}`);
+        localStorage.removeItem(`dlc-per-informe-${sessionStore.profile?.id ?? ""}`);
       } catch {
       }
     },
     /** At start the plan may not have arrived yet. */
     loadPlan: async () => {
-      if ("estado" in PLAN_ACTUAL) return;
+      if ("estado" in sessionStore.plan) return;
       const { data } = await RPC_ORIG("plan_uso", {});
-      if (data?.plan) PLAN_ACTUAL = data.plan;
+      if (data?.plan) sessionStore.plan = data.plan;
     },
     /** Saves the invoice as PDF with the company design (and `overrides`, e.g. the proforma title). */
     saveInvoice: async (invoice2, rectifies, overrides, fileName) => {
@@ -53851,7 +54182,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/legacy/analytics-bridge.ts
   var analyticsLegacy = {
-    professional: () => AN_MED,
+    professional: () => homeStore.analyticsAccount,
     /** The range of a period picker (montarPeriodo). */
     period: (id) => {
       const range2 = Reflect.get(document.getElementById(id) ?? {}, "__rango");
@@ -55550,12 +55881,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/legacy/commissions-bridge.ts
   var commissionsLegacy = {
-    schemes: () => ESQUEMAS,
+    schemes: () => homeStore.commissionSchemes,
     setSchemes: (list) => {
-      ESQUEMAS = list;
+      homeStore.commissionSchemes = list;
     },
-    team: () => COMS,
-    whatUserSees: () => PERFIL?.comision_ver
+    team: () => homeStore.salesTeam,
+    whatUserSees: () => sessionStore.profile?.comision_ver
   };
 
   // src/app/screens/commissions/home-card.ts
@@ -58352,7 +58683,7 @@ const ES_MOVIL = () => window.delcos.nav.isMobileWidth();
 function avisosEnVivo() { return window.delcos.core.live.listenLive(); }
 
 // ——— En vivo ———
-let VIVO = null;
+ // v2.440.0: VIVO → estado de src/app (plan 6.6), accesible en window
 // @ts-check
 // nucleo/errores.js · está en src/app/core/errors.ts y core/problem-report.ts (v2.425.0). Estos nombres se quedan: el código viejo, los
 // puentes y el menú de la persona los usan. Normas: docs/normas_codigo.md.
@@ -58361,7 +58692,7 @@ function registrarError(tipo, mensaje, detalle) { return window.delcos.core.erro
 function esErrorRed(e) { return window.delcos.core.errors.isNetworkError(e); }
 // @ts-check
 /** Idioma de la persona (v2.43.0): 'es' mientras no elija otro. */
-let IDIOMA = 'es';
+ // v2.440.0: IDIOMA → estado de src/app (plan 6.6), accesible en window
 // nucleo/idioma.js · está en src/app/core/language.ts y la tabla en src/app/i18n/dom-translations.ts (v2.425.0). IDIOMA y MAPA_I18N
 // (estado que lee el legado) se quedan aquí; estos nombres también. Normas: docs/normas_codigo.md.
 
@@ -58382,9 +58713,9 @@ const MENU_FIJO = window.delcos.nav.MENU_FIXED;
 
 const MENU_FUERA = window.delcos.nav.MENU_OUT;
 
-let MENU_FIRMA = '';
+ // v2.440.0: MENU_FIRMA → estado de src/app (plan 6.6), accesible en window
 
-let FAB_RZ = 0;
+ // v2.440.0: FAB_RZ → estado de src/app (plan 6.6), accesible en window
 
 const menuPrefs = () => window.delcos.nav.menuPrefs();
 
@@ -58414,13 +58745,13 @@ function abrirMasMovil() { return window.delcos.nav.openMoreMenu(); }
 // Aquí quedan el estado que leen y cambian otras partes, los objetos compartidos (los mismos que en src/app) y los nombres que usan el
 // legado, los puentes, «‹ Volver» y las pruebas.
 
-let TAB_ANTERIOR = 'inicio';
+ // v2.440.0: TAB_ANTERIOR → estado de src/app (plan 6.6), accesible en window
 
-let APP_VISIBLE = false;
+ // v2.440.0: APP_VISIBLE → estado de src/app (plan 6.6), accesible en window
 
 const PAGINAS = window.delcos.nav.PAGES;
 
-let VIA_IR = null;
+ // v2.440.0: VIA_IR → estado de src/app (plan 6.6), accesible en window
 
 let CLIC_PESTANA = null;
 
@@ -58495,7 +58826,7 @@ function comprobarVersion() { return window.delcos.core.live.checkVersion(); }
    el buscador no encontraba nada hasta Ctrl+F5). Al volver a la pestaña y cada 10 minutos se mira qué versión está publicada (index.html sin caché);
    si es otra, la app se recarga sola cuando no hay nada a medias (ninguna ventana abierta ni un campo con el cursor) o, si lo hay, enseña el aviso
    «Hay una versión nueva» para que se recargue al terminar. */
-let VERSION_VISTA = 0;
+ // v2.440.0: VERSION_VISTA → estado de src/app (plan 6.6), accesible en window
 // @ts-check
 // servicios/api.js · la cola de escrituras y la caché de lecturas están en src/app/core/write-queue.ts y read-cache.ts (v2.425.0). Se quedan
 // el estado compartido (cachés, contadores, consultas en curso), las claves antiguas de las respuestas y estos nombres: el legado, los
@@ -58547,7 +58878,7 @@ const RPC_TTL = {                 // segundos
 
 const RPC_ESCRITURA = /^(actualizar_|anular_|aplazar_|asignar_|recibir_|movimiento_|atribuir_|borrar_|crear_|estado_cita|guardar_|liquidar|ordenar_|perfil_nuevo|quitar_|registrar_actividad|registrar_visita|resolver_accion|tocar|unificar_|descartar_)/;
 
-let RC_EPOCA = 0;
+ // v2.440.0: RC_EPOCA → estado de src/app (plan 6.6), accesible en window
 
 const rcLS = k => 'dlc-rc-' + (PERFIL ? PERFIL.id : '') + '-' + k;
 
@@ -58555,7 +58886,7 @@ const rcCopia = r => ({ data: r.data == null ? r.data : JSON.parse(JSON.stringif
 
 const RPC_ORIG_FROM = t => FROM_ORIG(t);
 
-let ESCRITURAS = 0;
+ // v2.440.0: ESCRITURAS → estado de src/app (plan 6.6), accesible en window
 
 const ES_ESCRITURA = /^(guardar|registrar_(?!error)|emitir|rectificar|marcar|borrar|eliminar|asignar|unificar|validar|anular|crear|descartar|restaurar|estado_|recibir|traspasar|vincular|mover|aplicar|reprogramar|cancelar|confirmar|terminar)/;
 
@@ -58605,7 +58936,7 @@ const FOTOS_VISITA_MAX = window.delcos.core.files.VISIT_PHOTOS_MAX;
 // se quedan: la capa de dispositivos (legado 156) los usa y la prueba de la cámara lee códigos con leerGS1.
 function leerGS1(txt) { return window.delcos.leftovers.readGs1(txt); }
 
-let ESC_PEND = false;
+ // v2.440.0: ESC_PEND → estado de src/app (plan 6.6), accesible en window
 // @ts-check
 // servicios/catalogos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
@@ -58613,7 +58944,7 @@ let ESC_PEND = false;
 // Catálogos por su papel en la plataforma (clasificadores.papel), nunca por la clave que les ponga cada cliente
 const CAT = { resultado_visita: [], especialidad: [], area: [], motivo_urgencia: [], forma_pago: [] };
 
-let PROV_CCAA = null;
+ // v2.440.0: PROV_CCAA → estado de src/app (plan 6.6), accesible en window
 // @ts-check
 // servicios/estados.js · está en src/app/core/commercial-states.ts (v2.425.0). Los estados de la empresa (ESTADOS_DEF, que carga el
 // arranque) se quedan aquí, y estos nombres también. Normas: docs/normas_codigo.md.
@@ -58621,7 +58952,7 @@ let PROV_CCAA = null;
 /* v2.70.0 · Estados comerciales como catálogo: el código conoce su papel (inicial, avance, interes, positivo, negativo), no su nombre */
 const ESTKEY = window.delcos.core.states.STATES_KEY;
 
-let ESTADOS_DEF = [];
+ // v2.440.0: ESTADOS_DEF → estado de src/app (plan 6.6), accesible en window
 
 function estados() { return window.delcos.core.states.stateNames(); }
 function estadoPapel(p) { return window.delcos.core.states.stateOfRole(p); }
@@ -58754,7 +59085,7 @@ function verImportes() { return window.delcos.core.permissions.canSeeAmounts(); 
 // Qué permiso abre cada módulo
 const MODULO_AREA = window.delcos.core.permissions.MODULE_AREA;
 
-let PLAN_ACTUAL = { plan: 'medida' };   // v2.117.0: hasta que llega el de la base, el completo
+ // v2.440.0: PLAN_ACTUAL → estado de src/app (plan 6.6), accesible en window   // v2.117.0: hasta que llega el de la base, el completo
 
 function planDe(id) { return window.delcos.core.plans.planOf(id); }
 // v2.165.0: sin Facturación en el plan pero con facturas, se entra en solo consulta (facConsulta)
@@ -58798,7 +59129,7 @@ const TERM_DEF = window.delcos.core.vocabulary.DEFAULT_TERMS;
 
 const TERMKEY = window.delcos.core.vocabulary.TERMS_KEY;
 
-let TERMINOS = {};
+ // v2.440.0: TERMINOS → estado de src/app (plan 6.6), accesible en window
 
 // Nombre sin tratamiento delante («Dr. Gonzalo Serrano» → Gonzalo, iniciales GS)
 const TRATAMIENTO = window.delcos.core.vocabulary.TITLE;
@@ -58917,7 +59248,7 @@ function campoTexto(c, v) { return window.delcos.components.fieldText(c, v); }
 
 const HT = ['15:00-19:00', '16:00-19:00', '16:00-20:00', '17:00-20:00'];
 
-let HERR_CTX = null;
+ // v2.440.0: HERR_CTX → estado de src/app (plan 6.6), accesible en window
 
 // Pantallas con filtros propios que pasan al panel (la búsqueda por texto sigue a la vista)
 const HT_FILTROS = { pacientes: '#v-pacientes .filtros', facturacion: '#v-facturacion .filtros', analitica: '#anper' };
@@ -59042,7 +59373,7 @@ const PAG_NO_CAMBIA = 'input[type=search], #txq, #cfubus, [placeholder^="Busca"]
 const PAG_SUCIO = new Set();
 
 // Las páginas se pintan por partes y algunas se repintan al guardar: se vuelve a colocar al cambiar el contenido
-let PAG_GUARDA_RAF = 0;
+ // v2.440.0: PAG_GUARDA_RAF → estado de src/app (plan 6.6), accesible en window
 // @ts-check
 // componentes/iconos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -59190,9 +59521,9 @@ function teclaActivar(x) { window.delcos.components.activateItem(x); }
 // (sin fondo oscuro ni ventana flotante); al cerrarla vuelve el apartado. En el móvil las ventanas ya ocupan la pantalla.
 
 
-let DATOS_CAMBIADOS = false;
+ // v2.440.0: DATOS_CAMBIADOS → estado de src/app (plan 6.6), accesible en window
 
-let ULT_ACCION = 0;
+ // v2.440.0: ULT_ACCION → estado de src/app (plan 6.6), accesible en window
 
 
 
@@ -59234,11 +59565,11 @@ const CLAVES_NEUTRAS = { cuenta: 'medico', cuentas: 'medicos', ubicaciones: 'con
   cuentas_visitadas: 'medicos_visitados', n_ubicaciones: 'n_consultas', n_actividades: 'n_visitas', por_cuenta: 'por_medico',
   ultimas_actividades: 'ultimas_visitas', actividades_dia: 'visitas_dia', actividades_total: 'visitas_total' };
 
-let MED_ACCESO = null;
+ // v2.440.0: MED_ACCESO → estado de src/app (plan 6.6), accesible en window
 
 const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 
-let PAG_CLAVE = '';
+ // v2.440.0: PAG_CLAVE → estado de src/app (plan 6.6), accesible en window
 
 // Acceso está en src/app/screens/access (v2.414.0). Estos nombres se quedan: el acceso, la navegación, Configuración,
 // legado 001, 047, 076 y 129 y las pruebas los usan.
@@ -59314,14 +59645,14 @@ const JKEY = () => 'dlc-jornada-' + (PERFIL ? PERFIL.id : '');
 
 const xyCita = c => c.lat != null && c.lon != null ? [+c.lat, +c.lon] : null;
 
-let TD_CITAS = [];
+ // v2.440.0: TD_CITAS → estado de src/app (plan 6.6), accesible en window
 
-let TD_INFO = {};
+ // v2.440.0: TD_INFO → estado de src/app (plan 6.6), accesible en window
 
-let AG_VISTA = null;   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
+ // v2.440.0: AG_VISTA → estado de src/app (plan 6.6), accesible en window   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
 
 // Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
-let TD_PARADAS = [];
+ // v2.440.0: TD_PARADAS → estado de src/app (plan 6.6), accesible en window
 
 /* v2.143.0 · Agenda en una sola pantalla (decisión de Eric, 3/10/2026): sin flechas ni Día/Semana/Mes. Arriba, una línea fina con
    cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
@@ -59341,7 +59672,7 @@ let AG_SEMANA = null;
 
 // ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
 // Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
-let TAREAS_DIA = null;
+ // v2.440.0: TAREAS_DIA → estado de src/app (plan 6.6), accesible en window
 
 /* v2.220.0: la pastilla «Pendientes» y las líneas de aviso usaban la clase .av, que es la del avatar redondo de la app (salía un círculo
    cortado en lugar de la pastilla): ahora .agp-pend y .tdav.
@@ -59358,7 +59689,7 @@ const citaAnulada = e => EST_COL[e] === 'var(--muted)';
 
 const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
 
-let CINTA_INI = null;
+ // v2.440.0: CINTA_INI → estado de src/app (plan 6.6), accesible en window
 
 /* v2.229.0 · Agenda en una sola pantalla (decisión de Eric, 10/10/2026: variante B de https://claude.ai/artifact/7iht52N5whHBhAueRH7pso).
    - Cinta: cada día lleva su «⋯» (nueva cita, ver el día, bloquear o desbloquear: festivo, vacaciones, formación…) y los bloqueados se ven
@@ -59369,7 +59700,7 @@ let CINTA_INI = null;
      «+ Cita» de siempre). «Les toca visita» y «Pendientes de días anteriores» pasan a dos bandejas con su número bajo «Tu día», que abren el
      panel lateral con su lista.
    - La columna derecha es «Tu semana» (#agsemlat): día a día con sus citas, su «⋯» y «Repartir la semana». */
-let AG_SEM_ABIERTA = false;
+ // v2.440.0: AG_SEM_ABIERTA → estado de src/app (plan 6.6), accesible en window
 
 const citaHecha = e => EST_COL[e] === 'var(--ok)';
 
@@ -59448,9 +59779,9 @@ function tdPonerReal(ruta, res) { return window.delcos.screens.agenda.setRealTim
 // pantallas/analitica.js · la página de Analítica está en src/app/screens/analytics (v2.412.0 y v2.419.0).
 // Aquí queda el estado que leen las pruebas (ANSEC), legado 074 (ANSEC) y 109 (AN_MED), y los nombres que llaman otras partes.
 
-let AN_MED = null;
+ // v2.440.0: AN_MED → estado de src/app (plan 6.6), accesible en window
 
-let ANSEC = 'resumen';
+ // v2.440.0: ANSEC → estado de src/app (plan 6.6), accesible en window
 
 // La página y su Resumen están en src/app/screens/analytics/page (v2.419.0). Estos nombres se quedan: el mapa de páginas (legado
 // 001), la caché de pantallas (legado 057) y el cambio de sesión (legado 028) los llaman.
@@ -59548,9 +59879,9 @@ function buscarClientes(q) { return window.delcos.screens.customers.searchCustom
 
 function cargarComerciales() { return window.delcos.leftovers.loadSalesTeam(); }
 
-let ESQUEMAS = [];
+ // v2.440.0: ESQUEMAS → estado de src/app (plan 6.6), accesible en window
 
-let COMS = [];
+ // v2.440.0: COMS → estado de src/app (plan 6.6), accesible en window
 
 // Comisiones está en src/app/screens/commissions (v2.411.0). Estos nombres se quedan: Configuración (legado 004), Inicio y las
 // pruebas los usan.
@@ -59590,7 +59921,7 @@ function editorProveedor(p) { return window.delcos.screens.purchases.editSupplie
      y precios de cada lote.
    - Pedidos: si la ficha tiene un contrato en vigor, el precio de sus productos es el adjudicado («Precio de concurso»).
    - Ficha: sus concursos. Los avisos de vencimiento abren el concurso. */
-let CON_AVISOS = [90, 30];
+ // v2.440.0: CON_AVISOS → estado de src/app (plan 6.6), accesible en window
 
 const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id]; return x ? Object.assign({}, p, { precio: +x.precio, contrato: x.concurso }) : p; };
 
@@ -59607,16 +59938,16 @@ function verConcurso(id) { return window.delcos.screens.tenders.showTender(id); 
 
 // ---------- Estado compartido (lo leen o lo cambian otras partes y las pruebas por su nombre) ----------
 const ROLKEY = window.delcos.settingsCore.ROLES_KEY;
-let ROLES_DEF = [];   // legado 001 la rellena con la copia del dispositivo; cargarRoles con la de la base
-let AJUSTES = {};
-let ABRIR_PLAN_SEMANA = false;
-let LOGO_DATA = null;
-let PANEL_ACTIVO = null;
-let NOTIF_N = 0;
-let CFG_SUB = null;
-let CFG_DETALLE = false;
-let CFU_RAF = 0;
-let TX_OBS = 0;
+ // v2.440.0: ROLES_DEF → estado de src/app (plan 6.6), accesible en window   // legado 001 la rellena con la copia del dispositivo; cargarRoles con la de la base
+ // v2.440.0: AJUSTES → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: ABRIR_PLAN_SEMANA → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: LOGO_DATA → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: PANEL_ACTIVO → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: NOTIF_N → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: CFG_SUB → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: CFG_DETALLE → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: CFU_RAF → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: TX_OBS → estado de src/app (plan 6.6), accesible en window
 const CAMPOS = { medico: [], cliente: [], producto: [], pedido: [] };
 const PUESTA_EN_MARCHA = 490;
 const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };
@@ -59723,13 +60054,13 @@ function recientesDe(ids, fecha) { return window.delcos.leftovers.recentContacts
 
 const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
 
-let FICHA_ID = null;
+ // v2.440.0: FICHA_ID → estado de src/app (plan 6.6), accesible en window
 
-let CERCA = null;
+ // v2.440.0: CERCA → estado de src/app (plan 6.6), accesible en window
 
-let OPF = { provincias: [], municipios: [], especialidades: [], estados: [], centros: [] };
+ // v2.440.0: OPF → estado de src/app (plan 6.6), accesible en window
 
-let FICHA_PAC = null;
+ // v2.440.0: FICHA_PAC → estado de src/app (plan 6.6), accesible en window
 
 const ES_MEDICO = () => puede('portal_prescriptor');
 
@@ -59739,7 +60070,7 @@ const ES_MEDICO = () => puede('portal_prescriptor');
    paradas del plan). Y la ficha abierta desde una cita muestra en «Para la
    visita» la consulta de ESE centro. (El SQL 79 pone la base en hora de España.)
    ============================================================ */
-let FICHA_CENTRO = null;   // centro de la cita desde la que se abre la ficha
+ // v2.440.0: FICHA_CENTRO → estado de src/app (plan 6.6), accesible en window   // centro de la cita desde la que se abre la ficha
 
 const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: 'p-est', 'Pendiente de validar': 'p-warn', Validado: 'p-est',   // v2.349.0 (SQL 176); los dos de antes, por si la base aún no lo tiene
   Preparado: 'p-per', Anulado: 'p-anu' };
@@ -59761,7 +60092,7 @@ const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: '
    stock, depósito) en panel lateral en el ordenador, como la de un contacto: la lista sigue a la vista. Los formularios y las
    ventanas anchas (comparar, importar…) siguen como estaban, y Configuración sigue sin ventanas emergentes.
    ============================================================ */
-let FX_FICHA = 0;
+ // v2.440.0: FX_FICHA → estado de src/app (plan 6.6), accesible en window
 
 function abrirHorarioPlan() { window.delcos.leftovers.openPlanHours(); }
 
@@ -59833,13 +60164,13 @@ function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true }));
 
 const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
 
-let FSEC = 'facturas';
+ // v2.440.0: FSEC → estado de src/app (plan 6.6), accesible en window
 
 const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 
 const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
 
-let FAC_ULTIMA = 'empresa';
+ // v2.440.0: FAC_ULTIMA → estado de src/app (plan 6.6), accesible en window
 
 /* v2.121.0 · Página «Organización» (menú de usuario, arriba): marca, correo, copias, plan y facturación de la empresa, solo para el
    Propietario (configurar_organizacion) y el Administrador de la plataforma (gestionar_plataforma). Empresa y Plan pasan a ser
@@ -59883,7 +60214,7 @@ function pintarImportaciones() { return window.delcos.screens.importing.paintImp
 
 function inicioPosible(it, llegada, dura) { return window.delcos.leftovers.earliestStart(it, llegada, dura); }
 
-let ALERTAS_OCULTAS = null;
+ // v2.440.0: ALERTAS_OCULTAS → estado de src/app (plan 6.6), accesible en window
 
 const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['Guten Morgen', 'Guten Tag', 'Guten Abend'], fr: ['Bonjour', 'Bon après-midi', 'Bonsoir'], it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera'] };
 
@@ -59904,7 +60235,7 @@ const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo
   duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'productos',
   facturacion: 'facturacion', analitica: 'analitica', config: 'ajustes', perfil: 'perfil', empresa: 'organizacion', plan: 'plan', organizacion: 'organizacion', usuarios: 'usuarios' };
 
-let MANUAL_VUELTA = null;
+ // v2.440.0: MANUAL_VUELTA → estado de src/app (plan 6.6), accesible en window
 
 function cargarManual() { return window.delcos.screens.manual.paintManual(); }
 
@@ -59915,7 +60246,7 @@ function ponerAyudaManual() { window.delcos.screens.manual.putHelpButton(); }
 // pantallas/oportunidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-let LLAMADA_PEND = null;
+ // v2.440.0: LLAMADA_PEND → estado de src/app (plan 6.6), accesible en window
 
 function hayOportunidades() { return hayExtra('oportunidades'); }
 
@@ -59962,7 +60293,7 @@ const ORG_DESDE = { marca: 'marca', correo: 'correo', copias: 'copias', __empres
    la organización de plataforma (SQL 107); allí la app enseña SOLO el Panel delcos, con su menú: Clientes, Solicitudes, Errores, Accesos,
    Auditoría, Equipo delcos y Plantilla (roles y catálogos que reciben las empresas nuevas). Para ayudar a una empresa, «Entrar» desde
    Clientes (la app normal de esa empresa, con la franja «Estás viendo…») y «Salir» vuelve al panel. plan_uso dice si es la de plataforma. */
-let MODO_PLATAFORMA = false;
+ // v2.440.0: MODO_PLATAFORMA → estado de src/app (plan 6.6), accesible en window
 
 const PANEL_SECCIONES = [['pd-orgs', 'orgs', 'Clientes', 'building-2'], ['pd-solicitudes', 'solicitudes', 'Solicitudes', 'mail'],
   ['pd-errores', 'errores', 'Errores', 'bug'], ['pd-accesos', 'accesos', 'Accesos', 'lock-keyhole'], ['pd-auditoria', 'auditoria', 'Auditoría', 'history'],
@@ -60026,9 +60357,9 @@ let VSEC = 'pedidos';
 
 const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
 
-let PEDPAG = 0;
+ // v2.440.0: PEDPAG → estado de src/app (plan 6.6), accesible en window
 
-let PEDF = {};   // v2.88.0: filtros por campos del pedido (Clasificadores)
+ // v2.440.0: PEDF → estado de src/app (plan 6.6), accesible en window   // v2.88.0: filtros por campos del pedido (Clasificadores)
 
 // Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
 const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedores: 'proveedores' };
@@ -60043,7 +60374,7 @@ const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus un
    arriba durante 14 días y después la empresa queda en solo lectura (la base no deja crear, cambiar ni borrar) hasta que pague. */
 const PAGO_PLANES = ['campo', 'comercial', 'empresa'];
 
-let PAGO_ESTADO = null;   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
+ // v2.440.0: PAGO_ESTADO → estado de src/app (plan 6.6), accesible en window   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
 
 const pagoAlPlan = () => {
   PAGO_IR_PLAN = false;
@@ -60057,7 +60388,7 @@ const pagoAlPlan = () => {
 let PAGO_PROXIMO = null;
 
 // Pedidos: el precio del contrato en vigor de la ficha (editorPedido lo consulta en su sitio)
-let PED_PRECIOS = { cuenta: null, precios: {} };
+ // v2.440.0: PED_PRECIOS → estado de src/app (plan 6.6), accesible en window
 
 /* v2.230.0 · KPIs de Pedidos y Analítica (Eric eligió la A de https://claude.ai/artifact/PTBZBvZ3yZrQxpxXCNKyrs).
    - Pedidos: #operativa deja de ser el cartel con los avisos desplegables y pasa a tres tarjetas vivas (pagos por validar, paquetes por
@@ -60169,15 +60500,15 @@ async function refrescarProductos() {
 
 
 
-let SERVICIOS = [];
+ // v2.440.0: SERVICIOS → estado de src/app (plan 6.6), accesible en window
 
-let PSEC = 'productos';
+ // v2.440.0: PSEC → estado de src/app (plan 6.6), accesible en window
 
-let PRODF = {};   // v2.88.0: filtros por campos del producto (Clasificadores)
+ // v2.440.0: PRODF → estado de src/app (plan 6.6), accesible en window   // v2.88.0: filtros por campos del producto (Clasificadores)
 
 
 
-let ESTADO_PROD = {};
+ // v2.440.0: ESTADO_PROD → estado de src/app (plan 6.6), accesible en window
 
 const vendible = p => (p.estado || 'Activo') === 'Activo';
 
@@ -60197,7 +60528,7 @@ const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
    - Producto: casilla «Se promociona en las visitas».
    - Registrar visita: «Productos presentados» (los que se promocionan); el historial de la ficha dice qué se presentó.
    - Ciclo de visitas → «Por producto»: por cada producto, cuántos de A, B y C lo han oído este ciclo y a quiénes les falta (con «+ Cita»). */
-let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
+ // v2.440.0: PROMO_PRODS → estado de src/app (plan 6.6), accesible en window   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
 
 
 async function cargarProductosBase() {
@@ -60255,15 +60586,15 @@ const rutaActiva = () => { try { return JSON.parse(localStorage.getItem(RKEY()) 
 
 const RPKEY = () => 'dlc-ruta-pausa-' + (PERFIL ? PERFIL.id : '');
 
-let ULTIMO_PLAN = null;
+ // v2.440.0: ULTIMO_PLAN → estado de src/app (plan 6.6), accesible en window
 
-let SEM_BORRADOR = null;   // propuesta del planificador aún sin guardar
+ // v2.440.0: SEM_BORRADOR → estado de src/app (plan 6.6), accesible en window   // propuesta del planificador aún sin guardar
 
-let RPROP = null;   // propuestas del día (v2.145.0): ya no se pintan; rpPlanDe (Configuración) aún lo nombra
+ // v2.440.0: RPROP → estado de src/app (plan 6.6), accesible en window   // propuestas del día (v2.145.0): ya no se pintan; rpPlanDe (Configuración) aún lo nombra
 
 const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minutos (legado 103 la lee)
 
-let RN = null;          // la ruta que se está creando o editando
+ // v2.440.0: RN → estado de src/app (plan 6.6), accesible en window          // la ruta que se está creando o editando
 
 function rnAbrir(item, paso) { return window.delcos.screens.routes.openRoute(item || null, paso || 1); }
 function pintarRutaEnCurso() { return window.delcos.screens.routes.paintDayInProgress(); }
@@ -60324,7 +60655,7 @@ const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.val
      actividad_fotos al registrar la visita. Sin conexión la visita se guarda igual y las fotos se añaden después desde su historial
      («📷 Fotos»), donde también se ven y se borran. */
 
-let VISITA_ACTUAL = null;   // { id, modo, fotos } de la ventana «Registrar visita» abierta
+ // v2.440.0: VISITA_ACTUAL → estado de src/app (plan 6.6), accesible en window   // { id, modo, fotos } de la ventana «Registrar visita» abierta
 
 /* v2.192.0 · Muestras con control legal (primera tanda del estudio por sectores, SQL 119; RD 1416/1994, art. 16).
    - Producto: «Muestra con control legal» con fecha de autorización (se pueden dar los 2 años siguientes) y máximo por profesional y año.
@@ -60423,7 +60754,7 @@ const RE_NEUTRAS = new RegExp('"(' + Object.keys(CLAVES_NEUTRAS).join('|') + ')"
 
 const db = window.supabase.createClient(CFG.url, CFG.anon, window.delcos.legacyA.databaseOptions());
 
-let PERFIL = null, TAB = 'inicio';
+ // v2.440.0: PERFIL, TAB → estado de src/app (plan 6.6), accesible en window
 
 TERMINOS = window.delcos.legacyA.storedObject(TERMKEY);
 ROLES_DEF = window.delcos.legacyA.storedList(ROLKEY);
@@ -60462,10 +60793,10 @@ window.delcos.legacyA.listenToCardActions();
 function pintarConexionBase() { window.delcos.legacyA.paintConnection(); }
 window.delcos.legacyA.watchConnection();
 
-let AG_MODO = 'dia', AG_FECHA = null;
+ // v2.440.0: AG_MODO, AG_FECHA → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyA.listenToAppointmentClicks();
 
-let RUTAS = [], PLAN = null;
+ // v2.440.0: RUTAS, PLAN → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyA.listenToRouteButtons();
 
 /* distancia aproximada en km entre dos puntos */
@@ -60479,7 +60810,7 @@ window.delcos.legacyA.listenToAddToAgenda();
    cargarAdminBase se queda: legado 080 la envuelve como cargarAdmin.
    ============================================================ */
 
-let CFG_SEC = 'prefs', ADM_SEC = 'usuarios', USUARIOS = [], CATS = [];
+ // v2.440.0: CFG_SEC, ADM_SEC, USUARIOS, CATS → estado de src/app (plan 6.6), accesible en window
 const AREAS = window.delcos.content.areas();
 
 window.delcos.legacyA.listenToSectionButtons();
@@ -60501,7 +60832,7 @@ window.delcos.legacyA.startPasswordFlows();
    v2.424.0: la barra inferior, «Ver mapa» y el aviso de versión nueva están en src/app/core/legacy-a/shell-extras.ts.
    ============================================================ */
 
-let MODO_MAPA = false;
+ // v2.440.0: MODO_MAPA → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyA.listenToBottomBarAndMap();
 window.delcos.legacyA.watchNewVersion();
 // @ts-check
@@ -60528,14 +60859,14 @@ window.delcos.legacyA.listenToDirectoryButtons();
    v2.424.0: fuera SIN_ATRIB (nadie la usaba).
    ============================================================ */
 
-let PRODUCTOS = [], PEDIDOS = [];
+ // v2.440.0: PRODUCTOS, PEDIDOS → estado de src/app (plan 6.6), accesible en window
 // @ts-check
 /* ============================================================
    DLC OS 2.0 · Entrega 12 · Bloque A: rutas, plan y agenda
    v2.424.0: los enlaces [data-nav] al navegador están en src/app/screens/routes/route-listeners.ts.
    ============================================================ */
 
-let RSEC = 'mis', PROPUESTAS = null;
+ // v2.440.0: RSEC, PROPUESTAS → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyA.listenToNavigationLinks();
 // @ts-check
 /* ============================================================
@@ -60566,7 +60897,7 @@ const FROM_ORIG = db.from.bind(db);
 const RC = new Map(), RC_VUELO = new Map();
 window.delcos.legacyA.installRequestCache();
 
-let DUP_RES = null;
+ // v2.440.0: DUP_RES → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyA.listenToOutsideClicks();
 window.delcos.legacyA.watchListsAndHelp();
 
@@ -60757,7 +61088,7 @@ window.delcos.legacyB.listenToIndicatorLinks();
 
 Object.assign(RPC_TTL, { stock_resumen: 30, compras_lista: 30, proveedores_lista: 60, almacenes_lista: 60, alertas_stock: 60 });
 
-let PEDSEC = 'ventas', PROVEEDORES = [], ALMACENES = [];
+ // v2.440.0: PEDSEC, PROVEEDORES, ALMACENES → estado de src/app (plan 6.6), accesible en window
 
 /* ---------------- nombre del módulo en el menú y ayudas ---------------- */
 
@@ -60845,7 +61176,7 @@ window.delcos.legacyB.listenToOrderListLinks();
 
 /* ---------------- paginación también en facturas y llamadas ---------------- */
 
-let FACPAG = 0, LLPAG = 0;
+ // v2.440.0: FACPAG, LLPAG → estado de src/app (plan 6.6), accesible en window
 
 /* ---------------- email con los datos de pago: envío directo si está configurado ---------------- */
 
@@ -60874,7 +61205,7 @@ Object.assign(RPC_TTL, { informe_cuenta: 60, mis_notificaciones: 20, asignacione
 
 /* ---------------- selectores propios: fecha, hora y número ---------------- */
 
-let SELPOP = null, LOGO_CIRC = false;
+ // v2.440.0: SELPOP, LOGO_CIRC → estado de src/app (plan 6.6), accesible en window
 
 // (v2.183.0: aquí iba la primera versión de abrirCalendario; se redefine entera más abajo)
 
@@ -60903,7 +61234,7 @@ window.delcos.legacyB.keepPortrait();
 
 /* ---------------- navegación: cada cambio de módulo descarta lo pendiente ---------------- */
 
-let NAV_CTRL = new AbortController(), NAV_GEN = 0;
+ // v2.440.0: NAV_CTRL, NAV_GEN → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyB.keepLatestAnswers();
 window.delcos.legacyB.hideForeignViews();
 
@@ -60914,7 +61245,7 @@ window.delcos.legacyB.preparePickerLayer();
 
 /* ---------------- rendimiento: los campos se mejoran por lotes ---------------- */
 
-let MEJ_PEND = new Set(), MEJ_RAF = 0;
+ // v2.440.0: MEJ_PEND, MEJ_RAF → estado de src/app (plan 6.6), accesible en window
 
 /* ---------------- barra de herramientas ordenada en el móvil ---------------- */
 
@@ -61009,7 +61340,7 @@ Object.assign(RPC_TTL, { mis_alertas_descartadas: 30 });
 /* ---------------- carga en bloque ---------------- */
 
 // Módulos: al entrar, la pantalla se muestra entera cuando han llegado todos sus datos (el menú se ve siempre)
-let PEND = 0;
+ // v2.440.0: PEND → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyB.countPendingReads();
 
 /* ---------------- alertas: ocultar y recuperar ---------------- */
@@ -61108,7 +61439,7 @@ window.delcos.legacyB.pollBell();
 
 /* ---------------- idiomas ---------------- */
 
-let MAPA_I18N = null;   // (IDIOMA está en nucleo/idioma.js)
+ // v2.440.0: MAPA_I18N → estado de src/app (plan 6.6), accesible en window   // (IDIOMA está en nucleo/idioma.js)
 window.delcos.legacyB.watchTranslations();
 // Selector de idioma en Mi perfil
 // @ts-check
@@ -61203,7 +61534,7 @@ window.delcos.legacyC.start053();
 // legado 054 · v2.53.0 «Filtros y columnas» y páginas de Perfil, Empresa y Plan: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start054();
-let PAG_TAB = {};
+ // v2.440.0: PAG_TAB → estado de src/app (plan 6.6), accesible en window
 const MOD_PLAN = window.delcos.legacyC.planModules();
 // @ts-check
 // legado 055 · v2.54.0 panel lateral, sin parpadeo y IVA con selector: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
@@ -61222,7 +61553,7 @@ window.delcos.legacyC.start057();
 // @ts-check
 // legado 058 · v2.57.0 criterio único de pantallas y ventanas: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
-const PILA_VENT = []; let APILANDO = false;
+const PILA_VENT = [];  // v2.440.0: APILANDO → estado de src/app (plan 6.6), accesible en window
 const RASTRO = [];   // últimas acciones de la persona (para reproducir el problema)
 window.delcos.legacyC.start058();
 // @ts-check
@@ -61284,7 +61615,7 @@ function montarMenuLateral() { return window.delcos.legacyC.mountSideMenu(); }
 // legado 076 · v2.166.0 baja, vuelta de Stripe, altas y Panel delcos: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
-let TD_ULTIMO = null, TD_PRESET = null;
+ // v2.440.0: TD_ULTIMO, TD_PRESET → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyC.start076();
 async function pintarPaginaPlan(...a) { return window.delcos.legacyC.paintPlanPage(a); }
 // @ts-check
@@ -61296,8 +61627,8 @@ function explicarAviso(inf) { return window.delcos.legacyC.explainNotice(inf); }
 // legado 078 · v2.184.0 la app se pone al día sola y Agenda sin recargas: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
 const PANTALLA_TACTIL = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
-let DLG_EPOCA = 0;
-let DISTRIBUIDORES = null;   // v2.417.0: el bloque «Lo sirve» lo pinta y lo guarda el editor (src/app/screens/orders/editor/distributor.ts)
+ // v2.440.0: DLG_EPOCA → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: DISTRIBUIDORES → estado de src/app (plan 6.6), accesible en window   // v2.417.0: el bloque «Lo sirve» lo pinta y lo guarda el editor (src/app/screens/orders/editor/distributor.ts)
 window.delcos.legacyC.start078();
 // @ts-check
 // legado 079 · v2.195.0 Eventos, Ciclo de visitas e Intervenciones: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
@@ -61328,7 +61659,7 @@ const ICU = {
 };
 window.delcos.layers.installAgendaListeners();
 window.delcos.layers.installFloatingButton();
-let KV_INI = null, KV_GRAF = null;
+ // v2.440.0: KV_INI, KV_GRAF → estado de src/app (plan 6.6), accesible en window
 // @ts-check
 // «Equipo», el orden de las tablas y el que viaja con la consulta: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installTeamToggle();
@@ -61341,8 +61672,8 @@ var AN_REP = '';   // v2.329.0: Analítica → Resumen, «Reporte»
 // Logotipo, lecturas lentas del iPhone, rutas que se rellenan y nombres del menú: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installMenuDetails();
 window.delcos.layers.installSlowReadRetry();
-let RM_MAPA = null, RM_ANIM = null;
-let RN_LISTA = null, RN_MAPA_P = null;    // tarjetas de Mis rutas: [{r, ms}]
+ // v2.440.0: RM_MAPA, RM_ANIM → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: RN_LISTA, RN_MAPA_P → estado de src/app (plan 6.6), accesible en window    // tarjetas de Mis rutas: [{r, ms}]
 function aplicarEtiqueta(...a) { return window.delcos.layers.applyLabel(a); }
 window.delcos.layers.installMenuNames();
 window.delcos.layers.installSettingsSearchWords();
@@ -61367,7 +61698,7 @@ window.delcos.components.listBar.startBlocks();
 // Las fichas con su aspecto de ficha: en src/app/core/layers/dialogs.ts (v2.424.0).
 window.delcos.layers.installSheetLook();
 // @ts-check
-let AG_MET = null, AG_SUG = null, AG_PEND = null;
+ // v2.440.0: AG_MET, AG_SUG, AG_PEND → estado de src/app (plan 6.6), accesible en window
 // @ts-check
 // Respuestas leídas de antemano y volver de «Cerca de mí»: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installPreloadedAnswers();
@@ -61383,7 +61714,7 @@ window.delcos.layers.installFrozenTabs();
 window.delcos.layers.installCustomerDoctorFilter();
 // @ts-check
 // «Tu día» con tiempos reales: en src/app/core/layers/agenda-glue.ts (v2.424.0).
-let TD_REAL = null, TD_CALC = false;   // { k, mapa: Map('a>b' → minutos), t } · TD_CALC: calculando la clave (sin volver a entrar)
+ // v2.440.0: TD_REAL, TD_CALC → estado de src/app (plan 6.6), accesible en window   // { k, mapa: Map('a>b' → minutos), t } · TD_CALC: calculando la clave (sin volver a entrar)
 function estimarDia(citas, fecha, ...x) { return window.delcos.layers.estimateDay(citas, fecha, x); }
 // @ts-check
 // El aviso de conexión con lo que no se ha podido enviar: en src/app/core/layers/device-glue.ts (v2.424.0).
@@ -61397,7 +61728,7 @@ window.delcos.layers.installScanner();
 window.delcos.layers.installRememberedSortColumns();
 window.delcos.layers.installRememberedSorts();
 // @ts-check
-let PRES_MAT = null, PRES_T = 0;           // [{id, producto_id, nombre, tipo, orden}] · cuándo se leyó
+ // v2.440.0: PRES_MAT, PRES_T → estado de src/app (plan 6.6), accesible en window           // [{id, producto_id, nombre, tipo, orden}] · cuándo se leyó
 // @ts-check
 // Cabecera de Inicio, «Usuarios» y el «+» redondo: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installStartDetails();
@@ -61418,7 +61749,7 @@ async function alternarUrgente(id, ...x) { return window.delcos.layers.toggleUrg
 window.delcos.layers.installPasswordEyes();
 // @ts-check
 // Fuera al momento quien ya no tiene acceso, y avisos en vivo: en src/app/core/layers/session-glue.ts (v2.424.0).
-let ACCESO_MIRADO = 0, ACCESO_FUERA = false;
+ // v2.440.0: ACCESO_MIRADO, ACCESO_FUERA → estado de src/app (plan 6.6), accesible en window
 window.delcos.layers.installAccessChecks();
 // @ts-check
 // «Pendiente de pago» en el portal del centro: en src/app/core/layers/session-glue.ts (v2.424.0).
@@ -61428,7 +61759,7 @@ window.delcos.layers.installCentrePaymentState();
 window.delcos.layers.installMaterialForCentres();
 // @ts-check
 // «‹ Volver» siempre al punto de partida: en src/app/core/layers/dialogs.ts (v2.424.0).
-let VISTA = null, VUELTA_REABRIENDO = false, VUELTA_CLIC = null, VUELTA_PONER = false;
+ // v2.440.0: VISTA, VUELTA_REABRIENDO, VUELTA_CLIC, VUELTA_PONER → estado de src/app (plan 6.6), accesible en window
 window.delcos.layers.installBack();
 // @ts-check
 // Lo de debajo se pone al día solo: en src/app/core/layers/rpc-hooks.ts (v2.424.0).
@@ -61443,7 +61774,7 @@ function buscar(reiniciar) { return window.delcos.screens.accounts.searchAccount
 window.delcos.layers.installExpiredLink();
 // @ts-check
 // Guardar con respuesta inmediata: en src/app/core/layers/save-feedback.ts (v2.424.0).
-let RED_VUELO = 0, RED_ULT = 0;
+ // v2.440.0: RED_VUELO, RED_ULT → estado de src/app (plan 6.6), accesible en window
 window.delcos.layers.installSaveFeedback();
 // @ts-check
 const ES_ANDROID = /Android/i.test(navigator.userAgent);
@@ -61482,7 +61813,7 @@ function pintarBnav(...a) { return window.delcos.layers.paintBottomBar(a); }
 window.delcos.layers.installListIndicators();
 // @ts-check
 // Plantillas del PDF y el «+» al cambiar de tamaño: en src/app/core/layers (v2.424.0).
-let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
+ // v2.440.0: PLANT_ELEGIDA, PDF_ELEGIDO, PDF_EDITANDO → estado de src/app (plan 6.6), accesible en window
 const RPC_V2342 = db.rpc;
 window.delcos.layers.installPdfTemplates();
 window.delcos.layers.installDesktopAddButton();

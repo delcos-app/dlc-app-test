@@ -3,6 +3,8 @@ import * as legacyFreeCoreSettings from '../core/settings';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
 import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
+import { sessionStore } from '../core/session-store';
+import { settingsStore } from '../screens/settings/store';
 /**
  * Bridge of Configuración part 1 to the legacy code (kept apart from bridge.ts, which is at its size limit): the user profile and
  * its preferences, the classifier catalog, the undo helpers of the audit, the custom field definitions and the test environment.
@@ -13,16 +15,16 @@ export interface PeriodRange { desde: string | null; hasta: string | null }
 interface EdgeFunctions { invoke: (name: string, options: { body: object }) => Promise<{ data: unknown; error: { context?: { json?: () => Promise<unknown> } } | null }> }
 
 export const settingsLegacy = {
-  user: (): CurrentUser => PERFIL as CurrentUser,
-  setPreferences: (preferences: Record<string, unknown>): void => { (PERFIL as CurrentUser).preferencias = preferences; },
-  place: (key: string): Place | null => ((PERFIL as CurrentUser).preferencias?.[key] as Place | null | undefined) ?? null,
+  user: (): CurrentUser => sessionStore.profile as CurrentUser,
+  setPreferences: (preferences: Record<string, unknown>): void => { (sessionStore.profile as CurrentUser).preferencias = preferences; },
+  place: (key: string): Place | null => ((sessionStore.profile as CurrentUser).preferencias?.[key] as Place | null | undefined) ?? null,
   changeNavigator: (name: string): void => { void cambiarNavegador(name); },
   revisitNotice: (): { on: boolean; dias: number } => avisoRevisita(),
   /** The legacy name answers whether it was saved (its declaration says void). */
   saveRevisitNotice: (value: { on: boolean; dias: number }): Promise<unknown> => guardarAvisoRevisita(value) as Promise<unknown>,
   moduleIcon: (module: string): string | undefined => ICO_MOD[module],
-  classifiers: (): Classifier[] => CATS,
-  setClassifiers: (list: Classifier[]): void => { CATS = list; },
+  classifiers: (): Classifier[] => settingsStore.catalogs,
+  setClassifiers: (list: Classifier[]): void => { settingsStore.catalogs = list; },
   openClassifier: (id: string): void => { legacyFreeScreensSettingsMore.openClassifier(id); },
   reloadCatalogs: (): void => { void legacyFreeCoreSettings.loadCatalogs(); },
   undoable: (entry: object): boolean => deshacible(entry),

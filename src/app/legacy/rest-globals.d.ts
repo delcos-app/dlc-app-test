@@ -14,6 +14,6 @@ interface Leaflet {
   circleMarker(point: [number, number], options: Record<string, unknown>): LeafletLayer;
 }
 declare function pagoCargarEstado(): Promise<unknown>;
-declare let APP_VISIBLE: boolean;
+
 declare const JKEY: () => string;
 declare function colEstado(state: string): string;

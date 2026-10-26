@@ -8,4 +8,4 @@ declare function pintarMaterial(): unknown;
 declare function pintarImportar(): unknown;
 declare function pintarImportaciones(): unknown;
 declare function pintarCfgPortal(): unknown;
-declare let RPROP: unknown;
+

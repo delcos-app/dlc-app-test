@@ -4,7 +4,7 @@
 
 function inicioPosible(it, llegada, dura) { return window.delcos.leftovers.earliestStart(it, llegada, dura); }
 
-let ALERTAS_OCULTAS = null;
+ // v2.440.0: ALERTAS_OCULTAS → estado de src/app (plan 6.6), accesible en window
 
 const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['Guten Morgen', 'Guten Tag', 'Guten Abend'], fr: ['Bonjour', 'Bon après-midi', 'Bonsoir'], it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera'] };
 

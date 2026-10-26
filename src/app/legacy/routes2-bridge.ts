@@ -10,26 +10,29 @@ import * as legacyFreeScreensRoutes from '../screens/routes';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
 import * as legacyFreeComponents from '../components';
+import { sessionStore } from '../core/session-store';
+import { routesStore } from '../screens/routes/store';
+import { agendaStore } from '../screens/agenda/store';
 
 interface LastPlan { conXY: PlanMember[]; rutaId: string; opts: PlanOptions }
 interface Profile { id: string; preferencias?: Record<string, unknown> | null }
 
-const profile = (): Profile | null => PERFIL as Profile | null;
+const profile = (): Profile | null => sessionStore.profile as Profile | null;
 
 export const routes2Legacy = {
   // Plan and route state
-  plan: (): DayPlan | null => PLAN as DayPlan | null,
-  setPlan: (plan: unknown): void => { PLAN = plan; },
-  lastPlan: (): LastPlan | null => ULTIMO_PLAN as LastPlan | null,
-  setLastPlan: (value: unknown): void => { ULTIMO_PLAN = value; },
+  plan: (): DayPlan | null => routesStore.plan as DayPlan | null,
+  setPlan: (plan: unknown): void => { routesStore.plan = plan; },
+  lastPlan: (): LastPlan | null => routesStore.lastPlan as LastPlan | null,
+  setLastPlan: (value: unknown): void => { routesStore.lastPlan = value; },
   paintPlan: (): void => { pintarPlan(); },
-  savedRoutes: (): SavedRoute[] => (Array.isArray(RUTAS) ? RUTAS : []),
-  setSection: (section: string): void => { RSEC = section; },
-  proposals: (): Record<string, unknown> | null => PROPUESTAS,
-  setProposals: (data: unknown): void => { PROPUESTAS = data as Record<string, unknown>; },
-  weekDraft: (): WeekSplit | null => SEM_BORRADOR as unknown as WeekSplit | null,
-  setWeekDraft: (draft: unknown): void => { SEM_BORRADOR = draft as WeekDraft | null; },
-  draft: (): RouteDraft | null => RN,
+  savedRoutes: (): SavedRoute[] => (Array.isArray(routesStore.routes) ? routesStore.routes : []),
+  setSection: (section: string): void => { routesStore.section = section; },
+  proposals: (): Record<string, unknown> | null => routesStore.proposals,
+  setProposals: (data: unknown): void => { routesStore.proposals = data as Record<string, unknown>; },
+  weekDraft: (): WeekSplit | null => routesStore.weekDraft as unknown as WeekSplit | null,
+  setWeekDraft: (draft: unknown): void => { routesStore.weekDraft = draft as WeekDraft | null; },
+  draft: (): RouteDraft | null => routesStore.wizard,
   reloadRoutes: (): void => { void legacyFreeScreensRoutes.loadRoutesPage(); },
   reloadAgenda: (): void => { void cargarAgenda(); },
   /** The legacy rutasMapa: today's map, moved under the route cards. */
@@ -37,9 +40,9 @@ export const routes2Legacy = {
   // Preferences and the agenda shown
   ownPreferences: (): Record<string, unknown> | null => profile()?.preferencias ?? null,
   setOwnPreferences: (preferences: Record<string, unknown>): void => { const own = profile(); if (own) own.preferencias = preferences; },
-  viewedPreferences: (): Record<string, unknown> | null => (AG_VISTA as { preferencias?: Record<string, unknown> | null } | null)?.preferencias ?? null,
+  viewedPreferences: (): Record<string, unknown> | null => (agendaStore.viewedUser as { preferencias?: Record<string, unknown> | null } | null)?.preferencias ?? null,
   agendaOwner: (): string => legacyFreeCoreLeftovers.agendaOwnerId(),
-  selectedDate: (): string | null => AG_FECHA,
+  selectedDate: (): string | null => agendaStore.selectedDate,
   // Places, hours and times
   start: (): PlanStart => salidaUsuario(),
   pointOf: (item: object): [number, number] | null => xyCita(item),
@@ -70,19 +73,19 @@ export const routes2Legacy = {
   workingDay: (): { fecha: string; inicio: number } | null => jornadaActiva(),
   endWorkingDay: (): Promise<void> => terminarJornada(),
   // Stops of «Tu día» and their real times
-  stops: (): RouteAppointment[] => TD_PARADAS,
-  setStops: (list: readonly object[]): void => { TD_PARADAS = list as RouteAppointment[]; },
-  realTraffic: (): RealTraffic | null => TD_REAL,
-  setRealTraffic: (value: RealTraffic | null): void => { TD_REAL = value; },
+  stops: (): RouteAppointment[] => agendaStore.dayStops,
+  setStops: (list: readonly object[]): void => { agendaStore.dayStops = list as RouteAppointment[]; },
+  realTraffic: (): RealTraffic | null => agendaStore.realTimes,
+  setRealTraffic: (value: RealTraffic | null): void => { agendaStore.realTimes = value; },
   realTrafficValid: (): boolean => tdRealVigente(),
-  setCalculating: (on: boolean): void => { TD_CALC = on; },
+  setCalculating: (on: boolean): void => { agendaStore.trafficCalculated = on; },
   legKey: (from: unknown, to: unknown): string => tdClaveXY(from, to),
   routeMemory: (): Map<string, { t: number; r: StreetRoute }> => RM_MEM,
   // Maps
   mapLibre: (): MapLibrary | null => (window as unknown as { maplibregl?: MapLibrary }).maplibregl ?? null,
-  dayMap: (): RouteMap | null => RM_MAPA,
-  setDayMap: (map: RouteMap | null): void => { RM_MAPA = map; },
-  animation: (): number | null => RM_ANIM,
-  setAnimation: (frame: number | null): void => { RM_ANIM = frame; },
+  dayMap: (): RouteMap | null => routesStore.todayMap,
+  setDayMap: (map: RouteMap | null): void => { routesStore.todayMap = map; },
+  animation: (): number | null => routesStore.todayMapAnimation,
+  setAnimation: (frame: number | null): void => { routesStore.todayMapAnimation = frame; },
   invokeRoutes: (body: unknown): Promise<{ data: StreetRoute | null; error: RoutesFunctionError | null }> => db.functions.invoke<StreetRoute>('rutas', { body }),
 };

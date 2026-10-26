@@ -5,7 +5,7 @@
 /* v2.70.0 · Estados comerciales como catálogo: el código conoce su papel (inicial, avance, interes, positivo, negativo), no su nombre */
 const ESTKEY = window.delcos.core.states.STATES_KEY;
 
-let ESTADOS_DEF = [];
+ // v2.440.0: ESTADOS_DEF → estado de src/app (plan 6.6), accesible en window
 
 function estados() { return window.delcos.core.states.stateNames(); }
 function estadoPapel(p) { return window.delcos.core.states.stateOfRole(p); }

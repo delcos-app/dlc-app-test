@@ -7,6 +7,7 @@ import { t } from '../../i18n';
 import { byId, signedIn, whenSignedIn } from './dom';
 import * as legacyFreeCoreServices from '../services';
 import * as legacyFreeCoreLegacyC from './';
+import { sessionStore } from '../session-store';
 
 const CHECK_EVERY_MS = 1500, CHECKS = 90, VERSION_EVERY_MS = 2000, WELCOME_EVERY_MS = 1000, WELCOME_CHECKS = 60, WELCOME_DELAY_MS = 900;
 const SIGNUP_NOTICE_DELAY_MS = 400, BACK_TO_PLAN_FOR_MS = 30000, ANNUAL_MONTHS = 10, MIN_USERS = 3;
@@ -15,7 +16,7 @@ interface CurrentPlan { plan?: string; pago?: string; usuarios?: number; stripe_
 interface NextReceipt { fecha?: string; total?: number | null }
 interface Receipt { primero: number; despues: number; puesta: number; anual: boolean }
 
-const currentPlan = (): CurrentPlan => (PLAN_ACTUAL as CurrentPlan | null | undefined) ?? {};
+const currentPlan = (): CurrentPlan => (sessionStore.plan as CurrentPlan | null | undefined) ?? {};
 
 /** v2.175.0: with annual payment, the fee card shows what is charged in the year. */
 function annualFee(cards: NodeListOf<Element>, plan: CurrentPlan): void {
@@ -102,7 +103,7 @@ export function cancellationOnStart(): void {
   if (new URLSearchParams(location.search).get('pago') !== 'baja') return;
   let tries = 0;
   const timer = setInterval(() => {
-    if (typeof PERFIL !== 'undefined' && PERFIL && !document.body.classList.contains('sin-sesion')) { clearInterval(timer); pagoEsperarBaja(); } else if (++tries > CHECKS) clearInterval(timer);
+    if (sessionStore.profile && !document.body.classList.contains('sin-sesion')) { clearInterval(timer); pagoEsperarBaja(); } else if (++tries > CHECKS) clearInterval(timer);
   }, CHECK_EVERY_MS);
 }
 
@@ -116,7 +117,7 @@ export function signUpNotices(): void {
     history.replaceState(null, '', location.pathname + location.hash);
     setTimeout(() => {
       const message = byId('lmsg');
-      if (message && !(typeof PERFIL !== 'undefined' && PERFIL)) { message.style.color = 'var(--ok)'; message.textContent = t('legacyC.plan.signupLogin'); } else toast(t('legacyC.plan.signupToast'));
+      if (message && !(sessionStore.profile)) { message.style.color = 'var(--ok)'; message.textContent = t('legacyC.plan.signupLogin'); } else toast(t('legacyC.plan.signupToast'));
     }, SIGNUP_NOTICE_DELAY_MS);
   }
   if (query.get('bienvenida') === '1') {

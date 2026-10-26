@@ -7,7 +7,7 @@ function verImportes() { return window.delcos.core.permissions.canSeeAmounts(); 
 // Qué permiso abre cada módulo
 const MODULO_AREA = window.delcos.core.permissions.MODULE_AREA;
 
-let PLAN_ACTUAL = { plan: 'medida' };   // v2.117.0: hasta que llega el de la base, el completo
+ // v2.440.0: PLAN_ACTUAL → estado de src/app (plan 6.6), accesible en window   // v2.117.0: hasta que llega el de la base, el completo
 
 function planDe(id) { return window.delcos.core.plans.planOf(id); }
 // v2.165.0: sin Facturación en el plan pero con facturas, se entra en solo consulta (facConsulta)

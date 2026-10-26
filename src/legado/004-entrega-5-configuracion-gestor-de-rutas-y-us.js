@@ -5,7 +5,7 @@
    cargarAdminBase se queda: legado 080 la envuelve como cargarAdmin.
    ============================================================ */
 
-let CFG_SEC = 'prefs', ADM_SEC = 'usuarios', USUARIOS = [], CATS = [];
+ // v2.440.0: CFG_SEC, ADM_SEC, USUARIOS, CATS → estado de src/app (plan 6.6), accesible en window
 const AREAS = window.delcos.content.areas();
 
 window.delcos.legacyA.listenToSectionButtons();

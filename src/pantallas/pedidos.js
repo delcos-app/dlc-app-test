@@ -16,9 +16,9 @@ let VSEC = 'pedidos';
 
 const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
 
-let PEDPAG = 0;
+ // v2.440.0: PEDPAG → estado de src/app (plan 6.6), accesible en window
 
-let PEDF = {};   // v2.88.0: filtros por campos del pedido (Clasificadores)
+ // v2.440.0: PEDF → estado de src/app (plan 6.6), accesible en window   // v2.88.0: filtros por campos del pedido (Clasificadores)
 
 // Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
 const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedores: 'proveedores' };
@@ -33,7 +33,7 @@ const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus un
    arriba durante 14 días y después la empresa queda en solo lectura (la base no deja crear, cambiar ni borrar) hasta que pague. */
 const PAGO_PLANES = ['campo', 'comercial', 'empresa'];
 
-let PAGO_ESTADO = null;   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
+ // v2.440.0: PAGO_ESTADO → estado de src/app (plan 6.6), accesible en window   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
 
 const pagoAlPlan = () => {
   PAGO_IR_PLAN = false;
@@ -47,7 +47,7 @@ const pagoAlPlan = () => {
 let PAGO_PROXIMO = null;
 
 // Pedidos: el precio del contrato en vigor de la ficha (editorPedido lo consulta en su sitio)
-let PED_PRECIOS = { cuenta: null, precios: {} };
+ // v2.440.0: PED_PRECIOS → estado de src/app (plan 6.6), accesible en window
 
 /* v2.230.0 · KPIs de Pedidos y Analítica (Eric eligió la A de https://claude.ai/artifact/PTBZBvZ3yZrQxpxXCNKyrs).
    - Pedidos: #operativa deja de ser el cartel con los avisos desplegables y pasa a tres tarjetas vivas (pagos por validar, paquetes por

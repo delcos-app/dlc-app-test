@@ -7,6 +7,14 @@ import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeCoreSettings from '../core/settings';
 import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import { navigationStore } from '../core/navigation/store';
+import { accountsStore } from '../screens/accounts/store';
+import { sessionStore } from '../core/session-store';
+import { ordersStore } from '../screens/orders/store';
+import { settingsStore } from '../screens/settings/store';
+import { agendaStore } from '../screens/agenda/store';
+import { productsStore } from '../screens/products/store';
+import { homeStore } from '../screens/home/store';
 
 /** db.rpc as the legacy layers wrap it: (name, params, options) → the query builder or a promise. */
 export type RpcFunction = (name: string, params?: Record<string, unknown>, options?: unknown) => unknown;
@@ -20,25 +28,25 @@ interface RawDb {
 export const rawDb = (): RawDb => db as unknown as RawDb;
 
 export const legacyBState = {
-  tab: (): string => TAB,
-  mapMode: (): boolean => MODO_MAPA,
+  tab: (): string => navigationStore.screen,
+  mapMode: (): boolean => accountsStore.mapMode,
   isMobile: (): boolean => ES_MOVIL(),
-  profile: (): unknown => PERFIL,
+  profile: (): unknown => sessionStore.profile,
   inTests: (): boolean => EN_PRUEBAS,
   rpcTtl: (): Readonly<Record<string, unknown>> => RPC_TTL,
-  navigationGeneration: (): number => NAV_GEN,
-  navigationSignal: (): AbortSignal => NAV_CTRL.signal,
-  addPendingRead: (delta: number): void => { PEND = Math.max(0, PEND + delta); },
-  pendingCall: (): string | null => LLAMADA_PEND,
-  forgetPendingCall: (): void => { LLAMADA_PEND = null; },
-  setOrdersPage: (page: number): void => { PEDPAG = page; },
-  setSettingsSection: (section: string): void => { CFG_SEC = section; },
-  settings: (): Record<string, unknown> => AJUSTES,
-  setSetting: (key: string, value: unknown): void => { AJUSTES[key] = value; },
+  navigationGeneration: (): number => navigationStore.generation,
+  navigationSignal: (): AbortSignal => navigationStore.abort.signal,
+  addPendingRead: (delta: number): void => { navigationStore.pendingReads = Math.max(0, navigationStore.pendingReads + delta); },
+  pendingCall: (): string | null => ordersStore.pendingCall,
+  forgetPendingCall: (): void => { ordersStore.pendingCall = null; },
+  setOrdersPage: (page: number): void => { ordersStore.page = page; },
+  setSettingsSection: (section: string): void => { settingsStore.section = section; },
+  settings: (): Record<string, unknown> => settingsStore.settings,
+  setSetting: (key: string, value: unknown): void => { settingsStore.settings[key] = value; },
   paymentMethods: (): readonly { valor: string }[] => CAT.forma_pago ?? [],
-  adminSection: (): string => ADM_SEC,
-  selectedPopover: (): (HTMLElement & { __t?: number }) | null => SELPOP as (HTMLElement & { __t?: number }) | null,
-  i18nMap: (): unknown => MAPA_I18N,
+  adminSection: (): string => settingsStore.adminSection,
+  selectedPopover: (): (HTMLElement & { __t?: number }) | null => navigationStore.pickerPopup as (HTMLElement & { __t?: number }) | null,
+  i18nMap: (): unknown => sessionStore.translationMap,
   setRecovering: (on: boolean): void => { RECUPERANDO = on; },
   recoveryLink: (): boolean => Boolean(RECUPERACION_URL),
   invitationLink: (): boolean => Boolean(INVITACION_URL),
@@ -46,12 +54,12 @@ export const legacyBState = {
   brandLogo: (): string | null => MARCA.logo,
   setBrand: (brand: Record<string, unknown>): void => { MARCA = Object.assign({}, MARCA, brand); },
   brand: (): unknown => MARCA,
-  setPlan: (plan: Record<string, unknown>): void => { PLAN_ACTUAL = plan; },
-  setAgendaWeek: (mode: string, isoDate: string): void => { AG_MODO = mode; AG_FECHA = isoDate; },
-  setAgendaMode: (mode: string): void => { AG_MODO = mode; },
-  askWeekPlan: (): void => { ABRIR_PLAN_SEMANA = true; },
-  setProductsSection: (section: string): void => { PSEC = section; },
-  forgetHiddenAlerts: (): void => { ALERTAS_OCULTAS = null; },
+  setPlan: (plan: Record<string, unknown>): void => { sessionStore.plan = plan; },
+  setAgendaWeek: (mode: string, isoDate: string): void => { agendaStore.mode = mode; agendaStore.selectedDate = isoDate; },
+  setAgendaMode: (mode: string): void => { agendaStore.mode = mode; },
+  askWeekPlan: (): void => { agendaStore.openWeekPlan = true; },
+  setProductsSection: (section: string): void => { productsStore.section = section; },
+  forgetHiddenAlerts: (): void => { homeStore.hiddenAlerts = null; },
   navIcons: (): Readonly<Record<string, string>> => ICO_NAV,
   setModuleIcon: (key: string, svg: string): void => { (ICO_MOD as Record<string, string | undefined>)[key] = svg; },
 };

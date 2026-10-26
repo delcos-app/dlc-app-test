@@ -3,12 +3,10 @@ declare function precioPlan(plan: object): string;
 declare const ESTADO_MOD: Record<string, (() => unknown) | undefined>;
 declare const ES_ANDROID: boolean;
 declare const SALUDOS: Readonly<Record<string, readonly string[]>>;
-declare let VERSION_VISTA: number;
+
 declare const SKEY: string;
 declare const PKEY: string;
-declare let ACCESO_FUERA: boolean;
-declare let ACCESO_MIRADO: number;
-declare let VIVO: unknown;
+
 declare function muestraError(result: object): string;
 declare function subirFotosVisita(activity: string, photos: readonly unknown[]): Promise<boolean>;
 declare function panelNotificaciones(list: readonly unknown[]): void;

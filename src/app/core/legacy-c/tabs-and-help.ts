@@ -6,6 +6,7 @@
 import { t } from '../../i18n';
 import { byId, closestTo, observe } from './dom';
 import * as legacyFreeCoreLayers from '../layers';
+import { navigationStore } from '../navigation/store';
 
 const SUMMARY_CHARS = 320, MAX_ITEMS = 3, FIRST_SENTENCE_CHARS = 200, MANUAL_SEARCH_DELAY_MS = 350, FOCUS_DELAY_MS = 50;
 
@@ -43,7 +44,7 @@ function shortenFirstSentence(popup: HTMLElement): void {
 export function summariseHelp(popup: HTMLElement): void {
   const items = [...popup.querySelectorAll('li')];
   if ((popup.textContent ?? '').length > SUMMARY_CHARS || items.length > MAX_ITEMS) { items.slice(MAX_ITEMS).forEach(item => { item.remove(); }); shortenFirstSentence(popup); }
-  const screen = TAB;
+  const screen = navigationStore.screen;
   popup.insertAdjacentHTML('beforeend', `<a href="#" class="aiman">${t('legacyC.help.moreInManual')}</a>`);
   const link = popup.querySelector<HTMLAnchorElement>('.aiman');
   if (link) link.onclick = (event): void => {

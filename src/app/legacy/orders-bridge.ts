@@ -4,6 +4,11 @@ import * as legacyFreeCoreLegacyC from '../core/legacy-c';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeComponentsEmbeddedWindow from '../components/embedded-window';
 import * as legacyFreeScreensSettings from '../screens/settings';
+import { ordersStore } from '../screens/orders/store';
+import { productsStore } from '../screens/products/store';
+import { billingStore } from '../screens/billing/store';
+import { settingsStore } from '../screens/settings/store';
+import { sessionStore } from '../core/session-store';
 /**
  * Bridge of Pedidos to the legacy code (kept apart from bridge.ts, which is at its size limit). The section, page, field filters
  * and the loaded rows stay in the legacy PEDSEC, PEDPAG, PEDF and PEDIDOS (the list bar, legado 034/082/139 and the tests read
@@ -16,24 +21,24 @@ export interface Distributor { id: string; nombre: string; email?: string | null
 interface FunctionsClient { functions: { invoke(name: string, options: { body: Record<string, unknown> }): Promise<{ data: unknown; error: unknown }> } }
 
 export const ordersLegacy = {
-  section: (): string => PEDSEC,
-  setSection: (section: string): void => { PEDSEC = section; },
+  section: (): string => ordersStore.section,
+  setSection: (section: string): void => { ordersStore.section = section; },
   setLoadingSection: (section: string | null): void => { PEDSEC_CARGA = section; },
   sectionTitle: (section: string): readonly [string, string] => TITULO_PEDSEC[section] ?? TITULO_PEDSEC.ventas ?? ['', ''],
   markSection: (): void => { legacyFreeScreensSettingsShell.markOrderSection(); },
   /** The open part of Configuración (Distribuidores lives there). */
   settingsSection: (): string => CFG_KEY,
-  page: (): number => PEDPAG,
-  setPage: (page: number): void => { PEDPAG = page; },
-  fieldFilters: (): Record<string, unknown> => PEDF,
-  setRows: (rows: unknown[]): void => { PEDIDOS = rows; },
+  page: (): number => ordersStore.page,
+  setPage: (page: number): void => { ordersStore.page = page; },
+  fieldFilters: (): Record<string, unknown> => ordersStore.filters,
+  setRows: (rows: unknown[]): void => { ordersStore.orders = rows; },
   /** Through the global name (legado 057 keeps the screen cached around it). */
   reload: (): void => { void cargarVentas(); },
   paintOperations: (): void => { void legacyFreeCoreLegacyC.paintOrderAlerts(); },
   paintUnattributed: (): void => { void pintarSinAtribuir(); },
   canAttribute: (): boolean => Boolean(legacyFreeCoreServices.permissions.canAttribute()),
   newSale: (): void => { void (nuevaVenta as (preset?: object) => unknown)(); },
-  services: (): readonly PickedService[] => SERVICIOS,
+  services: (): readonly PickedService[] => productsStore.services,
   paymentState: (order: object): string => cobroDe(order),
   channelLabel: (order: object, total: number | null | undefined): string => etiquetaCanal(order, total),
   paymentMethods: (): readonly { valor: string }[] => CAT.forma_pago ?? [],
@@ -61,13 +66,13 @@ export const orderSheetLegacy = {
 export const orderMailLegacy = {
   template: (kind: string, field: string, values: EmailVariables): string => plantillaCorreo(kind, field, varsCorreo(values)),
   chooseTemplate: (kind: string): Promise<boolean> => elegirPlantillaCorreo(kind),
-  forgetChosenTemplate: (kind: string): void => { PLANT_ELEGIDA[kind] = null; },
-  companyIban: (): string => String((AJUSTES.empresa as { iban?: string } | undefined)?.iban ?? '').trim(),
+  forgetChosenTemplate: (kind: string): void => { billingStore.chosenTemplates[kind] = null; },
+  companyIban: (): string => String((settingsStore.settings.empresa as { iban?: string } | undefined)?.iban ?? '').trim(),
   /** A server function (the answer is read by the caller). */
   invoke: (name: string, body: Record<string, unknown>): Promise<{ data: unknown; error: unknown }> =>
     (db as unknown as FunctionsClient).functions.invoke(name, { body }),
   alertPreferences: (): Record<string, boolean> =>
-    ((PERFIL as { preferencias?: { avisos_pedidos?: Record<string, boolean> } }).preferencias?.avisos_pedidos) ?? {},
+    ((sessionStore.profile as { preferencias?: { avisos_pedidos?: Record<string, boolean> } }).preferencias?.avisos_pedidos) ?? {},
   saveAlertPreferences: (alerts: Record<string, boolean>): Promise<boolean> => guardarPrefsAvisos(alerts),
   roleNames: (): string[] => rolesNombres(),
 };

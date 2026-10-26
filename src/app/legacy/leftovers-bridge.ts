@@ -7,6 +7,13 @@
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeCoreSettings from '../core/settings';
 import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
+import { sessionStore } from '../core/session-store';
+import { navigationStore } from '../core/navigation/store';
+import { agendaStore } from '../screens/agenda/store';
+import { accountsStore } from '../screens/accounts/store';
+import { homeStore } from '../screens/home/store';
+import { ordersStore } from '../screens/orders/store';
+import { billingStore } from '../screens/billing/store';
 export interface IndicatorSetting { readonly id: string; readonly on: boolean; readonly t?: string; readonly filtro?: Record<string, unknown> }
 export interface SavePageDefinition { tab: string; cab: () => Element | null; cuerpo: () => Element | null }
 export interface ViewedAgenda { id: string; nombre: string; rol?: string; preferencias?: Record<string, unknown> }
@@ -23,14 +30,14 @@ interface RawQuery extends Answer<unknown> {
 interface RawDb { from(table: string): RawQuery }
 
 const RANGE_READER = '__rango';
-const profile = (): Profile => PERFIL as Profile;
+const profile = (): Profile => sessionStore.profile as Profile;
 const rawDb = (): RawDb => db as unknown as RawDb;
 
 export const leftoversLegacy = {
   // Session and permissions
-  hasProfile: (): boolean => Boolean(PERFIL),
+  hasProfile: (): boolean => Boolean(sessionStore.profile),
   userId: (): string => profile().id,
-  screen: (): string => TAB,
+  screen: (): string => navigationStore.screen,
   can: (capability: string): boolean => puede(capability),
   seesEverything: (): boolean => VE_TODO(),
   levelOf: (letter: string): number => legacyFreeCoreServices.permissions.levelOrNone(letter),
@@ -40,8 +47,8 @@ export const leftoversLegacy = {
   canManageOrganization: (): boolean => puedeOrganizacion(),
   canReviewDuplicates: (): boolean => puedeDuplicados(),
   // Data access
-  cacheEpoch: (): number => RC_EPOCA,
-  dialogEpoch: (): number => DLG_EPOCA,
+  cacheEpoch: (): number => sessionStore.cacheEpoch,
+  dialogEpoch: (): number => agendaStore.dialogEpoch,
   today: (): string => hoyISO(),
   addDays: (isoDate: string, days: number): string => isoMas(isoDate, days),
   shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
@@ -50,12 +57,12 @@ export const leftoversLegacy = {
   toast: (message: string, isError = false): void => { toast(message, isError); },
   showLoading: (element: HTMLElement | null, text: string): void => { cargando(element, text); },
   // Agenda
-  viewedAgenda: (): ViewedAgenda | null => AG_VISTA,
-  setViewedAgenda: (viewed: ViewedAgenda | null): void => { AG_VISTA = viewed; },
+  viewedAgenda: (): ViewedAgenda | null => agendaStore.viewedUser,
+  setViewedAgenda: (viewed: ViewedAgenda | null): void => { agendaStore.viewedUser = viewed; },
   reloadAgenda: (): void => { void cargarAgenda(); },
-  showWeekFromToday: (): void => { AG_MODO = 'semana'; AG_FECHA = hoyISO(); },
-  dayTasks: (): { f: string; l: unknown[] } | null => TAREAS_DIA,
-  setDayTasks: (tasks: { f: string; l: unknown[] }): void => { TAREAS_DIA = tasks as typeof TAREAS_DIA; },
+  showWeekFromToday: (): void => { agendaStore.mode = 'semana'; agendaStore.selectedDate = hoyISO(); },
+  dayTasks: (): { f: string; l: unknown[] } | null => agendaStore.dayTasks,
+  setDayTasks: (tasks: { f: string; l: unknown[] }): void => { agendaStore.dayTasks = tasks as typeof agendaStore.dayTasks; },
   tasks: (isoDate: string): Answer<unknown[]> => rawDb().from('tareas').select('*').eq('fecha', isoDate)
     .order('orden', { ascending: true, nullsFirst: false }).order('hora', { ascending: true, nullsFirst: false }).order('creado_en') as Answer<unknown[]>,
   planned: (states: readonly string[], from: string, limit: number): Answer<{ cuenta_id: string; fecha: string }[]> =>
@@ -65,18 +72,18 @@ export const leftoversLegacy = {
   periodRange: (element: HTMLElement): PeriodRange => (Reflect.get(element, RANGE_READER) as () => PeriodRange)(),
   editFrequency: (): void => { void editorFrecuencia(); },
   // Cuentas
-  setAccountAccess: (access: Record<string, unknown>): void => { MED_ACCESO = access; },
+  setAccountAccess: (access: Record<string, unknown>): void => { accountsStore.portalAccess = access; },
   revisitNotice: (): { on: boolean; dias: number } => avisoRevisita(),
   people: (): Answer<{ id: string; nombre: string; rol: string; activo?: boolean | null }[]> =>
     rawDb().from('perfiles').select('id,nombre,rol,activo').order('nombre') as Answer<{ id: string; nombre: string; rol: string; activo?: boolean | null }[]>,
-  setSalesTeam: (team: { id: string; nombre: string }[]): void => { COMS = team; },
+  setSalesTeam: (team: { id: string; nombre: string }[]): void => { homeStore.salesTeam = team; },
   salespersonFilter: (): string | null | undefined => F.com,
   // Pedidos, Concursos, Oportunidades
-  contractPrices: (): ContractPrices => PED_PRECIOS,
-  setContractPrices: (prices: ContractPrices): void => { PED_PRECIOS = prices; },
-  setPendingCall: (id: string): void => { LLAMADA_PEND = id; },
+  contractPrices: (): ContractPrices => ordersStore.contractPrices,
+  setContractPrices: (prices: ContractPrices): void => { ordersStore.contractPrices = prices; },
+  setPendingCall: (id: string): void => { ordersStore.pendingCall = id; },
   editOrder: (preset: Record<string, unknown>): Promise<void> => editorPedido(preset),
-  ordersSection: (): string => PEDSEC,
+  ordersSection: (): string => ordersStore.section,
   repaintCalls: (): void => { void pintarLlamadas(); },
   helpButton: (title: string, text: string): string => pmAyu(title, text),
   // Fields, page save and icons
@@ -86,12 +93,12 @@ export const leftoversLegacy = {
   saveTextPattern: (): RegExp => PAG_GUARDA_RE,
   notSaveSelector: (): string => PAG_GUARDA_NO,
   changedBlocks: (): Set<Element> => PAG_SUCIO as Set<Element>,
-  pageKey: (): string => PAG_CLAVE,
-  setPageKey: (key: string): void => { PAG_CLAVE = key; },
+  pageKey: (): string => navigationStore.pageKey,
+  setPageKey: (key: string): void => { navigationStore.pageKey = key; },
   markChanged: (): void => { legacyFreeScreensSettingsShell.markUnsaved(); },
   reloadSettings: (): void => { void cargarConfig(); },
   settingsKey: (): string => CFG_KEY,
-  requestsInFlight: (): number => RED_VUELO,
+  requestsInFlight: (): number => sessionStore.networkInFlight,
   navIcon: (screen: string): string | undefined => ICO_NAV[screen],
   namedIcon: (name: string): string => ICON_NOM[name] ?? '',
   emojiIcon: (emoji: string): string => ICON_EMOJI[emoji] ?? '',
@@ -101,11 +108,11 @@ export const leftoversLegacy = {
   canScan: (): boolean => Boolean((window as unknown as { ESC_FORZAR?: unknown }).ESC_FORZAR)
     || (PANTALLA_TACTIL && typeof (navigator.mediaDevices as MediaDevices | undefined)?.getUserMedia === 'function'),
   // Facturación
-  billingSection: (): string => FSEC,
+  billingSection: (): string => billingStore.section,
   // The legacy value may be null (no last settings section): it is kept as it was
-  setBillingSection: (section: string | null): void => { FSEC = section as unknown as string; },
-  lastBillingSettings: (): string | null => FAC_ULTIMA,
-  setLastBillingSettings: (section: string): void => { FAC_ULTIMA = section; },
+  setBillingSection: (section: string | null): void => { billingStore.section = section as unknown as string; },
+  lastBillingSettings: (): string | null => billingStore.lastSection,
+  setLastBillingSettings: (section: string): void => { billingStore.lastSection = section; },
   billingSettingsSections: (): readonly (readonly [string, string])[] => FAC_CONFIG,
   loadBilling: (): void => { void cargarFacturacion(); },
   pdfDesign: (): void => { disenoPDF(); },

@@ -1,6 +1,6 @@
 // Legacy names the navigation core reads (src/app/core/navigation, core/startup; v2.426.0).
 declare function pendientesDesde(since: number): number;
-declare let ROLES_DEF: readonly unknown[];
+
 declare function mostrarApp(profile: unknown): void;
 declare function mostrarLogin(message?: string): void;
 declare function suplantando(): { nombre: string; access_token: string; refresh_token: string } | null;

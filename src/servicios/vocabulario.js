@@ -18,7 +18,7 @@ const TERM_DEF = window.delcos.core.vocabulary.DEFAULT_TERMS;
 
 const TERMKEY = window.delcos.core.vocabulary.TERMS_KEY;
 
-let TERMINOS = {};
+ // v2.440.0: TERMINOS → estado de src/app (plan 6.6), accesible en window
 
 // Nombre sin tratamiento delante («Dr. Gonzalo Serrano» → Gonzalo, iniciales GS)
 const TRATAMIENTO = window.delcos.core.vocabulary.TITLE;

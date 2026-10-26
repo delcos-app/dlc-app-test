@@ -2,6 +2,17 @@
  * Entry point of the new code (src/app). esbuild bundles it into src/generated/core.js, which runs first in app.js.
  * While screens migrate, the legacy code (src/legado) reaches the new services and screens through `window.delcos`.
  */
+// Plan 6.6: the state objects first, so the legacy names exist on window before any legacy piece runs
+import './screens/agenda/store';
+import './screens/routes/store';
+import './screens/settings/store';
+import './screens/orders/store';
+import './screens/products/store';
+import './screens/billing/store';
+import './screens/accounts/store';
+import './screens/home/store';
+import './core/navigation/store';
+import './core/session-store';
 import * as components from './components';
 import { createRouter, type Router } from './core/router';
 import { navigate } from './core/navigation';

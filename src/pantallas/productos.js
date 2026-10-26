@@ -31,15 +31,15 @@ async function refrescarProductos() {
 
 
 
-let SERVICIOS = [];
+ // v2.440.0: SERVICIOS → estado de src/app (plan 6.6), accesible en window
 
-let PSEC = 'productos';
+ // v2.440.0: PSEC → estado de src/app (plan 6.6), accesible en window
 
-let PRODF = {};   // v2.88.0: filtros por campos del producto (Clasificadores)
+ // v2.440.0: PRODF → estado de src/app (plan 6.6), accesible en window   // v2.88.0: filtros por campos del producto (Clasificadores)
 
 
 
-let ESTADO_PROD = {};
+ // v2.440.0: ESTADO_PROD → estado de src/app (plan 6.6), accesible en window
 
 const vendible = p => (p.estado || 'Activo') === 'Activo';
 
@@ -59,7 +59,7 @@ const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
    - Producto: casilla «Se promociona en las visitas».
    - Registrar visita: «Productos presentados» (los que se promocionan); el historial de la ficha dice qué se presentó.
    - Ciclo de visitas → «Por producto»: por cada producto, cuántos de A, B y C lo han oído este ciclo y a quiénes les falta (con «+ Cita»). */
-let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
+ // v2.440.0: PROMO_PRODS → estado de src/app (plan 6.6), accesible en window   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
 
 
 async function cargarProductosBase() {

@@ -8,15 +8,15 @@ const rutaActiva = () => { try { return JSON.parse(localStorage.getItem(RKEY()) 
 
 const RPKEY = () => 'dlc-ruta-pausa-' + (PERFIL ? PERFIL.id : '');
 
-let ULTIMO_PLAN = null;
+ // v2.440.0: ULTIMO_PLAN → estado de src/app (plan 6.6), accesible en window
 
-let SEM_BORRADOR = null;   // propuesta del planificador aún sin guardar
+ // v2.440.0: SEM_BORRADOR → estado de src/app (plan 6.6), accesible en window   // propuesta del planificador aún sin guardar
 
-let RPROP = null;   // propuestas del día (v2.145.0): ya no se pintan; rpPlanDe (Configuración) aún lo nombra
+ // v2.440.0: RPROP → estado de src/app (plan 6.6), accesible en window   // propuestas del día (v2.145.0): ya no se pintan; rpPlanDe (Configuración) aún lo nombra
 
 const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minutos (legado 103 la lee)
 
-let RN = null;          // la ruta que se está creando o editando
+ // v2.440.0: RN → estado de src/app (plan 6.6), accesible en window          // la ruta que se está creando o editando
 
 function rnAbrir(item, paso) { return window.delcos.screens.routes.openRoute(item || null, paso || 1); }
 function pintarRutaEnCurso() { return window.delcos.screens.routes.paintDayInProgress(); }

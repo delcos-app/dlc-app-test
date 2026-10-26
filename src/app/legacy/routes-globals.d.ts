@@ -22,11 +22,7 @@ interface RouteMap {
 }
 interface MapLibrary { Map: new (options: Record<string, unknown>) => RouteMap; NavigationControl: new (options: Record<string, unknown>) => unknown; Marker: new (options: Record<string, unknown>) => MapMarker }
 type PendingMap = Promise<void> & { el?: HTMLElement };
-declare let RN: RouteDraft | null;
-declare let RN_LISTA: RouteCard[] | null;
-declare let RN_MAPA_P: PendingMap | null;
-declare let RM_MAPA: RouteMap | null;
-declare let RUTAS: SavedRoute[];
+
 declare function salidaUsuario(): PlanStart;
 declare function minutosEntre(from: [number, number], to: [number, number]): number;
 declare function siguienteLaborable(): string;

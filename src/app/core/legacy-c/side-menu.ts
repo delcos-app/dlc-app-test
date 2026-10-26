@@ -8,6 +8,9 @@ import { escapeHtml } from '../../services/format';
 import { byId, observe } from './dom';
 import * as legacyFreeCoreNavigationApi from '../navigation/api';
 import * as legacyFreeCoreServices from '../services';
+import { sessionStore } from '../session-store';
+import { settingsStore } from '../../screens/settings/store';
+import { navigationStore } from '../navigation/store';
 
 interface MenuGroup { id: string; t: string; items: string[] }
 
@@ -21,7 +24,7 @@ function wantsSideMenu(nav: HTMLElement): boolean {
   const shown = [...nav.querySelectorAll<HTMLElement>('button[data-t]')].filter(button => !button.classList.contains('hide') && button.dataset.t !== 'seguimiento' && button.style.display !== 'none'
     && (button.classList.contains('mloculto') || visible(button) || document.body.classList.contains('menulat')));
   // v2.135.0: the portal never has a side bar
-  return menuEscritorio() && typeof PERFIL !== 'undefined' && Boolean(PERFIL) && !isPortal() && shown.length > 1;
+  return menuEscritorio() && Boolean(sessionStore.profile) && !isPortal() && shown.length > 1;
 }
 
 function paintBrand(nav: HTMLElement): void {
@@ -29,7 +32,7 @@ function paintBrand(nav: HTMLElement): void {
     const logo = document.querySelector<HTMLImageElement>('header .logo')?.src ?? './logo-app.png';
     nav.insertAdjacentHTML('afterbegin', `<div class="mlmarca"><img src="${escapeHtml(logo)}" alt=""><b class="mllab"></b></div>`);
   }
-  const brand = ((typeof AJUSTES !== 'undefined' && AJUSTES.marca) || {}) as { nombre?: string };
+  const brand = ((settingsStore.settings.marca) || {}) as { nombre?: string };
   const name = nav.querySelector('.mlmarca b'); if (name) name.textContent = brand.nombre ? brand.nombre : document.title;
 }
 
@@ -76,7 +79,7 @@ function paintFooter(nav: HTMLElement): void {
     if (fold) fold.onclick = (): void => {
       const folded = !document.body.classList.contains('menupleg');
       try { localStorage.setItem('dlc-menu-plegado', folded ? '1' : '0'); } catch { /* private mode */ }
-      document.body.classList.toggle('menupleg', folded); menuTip(null); MENU_FIRMA = ''; montarMenuLateral();
+      document.body.classList.toggle('menupleg', folded); menuTip(null); navigationStore.menuSignature = ''; montarMenuLateral();
     };
   }
   const footer = nav.querySelector('.mlpie'); if (footer) nav.appendChild(footer);
@@ -95,8 +98,8 @@ function buildSideMenu(nav: HTMLElement): void {
   // Signature: if nothing changed (buttons, permissions, preferences) nothing is redone (avoids loops with the observer)
   const signature = buttons.map(button => `${button.dataset.t ?? ''}${button.classList.contains('hide') ? '-' : '+'}${(button.textContent ?? '').trim()}`).join('|')
     + JSON.stringify(menuPrefs()) + String(document.body.classList.contains('menupleg'));
-  if (signature === MENU_FIRMA && nav.querySelector('.mlmarca')) return;
-  MENU_FIRMA = signature;
+  if (signature === navigationStore.menuSignature && nav.querySelector('.mlmarca')) return;
+  navigationStore.menuSignature = signature;
   paintBrand(nav); placeGroups(nav); labelButtons(buttons); markEmptyGroups(nav); paintFooter(nav);
 }
 

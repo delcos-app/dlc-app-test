@@ -6,6 +6,7 @@
  */
 import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
+import { sessionStore } from '../session-store';
 
 interface Plan {
   id: string; nombre: string; precio: number | null; anual: number | null; minimo: number; incluidos: number; bloque: [number, number];
@@ -46,6 +47,6 @@ export function planModules(): [string, string, string][] {
 
 /** Whether the company has an extra: given apart, or included in its plan (the legacy hayExtra). */
 export function hasExtra(key: string): boolean {
-  const plan = (PLAN_ACTUAL as { extras?: string[]; plan?: string } | null | undefined) ?? {};
+  const plan = (sessionStore.plan as { extras?: string[]; plan?: string } | null | undefined) ?? {};
   return (plan.extras ?? []).includes(key) || ((PLAN_EXTRAS as Record<string, string[] | undefined>)[key] ?? []).includes(plan.plan ?? '');
 }

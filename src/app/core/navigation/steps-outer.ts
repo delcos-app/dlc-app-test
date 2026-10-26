@@ -5,6 +5,12 @@
 import { orFallback } from '../../services/values';
 import type { NavigationStep } from './pipeline';
 import * as legacyFreeScreensSettingsShell from '../../screens/settings/shell';
+import { navigationStore } from './store';
+import { homeStore } from '../../screens/home/store';
+import { settingsStore } from '../../screens/settings/store';
+import { sessionStore } from '../session-store';
+import { agendaStore } from '../../screens/agenda/store';
+import { ordersStore } from '../../screens/orders/store';
 
 const PORTAL_SCREENS = ['informe', 'config', 'perfil'];
 const PLATFORM_SCREENS = ['delcos', 'config', 'perfil', 'manual'];
@@ -16,7 +22,7 @@ const later = (delays: readonly number[], action: () => void): void => {
 
 export const resetBackStack: NavigationStep = {
   name: 'v2.300 · a new navigation empties the «Volver» stack',
-  before: () => { VUELTA.length = 0; VISTA = null; },
+  before: () => { VUELTA.length = 0; navigationStore.view = null; },
 };
 
 export const professionalPortalOnly: NavigationStep = {
@@ -26,7 +32,7 @@ export const professionalPortalOnly: NavigationStep = {
 
 export const loadingComet: NavigationStep = {
   name: 'v2.267 · the loading line at the top when the screen changes',
-  before: nav => { if (nav.target && nav.target !== TAB) safely(cometa); },
+  before: nav => { if (nav.target && nav.target !== navigationStore.screen) safely(cometa); },
 };
 
 export const watchListPage: NavigationStep = {
@@ -41,7 +47,7 @@ export const customMenuNames: NavigationStep = {
 
 export const rememberManualReturn: NavigationStep = {
   name: 'v2.224 · entering the manual remembers where to come back to',
-  before: nav => { if (nav.target === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 }; },
+  before: nav => { if (nav.target === 'manual' && navigationStore.screen !== 'manual') homeStore.manualReturn = { tab: navigationStore.screen, y: window.scrollY || 0 }; },
 };
 
 /** Event for code that needs to react to every navigation without being part of it (e.g. the mobile «+» button comes back). */
@@ -54,23 +60,23 @@ export const announceNavigation: NavigationStep = {
 
 /** Which part of Configuración each old screen name opens (null: not a configuration screen). */
 function configKey(target: string): string | null {
-  if (target === 'config') return claveCfgVieja(CFG_SEC, CFG_SUB);
-  if (target === 'perfil') return PAG_TAB.perfil === 'notif' ? 'notif' : 'datos';
-  if (target === 'organizacion' || target === 'empresa') return `o.${orFallback(PAG_TAB[target], 'marca')}`;
+  if (target === 'config') return claveCfgVieja(settingsStore.section, settingsStore.subsection);
+  if (target === 'perfil') return navigationStore.pageTabs.perfil === 'notif' ? 'notif' : 'datos';
+  if (target === 'organizacion' || target === 'empresa') return `o.${orFallback(navigationStore.pageTabs[target], 'marca')}`;
   if (target === 'plan') return 'o.plan';
-  if (target === 'usuarios') return PAG_TAB.usuarios === 'roles' ? 'roles' : 'usuarios';
+  if (target === 'usuarios') return navigationStore.pageTabs.usuarios === 'roles' ? 'roles' : 'usuarios';
   return null;
 }
 
 export const singleConfiguration: NavigationStep = {
   name: 'v2.215/v2.340 · profile, company, plan and users are parts of the single Configuración page',
   before: nav => {
-    if (nav.target === 'config' && ['seguridad', 'orgs'].includes(CFG_SEC ?? '')) return;   // they stay in the Panel delcos
+    if (nav.target === 'config' && ['seguridad', 'orgs'].includes(settingsStore.section ?? '')) return;   // they stay in the Panel delcos
     const key = configKey(nav.target);
     if (key === null) return;
-    if (key) { CFG_KEY = key; CFG_DETALLE = true; } else if (IR_DESDE_MENU_CFG) { CFG_DETALLE = false; CFG_KEY = 'datos'; }
-    if (nav.target !== 'config') { PAG_TAB.perfil = undefined; PAG_TAB.organizacion = undefined; PAG_TAB.empresa = undefined; PAG_TAB.usuarios = undefined; }
-    CFG_SEC = '__cfg'; CFG_SUB = null; IR_DESDE_MENU_CFG = false;
+    if (key) { CFG_KEY = key; settingsStore.detail = true; } else if (IR_DESDE_MENU_CFG) { settingsStore.detail = false; CFG_KEY = 'datos'; }
+    if (nav.target !== 'config') { navigationStore.pageTabs.perfil = undefined; navigationStore.pageTabs.organizacion = undefined; navigationStore.pageTabs.empresa = undefined; navigationStore.pageTabs.usuarios = undefined; }
+    settingsStore.section = '__cfg'; settingsStore.subsection = null; IR_DESDE_MENU_CFG = false;
     nav.target = 'config';
   },
 };
@@ -89,8 +95,8 @@ export const platformPanel: NavigationStep = {
   name: 'v2.166 · Panel delcos sections, and platform mode only shows the panel',
   before: nav => {
     const section = PANEL_SECCIONES.find(entry => entry[0] === nav.target);
-    if (section) { PAG_TAB.delcos = section[1]; nav.target = 'delcos'; return; }
-    if (MODO_PLATAFORMA && !PLATFORM_SCREENS.includes(nav.target)) nav.target = 'delcos';
+    if (section) { navigationStore.pageTabs.delcos = section[1]; nav.target = 'delcos'; return; }
+    if (navigationStore.platformMode && !PLATFORM_SCREENS.includes(nav.target)) nav.target = 'delcos';
   },
   after: target => { if (target === 'delcos') legacyFreeScreensSettingsShell.markPlatformPanel(); },
 };
@@ -98,7 +104,7 @@ export const platformPanel: NavigationStep = {
 export const stripeReturnToPlan: NavigationStep = {
   name: 'v2.167 · coming back from Stripe opens «Plan y suscripción»',
   before: nav => {
-    if (!PAGO_IR_PLAN || !PERFIL) return;
+    if (!PAGO_IR_PLAN || !sessionStore.profile) return;
     pagoAlPlan();
     if (!ES_MEDICO() && puedeOrganizacion()) nav.target = 'plan';
   },
@@ -107,21 +113,21 @@ export const stripeReturnToPlan: NavigationStep = {
 export const planSections: NavigationStep = {
   name: 'v2.152 · sections outside the contracted plan show the plan notice instead',
   before: nav => {
-    if (nav.target in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) { avisoPlan(nav.target); nav.blocked = true; }
+    if (nav.target in PLAN_SECCIONES && sessionStore.profile && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) { avisoPlan(nav.target); nav.blocked = true; }
   },
 };
 
 export const agendaFromMenuIsToday: NavigationStep = {
   name: 'v2.140 · Agenda from the menu always opens today',
-  before: nav => { if (nav.target === 'agenda' && IR_DESDE_MENU) { AG_MODO = 'dia'; AG_FECHA = hoyISO(); } },
+  before: nav => { if (nav.target === 'agenda' && IR_DESDE_MENU) { agendaStore.mode = 'dia'; agendaStore.selectedDate = hoyISO(); } },
 };
 
 export const ordersSections: NavigationStep = {
   name: 'v2.128 · Oportunidades, Compras… are sections of Pedidos',
   before: nav => {
     const section = ALIAS_PEDIDOS[nav.target];
-    if (section !== undefined) { PEDSEC = section; nav.target = 'ventas'; return; }
-    if (nav.target === 'ventas' && IR_DESDE_MENU) PEDSEC = 'ventas';   // «Pedidos» from the menu always opens the orders
+    if (section !== undefined) { ordersStore.section = section; nav.target = 'ventas'; return; }
+    if (nav.target === 'ventas' && IR_DESDE_MENU) ordersStore.section = 'ventas';   // «Pedidos» from the menu always opens the orders
   },
   after: target => { if (target === 'ventas') legacyFreeScreensSettingsShell.markOrderSection(); },
 };

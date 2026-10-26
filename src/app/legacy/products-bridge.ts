@@ -1,4 +1,5 @@
 import * as components from '../components';
+import { productsStore } from '../screens/products/store';
 /**
  * Bridge of Productos to the legacy code (kept apart from bridge.ts, which is at its size limit). The catalog loaders (PRODUCTOS,
  * SERVICIOS, cargarProductos), the section (PSEC) and the field filters (PRODF) stay in legacy: Pedidos, Visita, the list bar and
@@ -7,8 +8,8 @@ import * as components from '../components';
 export type ProductValues = Record<string, unknown>;
 
 export const productsLegacy = {
-  section: (): string => PSEC,
-  setSection: (section: string): void => { PSEC = section; },
+  section: (): string => productsStore.section,
+  setSection: (section: string): void => { productsStore.section = section; },
   /** Through the global names: legado 057 caches the screen and legado 089 wraps fichaStock and verDeposito («‹ Volver»). */
   reload: (): void => { void cargarProductosModulo(); },
   openStock: (line: object): void => { void fichaStock(line); },
@@ -17,8 +18,8 @@ export const productsLegacy = {
   editSamples: (): void => { void editorMuestras(); },
   clearModules: (except: string): void => { vaciarModulos(except); },
   showLoading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
-  matchesFieldFilters: (values: ProductValues | null | undefined): boolean => Boolean(components.matchesFilters(values, PRODF)),
-  hasFieldFilters: (): boolean => Object.keys(PRODF).length > 0,
+  matchesFieldFilters: (values: ProductValues | null | undefined): boolean => Boolean(components.matchesFilters(values, productsStore.filters)),
+  hasFieldFilters: (): boolean => Object.keys(productsStore.filters).length > 0,
   visibleFieldColumns: (): CustomField[] => components.visibleFields('producto'),
   fieldHeaders: (fields: readonly CustomField[]): string => components.columnHeaders(fields),
   fieldCells: (fields: readonly CustomField[], values: ProductValues | null | undefined): string => components.columnCells(fields, values),

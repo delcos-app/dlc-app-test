@@ -2,7 +2,7 @@
 declare function opcionesProducto(id: string | null | undefined, name: string | null | undefined): string;
 declare function conPrecioContrato<T>(product: T): T;
 declare function subirJustificantes(id: string, list: readonly { nombre: string }[]): Promise<boolean>;
-declare let DISTRIBUIDORES: { id: string; nombre: string; email?: string | null; telefono?: string | null; activo?: boolean }[] | null;
+
 declare const TPV_VISIBLE: boolean;
 declare function conCarga<T>(button: HTMLElement | null, text: string, work: () => Promise<T>): Promise<T>;
 declare function esBajada(from: Record<string, unknown>, to: Record<string, unknown>): boolean;

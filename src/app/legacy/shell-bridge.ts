@@ -5,6 +5,10 @@
  */
 import * as legacyFreeScreensImport from '../screens/import';
 import * as legacyFreeCoreLayers from '../core/layers';
+import { settingsStore } from '../screens/settings/store';
+import { accountsStore } from '../screens/accounts/store';
+import { sessionStore } from '../core/session-store';
+import { navigationStore } from '../core/navigation/store';
 
 /** The window or module page shown inside the panel instead of floating. */
 export interface ActivePanel { tipo: 'dbody' | 'admin'; refrescar?: () => unknown }
@@ -15,15 +19,15 @@ export interface SettingsItem { k: string; t: string; d?: string; ic?: string; m
 export type SettingsTree = readonly (readonly [string, readonly SettingsItem[]])[];
 
 export const shellLegacy = {
-  activePanel: (): ActivePanel | null => PANEL_ACTIVO as ActivePanel | null,
-  setActivePanel: (panel: ActivePanel | null): void => { PANEL_ACTIVO = panel; },
-  setAdminSection: (section: string): void => { ADM_SEC = section; },
+  activePanel: (): ActivePanel | null => settingsStore.activePanel as ActivePanel | null,
+  setActivePanel: (panel: ActivePanel | null): void => { settingsStore.activePanel = panel; },
+  setAdminSection: (section: string): void => { settingsStore.adminSection = section; },
   loadAdmin: (): Promise<void> => cargarAdmin(),
-  openingCard: (): boolean => Boolean(FX_FICHA),
+  openingCard: (): boolean => Boolean(accountsStore.cardEffect),
   hasPage: (screen: string): boolean => Boolean(PAGINAS[screen]),
   /** The stacked windows (legado 058 gives the previous one back when the top one closes). */
   windowStack: (): { nodos: ChildNode[]; clases: string; titulo: string | undefined }[] => PILA_VENT,
-  setStacking: (on: boolean): void => { APILANDO = on; },
+  setStacking: (on: boolean): void => { settingsStore.stacking = on; },
   iconOf: (name: string | undefined): string => svgIco(ICON_NOM[name ?? ''] ?? ''),
   tree: (): SettingsTree => arbolCfgUnico() as SettingsTree,
   searchWords: (key: string): string => CFG_CLAVES[key] ?? '',
@@ -31,13 +35,13 @@ export const shellLegacy = {
   polish: (): void => { try { legacyFreeCoreLayers.polishSettings(); } catch { /* only tidies the section */ } },
   key: (): string => CFG_KEY,
   setKey: (key: string): void => { CFG_KEY = key; },
-  detail: (): boolean => CFG_DETALLE,
-  setDetail: (on: boolean): void => { CFG_DETALLE = on; },
+  detail: (): boolean => settingsStore.detail,
+  setDetail: (on: boolean): void => { settingsStore.detail = on; },
   /** Configuración again, through its global name (other code may wrap it). */
   reload: (): void => { void cargarConfig(); },
   planIncludes: (module: string): boolean => planIncluye(module),
   planMinimum: (module: string): { nombre: string } | undefined => planMinimo(module),
-  currentPlanName: (): string => planDe(PLAN_ACTUAL.plan as string | undefined).nombre,
+  currentPlanName: (): string => planDe(sessionStore.plan.plan as string | undefined).nombre,
   canManageOrganisation: (): boolean => puedeOrganizacion(),
   canUseModule: (module: string): boolean => puedeModulo(module),
   hasDeparture: (): boolean => Boolean(prefsActivas().salida),
@@ -47,5 +51,5 @@ export const shellLegacy = {
   orderSectionView: (): string => pedsecVista(),
   billingWithoutPlan: (): boolean => facSinPlan(),
   applyMenuPermissions: (): void => { aplicarPermisosMenu(); },
-  platformTab: (): string => PAG_TAB.delcos ?? 'orgs',
+  platformTab: (): string => navigationStore.pageTabs.delcos ?? 'orgs',
 };

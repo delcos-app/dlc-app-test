@@ -4,6 +4,11 @@
  * a window refreshes (v2.186.0, v2.195.0–v2.199.0). Folded from legado 058, 059, 071, 072, 075, 078 and 079 (v2.425.0).
  */
 import { byId, closestTo, observe } from './dom';
+import { settingsStore } from '../../screens/settings/store';
+import { agendaStore } from '../../screens/agenda/store';
+import { sessionStore } from '../session-store';
+import { accountsStore } from '../../screens/accounts/store';
+import { navigationStore } from '../navigation/store';
 
 const REVEAL_MAX_MS = 1500, REVEAL_SINCE_MS = 50, REPAINT_AFTER_CLOSE_MS = 300, SCROLLED_PX = 4, FOCUS_DELAY_MS = 30;
 type Opener = (...args: unknown[]) => unknown;
@@ -23,7 +28,7 @@ export function sizeWindows(): void {
 /** v2.57.0: closing a window opened on top of another brings the previous one back. */
 export function stackWindows(): void {
   byId('dlg')?.addEventListener('close', () => {
-    if (APILANDO || !PILA_VENT.length) return;
+    if (settingsStore.stacking || !PILA_VENT.length) return;
     const previous = PILA_VENT.pop(), dialog = byId<HTMLDialogElement>('dlg'), body = byId('dbody');
     if (!previous || !dialog || !body) return;
     body.replaceChildren(...previous.nodos); dialog.className = previous.clases;
@@ -81,19 +86,19 @@ export function neverHalfOpen(): void {
 /** v2.186.0: the window epoch of the Agenda cache, and the open visit is forgotten when its window closes. */
 export function trackDialogEpoch(): void {
   const dialog = byId<HTMLDialogElement>('dlg');
-  observe(dialog, () => { if (dialog?.open) DLG_EPOCA = RC_EPOCA; }, { attributes: true, attributeFilter: ['open'] });
+  observe(dialog, () => { if (dialog?.open) agendaStore.dialogEpoch = sessionStore.cacheEpoch; }, { attributes: true, attributeFilter: ['open'] });
 }
 
 export function forgetVisitOnClose(): void {
   const dialog = byId<HTMLDialogElement>('dlg');
-  dialog?.addEventListener('close', () => { setTimeout(() => { if (!dialog.open) VISITA_ACTUAL = null; }, 0); });
+  dialog?.addEventListener('close', () => { setTimeout(() => { if (!dialog.open) accountsStore.currentVisit = null; }, 0); });
 }
 
 /** v2.195.0: Eventos repaints its list after its window closes. */
 export function repaintEventsOnClose(): void {
   const dialog = byId<HTMLDialogElement>('dlg');
   dialog?.addEventListener('close', () => {
-    if (TAB === 'eventos' && (PAG_TAB.eventos ?? 'lista') === 'lista' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open) void pintarEventos(); }, REPAINT_AFTER_CLOSE_MS);
+    if (navigationStore.screen === 'eventos' && (navigationStore.pageTabs.eventos ?? 'lista') === 'lista' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open) void pintarEventos(); }, REPAINT_AFTER_CLOSE_MS);
   });
 }
 
@@ -101,18 +106,18 @@ export function repaintEventsOnClose(): void {
 export function repaintCycleOnClose(): void {
   const repaint = (): void => {
     const tabs = (PAGINAS.ciclo as { tabs: [string, string, () => void][] }).tabs;
-    (tabs.find(tab => tab[0] === (PAG_TAB.ciclo ?? 'ciclo')) ?? tabs[0])?.[2]();
+    (tabs.find(tab => tab[0] === (navigationStore.pageTabs.ciclo ?? 'ciclo')) ?? tabs[0])?.[2]();
   };
   ['dlg', 'ficha'].forEach(id => {
     const dialog = byId<HTMLDialogElement>(id);
-    dialog?.addEventListener('close', () => { if (TAB === 'ciclo' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open && TAB === 'ciclo') repaint(); }, REPAINT_AFTER_CLOSE_MS); });
+    dialog?.addEventListener('close', () => { if (navigationStore.screen === 'ciclo' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open && navigationStore.screen === 'ciclo') repaint(); }, REPAINT_AFTER_CLOSE_MS); });
   });
 }
 
 /** v2.199.0: Intervenciones repaints its list after its window closes. */
 export function repaintSurgeriesOnClose(): void {
   const dialog = byId<HTMLDialogElement>('dlg');
-  dialog?.addEventListener('close', () => { if (TAB === 'cirugias' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open && TAB === 'cirugias') void pintarCirugias(); }, REPAINT_AFTER_CLOSE_MS); });
+  dialog?.addEventListener('close', () => { if (navigationStore.screen === 'cirugias' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open && navigationStore.screen === 'cirugias') void pintarCirugias(); }, REPAINT_AFTER_CLOSE_MS); });
 }
 
 const headerBottom = (): number => Math.max(0, ...['body > header', 'header', '.top', 'nav.main'].map(selector => {
@@ -152,7 +157,7 @@ function embed(dialog: EmbeddedDialog): void {
     const area = areaEncaje();
     if (!area) { modal(); return; }
     // v2.129.0: the sections painted in the page itself (#dbody as a panel) open no window
-    if (dialog.id === 'dlg' && typeof PANEL_ACTIVO !== 'undefined' && (PANEL_ACTIVO as { tipo?: string } | null)?.tipo === 'dbody') return;
+    if (dialog.id === 'dlg' && (settingsStore.activePanel as { tipo?: string } | null)?.tipo === 'dbody') return;
     if (dialog.open) return;
     openEmbedded(dialog, area);
   };

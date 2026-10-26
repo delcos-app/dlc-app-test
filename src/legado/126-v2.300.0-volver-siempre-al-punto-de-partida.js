@@ -1,4 +1,4 @@
 // @ts-check
 // «‹ Volver» siempre al punto de partida: en src/app/core/layers/dialogs.ts (v2.424.0).
-let VISTA = null, VUELTA_REABRIENDO = false, VUELTA_CLIC = null, VUELTA_PONER = false;
+ // v2.440.0: VISTA, VUELTA_REABRIENDO, VUELTA_CLIC, VUELTA_PONER → estado de src/app (plan 6.6), accesible en window
 window.delcos.layers.installBack();

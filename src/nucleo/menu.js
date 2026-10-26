@@ -8,9 +8,9 @@ const MENU_FIJO = window.delcos.nav.MENU_FIXED;
 
 const MENU_FUERA = window.delcos.nav.MENU_OUT;
 
-let MENU_FIRMA = '';
+ // v2.440.0: MENU_FIRMA → estado de src/app (plan 6.6), accesible en window
 
-let FAB_RZ = 0;
+ // v2.440.0: FAB_RZ → estado de src/app (plan 6.6), accesible en window
 
 const menuPrefs = () => window.delcos.nav.menuPrefs();
 

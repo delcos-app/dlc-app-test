@@ -4,9 +4,9 @@
 
 function cargarComerciales() { return window.delcos.leftovers.loadSalesTeam(); }
 
-let ESQUEMAS = [];
+ // v2.440.0: ESQUEMAS → estado de src/app (plan 6.6), accesible en window
 
-let COMS = [];
+ // v2.440.0: COMS → estado de src/app (plan 6.6), accesible en window
 
 // Comisiones está en src/app/screens/commissions (v2.411.0). Estos nombres se quedan: Configuración (legado 004), Inicio y las
 // pruebas los usan.

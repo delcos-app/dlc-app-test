@@ -17,4 +17,4 @@ const ICU = {
 };
 window.delcos.layers.installAgendaListeners();
 window.delcos.layers.installFloatingButton();
-let KV_INI = null, KV_GRAF = null;
+ // v2.440.0: KV_INI, KV_GRAF → estado de src/app (plan 6.6), accesible en window

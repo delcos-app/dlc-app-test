@@ -7,6 +7,7 @@
 import * as legacyFreeCoreLeftovers from '../leftovers';
 import * as legacyFreeCoreNavigationApi from '../navigation/api';
 import * as legacyFreeCoreLegacyC from './';
+import { navigationStore } from '../navigation/store';
 
 const quietly = (work: () => void): void => { try { work(); } catch { /* a menu entry must not stop the others */ } };
 const SECTION_MENUS = [(): void => { legacyFreeCoreLeftovers.menuSurgeries(); }, (): void => { legacyFreeCoreLeftovers.menuCycle(); }, (): void => { legacyFreeCoreLeftovers.menuEvents(); }] as const;
@@ -41,13 +42,13 @@ export function showApp(args: readonly unknown[]): unknown {
 
 /** v2.16x: the platform mode shows only the panel sections, and it is remembered for the next start (the legacy aplicarModoPlataforma). */
 export function applyPlatformMode(): void {
-  document.body.classList.toggle('modo-plataforma', MODO_PLATAFORMA);
+  document.body.classList.toggle('modo-plataforma', navigationStore.platformMode);
   document.querySelectorAll('#nav [data-t]').forEach(button => {
     const panelSection = button.classList.contains('pdsec');
-    if (MODO_PLATAFORMA) button.classList.toggle('hide', !panelSection);
+    if (navigationStore.platformMode) button.classList.toggle('hide', !panelSection);
     else if (panelSection) button.classList.add('hide');
   });
-  if (MODO_PLATAFORMA) document.querySelectorAll('[data-u="organizacion"], [data-u="plan"], [data-u="empresa"]').forEach(button => { button.classList.add('hide'); });
-  quietly(() => { MENU_FIRMA = ''; montarMenuLateral(); });
-  try { localStorage.setItem('dlc-modo', MODO_PLATAFORMA ? 'plataforma' : 'empresa'); } catch { /* private mode */ }
+  if (navigationStore.platformMode) document.querySelectorAll('[data-u="organizacion"], [data-u="plan"], [data-u="empresa"]').forEach(button => { button.classList.add('hide'); });
+  quietly(() => { navigationStore.menuSignature = ''; montarMenuLateral(); });
+  try { localStorage.setItem('dlc-modo', navigationStore.platformMode ? 'plataforma' : 'empresa'); } catch { /* private mode */ }
 }

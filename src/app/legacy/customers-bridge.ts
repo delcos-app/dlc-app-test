@@ -1,6 +1,7 @@
 import * as components from '../components';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeScreensSettings from '../screens/settings';
+import { accountsStore } from '../screens/accounts/store';
 /**
  * Bridge of Clientes to the legacy code (kept apart from bridge.ts, which is at its size limit). Its filters stay in the legacy
  * PAC (the list bar, the custom field filters and the account card fill it too); the customer editor is tied to calls and Pedidos.
@@ -17,9 +18,9 @@ export const customersLegacy = {
   },
   orderPill: (state: string): string => pillEstado(state),
   newSale: (preset: object): void => { void nuevaVenta(preset); },
-  shownCustomer: (): string | null => FICHA_PAC as string | null,
-  setShownCustomer: (id: string | null): void => { FICHA_PAC = id; },
-  forgetShownAccount: (): void => { FICHA_ID = null; },
+  shownCustomer: (): string | null => accountsStore.cardPatients as string | null,
+  setShownCustomer: (id: string | null): void => { accountsStore.cardPatients = id; },
+  forgetShownAccount: (): void => { accountsStore.shownId = null; },
   visibleFieldColumns: (): CustomField[] => components.visibleFields('cliente'),
   fieldHeaders: (fields: readonly CustomField[]): string => components.columnHeaders(fields),
   widenGrid: (grid: Element | null, count: number): void => { components.widenGrid(grid, count); },

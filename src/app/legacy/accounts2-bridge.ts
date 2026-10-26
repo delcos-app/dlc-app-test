@@ -5,6 +5,9 @@
  * users of Configuración, the filter options that legado 014 reads (OPF) and the directory filters (F).
  */
 import { accountListLegacy } from './bridge';
+import { sessionStore } from '../core/session-store';
+import { accountsStore } from '../screens/accounts/store';
+import { settingsStore } from '../screens/settings/store';
 
 export interface FilterOption { v: string; n: number }
 export interface FilterOptions { provincias: FilterOption[]; municipios: FilterOption[]; especialidades: FilterOption[]; estados: FilterOption[]; centros?: FilterOption[] }
@@ -24,11 +27,11 @@ export const accountsEditorLegacy = {
   reverseGeocode: (lat: number, lon: number): Promise<ReverseAddress | null> => geoInversa(lat, lon),
   /** «Estoy aquí» in a consultation: nearby centres or a new one with the device location (servicios/mapas.js). */
   imHere: (box: HTMLElement, index: string, button: HTMLElement): void => { void estoyAqui(box, index, button); },
-  hasOwnTerm: (): boolean => Boolean((TERMINOS?.medico as { s?: string } | undefined)?.s),
+  hasOwnTerm: (): boolean => Boolean((sessionStore.terms?.medico as { s?: string } | undefined)?.s),
   allOf: (word: string): string => todosLos(word),
-  filterOptions: (): FilterOptions => OPF as FilterOptions,
-  setFilterOptions: (options: FilterOptions): void => { OPF = options; },
-  teamUsers: (): readonly TeamUser[] => USUARIOS as TeamUser[],
+  filterOptions: (): FilterOptions => accountsStore.filterOptions as FilterOptions,
+  setFilterOptions: (options: FilterOptions): void => { accountsStore.filterOptions = options; },
+  teamUsers: (): readonly TeamUser[] => settingsStore.users as TeamUser[],
   reloadAdmin: (): void => { void cargarAdmin(); },
   assignPortfolio: (userId: string): void => { void asignarCartera(userId); },
   /** The «Ver en el mapa» icon of the directory, changed by the map mode. */

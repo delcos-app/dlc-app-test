@@ -7,6 +7,12 @@ import { t } from '../../i18n';
 import { byId, closestTo, observe } from './dom';
 import * as legacyFreeCoreLegacyC from './';
 import * as legacyFreeCoreSettings from '../settings';
+import { sessionStore } from '../session-store';
+import { ordersStore } from '../../screens/orders/store';
+import { productsStore } from '../../screens/products/store';
+import { billingStore } from '../../screens/billing/store';
+import { agendaStore } from '../../screens/agenda/store';
+import { navigationStore } from '../navigation/store';
 
 const UNCHANGED_FOR_MS = 800, MINUTE_MS = 60000, SAFETY_MS = 6000;
 type Loader = (...args: unknown[]) => Promise<unknown>;
@@ -17,16 +23,16 @@ let writesWhenOpened = 0, unchangedUntil = 0;
 export function watchDialogWrites(): void {
   const dialog = byId<HTMLDialogElement>('dlg');
   observe(dialog, () => {
-    if (dialog?.open) writesWhenOpened = ESCRITURAS;
-    else if (ESCRITURAS === writesWhenOpened) unchangedUntil = Date.now() + UNCHANGED_FOR_MS;
+    if (dialog?.open) writesWhenOpened = sessionStore.writes;
+    else if (sessionStore.writes === writesWhenOpened) unchangedUntil = Date.now() + UNCHANGED_FOR_MS;
   }, { attributes: true, attributeFilter: ['open'] });
 }
 
 /** What makes each screen different (its section, its day…): the legacy ESTADO_MOD. */
 export const moduleStates = (): Record<string, () => string> => ({
-  inicio: () => '', ventas: () => PEDSEC, productos: () => PSEC, facturacion: () => FSEC,
+  inicio: () => '', ventas: () => ordersStore.section, productos: () => productsStore.section, facturacion: () => billingStore.section,
   analitica: () => (typeof ASEC !== 'undefined' ? ASEC : ''), pacientes: () => '',
-  agenda: () => [AG_MODO, AG_FECHA, AG_VISTA ? AG_VISTA.id : ''].join('|'),
+  agenda: () => [agendaStore.mode, agendaStore.selectedDate, agendaStore.viewedUser ? agendaStore.viewedUser.id : ''].join('|'),
 });
 
 const LOADERS: readonly (readonly [string, string])[] = [['inicio', 'cargarInicio'], ['ventas', 'cargarVentas'], ['productos', 'cargarProductosModulo'],
@@ -39,7 +45,7 @@ export function cacheModuleLoaders(): void {
     const original = globals[name]; if (!original) return;
     globals[name] = async function (this: unknown, ...args: unknown[]): Promise<unknown> {
       if (usarCache(screen)) { if (screen === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); return undefined; }
-      if (screen === 'agenda' && Date.now() < unchangedUntil && !VIA_IR) return undefined;   // a window closed without changes
+      if (screen === 'agenda' && Date.now() < unchangedUntil && !navigationStore.via) return undefined;   // a window closed without changes
       const result = await original.apply(this, args); legacyFreeCoreSettings.markModuleCache(screen); if (screen === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); return result;
     };
   });
@@ -73,7 +79,7 @@ export function paintUpdated(): void {
 
 /** Inicio refreshes «updated N min ago» every minute; its buttons never stay hidden. */
 export function keepUpdateTime(): void {
-  setInterval(() => { if (TAB === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); }, MINUTE_MS);
+  setInterval(() => { if (navigationStore.screen === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); }, MINUTE_MS);
   setTimeout(() => { document.body.classList.add('inilisto'); }, SAFETY_MS);   // safety net
 }
 

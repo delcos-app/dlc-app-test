@@ -5,6 +5,7 @@
 import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { byId, observe } from './dom';
+import { sessionStore } from '../session-store';
 
 /** The names a company can give to the contacts module (the legacy ETIQUETAS). */
 export const contactLabels = (): string[] =>
@@ -37,7 +38,7 @@ export function keepContactsLabel(): void {
 
 /** v2.71.0: the fixed texts of index.html with the company words (only when it changed them). */
 export function applyVocabularyToFixedTexts(): void {
-  if (!Object.keys(TERMINOS ?? {}).length) return;
+  if (!Object.keys(sessionStore.terms ?? {}).length) return;
   const search = byId<HTMLInputElement>('q'); if (search) search.placeholder = t('legacyC.fixedTexts.search', { professional: term('medico') });
   const latest = document.querySelector('#c-ultimas h2'); if (latest) latest.textContent = t('legacyC.fixedTexts.latest', { visits: term('visita', { number: 'p' }) });
   const option = document.querySelector('option[value="reciente"]'); if (option) option.textContent = t('legacyC.fixedTexts.recent', { visit: term('visita', { capital: 'C' }) });

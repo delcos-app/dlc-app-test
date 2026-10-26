@@ -49,7 +49,7 @@ const RPC_TTL = {                 // segundos
 
 const RPC_ESCRITURA = /^(actualizar_|anular_|aplazar_|asignar_|recibir_|movimiento_|atribuir_|borrar_|crear_|estado_cita|guardar_|liquidar|ordenar_|perfil_nuevo|quitar_|registrar_actividad|registrar_visita|resolver_accion|tocar|unificar_|descartar_)/;
 
-let RC_EPOCA = 0;
+ // v2.440.0: RC_EPOCA → estado de src/app (plan 6.6), accesible en window
 
 const rcLS = k => 'dlc-rc-' + (PERFIL ? PERFIL.id : '') + '-' + k;
 
@@ -57,7 +57,7 @@ const rcCopia = r => ({ data: r.data == null ? r.data : JSON.parse(JSON.stringif
 
 const RPC_ORIG_FROM = t => FROM_ORIG(t);
 
-let ESCRITURAS = 0;
+ // v2.440.0: ESCRITURAS → estado de src/app (plan 6.6), accesible en window
 
 const ES_ESCRITURA = /^(guardar|registrar_(?!error)|emitir|rectificar|marcar|borrar|eliminar|asignar|unificar|validar|anular|crear|descartar|restaurar|estado_|recibir|traspasar|vincular|mover|aplicar|reprogramar|cancelar|confirmar|terminar)/;
 

@@ -4,22 +4,25 @@
  */
 import { orFallback } from '../../services/values';
 import type { NavigationStep } from './pipeline';
+import { navigationStore } from './store';
+import { settingsStore } from '../../screens/settings/store';
+import { billingStore } from '../../screens/billing/store';
 
 const COMPANY_SECTIONS = ['__empresa', 'empresa', 'marca', 'correo', 'copias'];
 const MAIL_SECTIONS = ['correo', 'copias'];
 
-const screenSection = (): HTMLElement | null => document.getElementById(`v-${TAB}`);
+const screenSection = (): HTMLElement | null => document.getElementById(`v-${navigationStore.screen}`);
 
 export const configToOwnPages: NavigationStep = {
   name: 'v2.128 · team, security and organizations open their own pages',
   before: nav => {
-    if (nav.target === 'config' && CFG_SEC === 'equipo') {
-      PAG_TAB.usuarios = CFG_SUB === 'roles' ? 'roles' : 'usuarios'; CFG_SEC = 'inicio'; CFG_SUB = null; nav.target = 'usuarios';
+    if (nav.target === 'config' && settingsStore.section === 'equipo') {
+      navigationStore.pageTabs.usuarios = settingsStore.subsection === 'roles' ? 'roles' : 'usuarios'; settingsStore.section = 'inicio'; settingsStore.subsection = null; nav.target = 'usuarios';
     }
-    if (nav.target === 'config' && CFG_SEC === 'seguridad' && puede('gestionar_plataforma')) {
-      PAG_TAB.delcos = CFG_SUB === 'accesos' ? 'accesos' : 'auditoria'; CFG_SEC = 'inicio'; CFG_SUB = null; nav.target = 'delcos';
+    if (nav.target === 'config' && settingsStore.section === 'seguridad' && puede('gestionar_plataforma')) {
+      navigationStore.pageTabs.delcos = settingsStore.subsection === 'accesos' ? 'accesos' : 'auditoria'; settingsStore.section = 'inicio'; settingsStore.subsection = null; nav.target = 'delcos';
     }
-    if (nav.target === 'config' && CFG_SEC === 'orgs' && puede('gestionar_plataforma')) { PAG_TAB.delcos = 'orgs'; CFG_SEC = 'inicio'; nav.target = 'delcos'; }
+    if (nav.target === 'config' && settingsStore.section === 'orgs' && puede('gestionar_plataforma')) { navigationStore.pageTabs.delcos = 'orgs'; settingsStore.section = 'inicio'; nav.target = 'delcos'; }
   },
 };
 
@@ -31,10 +34,10 @@ export const closeEmbeddedWindows: NavigationStep = {
 export const organizationPage: NavigationStep = {
   name: 'v2.121 · company and plan are parts of the Organización page (only for who may configure it)',
   before: nav => {
-    const fromConfig = nav.target === 'config' && CFG_SEC !== null ? ORG_DESDE[CFG_SEC] : undefined;
-    if (nav.target === 'empresa') { PAG_TAB.organizacion = orFallback(PAG_TAB.empresa, 'marca'); nav.target = 'organizacion'; }
-    else if (nav.target === 'plan') { PAG_TAB.organizacion = 'plan'; nav.target = 'organizacion'; }
-    else if (fromConfig) { PAG_TAB.organizacion = orFallback(CFG_SUB !== null ? ORG_DESDE[CFG_SUB] : undefined, fromConfig); CFG_SEC = 'rutas'; nav.target = 'organizacion'; }
+    const fromConfig = nav.target === 'config' && settingsStore.section !== null ? ORG_DESDE[settingsStore.section] : undefined;
+    if (nav.target === 'empresa') { navigationStore.pageTabs.organizacion = orFallback(navigationStore.pageTabs.empresa, 'marca'); nav.target = 'organizacion'; }
+    else if (nav.target === 'plan') { navigationStore.pageTabs.organizacion = 'plan'; nav.target = 'organizacion'; }
+    else if (fromConfig) { navigationStore.pageTabs.organizacion = orFallback(settingsStore.subsection !== null ? ORG_DESDE[settingsStore.subsection] : undefined, fromConfig); settingsStore.section = 'rutas'; nav.target = 'organizacion'; }
     if (nav.target === 'organizacion' && !puedeOrganizacion()) nav.target = 'inicio';
   },
 };
@@ -62,10 +65,10 @@ export const atomicReveal: NavigationStep = {
 
 /** Old Facturación settings that used to live in Configuración. */
 function billingSection(): string | undefined {
-  const map: Readonly<Record<string, string>> = { fiscal: 'empresa', series: 'series', vf: 'verifactu', fact: orFallback(FAC_ULTIMA, 'empresa') };
-  const section = CFG_SEC ?? '';
-  if (!(map[section] ?? (section === 'fact' ? map[CFG_SUB ?? ''] : undefined))) return undefined;
-  return orFallback(map[section === 'fact' ? orFallback(CFG_SUB, 'fact') : section], 'empresa');
+  const map: Readonly<Record<string, string>> = { fiscal: 'empresa', series: 'series', vf: 'verifactu', fact: orFallback(billingStore.lastSection, 'empresa') };
+  const section = settingsStore.section ?? '';
+  if (!(map[section] ?? (section === 'fact' ? map[settingsStore.subsection ?? ''] : undefined))) return undefined;
+  return orFallback(map[section === 'fact' ? orFallback(settingsStore.subsection, 'fact') : section], 'empresa');
 }
 
 export const billingSettings: NavigationStep = {
@@ -73,7 +76,7 @@ export const billingSettings: NavigationStep = {
   before: nav => {
     if (nav.target !== 'config') return;
     const section = billingSection();
-    if (section !== undefined) { FSEC = section; CFG_SEC = 'rutas'; nav.target = 'facturacion'; }
+    if (section !== undefined) { billingStore.section = section; settingsStore.section = 'rutas'; nav.target = 'facturacion'; }
   },
 };
 
@@ -81,30 +84,30 @@ export const loadingIndicatorAfterDelay: NavigationStep = {
   name: 'v2.56 · the loading indicator only shows while the screen is still requesting data',
   after: () => {
     const section = screenSection();
-    if (section?.classList.contains('cargando-pend')) { section.classList.remove('cargando-pend'); if (PEND > 0) section.classList.add('cargando'); }
+    if (section?.classList.contains('cargando-pend')) { section.classList.remove('cargando-pend'); if (navigationStore.pendingReads > 0) section.classList.add('cargando'); }
   },
 };
 
 export const markNavigationInProgress: NavigationStep = {
   name: 'v2.56 · VIA_IR tells the screens they are being opened by a navigation',
-  before: nav => { VIA_IR = nav.target; },
-  cleanup: () => { setTimeout(() => { VIA_IR = null; }, 0); },
+  before: nav => { navigationStore.via = nav.target; },
+  cleanup: () => { setTimeout(() => { navigationStore.via = null; }, 0); },
 };
 
 /** Tab of the company page for an old Configuración section: mail and backups have their own tab, the rest is the brand. */
 function companyTab(): string {
-  if (CFG_SUB !== null && MAIL_SECTIONS.includes(CFG_SUB)) return CFG_SUB;
-  if (CFG_SEC !== null && MAIL_SECTIONS.includes(CFG_SEC)) return CFG_SEC;
+  if (settingsStore.subsection !== null && MAIL_SECTIONS.includes(settingsStore.subsection)) return settingsStore.subsection;
+  if (settingsStore.section !== null && MAIL_SECTIONS.includes(settingsStore.section)) return settingsStore.section;
   return 'marca';
 }
 
 export const legacyConfigPages: NavigationStep = {
   name: 'v2.53 · notifications, company and plan have their own page; pages are loaded after switching',
   before: nav => {
-    if (nav.target === 'config' && CFG_SEC === 'notif') { PAG_TAB.perfil = 'notif'; CFG_SEC = 'rutas'; nav.target = 'perfil'; }
-    if (nav.target === 'config' && ['perfil', 'prefs'].includes(CFG_SEC ?? '')) CFG_SEC = 'rutas';
-    if (nav.target === 'config' && COMPANY_SECTIONS.includes(CFG_SEC ?? '')) { PAG_TAB.empresa = companyTab(); CFG_SEC = 'rutas'; nav.target = 'empresa'; }
-    if (nav.target === 'config' && CFG_SEC === 'plan') { CFG_SEC = 'rutas'; nav.target = 'plan'; }
+    if (nav.target === 'config' && settingsStore.section === 'notif') { navigationStore.pageTabs.perfil = 'notif'; settingsStore.section = 'rutas'; nav.target = 'perfil'; }
+    if (nav.target === 'config' && ['perfil', 'prefs'].includes(settingsStore.section ?? '')) settingsStore.section = 'rutas';
+    if (nav.target === 'config' && COMPANY_SECTIONS.includes(settingsStore.section ?? '')) { navigationStore.pageTabs.empresa = companyTab(); settingsStore.section = 'rutas'; nav.target = 'empresa'; }
+    if (nav.target === 'config' && settingsStore.section === 'plan') { settingsStore.section = 'rutas'; nav.target = 'plan'; }
   },
   after: target => { if (PAGINAS[target]) cargarPagina(target); },
 };
@@ -115,7 +118,7 @@ export const noFlashOnFastLoad: NavigationStep = {
     const section = screenSection();
     if (!section?.classList.contains('cargando')) return;
     section.classList.remove('cargando'); section.classList.add('cargando-pend');
-    if (PEND > 0) section.classList.add('cargando');
+    if (navigationStore.pendingReads > 0) section.classList.add('cargando');
     section.classList.remove('cargando-pend');
   },
 };

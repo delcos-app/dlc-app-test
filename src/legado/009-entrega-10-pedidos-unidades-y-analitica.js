@@ -4,4 +4,4 @@
    v2.424.0: fuera SIN_ATRIB (nadie la usaba).
    ============================================================ */
 
-let PRODUCTOS = [], PEDIDOS = [];
+ // v2.440.0: PRODUCTOS, PEDIDOS → estado de src/app (plan 6.6), accesible en window

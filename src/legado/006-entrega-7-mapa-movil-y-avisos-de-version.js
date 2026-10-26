@@ -4,6 +4,6 @@
    v2.424.0: la barra inferior, «Ver mapa» y el aviso de versión nueva están en src/app/core/legacy-a/shell-extras.ts.
    ============================================================ */
 
-let MODO_MAPA = false;
+ // v2.440.0: MODO_MAPA → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyA.listenToBottomBarAndMap();
 window.delcos.legacyA.watchNewVersion();

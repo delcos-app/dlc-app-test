@@ -6,7 +6,6 @@ declare const DIAS: readonly string[];
 declare function geoInversa(lat: number, lon: number): Promise<{ address?: Record<string, string | undefined>; display_name?: string } | null>;
 declare function estoyAqui(box: HTMLElement, index: string, button: HTMLElement): Promise<void>;
 declare function todosLos(word: string): string;
-declare let OPF: unknown;
-declare let USUARIOS: unknown[];
+
 declare function cargarAdmin(): Promise<void>;
 declare function asignarCartera(userId: string): Promise<void>;

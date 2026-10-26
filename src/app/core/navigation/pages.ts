@@ -7,6 +7,7 @@ import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
 import * as legacyFreeScreensSettingsExtra from '../../screens/settings/extra';
+import { navigationStore } from './store';
 
 /** [key, label, painter] of a page tab. */
 export type PageTab = [string, string, () => unknown];
@@ -33,7 +34,7 @@ export const PAGES: Record<string, PageDefinition> = {
 const byId = (id: string): HTMLElement | null => document.getElementById(id);
 
 const chosenTab = (screen: string, page: PageDefinition): string => {
-  const wanted = PAG_TAB[screen];
+  const wanted = navigationStore.pageTabs[screen];
   return page.tabs.some(tab => tab[0] === wanted) && wanted ? wanted : page.tabs[0]?.[0] ?? '';
 };
 
@@ -55,7 +56,7 @@ function sectionFor(screen: string): HTMLElement | null {
 
 /** The Panel delcos page shows the title and description of its section (v2.17x). */
 function platformTitle(): void {
-  const section = byId('v-delcos'), tab = PAG_TAB.delcos ?? 'orgs', found = PANEL_SECCIONES.find(item => item[1] === tab);
+  const section = byId('v-delcos'), tab = navigationStore.pageTabs.delcos ?? 'orgs', found = PANEL_SECCIONES.find(item => item[1] === tab);
   if (!section || !found) return;
   const title = section.querySelector('.saludo h1'), description = section.querySelector('.saludo .fecha');
   if (title) title.textContent = found[2] ?? '';
@@ -72,10 +73,10 @@ function buildPage(screen: string, page: PageDefinition): void {
   const tab = chosenTab(screen, page);
   section.innerHTML = headerHtml(screen, page, tab);
   section.querySelectorAll<HTMLElement>('.pagtabs [data-ptab]').forEach(button => {
-    button.onclick = (): void => { PAG_TAB[screen] = button.dataset.ptab; loadPage(screen); };
+    button.onclick = (): void => { navigationStore.pageTabs[screen] = button.dataset.ptab; loadPage(screen); };
   });
   void Promise.resolve().then(painterOf(page, tab));
-  if (screen === 'delcos' && MODO_PLATAFORMA) platformTitle();
+  if (screen === 'delcos' && navigationStore.platformMode) platformTitle();
 }
 
 /** Between tabs that are lists, the page stays: the tab is marked at once, the old list is dimmed and replaced when the new one arrives. */
@@ -93,7 +94,7 @@ function switchListTab(screen: string, page: PageDefinition, box: Element, tabs:
 export function loadPage(screen: string): unknown {
   const page = PAGES[screen]; if (!page) return undefined;
   const section = byId(`v-${screen}`), box = section?.querySelector('#cfgcuerpo'), tabs = section?.querySelector(':scope > .pagtabs');
-  if (BLQ[screen] && TAB === screen && box && tabs && section?.classList.contains('plantilla')) {
+  if (BLQ[screen] && navigationStore.screen === screen && box && tabs && section?.classList.contains('plantilla')) {
     const switched = switchListTab(screen, page, box, tabs);
     if (switched) return switched;
   }

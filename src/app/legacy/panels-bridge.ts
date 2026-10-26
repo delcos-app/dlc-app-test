@@ -5,23 +5,27 @@
  */
 import type { TableFilters } from './lists-bridge';
 import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import { homeStore } from '../screens/home/store';
+import { sessionStore } from '../core/session-store';
+import { productsStore } from '../screens/products/store';
+import { billingStore } from '../screens/billing/store';
 
 /** A column of the second panel «Columnas»: its index, name, whether it shows and whether it can be hidden. */
 export interface PanelColumn { i: number; n: string; on: boolean; fija: boolean }
 
 export const panelsLegacy = {
   /** Analítica tab: 'resumen' or 'explorar'. */
-  section: (): string => ANSEC,
-  setSection: (section: string): void => { ANSEC = section; },
+  section: (): string => homeStore.analyticsSection,
+  setSection: (section: string): void => { homeStore.analyticsSection = section; },
   reportFilter: (): string => AN_REP,
   setReportFilter: (value: string): void => { AN_REP = value; },
   seriesCache: (): Map<string, Promise<Record<string, unknown>[]>> => AN_SERIE,
-  setProfessional: (account: PickedAccount | null): void => { AN_MED = account ? { id: account.id, nombre: account.nombre ?? '' } : null; },
+  setProfessional: (account: PickedAccount | null): void => { homeStore.analyticsAccount = account ? { id: account.id, nombre: account.nombre ?? '' } : null; },
   /** The user's Analítica settings (preferencias.analitica). */
   analyticsPreferences: (): unknown => Reflect.get(prefsActivas(), 'analitica'),
-  profilePreferences: (): Record<string, unknown> => ((PERFIL as { preferencias?: Record<string, unknown> } | null)?.preferencias ?? {}),
-  setProfilePreferences: (preferences: Record<string, unknown>): void => { (PERFIL as { preferencias?: Record<string, unknown> }).preferencias = preferences; },
-  products: (): readonly CatalogProduct[] => PRODUCTOS,
+  profilePreferences: (): Record<string, unknown> => ((sessionStore.profile as { preferencias?: Record<string, unknown> } | null)?.preferencias ?? {}),
+  setProfilePreferences: (preferences: Record<string, unknown>): void => { (sessionStore.profile as { preferencias?: Record<string, unknown> }).preferencias = preferences; },
+  products: (): readonly CatalogProduct[] => productsStore.products,
   loadProducts: (): Promise<void> => cargarProductos(),
   stateWithRole: (role: string): string => estadoPapel(role),
   canUseModule: (screen: string): boolean => puedeModulo(screen),
@@ -30,12 +34,12 @@ export const panelsLegacy = {
   pickProfessional: (element: HTMLElement | null, options: { value: PickedAccount | null; placeholder: string; onPick: (account: PickedAccount) => void }): void => {
     selectorMedico(element, { valor: options.value, placeholder: options.placeholder, alElegir: options.onPick });
   },
-  professional: (): PickedAccount | null => AN_MED,
+  professional: (): PickedAccount | null => homeStore.analyticsAccount,
   /** The second panel with the columns of a table (legado 056/057/065). */
   columnsPanel: (title: string, columns: PanelColumn[], onChange: (index: number, on: boolean) => void): void => { legacyFreeCoreLegacyC.showColumnsPanel(title, columns, onChange); },
   /** Screens whose own filters move into the panel: id → selector (legado 074 adds some). */
   filterTargets: (): Readonly<Record<string, string | undefined>> => HT_FILTROS,
   tableFilters: (): Record<string, TableFilters | undefined> => HT_ESTADO,
   /** Facturación outside its invoices has no table to filter. */
-  billingSection: (): string | null => (typeof FSEC === 'undefined' ? null : FSEC),
+  billingSection: (): string | null => (typeof billingStore.section === 'undefined' ? null : billingStore.section),
 };

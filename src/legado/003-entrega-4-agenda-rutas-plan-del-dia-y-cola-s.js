@@ -9,10 +9,10 @@
 function pintarConexionBase() { window.delcos.legacyA.paintConnection(); }
 window.delcos.legacyA.watchConnection();
 
-let AG_MODO = 'dia', AG_FECHA = null;
+ // v2.440.0: AG_MODO, AG_FECHA → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyA.listenToAppointmentClicks();
 
-let RUTAS = [], PLAN = null;
+ // v2.440.0: RUTAS, PLAN → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyA.listenToRouteButtons();
 
 /* distancia aproximada en km entre dos puntos */

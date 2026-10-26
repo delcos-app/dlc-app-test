@@ -5,7 +5,7 @@
 
 const HT = ['15:00-19:00', '16:00-19:00', '16:00-20:00', '17:00-20:00'];
 
-let HERR_CTX = null;
+ // v2.440.0: HERR_CTX → estado de src/app (plan 6.6), accesible en window
 
 // Pantallas con filtros propios que pasan al panel (la búsqueda por texto sigue a la vista)
 const HT_FILTROS = { pacientes: '#v-pacientes .filtros', facturacion: '#v-facturacion .filtros', analitica: '#anper' };

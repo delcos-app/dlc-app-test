@@ -5,16 +5,16 @@
 
 // ---------- Estado compartido (lo leen o lo cambian otras partes y las pruebas por su nombre) ----------
 const ROLKEY = window.delcos.settingsCore.ROLES_KEY;
-let ROLES_DEF = [];   // legado 001 la rellena con la copia del dispositivo; cargarRoles con la de la base
-let AJUSTES = {};
-let ABRIR_PLAN_SEMANA = false;
-let LOGO_DATA = null;
-let PANEL_ACTIVO = null;
-let NOTIF_N = 0;
-let CFG_SUB = null;
-let CFG_DETALLE = false;
-let CFU_RAF = 0;
-let TX_OBS = 0;
+ // v2.440.0: ROLES_DEF → estado de src/app (plan 6.6), accesible en window   // legado 001 la rellena con la copia del dispositivo; cargarRoles con la de la base
+ // v2.440.0: AJUSTES → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: ABRIR_PLAN_SEMANA → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: LOGO_DATA → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: PANEL_ACTIVO → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: NOTIF_N → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: CFG_SUB → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: CFG_DETALLE → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: CFU_RAF → estado de src/app (plan 6.6), accesible en window
+ // v2.440.0: TX_OBS → estado de src/app (plan 6.6), accesible en window
 const CAMPOS = { medico: [], cliente: [], producto: [], pedido: [] };
 const PUESTA_EN_MARCHA = 490;
 const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };

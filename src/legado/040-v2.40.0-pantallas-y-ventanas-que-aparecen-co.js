@@ -11,7 +11,7 @@ Object.assign(RPC_TTL, { mis_alertas_descartadas: 30 });
 /* ---------------- carga en bloque ---------------- */
 
 // Módulos: al entrar, la pantalla se muestra entera cuando han llegado todos sus datos (el menú se ve siempre)
-let PEND = 0;
+ // v2.440.0: PEND → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyB.countPendingReads();
 
 /* ---------------- alertas: ocultar y recuperar ---------------- */

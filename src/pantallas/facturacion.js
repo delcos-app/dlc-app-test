@@ -8,13 +8,13 @@ function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true }));
 
 const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
 
-let FSEC = 'facturas';
+ // v2.440.0: FSEC → estado de src/app (plan 6.6), accesible en window
 
 const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 
 const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
 
-let FAC_ULTIMA = 'empresa';
+ // v2.440.0: FAC_ULTIMA → estado de src/app (plan 6.6), accesible en window
 
 /* v2.121.0 · Página «Organización» (menú de usuario, arriba): marca, correo, copias, plan y facturación de la empresa, solo para el
    Propietario (configurar_organizacion) y el Administrador de la plataforma (gestionar_plataforma). Empresa y Plan pasan a ser

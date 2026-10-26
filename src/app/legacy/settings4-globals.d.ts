@@ -11,8 +11,8 @@ declare function ivaDe(amount: number): number;
 declare function esInvitado(user: object): boolean;
 declare function queVeInvitado(user: object): string;
 declare function entrarComo(id: string): Promise<void>;
-declare let PROV_CCAA: Record<string, unknown> | null;
+
 declare const IDIOMAS: readonly (readonly [string, string])[];
-declare let IDIOMA: string;
+
 declare function aplicarIdioma(id: string): void;
 declare function pintarUsuarios2(): Promise<void>;

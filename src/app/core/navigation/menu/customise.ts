@@ -7,6 +7,8 @@ import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { MENU_GROUPS, menuGroups, menuPrefs } from './groups';
 import * as legacyFreeCoreServices from '../../services';
+import { sessionStore } from '../../session-store';
+import { navigationStore } from '../store';
 
 export interface Draft { orden: string[]; items: Record<string, string[]>; ocultos: string[] }
 /** The panel keeps its close function as `__cerrar`, as legacy did (the tests close it with it). */
@@ -59,8 +61,8 @@ const menuWith = (session: Session, draft: Draft): Record<string, unknown> => {
 /** Preview: the menu is built with what is in the panel; closing without saving goes back to what was saved. */
 function preview(session: Session): void {
   const draft = session.draft;
-  (PERFIL as { preferencias?: unknown }).preferencias = menuWith(session, { orden: [...draft.orden], items: JSON.parse(JSON.stringify(draft.items)) as Record<string, string[]>, ocultos: [...draft.ocultos] });
-  MENU_FIRMA = ''; montarMenuLateral();
+  (sessionStore.profile as { preferencias?: unknown }).preferencias = menuWith(session, { orden: [...draft.orden], items: JSON.parse(JSON.stringify(draft.items)) as Record<string, string[]>, ocultos: [...draft.ocultos] });
+  navigationStore.menuSignature = ''; montarMenuLateral();
 }
 
 /** «Personalizar menú»: out-of-plan sections locked, switched off and not counted in «N de M». */
@@ -89,7 +91,7 @@ export const moveItem = (draft: Draft, group: string, key: string, target: { key
 function close(session: Session): void {
   if (!document.getElementById('mlpanel')) return;
   session.box.remove(); detach(session);
-  if (!session.saved) { (PERFIL as { preferencias?: unknown }).preferencias = session.original; MENU_FIRMA = ''; montarMenuLateral(); }
+  if (!session.saved) { (sessionStore.profile as { preferencias?: unknown }).preferencias = session.original; navigationStore.menuSignature = ''; montarMenuLateral(); }
   document.getElementById('mlpers')?.focus();
 }
 
@@ -101,7 +103,7 @@ async function save(session: Session, button: HTMLButtonElement): Promise<void> 
   const { data, error } = await db.rpc<unknown>('guardar_preferencias', { p: prefs });
   button.disabled = false;
   if (error) { toast(t('navigationCore.menu.couldNotSave'), true); return; }
-  (PERFIL as { preferencias?: unknown }).preferencias = data ?? prefs; session.saved = true; close(session); MENU_FIRMA = ''; montarMenuLateral(); toast(t('navigationCore.menu.saved'));
+  (sessionStore.profile as { preferencias?: unknown }).preferencias = data ?? prefs; session.saved = true; close(session); navigationStore.menuSignature = ''; montarMenuLateral(); toast(t('navigationCore.menu.saved'));
 }
 
 function onClick(session: Session, event: MouseEvent): void {
@@ -147,7 +149,7 @@ export function customiseMenu(wireDrag: (session: { box: HTMLElement; draft: Dra
   menuGroups().forEach(group => { draft.items[group.id] = [...group.items]; });
   document.body.insertAdjacentHTML('beforeend', `<div id="mlpanel" class="mlp2" role="dialog" aria-label="${t('navigationCore.menu.customise')}"></div>`);
   const box = document.getElementById('mlpanel') as Panel | null; if (!box) return;
-  const session: Session = { box, draft, saved: false, original: (PERFIL as { preferencias?: unknown }).preferencias };
+  const session: Session = { box, draft, saved: false, original: (sessionStore.profile as { preferencias?: unknown }).preferencias };
   const outside = (event: MouseEvent): void => { if (!(event.target as Element).closest('#mlpanel, #mlpers')) close(session); };
   const escape = (event: KeyboardEvent): void => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(session); } };
   detach = (): void => { document.removeEventListener('click', outside, true); document.removeEventListener('keydown', escape, true); };

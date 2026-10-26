@@ -3,13 +3,13 @@
 // Aquí quedan el estado que leen y cambian otras partes, los objetos compartidos (los mismos que en src/app) y los nombres que usan el
 // legado, los puentes, «‹ Volver» y las pruebas.
 
-let TAB_ANTERIOR = 'inicio';
+ // v2.440.0: TAB_ANTERIOR → estado de src/app (plan 6.6), accesible en window
 
-let APP_VISIBLE = false;
+ // v2.440.0: APP_VISIBLE → estado de src/app (plan 6.6), accesible en window
 
 const PAGINAS = window.delcos.nav.PAGES;
 
-let VIA_IR = null;
+ // v2.440.0: VIA_IR → estado de src/app (plan 6.6), accesible en window
 
 let CLIC_PESTANA = null;
 

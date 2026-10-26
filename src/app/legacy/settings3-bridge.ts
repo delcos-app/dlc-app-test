@@ -4,6 +4,10 @@
  * in legacy state: the start-up, the bell and the menu read them.
  */
 import * as legacyFreeCoreSettings from '../core/settings';
+import { sessionStore } from '../core/session-store';
+import { settingsStore } from '../screens/settings/store';
+import { billingStore } from '../screens/billing/store';
+import { navigationStore } from '../core/navigation/store';
 export interface EmailProvider { n: string; host: string; puerto: number; seg: string; ayuda: string }
 export type NotificationType = readonly [string, string, string, string];
 export type NotificationArea = readonly [string, string, readonly string[]];
@@ -12,13 +16,13 @@ export interface FunctionResult<T> { data: T | null; error: unknown }
 interface Functions { invoke<T>(name: string, options: { body: unknown }): Promise<FunctionResult<T>> }
 
 interface Profile { id: string; nombre?: string; email?: string; preferencias?: Record<string, unknown> | null }
-const profile = (): Profile => PERFIL as Profile;
+const profile = (): Profile => sessionStore.profile as Profile;
 
 export const settingsExtraLegacy = {
   // Settings and profile
   loadSettings: (): Promise<void> => legacyFreeCoreSettings.loadSettings(),
-  setting: (key: string): unknown => AJUSTES[key],
-  setSetting: (key: string, value: unknown): void => { AJUSTES[key] = value; },
+  setting: (key: string): unknown => settingsStore.settings[key],
+  setSetting: (key: string, value: unknown): void => { settingsStore.settings[key] = value; },
   profileName: (): string => profile().nombre ?? '',
   profileEmail: (): string => profile().email ?? '',
   preferences: (): Record<string, unknown> => profile().preferencias ?? {},
@@ -36,27 +40,27 @@ export const settingsExtraLegacy = {
   sendTestEmail: (): Promise<FunctionResult<{ ok?: boolean; error?: string }>> =>
     (db as unknown as { functions: Functions }).functions.invoke('enviar_email', { body: { prueba: true } }),
   /** Template chosen when sending (shared with Pedidos and Facturación). */
-  chosenTemplate: (use: string): string | null => (PLANT_ELEGIDA[use] as string | null | undefined) ?? null,
-  chooseTemplate: (use: string, id: string | null): void => { PLANT_ELEGIDA[use] = id; },
+  chosenTemplate: (use: string): string | null => (billingStore.chosenTemplates[use] as string | null | undefined) ?? null,
+  chooseTemplate: (use: string, id: string | null): void => { billingStore.chosenTemplates[use] = id; },
   // Notifications
   notificationAreas: (): readonly NotificationArea[] => NOTIF_AREAS,
   dailyNotifications: (): readonly string[] => NOTIF_DIARIOS,
   areaOf: (type: string): string => legacyFreeCoreSettings.notificationArea(type),
   iconOf: (type: string): string => legacyFreeCoreSettings.notificationIcon(type),
   typesForMyRole: (): readonly NotificationType[] => tiposDeMiRol(),
-  unread: (): number => NOTIF_N,
-  setUnread: (count: number): void => { NOTIF_N = count; },
+  unread: (): number => settingsStore.notificationCount,
+  setUnread: (count: number): void => { settingsStore.notificationCount = count; },
   refreshBell: (): void => { void refrescarCampana(); },
   icon: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   followLink: (link: string): void => { void irEnlace(link); },
   newSale: (preset: Record<string, unknown>): void => { void nuevaVenta(preset); },
   recordVisit: (accountId: string): void => { void abrirVisita(accountId); },
-  openNotificationSettings: (): void => { CFG_SEC = 'notif'; (window as unknown as { __CFG_DIRECTO?: boolean }).__CFG_DIRECTO = true; void ir('config'); },
+  openNotificationSettings: (): void => { settingsStore.section = 'notif'; (window as unknown as { __CFG_DIRECTO?: boolean }).__CFG_DIRECTO = true; void ir('config'); },
   // Menu names
   menuNames: (): Record<string, string> => menuNombres(),
   menuExcluded: (): readonly string[] => MENU_FUERA,
   moduleIcon: (module: string): string | undefined => ICO_MOD[module],
   menuText: (button: Element): { get: () => string } | null => txTexto(button),
-  applyMenuNames: (): void => { aplicarNombresMenu(); MENU_FIRMA = ''; try { montarMenuLateral(); pintarBnav(); } catch { /* the menu repaints later */ } },
+  applyMenuNames: (): void => { aplicarNombresMenu(); navigationStore.menuSignature = ''; try { montarMenuLateral(); pintarBnav(); } catch { /* the menu repaints later */ } },
   applyLabel: (): void => { aplicarEtiqueta(); },
 };

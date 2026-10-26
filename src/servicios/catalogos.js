@@ -5,4 +5,4 @@
 // Catálogos por su papel en la plataforma (clasificadores.papel), nunca por la clave que les ponga cada cliente
 const CAT = { resultado_visita: [], especialidad: [], area: [], motivo_urgencia: [], forma_pago: [] };
 
-let PROV_CCAA = null;
+ // v2.440.0: PROV_CCAA → estado de src/app (plan 6.6), accesible en window

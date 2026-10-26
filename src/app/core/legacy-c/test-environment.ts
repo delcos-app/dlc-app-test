@@ -4,6 +4,7 @@
  */
 import { t } from '../../i18n';
 import { byId } from './dom';
+import { navigationStore } from '../navigation/store';
 
 const STRIP_DELAY_MS = 120;
 type Painter = () => unknown;
@@ -51,7 +52,7 @@ function paintMarker(): void {
   logo.insertAdjacentHTML('afterend', `<button type="button" id="indpruebas" class="indpruebas" title="${t('legacyC.testEnvironment.markerHint')}">${t('legacyC.testEnvironment.marker')}</button>`);
   const marker = byId('indpruebas');
   if (marker) marker.onclick = (): void => {
-    if (puedeOrganizacion()) { PAG_TAB.organizacion = 'pruebas'; ir('organizacion'); } else toast(t('legacyC.testEnvironment.markerHint'));
+    if (puedeOrganizacion()) { navigationStore.pageTabs.organizacion = 'pruebas'; ir('organizacion'); } else toast(t('legacyC.testEnvironment.markerHint'));
   };
 }
 

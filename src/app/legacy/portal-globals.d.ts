@@ -6,5 +6,5 @@ declare function nombrePDF(invoice: object): string;
 declare function svgDonut(items: { n: string; v: number }[]): string;
 declare function mesesEntre(from: string, to: string): string[];
 declare function skelCard(title: string): string;
-declare let PLAN_ACTUAL: Record<string, unknown>;
+
 declare const NOMBRE_ESTADO_CENTRO: Record<string, string>;

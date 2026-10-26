@@ -5,6 +5,8 @@
 import { t } from '../../i18n';
 import { byId, closestTo } from './dom';
 import * as legacyFreeCoreLegacyC from './';
+import { navigationStore } from '../navigation/store';
+import { sessionStore } from '../session-store';
 
 const COVER_MAX_MS = 9000, CHECK_EVERY_MS = 60, CHECKS = 80, REVEAL_STEP_MS = 100, REVEAL_STEPS = 30;
 
@@ -30,7 +32,7 @@ async function finishWhenReady(): Promise<void> {
   try { await pagoCargarEstado(); } catch { /* the cover goes anyway */ }
   try { await franjaVista(); } catch { /* the cover goes anyway */ }
   try { legacyFreeCoreLegacyC.applyPlatformMode(); } catch { /* the cover goes anyway */ }
-  if (MODO_PLATAFORMA && TAB !== 'delcos') ir('pd-orgs');
+  if (navigationStore.platformMode && navigationStore.screen !== 'delcos') ir('pd-orgs');
   // Waits until the screen has revealed its data (3 s at most)
   for (let step = 0; step < REVEAL_STEPS; step++) { await pause(REVEAL_STEP_MS); if (!document.querySelector('main > section.preparando, main > section.cargando')) break; }
 }
@@ -45,7 +47,7 @@ export function finishOrganizationChange(): void {
   let tries = 0;
   const timer = setInterval(() => {
     if (++tries > CHECKS) { clearInterval(timer); return; }
-    if (!(typeof PERFIL !== 'undefined' && PERFIL && !document.body.classList.contains('sin-sesion') && typeof RPC_ORIG === 'function')) {
+    if (!(sessionStore.profile && !document.body.classList.contains('sin-sesion') && typeof RPC_ORIG === 'function')) {
       if (!byId('login')?.classList.contains('hide')) { clearInterval(timer); clearTimeout(limit); finish(); }
       return;
     }

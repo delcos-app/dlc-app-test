@@ -1,3 +1,5 @@
+import { navigationStore } from '../navigation/store';
+import { sessionStore } from '../session-store';
 /** Small DOM helpers of the folded legacy layers 050–079 (v2.425.0). */
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- the caller names the element type, as with querySelector<T>()
@@ -31,7 +33,7 @@ export const matchingIn = <T extends Element = HTMLElement>(node: Element, selec
   [...(node.matches(selector) ? [node as T] : []), ...node.querySelectorAll<T>(selector)];
 
 /** The section of the current screen (#v-<screen>). */
-export const currentSection = (): HTMLElement | null => byId(`v-${TAB}`);
+export const currentSection = (): HTMLElement | null => byId(`v-${navigationStore.screen}`);
 
 /** Waits until there is a session (PERFIL and RPC_ORIG ready), checking every `everyMs`, at most `times` times. */
 export function whenSignedIn(then: () => void, everyMs: number, times: number): void {
@@ -42,4 +44,4 @@ export function whenSignedIn(then: () => void, everyMs: number, times: number): 
 }
 
 export const signedIn = (): boolean =>
-  typeof PERFIL !== 'undefined' && Boolean(PERFIL) && !document.body.classList.contains('sin-sesion') && typeof RPC_ORIG === 'function';
+  Boolean(sessionStore.profile) && !document.body.classList.contains('sin-sesion') && typeof RPC_ORIG === 'function';

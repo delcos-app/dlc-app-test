@@ -7,12 +7,13 @@ import { t, type MessageKey } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { byId } from './dom';
 import * as legacyFreeCoreServices from '../services';
+import { settingsStore } from '../../screens/settings/store';
 
 const NOTE_CHARS = 180;
 
 function previewHtml(): string {
   const value = (key: string): string => (byId<HTMLInputElement>(`em_${key}`)?.value ?? '').trim();
-  const brand = (AJUSTES.marca ?? {}) as { logo_factura?: boolean };
+  const brand = (settingsStore.settings.marca ?? {}) as { logo_factura?: boolean };
   const logo = MARCA.logo && brand.logo_factura !== false;
   const address = [value('direccion'), [value('cp'), value('municipio') || value('poblacion')].filter(Boolean).join(' '), value('provincia')].filter(Boolean).join(', ');
   const note = (document.querySelector<HTMLTextAreaElement>('#fcuerpo textarea')?.value ?? '').slice(0, NOTE_CHARS);

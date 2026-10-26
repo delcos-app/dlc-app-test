@@ -18,6 +18,6 @@
 
 /* ---------------- idiomas ---------------- */
 
-let MAPA_I18N = null;   // (IDIOMA está en nucleo/idioma.js)
+ // v2.440.0: MAPA_I18N → estado de src/app (plan 6.6), accesible en window   // (IDIOMA está en nucleo/idioma.js)
 window.delcos.legacyB.watchTranslations();
 // Selector de idioma en Mi perfil

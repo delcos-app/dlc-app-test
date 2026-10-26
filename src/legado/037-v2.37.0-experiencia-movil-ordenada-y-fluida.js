@@ -8,7 +8,7 @@
 
 /* ---------------- navegación: cada cambio de módulo descarta lo pendiente ---------------- */
 
-let NAV_CTRL = new AbortController(), NAV_GEN = 0;
+ // v2.440.0: NAV_CTRL, NAV_GEN → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyB.keepLatestAnswers();
 window.delcos.legacyB.hideForeignViews();
 
@@ -19,7 +19,7 @@ window.delcos.legacyB.preparePickerLayer();
 
 /* ---------------- rendimiento: los campos se mejoran por lotes ---------------- */
 
-let MEJ_PEND = new Set(), MEJ_RAF = 0;
+ // v2.440.0: MEJ_PEND, MEJ_RAF → estado de src/app (plan 6.6), accesible en window
 
 /* ---------------- barra de herramientas ordenada en el móvil ---------------- */
 

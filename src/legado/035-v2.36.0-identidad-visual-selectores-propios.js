@@ -10,7 +10,7 @@ Object.assign(RPC_TTL, { informe_cuenta: 60, mis_notificaciones: 20, asignacione
 
 /* ---------------- selectores propios: fecha, hora y número ---------------- */
 
-let SELPOP = null, LOGO_CIRC = false;
+ // v2.440.0: SELPOP, LOGO_CIRC → estado de src/app (plan 6.6), accesible en window
 
 // (v2.183.0: aquí iba la primera versión de abrirCalendario; se redefine entera más abajo)
 

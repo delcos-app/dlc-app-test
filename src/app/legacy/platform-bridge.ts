@@ -2,6 +2,8 @@ import * as components from '../components';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
 import * as legacyFreeScreensSettings from '../screens/settings';
+import { sessionStore } from '../core/session-store';
+import { navigationStore } from '../core/navigation/store';
 /**
  * Bridge of Panel delcos to the legacy code (kept apart from bridge.ts, which is at its size limit): the plans, the billing state
  * helpers shared with Plan (pedidos.js), the dialogs, the environment and the Configuración editors the template reuses.
@@ -14,14 +16,14 @@ export const platformLegacy = {
   planLosses: (from: string, to: string, data: { extras: string[]; facturas: boolean }): string[] => perdidasPlan(from, to, data),
   planRank: (id: string): number => rangoPlan(id),
   /** The platform's own plan may have changed. */
-  reloadPlan: async (): Promise<void> => { const { data } = await RPC_ORIG<{ plan?: Record<string, unknown> }>('plan_uso', {}); if (data?.plan) PLAN_ACTUAL = data.plan; },
+  reloadPlan: async (): Promise<void> => { const { data } = await RPC_ORIG<{ plan?: Record<string, unknown> }>('plan_uso', {}); if (data?.plan) sessionStore.plan = data.plan; },
   askText: (message: string, value: string, options: { titulo: string; ok: string }): Promise<string | null> => components.askText(message, value, options),
   prepareOrganizationChange: (name: string): void => { prepararCambioOrg(name); },
-  hasProfile: (): boolean => Boolean(PERFIL),
+  hasProfile: (): boolean => Boolean(sessionStore.profile),
   can: (capability: string): boolean => puede(capability),
   appVersion: (): string => VERSION_APP,
   isTestEnvironment: (): boolean => EN_PRUEBAS,
-  panelTab: (): string | undefined => PAG_TAB.delcos,
+  panelTab: (): string | undefined => navigationStore.pageTabs.delcos,
   skeleton: (): string => pdEsqueleto(),
   kpis: (figures: [string | number, string, string?][]): string => pdKpis(figures),
   billingState: (organization: object): BillingState => pdCobroEstado(organization),

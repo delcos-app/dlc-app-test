@@ -15,9 +15,9 @@
 // (sin fondo oscuro ni ventana flotante); al cerrarla vuelve el apartado. En el móvil las ventanas ya ocupan la pantalla.
 
 
-let DATOS_CAMBIADOS = false;
+ // v2.440.0: DATOS_CAMBIADOS → estado de src/app (plan 6.6), accesible en window
 
-let ULT_ACCION = 0;
+ // v2.440.0: ULT_ACCION → estado de src/app (plan 6.6), accesible en window
 
 
 

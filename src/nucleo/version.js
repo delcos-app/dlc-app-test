@@ -8,4 +8,4 @@ function comprobarVersion() { return window.delcos.core.live.checkVersion(); }
    el buscador no encontraba nada hasta Ctrl+F5). Al volver a la pestaña y cada 10 minutos se mira qué versión está publicada (index.html sin caché);
    si es otra, la app se recarga sola cuando no hay nada a medias (ninguna ventana abierta ni un campo con el cursor) o, si lo hay, enseña el aviso
    «Hay una versión nueva» para que se recargue al terminar. */
-let VERSION_VISTA = 0;
+ // v2.440.0: VERSION_VISTA → estado de src/app (plan 6.6), accesible en window

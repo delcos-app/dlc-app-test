@@ -7,6 +7,9 @@ import { t } from '../../i18n';
 import { navLegacy } from '../../legacy/nav-bridge';
 import * as legacyFreeCoreServices from '../services';
 import * as legacyFreeCoreSettings from '../settings';
+import { settingsStore } from '../../screens/settings/store';
+import { sessionStore } from '../session-store';
+import { navigationStore } from '../navigation/store';
 
 const RETRIES = 2, RETRY_WAIT_MS = 1500, NOT_FOUND = 'PGRST116', MOBILE_QUERY = '(max-width: 760px)';
 
@@ -54,17 +57,17 @@ async function refuse(profile: Profile | null): Promise<void> {
 
 async function enter(profile: Profile, saved: Profile | null, roles: Promise<unknown>): Promise<void> {
   try { localStorage.setItem(PKEY, JSON.stringify(profile)); } catch { /* not remembered on this device */ }
-  if (!(await roles) && !(ROLES_DEF.length && ESTADOS_DEF.length)) await cargarRoles().catch(() => false);
+  if (!(await roles) && !(settingsStore.roles.length && sessionStore.commercialStates.length)) await cargarRoles().catch(() => false);
   const changed = !saved || JSON.stringify(saved) !== JSON.stringify(profile);
-  if (!APP_VISIBLE) mostrarApp(profile);
-  else if (changed) { mostrarApp(profile); if (TAB === 'inicio') void cargarInicio(); }
+  if (!navigationStore.appVisible) mostrarApp(profile);
+  else if (changed) { mostrarApp(profile); if (navigationStore.screen === 'inicio') void cargarInicio(); }
   Promise.resolve(db.rpc('registrar_acceso', { p_evento: 'Entrada', p_agente: navigator.userAgent })).catch(() => undefined);
 }
 
 /** Starts the app with the session. With the recovery link the platform neither starts nor paints. */
 /** The saved profile shows the app at once, if roles and states are already loaded. */
 function showSaved(saved: Profile | null): void {
-  if (saved && ROLES_DEF.length && ESTADOS_DEF.length && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) { mostrarApp(saved); marca('app visible con el perfil guardado'); }
+  if (saved && settingsStore.roles.length && sessionStore.commercialStates.length && localStorage.getItem('dlc-os-sesion') && !navigationStore.appVisible) { mostrarApp(saved); marca('app visible con el perfil guardado'); }
 }
 
 export async function start(): Promise<void> {
@@ -75,7 +78,7 @@ export async function start(): Promise<void> {
   const { data: { session } } = await navLegacy.auth().getSession();
   marca('sesión comprobada');
   if (!session) {
-    if (!navigator.onLine && saved && APP_VISIBLE) return;   // v2.259.0: offline, the saved profile goes on
+    if (!navigator.onLine && saved && navigationStore.appVisible) return;   // v2.259.0: offline, the saved profile goes on
     localStorage.removeItem(PKEY); mostrarLogin(); return;
   }
   const roles = cargarRoles().catch(() => false);
@@ -98,7 +101,7 @@ export function openApp(): void {
   if (RECUPERANDO) pantallaRecuperacion();
   pintarBnav(); pintarConexion(); vaciarCola();
   void start();
-  if (PERFIL) menuOrganizacion();
+  if (sessionStore.profile) menuOrganizacion();
   // Back from Stripe (v2.167.0): if the app already entered (saved profile), it goes to «Plan y suscripción»
-  if (PAGO_IR_PLAN && PERFIL) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);
+  if (PAGO_IR_PLAN && sessionStore.profile) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);
 }

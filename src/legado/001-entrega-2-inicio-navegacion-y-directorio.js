@@ -21,7 +21,7 @@ const RE_NEUTRAS = new RegExp('"(' + Object.keys(CLAVES_NEUTRAS).join('|') + ')"
 
 const db = window.supabase.createClient(CFG.url, CFG.anon, window.delcos.legacyA.databaseOptions());
 
-let PERFIL = null, TAB = 'inicio';
+ // v2.440.0: PERFIL, TAB → estado de src/app (plan 6.6), accesible en window
 
 TERMINOS = window.delcos.legacyA.storedObject(TERMKEY);
 ROLES_DEF = window.delcos.legacyA.storedList(ROLKEY);

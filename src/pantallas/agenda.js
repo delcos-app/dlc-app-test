@@ -64,14 +64,14 @@ const JKEY = () => 'dlc-jornada-' + (PERFIL ? PERFIL.id : '');
 
 const xyCita = c => c.lat != null && c.lon != null ? [+c.lat, +c.lon] : null;
 
-let TD_CITAS = [];
+ // v2.440.0: TD_CITAS → estado de src/app (plan 6.6), accesible en window
 
-let TD_INFO = {};
+ // v2.440.0: TD_INFO → estado de src/app (plan 6.6), accesible en window
 
-let AG_VISTA = null;   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
+ // v2.440.0: AG_VISTA → estado de src/app (plan 6.6), accesible en window   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
 
 // Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
-let TD_PARADAS = [];
+ // v2.440.0: TD_PARADAS → estado de src/app (plan 6.6), accesible en window
 
 /* v2.143.0 · Agenda en una sola pantalla (decisión de Eric, 3/10/2026): sin flechas ni Día/Semana/Mes. Arriba, una línea fina con
    cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
@@ -91,7 +91,7 @@ let AG_SEMANA = null;
 
 // ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
 // Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
-let TAREAS_DIA = null;
+ // v2.440.0: TAREAS_DIA → estado de src/app (plan 6.6), accesible en window
 
 /* v2.220.0: la pastilla «Pendientes» y las líneas de aviso usaban la clase .av, que es la del avatar redondo de la app (salía un círculo
    cortado en lugar de la pastilla): ahora .agp-pend y .tdav.
@@ -108,7 +108,7 @@ const citaAnulada = e => EST_COL[e] === 'var(--muted)';
 
 const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
 
-let CINTA_INI = null;
+ // v2.440.0: CINTA_INI → estado de src/app (plan 6.6), accesible en window
 
 /* v2.229.0 · Agenda en una sola pantalla (decisión de Eric, 10/10/2026: variante B de https://claude.ai/artifact/7iht52N5whHBhAueRH7pso).
    - Cinta: cada día lleva su «⋯» (nueva cita, ver el día, bloquear o desbloquear: festivo, vacaciones, formación…) y los bloqueados se ven
@@ -119,7 +119,7 @@ let CINTA_INI = null;
      «+ Cita» de siempre). «Les toca visita» y «Pendientes de días anteriores» pasan a dos bandejas con su número bajo «Tu día», que abren el
      panel lateral con su lista.
    - La columna derecha es «Tu semana» (#agsemlat): día a día con sus citas, su «⋯» y «Repartir la semana». */
-let AG_SEM_ABIERTA = false;
+ // v2.440.0: AG_SEM_ABIERTA → estado de src/app (plan 6.6), accesible en window
 
 const citaHecha = e => EST_COL[e] === 'var(--ok)';
 

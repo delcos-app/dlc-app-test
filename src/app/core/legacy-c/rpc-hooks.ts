@@ -5,6 +5,8 @@
  * 053, 057, 059 and 076 (v2.425.0).
  */
 import * as legacyFreeCoreLegacyC from './';
+import { sessionStore } from '../session-store';
+import { navigationStore } from '../navigation/store';
 interface RpcAnswer { data?: unknown; error?: { message?: string; code?: string } | null }
 type Rpc = (name: string, params?: unknown, options?: unknown) => unknown;
 type Invoke = (name: string, options?: { body?: { accion?: string } }, ...rest: unknown[]) => Promise<{ data?: { ok?: boolean; proximo?: unknown } | null }>;
@@ -65,7 +67,7 @@ export function countWrites(): void {
   const original = client().rpc;
   client().rpc = (name, params, options) => {
     const result = original.call(db, name, params, options);
-    if (ES_ESCRITURA.test(name) && isThenable(result)) Promise.resolve(result).then(answer => { if (!answer.error) ESCRITURAS++; }, () => undefined);
+    if (ES_ESCRITURA.test(name) && isThenable(result)) Promise.resolve(result).then(answer => { if (!answer.error) sessionStore.writes++; }, () => undefined);
     return result;
   };
 }
@@ -123,7 +125,7 @@ const firstText = (...texts: (string | null | undefined)[]): string => texts.fin
 export function recordTrail(): void {
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target.closest<HTMLElement>('button, a, [data-t], [data-cfg], .dr, .trow') : null; if (!target) return;
-    RASTRO.push({ t: new Date().toISOString().slice(11, 19), pantalla: TAB, que: firstText(target.getAttribute('aria-label'), target.title, target.textContent).trim().replace(/\s+/g, ' ').slice(0, TRAIL_TEXT) });
+    RASTRO.push({ t: new Date().toISOString().slice(11, 19), pantalla: navigationStore.screen, que: firstText(target.getAttribute('aria-label'), target.title, target.textContent).trim().replace(/\s+/g, ' ').slice(0, TRAIL_TEXT) });
     if (RASTRO.length > TRAIL_LENGTH) RASTRO.shift();
   }, true);
 }

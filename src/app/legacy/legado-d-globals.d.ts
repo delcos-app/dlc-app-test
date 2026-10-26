@@ -15,33 +15,29 @@ declare function abrirManual(anchor: string): void;
 declare function aplicarPermisosMenuBase9(...args: unknown[]): unknown;
 declare function cargarAdminBase(...args: unknown[]): unknown;
 declare const CFG_PULIR: string[];
-declare let CFU_RAF: number;
+
 declare function congelar(element: HTMLElement | null): void;
 declare function cfgSecDespertar(section: HTMLElement): unknown;
 declare function cfgClonarEstilos(): unknown;
 declare function pagActual(): { cuerpo: HTMLElement } | null;
 declare const PAG_NO_CAMBIA: string;
 declare function pagBloque(element: Element, body: HTMLElement): Element;
-declare let PAG_GUARDA_RAF: number;
+
 declare const PAG_GUARDA: readonly { tab: string }[];
 declare function pagPonerGuardar(): void;
 declare function fichaCentro(id: string): Promise<void>;
-declare let ULT_ACCION: number;
+
 declare const VISTA_TITULO: Readonly<Record<string, string>>;
-declare let VUELTA_CLIC: { d: Element; t: number } | null;
-declare let VUELTA_REABRIENDO: boolean;
-declare let VUELTA_PONER: boolean;
+
 declare function vistaIgual(first: unknown, second: unknown): boolean;
 declare function vistaDlg(): HTMLDialogElement | null;
 declare function vistaBoton(view: unknown, dialog?: HTMLDialogElement): void;
-declare let RED_VUELO: number;
-declare let RED_ULT: number;
+
 declare function esBotonGuardar(button: HTMLButtonElement | null): unknown;
 declare function subirAviso(): void;
 declare function ordMemOrdenar(kind: string, rows: unknown[]): unknown[];
 declare function refrescarDebajo(): void;
-declare let DATOS_CAMBIADOS: boolean;
-declare let PDF_EDITANDO: string | null;
+
 declare function listaPDF(): { lista: { id: string; cfg?: unknown }[]; defecto: string };
 declare function guardarPDFPlantillas(templates: { lista: unknown[]; defecto: string }): Promise<boolean>;
 declare function htMarcarCabecera(grid: Element): void;
@@ -61,7 +57,7 @@ declare function estimarDiaBase2(appointments: unknown, isoDate: string, ...rest
 declare function tdRutaDia(appointments: unknown, isoDate: string): { k: string } | null;
 declare function tdPonerReal(route: { k: string }, result: unknown): unknown;
 declare function alternarUrgenteBase(id: string, ...rest: unknown[]): Promise<unknown>;
-declare let TX_OBS: number;
+
 declare function aplicarEtiquetaBase(...args: unknown[]): unknown;
 declare const LISTA_PARA: Record<string, ((section: HTMLElement) => boolean) | undefined>;
 declare function inicioCabecera(): void;
@@ -73,13 +69,13 @@ declare function montarPeriodoBase(element: HTMLElement | null, ...rest: unknown
 declare function filtrosRestaurar(root: HTMLElement | null): void;
 declare function sinCargoP(order: unknown, total: unknown): unknown;
 declare function pillPaso(order: unknown): string;
-declare let FAB_RZ: number;
+
 declare function fabAOrdenador(): void;
 declare function plSync(screen: string): void;
 declare function pintarConexionBase(...args: unknown[]): unknown;
 declare function colaGuardar(queue: unknown[]): void;
 declare const COLA_KO: string;
-declare let ESC_PEND: boolean;
+
 declare function ojoClave(input: HTMLInputElement): void;
 declare function comprobarAcceso(force?: boolean): Promise<void>;
 declare function avisosEnVivo(): void;

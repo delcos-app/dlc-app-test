@@ -4,6 +4,10 @@
  * the permissions and other screens read them.
  */
 import * as legacyFreeCoreSettings from '../core/settings';
+import { settingsStore } from '../screens/settings/store';
+import { homeStore } from '../screens/home/store';
+import { sessionStore } from '../core/session-store';
+import { ordersStore } from '../screens/orders/store';
 export interface UserRow {
   id: string; nombre: string; email?: string | null; usuario?: string; rol: string; activo?: boolean; areas?: Record<string, number> | null;
   cartera?: number; visitas_mes?: number; ultima_actividad?: string | null; medico?: string | null; cuenta?: string | null; cuenta_id?: string | null;
@@ -28,8 +32,8 @@ interface SignUpClient { auth: { signUp: (data: object) => Promise<{ data: { use
 interface Profile { id: string; nombre: string; email?: string; rol: string; telefono?: string; preferencias?: Record<string, unknown> | null }
 
 export const usersLegacy = {
-  list: (): UserRow[] => USUARIOS as UserRow[],
-  setList: (list: UserRow[]): void => { USUARIOS = list; },
+  list: (): UserRow[] => settingsStore.users as UserRow[],
+  setList: (list: UserRow[]): void => { settingsStore.users = list; },
   setConnections: (connections: Record<string, Connection>): void => { USR_ACC = connections; },
   connections: (): Record<string, Connection> => (USR_ACC ?? {}) as Record<string, Connection>,
   role: (name: string): RoleDef | null => legacyFreeCoreSettings.roleDefinition(name) as RoleDef | null,
@@ -46,12 +50,12 @@ export const usersLegacy = {
   impersonate: (id: string): void => { void entrarComo(id); },
   assignPortfolio: (id: string): void => { void asignarCartera(id); },
   reloadAdmin: (): void => { void cargarAdmin(); },
-  schemes: (): Scheme[] => ESQUEMAS as Scheme[],
-  setSchemes: (list: Scheme[]): void => { ESQUEMAS = list; },
-  provinces: (): Record<string, { p: string; n: number }[]> | null => PROV_CCAA as Record<string, { p: string; n: number }[]> | null,
-  setProvinces: (value: Record<string, { p: string; n: number }[]>): void => { PROV_CCAA = value; },
+  schemes: (): Scheme[] => homeStore.commissionSchemes as Scheme[],
+  setSchemes: (list: Scheme[]): void => { homeStore.commissionSchemes = list; },
+  provinces: (): Record<string, { p: string; n: number }[]> | null => sessionStore.provinces as Record<string, { p: string; n: number }[]> | null,
+  setProvinces: (value: Record<string, { p: string; n: number }[]>): void => { sessionStore.provinces = value; },
   /** Configuración's open section (Usuarios repaints its list after creating or deleting). */
-  section: (): string | null => CFG_SEC,
+  section: (): string | null => settingsStore.section,
   settingsKey: (): string => CFG_KEY,
   /** Usuarios repaints through its legacy name (the page tabs and the tree of Configuración use it). */
   repaintList: (): void => { void pintarUsuarios2(); },
@@ -66,8 +70,8 @@ export const usersLegacy = {
 };
 
 export const planLegacy = {
-  current: (): CurrentPlan => (PLAN_ACTUAL as CurrentPlan | null) ?? {},
-  setCurrent: (plan: CurrentPlan): void => { PLAN_ACTUAL = plan as Record<string, unknown>; },
+  current: (): CurrentPlan => (sessionStore.plan as CurrentPlan | null) ?? {},
+  setCurrent: (plan: CurrentPlan): void => { sessionStore.plan = plan as Record<string, unknown>; },
   of: (id: string | null | undefined): PlanDef => planDe(id) as PlanDef,
   all: (): readonly PlanDef[] => PLANES as readonly PlanDef[],
   contractedUsers: (): number => legacyFreeCoreSettings.contractedUsers(),
@@ -75,7 +79,7 @@ export const planLegacy = {
   rows: (): readonly PlanRow[] => PLAN_FILAS() as readonly PlanRow[],
   moduleAreas: (): Readonly<Record<string, string | undefined>> => MODULO_AREA,
   paymentPlans: (): readonly string[] => PAGO_PLANES,
-  paymentState: (): { usuarios?: number; medicos?: number } => (PAGO_ESTADO ?? {}) as { usuarios?: number; medicos?: number },
+  paymentState: (): { usuarios?: number; medicos?: number } => (ordersStore.paymentState ?? {}) as { usuarios?: number; medicos?: number },
   needs: (): readonly (readonly [string, string])[] => PRESU_NECESITA,
   whenOptions: (): readonly string[] => PRESU_CUANDO,
   requestState: (state: string): string => PRESU_ESTADO[state] ?? state,
@@ -85,13 +89,13 @@ export const planLegacy = {
   sectionTitle: (section: string): string | undefined => TITULO_PEDSEC[section]?.[0],
   vatOf: (amount: number): number => ivaDe(amount),
   euros: (value: number): string => eurI(value),
-  brandName: (): string => ((AJUSTES.marca ?? {}) as { nombre?: string }).nombre ?? '',
+  brandName: (): string => ((settingsStore.settings.marca ?? {}) as { nombre?: string }).nombre ?? '',
 };
 
 export const profileLegacy = {
-  me: (): Profile => PERFIL as Profile,
+  me: (): Profile => sessionStore.profile as Profile,
   languages: (): readonly (readonly [string, string])[] => IDIOMAS,
-  language: (): string => IDIOMA,
+  language: (): string => sessionStore.language,
   applyLanguage: (id: string): void => { aplicarIdioma(id); },
   canOpenModule: (screen: string): boolean => puedeModulo(screen),
   sendPasswordLink: (email: string): Promise<{ error: { message?: string } | null }> =>

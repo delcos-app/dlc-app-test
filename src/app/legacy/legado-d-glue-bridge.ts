@@ -7,6 +7,14 @@ import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 import * as legacyFreeCoreLegacyC from '../core/legacy-c';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import { agendaStore } from '../screens/agenda/store';
+import { navigationStore } from '../core/navigation/store';
+import { sessionStore } from '../core/session-store';
+import { routesStore } from '../screens/routes/store';
+import { settingsStore } from '../screens/settings/store';
+import { accountsStore } from '../screens/accounts/store';
+import { ordersStore } from '../screens/orders/store';
+import { productsStore } from '../screens/products/store';
 
 type AnyFunction = (...args: unknown[]) => unknown;
 const globals = window as unknown as Record<string, unknown>;
@@ -18,26 +26,26 @@ function wrapGlobal(name: string, wrapper: (original: AnyFunction) => AnyFunctio
 
 export const agendaGlueLegacy = {
   closeMonth: (): void => { cerrarMesCinta(); },
-  dayAppointments: (): AgendaAppointment[] => TD_CITAS,
+  dayAppointments: (): AgendaAppointment[] => agendaStore.dayAppointments,
   openAppointment: (appointment: AgendaAppointment): void => { void verCita(appointment); },
-  mode: (): string => AG_MODO,
+  mode: (): string => agendaStore.mode,
   backToDay: (): void => {
-    AG_MODO = 'dia'; AG_VISTA = null;
+    agendaStore.mode = 'dia'; agendaStore.viewedUser = null;
     const select = document.getElementById('agvista') as HTMLSelectElement | null; if (select) select.value = '';
     void cargarAgenda();
   },
-  calculating: (): boolean => TD_CALC,
+  calculating: (): boolean => agendaStore.trafficCalculated,
   baseEstimate: (appointments: unknown, isoDate: string, rest: unknown[]): unknown => estimarDiaBase2(appointments, isoDate, ...rest),
   dayRoute: (appointments: unknown, isoDate: string): { k: string } | null => tdRutaDia(appointments, isoDate),
-  realTimes: (): { k: string } | null => TD_REAL,
-  setRealTimes: (value: null): void => { TD_REAL = value; },
+  realTimes: (): { k: string } | null => agendaStore.realTimes,
+  setRealTimes: (value: null): void => { agendaStore.realTimes = value; },
   realTimesValid: (): boolean => Boolean(tdRealVigente()),
   today: (): string => hoyISO(),
   rememberedRoute: (key: string): { t: number; r: unknown } | undefined => RM_MEM.get(key),
   putRealTimes: (route: { k: string }, result: unknown): void => { tdPonerReal(route, result); },
   baseToggleUrgent: (id: string, rest: unknown[]): Promise<unknown> => alternarUrgenteBase(id, ...rest),
   forgetCaches: (): void => { invalidarCache(); try { DB_PRE.clear(); } catch { /* nothing preloaded */ } },
-  currentScreen: (): string => TAB,
+  currentScreen: (): string => navigationStore.screen,
   searchAccounts: (): void => { void buscar(true); },
   quietRefresh: (): void => { if (typeof agRefrescoQuieto === 'function') agRefrescoQuieto(); },
 };
@@ -45,20 +53,20 @@ export const agendaGlueLegacy = {
 /** Read when called: core.js runs before the legacy code declares PAGINAS and PL. */
 const pages = (): Record<string, { t: string; d?: string; tabs: [string, string, () => unknown][] } | undefined> => PAGINAS as Record<string, { t: string; d?: string; tabs: [string, string, () => unknown][] } | undefined>;
 export const navigationGlueLegacy = {
-  profileLoaded: (): boolean => Boolean(PERFIL),
+  profileLoaded: (): boolean => Boolean(sessionStore.profile),
   addIconIfMissing: (name: string, svg: string): void => { const icons = ICON_NOM as Record<string, string>; if (!icons[name]) icons[name] = svg; },
   canSeeArea: (area: string): boolean => typeof verArea !== 'function' || verArea(area),
   refillRoutes: (): void => { void legacyFreeScreensRoutes.refillRepeating(); },
-  routeDraft: (): unknown => RN,
-  forgetRouteDraft: (): void => { RN = null; },
+  routeDraft: (): unknown => routesStore.wizard,
+  forgetRouteDraft: (): void => { routesStore.wizard = null; },
   wrapGlobal,
   applyMenuNames: (): void => { aplicarNombresMenu(); },
   applyMenuNamesSoon: (): void => {
-    if (!Object.keys(menuNombres()).length || TX_OBS) return;
-    TX_OBS = requestAnimationFrame(() => { TX_OBS = 0; try { aplicarNombresMenu(); } catch { /* the menu may be incomplete */ } });
+    if (!Object.keys(menuNombres()).length || settingsStore.textsObserverTimer) return;
+    settingsStore.textsObserverTimer = requestAnimationFrame(() => { settingsStore.textsObserverTimer = 0; try { aplicarNombresMenu(); } catch { /* the menu may be incomplete */ } });
   },
   baseApplyLabel: (args: unknown[]): unknown => aplicarEtiquetaBase(...args),
-  currentScreen: (): string => TAB,
+  currentScreen: (): string => navigationStore.screen,
   hasReadyCheck: (screen: string): boolean => Boolean(LISTA_PARA[screen]),
   setReadyCheck: (screen: string, check: (section: HTMLElement) => boolean): void => { LISTA_PARA[screen] = check; },
   reveal: (screen: HTMLElement): void => { revelar(screen, 6000, Date.now() - 5); },
@@ -86,7 +94,7 @@ export interface LegacyOrderRow { id: string; contacto?: string | null; centro?:
 type ListConfig = { kpiFirma?: () => string; kpis?: () => Promise<CountItem[]>; pedidos?: { card?: (row: HTMLElement) => Record<string, string> } } | undefined;
 const lists = (): Record<string, ListConfig> => PL as Record<string, ListConfig>;
 export const listGlueLegacy = {
-  leaveNearby: (): void => { CERCA = null; void buscar(true); },
+  leaveNearby: (): void => { accountsStore.nearby = null; void buscar(true); },
   clearCustomerDoctor: (): void => { PAC.medico = null; PAC.medicoNombre = ''; PAC.pagina = 0; },
   listCustomers: (): void => { void listaPacientes(); },
   setAccountType: (type: string): void => { F.tipo = type; },
@@ -95,7 +103,7 @@ export const listGlueLegacy = {
   baseMountPeriod: (element: HTMLElement | null, args: unknown[]): unknown => montarPeriodoBase(element, ...args),
   restoreFilters: (root: HTMLElement | null): void => { filtrosRestaurar(root); },
   setOrderCard: (card: (row: HTMLElement) => Record<string, string>): void => { const sales = lists().ventas as unknown as { pedidos: { card?: unknown } }; sales.pedidos.card = card; },
-  orders: (): LegacyOrderRow[] => (typeof PEDIDOS === 'undefined' ? [] : PEDIDOS as LegacyOrderRow[]),
+  orders: (): LegacyOrderRow[] => (typeof ordersStore.orders === 'undefined' ? [] : ordersStore.orders as LegacyOrderRow[]),
   number: (value: unknown): string => num(value),
   isFree: (order: LegacyOrderRow): boolean => Boolean(sinCargoP(order, order.total)),
   shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
@@ -113,9 +121,9 @@ interface QueuedChange { fn: string; etiqueta?: string; t?: number; falla?: numb
 export const deviceLegacy = {
   isMobile: (): boolean => ES_MOVIL(),
   icon: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
-  debounceAddButton: (work: () => void, ms: number): void => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(work, ms); },
+  debounceAddButton: (work: () => void, ms: number): void => { clearTimeout(navigationStore.fabResize); navigationStore.fabResize = setTimeout(work, ms); },
   addButtonToDesktop: (): void => { fabAOrdenador(); },
-  currentScreen: (): string => TAB,
+  currentScreen: (): string => navigationStore.screen,
   syncListBar: (screen: string): void => { if (typeof plSync === 'function') plSync(screen); },
   basePaintConnection: (args: unknown[]): unknown => pintarConexionBase(...args),
   refusedChanges: (): QueuedChange[] => legacyFreeCoreServices.queue.refused() as QueuedChange[],
@@ -126,7 +134,7 @@ export const deviceLegacy = {
   forgetRefused: (): void => { localStorage.removeItem(COLA_KO); },
   paintConnection: (): void => { pintarConexion(); },
   sendQueue: (): void => { void vaciarCola(); },
-  addScannerButtonsSoon: (): void => { if (ESC_PEND) return; ESC_PEND = true; queueMicrotask(() => { ESC_PEND = false; legacyFreeCoreLeftovers.addScannerButtons(undefined); }); },
+  addScannerButtonsSoon: (): void => { if (navigationStore.scannerPending) return; navigationStore.scannerPending = true; queueMicrotask(() => { navigationStore.scannerPending = false; legacyFreeCoreLeftovers.addScannerButtons(undefined); }); },
   openScanner: (input: HTMLInputElement): void => { void legacyFreeCoreLeftovers.openScanner(input); },
   passwordEye: (input: HTMLInputElement): void => { ojoClave(input); },
 };
@@ -138,12 +146,12 @@ export const sessionGlueLegacy = {
   isProfessionalPortal: (): boolean => typeof ES_MEDICO === 'function' && ES_MEDICO(),
   checkAccess: (force?: boolean): void => { void comprobarAcceso(force); },
   refreshBell: (): void => { void refrescarCampana(); },
-  profileLoaded: (): boolean => Boolean((PERFIL as { id?: string } | null)?.id),
+  profileLoaded: (): boolean => Boolean((sessionStore.profile as { id?: string } | null)?.id),
   liveNotices: (): void => { avisosEnVivo(); },
   setCentreStateClass: (state: string, pill: string): void => { NOMBRE_ESTADO_CENTRO[state] = pill; },
   setMaterialForPortal: (id: string, offered: boolean): PromiseLike<LegacyResult<unknown>> => db.from('producto_materiales').update({ para_portal: offered }).eq('id', id),
   toast: (message: string, isError = false): void => { toast(message, isError); },
-  materials: (): { id: string; para_portal?: boolean }[] | null => PRES_MAT as { id: string; para_portal?: boolean }[] | null,
+  materials: (): { id: string; para_portal?: boolean }[] | null => productsStore.presentationMaterials as { id: string; para_portal?: boolean }[] | null,
   linkError: (): string | null => ENLACE_ERROR,
   accessWithoutActivation: (text: string): void => { accesoSinActivar(text); },
 };

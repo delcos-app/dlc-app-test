@@ -11,13 +11,13 @@ function recientesDe(ids, fecha) { return window.delcos.leftovers.recentContacts
 
 const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
 
-let FICHA_ID = null;
+ // v2.440.0: FICHA_ID → estado de src/app (plan 6.6), accesible en window
 
-let CERCA = null;
+ // v2.440.0: CERCA → estado de src/app (plan 6.6), accesible en window
 
-let OPF = { provincias: [], municipios: [], especialidades: [], estados: [], centros: [] };
+ // v2.440.0: OPF → estado de src/app (plan 6.6), accesible en window
 
-let FICHA_PAC = null;
+ // v2.440.0: FICHA_PAC → estado de src/app (plan 6.6), accesible en window
 
 const ES_MEDICO = () => puede('portal_prescriptor');
 
@@ -27,7 +27,7 @@ const ES_MEDICO = () => puede('portal_prescriptor');
    paradas del plan). Y la ficha abierta desde una cita muestra en «Para la
    visita» la consulta de ESE centro. (El SQL 79 pone la base en hora de España.)
    ============================================================ */
-let FICHA_CENTRO = null;   // centro de la cita desde la que se abre la ficha
+ // v2.440.0: FICHA_CENTRO → estado de src/app (plan 6.6), accesible en window   // centro de la cita desde la que se abre la ficha
 
 const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: 'p-est', 'Pendiente de validar': 'p-warn', Validado: 'p-est',   // v2.349.0 (SQL 176); los dos de antes, por si la base aún no lo tiene
   Preparado: 'p-per', Anulado: 'p-anu' };
@@ -49,7 +49,7 @@ const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: '
    stock, depósito) en panel lateral en el ordenador, como la de un contacto: la lista sigue a la vista. Los formularios y las
    ventanas anchas (comparar, importar…) siguen como estaban, y Configuración sigue sin ventanas emergentes.
    ============================================================ */
-let FX_FICHA = 0;
+ // v2.440.0: FX_FICHA → estado de src/app (plan 6.6), accesible en window
 
 function abrirHorarioPlan() { window.delcos.leftovers.openPlanHours(); }
 

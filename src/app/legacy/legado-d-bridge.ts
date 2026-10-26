@@ -12,6 +12,12 @@ import * as legacyFreeScreensImport from '../screens/import';
 import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
 import * as legacyFreeCoreLayers from '../core/layers';
 import * as legacyFreeScreensAccounts from '../screens/accounts';
+import { navigationStore } from '../core/navigation/store';
+import { settingsStore } from '../screens/settings/store';
+import { accountsStore } from '../screens/accounts/store';
+import { sessionStore } from '../core/session-store';
+import { billingStore } from '../screens/billing/store';
+import { ordersStore } from '../screens/orders/store';
 
 type AnyFunction = (...args: unknown[]) => unknown;
 type Wrapper = (original: AnyFunction) => AnyFunction;
@@ -57,14 +63,14 @@ export const menuLegacy = {
   setModuleIcon: (module: string, icon: string): void => { ICO_NAV[module] = icon; (ICO_MOD as Record<string, string>)[module] = svgIco(ICON_NOM[icon] ?? ''); },
   menuGroups: (): { id: string; items: string[] }[] => MENU_GRUPOS,
   dialog: (): HTMLDialogElement | null => document.getElementById('dlg') as HTMLDialogElement | null,
-  currentScreen: (): string => TAB,
+  currentScreen: (): string => navigationStore.screen,
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   canUseModule: (module: string): boolean => puedeModulo(module),
   planIncludesSection: (section: string): boolean => planIncluyeSeccion(section),
   paintTenders: (view: string): unknown => pintarConcursos(view),
   paintEquipment: (): unknown => legacyFreeScreensEquipment.paintEquipment(),
   setPage: (key: string, page: LegacyPage): void => { pages()[key] = page as LegacyPage & { tabs: PageTabs }; },
-  pageTab: (key: string): string | undefined => PAG_TAB[key],
+  pageTab: (key: string): string | undefined => navigationStore.pageTabs[key],
   tendersMenu: (): void => { legacyFreeCoreLeftovers.menuTenders(); },
   equipmentMenu: (): void => { legacyFreeCoreLeftovers.menuEquipment(); },
   lockSections: (): void => { candadoSecciones(); },
@@ -87,18 +93,18 @@ export const menuLegacy = {
 
 export const polishLegacy = {
   normalise: (text: string | null | undefined): string => legacyFreeScreensImport.normaliseHeader((text ?? '')),
-  currentScreen: (): string => TAB,
+  currentScreen: (): string => navigationStore.screen,
   polishedKeys: (): string[] => CFG_PULIR,
   settingsKey: (): string => CFG_KEY,
   roleNames: (): string[] => rolesNombres(),
-  adjustIndexSoon: (): void => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(() => { legacyFreeScreensSettingsShell.fitIndex(); }); },
-  markOpenedFromMenu: (): void => { CFG_SEC = '__cfg'; IR_DESDE_MENU_CFG = true; },
+  adjustIndexSoon: (): void => { cancelAnimationFrame(settingsStore.indexFrame); settingsStore.indexFrame = requestAnimationFrame(() => { legacyFreeScreensSettingsShell.fitIndex(); }); },
+  markOpenedFromMenu: (): void => { settingsStore.section = '__cfg'; IR_DESDE_MENU_CFG = true; },
   setManualAnchor: (screen: string, anchor: () => string): void => { Object.defineProperty(MANUAL_ANCLA, screen, { configurable: true, enumerable: true, get: anchor }); },
   polish: (): void => { legacyFreeCoreLayers.polishSettings(); },
 };
 
 export const pageLegacy = {
-  currentScreen: (): string => TAB,
+  currentScreen: (): string => navigationStore.screen,
   isMobile: (): boolean => ES_MOVIL(),
   freeze: (element: HTMLElement | null): void => { congelar(element); },
   settingsKey: (): string => CFG_KEY,
@@ -108,20 +114,20 @@ export const pageLegacy = {
   notAChange: (): string => PAG_NO_CAMBIA,
   markChanged: (element: Element, body: HTMLElement): void => { PAG_SUCIO.add(pagBloque(element, body)); legacyFreeScreensSettingsShell.markUnsaved(); },
   placeSaveButtonSoon: (): void => {
-    if (PAG_GUARDA_RAF || !PAG_GUARDA.some(page => page.tab === TAB)) return;
-    PAG_GUARDA_RAF = requestAnimationFrame(() => { PAG_GUARDA_RAF = 0; pagPonerGuardar(); });
+    if (navigationStore.saveButtonFrame || !PAG_GUARDA.some(page => page.tab === navigationStore.screen)) return;
+    navigationStore.saveButtonFrame = requestAnimationFrame(() => { navigationStore.saveButtonFrame = 0; pagPonerGuardar(); });
   },
 };
 
 export const dialogLegacy = {
   dialog: (id: string): HTMLDialogElement | null => document.getElementById(id) as HTMLDialogElement | null,
-  openingSheet: (): boolean => Boolean(FX_FICHA),
-  sheetOpening: (step: number): void => { FX_FICHA = Number(FX_FICHA) + step; },
+  openingSheet: (): boolean => Boolean(accountsStore.cardEffect),
+  sheetOpening: (step: number): void => { accountsStore.cardEffect = Number(accountsStore.cardEffect) + step; },
   wrapGlobal,
   openAccount: (id: string): void => { void abrirFicha(id); },
   openCentre: (id: string): void => { void fichaCentro(id); },
-  setLastAction: (time: number): void => { ULT_ACCION = time; },
-  lastAction: (): number => ULT_ACCION,
+  setLastAction: (time: number): void => { settingsStore.lastAction = time; },
+  lastAction: (): number => settingsStore.lastAction,
 };
 
 export interface BackView { fn: string; args: unknown[]; t: number; dlg?: HTMLDialogElement | null; cerrada?: number | null }
@@ -129,14 +135,14 @@ const backStack = (): BackView[] => VUELTA as BackView[];
 export const backLegacy = {
   titledViews: (): string[] => Object.keys(VISTA_TITULO),
   wrapGlobal,
-  view: (): BackView | null => VISTA as BackView | null,
-  setView: (view: BackView | null): void => { VISTA = view; },
-  lastClick: (): { d: Element; t: number } | null => VUELTA_CLIC,
-  setLastClick: (click: { d: Element; t: number }): void => { VUELTA_CLIC = click; },
-  reopening: (): boolean => VUELTA_REABRIENDO,
-  setReopening: (on: boolean): void => { VUELTA_REABRIENDO = on; },
-  putButton: (): boolean => VUELTA_PONER,
-  setPutButton: (on: boolean): void => { VUELTA_PONER = on; },
+  view: (): BackView | null => navigationStore.view as BackView | null,
+  setView: (view: BackView | null): void => { navigationStore.view = view; },
+  lastClick: (): { d: Element; t: number } | null => navigationStore.backClick,
+  setLastClick: (click: { d: Element; t: number }): void => { navigationStore.backClick = click; },
+  reopening: (): boolean => navigationStore.backReopening,
+  setReopening: (on: boolean): void => { navigationStore.backReopening = on; },
+  putButton: (): boolean => navigationStore.backPending,
+  setPutButton: (on: boolean): void => { navigationStore.backPending = on; },
   sameView: (first: BackView, second: BackView): boolean => vistaIgual(first, second),
   push: (view: BackView, max: number): void => { view.cerrada = null; backStack().push(view); if (backStack().length > max) backStack().shift(); },
   pop: (): BackView | undefined => backStack().pop(),
@@ -148,10 +154,10 @@ export const backLegacy = {
 };
 
 export const saveLegacy = {
-  requestStarted: (): void => { RED_VUELO++; RED_ULT = performance.now(); },
-  requestEnded: (): void => { RED_VUELO = Math.max(0, RED_VUELO - 1); RED_ULT = performance.now(); },
-  inFlight: (): number => RED_VUELO,
-  lastRequest: (): number => RED_ULT,
+  requestStarted: (): void => { sessionStore.networkInFlight++; sessionStore.lastNetworkEnd = performance.now(); },
+  requestEnded: (): void => { sessionStore.networkInFlight = Math.max(0, sessionStore.networkInFlight - 1); sessionStore.lastNetworkEnd = performance.now(); },
+  inFlight: (): number => sessionStore.networkInFlight,
+  lastRequest: (): number => sessionStore.lastNetworkEnd,
   isSaveButton: (button: HTMLButtonElement | null): boolean => Boolean(esBotonGuardar(button)),
   raiseNotice: (): void => { subirAviso(); },
 };
@@ -166,22 +172,22 @@ export const rpcLegacy = {
   forgetInFlight: (name: string): void => { [...RC_VUELO.keys()].forEach(key => { if (key.startsWith(`${name}|`)) RC_VUELO.delete(key); }); },
   direct: (name: string, args: Record<string, unknown>, ...rest: unknown[]): PromiseLike<unknown> => (RPC_ORIG as unknown as (...all: unknown[]) => PromiseLike<unknown>)(name, args, ...rest),
   logError: (type: string, message: string, detail: Record<string, unknown>): void => { registrarError(type, message, detail); },
-  currentScreen: (): string => TAB,
+  currentScreen: (): string => navigationStore.screen,
   preloaded: (): Map<string, unknown> => DB_PRE,
   rememberedSortOf: (name: string): string | undefined => Object.keys(ORD_MEM).find(kind => ORD_MEM[kind]?.fn === name),
   sortRemembered: (kind: string, rows: unknown[]): unknown[] => ordMemOrdenar(kind, rows),
   forgetCache: (): void => { invalidarCache(); try { DB_PRE.clear(); } catch { /* nothing preloaded */ } },
   refreshBelow: (): void => { refrescarDebajo(); },
-  dataChanged: (): boolean => DATOS_CAMBIADOS,
+  dataChanged: (): boolean => settingsStore.unsavedChanges,
   reportedFilter: (): string => AN_REP,
-  pdfEditing: (): string | null => PDF_EDITANDO,
+  pdfEditing: (): string | null => billingStore.pdfEditing,
   pdfTemplates: (): { lista: { id: string; cfg?: unknown }[]; defecto: string } => listaPDF(),
   savePdfTemplates: (templates: { lista: unknown[]; defecto: string }): Promise<boolean> => guardarPDFPlantillas(templates),
-  setInvoicePdf: (design: unknown): void => { AJUSTES.factura_pdf = design ? design : AJUSTES.factura_pdf; },
+  setInvoicePdf: (design: unknown): void => { settingsStore.settings.factura_pdf = design ? design : settingsStore.settings.factura_pdf; },
 };
 
 export const sortLegacy = {
-  setOrdersPage: (page: number): void => { PEDPAG = page; },
+  setOrdersPage: (page: number): void => { ordersStore.page = page; },
   listOrders: (): void => { if (typeof listaPedidos === 'function') void listaPedidos(); },
   setCustomersPage: (page: number): void => { PAC.pagina = page; },
   listCustomers: (): void => { if (typeof listaPacientes === 'function') void listaPacientes(); },
@@ -202,8 +208,8 @@ export const sortLegacy = {
   rememberedKinds: (): string[] => Object.keys(ORD_MEM),
   rememberedHasField: (kind: string, index: number): boolean => ((ORD_MEM[kind]?.campos as readonly unknown[] | undefined)?.[index] ?? null) !== null,
   isRemembered: (kind: string): boolean => Boolean(ORD_MEM[kind]),
-  setInvoicesPage: (page: number): void => { FACPAG = page; },
-  setCallsPage: (page: number): void => { LLPAG = page; },
+  setInvoicesPage: (page: number): void => { ordersStore.invoicePage = page; },
+  setCallsPage: (page: number): void => { ordersStore.callsPage = page; },
 };
 
 const listsConfig = (): Record<string, { mas?: () => [string, string][]; prods?: { mas?: () => [string, string][] } } | undefined> => PL as Record<string, { mas?: () => [string, string][]; prods?: { mas?: () => [string, string][] } } | undefined>;
@@ -215,7 +221,7 @@ export const removedLegacy = {
   forgetCache: (): void => { invalidarCache(); },
   forgetPreloaded: (): void => { DB_PRE.clear(); },
   toast: (message: string, isError = false): void => { toast(message, isError); },
-  currentScreen: (): string => TAB,
+  currentScreen: (): string => navigationStore.screen,
   searchAccounts: (): void => { void buscar(true); },
   listCustomers: (): void => { void listaPacientes(); },
   number: (value: number): string => num(value),

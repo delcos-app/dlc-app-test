@@ -8,13 +8,22 @@ import * as legacyFreeComponents from '../components';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
 import * as legacyFreeScreensSettings from '../screens/settings';
 import * as legacyFreeCoreSettings from '../core/settings';
+import { navigationStore } from '../core/navigation/store';
+import { ordersStore } from '../screens/orders/store';
+import { homeStore } from '../screens/home/store';
+import { sessionStore } from '../core/session-store';
+import { agendaStore } from '../screens/agenda/store';
+import { accountsStore } from '../screens/accounts/store';
+import { routesStore } from '../screens/routes/store';
+import { productsStore } from '../screens/products/store';
+import { settingsStore } from '../screens/settings/store';
 export const legacyDb = (): LegacyDb => db;
 export const callRpc = <T>(name: string, params: Record<string, unknown> = {}): PromiseLike<LegacyResult<T>> => RPC_ORIG<T>(name, params);
 
-export const currentScreen = (): string => TAB;
+export const currentScreen = (): string => navigationStore.screen;
 export const goTo = (screen: string): void => { ir(screen); };
 /** Opens Pedidos on one of its sections (ventas, llamadas…). */
-export const goToOrders = (section: string): void => { PEDSEC = section; ir('ventas'); };
+export const goToOrders = (section: string): void => { ordersStore.section = section; ir('ventas'); };
 
 export interface TermOptions {
   /** 's' singular, 'p' plural */
@@ -48,9 +57,9 @@ export const permissions = {
 };
 
 export const homeCache = {
-  panel: (): typeof KV_INI => KV_INI,
-  setPanel: (value: typeof KV_INI): void => { KV_INI = value; },
-  charts: (): typeof KV_GRAF => KV_GRAF,
+  panel: (): typeof homeStore.panel => homeStore.panel,
+  setPanel: (value: typeof homeStore.panel): void => { homeStore.panel = value; },
+  charts: (): typeof homeStore.charts => homeStore.charts,
 };
 
 export const appointments = {
@@ -73,7 +82,7 @@ export const indicatorCatalog = {
 };
 
 export const commercialStates = {
-  all: (): readonly { valor: string; papel: string }[] => ESTADOS_DEF,
+  all: (): readonly { valor: string; papel: string }[] => sessionStore.commercialStates,
   color: (state: string): string | undefined => EST_COL[state],
 };
 
@@ -86,23 +95,23 @@ export const isMobile = (): boolean => ES_MOVIL();
 
 /** Agenda state still kept by the legacy day view (selected day, whose agenda, today's appointments, the metrics). */
 export const legacyAgenda = {
-  selectedDate: (): string | null => AG_FECHA,
+  selectedDate: (): string | null => agendaStore.selectedDate,
   /** The person whose agenda is shown (null: everybody the user sees, or the user). */
   userFilter: (): string | null => legacyFreeCoreLeftovers.agendaUserFilter(),
-  viewedUserId: (): string | null => AG_VISTA?.id ?? null,
+  viewedUserId: (): string | null => agendaStore.viewedUser?.id ?? null,
   showDay: (isoDate: string): void => { void agVerDia(isoDate); },
   isDayView: (): boolean => agN(),
-  metrics: (): AgendaMetrics | null => AG_MET,
-  setMetrics: (value: AgendaMetrics): void => { AG_MET = value; },
+  metrics: (): AgendaMetrics | null => agendaStore.metrics,
+  setMetrics: (value: AgendaMetrics): void => { agendaStore.metrics = value; },
   /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
-  dayAppointments: (): readonly AgendaAppointment[] => TD_CITAS,
-  loadedDay: (): string | null => TD_ULTIMO?.fecha ?? null,
+  dayAppointments: (): readonly AgendaAppointment[] => agendaStore.dayAppointments,
+  loadedDay: (): string | null => agendaStore.lastPaintedDay?.fecha ?? null,
 };
 
 /** Suggestions of the shown day: accounts due a visit, pending ones from earlier days and colleagues in the same centre. */
 export const agendaSuggestions = {
-  forDay: (): typeof AG_SUG => AG_SUG,
-  pending: (): readonly PendingAppointment[] => AG_PEND ?? [],
+  forDay: (): typeof agendaStore.suggestions => agendaStore.suggestions,
+  pending: (): readonly PendingAppointment[] => agendaStore.pendingSuggestions ?? [],
 };
 
 /** Other screens reached from Agenda. */
@@ -113,13 +122,13 @@ export const agendaActions = {
 
 /** The side panel (#tools) remembers what it shows so it can be painted again after a change. */
 export const sidePanel = {
-  context: (): string | null => HERR_CTX,
-  setContext: (value: string): void => { HERR_CTX = value; },
+  context: (): string | null => accountsStore.toolsContext,
+  setContext: (value: string): void => { accountsStore.toolsContext = value; },
 };
 
 /** Agenda pieces still in legacy. */
 export const legacyAgendaParts = {
-  mode: (): string => AG_MODO,
+  mode: (): string => agendaStore.mode,
   blockedDays: (fromIsoDate: string, days: number): Promise<Record<string, string>> => agBloqueos(fromIsoDate, days),
 };
 
@@ -127,43 +136,43 @@ export const legacyAgendaParts = {
 export const agendaSources = {
   /** The person whose agenda is shown (the user, or the colleague administration is looking at). */
   ownerId: (): string => legacyFreeCoreLeftovers.agendaOwnerId(),
-  isOwnAgenda: (): boolean => legacyFreeCoreLeftovers.agendaOwnerId() === (PERFIL as { id: string }).id,
-  stripStart: (): string | null => CINTA_INI,
+  isOwnAgenda: (): boolean => legacyFreeCoreLeftovers.agendaOwnerId() === (sessionStore.profile as { id: string }).id,
+  stripStart: (): string | null => agendaStore.stripStart,
   /** «Tu día» of this date arrives already loaded (from Inicio). */
-  hasPresetDay: (isoDate: string): boolean => TD_PRESET?.fecha === isoDate,
+  hasPresetDay: (isoDate: string): boolean => agendaStore.presetDay?.fecha === isoDate,
   dayTasks: (isoDate: string): Promise<unknown> => tareasDelDia(isoDate),
   blockedDays: (fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>> => bloqueadosSemanaBase(fromIsoDate, toIsoDate),
   setSuggestions: (isoDate: string, suggestions: { pend: PendingAppointment[]; toca: DueAccount[]; centros: SameCentreGroup[] }): void => {
-    AG_PEND = suggestions.pend; AG_SUG = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
+    agendaStore.pendingSuggestions = suggestions.pend; agendaStore.suggestions = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
   },
 };
 
 /** The day strip state, still kept in legacy globals (the tests read CINTA_INI): its first Monday and whether the week is open. */
 export const stripState = {
-  start: (): string | null => CINTA_INI,
-  setStart: (isoDate: string | null): void => { CINTA_INI = isoDate; },
-  weekOpen: (): boolean => AG_SEM_ABIERTA,
-  setWeekOpen: (open: boolean): void => { AG_SEM_ABIERTA = open; },
+  start: (): string | null => agendaStore.stripStart,
+  setStart: (isoDate: string | null): void => { agendaStore.stripStart = isoDate; },
+  weekOpen: (): boolean => agendaStore.weekOpen,
+  setWeekOpen: (open: boolean): void => { agendaStore.weekOpen = open; },
 };
 
 /** Agenda screen state still kept in legacy globals (the day view and «Tu día» read them). */
 export const agendaState = {
-  setMode: (mode: string): void => { AG_MODO = mode; },
-  setSelectedDate: (isoDate: string): void => { AG_FECHA = isoDate; },
+  setMode: (mode: string): void => { agendaStore.mode = mode; },
+  setSelectedDate: (isoDate: string): void => { agendaStore.selectedDate = isoDate; },
   /** The last day the agenda was opened on «today» (to jump to the new today after midnight). */
   lastTodaySeen: (): string | null => AG_HOY_VISTO,
   setLastTodaySeen: (isoDate: string): void => { AG_HOY_VISTO = isoDate; },
-  forgetDayTasks: (): void => { TAREAS_DIA = null; },
+  forgetDayTasks: (): void => { agendaStore.dayTasks = null; },
   /** Someone asked to open Agenda straight on «Repartir la semana». */
-  takeWeekPlanRequest: (): boolean => { const asked = ABRIR_PLAN_SEMANA; ABRIR_PLAN_SEMANA = false; return asked; },
-  viewed: (): { id: string; nombre: string } | null => AG_VISTA,
+  takeWeekPlanRequest: (): boolean => { const asked = agendaStore.openWeekPlan; agendaStore.openWeekPlan = false; return asked; },
+  viewed: (): { id: string; nombre: string } | null => agendaStore.viewedUser,
 };
 
 /** The sales team (COMS) for the team views, loaded once. */
 export const salesTeam = {
-  members: (): readonly { id: string; nombre: string }[] => COMS,
+  members: (): readonly { id: string; nombre: string }[] => homeStore.salesTeam,
   load: (): Promise<void> => cargarComerciales(),
-  currentUserId: (): string => (PERFIL as { id: string }).id,
+  currentUserId: (): string => (sessionStore.profile as { id: string }).id,
   showAgendaOf: (userId: string): void => { void legacyFreeCoreLeftovers.showAgendaOf(userId); },
 };
 
@@ -176,8 +185,8 @@ export const legacyAgendaPaint = {
 
 /** The week planner («Repartir la semana») and its unsaved proposal, still in legacy (pantallas/rutas.js). */
 export const weekPlanner = {
-  draft: (): WeekDraft | null => SEM_BORRADOR,
-  discardDraft: (): void => { SEM_BORRADOR = null; },
+  draft: (): WeekDraft | null => routesStore.weekDraft,
+  discardDraft: (): void => { routesStore.weekDraft = null; },
   /** Estimated end of a day (minutes) and the latest return time. */
   estimateDay: (list: readonly object[], isoDate: string): { fin: number; tope: number } => estimarDia(list, isoDate),
   /** Opening windows of a person on a date: null when unknown, [] when they do not attend that day. */
@@ -200,10 +209,10 @@ export const reloadAgenda = (): void => { void cargarAgenda(); };
 /** What «Tu día» still uses from legacy: the day estimate and its stop information (route domain, migrates with Rutas), the
  * working day, the appointment menu, ordering, tasks and the offline queue. */
 export const yourDayLegacy = {
-  setDayAppointments: (list: AgendaAppointment[]): void => { TD_CITAS = list; },
+  setDayAppointments: (list: AgendaAppointment[]): void => { agendaStore.dayAppointments = list; },
   estimateDay: (list: readonly object[], isoDate: string): { est: Record<string, number>; fin: number; tope: number } =>
     estimarDia(list, isoDate) as unknown as { est: Record<string, number>; fin: number; tope: number },
-  stopInfo: (): Readonly<Record<string, StopInfo>> => TD_INFO,
+  stopInfo: (): Readonly<Record<string, StopInfo>> => agendaStore.stopInfo,
   explainWarning: (info: StopInfo): string => explicarAviso(info),
   windowsText: (windows: readonly [number, number][]): string => txtVentanas(windows),
   canRecordOn: (isoDate: string): boolean => puedeRegistrarEnDia(isoDate),
@@ -226,8 +235,8 @@ export const appointmentLegacy = {
   negativeResults: (): readonly { valor: string }[] => (CAT.resultado_visita ?? []).filter(item => item.extra === 'neg'),
   navigateTo: (point: [number, number] | null): void => { void navegarA(point); },
   recordVisit: (accountId: string, isoDate: string): void => { VISITA_FECHA = isoDate; void abrirVisita(accountId); },
-  openAccountFromCentre: (accountId: string, centre: string | null | undefined): void => { FICHA_CENTRO = centre ?? null; void abrirFicha(accountId); },
-  lastDayData: (): AgendaAppointment[] | null => (TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data ?? null : null),
+  openAccountFromCentre: (accountId: string, centre: string | null | undefined): void => { accountsStore.cardCentre = centre ?? null; void abrirFicha(accountId); },
+  lastDayData: (): AgendaAppointment[] | null => (agendaStore.lastPaintedDay && agendaStore.lastPaintedDay.fecha === agendaStore.selectedDate ? agendaStore.lastPaintedDay.data ?? null : null),
   isJoinedDayView: (): boolean => agUnida(),
   /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
   openSheet: (item: object): void => { void (window as unknown as { verCita: (value: object) => unknown }).verCita(item); },
@@ -240,15 +249,15 @@ export const agendaCache = {
   /** Forgets the cached read of one day (its key in rpcCache). */
   forgetDay: (isoDate: string): void => { RC.delete(`agenda-${isoDate}`); },
   /** The next «Tu día» paint of `isoDate` uses this data (no network), and it becomes the last painted day. */
-  preset: (isoDate: string, data: AgendaAppointment[]): void => { TD_PRESET = { fecha: isoDate, data }; TD_ULTIMO = { fecha: isoDate, data }; },
-  lastPainted: (isoDate: string): AgendaAppointment[] | null => (TD_ULTIMO?.fecha === isoDate ? TD_ULTIMO.data ?? null : null),
-  setLastPainted: (isoDate: string, data: AgendaAppointment[]): void => { TD_ULTIMO = { fecha: isoDate, data }; },
+  preset: (isoDate: string, data: AgendaAppointment[]): void => { agendaStore.presetDay = { fecha: isoDate, data }; agendaStore.lastPaintedDay = { fecha: isoDate, data }; },
+  lastPainted: (isoDate: string): AgendaAppointment[] | null => (agendaStore.lastPaintedDay?.fecha === isoDate ? agendaStore.lastPaintedDay.data ?? null : null),
+  setLastPainted: (isoDate: string, data: AgendaAppointment[]): void => { agendaStore.lastPaintedDay = { fecha: isoDate, data }; },
   /** Every day read alone (agenda_rango of one day), as it arrived. */
   dayData: (isoDate: string): AgendaAppointment[] | undefined => AG_DIAS_DATOS[isoDate],
   /** What is saved from now on is already shown: closing a dialog will not refresh again. */
-  markDialogSeen: (): void => { DLG_EPOCA = RC_EPOCA; },
-  dayTasks: (isoDate: string): (DayTask & { orden?: number })[] | null => (TAREAS_DIA?.f === isoDate ? TAREAS_DIA.l : null),
-  setDayTasks: (isoDate: string, list: (DayTask & { orden?: number })[] | null): void => { TAREAS_DIA = list ? { f: isoDate, l: list } : null; },
+  markDialogSeen: (): void => { agendaStore.dialogEpoch = sessionStore.cacheEpoch; },
+  dayTasks: (isoDate: string): (DayTask & { orden?: number })[] | null => (agendaStore.dayTasks?.f === isoDate ? agendaStore.dayTasks.l : null),
+  setDayTasks: (isoDate: string, list: (DayTask & { orden?: number })[] | null): void => { agendaStore.dayTasks = list ? { f: isoDate, l: list } : null; },
 };
 
 
@@ -260,16 +269,16 @@ export const editorLegacy = {
   recentContacts: (accountId: string, isoDate: string): Promise<RecentContact[]> => recientesDe([accountId], isoDate).then(found => found[accountId] ?? []),
   recentText: (list: RecentContact[]): string => txtReciente(list),
   turnOffRecentNotice: (): Promise<void> => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
-  centreFromCard: (): string | null => FICHA_CENTRO,
-  viewedUserId: (): string | null => (currentScreen() === 'agenda' && AG_VISTA ? AG_VISTA.id : null),
+  centreFromCard: (): string | null => accountsStore.cardCentre,
+  viewedUserId: (): string | null => (currentScreen() === 'agenda' && agendaStore.viewedUser ? agendaStore.viewedUser.id : null),
 };
 
 /** The account card (ficha) pieces still in legacy, and the windows other modules open from it. */
 export const accountCardLegacy = {
-  shownId: (): string | null => FICHA_ID,
-  setShownId: (id: string): void => { FICHA_ID = id; },
-  forgetPatients: (): void => { FICHA_PAC = null; },
-  forgetCentreFromAppointment: (): void => { FICHA_CENTRO = null; },
+  shownId: (): string | null => accountsStore.shownId,
+  setShownId: (id: string): void => { accountsStore.shownId = id; },
+  forgetPatients: (): void => { accountsStore.cardPatients = null; },
+  forgetCentreFromAppointment: (): void => { accountsStore.cardCentre = null; },
   planIncludes: (section: string): boolean => planIncluyeSeccion(section),
   canEditType: (type: string | null | undefined): boolean => legacyFreeCoreServices.permissions.canEditType(type),
   /** The base sections, in their legacy order (each one paints a block of the card). */
@@ -306,7 +315,7 @@ export const cardBaseLegacy = {
 export const cardSectionsLegacy = {
   can: (capability: string): boolean => puede(capability),
   /** Sales level of the user (area V). */
-  salesArea: (): number => (PERFIL as { areas?: Record<string, number> }).areas?.V ?? 0,
+  salesArea: (): number => (sessionStore.profile as { areas?: Record<string, number> }).areas?.V ?? 0,
   roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
   openPatient: (id: string): void => { void fichaPaciente(id); },
   /** Opens Pacientes filtered by this account. */
@@ -322,7 +331,7 @@ export const cardSectionsLegacy = {
 export const portalLegacy = {
   hasPortal: (): boolean => hayExtra('portal'),
   materialPill: (state: string): string => pillMaterial(state),
-  products: async (): Promise<readonly CatalogProduct[]> => { if (!PRODUCTOS.length) await cargarProductos(); return PRODUCTOS; },
+  products: async (): Promise<readonly CatalogProduct[]> => { if (!productsStore.products.length) await cargarProductos(); return productsStore.products; },
   euros: (value: number): string => eurI(value),
 };
 
@@ -330,7 +339,7 @@ export const accessLegacy = {
   connectionInfo: (userId: string): void => { void facccon(userId); },
   canImpersonate: (user: PlatformUser): boolean => puedeVerComo(user),
   newUser: (preset: Record<string, unknown>): void => { nuevoUsuario(preset); },
-  forgetAccessCache: (): void => { MED_ACCESO = null; },
+  forgetAccessCache: (): void => { accountsStore.portalAccess = null; },
   /** A user is created with a separate client (no session kept), as the legacy sign-up did. */
   signUp: async (email: string, password: string, name: string): Promise<{ message?: string } | null> => {
     const client = (window as unknown as { supabase: { createClient: (url: string, key: string, options: object) => { auth: { signUp: (data: object) => Promise<{ error: { message?: string } | null }> } } } })
@@ -344,7 +353,7 @@ export const accessLegacy = {
 export const accountListLegacy = {
   // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
   filters: (): AccountFilters => F,
-  mapMode: (): boolean => MODO_MAPA,
+  mapMode: (): boolean => accountsStore.mapMode,
   /** The database order key of a column (only the sortable ones). */
   sortKey: (column: string): string | undefined => ORD_DIR[column],
   fieldChips: (state: Record<string, unknown>): { k: string; t: string }[] => clasChips('medico', state),
@@ -361,9 +370,9 @@ export const accountColumnsLegacy = {
   fieldText: (field: CustomField | undefined, value: unknown): string => campoTexto(field, value),
   firstName: (name: string): string => nombrePila(name),
   /** Platform access by account (loaded once; null until it arrives). */
-  accessOf: (): Record<string, { activo?: boolean }> | null => MED_ACCESO as Record<string, { activo?: boolean }> | null,
+  accessOf: (): Record<string, { activo?: boolean }> | null => accountsStore.portalAccess as Record<string, { activo?: boolean }> | null,
   loadAccess: (): Promise<void> => legacyFreeCoreLeftovers.loadAccountAccess(),
-  storageKey: (): string => `dlc-cols-${(PERFIL as { id?: string } | null)?.id ?? ''}`,
+  storageKey: (): string => `dlc-cols-${(sessionStore.profile as { id?: string } | null)?.id ?? ''}`,
 };
 
 /** Eventos: the list repaints through its global name (the page tabs and the dialog-close listener of legado 079 use it). */
@@ -376,15 +385,15 @@ export const appLegacy = {
   /** Forgets every cached read (after a change other screens show). */
   forgetCache: (): void => { invalidarCache(); },
   openOrder: (id: string): void => { void verPedido(id); },
-  currentUserName: (): string => (PERFIL as { nombre?: string }).nombre ?? '',
+  currentUserName: (): string => (sessionStore.profile as { nombre?: string }).nombre ?? '',
 };
 
 /** Ciclo de visitas: the company settings it reads and writes, and the tabs of its page. */
 export const cycleLegacy = {
   loadSettings: (): Promise<void> => legacyFreeCoreSettings.loadSettings(),
-  setting: (key: string): unknown => AJUSTES[key],
-  setSetting: (key: string, value: unknown): void => { AJUSTES[key] = value; },
-  openTab: (tab: string): void => { PAG_TAB.ciclo = tab; cargarPagina('ciclo'); },
+  setting: (key: string): unknown => settingsStore.settings[key],
+  setSetting: (key: string, value: unknown): void => { settingsStore.settings[key] = value; },
+  openTab: (tab: string): void => { navigationStore.pageTabs.ciclo = tab; cargarPagina('ciclo'); },
 };
 
 /** Intervenciones: the list repaints through its global name (page tab and dialog-close listener of legado 079). */
@@ -394,28 +403,28 @@ export const surgeriesLegacy = {
 
 /** Parque instalado: the warning days of contracts (shared with Concursos), the contract kinds and the product catalog. */
 export const equipmentLegacy = {
-  warningDays: (): readonly number[] => CON_AVISOS,
-  setWarningDays: (days: number[]): void => { CON_AVISOS = days; },
+  warningDays: (): readonly number[] => homeStore.contractWarningDays,
+  setWarningDays: (days: number[]): void => { homeStore.contractWarningDays = days; },
   contracts: (): readonly string[] => EQ_CONTRATOS,
-  loadProducts: async (): Promise<void> => { if (!PRODUCTOS.length) await cargarProductos(); },
+  loadProducts: async (): Promise<void> => { if (!productsStore.products.length) await cargarProductos(); },
 };
 
 /** Concursos: the expiry warning days stay in the legacy CON_AVISOS (Parque uses them too). */
 export const tendersLegacy = {
-  warningDays: (): readonly number[] => CON_AVISOS,
-  setWarningDays: (days: number[]): void => { CON_AVISOS = days; },
+  warningDays: (): readonly number[] => homeStore.contractWarningDays,
+  setWarningDays: (days: number[]): void => { homeStore.contractWarningDays = days; },
 };
 
 /** Compras: the catalogs it shares with Productos (suppliers, stores, products), the permission and the Pedidos tab. */
 export const purchasesLegacy = {
-  section: (): string => PEDSEC,
+  section: (): string => ordersStore.section,
   canBuy: (): boolean => Boolean(legacyFreeCoreServices.permissions.canBuy()),
   loadSuppliers: (): Promise<void> => cargarProveedores(),
-  suppliers: (): readonly PurchaseSupplier[] => PROVEEDORES,
+  suppliers: (): readonly PurchaseSupplier[] => ordersStore.suppliers,
   loadStores: (): Promise<void> => cargarAlmacenes(),
-  stores: (): readonly PurchaseStore[] => ALMACENES,
+  stores: (): readonly PurchaseStore[] => ordersStore.stores,
   loadProducts: (): Promise<void> => cargarProductos(),
-  products: (): readonly (CatalogProduct & { coste?: number | null })[] => PRODUCTOS,
+  products: (): readonly (CatalogProduct & { coste?: number | null })[] => productsStore.products,
   /** The batch fields of «Recibir mercancía» (shared with the stock entries of Productos). */
   batchFields: (line: object, units: number | string, storeId: string | undefined): string => loteRecepcion(line, units, storeId),
   reloadSales: (): void => { void cargarVentas(); },
@@ -427,8 +436,8 @@ export const purchasesLegacy = {
 export const importLegacy = {
   excelReader: (): Promise<SheetReader> => cargarLectorExcel(),
   reportError: (message: string): void => { registrarError('error', message); },
-  countWrite: (): void => { ESCRITURAS++; },
-  showHistory: (): void => { CFG_SUB = 'historial'; },
+  countWrite: (): void => { sessionStore.writes++; },
+  showHistory: (): void => { settingsStore.subsection = 'historial'; },
 };
 
 /** Manual de uso: the content of the portal manual (legacy data), access and plan checks, navigation and the way back. */
@@ -444,15 +453,15 @@ export const manualLegacy = {
   canOpenModule: (id: string): boolean => puedeModulo(id),
   moduleCount: (): number => Object.keys(MODULO_AREA).filter(puedeModulo).length,
   settingsOf: (id: string): string | undefined => CFG_DE_MODULO[id],
-  profile: (): { nombre: string; rol: string } => PERFIL as { nombre: string; rol: string },
+  profile: (): { nombre: string; rol: string } => sessionStore.profile as { nombre: string; rol: string },
   planIncludes: (module: string): boolean => planIncluye(module),
   cheapestPlan: (module: string): string | undefined => planMinimo(module)?.nombre,
   showPlanNotice: (module: string): void => { avisoPlan(module); },
-  go: (screen: string, configSection?: string): void => { if (configSection !== undefined) CFG_SEC = configSection; ir(screen); },
+  go: (screen: string, configSection?: string): void => { if (configSection !== undefined) settingsStore.section = configSection; ir(screen); },
   vocabulary: (): { empresa: string; terminos: Record<string, unknown> } => ({ empresa: nombreApp(), terminos: Object.fromEntries(Object.keys(TERM_DEF).map(key => [key, terminoDe(key)])) }),
   isIos: (): boolean => ES_IOS,
-  back: (): { tab: string; y: number } | null => MANUAL_VUELTA,
-  takeBack: (): { tab: string; y: number } | null => { const back = MANUAL_VUELTA; MANUAL_VUELTA = null; return back; },
+  back: (): { tab: string; y: number } | null => homeStore.manualReturn,
+  takeBack: (): { tab: string; y: number } | null => { const back = homeStore.manualReturn; homeStore.manualReturn = null; return back; },
   screenName: (screen: string): string => nombrePantalla(screen),
   pageInfo: (screen: string): { t?: string; d?: string } => (PAGINAS[screen] ?? {}) as { t?: string; d?: string },
   attachHelp: (title: HTMLElement, html: string): void => { legacyFreeComponents.glueHelp(title, html); },
@@ -471,14 +480,14 @@ export const qualityLegacy = {
 export const opportunitiesLegacy = {
   catalog: (key: string): readonly { valor: string; extra?: string | null }[] => CAT[key] ?? [],
   setCatalog: (key: string, list: { valor: string; extra?: string | null }[]): void => { CAT[key] = list; },
-  products: (): readonly (CatalogProduct & { iva?: number | null })[] => PRODUCTOS,
-  loadProducts: async (): Promise<void> => { if (!PRODUCTOS.length) await cargarProductos(); },
+  products: (): readonly (CatalogProduct & { iva?: number | null })[] => productsStore.products,
+  loadProducts: async (): Promise<void> => { if (!productsStore.products.length) await cargarProductos(); },
   defaultProduct: (): string => productoPorDefecto(),
   searchClients: <T>(query: string): Promise<T[]> => buscarClientes(query) as Promise<T[]>,
   editContact: (preset: Record<string, unknown>, onSave: (client: unknown) => void): void => { editorContacto(preset, onSave); },
   editOrder: (preset?: Record<string, unknown>): void => { void editorPedido(preset); },
   /** The order saved next is linked to this opportunity (legado 038). */
-  setPendingCall: (id: string): void => { LLAMADA_PEND = id; },
+  setPendingCall: (id: string): void => { ordersStore.pendingCall = id; },
   /** The account picker; what is typed without choosing is kept in element.__texto. */
   pickReference: (options: { element: HTMLElement; value: PickedAccount | null; freeText: string; placeholder: string; onPick: (account: PickedAccount) => void }): void => {
     Reflect.set(options.element, '__texto', options.freeText);
@@ -489,8 +498,8 @@ export const opportunitiesLegacy = {
     (Reflect.get(element ?? {}, '__rango') as (() => { desde: string | null; hasta: string | null }) | undefined)?.() ?? { desde: null, hasta: null },
   barChart: (items: { n: string; v: number }[], format: (value: number) => string): string => legacyFreeComponents.rankingBars(items, format),
   emptyChart: (text: string): string => vacioGrafico(text),
-  page: (): number => LLPAG,
-  setPage: (page: number): void => { LLPAG = page; },
-  ordersSection: (): string => PEDSEC,
+  page: (): number => ordersStore.callsPage,
+  setPage: (page: number): void => { ordersStore.callsPage = page; },
+  ordersSection: (): string => ordersStore.section,
   repaintList: (): void => { void pintarLlamadas(); },
 };

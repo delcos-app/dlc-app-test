@@ -8,6 +8,7 @@ import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
 import { menuGroups, menuPrefs } from './groups';
+import { navigationStore } from '../store';
 
 /** The screens that never go in the phone menu (v2.335.0: Usuarios is in Configuración). */
 export const MENU_OUT = ['usuarios'];
@@ -17,7 +18,7 @@ const SUBSECTION_MENU: Readonly<Record<string, string>> = { llamadas: 'oportunid
 const BAR_SIZE = 4, CLOSE_MS = 180, UNKNOWN = 999, NEW_AFTER = 900;
 
 /** The screen the menus mark (Oportunidades, Compras and Proveedores mark themselves, not Pedidos). */
-export const menuTab = (): string => (TAB === 'ventas' && SUBSECTION_MENU[pedsecVista()] ? SUBSECTION_MENU[pedsecVista()] ?? TAB : TAB);
+export const menuTab = (): string => (navigationStore.screen === 'ventas' && SUBSECTION_MENU[pedsecVista()] ? SUBSECTION_MENU[pedsecVista()] ?? navigationStore.screen : navigationStore.screen);
 
 /** The name of a screen in the menu (without «Pronto»). */
 export function mobileName(key: string): string {

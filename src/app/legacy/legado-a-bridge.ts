@@ -10,6 +10,11 @@ import * as legacyFreeComponents from '../components';
 import * as legacyFreeScreensSettings from '../screens/settings';
 import * as legacyFreeCoreSettings from '../core/settings';
 import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import { sessionStore } from '../core/session-store';
+import { settingsStore } from '../screens/settings/store';
+import { navigationStore } from '../core/navigation/store';
+import { agendaStore } from '../screens/agenda/store';
+import { accountsStore } from '../screens/accounts/store';
 
 type AuthAnswer = PromiseLike<{ error: { message: string } | null }>;
 interface AskOptions { titulo?: string; ok?: string; tipo?: string; opciones?: string[] }
@@ -30,22 +35,22 @@ const MODULE_LOADERS: Readonly<Record<string, () => unknown>> = {
 /** The screen switch (irBase): navigation state, permissions and the loader of each module. */
 export const switchLegacy = {
   isModule: (screen: string): boolean => screen in MODULO_AREA,
-  hasProfile: (): boolean => Boolean(PERFIL),
+  hasProfile: (): boolean => Boolean(sessionStore.profile),
   moduleAllowedV2400: (screen: string): boolean => puedeModuloV2400(screen),
   moduleAllowed: (screen: string): boolean => puedeModulo(screen),
   planIncludes: (screen: string): boolean => planIncluye(screen),
   planNotice: (screen: string): void => { avisoPlan(screen); },
-  openAdminSection: (): void => { CFG_SEC = CFG_ADMIN[ADM_SEC] ?? 'usuarios'; },
-  clearPending: (): void => { PEND = 0; },
+  openAdminSection: (): void => { settingsStore.section = CFG_ADMIN[settingsStore.adminSection] ?? 'usuarios'; },
+  clearPending: (): void => { navigationStore.pendingReads = 0; },
   leavePanel: (): void => { salirPanel(); },
-  abortNavigation: (): void => { NAV_CTRL.abort(); NAV_CTRL = new AbortController(); NAV_GEN++; },
+  abortNavigation: (): void => { navigationStore.abort.abort(); navigationStore.abort = new AbortController(); navigationStore.generation++; },
   closeSelector: (): void => { if (typeof cerrarSelector === 'function') cerrarSelector(); },
   isProfessionalPortal: (): boolean => ES_MEDICO(),
-  rememberPrevious: (target: string): void => { if (target !== TAB) TAB_ANTERIOR = TAB; },
-  forgetViewedAgenda: (): void => { AG_VISTA = null; },
-  setScreen: (screen: string): void => { TAB = screen; },
-  screen: (): string => TAB,
-  pending: (): number => PEND,
+  rememberPrevious: (target: string): void => { if (target !== navigationStore.screen) navigationStore.previousScreen = navigationStore.screen; },
+  forgetViewedAgenda: (): void => { agendaStore.viewedUser = null; },
+  setScreen: (screen: string): void => { navigationStore.screen = screen; },
+  screen: (): string => navigationStore.screen,
+  pending: (): number => navigationStore.pendingReads,
   loadModule: (screen: string): void => { MODULE_LOADERS[screen]?.(); },
   paintBottomBar: (): void => { pintarBnav(); },
 };
@@ -57,7 +62,7 @@ export const shellLegacy = {
   notActivated: (message: string): void => { accesoSinActivar(message); },
   start: (): void => { void arrancar(); },
   goTo: (screen: string): void => { ir(screen); },
-  screen: (): string => TAB,
+  screen: (): string => navigationStore.screen,
   applySavedFilter: (filter: object): void => { aplicarFiltroGuardado(filter); },
   openIndicatorSettings: (): void => { abrirKpis(); },
   openAccount: (id: string): void => { void abrirFicha(id); },
@@ -96,13 +101,13 @@ export const connectionLegacy = {
 /** Appointment buttons outside the cards of «Tu día». */
 export const agendaClicksLegacy = {
   // Without an account: the editor asks for it (the legacy signature takes null)
-  newAppointment: (): void => { void nuevaCita(null as unknown as string, AG_FECHA); },
+  newAppointment: (): void => { void nuevaCita(null as unknown as string, agendaStore.selectedDate); },
   write: (name: string, payload: Record<string, unknown>): Promise<{ error?: unknown } | null> => escribir(name, payload),
   openAccount: (id: string): void => { void abrirFicha(id); },
   recordVisit: (id: string): void => { void abrirVisita(id); },
   reloadAgenda: (): void => { void cargarAgenda(); },
   reloadHome: (): void => { void cargarInicio(); },
-  screen: (): string => TAB,
+  screen: (): string => navigationStore.screen,
   windowChangedData: (): boolean => agCambiosEnVentana(),
   quietRefresh: (): void => { agRefrescoQuieto(); },
 };
@@ -120,9 +125,9 @@ export interface AdminUser { id: string; nombre: string; rol: string; email?: st
 
 /** The old Administración page. */
 export const adminLegacy = {
-  section: (): string => ADM_SEC,
-  users: (): AdminUser[] => USUARIOS as AdminUser[],
-  setUsers: (users: AdminUser[]): void => { USUARIOS = users; },
+  section: (): string => settingsStore.adminSection,
+  users: (): AdminUser[] => settingsStore.users as AdminUser[],
+  setUsers: (users: AdminUser[]): void => { settingsStore.users = users; },
   initials: (name: string): string => iniciales(name),
   canImpersonate: (user: AdminUser): boolean => puedeVerComo(user as unknown as PlatformUser),
   paintCommissions: (): void => { void pintarComisiones(); },
@@ -133,8 +138,8 @@ export const adminLegacy = {
   assignPortfolio: (id: string): void => { void asignarCartera(id); },
   showPortfolio: (id: string): void => { void verCartera(id); },
   resetPassword: (user: Partial<AdminUser>): void => { void restablecerPassword(user); },
-  openSettingsSection: (section: string): void => { CFG_SEC = section; void cargarConfig(); },
-  openAdminSection: (section: string): void => { ADM_SEC = section; void cargarAdmin(); },
+  openSettingsSection: (section: string): void => { settingsStore.section = section; void cargarConfig(); },
+  openAdminSection: (section: string): void => { settingsStore.adminSection = section; void cargarAdmin(); },
 };
 
 /** The password flows. */
@@ -151,7 +156,7 @@ export const passwordLegacy = {
 /** Small pieces of the app frame. */
 export const shellExtrasLegacy = {
   goTo: (screen: string): void => { ir(screen); },
-  toggleMapMode: (): boolean => { MODO_MAPA = !MODO_MAPA; return MODO_MAPA; },
+  toggleMapMode: (): boolean => { accountsStore.mapMode = !accountsStore.mapMode; return accountsStore.mapMode; },
   paintMap: (): void => { void legacyFreeScreensAccounts.paintMap(); },
   nearMe: (button: HTMLElement): void => { void cercaDeMi(button); },
   openTools: (context: string): void => { abrirHerramientas(context); },
@@ -176,11 +181,11 @@ interface FilterOptions { provincias: unknown[]; municipios: unknown[]; especial
 
 /** The «Herramientas» panel of the directory. */
 export const toolsPanelLegacy = {
-  context: (): string | null => HERR_CTX,
-  setContext: (context: string): void => { HERR_CTX = context; },
+  context: (): string | null => accountsStore.toolsContext,
+  setContext: (context: string): void => { accountsStore.toolsContext = context; },
   // eslint-disable-next-line id-length -- F is the legacy name of the directory filters
   filters: (): AccountFilters => F,
-  options: (): FilterOptions => OPF as FilterOptions,
+  options: (): FilterOptions => accountsStore.filterOptions as FilterOptions,
   option: (list: unknown[], value: string, all: string): string => optFiltro(list, value, all),
   allOf: (word: string): string => todosLos(word),
   seesEverything: (): boolean => VE_TODO(),
@@ -214,7 +219,7 @@ export const cacheLegacy = {
   withCatch: (request: PromiseLike<Answer>): Promise<Answer> => conCatch(request),
   storageKey: (key: string): string => rcLS(key),
   copy: (answer: Answer): Answer => rcCopia(answer),
-  epoch: (): number => RC_EPOCA,
+  epoch: (): number => sessionStore.cacheEpoch,
   cache: (): Map<string, unknown> => RC as unknown as Map<string, unknown>,
   flying: (): Map<string, Promise<Answer>> => RC_VUELO as unknown as Map<string, Promise<Answer>>,
 };
@@ -239,10 +244,10 @@ export const showAppLegacy = {
   recovering: (): boolean => RECUPERANDO,
   recoveryScreen: (): void => { pantallaRecuperacion(); },
   prepareLanguage: (language: string): void => { prepararIdioma(language); },
-  appVisible: (): boolean => APP_VISIBLE,
-  setAppVisible: (): void => { APP_VISIBLE = true; },
+  appVisible: (): boolean => navigationStore.appVisible,
+  setAppVisible: (): void => { navigationStore.appVisible = true; },
   indicatorCatalog: (): readonly { id: string }[] => KPI_CAT,
-  setProfile: (profile: Profile): void => { PERFIL = profile; },
+  setProfile: (profile: Profile): void => { sessionStore.profile = profile; },
   initials: (name: string): string => iniciales(name),
   firstName: (name: string): string => nombrePila(name),
   longDate: (date: Date): string => legacyFreeCoreServices.calendar.longDate(date),
@@ -270,7 +275,7 @@ export const showAppLegacy = {
   dayNotices: (): void => {
     Promise.resolve(RPC_ORIG<{ nuevo?: boolean }>('avisos_del_dia', {})).then(answer => { if (answer.data?.nuevo) void refrescarCampana(); }, () => undefined);
   },
-  translatePage: (): void => { if (MAPA_I18N) traducir(document.body); },
+  translatePage: (): void => { if (sessionStore.translationMap) traducir(document.body); },
   bookIcon: (): string => svgIco(ICON_NOM['book-open'] ?? ''),
   menuIcons: (): void => { iconosMenu(); },
   orderMenu: (): void => { ordenarMenu(); },
@@ -287,7 +292,7 @@ export const portfolioLegacy = {
 
 /** The period selector. */
 export const periodLegacy = {
-  userId: (): string => (PERFIL ? (PERFIL as { id: string }).id : ''),
+  userId: (): string => (sessionStore.profile ? (sessionStore.profile as { id: string }).id : ''),
   periods: (): readonly (readonly [string, string])[] => PERIODOS,
   rangeOf: (period: string): (string | null)[] => rangoPeriodo(period),
   shortDate: (isoDate: string | null): string => legacyFreeCoreServices.calendar.shortDate((isoDate ?? '')),
@@ -297,7 +302,7 @@ export const periodLegacy = {
 export const testStripLegacy = {
   inTests: (): boolean => EN_PRUEBAS,
   notConfigured: (): boolean => Boolean((CFG as { sinConfigurar?: boolean }).sinConfigurar),
-  isAdmin: (): boolean => Boolean(PERFIL) && puede('administrar'),
+  isAdmin: (): boolean => Boolean(sessionStore.profile) && puede('administrar'),
   environment: (): PromiseLike<{ data: { maestro_guardado_en?: string | null } | null }> =>
     RPC_ORIG_FROM('entorno_pruebas').select('maestro_guardado_en, ultimo_reset').eq('id', 1).single() as unknown as PromiseLike<{ data: { maestro_guardado_en?: string | null } | null }>,
   askText: (message: string, value: string, options: AskOptions): Promise<string | null> => pedirTexto(message, value, options),
@@ -324,7 +329,7 @@ export const dayEstimateLegacy = {
   possibleStart: (item: { xy: [number, number] | null; ventanas: [number, number][] | null; fija: number | null }, arrival: number, duration: number): number | null => inicioPosible(item, arrival, duration) ?? null,
   hourText: (minutes: number): string => hm(minutes),
   windowsText: (windows: readonly [number, number][] | null): string => txtVentanas(windows ?? []),
-  setStopInfo: (info: Record<string, StopNotice>): void => { TD_INFO = info; },
+  setStopInfo: (info: Record<string, StopNotice>): void => { agendaStore.stopInfo = info; },
   routeHours: (appointments: readonly EstimatedAppointment[]): RouteHours | null => horDeCitas(appointments) as RouteHours | null,
   withHours: (hours: RouteHours | null, run: () => DayEstimateResult): DayEstimateResult => conHor(hours, run),
   estimateBase: (appointments: readonly EstimatedAppointment[], isoDate: string): DayEstimateResult => legacyFreeCoreLegacyC.estimateDay(appointments, isoDate) as DayEstimateResult,
