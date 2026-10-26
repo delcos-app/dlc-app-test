@@ -40,7 +40,7 @@ const LISTA_PARA = {
    ============================================================ */
 const ORD_MEM = {
   facts: { fn: 'facturas_lista', campos: ['numero', 'fecha', 'cliente', 'nif', 'base', 'cuota_iva', 'total', 'vencimiento', 'estado_cobro'] },
-  llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
+  llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? window.delcos.t('legacyTexts.lists.orderDone') : ''), 'proxima_fecha', 'usuario'] }
 };
 
 // El motor de la barra de listas está en src/app/components/list-bar (v2.421.0). PL, PL_SECC y BLQ son sus mismos objetos (las pruebas

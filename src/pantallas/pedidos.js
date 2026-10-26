@@ -23,8 +23,8 @@ const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txt
 // Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
 const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedores: 'proveedores' };
 
-const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus unidades e importes'], llamadas: ['Oportunidades', 'Cada venta, se cierre con pedido o no, y por qué'],
-  compras: ['Compras', 'Pedidos a proveedores y mercancía en camino'], proveedores: ['Proveedores', 'A quién compras y en qué condiciones'] };
+const TITULO_PEDSEC = { ventas: ['Pedidos', window.delcos.t('legacyTexts.orderPages.sales')], llamadas: ['Oportunidades', window.delcos.t('legacyTexts.orderPages.opportunities')],
+  compras: ['Compras', window.delcos.t('legacyTexts.orderPages.purchases')], proveedores: ['Proveedores', window.delcos.t('legacyTexts.orderPages.suppliers')] };
 
 /* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
    abre el pago seguro de Stripe (tarjeta), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
@@ -56,8 +56,8 @@ let PAGO_PROXIMO = null;
      (#opcfg) sigue eligiendo qué tarjetas se ven.
    - Analítica: cada indicador cuenta hasta su cifra y dibuja la línea de los últimos seis meses (analitica_kpis_periodo por mes, con
      el filtro propio del indicador). Sin línea los de «a día de hoy» y los de texto. */
-const PK_TARJ = [['pago', 'pago', 'Pendientes de cobro', 'credit-card'], ['paquete', 'paquete', 'Paquetes por preparar', 'package'],
-  ['email_factura', 'email', 'Facturas por enviar', 'mail']];
+const PK_TARJ = [['pago', 'pago', window.delcos.t('legacyTexts.orderCards.payment'), 'credit-card'], ['paquete', 'paquete', window.delcos.t('legacyTexts.orderCards.parcel'), 'package'],
+  ['email_factura', 'email', window.delcos.t('legacyTexts.orderCards.invoiceEmail'), 'mail']];
 
 // Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
 

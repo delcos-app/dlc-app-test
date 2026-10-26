@@ -5,7 +5,7 @@
 
 const CAMPO_TABLA = { medico: 'cuentas', cliente: 'contactos', producto: 'productos', pedido: 'pedidos' };
 
-const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
+const TIPOS_CAMPO = [['lista', window.delcos.t('legacyTexts.fieldTypes.list')], ['texto', window.delcos.t('legacyTexts.fieldTypes.text')], ['numero', window.delcos.t('legacyTexts.fieldTypes.number')], ['fecha', window.delcos.t('legacyTexts.fieldTypes.date')], ['si_no', window.delcos.t('legacyTexts.fieldTypes.yesNo')]];
 
 /** @param {any} v @param {any} f */
 function clasCumple(v, f) { return window.delcos.components.matchesFilters(v, f); }

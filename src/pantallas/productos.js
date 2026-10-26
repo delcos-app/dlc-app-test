@@ -6,11 +6,11 @@ async function cargarAlmacenes() { const { data } = await db.rpc('almacenes_list
 
 function loteRecepcion(l, uds, almId) {
   return `<div class="g2 rcl">
-    <div class="g2" style="margin:0"><div><label>Unidades</label><input type="number" min="0" data-r="u" value="${uds}"></div>
-      <div><label>Nº de lote</label><input data-r="lote" placeholder="p. ej. L2609"></div></div>
-    <div class="g2" style="margin:0"><div><label>Caducidad</label><input type="date" data-r="cad"></div>
-      <div><label>Fabricación</label><input type="date" data-r="fab"></div></div>
-    <div><label>Almacén</label><select data-r="alm">${ALMACENES.filter(a => a.activo).map(a => `<option value="${a.id}" ${a.id === almId ? 'selected' : ''}>${esc(a.nombre)}</option>`).join('')}</select></div></div>`;
+    <div class="g2" style="margin:0"><div><label>${window.delcos.t('legacyTexts.stockReception.units')}</label><input type="number" min="0" data-r="u" value="${uds}"></div>
+      <div><label>${window.delcos.t('legacyTexts.stockReception.batch')}</label><input data-r="lote" placeholder="${window.delcos.t('legacyTexts.stockReception.batchPlaceholder')}"></div></div>
+    <div class="g2" style="margin:0"><div><label>${window.delcos.t('legacyTexts.stockReception.expiry')}</label><input type="date" data-r="cad"></div>
+      <div><label>${window.delcos.t('legacyTexts.stockReception.manufacture')}</label><input type="date" data-r="fab"></div></div>
+    <div><label>${window.delcos.t('legacyTexts.stockReception.store')}</label><select data-r="alm">${ALMACENES.filter(a => a.activo).map(a => `<option value="${a.id}" ${a.id === almId ? 'selected' : ''}>${esc(a.nombre)}</option>`).join('')}</select></div></div>`;
 }
 
 
@@ -88,9 +88,9 @@ function opcionesProducto(id, nombre) {
   // En los pedidos solo aparecen los productos activos (y el que ya tuviera la línea)
   const lista = PRODUCTOS.filter(p => (p.tipo !== 'servicio' && vendible(p)) || p.id === id);
   const falta = id && !lista.some(p => p.id === id);
-  return (falta ? `<option value="${id}" selected>${esc(nombre || 'Producto del pedido')}</option>` : '') +
+  return (falta ? `<option value="${id}" selected>${esc(nombre || window.delcos.t('legacyTexts.products.fromOrder'))}</option>` : '') +
     lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}${vendible(p) ? '' : ' (' + esc(p.estado.toLowerCase()) + ')'}</option>`).join('')
-    || '<option value="">Sin productos activos</option>';
+    || '<option value="">' + window.delcos.t('legacyTexts.products.noneActive') + '</option>';
 }
 
 // Productos está en src/app/screens/products (v2.413.0). Estos nombres se quedan: el menú, la caché de pantallas (legado 057),

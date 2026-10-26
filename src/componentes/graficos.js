@@ -20,10 +20,10 @@ const KPI_DEF = window.delcos.content.defaultIndicators();
 const kpiConfig = () => window.delcos.leftovers.indicatorSettings();
 
 const KPI_CATEGORIA = {
-  citas: 'Agenda', citas_7d: 'Agenda', urgentes: 'Cartera', interesados: 'Cartera', sin_contactar: 'Cartera', cartera: 'Cartera',
-  sin_visita_60: 'Cartera', sin_horario: 'Calidad del dato', dups: 'Calidad del dato', visitas_sem: 'Actividad', visitas_mes: 'Actividad',
-  visitas_7d: 'Actividad', muestras_mes: 'Actividad', material_mes: 'Actividad', uds_mes: 'Ventas (unidades)', prescriptores: 'Ventas (unidades)',
-  nuevos_presc: 'Ventas (unidades)', activos_90: 'Ventas (unidades)', conversion: 'Cartera', importe_mes: 'Ventas (importes)', borradores: 'Pedidos'
+  citas: window.delcos.t('legacyTexts.indicatorGroups.agenda'), citas_7d: window.delcos.t('legacyTexts.indicatorGroups.agenda'), urgentes: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), interesados: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), sin_contactar: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), cartera: window.delcos.t('legacyTexts.indicatorGroups.portfolio'),
+  sin_visita_60: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), sin_horario: window.delcos.t('legacyTexts.indicatorGroups.quality'), dups: window.delcos.t('legacyTexts.indicatorGroups.quality'), visitas_sem: window.delcos.t('legacyTexts.indicatorGroups.activity'), visitas_mes: window.delcos.t('legacyTexts.indicatorGroups.activity'),
+  visitas_7d: window.delcos.t('legacyTexts.indicatorGroups.activity'), muestras_mes: window.delcos.t('legacyTexts.indicatorGroups.activity'), material_mes: window.delcos.t('legacyTexts.indicatorGroups.activity'), uds_mes: window.delcos.t('legacyTexts.indicatorGroups.salesUnits'), prescriptores: window.delcos.t('legacyTexts.indicatorGroups.salesUnits'),
+  nuevos_presc: window.delcos.t('legacyTexts.indicatorGroups.salesUnits'), activos_90: window.delcos.t('legacyTexts.indicatorGroups.salesUnits'), conversion: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), importe_mes: window.delcos.t('legacyTexts.indicatorGroups.salesAmounts'), borradores: window.delcos.t('legacyTexts.indicatorGroups.orders')
 };
 
 // Indicadores con icono, explicación breve y, cuando se puede, comparación

@@ -6,6 +6,7 @@
  */
 import * as legacyFreeCoreLegacyC from './';
 import { sessionStore } from '../session-store';
+import { t } from '../../i18n';
 import { navigationStore } from '../navigation/store';
 interface RpcAnswer { data?: unknown; error?: { message?: string; code?: string } | null }
 type Rpc = (name: string, params?: unknown, options?: unknown) => unknown;
@@ -24,7 +25,7 @@ export function limitCallTime(): void {
     const result = original.call(db, name, params, options);
     if (!isThenable(result)) return result;
     let done = false;
-    const limit = new Promise<RpcAnswer>(resolve => { setTimeout(() => { if (!done) resolve({ data: null, error: { message: `La petición ha tardado demasiado (${name})`, code: 'TIEMPO' } }); }, TIMEOUT_MS); });
+    const limit = new Promise<RpcAnswer>(resolve => { setTimeout(() => { if (!done) resolve({ data: null, error: { message: t('legacyTexts.timeout', { name }), code: 'TIEMPO' } }); }, TIMEOUT_MS); });
     const answer = Promise.resolve(result).then(value => { done = true; return value; }, (error: unknown) => { done = true; return { data: null, error } as RpcAnswer; });
     return conCatch(Promise.race([answer, limit]));
   };

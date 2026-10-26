@@ -703,6 +703,126 @@
     }
   };
 
+  // src/app/i18n/es/legacy-texts.ts
+  var legacyTexts = {
+    timeout: "La petición ha tardado demasiado ({name})",
+    mailProviders: {
+      google: "Google Workspace o Gmail",
+      googleHelp: "Identificador: la dirección de correo. Clave: una «contraseña de aplicación» (Cuenta de Google → Seguridad → Verificación en dos pasos → Contraseñas de aplicaciones), no la contraseña normal.",
+      microsoft: "Microsoft 365 u Outlook",
+      microsoftHelp: "La cuenta debe tener activado «SMTP autenticado» (lo activa el administrador de Microsoft 365).",
+      mailjetHelp: "Identificador: la «API Key». Clave: la «Secret Key» (Mailjet → Account settings → API Key Management). El email del remitente debe estar validado en Mailjet.",
+      mailboxHelp: "Identificador: la dirección de correo completa. Clave: la contraseña del buzón.",
+      other: "Otro proveedor",
+      otherHelp: "Pide a tu proveedor el servidor de salida (SMTP), el puerto y el tipo de seguridad."
+    },
+    platformSections: {
+      organisations: "Clientes",
+      requests: "Solicitudes",
+      errors: "Errores",
+      access: "Accesos",
+      audit: "Auditoría",
+      team: "Equipo delcos",
+      template: "Plantilla"
+    },
+    platformPanel: {
+      organisations: "Las empresas que usan delcos: plan, dominios, extras y entrar a ayudarlas",
+      billing: "Quién paga, quién está en prueba y qué recibos vienen",
+      signups: "Empresas que se han dado de alta desde www.delcos.app",
+      requests: "Presupuestos A medida y conversaciones sobre el contrato",
+      errors: "Errores de la plataforma agrupados, de todas las empresas",
+      status: "Versiones en uso, SQL aplicado y cifras generales",
+      access: "Entradas y salidas de la plataforma",
+      audit: "Cambios hechos en el panel",
+      team: "Las personas de delcos con acceso al panel",
+      template: "Roles y catálogos que recibe cada empresa nueva"
+    },
+    orderPages: {
+      sales: "Pedidos de tus clientes, con sus unidades e importes",
+      opportunities: "Cada venta, se cierre con pedido o no, y por qué",
+      purchases: "Pedidos a proveedores y mercancía en camino",
+      suppliers: "A quién compras y en qué condiciones"
+    },
+    orderCards: {
+      payment: "Pendientes de cobro",
+      parcel: "Paquetes por preparar",
+      invoiceEmail: "Facturas por enviar"
+    },
+    samples: {
+      signature: "Falta la firma de quien recibe las muestras",
+      professional: "Las muestras solo se entregan a profesionales, no a un centro",
+      period: "Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)",
+      limit: "Se pasa del máximo de muestras de este año",
+      permission: "No puedes registrar muestras de esta ficha",
+      product: "Producto no encontrado",
+      account: "Ficha no encontrada",
+      failed: "No se han podido guardar las muestras",
+      left: " ({product}: quedan {left} de {max})"
+    },
+    fieldTypes: {
+      list: "Lista de valores",
+      text: "Texto",
+      number: "Número",
+      date: "Fecha",
+      yesNo: "Sí / No"
+    },
+    indicatorGroups: {
+      agenda: "Agenda",
+      portfolio: "Cartera",
+      quality: "Calidad del dato",
+      activity: "Actividad",
+      salesUnits: "Ventas (unidades)",
+      salesAmounts: "Ventas (importes)",
+      orders: "Pedidos"
+    },
+    billingSettings: {
+      week: "Semana",
+      month: "Mes",
+      year: "Año",
+      companyData: "Datos fiscales",
+      series: "Series y numeración",
+      log: "Registro"
+    },
+    productUses: {
+      orders: "pedidos",
+      drafts: "borradores",
+      service: "pedidos con este servicio",
+      purchases: "compras",
+      batches: "lotes",
+      stock: "movimientos de stock",
+      samples: "entregas de muestras",
+      surgeries: "intervenciones",
+      tenders: "precios de concurso",
+      equipment: "equipos",
+      commissions: "esquemas de comisión"
+    },
+    accountRemoval: {
+      visits: "visitas",
+      sales: "ventas",
+      samples: "muestras entregadas",
+      events: "eventos",
+      surgeries: "intervenciones",
+      tenders: "concursos",
+      equipment: "equipos",
+      portal: "acceso al portal"
+    },
+    products: {
+      fromOrder: "Producto del pedido",
+      noneActive: "Sin productos activos"
+    },
+    stockReception: {
+      units: "Unidades",
+      batch: "Nº de lote",
+      batchPlaceholder: "p. ej. L2609",
+      expiry: "Caducidad",
+      manufacture: "Fabricación",
+      store: "Almacén"
+    },
+    lists: {
+      orderDone: "Pedido hecho"
+    }
+  };
+
   // src/app/i18n/es/settings-core.ts
   var settingsCore = {
     detailNames: {
@@ -8206,6 +8326,7 @@
     productsMore,
     leftovers,
     settingsCore,
+    legacyTexts,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -16723,7 +16844,7 @@
       let done2 = false;
       const limit = new Promise((resolve) => {
         setTimeout(() => {
-          if (!done2) resolve({ data: null, error: { message: `La petición ha tardado demasiado (${name})`, code: "TIEMPO" } });
+          if (!done2) resolve({ data: null, error: { message: t("legacyTexts.timeout", { name }), code: "TIEMPO" } });
         }, TIMEOUT_MS);
       });
       const answer = Promise.resolve(result).then((value27) => {

@@ -703,6 +703,126 @@
     }
   };
 
+  // src/app/i18n/es/legacy-texts.ts
+  var legacyTexts = {
+    timeout: "La petición ha tardado demasiado ({name})",
+    mailProviders: {
+      google: "Google Workspace o Gmail",
+      googleHelp: "Identificador: la dirección de correo. Clave: una «contraseña de aplicación» (Cuenta de Google → Seguridad → Verificación en dos pasos → Contraseñas de aplicaciones), no la contraseña normal.",
+      microsoft: "Microsoft 365 u Outlook",
+      microsoftHelp: "La cuenta debe tener activado «SMTP autenticado» (lo activa el administrador de Microsoft 365).",
+      mailjetHelp: "Identificador: la «API Key». Clave: la «Secret Key» (Mailjet → Account settings → API Key Management). El email del remitente debe estar validado en Mailjet.",
+      mailboxHelp: "Identificador: la dirección de correo completa. Clave: la contraseña del buzón.",
+      other: "Otro proveedor",
+      otherHelp: "Pide a tu proveedor el servidor de salida (SMTP), el puerto y el tipo de seguridad."
+    },
+    platformSections: {
+      organisations: "Clientes",
+      requests: "Solicitudes",
+      errors: "Errores",
+      access: "Accesos",
+      audit: "Auditoría",
+      team: "Equipo delcos",
+      template: "Plantilla"
+    },
+    platformPanel: {
+      organisations: "Las empresas que usan delcos: plan, dominios, extras y entrar a ayudarlas",
+      billing: "Quién paga, quién está en prueba y qué recibos vienen",
+      signups: "Empresas que se han dado de alta desde www.delcos.app",
+      requests: "Presupuestos A medida y conversaciones sobre el contrato",
+      errors: "Errores de la plataforma agrupados, de todas las empresas",
+      status: "Versiones en uso, SQL aplicado y cifras generales",
+      access: "Entradas y salidas de la plataforma",
+      audit: "Cambios hechos en el panel",
+      team: "Las personas de delcos con acceso al panel",
+      template: "Roles y catálogos que recibe cada empresa nueva"
+    },
+    orderPages: {
+      sales: "Pedidos de tus clientes, con sus unidades e importes",
+      opportunities: "Cada venta, se cierre con pedido o no, y por qué",
+      purchases: "Pedidos a proveedores y mercancía en camino",
+      suppliers: "A quién compras y en qué condiciones"
+    },
+    orderCards: {
+      payment: "Pendientes de cobro",
+      parcel: "Paquetes por preparar",
+      invoiceEmail: "Facturas por enviar"
+    },
+    samples: {
+      signature: "Falta la firma de quien recibe las muestras",
+      professional: "Las muestras solo se entregan a profesionales, no a un centro",
+      period: "Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)",
+      limit: "Se pasa del máximo de muestras de este año",
+      permission: "No puedes registrar muestras de esta ficha",
+      product: "Producto no encontrado",
+      account: "Ficha no encontrada",
+      failed: "No se han podido guardar las muestras",
+      left: " ({product}: quedan {left} de {max})"
+    },
+    fieldTypes: {
+      list: "Lista de valores",
+      text: "Texto",
+      number: "Número",
+      date: "Fecha",
+      yesNo: "Sí / No"
+    },
+    indicatorGroups: {
+      agenda: "Agenda",
+      portfolio: "Cartera",
+      quality: "Calidad del dato",
+      activity: "Actividad",
+      salesUnits: "Ventas (unidades)",
+      salesAmounts: "Ventas (importes)",
+      orders: "Pedidos"
+    },
+    billingSettings: {
+      week: "Semana",
+      month: "Mes",
+      year: "Año",
+      companyData: "Datos fiscales",
+      series: "Series y numeración",
+      log: "Registro"
+    },
+    productUses: {
+      orders: "pedidos",
+      drafts: "borradores",
+      service: "pedidos con este servicio",
+      purchases: "compras",
+      batches: "lotes",
+      stock: "movimientos de stock",
+      samples: "entregas de muestras",
+      surgeries: "intervenciones",
+      tenders: "precios de concurso",
+      equipment: "equipos",
+      commissions: "esquemas de comisión"
+    },
+    accountRemoval: {
+      visits: "visitas",
+      sales: "ventas",
+      samples: "muestras entregadas",
+      events: "eventos",
+      surgeries: "intervenciones",
+      tenders: "concursos",
+      equipment: "equipos",
+      portal: "acceso al portal"
+    },
+    products: {
+      fromOrder: "Producto del pedido",
+      noneActive: "Sin productos activos"
+    },
+    stockReception: {
+      units: "Unidades",
+      batch: "Nº de lote",
+      batchPlaceholder: "p. ej. L2609",
+      expiry: "Caducidad",
+      manufacture: "Fabricación",
+      store: "Almacén"
+    },
+    lists: {
+      orderDone: "Pedido hecho"
+    }
+  };
+
   // src/app/i18n/es/settings-core.ts
   var settingsCore = {
     detailNames: {
@@ -8206,6 +8326,7 @@
     productsMore,
     leftovers,
     settingsCore,
+    legacyTexts,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -16723,7 +16844,7 @@
       let done2 = false;
       const limit = new Promise((resolve) => {
         setTimeout(() => {
-          if (!done2) resolve({ data: null, error: { message: `La petición ha tardado demasiado (${name})`, code: "TIEMPO" } });
+          if (!done2) resolve({ data: null, error: { message: t("legacyTexts.timeout", { name }), code: "TIEMPO" } });
         }, TIMEOUT_MS);
       });
       const answer = Promise.resolve(result).then((value27) => {
@@ -59458,7 +59579,7 @@ function quitarCarga() { window.delcos.components.hideFullLoading(); }
 
 const CAMPO_TABLA = { medico: 'cuentas', cliente: 'contactos', producto: 'productos', pedido: 'pedidos' };
 
-const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
+const TIPOS_CAMPO = [['lista', window.delcos.t('legacyTexts.fieldTypes.list')], ['texto', window.delcos.t('legacyTexts.fieldTypes.text')], ['numero', window.delcos.t('legacyTexts.fieldTypes.number')], ['fecha', window.delcos.t('legacyTexts.fieldTypes.date')], ['si_no', window.delcos.t('legacyTexts.fieldTypes.yesNo')]];
 
 /** @param {any} v @param {any} f */
 function clasCumple(v, f) { return window.delcos.components.matchesFilters(v, f); }
@@ -59574,10 +59695,10 @@ const KPI_DEF = window.delcos.content.defaultIndicators();
 const kpiConfig = () => window.delcos.leftovers.indicatorSettings();
 
 const KPI_CATEGORIA = {
-  citas: 'Agenda', citas_7d: 'Agenda', urgentes: 'Cartera', interesados: 'Cartera', sin_contactar: 'Cartera', cartera: 'Cartera',
-  sin_visita_60: 'Cartera', sin_horario: 'Calidad del dato', dups: 'Calidad del dato', visitas_sem: 'Actividad', visitas_mes: 'Actividad',
-  visitas_7d: 'Actividad', muestras_mes: 'Actividad', material_mes: 'Actividad', uds_mes: 'Ventas (unidades)', prescriptores: 'Ventas (unidades)',
-  nuevos_presc: 'Ventas (unidades)', activos_90: 'Ventas (unidades)', conversion: 'Cartera', importe_mes: 'Ventas (importes)', borradores: 'Pedidos'
+  citas: window.delcos.t('legacyTexts.indicatorGroups.agenda'), citas_7d: window.delcos.t('legacyTexts.indicatorGroups.agenda'), urgentes: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), interesados: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), sin_contactar: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), cartera: window.delcos.t('legacyTexts.indicatorGroups.portfolio'),
+  sin_visita_60: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), sin_horario: window.delcos.t('legacyTexts.indicatorGroups.quality'), dups: window.delcos.t('legacyTexts.indicatorGroups.quality'), visitas_sem: window.delcos.t('legacyTexts.indicatorGroups.activity'), visitas_mes: window.delcos.t('legacyTexts.indicatorGroups.activity'),
+  visitas_7d: window.delcos.t('legacyTexts.indicatorGroups.activity'), muestras_mes: window.delcos.t('legacyTexts.indicatorGroups.activity'), material_mes: window.delcos.t('legacyTexts.indicatorGroups.activity'), uds_mes: window.delcos.t('legacyTexts.indicatorGroups.salesUnits'), prescriptores: window.delcos.t('legacyTexts.indicatorGroups.salesUnits'),
+  nuevos_presc: window.delcos.t('legacyTexts.indicatorGroups.salesUnits'), activos_90: window.delcos.t('legacyTexts.indicatorGroups.salesUnits'), conversion: window.delcos.t('legacyTexts.indicatorGroups.portfolio'), importe_mes: window.delcos.t('legacyTexts.indicatorGroups.salesAmounts'), borradores: window.delcos.t('legacyTexts.indicatorGroups.orders')
 };
 
 // Indicadores con icono, explicación breve y, cuando se puede, comparación
@@ -59696,7 +59817,7 @@ const LISTA_PARA = {
    ============================================================ */
 const ORD_MEM = {
   facts: { fn: 'facturas_lista', campos: ['numero', 'fecha', 'cliente', 'nif', 'base', 'cuota_iva', 'total', 'vencimiento', 'estado_cobro'] },
-  llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
+  llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? window.delcos.t('legacyTexts.lists.orderDone') : ''), 'proxima_fecha', 'usuario'] }
 };
 
 // El motor de la barra de listas está en src/app/components/list-bar (v2.421.0). PL, PL_SECC y BLQ son sus mismos objetos (las pruebas
@@ -60103,7 +60224,7 @@ const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
    «Dar de baja» (siempre; se deshace desde Cuentas → «⋯» → «Fichas dadas de baja») y «Eliminar la ficha» (administración o
    nivel completo en fichas; solo si no tiene visitas, ventas, muestras, eventos… — si tiene, lo dice y ofrece la baja).
    ============================================================ */
-const BAJA_QUE = { visitas: 'visitas', ventas: 'ventas', muestras: 'muestras entregadas', eventos: 'eventos', cirugias: 'intervenciones', concursos: 'concursos', equipos: 'equipos', portal: 'acceso al portal' };
+const BAJA_QUE = { visitas: window.delcos.t('legacyTexts.accountRemoval.visits'), ventas: window.delcos.t('legacyTexts.accountRemoval.sales'), muestras: window.delcos.t('legacyTexts.accountRemoval.samples'), eventos: window.delcos.t('legacyTexts.accountRemoval.events'), cirugias: window.delcos.t('legacyTexts.accountRemoval.surgeries'), concursos: window.delcos.t('legacyTexts.accountRemoval.tenders'), equipos: window.delcos.t('legacyTexts.accountRemoval.equipment'), portal: window.delcos.t('legacyTexts.accountRemoval.portal') };
 
 // El editor del cliente está en src/app/screens/customers/contact-editor (v2.427.0); Clientes, Pedidos, Oportunidades y las pruebas lo abren por este nombre
 function editorContacto(c, alGuardar, op) { return window.delcos.leftovers.editContact(c || null, alGuardar || null, op || null); }
@@ -60138,12 +60259,12 @@ function editorEsquema(id) { return window.delcos.screens.commissions.editScheme
 async function cargarProveedores() { const { data } = await db.rpc('proveedores_lista'); PROVEEDORES = data || []; }
 
 const PROVEEDORES_CORREO = {
-  google: { n: 'Google Workspace o Gmail', host: 'smtp.gmail.com', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo. Clave: una «contraseña de aplicación» (Cuenta de Google → Seguridad → Verificación en dos pasos → Contraseñas de aplicaciones), no la contraseña normal.' },
-  microsoft: { n: 'Microsoft 365 u Outlook', host: 'smtp.office365.com', puerto: 587, seg: 'starttls', ayuda: 'La cuenta debe tener activado «SMTP autenticado» (lo activa el administrador de Microsoft 365).' },
-  mailjet: { n: 'Mailjet', host: 'in-v3.mailjet.com', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la «API Key». Clave: la «Secret Key» (Mailjet → Account settings → API Key Management). El email del remitente debe estar validado en Mailjet.' },
-  ionos: { n: 'IONOS', host: 'smtp.ionos.es', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo completa. Clave: la contraseña del buzón.' },
-  ovh: { n: 'OVHcloud', host: 'ssl0.ovh.net', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo completa. Clave: la contraseña del buzón.' },
-  otro: { n: 'Otro proveedor', host: '', puerto: 465, seg: 'ssl', ayuda: 'Pide a tu proveedor el servidor de salida (SMTP), el puerto y el tipo de seguridad.' }
+  google: { n: window.delcos.t('legacyTexts.mailProviders.google'), host: 'smtp.gmail.com', puerto: 465, seg: 'ssl', ayuda: window.delcos.t('legacyTexts.mailProviders.googleHelp') },
+  microsoft: { n: window.delcos.t('legacyTexts.mailProviders.microsoft'), host: 'smtp.office365.com', puerto: 587, seg: 'starttls', ayuda: window.delcos.t('legacyTexts.mailProviders.microsoftHelp') },
+  mailjet: { n: 'Mailjet', host: 'in-v3.mailjet.com', puerto: 465, seg: 'ssl', ayuda: window.delcos.t('legacyTexts.mailProviders.mailjetHelp') },
+  ionos: { n: 'IONOS', host: 'smtp.ionos.es', puerto: 465, seg: 'ssl', ayuda: window.delcos.t('legacyTexts.mailProviders.mailboxHelp') },
+  ovh: { n: 'OVHcloud', host: 'ssl0.ovh.net', puerto: 465, seg: 'ssl', ayuda: window.delcos.t('legacyTexts.mailProviders.mailboxHelp') },
+  otro: { n: window.delcos.t('legacyTexts.mailProviders.other'), host: '', puerto: 465, seg: 'ssl', ayuda: window.delcos.t('legacyTexts.mailProviders.otherHelp') }
 };
 
 // Compras y Proveedores están en src/app/screens/purchases (v2.409.0). Estos nombres se quedan: Pedidos, Inicio, los avisos,
@@ -60405,13 +60526,13 @@ function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true }));
 
 // v2.113.0 · Unidades de la ficha por semana (12), mes (12) o año (5)
 
-const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
+const UDS_SERIES = [['semana', window.delcos.t('legacyTexts.billingSettings.week')], ['mes', window.delcos.t('legacyTexts.billingSettings.month')], ['anio', window.delcos.t('legacyTexts.billingSettings.year')]];
 
  // v2.440.0: FSEC → estado de src/app (plan 6.6), accesible en window
 
 const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 
-const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
+const FAC_CONFIG = [['empresa', window.delcos.t('legacyTexts.billingSettings.companyData')], ['series', window.delcos.t('legacyTexts.billingSettings.series')], ['verifactu', 'VeriFactu'], ['registro', window.delcos.t('legacyTexts.billingSettings.log')]];
 
  // v2.440.0: FAC_ULTIMA → estado de src/app (plan 6.6), accesible en window
 
@@ -60538,15 +60659,15 @@ const ORG_DESDE = { marca: 'marca', correo: 'correo', copias: 'copias', __empres
    Clientes (la app normal de esa empresa, con la franja «Estás viendo…») y «Salir» vuelve al panel. plan_uso dice si es la de plataforma. */
  // v2.440.0: MODO_PLATAFORMA → estado de src/app (plan 6.6), accesible en window
 
-const PANEL_SECCIONES = [['pd-orgs', 'orgs', 'Clientes', 'building-2'], ['pd-solicitudes', 'solicitudes', 'Solicitudes', 'mail'],
-  ['pd-errores', 'errores', 'Errores', 'bug'], ['pd-accesos', 'accesos', 'Accesos', 'lock-keyhole'], ['pd-auditoria', 'auditoria', 'Auditoría', 'history'],
-  ['pd-equipo', 'equipo', 'Equipo delcos', 'users'], ['pd-plantilla', 'plantilla', 'Plantilla', 'clipboard-list']];
+const PANEL_SECCIONES = [['pd-orgs', 'orgs', window.delcos.t('legacyTexts.platformSections.organisations'), 'building-2'], ['pd-solicitudes', 'solicitudes', window.delcos.t('legacyTexts.platformSections.requests'), 'mail'],
+  ['pd-errores', 'errores', window.delcos.t('legacyTexts.platformSections.errors'), 'bug'], ['pd-accesos', 'accesos', window.delcos.t('legacyTexts.platformSections.access'), 'lock-keyhole'], ['pd-auditoria', 'auditoria', window.delcos.t('legacyTexts.platformSections.audit'), 'history'],
+  ['pd-equipo', 'equipo', window.delcos.t('legacyTexts.platformSections.team'), 'users'], ['pd-plantilla', 'plantilla', window.delcos.t('legacyTexts.platformSections.template'), 'clipboard-list']];
 
-const PANEL_DESC = { orgs: 'Las empresas que usan delcos: plan, dominios, extras y entrar a ayudarlas', cobros: 'Quién paga, quién está en prueba y qué recibos vienen',
-  altas: 'Empresas que se han dado de alta desde www.delcos.app', solicitudes: 'Presupuestos A medida y conversaciones sobre el contrato',
-  errores: 'Errores de la plataforma agrupados, de todas las empresas', estado: 'Versiones en uso, SQL aplicado y cifras generales',
-  accesos: 'Entradas y salidas de la plataforma', auditoria: 'Cambios hechos en el panel', equipo: 'Las personas de delcos con acceso al panel',
-  plantilla: 'Roles y catálogos que recibe cada empresa nueva' };
+const PANEL_DESC = { orgs: window.delcos.t('legacyTexts.platformPanel.organisations'), cobros: window.delcos.t('legacyTexts.platformPanel.billing'),
+  altas: window.delcos.t('legacyTexts.platformPanel.signups'), solicitudes: window.delcos.t('legacyTexts.platformPanel.requests'),
+  errores: window.delcos.t('legacyTexts.platformPanel.errors'), estado: window.delcos.t('legacyTexts.platformPanel.status'),
+  accesos: window.delcos.t('legacyTexts.platformPanel.access'), auditoria: window.delcos.t('legacyTexts.platformPanel.audit'), equipo: window.delcos.t('legacyTexts.platformPanel.team'),
+  plantilla: window.delcos.t('legacyTexts.platformPanel.template') };
 
 // Organizaciones (panel delcos): impago y cancelada a la vista
 
@@ -60607,8 +60728,8 @@ const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txt
 // Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
 const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedores: 'proveedores' };
 
-const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus unidades e importes'], llamadas: ['Oportunidades', 'Cada venta, se cierre con pedido o no, y por qué'],
-  compras: ['Compras', 'Pedidos a proveedores y mercancía en camino'], proveedores: ['Proveedores', 'A quién compras y en qué condiciones'] };
+const TITULO_PEDSEC = { ventas: ['Pedidos', window.delcos.t('legacyTexts.orderPages.sales')], llamadas: ['Oportunidades', window.delcos.t('legacyTexts.orderPages.opportunities')],
+  compras: ['Compras', window.delcos.t('legacyTexts.orderPages.purchases')], proveedores: ['Proveedores', window.delcos.t('legacyTexts.orderPages.suppliers')] };
 
 /* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
    abre el pago seguro de Stripe (tarjeta), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
@@ -60640,8 +60761,8 @@ let PAGO_PROXIMO = null;
      (#opcfg) sigue eligiendo qué tarjetas se ven.
    - Analítica: cada indicador cuenta hasta su cifra y dibuja la línea de los últimos seis meses (analitica_kpis_periodo por mes, con
      el filtro propio del indicador). Sin línea los de «a día de hoy» y los de texto. */
-const PK_TARJ = [['pago', 'pago', 'Pendientes de cobro', 'credit-card'], ['paquete', 'paquete', 'Paquetes por preparar', 'package'],
-  ['email_factura', 'email', 'Facturas por enviar', 'mail']];
+const PK_TARJ = [['pago', 'pago', window.delcos.t('legacyTexts.orderCards.payment'), 'credit-card'], ['paquete', 'paquete', window.delcos.t('legacyTexts.orderCards.parcel'), 'package'],
+  ['email_factura', 'email', window.delcos.t('legacyTexts.orderCards.invoiceEmail'), 'mail']];
 
 // Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
 
@@ -60718,11 +60839,11 @@ async function cargarAlmacenes() { const { data } = await db.rpc('almacenes_list
 
 function loteRecepcion(l, uds, almId) {
   return `<div class="g2 rcl">
-    <div class="g2" style="margin:0"><div><label>Unidades</label><input type="number" min="0" data-r="u" value="${uds}"></div>
-      <div><label>Nº de lote</label><input data-r="lote" placeholder="p. ej. L2609"></div></div>
-    <div class="g2" style="margin:0"><div><label>Caducidad</label><input type="date" data-r="cad"></div>
-      <div><label>Fabricación</label><input type="date" data-r="fab"></div></div>
-    <div><label>Almacén</label><select data-r="alm">${ALMACENES.filter(a => a.activo).map(a => `<option value="${a.id}" ${a.id === almId ? 'selected' : ''}>${esc(a.nombre)}</option>`).join('')}</select></div></div>`;
+    <div class="g2" style="margin:0"><div><label>${window.delcos.t('legacyTexts.stockReception.units')}</label><input type="number" min="0" data-r="u" value="${uds}"></div>
+      <div><label>${window.delcos.t('legacyTexts.stockReception.batch')}</label><input data-r="lote" placeholder="${window.delcos.t('legacyTexts.stockReception.batchPlaceholder')}"></div></div>
+    <div class="g2" style="margin:0"><div><label>${window.delcos.t('legacyTexts.stockReception.expiry')}</label><input type="date" data-r="cad"></div>
+      <div><label>${window.delcos.t('legacyTexts.stockReception.manufacture')}</label><input type="date" data-r="fab"></div></div>
+    <div><label>${window.delcos.t('legacyTexts.stockReception.store')}</label><select data-r="alm">${ALMACENES.filter(a => a.activo).map(a => `<option value="${a.id}" ${a.id === almId ? 'selected' : ''}>${esc(a.nombre)}</option>`).join('')}</select></div></div>`;
 }
 
 
@@ -60800,9 +60921,9 @@ function opcionesProducto(id, nombre) {
   // En los pedidos solo aparecen los productos activos (y el que ya tuviera la línea)
   const lista = PRODUCTOS.filter(p => (p.tipo !== 'servicio' && vendible(p)) || p.id === id);
   const falta = id && !lista.some(p => p.id === id);
-  return (falta ? `<option value="${id}" selected>${esc(nombre || 'Producto del pedido')}</option>` : '') +
+  return (falta ? `<option value="${id}" selected>${esc(nombre || window.delcos.t('legacyTexts.products.fromOrder'))}</option>` : '') +
     lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}${vendible(p) ? '' : ' (' + esc(p.estado.toLowerCase()) + ')'}</option>`).join('')
-    || '<option value="">Sin productos activos</option>';
+    || '<option value="">' + window.delcos.t('legacyTexts.products.noneActive') + '</option>';
 }
 
 // Productos está en src/app/screens/products (v2.413.0). Estos nombres se quedan: el menú, la caché de pantallas (legado 057),
@@ -60906,12 +61027,12 @@ const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.val
      profesional; si se entrega alguna, pide la firma (con el dedo o el ratón) y el nombre de quien firma. Se comprueba antes de guardar
      la visita; después, registrar_muestras guarda todo o nada (también desde la cola sin conexión, enlazada por el op_id de la visita).
    - Ficha: «Muestras este año» con lo entregado y lo que queda de cada producto regulado. */
-const MUESTRA_ERR = { firma: 'Falta la firma de quien recibe las muestras', profesional: 'Las muestras solo se entregan a profesionales, no a un centro',
-  plazo: 'Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)', limite: 'Se pasa del máximo de muestras de este año',
-  permiso: 'No puedes registrar muestras de esta ficha', producto: 'Producto no encontrado', no_existe: 'Ficha no encontrada' };
+const MUESTRA_ERR = { firma: window.delcos.t('legacyTexts.samples.signature'), profesional: window.delcos.t('legacyTexts.samples.professional'),
+  plazo: window.delcos.t('legacyTexts.samples.period'), limite: window.delcos.t('legacyTexts.samples.limit'),
+  permiso: window.delcos.t('legacyTexts.samples.permission'), producto: window.delcos.t('legacyTexts.samples.product'), no_existe: window.delcos.t('legacyTexts.samples.account') };
 
-const muestraError = r => (MUESTRA_ERR[r && r.error] || 'No se han podido guardar las muestras') +
-  (r && r.error === 'limite' ? ` (${r.producto}: quedan ${r.quedan} de ${r.max})` : r && r.error === 'plazo' ? ` (${r.producto})` : '');
+const muestraError = r => (MUESTRA_ERR[r && r.error] || window.delcos.t('legacyTexts.samples.failed')) +
+  (r && r.error === 'limite' ? window.delcos.t('legacyTexts.samples.left', { product: r.producto, left: r.quedan, max: r.max }) : r && r.error === 'plazo' ? ` (${r.producto})` : '');
 
 /* ============================================================
    v2.259.0 · Visita sin conexión (pendiente de la auditoría del 8/10, cerrado el 11/10/2026). Antes, sin cobertura la ventana
@@ -62035,9 +62156,9 @@ window.delcos.layers.installRemovedCustomers();
 window.delcos.layers.installOrderCards();
 // @ts-check
 // Productos eliminados con «Recuperar»: en src/app/core/layers/removed-records.ts (v2.424.0).
-const PROD_USOS = { ventas: 'pedidos', borradores: 'borradores', servicio: 'pedidos con este servicio', compras: 'compras', lotes: 'lotes',
-  movimientos: 'movimientos de stock', muestras: 'entregas de muestras', cirugias: 'intervenciones', concursos: 'precios de concurso', equipos: 'equipos',
-  visitas: TT('visita', 'p', '', 'l', 'l'), comisiones: 'esquemas de comisión' };
+const PROD_USOS = { ventas: window.delcos.t('legacyTexts.productUses.orders'), borradores: window.delcos.t('legacyTexts.productUses.drafts'), servicio: window.delcos.t('legacyTexts.productUses.service'), compras: window.delcos.t('legacyTexts.productUses.purchases'), lotes: window.delcos.t('legacyTexts.productUses.batches'),
+  movimientos: window.delcos.t('legacyTexts.productUses.stock'), muestras: window.delcos.t('legacyTexts.productUses.samples'), cirugias: window.delcos.t('legacyTexts.productUses.surgeries'), concursos: window.delcos.t('legacyTexts.productUses.tenders'), equipos: window.delcos.t('legacyTexts.productUses.equipment'),
+  visitas: TT('visita', 'p', '', 'l', 'l'), comisiones: window.delcos.t('legacyTexts.productUses.commissions') };
 window.delcos.layers.installRemovedProducts();
 // @ts-check
 // «Reporte» en Analítica: en src/app/core/layers/rpc-hooks.ts (v2.424.0).

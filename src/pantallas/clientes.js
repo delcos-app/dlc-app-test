@@ -13,7 +13,7 @@ const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
    «Dar de baja» (siempre; se deshace desde Cuentas → «⋯» → «Fichas dadas de baja») y «Eliminar la ficha» (administración o
    nivel completo en fichas; solo si no tiene visitas, ventas, muestras, eventos… — si tiene, lo dice y ofrece la baja).
    ============================================================ */
-const BAJA_QUE = { visitas: 'visitas', ventas: 'ventas', muestras: 'muestras entregadas', eventos: 'eventos', cirugias: 'intervenciones', concursos: 'concursos', equipos: 'equipos', portal: 'acceso al portal' };
+const BAJA_QUE = { visitas: window.delcos.t('legacyTexts.accountRemoval.visits'), ventas: window.delcos.t('legacyTexts.accountRemoval.sales'), muestras: window.delcos.t('legacyTexts.accountRemoval.samples'), eventos: window.delcos.t('legacyTexts.accountRemoval.events'), cirugias: window.delcos.t('legacyTexts.accountRemoval.surgeries'), concursos: window.delcos.t('legacyTexts.accountRemoval.tenders'), equipos: window.delcos.t('legacyTexts.accountRemoval.equipment'), portal: window.delcos.t('legacyTexts.accountRemoval.portal') };
 
 // El editor del cliente está en src/app/screens/customers/contact-editor (v2.427.0); Clientes, Pedidos, Oportunidades y las pruebas lo abren por este nombre
 function editorContacto(c, alGuardar, op) { return window.delcos.leftovers.editContact(c || null, alGuardar || null, op || null); }

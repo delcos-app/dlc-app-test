@@ -29,12 +29,12 @@ const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.val
      profesional; si se entrega alguna, pide la firma (con el dedo o el ratón) y el nombre de quien firma. Se comprueba antes de guardar
      la visita; después, registrar_muestras guarda todo o nada (también desde la cola sin conexión, enlazada por el op_id de la visita).
    - Ficha: «Muestras este año» con lo entregado y lo que queda de cada producto regulado. */
-const MUESTRA_ERR = { firma: 'Falta la firma de quien recibe las muestras', profesional: 'Las muestras solo se entregan a profesionales, no a un centro',
-  plazo: 'Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)', limite: 'Se pasa del máximo de muestras de este año',
-  permiso: 'No puedes registrar muestras de esta ficha', producto: 'Producto no encontrado', no_existe: 'Ficha no encontrada' };
+const MUESTRA_ERR = { firma: window.delcos.t('legacyTexts.samples.signature'), profesional: window.delcos.t('legacyTexts.samples.professional'),
+  plazo: window.delcos.t('legacyTexts.samples.period'), limite: window.delcos.t('legacyTexts.samples.limit'),
+  permiso: window.delcos.t('legacyTexts.samples.permission'), producto: window.delcos.t('legacyTexts.samples.product'), no_existe: window.delcos.t('legacyTexts.samples.account') };
 
-const muestraError = r => (MUESTRA_ERR[r && r.error] || 'No se han podido guardar las muestras') +
-  (r && r.error === 'limite' ? ` (${r.producto}: quedan ${r.quedan} de ${r.max})` : r && r.error === 'plazo' ? ` (${r.producto})` : '');
+const muestraError = r => (MUESTRA_ERR[r && r.error] || window.delcos.t('legacyTexts.samples.failed')) +
+  (r && r.error === 'limite' ? window.delcos.t('legacyTexts.samples.left', { product: r.producto, left: r.quedan, max: r.max }) : r && r.error === 'plazo' ? ` (${r.producto})` : '');
 
 /* ============================================================
    v2.259.0 · Visita sin conexión (pendiente de la auditoría del 8/10, cerrado el 11/10/2026). Antes, sin cobertura la ventana

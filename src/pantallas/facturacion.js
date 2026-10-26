@@ -6,13 +6,13 @@ function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true }));
 
 // v2.113.0 · Unidades de la ficha por semana (12), mes (12) o año (5)
 
-const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
+const UDS_SERIES = [['semana', window.delcos.t('legacyTexts.billingSettings.week')], ['mes', window.delcos.t('legacyTexts.billingSettings.month')], ['anio', window.delcos.t('legacyTexts.billingSettings.year')]];
 
  // v2.440.0: FSEC → estado de src/app (plan 6.6), accesible en window
 
 const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 
-const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
+const FAC_CONFIG = [['empresa', window.delcos.t('legacyTexts.billingSettings.companyData')], ['series', window.delcos.t('legacyTexts.billingSettings.series')], ['verifactu', 'VeriFactu'], ['registro', window.delcos.t('legacyTexts.billingSettings.log')]];
 
  // v2.440.0: FAC_ULTIMA → estado de src/app (plan 6.6), accesible en window
 
