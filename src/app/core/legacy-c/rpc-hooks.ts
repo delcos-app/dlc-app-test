@@ -28,7 +28,7 @@ export function limitCallTime(): void {
     let done = false;
     const limit = new Promise<RpcAnswer>(resolve => { setTimeout(() => { if (!done) resolve({ data: null, error: { message: t('legacyTexts.timeout', { name }), code: 'TIEMPO' } }); }, TIMEOUT_MS); });
     const answer = Promise.resolve(result).then(value => { done = true; return value; }, (error: unknown) => { done = true; return { data: null, error } as RpcAnswer; });
-    return conCatch(Promise.race([answer, limit]));
+    return legacyFreeCoreServices.withCatch((Promise.race([answer, limit])));
   };
 }
 

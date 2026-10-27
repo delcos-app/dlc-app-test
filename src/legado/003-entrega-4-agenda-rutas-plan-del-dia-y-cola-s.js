@@ -6,7 +6,6 @@
    Quedan el estado global y los nombres que usa el código antiguo (legado 104 envuelve pintarConexionBase; km la usan muchos).
    ============================================================ */
 
-function pintarConexionBase() { window.delcos.legacyA.paintConnection(); }
 window.delcos.legacyA.watchConnection();
 
  // v2.440.0: AG_MODO, AG_FECHA → estado de src/app (plan 6.6), accesible en window

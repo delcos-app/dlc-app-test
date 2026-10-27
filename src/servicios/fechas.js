@@ -8,7 +8,6 @@ function hoyISO() { return window.delcos.core.calendar.today(); }
 function isoMas(iso, n) { return window.delcos.core.calendar.plusDays(iso, n); }
 function lunesDe(iso) { return window.delcos.core.calendar.mondayOfWeek(iso); }
 function hm(m) { return window.delcos.core.calendar.minutesToTime(m); }
-function pedirFecha(msg, valor, o) { return window.delcos.core.calendar.askDate(msg, valor, o || {}); }
 function diasHasta(f) { return window.delcos.core.calendar.daysUntil(f); }   // días de calendario
 function lunesCinta(f) { return window.delcos.core.calendar.mondayOfWeek(f); }
 

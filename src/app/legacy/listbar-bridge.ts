@@ -3,6 +3,7 @@ import { ordersStore } from '../screens/orders/store';
 import { billingStore } from '../screens/billing/store';
 import { productsStore } from '../screens/products/store';
 import { accountsStore } from '../screens/accounts/store';
+import * as legacyFreeScreensAccounts from '../screens/accounts';
 /**
  * Legacy pieces the list bar still needs (v2.421.0): the icons, the open section of Ventas, Facturación and Productos, the
  * filters of Cuentas and Clientes and their searches, the tools panel and the cache epoch. The page size is read through the
@@ -23,7 +24,7 @@ export const listBarLegacy = {
   accountFilters: (): AccountFilters => F,
   customerFilters: (): typeof PAC => PAC,
   searchAccounts: (reset: boolean): void => { void buscar(reset); },
-  loadAccountFilters: (): void => { void cargarFiltros(); },
+  loadAccountFilters: (): void => { void legacyFreeScreensAccounts.loadFilters(false); },
   searchCustomers: (): void => { void listaPacientes(); },
   openAccountColumns: (): void => { abrirColumnas(); },
   toolsContext: (): string | null => accountsStore.toolsContext,

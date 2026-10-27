@@ -1,6 +1,5 @@
 // ---- Componentes compartidos (src/app/components, v2.416.0): lo que todavía leen de legacy
 
-declare function colocarPop(popup: HTMLElement, anchor: Element): void;
 declare function emitir(input: HTMLInputElement): void;
 
 declare const PANTALLA_TACTIL: boolean;

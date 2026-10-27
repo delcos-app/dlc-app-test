@@ -4,5 +4,3 @@
 
 let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descartan aunque respondan después
 
-/** @param {Element | null} i */
-function esBuscador(i) { return window.delcos.components.isSearchBox(i); }

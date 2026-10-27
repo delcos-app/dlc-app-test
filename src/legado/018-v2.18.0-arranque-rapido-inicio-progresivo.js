@@ -10,4 +10,3 @@ window.delcos.legacyA.cacheMoreRequests();
 const T0 = performance.now();
 const PKEY = 'dlc-perfil';
 
-function mostrarAppBase(perfil) { window.delcos.legacyA.showApp(perfil); }

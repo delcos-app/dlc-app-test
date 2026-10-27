@@ -25,9 +25,9 @@ export const accountsEditorLegacy = {
   dayName: (letter: string): string => DIAN[letter] ?? '',
   todayLetter: (): string => legacyFreeCoreServices.calendar.todayLetter(),
   directions: (point: [number, number]): string => legacyFreeCoreServices.maps.navigationAttribute(point, undefined),
-  reverseGeocode: (lat: number, lon: number): Promise<ReverseAddress | null> => geoInversa(lat, lon),
+  reverseGeocode: (lat: number, lon: number): Promise<ReverseAddress | null> => legacyFreeCoreServices.maps.reverseGeocode(lat, lon) as Promise<ReverseAddress | null>,
   /** «Estoy aquí» in a consultation: nearby centres or a new one with the device location (servicios/mapas.js). */
-  imHere: (box: HTMLElement, index: string, button: HTMLElement): void => { void estoyAqui(box, index, button); },
+  imHere: (box: HTMLElement, index: string, button: HTMLElement): void => { void legacyFreeCoreServices.maps.hereNow(box, index, button as HTMLButtonElement); },
   hasOwnTerm: (): boolean => Boolean((sessionStore.terms?.medico as { s?: string } | undefined)?.s),
   allOf: (word: string): string => legacyFreeCoreServices.vocabulary.allOf(word),
   filterOptions: (): FilterOptions => accountsStore.filterOptions as FilterOptions,

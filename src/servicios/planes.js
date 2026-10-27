@@ -9,13 +9,10 @@ const MODULO_AREA = window.delcos.core.permissions.MODULE_AREA;
 
  // v2.440.0: PLAN_ACTUAL → estado de src/app (plan 6.6), accesible en window   // v2.117.0: hasta que llega el de la base, el completo
 
-function planDe(id) { return window.delcos.core.plans.planOf(id); }
 // v2.165.0: sin Facturación en el plan pero con facturas, se entra en solo consulta (facConsulta)
-function tiposDeMiRol() { return window.delcos.core.plans.notificationTypesOfRole(); }
 // Filas de la comparativa: [nombre, detalle, planes que lo incluyen]
 function planIncluyeSeccion(t) { return window.delcos.core.plans.planIncludesSection(t); }
 // Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
-function esBajada(de, a) { return window.delcos.core.plans.isDowngrade(de, a); }
 
 /* v2.158.0 · Oportunidades y el portal entran en los planes (decisión de Eric, 3/10/2026; los precios no cambian). Oportunidades en
    Comercial, Empresa y A medida; el portal del profesional y del centro en Empresa (hasta 50) y A medida (sin límite). El plan los

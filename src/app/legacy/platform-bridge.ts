@@ -5,6 +5,7 @@ import * as legacyFreeScreensSettings from '../screens/settings';
 import { sessionStore } from '../core/session-store';
 import { navigationStore } from '../core/navigation/store';
 import * as legacyFreeScreensOrders from '../screens/orders';
+import * as legacyFreeScreensSettingsRest from '../screens/settings/rest';
 /**
  * Bridge of Panel delcos to the legacy code (kept apart from bridge.ts, which is at its size limit): the plans, the billing state
  * helpers shared with Plan (pedidos.js), the dialogs, the environment and the Configuración editors the template reuses.
@@ -12,9 +13,9 @@ import * as legacyFreeScreensOrders from '../screens/orders';
 export type BillingState = [string, string, string];
 
 export const platformLegacy = {
-  planName: (id: string | null | undefined): string => planDe(id).nombre,
+  planName: (id: string | null | undefined): string => legacyFreeCoreServices.plans.planOf(id ?? '').nombre,
   plans: (): readonly { id: string; nombre: string }[] => PLANES,
-  planLosses: (from: string, to: string, data: { extras: string[]; facturas: boolean }): string[] => perdidasPlan(from, to, data),
+  planLosses: (from: string, to: string, data: { extras: string[]; facturas: boolean }): string[] => legacyFreeScreensSettingsRest.planLosses(from, to, data),
   planRank: (id: string): number => legacyFreeCoreServices.plans.planRank(id),
   /** The platform's own plan may have changed. */
   reloadPlan: async (): Promise<void> => { const { data } = await RPC_ORIG<{ plan?: Record<string, unknown> }>('plan_uso', {}); if (data?.plan) sessionStore.plan = data.plan; },

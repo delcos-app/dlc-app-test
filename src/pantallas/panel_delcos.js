@@ -15,7 +15,6 @@
 // v2.117.0 · Organizaciones: plan de cada empresa, estado (prueba, terminada, desactivada), descargar sus datos y borrar las de prueba
 
 // Menú de usuario: una sola entrada «Organización» en lugar de Empresa y Plan
-function menuOrganizacion() { window.delcos.leftovers.menuOrganization(); }
 
 // Organizaciones: los extras de cada empresa (los activa la plataforma)
 

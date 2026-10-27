@@ -37,23 +37,15 @@ const CFG_CLAVES = window.delcos.settingsCore.SEARCH_WORDS;
 const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
 
 // ---------- Adaptadores: src/app/core/settings (v2.428.0). Los usan otras pantallas, los puentes, legado y las pruebas ----------
-function cargarRoles() { return window.delcos.settingsCore.loadRoles(); }
-function plantillaRol(r) { return window.delcos.settingsCore.roleTemplate(r); }
 function menuMarcarPie() { return window.delcos.settingsCore.markMenuFooter(); }
-function txTexto(b) { return window.delcos.settingsCore.menuLabelText(b); }
 function salidaUsuario() { return window.delcos.settingsCore.userStart(); }
-function precioPlan(p) { return window.delcos.settingsCore.planPrice(p); }
-function deshacible(a) { return window.delcos.settingsCore.isUndoable(a); }
 // La tarjeta del plan de ruta y su ventana de tiempos (legado 061 y pantallas/cuentas.js las envuelven)
-function pintarPlanBase2() { return window.delcos.settingsCore.paintPlanCard(); }
 // Filtros generados de los campos propios: ahora los pinta el panel «Filtros y columnas» (se queda vacío)
 function camposFiltros() { return ''; }
 
 // Preferencias, Clasificadores, Auditoría, Registro, campos personalizados y entorno de pruebas están en src/app/screens/settings
 // (v2.415.0). Estos nombres se quedan: las secciones de Configuración, Facturación, Pedidos, Productos, Clientes, la ficha, el Panel
 // delcos, legado 002, 004, 014, 073 y 148 y las pruebas los usan.
-function camposGuardar(leido, id) { return window.delcos.screens.settings.saveCustomFields(leido, id); }
-function estadoRefresco() { return window.delcos.screens.settings.refreshStatus(); }
 
 // Configuración, segunda parte: está en src/app/screens/settings/more (v2.415.0). Estos nombres se quedan: el resto de
 // Configuración, las pestañas de las páginas, los puentes, Productos, Eventos y las pruebas los usan.
@@ -62,22 +54,15 @@ function facccon(uid) { return window.delcos.screens.settingsMore.fillConnection
 
 // Correo y firma, notificaciones y textos personalizados están en src/app/screens/settings (v2.417.0). Estos nombres se quedan:
 // el árbol de Configuración, la campana, Pedidos, Facturación, servicios/pdf.js, el menú y las pruebas los usan.
-function varsCorreo(o) { return window.delcos.screens.settingsExtra.emailVariables(o || {}); }
-function plantillaCorreo(k, campo, v) { return window.delcos.screens.settingsExtra.fillTemplate(k, campo, v); }
 function panelNotificaciones(l) { return window.delcos.screens.settingsExtra.showNotifications(l); }
-function pintarNotif() { return window.delcos.screens.settingsExtra.paintNotificationSettings(); }
 
 // Usuarios, Mi perfil y «Plan y suscripción» están en src/app/screens/settings (v2.420.0). Estos nombres se quedan: el árbol de
 // Configuración, las páginas «perfil» y «plan», legado 004/007/052/076, la ficha, Panel delcos y las pruebas los usan.
 function editarUsuario(id) { return window.delcos.screens.settingsRest.editUser(id); }
 function nuevoUsuario(pre) { return window.delcos.screens.settingsRest.newUser(pre && pre.medico ? pre : null); }
 function asegurarUsuario(id) { return window.delcos.screens.settingsRest.ensureUser(id); }
-function pintarPerfil() { return window.delcos.screens.settingsRest.paintMyProfile(); }
-function perdidasPlan(de, a, datos) { return window.delcos.screens.settingsRest.planLosses(de, a, datos || null); }
-function pintarPaginaPlanBase10() { return window.delcos.screens.settingsRest.paintPlanPage(); }
 
 // La carcasa de Configuración está en src/app/screens/settings/shell (v2.422.0). Estos nombres se quedan: el mapa de pantallas
 // (legado 001), Guardar página, legado 004/044/080/081/157/161, la navegación, los puentes y las pruebas los usan.
 function cargarConfig() { return window.delcos.screens.settingsShell.loadSettingsPage(); }
-function cfgSecDespertar(sec) { return window.delcos.screens.settingsShell.wakeSection(sec); }
 function cfgClonarEstilos() { return window.delcos.screens.settingsShell.copyPartStyles(); }

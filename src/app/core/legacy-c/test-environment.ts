@@ -5,6 +5,7 @@
 import { t } from '../../i18n';
 import { byId } from './dom';
 import { navigationStore } from '../navigation/store';
+import * as legacyFreeScreensSettings from '../../screens/settings';
 
 const STRIP_DELAY_MS = 120;
 type Painter = () => unknown;
@@ -26,7 +27,7 @@ async function bringProduction(button: HTMLButtonElement): Promise<void> {
   if (error?.context?.json) { try { answer = await error.context.json(); } catch { /* the answer stays */ } }
   if (!answer?.ok) { button.disabled = false; toast(failureText(answer, Boolean(error)), true); return; }
   toast(t('legacyC.testEnvironment.started'));
-  estadoRefresco();
+  void legacyFreeScreensSettings.refreshStatus();
 }
 
 /** The strip with «Traer los datos de producción» (it runs once if the strip is on screen; the marker replaces it right after). */
@@ -38,7 +39,7 @@ function addBringButton(): void {
     const reset = byId('prreset'); if (!reset || byId('prtraer')) return;   // without «Volver…» (not responsible) it cannot bring data either
     reset.insertAdjacentHTML('beforebegin', `<button class="btn sec" id="prtraer" title="${t('legacyC.testEnvironment.bringHint')}">${t('legacyC.testEnvironment.bring')}</button>`);
     const point = byId('prpunto'); if (point && !byId('prrefresco')) point.insertAdjacentHTML('afterend', ' <span class="prpunto" id="prrefresco"></span>');
-    estadoRefresco();
+    void legacyFreeScreensSettings.refreshStatus();
     const bring = byId<HTMLButtonElement>('prtraer'); if (bring) bring.onclick = (): void => { void bringProduction(bring); };
   };
   if (byId('prreset')) void globals().pintarFranjaPruebas();

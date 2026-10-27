@@ -30,7 +30,7 @@ export const billingLegacy = {
   withLoading: <T>(work: () => Promise<T>): Promise<T> => legacyFreeComponentsEmbeddedWindow.withDialogLoading(work),
   showLoading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   readOnly: (): boolean => Boolean(legacyFreeScreensBilling.readOnlyBilling()),
-  planName: (): string => planDe(String(sessionStore.plan.plan)).nombre,
+  planName: (): string => legacyFreeCoreServices.plans.planOf((String(sessionStore.plan.plan))).nombre,
   paintCompany: (): void => { void pintarEmpresa(); },
   paintLog: (): void => { void legacyFreeScreensSettings.paintBillingLog(); },
   paintTabs: (): void => { legacyFreeCoreLeftovers.billingSettingsSubnav(); },

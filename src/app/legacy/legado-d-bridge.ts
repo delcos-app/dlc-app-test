@@ -26,6 +26,8 @@ import * as legacyFreeComponentsFilters from '../components/filters';
 import * as legacyFreeScreensCustomers from '../screens/customers';
 import * as legacyFreeScreensSettingsRest from '../screens/settings/rest';
 import * as legacyFreeScreensSettings from '../screens/settings';
+import * as legacyFreeScreensTenders from '../screens/tenders';
+import * as legacyFreeCoreLegacyA from '../core/legacy-a';
 
 type AnyFunction = (...args: unknown[]) => unknown;
 type Wrapper = (original: AnyFunction) => AnyFunction;
@@ -53,14 +55,14 @@ export const treeLegacy = {
   inTestEnvironment: (): boolean => EN_PRUEBAS,
   configTree: (): readonly (readonly [string, readonly LegacyConfigItem[]])[] => legacyFreeCoreSettings.settingsTree(),
   pageTabs: (page: string): PageTabs => pages()[page]?.tabs ?? [],
-  paintProfile: (): unknown => pintarPerfil(),
-  paintNotifications: (): unknown => pintarNotif(),
+  paintProfile: (): unknown => { legacyFreeScreensSettingsRest.paintMyProfile(); return undefined; },
+  paintNotifications: (): unknown => { legacyFreeScreensSettingsExtra.paintNotificationSettings(); return undefined; },
   paintUsers: (): unknown => legacyFreeScreensSettingsRest.paintUsers(),
   paintRoles: (): unknown => legacyFreeScreensSettingsMore.paintRoles(),
   paintTexts: (): unknown => legacyFreeScreensSettingsExtra.paintMenuNames(),
   paintDistributors: (): unknown => legacyFreeScreensOrders.paintDistributors(),
   paintStateRoles: (): unknown => legacyFreeScreensSettingsMore.paintCommercialStates(),
-  paintCardPayment: (): unknown => pintarTpv(),
+  paintCardPayment: (): unknown => { legacyFreeScreensOrders.paintTpvSettings(); return undefined; },
   paintTestEnvironment: (): unknown => legacyFreeScreensSettings.paintTestEnvironment(),
   setSearchWords: (words: Record<string, string>): void => { Object.assign(CFG_CLAVES, words); },
 };
@@ -75,7 +77,7 @@ export const menuLegacy = {
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   canUseModule: (module: string): boolean => puedeModulo(module),
   planIncludesSection: (section: string): boolean => planIncluyeSeccion(section),
-  paintTenders: (view: string): unknown => pintarConcursos(view),
+  paintTenders: (view: string): unknown => legacyFreeScreensTenders.paintTenders(view as Parameters<typeof legacyFreeScreensTenders.paintTenders>[0]),
   paintEquipment: (): unknown => legacyFreeScreensEquipment.paintEquipment(),
   setPage: (key: string, page: LegacyPage): void => { pages()[key] = page as LegacyPage & { tabs: PageTabs }; },
   pageTab: (key: string): string | undefined => navigationStore.pageTabs[key],
@@ -96,7 +98,7 @@ export const menuLegacy = {
   loadPage: (screen: string): void => { cargarPagina(screen); },
   settingsKey: (): string => CFG_KEY,
   loadSettings: (): void => { void cargarConfig(); },
-  baseLoadAdmin: (args: unknown[]): unknown => cargarAdminBase(...args),
+  baseLoadAdmin: (args: unknown[]): unknown => { void args; return legacyFreeCoreLegacyA.loadAdmin(); },
 };
 
 export const polishLegacy = {
@@ -116,9 +118,9 @@ export const pageLegacy = {
   isMobile: (): boolean => ES_MOVIL(),
   freeze: (element: HTMLElement | null): void => { legacyFreeCoreNavigationApi.freeze(element); },
   settingsKey: (): string => CFG_KEY,
-  wakeSection: (section: HTMLElement): void => { void cfgSecDespertar(section); },
+  wakeSection: (section: HTMLElement): void => { legacyFreeScreensSettingsShell.wakeSection(section); },
   cloneSettingsStyles: (): void => { void cfgClonarEstilos(); },
-  currentPage: (): { cuerpo: HTMLElement } | null => pagActual(),
+  currentPage: (): { cuerpo: HTMLElement } | null => legacyFreeCoreLeftovers.currentPage() as { cuerpo: HTMLElement } | null,
   notAChange: (): string => PAG_NO_CAMBIA,
   markChanged: (element: Element, body: HTMLElement): void => { PAG_SUCIO.add(legacyFreeCoreLeftovers.blockOf(element, body)); legacyFreeScreensSettingsShell.markUnsaved(); },
   placeSaveButtonSoon: (): void => {
@@ -190,7 +192,7 @@ export const rpcLegacy = {
   reportedFilter: (): string => AN_REP,
   pdfEditing: (): string | null => billingStore.pdfEditing,
   pdfTemplates: (): { lista: { id: string; cfg?: unknown }[]; defecto: string } => legacyFreeCoreServices.pdf.templateList(),
-  savePdfTemplates: (templates: { lista: unknown[]; defecto: string }): Promise<boolean> => guardarPDFPlantillas(templates),
+  savePdfTemplates: (templates: { lista: unknown[]; defecto: string }): Promise<boolean> => legacyFreeCoreServices.pdf.saveTemplates(templates as Parameters<typeof legacyFreeCoreServices.pdf.saveTemplates>[0]),
   setInvoicePdf: (design: unknown): void => { settingsStore.settings.factura_pdf = design ? design : settingsStore.settings.factura_pdf; },
 };
 

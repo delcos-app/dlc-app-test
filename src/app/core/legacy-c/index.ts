@@ -25,6 +25,7 @@ import { cancellationOnStart, forgetPlanReturnLater, paymentOnStart, reportVersi
 import { addToAgendaFromCard, checkSamplesBeforeSaving, closePopupOutside, decorateVisitResults, openCentreFromSearch, pullToReload, toggleDayMenu } from './agenda-extras';
 import * as legacyFreeCoreNavigationApi from '../navigation/api';
 import * as legacyFreeCoreSettings from '../settings';
+import * as legacyFreeComponents from '../../components';
 
 export { addIconsOf } from './icons';
 export { notificationExplanations } from './notifications';
@@ -61,7 +62,7 @@ export function start060(): void { rememberPressedTab(); summariseNewHelps(); wa
 export function start065(): void { listenToFieldChips(); }
 export const start069 = applyVocabularyToFixedTexts;
 export function start071(): void {
-  mejorarCamposNuevos(document); improveNumbers(); navigateSuggestions(); rememberScreenOnReload(); focusOpenedWindows();
+  legacyFreeComponents.enhanceNewFieldKinds(document); improveNumbers(); navigateSuggestions(); rememberScreenOnReload(); focusOpenedWindows();
 }
 export function start072(): void { pages.defineOrganization(); openOrganizationPage(); embedWindows(); }
 export function start073(): void {

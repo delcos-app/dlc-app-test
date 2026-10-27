@@ -4,7 +4,6 @@
 // ficha y las ventanas los usan.
 
 function mejorarCampos(raiz) { window.delcos.components.enhanceFields(raiz); }
-function mejorarCamposNuevos(raiz) { window.delcos.components.enhanceNewFieldKinds(raiz && raiz.querySelectorAll ? raiz : document); }
 function sinSelectorDelSistema(raiz) { if (raiz && raiz.querySelectorAll) window.delcos.components.withoutSystemPicker(raiz); }
 function cerrarSelector() { window.delcos.components.closePicker(); }
 function abrirCalendario(inp, o) { window.delcos.components.openCalendar(inp, o || {}); }

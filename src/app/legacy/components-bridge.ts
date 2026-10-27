@@ -12,11 +12,12 @@ import { productsStore } from '../screens/products/store';
 import * as legacyFreeScreensRoutes from '../screens/routes';
 import * as legacyFreeComponentsFiltersPanel from '../components/filters-panel';
 import * as legacyFreeScreensProducts from '../screens/products';
+import * as legacyFreeCoreLegacyB from '../core/legacy-b';
 export const componentsLegacy = {
   popup: (): HTMLElement | null => navigationStore.pickerPopup,
   setPopup: (popup: HTMLElement | null): void => { navigationStore.pickerPopup = popup; },
   showValue: (input: HTMLInputElement): void => { legacyFreeCoreLegacyC.visibleValue(input); },
-  placePopup: (popup: HTMLElement, anchor: Element): void => { colocarPop(popup, anchor); },
+  placePopup: (popup: HTMLElement, anchor: Element): void => { void popup; legacyFreeCoreLegacyB.placePicker(anchor); },
   emitChange: (input: HTMLInputElement): void => { emitir(input); },
   pending: (): Set<Element> => navigationStore.pendingEnhancements,
   flushScheduled: (): boolean => Boolean(navigationStore.enhanceFrame),

@@ -17,7 +17,6 @@ window.delcos.legacyB.rememberOrderProduct();
 
 /* ---------------- selector de fecha: siempre junto a su campo ---------------- */
 
-function colocarPop(pop, ref) { return window.delcos.legacyB.placePicker(ref); }
 
 /* ---------------- llamadas: cliente, médico, resultado y pedido en un flujo ---------------- */
 

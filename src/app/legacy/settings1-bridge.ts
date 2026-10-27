@@ -6,6 +6,7 @@ import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
 import { sessionStore } from '../core/session-store';
 import { settingsStore } from '../screens/settings/store';
 import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeScreensVisit from '../screens/visit';
 /**
  * Bridge of Configuración part 1 to the legacy code (kept apart from bridge.ts, which is at its size limit): the user profile and
  * its preferences, the classifier catalog, the undo helpers of the audit, the custom field definitions and the test environment.
@@ -22,13 +23,13 @@ export const settingsLegacy = {
   changeNavigator: (name: string): void => { void legacyFreeCoreServices.maps.changeNavigator(name); },
   revisitNotice: (): { on: boolean; dias: number } => avisoRevisita(),
   /** The legacy name answers whether it was saved (its declaration says void). */
-  saveRevisitNotice: (value: { on: boolean; dias: number }): Promise<unknown> => guardarAvisoRevisita(value) as Promise<unknown>,
+  saveRevisitNotice: (value: { on: boolean; dias: number }): Promise<unknown> => legacyFreeScreensVisit.saveRevisitNotice(value) as Promise<unknown>,
   moduleIcon: (module: string): string | undefined => ICO_MOD[module],
   classifiers: (): Classifier[] => settingsStore.catalogs,
   setClassifiers: (list: Classifier[]): void => { settingsStore.catalogs = list; },
   openClassifier: (id: string): void => { legacyFreeScreensSettingsMore.openClassifier(id); },
   reloadCatalogs: (): void => { void legacyFreeCoreSettings.loadCatalogs(); },
-  undoable: (entry: object): boolean => deshacible(entry),
+  undoable: (entry: object): boolean => legacyFreeCoreSettings.isUndoable(entry as Parameters<typeof legacyFreeCoreSettings.isUndoable>[0]),
   undoPersonBox: (box: HTMLElement | null, options: { userId: string; from: string | null; name: string; then: () => void }): void => {
     cajaDeshacerPersona(box, options.userId, options.from, options.name, options.then);
   },

@@ -51,7 +51,7 @@ export function defineOrganization(): void {
         ['zona', t('timeZone.title'), () => paintTimeZone()],
         ['copias', t('legacyC.pages.organization.backups'), () => legacyFreeScreensSettingsMore.paintBackups()], ['plan', t('legacyC.pages.organization.plan'), () => pintarPaginaPlan()],
         ...(billing ? [['fiscal', t('legacyC.pages.organization.fiscal'), facOrg(pintarEmpresa)], ['series', t('legacyC.pages.organization.series'), facOrg(pintarSeries)],
-          ...(usesVerifactu() ? [['vf', t('legacyC.pages.organization.verifactu'), facOrg(pintarVerifactu)]] as Tab[] : []), ['pdf', t('legacyC.pages.organization.pdf'), () => disenoPDF()]] as Tab[] : []),
+          ...(usesVerifactu() ? [['vf', t('legacyC.pages.organization.verifactu'), facOrg(pintarVerifactu)]] as Tab[] : []), ['pdf', t('legacyC.pages.organization.pdf'), () => legacyFreeCoreServices.pdf.openDesigner()]] as Tab[] : []),
         ...(puede('gestionar_plataforma') ? [['orgs', t('legacyC.pages.organization.organizations'), () => legacyFreeScreensPlatform.paintOrganizations()]] as Tab[] : [])];
     },
   };

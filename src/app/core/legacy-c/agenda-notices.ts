@@ -7,6 +7,8 @@ import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import * as legacyFreeCoreServices from '../services';
 import { agendaStore } from '../../screens/agenda/store';
+import * as legacyFreeScreensAccounts from '../../screens/accounts';
+import * as legacyFreeCoreLegacyA from '../legacy-a';
 
 const FAR_MINUTES = 240;
 interface Stop { id: string; estado: string; dias?: unknown }
@@ -33,10 +35,10 @@ function markFarStops(stops: readonly Stop[], date: string, estimate: Estimate):
 export function estimateDay(stops: readonly Stop[] | null | undefined, date: string): Estimate {
   const otherCentre: Record<string, { lugar: string; dias: unknown }> = {};
   const withCentre = (stops ?? []).map(stop => {
-    const other = centroConConsulta(stop, date) as { lugar: string; dias: unknown } | null;
+    const other = legacyFreeScreensAccounts.otherCentreWithConsultation(stop as unknown as Parameters<typeof legacyFreeScreensAccounts.otherCentreWithConsultation>[0], date) as { lugar: string; dias: unknown } | null;
     if (!other) return stop; otherCentre[stop.id] = other; return { ...stop, dias: other.dias };
   });
-  const estimate = estimarDiaBaseBase(withCentre, date) as Estimate;
+  const estimate = legacyFreeCoreLegacyA.estimateDayBase(withCentre as unknown as Parameters<typeof legacyFreeCoreLegacyA.estimateDayBase>[0], date) as Estimate;
   markFarStops(withCentre, date, estimate);
   // A fixed time that the order leaves late: the notice says what to do, and the «i» talks about the order
   Object.values(agendaStore.stopInfo as Record<string, Info>).forEach(info => {

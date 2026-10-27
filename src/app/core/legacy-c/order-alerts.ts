@@ -53,7 +53,7 @@ function alertsBox(): HTMLElement | null {
   return byId('operativa');
 }
 
-function bindCards(box: HTMLElement, mandatory: unknown, shown: number): void {
+function bindCards(box: HTMLElement, mandatory: readonly string[], shown: number): void {
   box.querySelectorAll<HTMLElement>('[data-pk]').forEach(card => {
     card.onclick = (): void => {
       const select = byId<HTMLSelectElement>('popf'); if (!select) return;
@@ -64,7 +64,7 @@ function bindCards(box: HTMLElement, mandatory: unknown, shown: number): void {
   // The gear, next to «Filtros y columnas» of the header (if it is in view)
   const tools = document.querySelector<HTMLElement>('#v-ventas .htbtn'), gear = byId('opcfg');
   if (tools?.offsetParent && gear && shown) { gear.className = 'btn sec pkcfg pkcfgcab'; tools.insertAdjacentElement('beforebegin', gear); }
-  const settings = byId('opcfg'); if (settings) settings.onclick = (): void => { configurarAvisosPedidos(mandatory); };
+  const settings = byId('opcfg'); if (settings) settings.onclick = (): void => { void legacyFreeScreensOrders.configureAlerts(mandatory); };
   pkMarcar();
   legacyFreeScreensOrders.countUp(([...box.querySelectorAll<HTMLElement>('.pkn[data-v]')]), ((value: number) => num(Math.round(value))));
 }

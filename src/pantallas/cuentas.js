@@ -7,7 +7,6 @@
 
 // ——— En la ficha del equipo: lo que ha enviado desde su portal ———
 
-function recientesDe(ids, fecha) { return window.delcos.leftovers.recentContacts(ids, fecha); }
 
 const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
 
@@ -70,16 +69,5 @@ function cercaDeMi(btn) { return window.delcos.screens.accounts.searchNearby(btn
 // los puentes, legado 001, 004, 007, 014, 018, 044, 057, 077 y 135, servicios/mapas.js («Estoy aquí»), lista.js y las pruebas los usan.
 function abrirEditor(id, tipo) { return window.delcos.screens.accounts.openEditor(id || null, tipo || null); }
 function fichaNueva() { return window.delcos.screens.accounts.newAccountNames(); }
-function selectorMedico(el, o) { return window.delcos.screens.accounts.pickAccount(el, o || {}); }
-function filtroActual() { return window.delcos.screens.accounts.currentFilter(); }
-function textoFiltro(f) { return window.delcos.screens.accounts.filterText(f || {}); }
-function aplicarFiltroGuardado(f) { return window.delcos.screens.accounts.applySavedFilter(f || {}); }
 function ordenarCabeceraCuentas() { return window.delcos.screens.accounts.arrangeHeader(); }
-function cpPoner(box, i, cen) { return window.delcos.screens.accounts.setCentre(box, i, cen || null); }
-function pintarCentroSel(box, i, modo) { return window.delcos.screens.accounts.paintCentrePicker(box, i, modo); }
-function listaCentros(res, lista, elegir, extra, alExtra) { return window.delcos.screens.accounts.centreList(res, lista, elegir, extra ? { html: extra, onClick: alExtra || (() => {}) } : undefined); }
-function centroDesdeUbicacion(box, i, lat, lon) { return window.delcos.screens.accounts.centreFromLocation(box, i, lat, lon); }
-function centroConConsulta(c, fecha) { return window.delcos.screens.accounts.otherCentreWithConsultation(c, fecha); }
-function cargarFiltros(soloMunicipios) { return window.delcos.screens.accounts.loadFilters(!!soloMunicipios); }
-function optFiltro(lista, v, todo) { return window.delcos.screens.accounts.filterOptionsHtml(lista, v, todo); }
 function consultaPrivada(cn) { return window.delcos.screens.accounts.privateConsultation(cn || 'C'); }

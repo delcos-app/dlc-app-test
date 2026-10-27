@@ -182,5 +182,3 @@ function nuevaCita(medicoId, fecha, op = {}) { return window.delcos.screens.agen
 // se quedan: Rutas y las pruebas los usan.
 function textoOrigenCita(c) { return window.delcos.screens.agenda.originText(c); }
 // El tráfico de «Tu día» está en src/app/screens/agenda/traffic.ts (v2.418.0); la estimación del día (legado 024 y 103) usa estos nombres
-function tdRutaDia(citas, fecha) { return window.delcos.screens.agenda.dayRoute(citas, fecha); }
-function tdPonerReal(ruta, res) { return window.delcos.screens.agenda.setRealTimes(ruta, res); }

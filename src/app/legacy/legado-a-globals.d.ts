@@ -1,17 +1,12 @@
 // Legacy names that what legado 000–024 moved to src/app still reads (v2.424.0).
 declare function pantallaRecuperacion(): void;
-declare function intentarCerrar(box: HTMLDialogElement): void;
 declare let temporizador: ReturnType<typeof setTimeout> | undefined;
-declare function pintarRutaEnCurso(): unknown;
 declare function cerrarSelector(): void;
 declare function arrancar(): unknown;
 declare function abrirEditor(id: string | null, kind?: string): unknown;
 declare const RPC_TTL: Record<string, number | undefined>;
 
-declare function volverTrasF5(screen: unknown): unknown;
 declare function veVentas(): unknown;
-declare function vaciarCola(): unknown;
-declare function textoFiltro(filter: Record<string, unknown>): string;
 declare function rutaActiva(): unknown;
 declare function respuestaConClavesAntiguas(url: string, response: Response): Promise<Response>;
 declare function rcLS(key: string): string;
@@ -21,19 +16,13 @@ declare function planificar(route: string, button: HTMLElement | null): unknown;
 declare let pintarFranjaPruebas: () => unknown;
 declare function pintarConexion(): void;
 declare function pintarComisiones(): unknown;
-declare function optFiltro(list: unknown[], value: string, all: string): string;
 declare function iconosMenu(): void;
 declare function hm(minutes: number): string;
-declare function filtroActual(): Record<string, unknown>;
 declare function fichaNueva(): { nombre: string };
 declare function editarUsuario(id: string): unknown;
-declare function conHor<T>(hours: unknown, run: () => T): T;
-declare function conCatch<T>(request: PromiseLike<T>): Promise<T>;
 declare function cercaDeMi(button: HTMLElement): unknown;
 declare function cargarPacientes(): unknown;
-declare function cargarManual(): unknown;
 declare function cargarAnalitica(): unknown;
-declare function aplicarFiltroGuardado(filter: object): void;
 declare function alternarUrgente(id: string, isUrgent: boolean): unknown;
 declare function agRefrescoQuieto(): void;
 declare function accesoSinActivar(message: string): void;

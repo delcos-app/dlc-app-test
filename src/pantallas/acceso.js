@@ -2,7 +2,6 @@
 // pantallas/acceso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function claveAlerta(titulo, x) { return window.delcos.leftovers.alertKey(titulo, x); }
 
 /* v2.181.0 · Nombres neutros en las respuestas de la base (decisión de Eric: dos versiones). Desde la v2.182.0 (SQL 116) estas funciones
    responden con nombres neutros (cuenta, ubicaciones, actividades…) en lugar de los de DLC (medico, consultas, visitas…). La app sigue usando
@@ -22,7 +21,6 @@ const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 
 // Acceso está en src/app/screens/access (v2.414.0). Estos nombres se quedan: el acceso, la navegación, Configuración,
 // legado 001, 047, 076 y 129 y las pruebas los usan.
-function medidorClave(inp, rep, boton) { window.delcos.screens.access.addPasswordMeter(inp, rep, boton); }
 function accesoSinActivar(texto) { window.delcos.screens.access.showNotActivated(texto); }
 function bienvenidaAlta() { return window.delcos.screens.access.showWelcome(); }
 function reenviarActivacion(email, o = {}) { return window.delcos.screens.access.resendActivation(email, o); }

@@ -117,7 +117,7 @@ export const leftoversLegacy = {
   setLastBillingSettings: (section: string): void => { billingStore.lastSection = section; },
   billingSettingsSections: (): readonly (readonly [string, string])[] => FAC_CONFIG,
   loadBilling: (): void => { void cargarFacturacion(); },
-  pdfDesign: (): void => { disenoPDF(); },
+  pdfDesign: (): void => { void legacyFreeCoreServices.pdf.openDesigner(); },
   // Configuración, Inicio and Rutas
   detailName: (key: string): string | undefined => NOMBRES_DETALLE[key],
   chosenIndicators: (): IndicatorSetting[] | undefined => profile().preferencias?.kpis,

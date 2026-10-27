@@ -11,6 +11,7 @@ import { sessionStore } from '../../session-store';
 import { settingsStore } from '../../../screens/settings/store';
 import { navigationStore } from '../store';
 import * as legacyFreeCoreServices from '../../services';
+import * as legacyFreeCoreSettings from '../../settings';
 
 export interface MenuGroup { id: string; t: string; items: string[] }
 interface MenuPrefs { orden?: string[]; items?: Record<string, string[] | undefined>; ocultos?: string[]; barra?: string[]; mas?: string[] }
@@ -73,7 +74,7 @@ export function menuTip(button: HTMLElement | null): void {
 
 function renameButton(button: HTMLElement, names: Record<string, string>): void {
   const key = button.dataset.t ?? button.dataset.bm; if (!key || key === 'directorio' || key.startsWith('pd-')) return;
-  const text = txTexto(button); if (!text) return;
+  const text = legacyFreeCoreSettings.menuLabelText(button); if (!text) return;
   if (!button.dataset.txdef) button.dataset.txdef = text.get();
   const name = orFallback(names[key], button.dataset.txdef);
   if (text.get() !== name) text.set(name);
@@ -165,7 +166,7 @@ export function pageButtons(): void {
     placePageButton(nav, 'delcos', t('navigationCore.menu.platformPanel'), puede('gestionar_plataforma'));
   }
   const users = document.querySelector<HTMLElement>('nav.main [data-t="usuarios"]'); if (!users) return;
-  const text = txTexto(users), label = t('navigationCore.menu.users');
+  const text = legacyFreeCoreSettings.menuLabelText(users), label = t('navigationCore.menu.users');
   if (text && /roles/i.test(text.get())) text.set(label); else if (!text && /roles/i.test(users.textContent ?? '')) users.textContent = label;
   if (users.dataset.txdef) users.dataset.txdef = label;
 }

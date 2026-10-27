@@ -6,6 +6,5 @@
    montarPeriodoBase se queda: legado 113 la envuelve como montarPeriodo.
    ============================================================ */
 
-function montarPeriodoBase(el, o) { return window.delcos.legacyA.mountPeriod(el, o); }
 
 var PEDSEC_CARGA = null;

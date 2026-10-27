@@ -152,7 +152,7 @@ export function noSystemPickers(): void {
 
 /** v2.140.0: icon-only buttons spin while they work and show no text (the legacy conCarga). */
 export async function withLoading<T>(button: HTMLElement | null, text: string, work: () => Promise<T>): Promise<T | undefined> {
-  if (!button || !(button.id === 'iniact' || button.classList.contains('icoredondo') || button.classList.contains('icobtn'))) return conCargaBase(button, text, work);
+  if (!button || !(button.id === 'iniact' || button.classList.contains('icoredondo') || button.classList.contains('icobtn'))) return legacyFreeCoreLegacyB.withLoading(button, text, work);
   if (button.dataset.cargando) return undefined;
   button.dataset.cargando = '1'; (button as HTMLButtonElement).disabled = true; button.classList.add('icogira'); button.setAttribute('aria-busy', 'true');
   try { return await work(); } finally { (button as HTMLButtonElement).disabled = false; button.classList.remove('icogira'); button.removeAttribute('aria-busy'); delete button.dataset.cargando; }

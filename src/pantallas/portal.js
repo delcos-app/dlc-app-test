@@ -9,7 +9,6 @@ const pmAyu = (t, x) => `<button type="button" class="ai" data-ayuda-tit="${esc(
 
 // Las pruebas leen PM.ficha y PM.tab
 const PM = { get ficha() { return window.delcos.screens.portal.portalState.form; }, get tab() { return window.delcos.screens.portal.portalState.tab; } };
-function portalMedico() { return window.delcos.screens.portal.paintMaterial(); }
 function centroPintar() { return window.delcos.screens.portal.paintCentre(); }
 function pmTab(k) { window.delcos.screens.portal.showTab(k); }
 function pmRepintarConsultas() { window.delcos.screens.portal.repaintPlaces(); }

@@ -11,6 +11,7 @@ import { navigationStore } from '../navigation/store';
 import { homeStore } from '../../screens/home/store';
 import * as legacyFreeComponentsFilters from '../../components/filters';
 import * as legacyFreeComponentsFiltersPanel from '../../components/filters-panel';
+import * as legacyFreeCoreLegacyA from '../legacy-a';
 
 const SAVE_FILTER_DELAY_MS = 60;
 interface ColumnChoice { i: number; n: string; on?: boolean; fija?: boolean }
@@ -39,7 +40,8 @@ const repaintFields = (zone: Element): void => {
 /** Opens «Filtros y columnas» (the legacy abrirHerramientas): the second panel closes, and in Cuentas the custom fields go before Columnas. */
 export function openTools(context: string, ...rest: unknown[]): unknown {
   byId('tools2')?.classList.remove('abierto');
-  const result = abrirHerramientasBase(context, ...rest);
+  void rest;   // the legacy callers pass more arguments; the panel takes only the context
+  legacyFreeCoreLegacyA.openTools(context);
   setTimeout(addSaveFilter, SAVE_FILTER_DELAY_MS);
   const tools = byId('tools'), zone = tools?.querySelector('.tfcampos');
   if (context === 'directorio' && tools && zone && tools.classList.contains('abierto')) {
@@ -47,7 +49,7 @@ export function openTools(context: string, ...rest: unknown[]): unknown {
     columns?.before(zone);
     repaintFields(zone);
   }
-  return result;
+  return undefined;
 }
 
 /** v2.88.0: removing a custom field chip in Cuentas searches again and repaints the fields of the open panel. */

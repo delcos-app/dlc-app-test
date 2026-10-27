@@ -1,5 +1,4 @@
 // Legacy names the core services read (src/app/core, src/app/services; v2.425.0).
-declare function precioPlan(plan: object): string;
 declare const ESTADO_MOD: Record<string, (() => unknown) | undefined>;
 declare const ES_ANDROID: boolean;
 declare const SALUDOS: Readonly<Record<string, readonly string[]>>;
@@ -8,11 +7,5 @@ declare const SKEY: string;
 declare const PKEY: string;
 
 declare function muestraError(result: object): string;
-declare function subirFotosVisita(activity: string, photos: readonly unknown[]): Promise<boolean>;
 declare function panelNotificaciones(list: readonly unknown[]): void;
 declare function centroPintar(): void;
-declare function portalMedico(): void;
-declare function listaCentros(list: Element, centres: readonly unknown[], onPick: (centre: { nombre: string }) => void, extra: string, onExtra: () => unknown): void;
-declare function cpPoner(box: Element, index: string | number, centre: object): void;
-declare function pintarCentroSel(box: Element, index: string | number): void;
-declare function centroDesdeUbicacion(box: Element, index: string | number, lat: number, lon: number): Promise<void>;

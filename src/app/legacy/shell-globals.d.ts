@@ -2,7 +2,6 @@
 
 declare const PILA_VENT: { nodos: ChildNode[]; clases: string; titulo: string | undefined }[];
 
-declare function arbolCfgUnico(): unknown;
 declare const CFG_CLAVES: Record<string, string>;
 declare function cargarConfig(): Promise<void>;
 declare const PAG_SUCIO: Set<unknown>;

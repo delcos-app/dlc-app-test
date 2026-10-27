@@ -5,6 +5,5 @@
    alternarUrgenteBase se queda: legado 117 la envuelve como alternarUrgente.
    ============================================================ */
 
-function alternarUrgenteBase(id, esUrgente) { return window.delcos.legacyA.toggleUrgent(id, esUrgente); }
 
 window.delcos.legacyA.listenToCardActions();

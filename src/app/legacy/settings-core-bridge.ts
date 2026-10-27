@@ -16,6 +16,7 @@ import * as legacyFreeScreensSettingsRest from '../screens/settings/rest';
 import * as legacyFreeScreensCycle from '../screens/cycle';
 import * as legacyFreeScreensProducts from '../screens/products';
 import * as legacyFreeScreensImport from '../screens/import';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
 
 /** A role as the database defines it (roles and roles_capacidades). */
 export interface RoleDefinition { nombre: string; orden?: number; color?: string | null; plantilla?: Record<string, unknown>; por_defecto?: boolean; capacidades?: string[] }
@@ -46,7 +47,7 @@ export const settingsCoreLegacy = {
   brand: (): { logo: string | null } => MARCA,
   setInvoiceLogo: (logo: string): void => { settingsStore.invoiceLogo = logo; sessionStore.roundLogo = true; },
   applyLabel: (): void => { aplicarEtiqueta(); },
-  organisationMenu: (): void => { menuOrganizacion(); },
+  organisationMenu: (): void => { legacyFreeCoreLeftovers.menuOrganization(); },
   contactsLabel: (): string => etiquetaContactos(),
   notificationTypes: (): readonly (readonly string[])[] => TIPOS_NOTIF,
   // Module cache, preferences and day proposals
@@ -75,7 +76,7 @@ export const treePainters = {
   brand: (): unknown => legacyFreeScreensSettingsMore.paintBrand(),
   email: (): unknown => legacyFreeScreensSettingsExtra.paintEmail(),
   backups: (): unknown => legacyFreeScreensSettingsMore.paintBackups(),
-  newImport: (): unknown => pintarImportar(),
+  newImport: (): unknown => { legacyFreeScreensImport.paintImport(); return undefined; },
   imports: (): unknown => legacyFreeScreensImport.paintImports(),
   portalSettings: (): unknown => pintarCfgPortal(),
 };

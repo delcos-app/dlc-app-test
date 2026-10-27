@@ -132,7 +132,6 @@ interface WeekDraftItem { m: { nombre: string; municipio?: string | null }; ini?
 interface WeekDraft { semana: string; uid: string; total: number; dias: Record<string, WeekDraftItem[]>; sinDia: WeekDraftItem[]; horario?: Record<string, unknown> | null }
 
 declare function estimarDia(appointments: readonly object[], isoDate: string): { fin: number; tope: number };
-declare function ventanasDe(days: Record<string, string | null> | null | undefined, isoDate: string): unknown[] | null;
 declare function preguntar(message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean>;
 declare function toast(message: string, isError?: boolean): void;
 declare function cargarAgenda(): Promise<void>;
@@ -149,10 +148,8 @@ declare const ICU: Readonly<Record<string, string>>;
 declare function SVA(path: string): string;
 declare function plIco(...names: string[]): string;
 declare function txtVentanas(windows: readonly [number, number][]): string;
-declare function explicarAviso(info: StopInfo): string;
 declare function puedeRegistrarEnDia(isoDate: string): boolean;
 declare function colaLeer(): { fn: string; payload?: { p?: { fecha?: string; cuenta_id?: string } } }[];
-declare function appVentana(options: { titulo: string; msg?: string; ok: string; cancel?: boolean; campo?: { valor: string; tipo: string } }): Promise<unknown>;
 interface SheetAppointment extends DayAppointmentFull {
   especialidad?: string | null; direccion?: string | null;
   aplazada_a_fecha?: string | null; aplazada_de_fecha?: string | null;
@@ -163,7 +160,6 @@ declare let VISITA_FECHA: string;
 declare const CAT: Record<string, { valor: string; extra?: string | null }[]>;
 declare function escribir(name: string, payload: Record<string, unknown>): Promise<{ error?: unknown } | null>;
 declare function escribirRpc(name: string, payload: Record<string, unknown>): Promise<{ error?: { message?: string } | null }>;
-declare function pedirFecha(message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null>;
 declare function navegarA(point: [number, number] | null): Promise<void>;
 declare function abrirVisita(accountId: string): Promise<void>;
 declare function agUnida(): boolean;
@@ -174,10 +170,7 @@ declare const AG_DIAS_DATOS: Record<string, AgendaAppointment[] | undefined>;
 interface PickedAccount { id: string; nombre?: string; centro_nombre?: string | null; centro?: string | null }
 interface Consultation { centro_nombre?: string | null; municipio?: string | null; principal?: boolean | null }
 interface RecentContact { tipo: string; fecha: string; usuario?: string | null }
-declare function selectorMedico(element: HTMLElement | null, options: { valor: PickedAccount | null; alElegir: (account: PickedAccount) => Promise<void> | void; placeholder?: string }): void;
-declare function recientesDe(ids: string[], isoDate: string): Promise<Record<string, RecentContact[] | undefined>>;
 declare function avisoRevisita(): { on: boolean; dias: number };
-declare function guardarAvisoRevisita(value: { on: boolean; dias: number }): Promise<void>;
 
 declare function verEvento(id: string): Promise<void>;
 declare function verDeposito(accountId: string, name: string, notice?: string): Promise<void>;
@@ -185,7 +178,6 @@ declare function depCaducaPronto(isoDate: string | null | undefined): boolean;
 declare function verCirugia(id: string, notice?: string): Promise<void>;
 declare function verConcurso(id: string): Promise<void>;
 declare function verEquipo(id: string): Promise<void>;
-declare function editarEquipo(equipment: null, account: { id: string; nombre: string }): Promise<void>;
 interface CardAccount { id: string; nombre: string; tipo?: string | null; codigo?: string | null; especialidad?: string | null; area?: string | null; urgente?: boolean | null; sin_reporting?: boolean | null; estado_comercial?: string | null; email?: string | null }
 interface CardConsultation extends Consultation { direccion?: string | null; cp?: string | null; planta?: string | null; sala?: string | null; indicaciones?: string | null; telefono?: string | null; dias?: Record<string, string | null> | null; lat?: number | null; lon?: number | null }
 interface CardVisit { id: string; fecha: string; modo?: string | null; resultados?: string[] | null; muestras?: number | null; nota?: string | null; proxima_fecha?: string | null; proxima_accion?: string | null }
@@ -194,7 +186,6 @@ interface AccountUnits { hoy: number; semana: number; mes: number; trimestre: nu
 declare let UDS_SERIE: string;
 declare const UDS_SERIES: [string, string][];
 declare function estados(): string[];
-declare function sparkUnidades(units: AccountUnits, series: string): string;
 declare function leyendaUnidades(series: string): string;
 interface HistoryEntry { id: number; accion: string; entidad?: string | null; usuario?: string | null; creado_en: string; detalle?: unknown; deshacible?: boolean | null }
 declare const PAC: { q: string; medico: string | null; medicoNombre: string; pagina: number; tipo?: string; pedidos?: string; municipio?: string; campos?: Record<string, unknown> };
@@ -210,7 +201,6 @@ declare function hayExtra(extra: string): boolean;
 declare function pillMaterial(state: string): string;
 declare function cargarProductos(): Promise<void>;
 declare function facccon(userId: string): Promise<void>;
-declare function puedeVerComo(user: PlatformUser): boolean;
 declare function nuevoUsuario(preset: Record<string, unknown>): void;
 interface AccountFilters { q: string; prov: string; muni: string; esp: string; est: string; urg: boolean; mios?: boolean; sin?: boolean; com?: string | null; rep?: string | null; tipo?: string; orden: string; pagina: number; total: number; campos: Record<string, unknown> }
 interface AccountRow { id: string; nombre?: string | null; urgente?: boolean | null; centro_nombre?: string | null; municipio?: string | null; estado_comercial?: string | null }
@@ -250,7 +240,6 @@ interface SheetBook { SheetNames: string[]; Sheets: Record<string, unknown> }
 
 interface SheetReader { read(data: ArrayBuffer | string, options: Record<string, unknown>): SheetBook; utils: { sheet_to_json(sheet: unknown, options: Record<string, unknown>): unknown[][] } }
 
-declare function cargarLectorExcel(): Promise<SheetReader>;
 
 
 // ---- Manual de uso (src/app/screens/manual): the portal manual content and the checks it needs

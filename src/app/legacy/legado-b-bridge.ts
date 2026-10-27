@@ -18,6 +18,8 @@ import { homeStore } from '../screens/home/store';
 import * as legacyFreeComponents from '../components';
 import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
+import * as legacyFreeScreensAccess from '../screens/access';
+import * as legacyFreeScreensHomePortalHome from '../screens/home/portal-home';
 
 /** db.rpc as the legacy layers wrap it: (name, params, options) → the query builder or a promise. */
 export type RpcFunction = (name: string, params?: Record<string, unknown>, options?: unknown) => unknown;
@@ -74,8 +76,8 @@ export const legacyBActions = {
   reloadAgenda: (): void => { void cargarAgenda(); },
   impersonate: (id: string): void => { void legacyFreeCoreServices.session.impersonate(id); },
   orderTurn: (name: string): unknown => legacyFreeCoreServices.reads.takeTurn(name),
-  isMyTurn: (name: string, turn: unknown): boolean => esMiTurno(name, turn),
-  withCatch: <T>(promise: Promise<T>): Promise<T> => conCatch(promise),
+  isMyTurn: (name: string, turn: unknown): boolean => legacyFreeCoreServices.reads.isMyTurn(name, turn as number),
+  withCatch: <T>(promise: Promise<T>): Promise<T> => legacyFreeCoreServices.withCatch(promise),
   rpcOriginal: <T>(name: string, params: Record<string, unknown>): PromiseLike<RpcAnswer<T>> => RPC_ORIG<T>(name, params) as PromiseLike<RpcAnswer<T>>,
   canInvoice: (): boolean => Boolean(legacyFreeCoreServices.permissions.canInvoice()),
   loadSettings: (): Promise<void> => legacyFreeCoreSettings.loadSettings(),
@@ -94,7 +96,7 @@ export const legacyBActions = {
   iconSvg: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   moduleIcon: (tab: string): string | undefined => ICO_MOD[tab],
   mobileSettings: (): void => { legacyFreeScreensSettingsShell.mobileLayout(); },
-  passwordMeter: (first: HTMLElement | null, second: HTMLElement | null, button: HTMLElement | null): void => { medidorClave(first, second, button); },
+  passwordMeter: (first: HTMLElement | null, second: HTMLElement | null, button: HTMLElement | null): void => { legacyFreeScreensAccess.addPasswordMeter(first as HTMLInputElement | null, second as HTMLInputElement | null, button as HTMLButtonElement | null); },
   isSamples: (detail: unknown): boolean => esMuestras(detail),
   improveFields: (root: Element): void => { mejorarCampos(root); },
   closeSelector: (): void => { cerrarSelector(); },
@@ -102,14 +104,14 @@ export const legacyBActions = {
   openClock: (input: HTMLInputElement): void => { abrirReloj(input); },
   emit: (input: HTMLInputElement): void => { emitir(input); },
   orderMobileHeader: (view: HTMLElement | null): void => { legacyFreeCoreNavigationApi.mobileHeader(view); },
-  alertKey: (title: string, item: Element): string => claveAlerta(title, item),
+  alertKey: (title: string, item: Element): string => legacyFreeCoreLeftovers.alertKey(title, item as HTMLElement),
   paginate: (element: HTMLElement | null, total: number, page: number, onPage: (page: number) => void): void => {
     legacyFreeCoreNavigationApi.pager(element, { total: total, page: page }, { onPage: onPage, onSize: (() => { onPage(0); }) });
   },
   openAccount: (id: string): void => { void abrirFicha(id); },
   openOrder: (id: string): void => { void verPedido(id); },
   openPurchase: (id: string): void => { void editorCompra(id); },
-  filterHomeAlerts: (): void => { filtrarAlertasInicio(); },
+  filterHomeAlerts: (): void => { void legacyFreeScreensHomePortalHome.filterHiddenAlerts(); },
   portfolioRules: (): void => { void legacyFreeScreensSettingsMore.editPortfolioRules(); },
   teamTable: (): Promise<void> => legacyFreeCoreLeftovers.paintTeamCompliance(),
   can: (capability: string): boolean => puede(capability),

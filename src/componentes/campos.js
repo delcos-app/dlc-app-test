@@ -4,12 +4,10 @@
 
 
 /* v2.72.0 · Un clasificador de ficha, cliente o producto sin papel es un campo personalizado: tipo y dónde se ve */
-function cajaCampo(c, completo) { return window.delcos.leftovers.customFieldBox(c, completo); }
 
 
 
 // Email comprobado mientras se escribe: ✓ verde si es válido, ✗ rojo si no
-function validarEmailEnVivo(inp) { window.delcos.leftovers.liveEmailCheck(inp); }
 
 
 

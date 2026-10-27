@@ -2,9 +2,6 @@
 // componentes/graficos.js · los gráficos están en src/app/components/charts (v2.416.0); sus nombres se quedan como adaptadores
 // (Analítica, Inicio, la ficha, el portal y Oportunidades los usan). Aquí siguen las reglas de los indicadores de Inicio.
 
-/** @param {any} u @param {string} k */
-function sparkUnidades(u, k) { return window.delcos.components.unitsSparkline(u, k); }
-function graficoCanal() { return window.delcos.components.channelChart(); }
 
 const KPI_DEF = window.delcos.content.defaultIndicators();
 

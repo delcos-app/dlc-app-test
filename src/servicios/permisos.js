@@ -2,7 +2,6 @@
 // servicios/permisos.js · está en src/app/core/permissions.ts (v2.425.0). Estos nombres se quedan: todo el código viejo, los puentes y las
 // pruebas los usan. Normas: docs/normas_codigo.md.
 
-function puedeVerComo(u) { return window.delcos.core.permissions.canImpersonateUser(u); }
 function puede(c) { return window.delcos.core.permissions.can(c); }
 // v2.109.0: los clasificadores son un permiso del rol (antes, administrar o nivel 2 en Configuración)
 // Crear o cambiar pedidos y pacientes: administración y televenta (el comercial solo consulta lo suyo)

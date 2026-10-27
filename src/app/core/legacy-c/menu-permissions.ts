@@ -10,6 +10,7 @@ import * as legacyFreeCoreLegacyC from './';
 import { navigationStore } from '../navigation/store';
 import * as legacyFreeScreensOrders from '../../screens/orders';
 import * as legacyFreeScreensPlatform from '../../screens/platform';
+import * as legacyFreeCoreLegacyA from '../legacy-a';
 
 const quietly = (work: () => void): void => { try { work(); } catch { /* a menu entry must not stop the others */ } };
 const SECTION_MENUS = [(): void => { legacyFreeCoreLeftovers.menuSurgeries(); }, (): void => { legacyFreeCoreLeftovers.menuCycle(); }, (): void => { legacyFreeCoreLeftovers.menuEvents(); }] as const;
@@ -39,7 +40,7 @@ export const surgeriesMenu = (): void => { quietly(() => { legacyFreeCoreLeftove
 
 /** v2.117.0: showing the app also builds the Organización entry of the user menu (the legacy mostrarApp). */
 export function showApp(args: readonly unknown[]): unknown {
-  const result = mostrarAppBase(...args); menuOrganizacion(); return result;
+  legacyFreeCoreLegacyA.showApp(args[0] as Parameters<typeof legacyFreeCoreLegacyA.showApp>[0]); legacyFreeCoreLeftovers.menuOrganization(); return undefined;
 }
 
 /** v2.16x: the platform mode shows only the panel sections, and it is remembered for the next start (the legacy aplicarModoPlataforma). */

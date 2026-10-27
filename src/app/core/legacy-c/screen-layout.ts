@@ -12,6 +12,7 @@ import * as legacyFreeComponentsFiltersPanel from '../../components/filters-pane
 import * as legacyFreeScreensAccounts from '../../screens/accounts';
 import * as legacyFreeScreensBilling from '../../screens/billing';
 import * as legacyFreeCoreNavigationApi from '../navigation/api';
+import * as legacyFreeComponents from '../../components';
 
 const MIN_DESKTOP = 900;
 const ACTION_WEIGHT = 3, TOOLS_WEIGHT = 4;
@@ -105,7 +106,7 @@ export function watchModuleSections(): void {
 }
 
 export function watchAnalyticsChannel(): void {
-  observe(byId('v-analitica'), () => { if (navigationStore.screen === 'analitica' && !byId('ancanal')) graficoCanal(); }, { childList: true, subtree: true });
+  observe(byId('v-analitica'), () => { if (navigationStore.screen === 'analitica' && !byId('ancanal')) void legacyFreeComponents.channelChart(); }, { childList: true, subtree: true });
 }
 
 export function watchBillingSettings(): void {

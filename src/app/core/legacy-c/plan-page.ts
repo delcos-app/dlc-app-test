@@ -9,6 +9,7 @@ import * as legacyFreeCoreServices from '../services';
 import * as legacyFreeCoreLegacyC from './';
 import { sessionStore } from '../session-store';
 import * as legacyFreeScreensSettingsRest from '../../screens/settings/rest';
+import * as legacyFreeScreensOrders from '../../screens/orders';
 
 const CHECK_EVERY_MS = 1500, CHECKS = 90, VERSION_EVERY_MS = 2000, WELCOME_EVERY_MS = 1000, WELCOME_CHECKS = 60, WELCOME_DELAY_MS = 900;
 const SIGNUP_NOTICE_DELAY_MS = 400, BACK_TO_PLAN_FOR_MS = 30000, ANNUAL_MONTHS = 10, MIN_USERS = 3;
@@ -25,7 +26,7 @@ function annualFee(cards: NodeListOf<Element>, plan: CurrentPlan): void {
   cards.forEach(card => {
     const label = card.querySelector(':scope > span'), amount = card.querySelector(':scope > b');
     if (!label || !amount || (label.textContent ?? '').trim() !== t('legacyC.plan.perMonth')) return;
-    const definition = planDe(plan.plan ?? '') as unknown as { minimo?: number; precio: number };
+    const definition = legacyFreeCoreServices.plans.planOf((plan.plan ?? '')) as unknown as { minimo?: number; precio: number };
     const base = Math.max(Number(plan.usuarios) || 0, definition.minimo ?? MIN_USERS) * definition.precio * ANNUAL_MONTHS;
     amount.textContent = legacyFreeCoreServices.money.eurosWeb(base); label.textContent = t('legacyC.plan.perYear');
     card.querySelector('.kpiiva')?.remove();
@@ -79,9 +80,10 @@ export function paintNextReceipt(): void {
 
 /** The plan page, then the next receipt (the legacy pintarPaginaPlan). */
 export async function paintPlanPage(args: readonly unknown[]): Promise<unknown> {
-  const result = await pintarPaginaPlanBase10(...args);
+  void args;   // the legacy callers pass their arguments; the plan page takes none
+  await legacyFreeScreensSettingsRest.paintPlanPage();
   try { legacyFreeCoreLegacyC.paintNextReceipt(); } catch { /* the receipt is optional */ }
-  return result;
+  return undefined;
 }
 
 /** v2.161.0: the app tells the database once which version is in use. */
@@ -94,7 +96,7 @@ export function paymentOnStart(): void {
   whenSignedIn(() => {
     const result = new URLSearchParams(location.search).get('pago');
     if (result) history.replaceState(null, '', location.pathname + location.hash);
-    if (result === 'ok') { toast(t('legacyC.plan.paymentReceived')); pagoEsperarActivo(); } else if (result === 'cancelado') toast(t('legacyC.plan.paymentLeft'));
+    if (result === 'ok') { toast(t('legacyC.plan.paymentReceived')); void legacyFreeScreensOrders.waitUntilActive(); } else if (result === 'cancelado') toast(t('legacyC.plan.paymentLeft'));
     void pagoCargarEstado();
   }, CHECK_EVERY_MS, CHECKS);
 }
@@ -104,7 +106,7 @@ export function cancellationOnStart(): void {
   if (new URLSearchParams(location.search).get('pago') !== 'baja') return;
   let tries = 0;
   const timer = setInterval(() => {
-    if (sessionStore.profile && !document.body.classList.contains('sin-sesion')) { clearInterval(timer); pagoEsperarBaja(); } else if (++tries > CHECKS) clearInterval(timer);
+    if (sessionStore.profile && !document.body.classList.contains('sin-sesion')) { clearInterval(timer); void legacyFreeScreensOrders.waitUntilCancelled(); } else if (++tries > CHECKS) clearInterval(timer);
   }, CHECK_EVERY_MS);
 }
 

@@ -25,6 +25,9 @@ import * as legacyFreeScreensEvents from '../screens/events';
 import * as legacyFreeScreensSurgeries from '../screens/surgeries';
 import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 import * as legacyFreeScreensCustomers from '../screens/customers';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import * as legacyFreeScreensAccounts from '../screens/accounts';
+import * as legacyFreeScreensEquipment from '../screens/equipment';
 export const legacyDb = (): LegacyDb => db;
 export const callRpc = <T>(name: string, params: Record<string, unknown> = {}): PromiseLike<LegacyResult<T>> => RPC_ORIG<T>(name, params);
 
@@ -198,7 +201,7 @@ export const weekPlanner = {
   /** Estimated end of a day (minutes) and the latest return time. */
   estimateDay: (list: readonly object[], isoDate: string): { fin: number; tope: number } => estimarDia(list, isoDate),
   /** Opening windows of a person on a date: null when unknown, [] when they do not attend that day. */
-  attendanceWindows: (days: Record<string, string | null> | null | undefined, isoDate: string): unknown[] | null => ventanasDe(days, isoDate),
+  attendanceWindows: (days: Record<string, string | null> | null | undefined, isoDate: string): unknown[] | null => legacyFreeComponents.attendanceWindows(days, isoDate),
 };
 
 /** Common dialogs and notices. */
@@ -206,8 +209,8 @@ export const notices = {
   toast: (message: string, isError = false): void => { toast(message, isError); },
   confirm: (message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean> => preguntar(message, options),
   choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => legacyFreeComponents.chooseOption(title, message, buttons),
-  askDate: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => pedirFecha(message, value, options),
-  askTime: async (title: string, value: string, ok: string): Promise<string | null> => (await appVentana({ titulo: title, ok, campo: { valor: value, tipo: 'time' } })) as string | null,
+  askDate: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => legacyFreeCoreServices.calendar.askDate(message, value, options) as Promise<string | null>,
+  askTime: async (title: string, value: string, ok: string): Promise<string | null> => (await legacyFreeComponents.showDialog({ titulo: title, ok, campo: { valor: value, tipo: 'time' } })) as string | null,
 };
 
 export const initialsOf = (name: string): string => legacyFreeCoreServices.vocabulary.initials(name);
@@ -221,11 +224,11 @@ export const yourDayLegacy = {
   estimateDay: (list: readonly object[], isoDate: string): { est: Record<string, number>; fin: number; tope: number } =>
     estimarDia(list, isoDate) as unknown as { est: Record<string, number>; fin: number; tope: number },
   stopInfo: (): Readonly<Record<string, StopInfo>> => agendaStore.stopInfo,
-  explainWarning: (info: StopInfo): string => explicarAviso(info),
+  explainWarning: (info: StopInfo): string => legacyFreeCoreLegacyC.explainNotice(info as Parameters<typeof legacyFreeCoreLegacyC.explainNotice>[0]),
   windowsText: (windows: readonly [number, number][]): string => txtVentanas(windows),
   canRecordOn: (isoDate: string): boolean => puedeRegistrarEnDia(isoDate),
   queuedVisits: (): ReturnType<typeof colaLeer> => colaLeer(),
-  showDialog: (title: string, message: string, ok: string): void => { void appVentana({ titulo: title, msg: message, ok, cancel: false }); },
+  showDialog: (title: string, message: string, ok: string): void => { void legacyFreeComponents.showDialog({ titulo: title, msg: message, ok, cancel: false }); },
 };
 
 /** Legacy icons: the line icons of Agenda (ICU), the arrow icons (ICO) and the list icons (plIco). */
@@ -272,11 +275,11 @@ export const agendaCache = {
 /** What the appointment and task editors use from legacy: the account picker and the «seen recently» notice (Cuentas). */
 export const editorLegacy = {
   pickAccount: (element: HTMLElement | null, value: PickedAccount | null, onPick: (account: PickedAccount) => Promise<void> | void, placeholder?: string): void => {
-    selectorMedico(element, { valor: value, alElegir: onPick, ...(placeholder ? { placeholder } : {}) });
+    legacyFreeScreensAccounts.pickAccount(element as unknown as HTMLElement, { valor: value, alElegir: onPick, ...(placeholder ? { placeholder } : {}) } as Parameters<typeof legacyFreeScreensAccounts.pickAccount>[1]);
   },
-  recentContacts: (accountId: string, isoDate: string): Promise<RecentContact[]> => recientesDe([accountId], isoDate).then(found => found[accountId] ?? []),
+  recentContacts: (accountId: string, isoDate: string): Promise<RecentContact[]> => legacyFreeCoreLeftovers.recentContacts([accountId], isoDate).then(found => (found[accountId] ?? []) as unknown as RecentContact[]),
   recentText: (list: RecentContact[]): string => legacyFreeCoreServices.calendar.recentText(list),
-  turnOffRecentNotice: (): Promise<void> => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
+  turnOffRecentNotice: (): Promise<void> => legacyFreeScreensVisit.saveRevisitNotice({ ...avisoRevisita(), on: false }) as unknown as Promise<void>,
   centreFromCard: (): string | null => accountsStore.cardCentre,
   viewedUserId: (): string | null => (currentScreen() === 'agenda' && agendaStore.viewedUser ? agendaStore.viewedUser.id : null),
 };
@@ -303,7 +306,7 @@ export const relatedLegacy = {
   openSurgery: (id: string, notice?: string): void => { void verCirugia(id, notice); },
   openTender: (id: string): void => { void verConcurso(id); },
   openEquipment: (id: string): void => { void verEquipo(id); },
-  newEquipment: (account: { id: string; nombre: string }): void => { void editarEquipo(null, account); },
+  newEquipment: (account: { id: string; nombre: string }): void => { void legacyFreeScreensEquipment.editEquipment(null, account); },
 };
 
 /** What the base of the account card uses from legacy: the «Para la visita» block (Visitas), permissions and the units chart. */
@@ -312,7 +315,7 @@ export const cardBaseLegacy = {
   canRecord: (): boolean => legacyFreeCoreServices.permissions.canRecord(),
   canEdit: (): boolean => legacyFreeCoreServices.permissions.canEdit(),
   directionsAttribute: (point: [number, number]): string => legacyFreeCoreServices.maps.navigationAttribute(point, undefined),
-  unitsChart: (units: AccountUnits, series: string): string => sparkUnidades(units, series),
+  unitsChart: (units: AccountUnits, series: string): string => legacyFreeComponents.unitsSparkline(units as unknown as Parameters<typeof legacyFreeComponents.unitsSparkline>[0], series),
   unitsLegend: (series: string): string => leyendaUnidades(series),
   unitsSeries: (): readonly [string, string][] => UDS_SERIES,
   unitsSeriesChosen: (): string => UDS_SERIE,
@@ -345,7 +348,7 @@ export const portalLegacy = {
 
 export const accessLegacy = {
   connectionInfo: (userId: string): void => { void facccon(userId); },
-  canImpersonate: (user: PlatformUser): boolean => puedeVerComo(user),
+  canImpersonate: (user: PlatformUser): boolean => legacyFreeCoreServices.permissions.canImpersonateUser(user as Parameters<typeof legacyFreeCoreServices.permissions.canImpersonateUser>[0]),
   newUser: (preset: Record<string, unknown>): void => { nuevoUsuario(preset); },
   forgetAccessCache: (): void => { accountsStore.portalAccess = null; },
   /** A user is created with a separate client (no session kept), as the legacy sign-up did. */
@@ -442,7 +445,7 @@ export const purchasesLegacy = {
 
 /** Importar datos: the Excel reader (loaded on first use), the error log, the write counter and the «Importaciones» tab. */
 export const importLegacy = {
-  excelReader: (): Promise<SheetReader> => cargarLectorExcel(),
+  excelReader: (): Promise<SheetReader> => legacyFreeCoreServices.files.loadExcelReader() as Promise<SheetReader>,
   reportError: (message: string): void => { legacyFreeCoreServices.errors.registerError(('error'), message, undefined); },
   countWrite: (): void => { sessionStore.writes++; },
   showHistory: (): void => { settingsStore.subsection = 'historial'; },
@@ -499,7 +502,7 @@ export const opportunitiesLegacy = {
   /** The account picker; what is typed without choosing is kept in element.__texto. */
   pickReference: (options: { element: HTMLElement; value: PickedAccount | null; freeText: string; placeholder: string; onPick: (account: PickedAccount) => void }): void => {
     Reflect.set(options.element, '__texto', options.freeText);
-    selectorMedico(options.element, { valor: options.value, alElegir: options.onPick, placeholder: options.placeholder });
+    legacyFreeScreensAccounts.pickAccount(options.element as unknown as HTMLElement, { valor: options.value, alElegir: options.onPick, placeholder: options.placeholder } as Parameters<typeof legacyFreeScreensAccounts.pickAccount>[1]);
   },
   mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
   periodOf: (element: HTMLElement | null): { desde: string | null; hasta: string | null } =>

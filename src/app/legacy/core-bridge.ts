@@ -16,6 +16,11 @@ import { routesStore } from '../screens/routes/store';
 import * as legacyFreeScreensBilling from '../screens/billing';
 import * as legacyFreeComponents from '../components';
 import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeScreensOrders from '../screens/orders';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import * as legacyFreeScreensPortal from '../screens/portal';
+import * as legacyFreeScreensVisit from '../screens/visit';
+import * as legacyFreeScreensAccounts from '../screens/accounts';
 export interface LegacyProfile {
   id: string; nombre: string; rol: string; areas?: Record<string, number | string>; capacidades?: string[];
   preferencias?: Record<string, unknown> & { navegador?: string };
@@ -51,7 +56,7 @@ export const coreLegacy = {
   roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
   currentPlan: (): { plan: string } => sessionStore.plan as { plan: string },
   plans: (): readonly LegacyPlan[] => PLANES as readonly LegacyPlan[],
-  planPrice: (plan: LegacyPlan): string => precioPlan(plan),
+  planPrice: (plan: LegacyPlan): string => legacyFreeCoreSettings.planPrice(plan as Parameters<typeof legacyFreeCoreSettings.planPrice>[0]),
   billingReadOnly: (): boolean => legacyFreeScreensBilling.readOnlyBilling(),
   notificationTypes: (): readonly (readonly unknown[])[] => TIPOS_NOTIF,
   sectionTitle: (section: string): string | undefined => TITULO_PEDSEC[section]?.[0],
@@ -68,7 +73,7 @@ export const coreLegacy = {
   // ---- Company words, states and language
   terms: (): Record<string, { s?: string; p?: string; g?: string } | undefined> => (sessionStore.terms ?? {}) as Record<string, { s?: string; p?: string; g?: string } | undefined>,
   brandLabel: (): string | undefined => ((settingsStore.settings.marca ?? {}) as { etiqueta?: string }).etiqueta,
-  isFree: (order: object, total: unknown): boolean => Boolean(sinCargoP(order, total)),
+  isFree: (order: object, total: unknown): boolean => Boolean(legacyFreeScreensOrders.isFree(order, total as number | null | undefined)),
   commercialStates: (): readonly { valor: string; papel: string }[] => sessionStore.commercialStates,
   language: (): string => sessionStore.language,
   setLanguage: (language: string): void => { sessionStore.language = language; },
@@ -85,10 +90,10 @@ export const coreLegacy = {
   toast: (message: string, isError = false): void => { toast(message, isError); },
   confirm: (message: string, options: { titulo?: string; ok?: string }): Promise<boolean> => preguntar(message, options),
   choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => legacyFreeComponents.chooseOption(title, message, buttons),
-  showDialog: (options: { titulo: string; msg: string; ok: string; campo: { valor: string; tipo: string } }): Promise<unknown> => appVentana(options),
+  showDialog: (options: { titulo: string; msg: string; ok: string; campo: { valor: string; tipo: string } }): Promise<unknown> => legacyFreeComponents.showDialog(options),
   showLoading: (message: string): void => { legacyFreeComponents.showFullLoading(message); },
   hideLoading: (): void => { legacyFreeComponents.hideFullLoading(); },
-  withButtonLoading: <T>(button: HTMLElement, text: string, work: () => Promise<T>): Promise<T> => conCarga(button, text, work),
+  withButtonLoading: <T>(button: HTMLElement, text: string, work: () => Promise<T>): Promise<T> => legacyFreeCoreLegacyC.withLoading(button, text, work) as Promise<T>,
   registerError: (type: string, message: string, detail?: Record<string, unknown>): void => { legacyFreeCoreServices.errors.registerError(type, message, detail); },
   icon: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   paintConnection: (): void => { pintarConexion(); },
@@ -99,7 +104,7 @@ export const coreLegacy = {
   setUnreadNotifications: (count: number): void => { settingsStore.notificationCount = count; },
   liveChannel: (): unknown => sessionStore.live,
   setLiveChannel: (channel: unknown): void => { sessionStore.live = channel; },
-  repaintPortal: (isCentre: boolean): void => { if (isCentre && typeof centroPintar === 'function') centroPintar(); else portalMedico(); },
+  repaintPortal: (isCentre: boolean): void => { if (isCentre && typeof centroPintar === 'function') centroPintar(); else void legacyFreeScreensPortal.paintMaterial(); },
   shownAccount: (): string | null => accountsStore.shownId,
   refreshCardPortal: (id: string): void => { window.delcos.screens.accounts.refreshPortal(id); },
   // ---- Reads, writes and their caches
@@ -120,17 +125,17 @@ export const coreLegacy = {
   visitDraft: (): VisitDraft | null => accountsStore.currentVisit,
   setVisitDraft: (value: null): void => { accountsStore.currentVisit = value; },
   sampleError: (result: object): string => muestraError(result),
-  uploadVisitPhotos: (activity: string, photos: readonly unknown[]): Promise<boolean> => subirFotosVisita(activity, photos),
+  uploadVisitPhotos: (activity: string, photos: readonly unknown[]): Promise<boolean> => legacyFreeScreensVisit.uploadVisitPhotos(activity, photos as Parameters<typeof legacyFreeScreensVisit.uploadVisitPhotos>[1]),
   // ---- Maps and centres
   isIos: (): boolean => ES_IOS,
   isAndroid: (): boolean => ES_ANDROID,
   km: (from: unknown, to: unknown): number => km(from, to),
   routePlan: (): unknown => routesStore.plan,
   paintRoutePlan: (): void => { pintarPlan(); },
-  centreFromLocation: (box: Element, index: string | number, lat: number, lon: number): Promise<void> => centroDesdeUbicacion(box, index, lat, lon),
+  centreFromLocation: (box: Element, index: string | number, lat: number, lon: number): Promise<void> => legacyFreeScreensAccounts.centreFromLocation(box as HTMLElement, index as string, lat, lon),
   centreList: (list: Element, centres: readonly unknown[], options: CentreListOptions): void => {
-    listaCentros(list, centres, options.onPick, options.extra, options.onExtra);
+    legacyFreeScreensAccounts.centreList(list as HTMLElement, centres as Parameters<typeof legacyFreeScreensAccounts.centreList>[1], options.onPick as Parameters<typeof legacyFreeScreensAccounts.centreList>[2], options.extra ? { html: options.extra, onClick: options.onExtra } : undefined);
   },
-  setCentre: (box: Element, index: string | number, centre: object): void => { cpPoner(box, index, centre); },
-  paintCentreChoice: (box: Element, index: string | number): void => { pintarCentroSel(box, index); },
+  setCentre: (box: Element, index: string | number, centre: object): void => { legacyFreeScreensAccounts.setCentre(box as HTMLElement, index as string, centre); },
+  paintCentreChoice: (box: Element, index: string | number): void => { void legacyFreeScreensAccounts.paintCentrePicker(box as HTMLElement, index as string, undefined); },
 };

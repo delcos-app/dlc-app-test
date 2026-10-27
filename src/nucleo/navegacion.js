@@ -25,9 +25,7 @@ const vistaDlg = () => window.delcos.nav.openView();
 
 const vistaIgual = (a, b) => window.delcos.nav.sameView(a, b);
 
-function volverTrasF5(v) { return window.delcos.nav.returnAfterReload(v); }
 function cometa() { return window.delcos.nav.comet(); }
-function estable(el, max, desde) { return window.delcos.nav.steady(el, max, desde); }
 function llegar(el) { return window.delcos.nav.arrive(el); }
 function arrancar() { return window.delcos.nav.start(); }
 function cargarPagina(t) { return window.delcos.nav.loadPage(t); }

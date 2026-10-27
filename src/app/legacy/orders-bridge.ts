@@ -13,6 +13,7 @@ import * as legacyFreeScreensBilling from '../screens/billing';
 import * as legacyFreeScreensSettingsExtra from '../screens/settings/extra';
 import * as legacyFreeScreensCustomers from '../screens/customers';
 import * as legacyFreeCoreSettings from '../core/settings';
+import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 /**
  * Bridge of Pedidos to the legacy code (kept apart from bridge.ts, which is at its size limit). The section, page, field filters
  * and the loaded rows stay in the legacy PEDSEC, PEDPAG, PEDF and PEDIDOS (the list bar, legado 034/082/139 and the tests read
@@ -53,14 +54,14 @@ export const ordersLegacy = {
 /** The order window: the pieces that stay in legacy (invoices, custom fields) and the editor through its global name (legado 058 opens it wide). */
 export const orderSheetLegacy = {
   whileLoading: <T>(work: () => Promise<T>): Promise<T> => legacyFreeComponentsEmbeddedWindow.withDialogLoading(work),
-  whenSteady: (element: Element | null, maxMs: number): Promise<void> => estable(element, maxMs),
+  whenSteady: (element: Element | null, maxMs: number): Promise<void> => legacyFreeCoreNavigationApi.steady(element as unknown as Element, maxMs, undefined),
   invoices: (id: string): Promise<void> => legacyFreeScreensBilling.paintOrderInvoices(id),
   customFields: (id: string, container: Element | null): Promise<void> => legacyFreeScreensSettings.paintCustomFieldsBlock(('pedidos'), id, container),
   edit: (detail: object): void => { void editorPedido(detail as Record<string, unknown>); },
   openCustomer: (id: string): void => { void legacyFreeScreensCustomers.showCustomer(id); },
   fieldsForm: (values: Record<string, unknown>): string => legacyFreeScreensSettings.customFieldsHtml(('pedido'), values),
   readFields: (root: Element | null): OrderFieldsRead | null => legacyFreeScreensSettings.readCustomFields(root),
-  saveFields: (read: OrderFieldsRead | null, id: string): Promise<boolean> => camposGuardar(read, id),
+  saveFields: (read: OrderFieldsRead | null, id: string): Promise<boolean> => legacyFreeScreensSettings.saveCustomFields(read as Parameters<typeof legacyFreeScreensSettings.saveCustomFields>[0], id),
   loadPdf: (): Promise<unknown> => legacyFreeCoreServices.pdf.loadJsPdf(),
   appName: (): string => legacyFreeCoreServices.appName(),
   askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => components.askText(message, value, options),
@@ -68,7 +69,7 @@ export const orderSheetLegacy = {
 
 /** Emails and settings of Pedidos. */
 export const orderMailLegacy = {
-  template: (kind: string, field: string, values: EmailVariables): string => plantillaCorreo(kind, field, varsCorreo(values)),
+  template: (kind: string, field: string, values: EmailVariables): string => legacyFreeScreensSettingsExtra.fillTemplate(kind, field as Parameters<typeof legacyFreeScreensSettingsExtra.fillTemplate>[1], legacyFreeScreensSettingsExtra.emailVariables(values)),
   chooseTemplate: (kind: string): Promise<boolean> => legacyFreeScreensSettingsExtra.chooseTemplate(kind),
   forgetChosenTemplate: (kind: string): void => { billingStore.chosenTemplates[kind] = null; },
   companyIban: (): string => String((settingsStore.settings.empresa as { iban?: string } | undefined)?.iban ?? '').trim(),

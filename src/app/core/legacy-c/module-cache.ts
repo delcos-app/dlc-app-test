@@ -60,7 +60,7 @@ function updateButton(): { button: HTMLElement | null; inHeader: boolean } {
   if (!button) {
     actions.insertAdjacentHTML('beforeend', `<button class="btn sec iniact" id="iniact" type="button" title="${t('legacyC.home.update')}">${svgIco(ICON_NOM['refresh-cw'] ?? '')}<span></span></button>`);
     button = byId('iniact');
-    if (button) { const target = button; target.onclick = (): void => { delete CACHE_MOD.inicio; void conCarga(target, t('legacyC.home.updating'), () => cargarInicio()); }; }
+    if (button) { const target = button; target.onclick = (): void => { delete CACHE_MOD.inicio; void legacyFreeCoreLegacyC.withLoading(target, (t('legacyC.home.updating')), (() => cargarInicio())); }; }
   }
   return { button, inHeader: true };
 }

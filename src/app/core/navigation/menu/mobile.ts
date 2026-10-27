@@ -11,6 +11,7 @@ import { menuGroups, menuPrefs } from './groups';
 import { navigationStore } from '../store';
 import * as legacyFreeCoreServices from '../../services';
 import * as legacyFreeCoreLegacyB from '../../legacy-b';
+import * as legacyFreeCoreSettings from '../../settings';
 
 /** The screens that never go in the phone menu (v2.335.0: Usuarios is in Configuración). */
 export const MENU_OUT = ['usuarios'];
@@ -25,7 +26,7 @@ export const menuTab = (): string => (navigationStore.screen === 'ventas' && SUB
 /** The name of a screen in the menu (without «Pronto»). */
 export function mobileName(key: string): string {
   const button = document.querySelector(`nav.main [data-t="${key}"]`); if (!button) return key;
-  const text = txTexto(button);
+  const text = legacyFreeCoreSettings.menuLabelText(button as HTMLElement);
   return orFallback(text?.get(), orFallback(button.textContent, '')).replace('Pronto', '').trim();
 }
 

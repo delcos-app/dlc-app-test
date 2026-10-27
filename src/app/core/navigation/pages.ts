@@ -8,6 +8,7 @@ import { escapeHtml } from '../../services/format';
 import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
 import * as legacyFreeScreensSettingsExtra from '../../screens/settings/extra';
 import { navigationStore } from './store';
+import * as legacyFreeScreensSettingsRest from '../../screens/settings/rest';
 
 /** [key, label, painter] of a page tab. */
 export type PageTab = [string, string, () => unknown];
@@ -24,7 +25,7 @@ export interface PageDefinition {
 /** The pages, shared with legacy: other modules add theirs (PAGINAS.ciclo…) and some define their texts as getters. */
 export const PAGES: Record<string, PageDefinition> = {
   perfil: { t: t('navigationCore.pages.profile'), d: t('navigationCore.pages.profileDescription'), tabs: [
-    ['datos', t('navigationCore.pages.profileData'), (): unknown => pintarPerfil()], ['notif', t('navigationCore.pages.notifications'), (): unknown => pintarNotif()]] },
+    ['datos', t('navigationCore.pages.profileData'), (): unknown => { legacyFreeScreensSettingsRest.paintMyProfile(); return undefined; }], ['notif', t('navigationCore.pages.notifications'), (): unknown => { legacyFreeScreensSettingsExtra.paintNotificationSettings(); return undefined; }]] },
   empresa: { t: t('navigationCore.pages.company'), d: t('navigationCore.pages.companyDescription'), admin: true, tabs: [
     ['marca', t('navigationCore.pages.brand'), (): unknown => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('navigationCore.pages.mail'), (): unknown => legacyFreeScreensSettingsExtra.paintEmail()],
     ['copias', t('navigationCore.pages.backups'), (): unknown => legacyFreeScreensSettingsMore.paintBackups()]] },

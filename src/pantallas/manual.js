@@ -9,7 +9,6 @@ const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo
 
  // v2.440.0: MANUAL_VUELTA → estado de src/app (plan 6.6), accesible en window
 
-function cargarManual() { return window.delcos.screens.manual.paintManual(); }
 
 function abrirManual(ancla) { window.delcos.screens.manual.openManual(ancla || ''); }
 

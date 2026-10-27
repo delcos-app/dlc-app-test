@@ -72,16 +72,11 @@ const PK_TARJ = [['pago', 'pago', window.delcos.t('legacyTexts.orderCards.paymen
 function cargarVentas() { return window.delcos.screens.orders.loadSales(); }
 function listaPedidos() { return window.delcos.screens.orders.paintOrderList(); }
 function verPedido(id) { return window.delcos.screens.orders.showOrder(id); }
-function configurarAvisosPedidos(oblig) { return window.delcos.screens.orders.configureAlerts(oblig || []); }
-function sinCargoP(p, total) { return window.delcos.screens.orders.isFree(p, total); }
 
 // El editor del pedido, el cobro con tarjeta, las suscripciones y las tarjetas están en src/app/screens/orders (v2.417.0). Estos nombres
 // se quedan: legado 058 (ventana amplia), 073, 075, 076, 147, Clientes, Configuración, el Panel delcos, Portal y las pruebas los usan.
 function editorPedido(pedido) { return window.delcos.screens.orders.editOrder(pedido || null); }
-function pintarTpv() { return window.delcos.screens.orders.paintTpvSettings(); }
 function pagoLlamar(cuerpo, boton) { return window.delcos.screens.orders.callPayments(cuerpo, boton || null); }
-function pagoEsperarActivo() { return window.delcos.screens.orders.waitUntilActive(); }
-function pagoEsperarBaja() { return window.delcos.screens.orders.waitUntilCancelled(); }
 function pagoCargarEstado() { return window.delcos.screens.orders.loadPaymentState(); }
 function elegirPago(planIni) { return window.delcos.screens.orders.choosePlan(planIni); }
 function pkMarcar() { return window.delcos.screens.orders.markChosenCard(); }

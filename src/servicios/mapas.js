@@ -3,9 +3,7 @@
 // puentes los usan. rutasMapa sigue aquí: envuelve el mapa de hoy de Rutas (rutasMapaBase). Normas: docs/normas_codigo.md.
 
 function navegarA(destino, paradas) { return window.delcos.core.maps.navigateTo(destino, paradas); }
-function geoInversa(lat, lon) { return window.delcos.core.maps.reverseGeocode(lat, lon); }
 // «Estoy aquí»: primero los centros que ya tenemos a menos de 250 m; si no, centro nuevo con los datos del mapa
-function estoyAqui(box, i, b) { return window.delcos.core.maps.hereNow(box, i, b); }
 function minutosEntre(a, b) { return window.delcos.core.maps.minutesBetween(a, b); }
 // Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
 function geocodificar(q, o) { return window.delcos.core.maps.geocode(q, o); }

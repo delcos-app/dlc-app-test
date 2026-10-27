@@ -12,4 +12,3 @@ window.delcos.legacyA.listenToSectionButtons();
 
 const punto = k => (PERFIL.preferencias || {})[k] || null;
 
-function cargarAdminBase() { return window.delcos.legacyA.loadAdmin(); }

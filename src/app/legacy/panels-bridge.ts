@@ -11,6 +11,7 @@ import { productsStore } from '../screens/products/store';
 import { billingStore } from '../screens/billing/store';
 import * as legacyFreeScreensRoutes from '../screens/routes';
 import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeScreensAccounts from '../screens/accounts';
 
 /** A column of the second panel «Columnas»: its index, name, whether it shows and whether it can be hidden. */
 export interface PanelColumn { i: number; n: string; on: boolean; fija: boolean }
@@ -34,7 +35,7 @@ export const panelsLegacy = {
   monthsBetween: (from: string, to: string): string[] => legacyFreeCoreServices.calendar.monthsBetween(from, to),
   mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
   pickProfessional: (element: HTMLElement | null, options: { value: PickedAccount | null; placeholder: string; onPick: (account: PickedAccount) => void }): void => {
-    selectorMedico(element, { valor: options.value, placeholder: options.placeholder, alElegir: options.onPick });
+    legacyFreeScreensAccounts.pickAccount(element as unknown as HTMLElement, { valor: options.value, placeholder: options.placeholder, alElegir: options.onPick } as Parameters<typeof legacyFreeScreensAccounts.pickAccount>[1]);
   },
   professional: (): PickedAccount | null => homeStore.analyticsAccount,
   /** The second panel with the columns of a table (legado 056/057/065). */

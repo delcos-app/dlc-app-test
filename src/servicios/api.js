@@ -25,9 +25,6 @@ function escribir(fn, payload, etiqueta) { return window.delcos.core.queue.write
 function invalidarCache() { return window.delcos.core.queue.forgetCache(); }
 // Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
 function colaLeer() { return window.delcos.core.queue.queued(); }
-function colaGuardar(c) { return window.delcos.core.queue.saveQueue(c); }
-function esMiTurno(k, t) { return window.delcos.core.reads.isMyTurn(k, t); }
-function vaciarCola() { return window.delcos.core.queue.sendQueue(); }
 function escribirRpc(fn, payload) { return window.delcos.core.reads.writeQueued(fn, payload); }
 /** Llama a una función del servidor y guarda copia; sin conexión devuelve la última copia. */
 function rpcCache(fn, params, clave) { return window.delcos.core.reads.readCached(fn, params, clave); }

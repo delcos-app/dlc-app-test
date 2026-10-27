@@ -74,7 +74,7 @@ export const usersLegacy = {
 export const planLegacy = {
   current: (): CurrentPlan => (sessionStore.plan as CurrentPlan | null) ?? {},
   setCurrent: (plan: CurrentPlan): void => { sessionStore.plan = plan as Record<string, unknown>; },
-  of: (id: string | null | undefined): PlanDef => planDe(id) as PlanDef,
+  of: (id: string | null | undefined): PlanDef => legacyFreeCoreServices.plans.planOf(id ?? '') as PlanDef,
   all: (): readonly PlanDef[] => PLANES as readonly PlanDef[],
   contractedUsers: (): number => legacyFreeCoreSettings.contractedUsers(),
   modules: (): readonly (readonly [string, string, string])[] => MOD_PLAN,

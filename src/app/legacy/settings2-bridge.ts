@@ -4,6 +4,7 @@ import * as legacyFreeScreensSettings from '../screens/settings';
 import { sessionStore } from '../core/session-store';
 import { settingsStore } from '../screens/settings/store';
 import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
 /**
  * Bridge of Configuración (second part: portfolio rules, backups, undo, commercial states, visit material, accesses, classifiers,
  * roles and brand) to the legacy code (kept apart from bridge.ts, which is at its size limit). The settings, the catalogs, the
@@ -36,17 +37,17 @@ export const settingsMoreLegacy = {
   // Classifiers: the catalog list, the custom field box and the list repaint stay in legacy
   classifiers: (): ClassifierData[] => settingsStore.catalogs as unknown as ClassifierData[],
   setClassifiers: (list: ClassifierData[]): void => { settingsStore.catalogs = list as unknown as typeof settingsStore.catalogs; },
-  fieldBox: (classifier: ClassifierData, complete: boolean): string => cajaCampo(classifier, complete),
+  fieldBox: (classifier: ClassifierData, complete: boolean): string => legacyFreeCoreLeftovers.customFieldBox(classifier as unknown as Parameters<typeof legacyFreeCoreLeftovers.customFieldBox>[0], complete),
   fieldTable: (area: string | null | undefined): string | undefined => CAMPO_TABLA[area ?? ''],
   loadCustomFields: (): Promise<void> => legacyFreeScreensSettings.loadCustomFields(),
   repaintClassifiers: (): void => { void legacyFreeScreensSettings.paintClassifiers(); },
   // Roles
   roleNames: (): string[] => legacyFreeCoreSettings.roleNames(),
-  roleTemplate: (role: string): Record<string, number> => plantillaRol(role),
+  roleTemplate: (role: string): Record<string, number> => legacyFreeCoreSettings.roleTemplate(role) as Record<string, number>,
   areas: (): readonly (readonly [string, string])[] => AREAS,
   areaHint: (area: string): string => QUE_ABRE[area] ?? '',
   levelNames: (): readonly string[] => NIVEL_TXT,
-  reloadRoles: (): Promise<void> => cargarRoles(),
+  reloadRoles: (): Promise<void> => legacyFreeCoreSettings.loadRoles() as unknown as Promise<void>,
   profileId: (): string => profile().id,
   profileName: (): string => profile().nombre ?? '',
   setCapabilities: (list: string[]): void => { profile().capacidades = list; },

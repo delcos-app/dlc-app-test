@@ -10,11 +10,11 @@ import * as legacyFreeComponents from '../../components';
 const clearMark = (list: Element): void => { list.querySelectorAll('.activo').forEach(item => { item.classList.remove('activo'); item.removeAttribute('aria-selected'); }); };
 
 const isListKey = (event: KeyboardEvent): boolean =>
-  ['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key) && !event.altKey && !event.ctrlKey && !event.metaKey && esBuscador(event.target);
+  ['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key) && !event.altKey && !event.ctrlKey && !event.metaKey && legacyFreeComponents.isSearchBox(event.target as Element | null);
 
 function moveMark(event: KeyboardEvent): void {
   if (!isListKey(event)) return;
-  const list = teclaLista(event.target); if (!list) return;
+  const list = legacyFreeComponents.resultsOf(event.target as HTMLElement); if (!list) return;
   const items = legacyFreeComponents.listItems(list); if (!items.length) return;
   let index = items.findIndex(item => item.classList.contains('activo'));
   if (event.key === 'Enter') {
@@ -33,8 +33,8 @@ export function navigateSuggestions(): void {
   document.addEventListener('keydown', moveMark, true);
   // Writing again removes the mark (the results change); with the mouse, the mark follows the pointer
   document.addEventListener('input', event => {
-    if (!esBuscador(event.target)) return;
-    const list = teclaLista(event.target); if (list) clearMark(list);
+    if (!legacyFreeComponents.isSearchBox(event.target as Element | null)) return;
+    const list = legacyFreeComponents.resultsOf(event.target as HTMLElement); if (list) clearMark(list);
   }, true);
   document.addEventListener('mouseover', event => {
     const list = event.target instanceof Element ? event.target.closest('.gsug, .cpres') : null; if (!list) return;
