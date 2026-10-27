@@ -84,10 +84,5 @@ const PRES_DATOS = new Map();               // id → datos (base64) ya descarga
 // Las ventanas de la visita están en src/app/screens/visit (v2.412.0). Estos nombres se quedan: Agenda, la ficha, Productos,
 // Configuración, api.js, archivos.js y las pruebas los usan.
 function abrirVisita(id) { return window.delcos.screens.visit.openVisit(id); }
-function editarVisita(v, cuenta) { return window.delcos.screens.visit.editVisit(v, cuenta); }
-function verFotosVisita(actividad, cuenta) { return window.delcos.screens.visit.showVisitPhotos(actividad, cuenta); }
 function subirFotosVisita(actividad, fotos) { return window.delcos.screens.visit.uploadVisitPhotos(actividad, fotos); }
-function presMateriales(forzar) { return window.delcos.screens.visit.loadMaterials(!!forzar); }
-function presentarSolo(p, idm) { return window.delcos.screens.visit.presentOnly(p, idm); }
-function editorMuestras() { return window.delcos.screens.visit.editSamples(); }
 function guardarAvisoRevisita(v) { return window.delcos.screens.visit.saveRevisitNotice(v); }

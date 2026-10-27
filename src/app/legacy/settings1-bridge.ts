@@ -5,6 +5,7 @@ import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
 import { sessionStore } from '../core/session-store';
 import { settingsStore } from '../screens/settings/store';
+import * as legacyFreeCoreServices from '../core/services';
 /**
  * Bridge of Configuración part 1 to the legacy code (kept apart from bridge.ts, which is at its size limit): the user profile and
  * its preferences, the classifier catalog, the undo helpers of the audit, the custom field definitions and the test environment.
@@ -18,7 +19,7 @@ export const settingsLegacy = {
   user: (): CurrentUser => sessionStore.profile as CurrentUser,
   setPreferences: (preferences: Record<string, unknown>): void => { (sessionStore.profile as CurrentUser).preferencias = preferences; },
   place: (key: string): Place | null => ((sessionStore.profile as CurrentUser).preferencias?.[key] as Place | null | undefined) ?? null,
-  changeNavigator: (name: string): void => { void cambiarNavegador(name); },
+  changeNavigator: (name: string): void => { void legacyFreeCoreServices.maps.changeNavigator(name); },
   revisitNotice: (): { on: boolean; dias: number } => avisoRevisita(),
   /** The legacy name answers whether it was saved (its declaration says void). */
   saveRevisitNotice: (value: { on: boolean; dias: number }): Promise<unknown> => guardarAvisoRevisita(value) as Promise<unknown>,
@@ -35,13 +36,13 @@ export const settingsLegacy = {
   fields: (): Record<string, CustomField[] | undefined> => CAMPOS,
   fieldTable: (area: string): string | undefined => CAMPO_TABLA[area],
   areaOfTable: (table: string): string | undefined => Object.keys(CAMPO_TABLA).find(area => CAMPO_TABLA[area] === table),
-  fieldInput: (field: CustomField, value: unknown): string => campoInput(field, value),
+  fieldInput: (field: CustomField, value: unknown): string => legacyFreeCoreLeftovers.customFieldInput(field, value),
   fieldText: (field: CustomField, value: unknown): string => components.fieldText(field, value),
   testEnvironment: <T>(): LegacyQuery<T> => RPC_ORIG_FROM<T>('entorno_pruebas'),
   refreshReason: (reason: string): string | undefined => MOTIVO_REFRESCO[reason],
   edgeFunctions: (): EdgeFunctions => (db as unknown as { functions: EdgeFunctions }).functions,
   resetTestData: (): void => { void legacyFreeCoreNavigationApi.backToTestData(); },
-  clearLocalData: (): void => { limpiarDatosLocales(); },
+  clearLocalData: (): void => { legacyFreeCoreServices.session.clearLocalData(); },
   showLoading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   skeletonCard: (text: string): string => components.cardSkeleton(text),
   /** The range chosen in a period box mounted with mountPeriod (the legacy box keeps it in a property of the element). */

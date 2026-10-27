@@ -12,5 +12,3 @@ const ANCLAS_AYUDA = [
 ];
 
 function ponerAyudas() { window.delcos.components.addHelpButtons(); }
-/** @param {HTMLElement} b */
-function anclaAyuda(b) { return window.delcos.components.helpAnchor(b); }

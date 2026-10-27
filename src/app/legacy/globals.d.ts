@@ -59,22 +59,16 @@ declare const ALIAS_PEDIDOS: Readonly<Record<string, string>>;
 declare const ORG_DESDE: Readonly<Record<string, string>>;
 declare const PAGINAS: Readonly<Record<string, unknown>>;
 
-declare function irBase(screen: string): void;
 declare function cometa(): void;
-declare function plVigilar(screen: string): void;
 declare function aplicarNombresMenu(): void;
-declare function claveCfgVieja(section: string | null, subsection: string | null): string;
 declare function ponerAyudaManual(): void;
 declare function aplicarEtiqueta(): void;
 declare function pagoAlPlan(): void;
 declare function puedeOrganizacion(): boolean;
 declare function planIncluyeSeccion(section: string): boolean;
-declare function avisoPlan(section: string): void;
 declare function hoyISO(): string;
 declare function menuMarcarPie(): void;
 declare function puede(capability: string): boolean;
-declare function cerrarEncajadas(): void;
-declare function revelar(section: HTMLElement, maxMs: number, since: number): void;
 declare function cargarPagina(screen: string): void;
 
 // ---- Home indicators (src/app/screens/home/indicators): the indicator catalog is shared with Configuración (not migrated yet)
@@ -129,16 +123,10 @@ interface PendingAppointment { id: string; nombre: string; fecha: string; centro
 declare function abrirFicha(id: string): Promise<void>;
 declare function nuevaCita(accountId: string, isoDate: string | null): Promise<void>;
 interface RangeAppointment { fecha: string; estado: string; usuario_id?: string; hora?: string | null; medico?: string | null; nombre?: string | null }
-declare function agBloqueos(fromIsoDate: string, days: number): Promise<Record<string, string>>;
 
-declare function tareasDelDia(isoDate: string): Promise<unknown>;
-declare function bloqueadosSemanaBase(fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>>;
 
 declare let AG_HOY_VISTO: string | null;
 
-declare function pintarTuDia(): Promise<void>;
-declare function pintarEquipo(): Promise<void>;
-declare function cargarComerciales(): Promise<void>;
 interface WeekAppointment extends RangeAppointment { id: string; cuenta_id: string; usuario?: string | null; dias?: Record<string, string | null> | null }
 interface WeekDraftItem { m: { nombre: string; municipio?: string | null }; ini?: number | null; cita?: Record<string, unknown>; motivo?: string }
 interface WeekDraft { semana: string; uid: string; total: number; dias: Record<string, WeekDraftItem[]>; sinDia: WeekDraftItem[]; horario?: Record<string, unknown> | null }
@@ -147,7 +135,6 @@ declare function estimarDia(appointments: readonly object[], isoDate: string): {
 declare function ventanasDe(days: Record<string, string | null> | null | undefined, isoDate: string): unknown[] | null;
 declare function preguntar(message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean>;
 declare function toast(message: string, isError?: boolean): void;
-declare function iniciales(name: string): string;
 declare function cargarAgenda(): Promise<void>;
 interface DayAppointmentFull extends WeekAppointment {
   lat?: number | string | null; lon?: number | string | null; centro_nombre?: string | null;
@@ -177,7 +164,6 @@ declare const CAT: Record<string, { valor: string; extra?: string | null }[]>;
 declare function escribir(name: string, payload: Record<string, unknown>): Promise<{ error?: unknown } | null>;
 declare function escribirRpc(name: string, payload: Record<string, unknown>): Promise<{ error?: { message?: string } | null }>;
 declare function pedirFecha(message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null>;
-declare function elegirOpcion(title: string, message: string, buttons: ChoiceButton[]): Promise<string | null>;
 declare function navegarA(point: [number, number] | null): Promise<void>;
 declare function abrirVisita(accountId: string): Promise<void>;
 declare function agUnida(): boolean;
@@ -190,11 +176,9 @@ interface Consultation { centro_nombre?: string | null; municipio?: string | nul
 interface RecentContact { tipo: string; fecha: string; usuario?: string | null }
 declare function selectorMedico(element: HTMLElement | null, options: { valor: PickedAccount | null; alElegir: (account: PickedAccount) => Promise<void> | void; placeholder?: string }): void;
 declare function recientesDe(ids: string[], isoDate: string): Promise<Record<string, RecentContact[] | undefined>>;
-declare function txtReciente(list: RecentContact[]): string;
 declare function avisoRevisita(): { on: boolean; dias: number };
 declare function guardarAvisoRevisita(value: { on: boolean; dias: number }): Promise<void>;
 
-declare function verFotosVisita(activityId: string, accountId: string): Promise<void>;
 declare function verEvento(id: string): Promise<void>;
 declare function verDeposito(accountId: string, name: string, notice?: string): Promise<void>;
 declare function depCaducaPronto(isoDate: string | null | undefined): boolean;
@@ -210,18 +194,12 @@ interface AccountUnits { hoy: number; semana: number; mes: number; trimestre: nu
 declare let UDS_SERIE: string;
 declare const UDS_SERIES: [string, string][];
 declare function estados(): string[];
-declare function navAttr(point: [number, number]): string;
-declare function editarVisita(visit: CardVisit, accountId: string): Promise<void>;
 declare function sparkUnidades(units: AccountUnits, series: string): string;
 declare function leyendaUnidades(series: string): string;
 interface HistoryEntry { id: number; accion: string; entidad?: string | null; usuario?: string | null; creado_en: string; detalle?: unknown; deshacible?: boolean | null }
 declare const PAC: { q: string; medico: string | null; medicoNombre: string; pagina: number; tipo?: string; pedidos?: string; municipio?: string; campos?: Record<string, unknown> };
-declare function fichaPaciente(id: string): Promise<void>;
 declare function detTxt(visit: object): string;
 declare function campoTxt(field: string): string;
-declare function textoValor(value: unknown): string;
-declare function resumenDetalle(detail: unknown): string;
-declare function deshacerUno(id: number, then: () => void): Promise<void>;
 interface PortalMessage { id: string; texto: string; del_portal: boolean; creado_en: string; leido_en?: string | null }
 interface PortalResult { ok?: boolean; motivo?: string; productos?: number }
 interface CatalogProduct { id: string; nombre: string; tipo?: string | null; estado?: string | null; precio?: number | null }
@@ -231,7 +209,6 @@ declare const CFG: { url: string; anon: string };
 declare function hayExtra(extra: string): boolean;
 declare function pillMaterial(state: string): string;
 declare function cargarProductos(): Promise<void>;
-declare function eurI(value: number): string;
 declare function facccon(userId: string): Promise<void>;
 declare function puedeVerComo(user: PlatformUser): boolean;
 declare function nuevoUsuario(preset: Record<string, unknown>): void;
@@ -241,19 +218,13 @@ interface ColumnSetting { k: string; on: boolean; w: number }
 declare const F: AccountFilters;
 
 declare const ORD_DIR: Readonly<Record<string, string>>;
-declare function clasChips(scope: string, state: Record<string, unknown>): { k: string; t: string }[];
 declare function etiquetaContactos(): string;
 declare function tamPagina(): number;
-declare function paginador(element: HTMLElement | null, total: number, page: number, onPage: (page: number) => void, onSize: () => void): void;
 interface CustomField { clave: string; nombre: string; tipo?: string | null; en_tabla?: boolean | null }
 interface AccountListRow extends AccountRow { sin_reporting?: boolean | null; dias?: Record<string, string | null> | null; ultima_visita?: string | null; telefono?: string | null; consulta_telefono?: string | null; clasificadores?: Record<string, unknown> | null; comerciales?: { nombre: string }[] | null; [key: string]: unknown }
 declare const CAMPOS: Record<string, CustomField[] | undefined>;
-declare function campoTexto(field: CustomField | undefined, value: unknown): string;
-declare function nombrePila(name: string): string;
-declare function pintarEventos(): Promise<void>;
 declare function invalidarCache(): void;
 declare function verPedido(id: string): Promise<void>;
-declare function pintarCirugias(): Promise<void>;
 
 // ---- Parque instalado (src/app/screens/equipment): contract warnings and kinds live in Concursos (not migrated yet)
 
@@ -281,7 +252,6 @@ interface SheetReader { read(data: ArrayBuffer | string, options: Record<string,
 
 declare function cargarLectorExcel(): Promise<SheetReader>;
 
-declare function registrarError(type: string, message: string, detail?: Record<string, unknown>): void;
 
 // ---- Manual de uso (src/app/screens/manual): the portal manual content and the checks it needs
 
@@ -309,19 +279,14 @@ declare const CFG_DE_MODULO: Readonly<Record<string, string | undefined>>;
 
 declare function puedeModulo(screen: string): boolean;
 
-declare function planIncluye(module: string): boolean;
 
-declare function planMinimo(module: string): { nombre: string } | undefined;
 
 declare const TERM_DEF: Readonly<Record<string, unknown>>;
 
-declare function terminoDe(key: string): unknown;
 
-declare function nombreApp(): string;
 
 declare const ES_IOS: boolean;
 
-declare function nombrePantalla(screen: string): string;
 
 interface GeocodeHints { direccion?: string | null | undefined; municipio?: string | null | undefined; cp?: string | null | undefined }
 
@@ -333,7 +298,6 @@ declare function descargar(rows: unknown[], name: string, format: string): void;
 
 declare function productoPorDefecto(): string;
 
-declare function buscarClientes(query: string): Promise<unknown[]>;
 
 declare function editorContacto(preset: Record<string, unknown>, onSave: (client: unknown) => void): void;
 
@@ -341,21 +305,15 @@ declare function editorPedido(preset?: Record<string, unknown>): Promise<void>;
 
 declare function montarPeriodo(element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void;
 
-declare function vacioGrafico(text: string): string;
 
 declare function pintarLlamadas(): Promise<void>;
 
 interface LegacyQuery<T> { neq(column: string, value: unknown): LegacyQuery<T> }
 
 // ---- Clientes (src/app/screens/customers): the customer editor, the order pieces and the list helpers stay in legacy
-declare function pillEstado(state: string): string;
 declare function nuevaVenta(preset: object): unknown;
-declare function clasVisibles(area: string): CustomField[];
-declare function clasCabeceras(fields: readonly CustomField[]): string;
-declare function clasRejilla(grid: Element | null, count: number): void;
 declare function camposFiltros(area: string, state: Record<string, unknown>, prefix: string): string;
 declare function cargando(element: HTMLElement | null, text?: string): void;
-declare function vaciarModulos(except: string): void;
 declare const DB_PRE: Map<string, unknown>;
 declare function listaPacientes(): Promise<void>;
 

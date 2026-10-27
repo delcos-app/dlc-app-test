@@ -7,6 +7,7 @@ import { t } from '../../i18n';
 import { byId, closestTo, observe } from './dom';
 import * as legacyFreeCoreLayers from '../layers';
 import { navigationStore } from '../navigation/store';
+import * as legacyFreeCoreNavigationApi from '../navigation/api';
 
 const SUMMARY_CHARS = 320, MAX_ITEMS = 3, FIRST_SENTENCE_CHARS = 200, MANUAL_SEARCH_DELAY_MS = 350, FOCUS_DELAY_MS = 50;
 
@@ -15,7 +16,7 @@ export function freezeOnTabChange(): void {
   document.addEventListener('click', event => {
     const button = closestTo(event.target, 'main .subnav button, main [data-pedsec], main [data-psec], main [data-fsec], main [data-ansec], main [data-avista], main [data-ag="equipo"]');
     if (!button || button.getAttribute('aria-pressed') === 'true') return;
-    congelar(button.closest('main > section'));
+    legacyFreeCoreNavigationApi.freeze((button.closest('main > section')));
   }, true);
 }
 
@@ -25,7 +26,7 @@ export function rememberPressedTab(): void {
   document.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') CLIC_PESTANA = closestTo(event.target, 'button, [data-ag]'); }, true);
   document.addEventListener('click', event => {
     const button = closestTo(event.target, 'main [data-fsub], main [data-faccfg]');
-    if (button && button.getAttribute('aria-pressed') !== 'true' && !button.classList.contains('on')) congelar(button.closest('main > section'));
+    if (button && button.getAttribute('aria-pressed') !== 'true' && !button.classList.contains('on')) legacyFreeCoreNavigationApi.freeze((button.closest('main > section')));
   }, true);
 }
 

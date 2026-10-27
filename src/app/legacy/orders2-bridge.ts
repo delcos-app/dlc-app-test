@@ -14,6 +14,8 @@ import { ordersStore } from '../screens/orders/store';
 import { settingsStore } from '../screens/settings/store';
 import { sessionStore } from '../core/session-store';
 import { navigationStore } from '../core/navigation/store';
+import * as legacyFreeScreensSettingsRest from '../screens/settings/rest';
+import * as legacyFreeScreensCustomers from '../screens/customers';
 export interface EditorProduct { id: string; nombre?: string; precio?: number | null; iva?: number | null; contrato?: string | null }
 export interface EditorService { id: string; nombre: string; activo?: boolean | null; por_defecto?: boolean | null; pvp?: number | null; iva?: number | null }
 export interface PlanInfo { id: string; nombre: string; precio: number; anual?: number | null; minimo?: number | null }
@@ -34,11 +36,11 @@ export const orderEditorLegacy = {
   },
   paymentMethods: (): readonly { valor: string }[] => CAT.forma_pago ?? [],
   help: (title: string, text: string): string => pmAyu(title, text),
-  readReceipt: (file: File): Promise<OrderReceipt | null> => leerJustificante(file) as Promise<OrderReceipt | null>,
+  readReceipt: (file: File): Promise<OrderReceipt | null> => legacyFreeCoreServices.files.readReceipt(file) as Promise<OrderReceipt | null>,
   uploadReceipts: (id: string, list: readonly OrderReceipt[]): Promise<boolean> => subirJustificantes(id, list),
   orderFields: (): readonly CustomField[] => CAMPOS.pedido ?? [],
   customerCardOpen: (): unknown => accountsStore.cardPatients,
-  openCustomer: (id: unknown): void => { void fichaPaciente(id as string); },
+  openCustomer: (id: unknown): void => { void legacyFreeScreensCustomers.showCustomer((id as string)); },
   repaintCustomers: (): void => { void listaPacientes(); },
   distributors: (): DistributorRow[] | null => ordersStore.distributors,
   setDistributors: (list: DistributorRow[]): void => { ordersStore.distributors = list; },
@@ -80,7 +82,7 @@ export const orderCardsLegacy = {
 
 export const indicatorSettingsLegacy = {
   defaults: (): readonly string[] => KPI_DEF,
-  save: (list: readonly Record<string, unknown>[]): Promise<boolean> => guardarKpis(list),
+  save: (list: readonly Record<string, unknown>[]): Promise<boolean> => legacyFreeScreensSettingsRest.saveIndicators(list),
   reloadHome: (): void => { void cargarInicio(); },
   eye: (open: boolean): string => (open ? ICO.ojo : ICO.ojoNo) ?? '',
 };

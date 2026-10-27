@@ -6,8 +6,6 @@
 function mejorarCampos(raiz) { window.delcos.components.enhanceFields(raiz); }
 function mejorarCamposNuevos(raiz) { window.delcos.components.enhanceNewFieldKinds(raiz && raiz.querySelectorAll ? raiz : document); }
 function sinSelectorDelSistema(raiz) { if (raiz && raiz.querySelectorAll) window.delcos.components.withoutSystemPicker(raiz); }
-function cerrarPickers(salvo) { window.delcos.components.closePickers(salvo); }
 function cerrarSelector() { window.delcos.components.closePicker(); }
 function abrirCalendario(inp, o) { window.delcos.components.openCalendar(inp, o || {}); }
 function abrirReloj(inp, o) { window.delcos.components.openClock(inp, o || {}); }
-function selTipo(inp) { return window.delcos.components.kindOf(inp); }

@@ -14,6 +14,8 @@ import { accountsStore } from '../screens/accounts/store';
 import { homeStore } from '../screens/home/store';
 import { ordersStore } from '../screens/orders/store';
 import { billingStore } from '../screens/billing/store';
+import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
+import * as legacyFreeScreensRoutes from '../screens/routes';
 export interface IndicatorSetting { readonly id: string; readonly on: boolean; readonly t?: string; readonly filtro?: Record<string, unknown> }
 export interface SavePageDefinition { tab: string; cab: () => Element | null; cuerpo: () => Element | null }
 export interface ViewedAgenda { id: string; nombre: string; rol?: string; preferencias?: Record<string, unknown> }
@@ -53,7 +55,7 @@ export const leftoversLegacy = {
   addDays: (isoDate: string, days: number): string => isoMas(isoDate, days),
   shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
   euros: (value: number): string => eur(value),
-  valueText: (value: unknown): string => textoValor(value),
+  valueText: (value: unknown): string => legacyFreeScreensSettingsMore.valueText(value),
   toast: (message: string, isError = false): void => { toast(message, isError); },
   showLoading: (element: HTMLElement | null, text: string): void => { cargando(element, text); },
   // Agenda
@@ -70,7 +72,7 @@ export const leftoversLegacy = {
   mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
   /** The range of a period picker (the legacy montarPeriodo leaves its reader on the element). */
   periodRange: (element: HTMLElement): PeriodRange => (Reflect.get(element, RANGE_READER) as () => PeriodRange)(),
-  editFrequency: (): void => { void editorFrecuencia(); },
+  editFrequency: (): void => { void legacyFreeScreensRoutes.editFrequency(); },
   // Cuentas
   setAccountAccess: (access: Record<string, unknown>): void => { accountsStore.portalAccess = access; },
   revisitNotice: (): { on: boolean; dias: number } => avisoRevisita(),

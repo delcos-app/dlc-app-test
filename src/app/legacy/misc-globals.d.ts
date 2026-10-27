@@ -6,5 +6,3 @@ interface LegacyHiddenAlert { clave: string; detalle?: string | null; titulo?: s
 declare const DIAS_SEM: readonly (readonly [string, string])[];
 
 declare function claveAlerta(title: string, item: Element): string;
-declare function tarjetaComision(): Promise<unknown>;
-declare function itemHTML(id: string, icon: string, kind: string, name: string, detail: string): string;

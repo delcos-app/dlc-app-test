@@ -96,14 +96,10 @@ function opcionesProducto(id, nombre) {
 // Productos está en src/app/screens/products (v2.413.0). Estos nombres se quedan: el menú, la caché de pantallas (legado 057),
 // los filtros de campos, Configuración, la ficha de la cuenta, «‹ Volver» (legado 089) y las pruebas los usan.
 function cargarProductosModulo() { return window.delcos.screens.products.loadProductsModule(); }
-function pintarProductos() { return window.delcos.screens.products.paintProducts(); }
 function fichaStock(s) { return window.delcos.screens.products.showStock(s); }
 function verDeposito(cuenta, nombre, aviso) { return window.delcos.screens.products.showDeposit(cuenta, nombre, aviso || ''); }
-function pintarAlmacenes2() { return window.delcos.screens.products.paintStores(); }
 function movimientoStock(s, tipo, loteId, almId) { return window.delcos.screens.products.stockMovement(s || null, tipo, loteId ? { batchId: loteId, storeId: almId } : undefined); }
 
 // El editor de producto y el material de visita están en src/app/screens/products/editor (v2.427.0). Estos nombres se quedan:
 // Productos, Configuración, Visita y las pruebas los usan.
 function editorProducto(p) { return window.delcos.screens.products.editProduct(p || null); }
-function pintarMaterial() { return window.delcos.screens.products.paintVisitMaterial(); }
-function productosPromocionados() { return window.delcos.screens.products.promotedProducts(); }

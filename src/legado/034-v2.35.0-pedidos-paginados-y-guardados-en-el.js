@@ -25,7 +25,6 @@ window.delcos.legacyB.listenToPaymentEmailLinks();
 
 /* ---------------- datos fiscales: web de la empresa para el pie de la factura ---------------- */
 
-function pintarEmpresaBase2() { return window.delcos.legacyB.paintCompanyData(); }
 
 /* ---------------- manual de uso renovado ---------------- */
 

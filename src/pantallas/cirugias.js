@@ -13,6 +13,4 @@
 
 // Intervenciones está en src/app/screens/surgeries (v2.407.0). Estos nombres se quedan: la pestaña de la página (legado 079),
 // los avisos, la ficha, «‹ Volver» y las pruebas los usan.
-function pintarCirugias() { return window.delcos.screens.surgeries.paintSurgeries(); }
-function editarCirugia(c) { return window.delcos.screens.surgeries.editSurgery(c || null); }
 function verCirugia(id, aviso) { return window.delcos.screens.surgeries.showSurgery(id, aviso || ''); }

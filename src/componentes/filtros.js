@@ -35,29 +35,6 @@ const htGuardarOrden = () => { try { localStorage.setItem('delcos-orden', JSON.s
 
 // Ordenar y filtrar tablas y la memoria de filtros están en src/app/components/filters (v2.416.0). Estos nombres se quedan: el
 // panel «Filtros y columnas», legado 057/082/107/113, Inicio y las pruebas los usan.
-function htTipo(g) { return window.delcos.components.filters.tableKind(g); }
-function htOcultas(tipo) { return window.delcos.components.filters.hiddenColumns(tipo); }
-function htValor(txt) { return window.delcos.components.filters.cellValue(txt); }
-function htComparar(a, b) { return window.delcos.components.filters.compareCells(a, b); }
-function htMarcarCabecera(g) { window.delcos.components.filters.markHeader(g); }
-function htOrdenarFilas(g) { window.delcos.components.filters.sortRows(g); }
-function htQuitarOrden(g) { window.delcos.components.filters.clearSort(g); }
-function htTipoColumna(vals) { return window.delcos.components.filters.columnKind(vals); }
-function htNorm(s) { return window.delcos.components.filters.normalise(s); }
-function htCeldaNoOrdenable(n) { return window.delcos.components.filters.notSortable(n); }
-function htNoFiltrable(n) { return window.delcos.components.filters.notFilterable(n); }
-function filtroConValor(v) { return window.delcos.components.filters.filterHasValue(v); }
-function chicoEn(el, si) { return window.delcos.components.filters.compact(el, si); }
-function filtroGuardar(e) { window.delcos.components.filters.rememberFilter(e); }
-function filtrosRestaurar(root) { window.delcos.components.filters.restoreFilters(root); }
-function htAplicarFiltros(g) { window.delcos.components.filters.applyColumnFilters(g); }
 
 // El panel «Filtros y columnas» está en src/app/components/filters-panel (v2.419.0). Estos nombres se quedan: los observadores de
 // legado 054–057, la barra de las listas y el puente de componentes los llaman.
-function htLateralAbierto() { return window.delcos.components.filtersPanel.sideOpen(); }
-function htDevolver() { window.delcos.components.filtersPanel.giveBack(); }
-function htColocarBoton(sec) { window.delcos.components.filtersPanel.placeButton(sec); }
-function htContador(sec) { window.delcos.components.filtersPanel.counter(sec); }
-function htChips(sec) { window.delcos.components.filtersPanel.paintChips(sec); }
-function htAplicarColumnas(g) { window.delcos.components.filtersPanel.applyColumns(g); }
-function htPreparar(sec) { window.delcos.components.filtersPanel.prepare(sec); }

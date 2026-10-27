@@ -27,7 +27,6 @@ window.delcos.legacyB.orderMobileToolbars();
 
 /* ---------------- menú «Más» del móvil con el mismo estilo ---------------- */
 
-function abrirMasMovilBase() { return window.delcos.legacyB.openMoreMenu(); }
 function pintarBnavBase3() { return window.delcos.legacyB.paintBottomNav(); }
 
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */

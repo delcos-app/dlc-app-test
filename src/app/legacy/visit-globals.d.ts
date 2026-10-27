@@ -7,12 +7,4 @@ interface PresentationMaterial { id: string; producto_id: string; nombre: string
 
 declare const PRES_DATOS: Map<string, string>;
 declare const FOTOS_VISITA_MAX: number;
-declare function guardarCache(key: string, data: unknown): void;
-declare function leerCache(key: string): { t: number; d: unknown } | null;
-declare function campoDato(value: object, key: string): string;
-declare function padFirma(canvas: HTMLCanvasElement): SignaturePad;
-declare function productosPromocionados(): Promise<{ id: string; nombre: string }[]>;
-declare function leerJustificante(file: File): Promise<VisitPhoto | null>;
-declare function clasNorm(text: string): string;
-declare function hoyLetra(): string;
 declare function cargarInicio(): Promise<void>;

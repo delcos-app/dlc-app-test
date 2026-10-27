@@ -8,6 +8,10 @@ import { byId, closestTo, currentSection, observe, onMainChanges } from './dom';
 import * as legacyFreeCoreSettings from '../settings';
 import * as legacyFreeCoreLeftovers from '../leftovers';
 import { navigationStore } from '../navigation/store';
+import * as legacyFreeComponentsFiltersPanel from '../../components/filters-panel';
+import * as legacyFreeScreensAccounts from '../../screens/accounts';
+import * as legacyFreeScreensBilling from '../../screens/billing';
+import * as legacyFreeCoreNavigationApi from '../navigation/api';
 
 const MIN_DESKTOP = 900;
 const ACTION_WEIGHT = 3, TOOLS_WEIGHT = 4;
@@ -63,7 +67,7 @@ export function placeTableBar(section: Element): void {
 
 /** v2.55.0 and v2.57.0: on every screen change, the header order, the chips, the table bar and the order again. */
 export function arrangeEveryScreen(): void {
-  onMainChanges(() => { const section = currentSection(); if (!section) return; orderButtons(section); htChips(section); });
+  onMainChanges(() => { const section = currentSection(); if (!section) return; orderButtons(section); legacyFreeComponentsFiltersPanel.paintChips(section); });
 }
 
 export function arrangeTableBars(): void {
@@ -96,7 +100,7 @@ export function listenToSeeMore(): void {
 
 /** v2.56.0 and later: Cuentas, Facturación and Analítica repaint their own parts when their section changes. */
 export function watchModuleSections(): void {
-  observe(byId('v-directorio'), () => { if (navigationStore.screen === 'directorio') barraCuentas(); }, { childList: true, subtree: true, characterData: true });
+  observe(byId('v-directorio'), () => { if (navigationStore.screen === 'directorio') legacyFreeScreensAccounts.refreshBar(); }, { childList: true, subtree: true, characterData: true });
   observe(byId('v-facturacion'), () => { if (navigationStore.screen === 'facturacion') legacyFreeCoreLeftovers.billingSettingsSubnav(); }, { childList: true, subtree: true });
 }
 
@@ -105,7 +109,7 @@ export function watchAnalyticsChannel(): void {
 }
 
 export function watchBillingSettings(): void {
-  observe(byId('v-facturacion'), () => { ajustarFacturacion(); }, { childList: true, subtree: true });
+  observe(byId('v-facturacion'), () => { legacyFreeScreensBilling.arrangeBilling(); }, { childList: true, subtree: true });
 }
 
 function renameIn(node: Node): void {
@@ -130,6 +134,6 @@ export function renameIndicators(): void {
 export function raisePageAction(): void {
   observe(document.querySelector('main'), () => {
     if (ACCION_PAG_PEND) return; ACCION_PAG_PEND = true;
-    queueMicrotask(() => { ACCION_PAG_PEND = false; subirAccionPagina(); });
+    queueMicrotask(() => { ACCION_PAG_PEND = false; legacyFreeCoreNavigationApi.raisePageAction(); });
   }, { childList: true, subtree: true });
 }

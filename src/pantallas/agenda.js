@@ -12,9 +12,7 @@ function citasDelDia(fecha) { return window.delcos.leftovers.appointmentsOfDay(f
 /* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
    puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */
 
-function tareasDelDia(f) { return window.delcos.leftovers.tasksOfDay(f); }
 
-function agCambiosEnVentana() { return window.delcos.leftovers.changedWhileOpen(); }
 
 // Lo que antes era «cargar la agenda entera» tras un cambio: en la vista del día, solo lo que cambia
 
@@ -30,7 +28,6 @@ function agCambiosEnVentana() { return window.delcos.leftovers.changedWhileOpen(
 
 function puedeRegistrarEnDia(f) { return window.delcos.leftovers.canRecordOn(f); }
 
-function agBloqueos(desde, n) { return window.delcos.leftovers.blockedFrom(desde, n); }
 
 // Las citas que cambian de sitio se deslizan y la tocada se resalta (antes se animaban las filas ocultas)
 
@@ -148,7 +145,6 @@ const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 
 // Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
 
-function bloqueadosSemanaBase(desde, hasta) { return window.delcos.leftovers.readBlockedDays(desde, hasta); }
 
 /* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
    El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
@@ -156,14 +152,12 @@ function bloqueadosSemanaBase(desde, hasta) { return window.delcos.leftovers.rea
 
 // La cinta de 14 días
 
-function bloqueadosSemana(d, h) { return window.delcos.leftovers.blockedDays(d, h); }
 
 // ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
 
 // «Ver la semana» aparece de una vez: se pinta escondida y se enseña ya con sus días (antes salía vacía y se llenaba)
 
 // «Tu día» está en src/app/screens/agenda/your-day (v2.397.0); el nombre se queda porque lo llaman mucho código antiguo
-function pintarTuDia() { return window.delcos.screens.agenda.paintYourDay(); }
 
 // ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
 
@@ -186,11 +180,7 @@ function nuevaCita(medicoId, fecha, op = {}) { return window.delcos.screens.agen
 
 // La jornada, reprogramar, el menú del día y el origen de la cita están en src/app/screens/agenda (v2.414.0). Estos nombres
 // se quedan: Rutas y las pruebas los usan.
-function jornadaActiva() { return window.delcos.screens.agenda.activeWorkingDay(); }
-function empezarJornada() { return window.delcos.screens.agenda.startWorkingDay(); }
-function terminarJornada() { return window.delcos.screens.agenda.endWorkingDay(); }
 function textoOrigenCita(c) { return window.delcos.screens.agenda.originText(c); }
 // El tráfico de «Tu día» está en src/app/screens/agenda/traffic.ts (v2.418.0); la estimación del día (legado 024 y 103) usa estos nombres
-function tdMinutos(a, b) { return window.delcos.screens.agenda.legMinutes(a, b); }
 function tdRutaDia(citas, fecha) { return window.delcos.screens.agenda.dayRoute(citas, fecha); }
 function tdPonerReal(ruta, res) { return window.delcos.screens.agenda.setRealTimes(ruta, res); }

@@ -6,6 +6,8 @@
 import { t } from '../../i18n';
 import { byId, closestTo } from './dom';
 import { sessionStore } from '../session-store';
+import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeScreensOrders from '../../screens/orders';
 
 const DAYS = 10, DAY_MS = 864e5, MIN_BAR = 14, EMPTY_BAR = 6;
 interface Entry { fecha?: string; total?: number }
@@ -31,7 +33,7 @@ function ago(days: number): string {
 function sentence(key: string, list: readonly Entry[], today: string): string {
   if (!list.length) return t(key === 'pago' ? 'legacyC.orderAlerts.allPaid' : key === 'paquete' ? 'legacyC.orderAlerts.allPrepared' : 'legacyC.orderAlerts.allSent');
   const oldest = t('legacyC.orderAlerts.oldest', { ago: ago(oldestDays(list, today)) });
-  if (key === 'pago' && verImportes()) return t('legacyC.orderAlerts.toCollect', { amount: eurI(list.reduce((total, entry) => total + (Number(entry.total) || 0), 0)), oldest });
+  if (key === 'pago' && verImportes()) return t('legacyC.orderAlerts.toCollect', { amount: legacyFreeCoreServices.money.eurosRounded((list.reduce((total, entry) => total + (Number(entry.total) || 0), 0))), oldest });
   return oldest.charAt(0).toUpperCase() + oldest.slice(1);
 }
 
@@ -41,8 +43,8 @@ function cardHtml([key, filter, title, icon]: AlertCard, context: Context): stri
   return `<button type="button" class="pkt ${urgent ? 'alta' : ''}" data-pk="${filter}" aria-pressed="false" ${list.length ? '' : 'data-cero'}>
           <span class="pkfil">${t('legacyC.orderAlerts.filtering')}</span><span class="pktt">${svgIco(ICON_NOM[icon] ?? ICON_NOM.info ?? '')} ${title}</span>
           <span class="pkn" data-v="${list.length}">${num(list.length)}</span><span class="pks">${sentence(key, list, context.today)}</span>
-          <span class="pkbars" aria-hidden="true">${dayBars.map((count, index) => `<i class="${index === DAYS - 1 ? 'u' : pkLibre(day(index)) ? 'fin' : ''}" style="height:${count ? Math.max(MIN_BAR, 100 * count / top) : EMPTY_BAR}%"></i>`).join('')}</span>
-          <span class="pkdias">${dayBars.map((count, index) => pkDia(day(index), count, index === DAYS - 1)).join('')}</span>
+          <span class="pkbars" aria-hidden="true">${dayBars.map((count, index) => `<i class="${index === DAYS - 1 ? 'u' : legacyFreeScreensOrders.isDayOff((day(index))) ? 'fin' : ''}" style="height:${count ? Math.max(MIN_BAR, 100 * count / top) : EMPTY_BAR}%"></i>`).join('')}</span>
+          <span class="pkdias">${dayBars.map((count, index) => legacyFreeScreensOrders.dayHtml((day(index)), count, (index === DAYS - 1))).join('')}</span>
           <span class="pklg">${t('legacyC.orderAlerts.lastDays')}</span></button>`;
 }
 
@@ -64,7 +66,7 @@ function bindCards(box: HTMLElement, mandatory: unknown, shown: number): void {
   if (tools?.offsetParent && gear && shown) { gear.className = 'btn sec pkcfg pkcfgcab'; tools.insertAdjacentElement('beforebegin', gear); }
   const settings = byId('opcfg'); if (settings) settings.onclick = (): void => { configurarAvisosPedidos(mandatory); };
   pkMarcar();
-  pkContar([...box.querySelectorAll<HTMLElement>('.pkn[data-v]')], (value: number) => num(Math.round(value)));
+  legacyFreeScreensOrders.countUp(([...box.querySelectorAll<HTMLElement>('.pkn[data-v]')]), ((value: number) => num(Math.round(value))));
 }
 
 /** Paints the alert cards of Pedidos (the legacy pintarOperativa). */

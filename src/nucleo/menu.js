@@ -27,11 +27,6 @@ function aplicarPermisosMenuPaso1() { return window.delcos.nav.lockModules(); }
 function aplicarPermisosMenuPaso2() { iconosMenu(); }
 function aplicarPermisosMenuPaso3() { return window.delcos.nav.orderAfterPermissions(); }
 function aplicarPermisosMenuBase() { return window.delcos.nav.showAllowedModules(); }
-function ordenarCabeceraMovil(sec) { return window.delcos.nav.mobileHeader(sec); }
-function ordenarMenu() { return window.delcos.nav.orderMenu(); }
-function candadoSecciones() { return window.delcos.nav.lockSections(); }
 function aplicarNombresMenu() { return window.delcos.nav.applyMenuNames(); }
-function medirBnav() { return window.delcos.nav.measureBottomBar(); }
-function fabAOrdenador() { return window.delcos.nav.fabToDesktop(); }
 function menuPersonalizar() { return window.delcos.nav.customiseDesktopMenu(); }
 function abrirMasMovil() { return window.delcos.nav.openMoreMenu(); }

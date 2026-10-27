@@ -16,7 +16,6 @@ Object.assign(RPC_TTL, { informe_cuenta: 60, mis_notificaciones: 20, asignacione
 
 // (v2.183.0: aquí iba la primera versión de abrirReloj; se redefine entera más abajo)
 
-function valorVisibleBase(inp) { return window.delcos.legacyB.showVisibleValue(inp); }
 window.delcos.legacyB.listenToPickers();
 
 /* ---------------- espacio del médico ---------------- */

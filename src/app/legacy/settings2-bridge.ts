@@ -3,6 +3,7 @@ import * as legacyFreeCoreSettings from '../core/settings';
 import * as legacyFreeScreensSettings from '../screens/settings';
 import { sessionStore } from '../core/session-store';
 import { settingsStore } from '../screens/settings/store';
+import * as legacyFreeCoreServices from '../core/services';
 /**
  * Bridge of Configuración (second part: portfolio rules, backups, undo, commercial states, visit material, accesses, classifiers,
  * roles and brand) to the legacy code (kept apart from bridge.ts, which is at its size limit). The settings, the catalogs, the
@@ -24,7 +25,7 @@ const profile = (): { id: string; nombre?: string; areas?: Record<string, number
 
 export const settingsMoreLegacy = {
   loading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
-  appName: (): string => nombreApp(),
+  appName: (): string => legacyFreeCoreServices.appName(),
   hasPortal: (): boolean => hayExtra('portal'),
   reloadCatalogs: (): Promise<void> => legacyFreeCoreSettings.loadCatalogs(),
   /** Level (0–3) of the user in an area of the legacy profile (K = classifiers). */
@@ -40,7 +41,7 @@ export const settingsMoreLegacy = {
   loadCustomFields: (): Promise<void> => legacyFreeScreensSettings.loadCustomFields(),
   repaintClassifiers: (): void => { void legacyFreeScreensSettings.paintClassifiers(); },
   // Roles
-  roleNames: (): string[] => rolesNombres(),
+  roleNames: (): string[] => legacyFreeCoreSettings.roleNames(),
   roleTemplate: (role: string): Record<string, number> => plantillaRol(role),
   areas: (): readonly (readonly [string, string])[] => AREAS,
   areaHint: (area: string): string => QUE_ABRE[area] ?? '',

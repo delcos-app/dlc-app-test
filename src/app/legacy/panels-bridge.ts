@@ -9,6 +9,8 @@ import { homeStore } from '../screens/home/store';
 import { sessionStore } from '../core/session-store';
 import { productsStore } from '../screens/products/store';
 import { billingStore } from '../screens/billing/store';
+import * as legacyFreeScreensRoutes from '../screens/routes';
+import * as legacyFreeCoreServices from '../core/services';
 
 /** A column of the second panel «Columnas»: its index, name, whether it shows and whether it can be hidden. */
 export interface PanelColumn { i: number; n: string; on: boolean; fija: boolean }
@@ -22,14 +24,14 @@ export const panelsLegacy = {
   seriesCache: (): Map<string, Promise<Record<string, unknown>[]>> => AN_SERIE,
   setProfessional: (account: PickedAccount | null): void => { homeStore.analyticsAccount = account ? { id: account.id, nombre: account.nombre ?? '' } : null; },
   /** The user's Analítica settings (preferencias.analitica). */
-  analyticsPreferences: (): unknown => Reflect.get(prefsActivas(), 'analitica'),
+  analyticsPreferences: (): unknown => Reflect.get(legacyFreeScreensRoutes.activePreferences(), 'analitica'),
   profilePreferences: (): Record<string, unknown> => ((sessionStore.profile as { preferencias?: Record<string, unknown> } | null)?.preferencias ?? {}),
   setProfilePreferences: (preferences: Record<string, unknown>): void => { (sessionStore.profile as { preferencias?: Record<string, unknown> }).preferencias = preferences; },
   products: (): readonly CatalogProduct[] => productsStore.products,
   loadProducts: (): Promise<void> => cargarProductos(),
-  stateWithRole: (role: string): string => estadoPapel(role),
+  stateWithRole: (role: string): string => legacyFreeCoreServices.states.stateOfRole(role),
   canUseModule: (screen: string): boolean => puedeModulo(screen),
-  monthsBetween: (from: string, to: string): string[] => mesesEntre(from, to),
+  monthsBetween: (from: string, to: string): string[] => legacyFreeCoreServices.calendar.monthsBetween(from, to),
   mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
   pickProfessional: (element: HTMLElement | null, options: { value: PickedAccount | null; placeholder: string; onPick: (account: PickedAccount) => void }): void => {
     selectorMedico(element, { valor: options.value, placeholder: options.placeholder, alElegir: options.onPick });

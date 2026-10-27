@@ -6,7 +6,6 @@ declare const NOTIF_DIARIOS: readonly string[];
 declare function tiposDeMiRol(): readonly (readonly [string, string, string, string])[];
 
 declare function refrescarCampana(): Promise<void>;
-declare function irEnlace(link: string): unknown;
 declare function menuNombres(): Record<string, string>;
 declare const MENU_FUERA: readonly string[];
 declare function txTexto(button: Element): { get: () => string; set: (value: string) => void } | null;

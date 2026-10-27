@@ -23,14 +23,9 @@ async function respuestaConClavesAntiguas(url, r) {
 /** Ejecuta una escritura; si no hay conexión, la guarda y la reenvía después. */
 function escribir(fn, payload, etiqueta) { return window.delcos.core.queue.write(fn, payload, etiqueta); }
 function invalidarCache() { return window.delcos.core.queue.forgetCache(); }
-function usarCache(t) { return window.delcos.core.reads.canReuseScreen(t); }
 // Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
-function cargaLocal(el) { return window.delcos.core.reads.localLoading(el); }
 function colaLeer() { return window.delcos.core.queue.queued(); }
 function colaGuardar(c) { return window.delcos.core.queue.saveQueue(c); }
-function guardarCache(k, d) { return window.delcos.core.reads.saveCopy(k, d); }
-function leerCache(k) { return window.delcos.core.reads.readCopy(k); }
-function pedirTurno(k) { return window.delcos.core.reads.takeTurn(k); }
 function esMiTurno(k, t) { return window.delcos.core.reads.isMyTurn(k, t); }
 function vaciarCola() { return window.delcos.core.queue.sendQueue(); }
 function escribirRpc(fn, payload) { return window.delcos.core.reads.writeQueued(fn, payload); }

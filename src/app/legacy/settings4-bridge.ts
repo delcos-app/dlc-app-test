@@ -8,6 +8,8 @@ import { settingsStore } from '../screens/settings/store';
 import { homeStore } from '../screens/home/store';
 import { sessionStore } from '../core/session-store';
 import { ordersStore } from '../screens/orders/store';
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeScreensSettingsRest from '../screens/settings/rest';
 export interface UserRow {
   id: string; nombre: string; email?: string | null; usuario?: string; rol: string; activo?: boolean; areas?: Record<string, number> | null;
   cartera?: number; visitas_mes?: number; ultima_actividad?: string | null; medico?: string | null; cuenta?: string | null; cuenta_id?: string | null;
@@ -38,16 +40,16 @@ export const usersLegacy = {
   connections: (): Record<string, Connection> => (USR_ACC ?? {}) as Record<string, Connection>,
   role: (name: string): RoleDef | null => legacyFreeCoreSettings.roleDefinition(name) as RoleDef | null,
   roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
-  roleNames: (): string[] => rolesNombres(),
+  roleNames: (): string[] => legacyFreeCoreSettings.roleNames(),
   roleWith: (capability: string): string => legacyFreeCoreSettings.roleWith(capability),
   defaultRole: (): string => legacyFreeCoreSettings.defaultRole(),
   areas: (): readonly (readonly [string, string])[] => AREAS,
   levels: (): readonly string[] => NIVELES,
   levelText: (level: number): string => NIVEL_TXT[level] ?? '',
   moduleArea: (): Readonly<Record<string, string | undefined>> => MODULO_AREA,
-  isGuest: (user: UserRow): boolean => esInvitado(user),
-  guestSees: (user: UserRow): string => queVeInvitado(user),
-  impersonate: (id: string): void => { void entrarComo(id); },
+  isGuest: (user: UserRow): boolean => legacyFreeCoreServices.session.isGuest(user),
+  guestSees: (user: UserRow): string => legacyFreeCoreServices.session.guestSees(user),
+  impersonate: (id: string): void => { void legacyFreeCoreServices.session.impersonate(id); },
   assignPortfolio: (id: string): void => { void asignarCartera(id); },
   reloadAdmin: (): void => { void cargarAdmin(); },
   schemes: (): Scheme[] => homeStore.commissionSchemes as Scheme[],
@@ -58,7 +60,7 @@ export const usersLegacy = {
   section: (): string | null => settingsStore.section,
   settingsKey: (): string => CFG_KEY,
   /** Usuarios repaints through its legacy name (the page tabs and the tree of Configuración use it). */
-  repaintList: (): void => { void pintarUsuarios2(); },
+  repaintList: (): void => { void legacyFreeScreensSettingsRest.paintUsers(); },
   /** A user is created with a separate client (no session kept); the id of the new user, if Supabase gives it. */
   signUp: async (email: string, password: string, name: string): Promise<{ error: { message?: string } | null; id: string | null }> => {
     const client = (window as unknown as { supabase: { createClient: (url: string, key: string, options: object) => SignUpClient } })
@@ -66,7 +68,7 @@ export const usersLegacy = {
     const { data, error } = await client.auth.signUp({ email, password, options: { data: { nombre: name, usuario: email.split('@')[0] } } });
     return { error, id: data?.user?.id ?? null };
   },
-  logError: (message: string, detail: Record<string, unknown>): void => { registrarError('api', message, detail); },
+  logError: (message: string, detail: Record<string, unknown>): void => { legacyFreeCoreServices.errors.registerError(('api'), message, detail); },
 };
 
 export const planLegacy = {
@@ -76,7 +78,7 @@ export const planLegacy = {
   all: (): readonly PlanDef[] => PLANES as readonly PlanDef[],
   contractedUsers: (): number => legacyFreeCoreSettings.contractedUsers(),
   modules: (): readonly (readonly [string, string, string])[] => MOD_PLAN,
-  rows: (): readonly PlanRow[] => PLAN_FILAS() as readonly PlanRow[],
+  rows: (): readonly PlanRow[] => legacyFreeCoreServices.plans.planRows() as readonly PlanRow[],
   moduleAreas: (): Readonly<Record<string, string | undefined>> => MODULO_AREA,
   paymentPlans: (): readonly string[] => PAGO_PLANES,
   paymentState: (): { usuarios?: number; medicos?: number } => (ordersStore.paymentState ?? {}) as { usuarios?: number; medicos?: number },
@@ -87,8 +89,8 @@ export const planLegacy = {
   sections: (): Readonly<Record<string, readonly string[]>> => PLAN_SECCIONES,
   extras: (): Readonly<Record<string, readonly string[]>> => PLAN_EXTRAS,
   sectionTitle: (section: string): string | undefined => TITULO_PEDSEC[section]?.[0],
-  vatOf: (amount: number): number => ivaDe(amount),
-  euros: (value: number): string => eurI(value),
+  vatOf: (amount: number): number => legacyFreeCoreServices.money.vatOf(amount),
+  euros: (value: number): string => legacyFreeCoreServices.money.eurosRounded(value),
   brandName: (): string => ((settingsStore.settings.marca ?? {}) as { nombre?: string }).nombre ?? '',
 };
 
@@ -96,7 +98,7 @@ export const profileLegacy = {
   me: (): Profile => sessionStore.profile as Profile,
   languages: (): readonly (readonly [string, string])[] => IDIOMAS,
   language: (): string => sessionStore.language,
-  applyLanguage: (id: string): void => { aplicarIdioma(id); },
+  applyLanguage: (id: string): void => { legacyFreeCoreServices.language.applyLanguage(id); },
   canOpenModule: (screen: string): boolean => puedeModulo(screen),
   sendPasswordLink: (email: string): Promise<{ error: { message?: string } | null }> =>
     (db as unknown as { auth: { resetPasswordForEmail: (to: string, options: object) => Promise<{ error: { message?: string } | null }> } })

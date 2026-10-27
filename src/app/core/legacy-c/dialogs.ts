@@ -9,6 +9,10 @@ import { agendaStore } from '../../screens/agenda/store';
 import { sessionStore } from '../session-store';
 import { accountsStore } from '../../screens/accounts/store';
 import { navigationStore } from '../navigation/store';
+import * as legacyFreeCoreNavigationApi from '../navigation/api';
+import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-window';
+import * as legacyFreeScreensEvents from '../../screens/events';
+import * as legacyFreeScreensSurgeries from '../../screens/surgeries';
 
 const REVEAL_MAX_MS = 1500, REVEAL_SINCE_MS = 50, REPAINT_AFTER_CLOSE_MS = 300, SCROLLED_PX = 4, FOCUS_DELAY_MS = 30;
 type Opener = (...args: unknown[]) => unknown;
@@ -40,7 +44,7 @@ export function stackWindows(): void {
 export function revealWindows(): void {
   ['dlg', 'ficha', 'dlg2'].forEach(id => {
     const dialog = byId<HTMLDialogElement>(id);
-    observe(dialog, () => { if (dialog?.open) { const content = dialog.firstElementChild; if (content) revelar(content as HTMLElement, REVEAL_MAX_MS, Date.now() - REVEAL_SINCE_MS); } },
+    observe(dialog, () => { if (dialog?.open) { const content = dialog.firstElementChild; if (content) legacyFreeCoreNavigationApi.reveal((content as HTMLElement), REVEAL_MAX_MS, (Date.now() - REVEAL_SINCE_MS)); } },
       { attributes: true, attributeFilter: ['open'] });
   });
 }
@@ -77,7 +81,7 @@ export function neverHalfOpen(): void {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- the original is called with its own dialog as `this`
     const previous = dialog.showModal;
     dialog.showModal = function (this: HTMLDialogElement): void {
-      try { if (this.open && !this.matches(':modal') && !areaEncaje()) this.close(); } catch { /* it opens anyway */ }
+      try { if (this.open && !this.matches(':modal') && !legacyFreeComponentsEmbeddedWindow.embedArea()) this.close(); } catch { /* it opens anyway */ }
       previous.apply(this);
     };
   });
@@ -98,7 +102,7 @@ export function forgetVisitOnClose(): void {
 export function repaintEventsOnClose(): void {
   const dialog = byId<HTMLDialogElement>('dlg');
   dialog?.addEventListener('close', () => {
-    if (navigationStore.screen === 'eventos' && (navigationStore.pageTabs.eventos ?? 'lista') === 'lista' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open) void pintarEventos(); }, REPAINT_AFTER_CLOSE_MS);
+    if (navigationStore.screen === 'eventos' && (navigationStore.pageTabs.eventos ?? 'lista') === 'lista' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open) void legacyFreeScreensEvents.paintEvents(); }, REPAINT_AFTER_CLOSE_MS);
   });
 }
 
@@ -117,7 +121,7 @@ export function repaintCycleOnClose(): void {
 /** v2.199.0: Intervenciones repaints its list after its window closes. */
 export function repaintSurgeriesOnClose(): void {
   const dialog = byId<HTMLDialogElement>('dlg');
-  dialog?.addEventListener('close', () => { if (navigationStore.screen === 'cirugias' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open && navigationStore.screen === 'cirugias') void pintarCirugias(); }, REPAINT_AFTER_CLOSE_MS); });
+  dialog?.addEventListener('close', () => { if (navigationStore.screen === 'cirugias' && byId('cfgcuerpo')) setTimeout(() => { if (!dialog.open && navigationStore.screen === 'cirugias') void legacyFreeScreensSurgeries.paintSurgeries(); }, REPAINT_AFTER_CLOSE_MS); });
 }
 
 const headerBottom = (): number => Math.max(0, ...['body > header', 'header', '.top', 'nav.main'].map(selector => {
@@ -129,7 +133,7 @@ function openEmbedded(dialog: EmbeddedDialog, area: HTMLElement): void {
   dialog.classList.add('encajada'); dialog.__area = area; dialog.__casa ??= dialog.parentNode;
   area.parentNode?.insertBefore(dialog, area);
   area.classList.add('con-ventana');
-  dialog.show(); colocarEncajada(dialog, area);
+  dialog.show(); legacyFreeComponentsEmbeddedWindow.placeEmbedded();
   // On opening, the browser takes the view to the first field: back to the top of the area to see its header
   // v2.122.0: only scrolled when the window header is above the view
   const toTop = (): void => { const top = dialog.getBoundingClientRect().top; if (top < headerBottom()) scrollTo({ top: Math.max(0, top + scrollY - headerBottom() - 12) }); };
@@ -143,7 +147,7 @@ type EmbeddedDialog = HTMLDialogElement & { __area?: HTMLElement | null; __casa?
 function returnHome(dialog: EmbeddedDialog): void {
   // v2.275.0: if the window was opened again meanwhile, the close notice arrives late and must not undo its place
   if (dialog.open) return;
-  devolverEncajada(dialog); delete dialog.dataset.fija;
+  legacyFreeComponentsEmbeddedWindow.returnEmbedded(dialog); delete dialog.dataset.fija;
   if (!dialog.classList.contains('encajada')) return;
   dialog.classList.remove('encajada'); dialog.removeAttribute('style');
   const area = dialog.__area; dialog.__area = null;
@@ -154,7 +158,7 @@ function returnHome(dialog: EmbeddedDialog): void {
 function embed(dialog: EmbeddedDialog): void {
   const modal = dialog.showModal.bind(dialog);
   dialog.showModal = function (): void {
-    const area = areaEncaje();
+    const area = legacyFreeComponentsEmbeddedWindow.embedArea();
     if (!area) { modal(); return; }
     // v2.129.0: the sections painted in the page itself (#dbody as a panel) open no window
     if (dialog.id === 'dlg' && (settingsStore.activePanel as { tipo?: string } | null)?.tipo === 'dbody') return;
@@ -163,7 +167,7 @@ function embed(dialog: EmbeddedDialog): void {
   };
   // eslint-disable-next-line @typescript-eslint/unbound-method -- the original is called with its own dialog as `this`
   const close = dialog.close;
-  dialog.close = function (this: HTMLDialogElement, ...args: [string?]): void { devolverEncajada(dialog); close.apply(this, args); };
+  dialog.close = function (this: HTMLDialogElement, ...args: [string?]): void { legacyFreeComponentsEmbeddedWindow.returnEmbedded(dialog); close.apply(this, args); };
   // If a repaint removes the section with the window inside, it comes back (closed) to <body>
   observe(document.body, () => { if (dialog.__casa && !dialog.isConnected) { dialog.__casa.appendChild(dialog); if (dialog.open) dialog.close(); } }, { childList: true, subtree: true });
   dialog.addEventListener('close', () => { returnHome(dialog); });
@@ -179,12 +183,12 @@ export function embedWindows(): void {
     if (dialog && !dialog.dataset.fija) { event.preventDefault(); dialog.close(); }
   });
   document.addEventListener('click', event => {
-    if (closestTo(event.target, '.cfgnav [data-cfg], .cfuidx [data-ck], .pagtabs [data-ptab], #cfgsubs button, nav.main [data-t], #bnav [data-t], [data-u]')) cerrarEncajadas();
+    if (closestTo(event.target, '.cfgnav [data-cfg], .cfuidx [data-ck], .pagtabs [data-ptab], #cfgsubs button, nav.main [data-t], #bnav [data-t], [data-u]')) legacyFreeComponentsEmbeddedWindow.closeEmbedded();
   }, true);
   addEventListener('resize', () => {
     ['dlg', 'dlg2'].forEach(id => {
       const dialog = byId<EmbeddedDialog>(id);
-      if (dialog?.open && dialog.__area) { if (innerWidth < ENCAJE_MIN) dialog.close(); else colocarEncajada(dialog, dialog.__area); }
+      if (dialog?.open && dialog.__area) { if (innerWidth < ENCAJE_MIN) dialog.close(); else legacyFreeComponentsEmbeddedWindow.placeEmbedded(); }
     });
   });
 }

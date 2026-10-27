@@ -8,6 +8,7 @@ import { escapeHtml } from '../../services/format';
 import { byId } from './dom';
 import * as legacyFreeCoreServices from '../services';
 import { settingsStore } from '../../screens/settings/store';
+import * as legacyFreeCoreLegacyB from '../legacy-b';
 
 const NOTE_CHARS = 180;
 
@@ -27,7 +28,8 @@ function previewHtml(): string {
 
 /** Datos fiscales, then the preview of the invoice header next to the form (the legacy pintarEmpresa). */
 export async function paintCompany(args: readonly unknown[]): Promise<void> {
-  await pintarEmpresaBase2(...args);
+  void args;   // legado 056 passes its arguments; the Datos fiscales form takes none
+  await legacyFreeCoreLegacyB.paintCompanyData();
   const card = byId('fcuerpo')?.querySelector('.card'); if (!card || byId('fprev')) return;
   const wrapper = document.createElement('div'); wrapper.className = 'conprevia';
   card.parentNode?.insertBefore(wrapper, card); wrapper.appendChild(card);

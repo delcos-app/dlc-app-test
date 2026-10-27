@@ -8,4 +8,3 @@ declare function icono(name: string): string;
 declare const FAC_CONFIG: readonly (readonly [string, string])[];
 declare const NOMBRES_DETALLE: Readonly<Record<string, string>>;
 
-declare function editorFrecuencia(): unknown;

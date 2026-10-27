@@ -11,6 +11,8 @@ import { settingsStore } from '../../screens/settings/store';
 import { sessionStore } from '../session-store';
 import { agendaStore } from '../../screens/agenda/store';
 import { ordersStore } from '../../screens/orders/store';
+import * as legacyFreeComponentsListBar from '../../components/list-bar';
+import * as legacyFreeCoreServices from '../services';
 
 const PORTAL_SCREENS = ['informe', 'config', 'perfil'];
 const PLATFORM_SCREENS = ['delcos', 'config', 'perfil', 'manual'];
@@ -37,7 +39,7 @@ export const loadingComet: NavigationStep = {
 
 export const watchListPage: NavigationStep = {
   name: 'v2.239 · list pages (PL) keep their layout in sync',
-  after: target => { if (PL[target]) { plVigilar(target); setTimeout(() => { plVigilar(target); }, 0); } },
+  after: target => { if (PL[target]) { legacyFreeComponentsListBar.watch(target); setTimeout(() => { legacyFreeComponentsListBar.watch(target); }, 0); } },
 };
 
 export const customMenuNames: NavigationStep = {
@@ -60,7 +62,7 @@ export const announceNavigation: NavigationStep = {
 
 /** Which part of Configuración each old screen name opens (null: not a configuration screen). */
 function configKey(target: string): string | null {
-  if (target === 'config') return claveCfgVieja(settingsStore.section, settingsStore.subsection);
+  if (target === 'config') return legacyFreeScreensSettingsShell.oldSettingsKey(settingsStore.section, settingsStore.subsection);
   if (target === 'perfil') return navigationStore.pageTabs.perfil === 'notif' ? 'notif' : 'datos';
   if (target === 'organizacion' || target === 'empresa') return `o.${orFallback(navigationStore.pageTabs[target], 'marca')}`;
   if (target === 'plan') return 'o.plan';
@@ -113,7 +115,7 @@ export const stripeReturnToPlan: NavigationStep = {
 export const planSections: NavigationStep = {
   name: 'v2.152 · sections outside the contracted plan show the plan notice instead',
   before: nav => {
-    if (nav.target in PLAN_SECCIONES && sessionStore.profile && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) { avisoPlan(nav.target); nav.blocked = true; }
+    if (nav.target in PLAN_SECCIONES && sessionStore.profile && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) { legacyFreeCoreServices.plans.planNotice(nav.target); nav.blocked = true; }
   },
 };
 

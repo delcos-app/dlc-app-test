@@ -8,6 +8,7 @@ import * as legacyFreeCoreLegacyC from './';
 import { sessionStore } from '../session-store';
 import { t } from '../../i18n';
 import { navigationStore } from '../navigation/store';
+import * as legacyFreeCoreServices from '../services';
 interface RpcAnswer { data?: unknown; error?: { message?: string; code?: string } | null }
 type Rpc = (name: string, params?: unknown, options?: unknown) => unknown;
 type Invoke = (name: string, options?: { body?: { accion?: string } }, ...rest: unknown[]) => Promise<{ data?: { ok?: boolean; proximo?: unknown } | null }>;
@@ -47,17 +48,17 @@ const rejectionStack = (reason: unknown): string | null => {
 export function logErrors(): void {
   window.addEventListener('error', event => {
     const stack = (event.error as Error | null)?.stack;
-    registrarError('error', event.message, { archivo: (event.filename || '').split('/').pop(), linea: event.lineno, columna: event.colno, pila: stack ? String(stack).slice(0, TRACE_CHARS) : null });
+    legacyFreeCoreServices.errors.registerError(('error'), event.message, ({ archivo: (event.filename || '').split('/').pop(), linea: event.lineno, columna: event.colno, pila: stack ? String(stack).slice(0, TRACE_CHARS) : null }));
   });
   window.addEventListener('unhandledrejection', event => {
-    registrarError('error', rejectionText(event.reason), { pila: rejectionStack(event.reason) });
+    legacyFreeCoreServices.errors.registerError(('error'), (rejectionText(event.reason)), ({ pila: rejectionStack(event.reason) }));
   });
   const original = client().rpc;
   client().rpc = (name, params, options) => {
     const result = original.call(db, name, params, options);
     if (isThenable(result) && name !== 'registrar_error') Promise.resolve(result).then(answer => {
       const error = answer.error;
-      if (error && !/permiso|JWT|TIEMPO/i.test(error.message ?? '') && error.code !== 'TIEMPO') registrarError('api', `${name}: ${error.message ?? error.code ?? ''}`, { funcion: name, codigo: error.code });
+      if (error && !/permiso|JWT|TIEMPO/i.test(error.message ?? '') && error.code !== 'TIEMPO') legacyFreeCoreServices.errors.registerError(('api'), (`${name}: ${error.message ?? error.code ?? ''}`), ({ funcion: name, codigo: error.code }));
     }, () => undefined);
     return result;
   };

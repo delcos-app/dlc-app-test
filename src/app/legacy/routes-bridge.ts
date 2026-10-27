@@ -5,6 +5,7 @@ import { durationText, mapLibrary, PALETTE, reasonText, streetRoute } from '../s
 import * as legacyFreeScreensRoutes from '../screens/routes';
 import * as legacyFreeCoreServices from '../core/services';
 import { routesStore } from '../screens/routes/store';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
 /**
  * Bridge of Rutas to the legacy code (kept apart from bridge.ts, which is at its size limit). The planner (conHor, programarVisitas,
  * PLANCFG), the day map (rmLib, rmRuta and its palette and reasons) and the page chain (cargarRutas) stay in legacy: the Agenda and
@@ -24,7 +25,7 @@ export const routesLegacy = {
   start: (): PlanStart => salidaUsuario(),
   minutesOf: (time: string | null | undefined): number | null => legacyFreeCoreServices.calendar.timeToMinutes(time),
   travelMinutes: (from: [number, number], to: [number, number]): number => minutosEntre(from, to),
-  nextWorkingDay: (): string => siguienteLaborable(),
+  nextWorkingDay: (): string => legacyFreeCoreServices.calendar.nextWorkingDay(),
   mapLibrary: (): Promise<MapLibrary> => mapLibrary(),
   streetRoute: (points: [number, number][], start: string): Promise<StreetRoute> => streetRoute(points, start),
   durationText: (minutes: number): string => durationText(minutes),
@@ -36,6 +37,6 @@ export const routesLegacy = {
   setPendingMap: (pending: PendingMap): void => { routesStore.wizardMapPoints = pending; },
   improveFields: (root: Element): void => { components.enhanceFields(root); },
   askField: (title: string, type: string, value: string, label: string): Promise<string | null> => components.askField(title, type, value, label),
-  blockedDays: (from: string, to: string): Promise<Record<string, string>> => bloqueadosSemana(from, to),
+  blockedDays: (from: string, to: string): Promise<Record<string, string>> => legacyFreeCoreLeftovers.blockedDays(from, to),
   firstOpenState: (): string => CITA_ABIERTA[0] ?? '',
 };

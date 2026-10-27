@@ -8,6 +8,7 @@ import { accountListLegacy } from './bridge';
 import { sessionStore } from '../core/session-store';
 import { accountsStore } from '../screens/accounts/store';
 import { settingsStore } from '../screens/settings/store';
+import * as legacyFreeCoreServices from '../core/services';
 
 export interface FilterOption { v: string; n: number }
 export interface FilterOptions { provincias: FilterOption[]; municipios: FilterOption[]; especialidades: FilterOption[]; estados: FilterOption[]; centros?: FilterOption[] }
@@ -16,19 +17,19 @@ export interface TeamUser { id: string; nombre?: string; medicos?: number }
 
 export const accountsEditorLegacy = {
   filters: (): AccountFilters => accountListLegacy.filters(),
-  initialState: (): string => estadoPapel('inicial'),
+  initialState: (): string => legacyFreeCoreServices.states.stateOfRole(('inicial')),
   catalog: (name: string): readonly { valor: string; padre?: string | null }[] => CAT[name] ?? [],
   morningHours: (): readonly string[] => HM,
   afternoonHours: (): readonly string[] => HT,
   dayLetters: (): readonly string[] => DIAS,
   dayName: (letter: string): string => DIAN[letter] ?? '',
-  todayLetter: (): string => hoyLetra(),
-  directions: (point: [number, number]): string => navAttr(point),
+  todayLetter: (): string => legacyFreeCoreServices.calendar.todayLetter(),
+  directions: (point: [number, number]): string => legacyFreeCoreServices.maps.navigationAttribute(point, undefined),
   reverseGeocode: (lat: number, lon: number): Promise<ReverseAddress | null> => geoInversa(lat, lon),
   /** «Estoy aquí» in a consultation: nearby centres or a new one with the device location (servicios/mapas.js). */
   imHere: (box: HTMLElement, index: string, button: HTMLElement): void => { void estoyAqui(box, index, button); },
   hasOwnTerm: (): boolean => Boolean((sessionStore.terms?.medico as { s?: string } | undefined)?.s),
-  allOf: (word: string): string => todosLos(word),
+  allOf: (word: string): string => legacyFreeCoreServices.vocabulary.allOf(word),
   filterOptions: (): FilterOptions => accountsStore.filterOptions as FilterOptions,
   setFilterOptions: (options: FilterOptions): void => { accountsStore.filterOptions = options; },
   teamUsers: (): readonly TeamUser[] => settingsStore.users as TeamUser[],

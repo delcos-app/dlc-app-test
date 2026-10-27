@@ -1,5 +1,7 @@
 import * as components from '../components';
 import { productsStore } from '../screens/products/store';
+import * as legacyFreeScreensVisit from '../screens/visit';
+import * as legacyFreeCoreServices from '../core/services';
 /**
  * Bridge of Productos to the legacy code (kept apart from bridge.ts, which is at its size limit). The catalog loaders (PRODUCTOS,
  * SERVICIOS, cargarProductos), the section (PSEC) and the field filters (PRODF) stay in legacy: Pedidos, Visita, the list bar and
@@ -15,8 +17,8 @@ export const productsLegacy = {
   openStock: (line: object): void => { void fichaStock(line); },
   openDeposit: (accountId: string, name: string, notice?: string): Promise<void> => verDeposito(accountId, name, notice),
   editProduct: (product: object | null): void => { editorProducto(product); },
-  editSamples: (): void => { void editorMuestras(); },
-  clearModules: (except: string): void => { vaciarModulos(except); },
+  editSamples: (): void => { void legacyFreeScreensVisit.editSamples(); },
+  clearModules: (except: string): void => { legacyFreeCoreServices.session.emptyModules(except); },
   showLoading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   matchesFieldFilters: (values: ProductValues | null | undefined): boolean => Boolean(components.matchesFilters(values, productsStore.filters)),
   hasFieldFilters: (): boolean => Object.keys(productsStore.filters).length > 0,

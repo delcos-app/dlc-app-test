@@ -24,7 +24,5 @@ const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 // legado 001, 047, 076 y 129 y las pruebas los usan.
 function medidorClave(inp, rep, boton) { window.delcos.screens.access.addPasswordMeter(inp, rep, boton); }
 function accesoSinActivar(texto) { window.delcos.screens.access.showNotActivated(texto); }
-function restablecerPassword(u) { return window.delcos.screens.access.resetPassword(u); }
 function bienvenidaAlta() { return window.delcos.screens.access.showWelcome(); }
 function reenviarActivacion(email, o = {}) { return window.delcos.screens.access.resendActivation(email, o); }
-function mostrarLogin(msg) { window.delcos.screens.access.showLogin(msg); }

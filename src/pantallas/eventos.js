@@ -17,7 +17,5 @@ const verTransparencia = () => puede('administrar') || VE_TODO();
 
 // Eventos está en src/app/screens/events (v2.407.0). Estos nombres se quedan: las pestañas de la página (legado 079),
 // «‹ Volver» (envuelve las ventanas por su nombre) y las pruebas los usan.
-function pintarEventos() { return window.delcos.screens.events.paintEvents(); }
-function pintarTransparencia(anio) { return window.delcos.screens.events.paintExpenseReport(anio); }
 function editarEvento(ev) { window.delcos.screens.events.editEvent(ev || null); }
 function verEvento(id) { return window.delcos.screens.events.showEvent(id); }

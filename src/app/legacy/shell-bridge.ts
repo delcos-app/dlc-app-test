@@ -9,6 +9,8 @@ import { settingsStore } from '../screens/settings/store';
 import { accountsStore } from '../screens/accounts/store';
 import { sessionStore } from '../core/session-store';
 import { navigationStore } from '../core/navigation/store';
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeScreensRoutes from '../screens/routes';
 
 /** The window or module page shown inside the panel instead of floating. */
 export interface ActivePanel { tipo: 'dbody' | 'admin'; refrescar?: () => unknown }
@@ -39,12 +41,12 @@ export const shellLegacy = {
   setDetail: (on: boolean): void => { settingsStore.detail = on; },
   /** Configuración again, through its global name (other code may wrap it). */
   reload: (): void => { void cargarConfig(); },
-  planIncludes: (module: string): boolean => planIncluye(module),
-  planMinimum: (module: string): { nombre: string } | undefined => planMinimo(module),
+  planIncludes: (module: string): boolean => legacyFreeCoreServices.plans.planIncludes(module),
+  planMinimum: (module: string): { nombre: string } | undefined => legacyFreeCoreServices.plans.minimumPlan(module),
   currentPlanName: (): string => planDe(sessionStore.plan.plan as string | undefined).nombre,
   canManageOrganisation: (): boolean => puedeOrganizacion(),
   canUseModule: (module: string): boolean => puedeModulo(module),
-  hasDeparture: (): boolean => Boolean(prefsActivas().salida),
+  hasDeparture: (): boolean => Boolean(legacyFreeScreensRoutes.activePreferences().salida),
   emailSettings: (): PromiseLike<{ data: { host?: string } | null }> => RPC_ORIG<{ host?: string }>('correo_config', {}),
   unsavedCount: (): number => PAG_SUCIO.size,
   orderAliases: (): Readonly<Record<string, string>> => ALIAS_PEDIDOS,

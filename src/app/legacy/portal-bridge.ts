@@ -1,5 +1,6 @@
 import * as components from '../components';
 import { sessionStore } from '../core/session-store';
+import * as legacyFreeCoreServices from '../core/services';
 /**
  * Bridge of the professional and centre portal to the legacy code (kept apart from bridge.ts, which is at its size limit): charts,
  * the period selector, the plan, the company words, the invoice PDF and the colours of the centre's order states.
@@ -10,10 +11,10 @@ export const portalPageLegacy = {
   barChart: (items: { n: string; v: number }[], format: (value: number) => string): string => components.rankingBars(items, format),
   emptyChart: (text: string): string => components.emptyChart(text),
   donut: (items: { n: string; v: number }[]): string => components.donut(items),
-  monthsBetween: (from: string, to: string): string[] => mesesEntre(from, to),
+  monthsBetween: (from: string, to: string): string[] => legacyFreeCoreServices.calendar.monthsBetween(from, to),
   skeletonCard: (title: string): string => components.cardSkeleton(title),
   /** A company word with its singular, plural and gender. */
-  wordOf: (key: string): { s: string; p: string; g?: string } => terminoDe(key) as { s: string; p: string; g?: string },
+  wordOf: (key: string): { s: string; p: string; g?: string } => legacyFreeCoreServices.vocabulary.termOf(key) as { s: string; p: string; g?: string },
   userName: (): string => (sessionStore.profile as { nombre?: string } | null)?.nombre ?? '',
   mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
   periodOf: (element: HTMLElement | null): { desde: string | null; hasta: string | null } =>
@@ -32,6 +33,6 @@ export const portalPageLegacy = {
     const doc = await facturaPDF(invoice, rectifies, { ...PDF_DEF, ...design, cols: { ...PDF_DEF.cols, ...design.cols }, ...overrides });
     doc.save(fileName ?? nombrePDF(invoice));
   },
-  reportError: (message: string, error: unknown): void => { registrarError('app', message, { e: String(error) }); },
+  reportError: (message: string, error: unknown): void => { legacyFreeCoreServices.errors.registerError(('app'), message, ({ e: String(error) })); },
   centreStateClass: (state: string): string => NOMBRE_ESTADO_CENTRO[state] ?? '',
 };

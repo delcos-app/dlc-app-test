@@ -12,6 +12,14 @@ import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-w
 import { navigationStore } from '../navigation/store';
 import { usesVerifactu } from '../organisation';
 import { paintTimeZone } from '../../screens/settings/time-zone/page';
+import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeScreensPlatform from '../../screens/platform';
+import * as legacyFreeScreensEvents from '../../screens/events';
+import * as legacyFreeScreensCycle from '../../screens/cycle';
+import * as legacyFreeScreensSurgeries from '../../screens/surgeries';
+import * as legacyFreeScreensSettingsRest from '../../screens/settings/rest';
+import * as legacyFreeScreensSettings from '../../screens/settings';
+import * as legacyFreeScreensBilling from '../../screens/billing';
 
 type Tab = [string, string, () => unknown];
 interface Page { t?: string; d?: string; tabs: Tab[]; permiso?: () => boolean; admin?: boolean }
@@ -38,13 +46,13 @@ export function defineOrganization(): void {
   const page: Page = {
     t: t('legacyC.pages.organization.title'), d: t('legacyC.pages.organization.description'), permiso: puedeOrganizacion,
     get tabs(): Tab[] {
-      const billing = planIncluye('facturacion');
+      const billing = legacyFreeCoreServices.plans.planIncludes(('facturacion'));
       return [['marca', t('legacyC.pages.organization.brand'), () => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('legacyC.pages.organization.email'), () => legacyFreeScreensSettingsExtra.paintEmail()],
         ['zona', t('timeZone.title'), () => paintTimeZone()],
-        ['copias', t('legacyC.pages.organization.backups'), () => pintarCopias()], ['plan', t('legacyC.pages.organization.plan'), () => pintarPaginaPlan()],
+        ['copias', t('legacyC.pages.organization.backups'), () => legacyFreeScreensSettingsMore.paintBackups()], ['plan', t('legacyC.pages.organization.plan'), () => pintarPaginaPlan()],
         ...(billing ? [['fiscal', t('legacyC.pages.organization.fiscal'), facOrg(pintarEmpresa)], ['series', t('legacyC.pages.organization.series'), facOrg(pintarSeries)],
           ...(usesVerifactu() ? [['vf', t('legacyC.pages.organization.verifactu'), facOrg(pintarVerifactu)]] as Tab[] : []), ['pdf', t('legacyC.pages.organization.pdf'), () => disenoPDF()]] as Tab[] : []),
-        ...(puede('gestionar_plataforma') ? [['orgs', t('legacyC.pages.organization.organizations'), () => pintarOrganizaciones()]] as Tab[] : [])];
+        ...(puede('gestionar_plataforma') ? [['orgs', t('legacyC.pages.organization.organizations'), () => legacyFreeScreensPlatform.paintOrganizations()]] as Tab[] : [])];
     },
   };
   pages().organizacion = page;
@@ -53,9 +61,9 @@ export function defineOrganization(): void {
 /** v2.131.0: Usuarios y roles and Panel delcos; Organización no longer lists the organizations. */
 export function defineUsersAndPanel(): void {
   pages().usuarios = { t: t('legacyC.pages.users.title'), d: t('legacyC.pages.users.description'), admin: true,
-    tabs: [['usuarios', t('legacyC.pages.users.users'), () => pintarUsuarios2()], ['roles', t('legacyC.pages.users.roles'), () => legacyFreeScreensSettingsMore.paintRoles()]] };
+    tabs: [['usuarios', t('legacyC.pages.users.users'), () => legacyFreeScreensSettingsRest.paintUsers()], ['roles', t('legacyC.pages.users.roles'), () => legacyFreeScreensSettingsMore.paintRoles()]] };
   pages().delcos = { t: t('legacyC.pages.panel.title'), d: t('legacyC.pages.panel.description'), permiso: () => puede('gestionar_plataforma'),
-    tabs: [['orgs', t('legacyC.pages.panel.organizations'), () => pintarOrganizaciones()], ['accesos', t('legacyC.pages.panel.access'), () => legacyFreeComponentsEmbeddedWindow.showModuleInPanel(('accesos'))],
+    tabs: [['orgs', t('legacyC.pages.panel.organizations'), () => legacyFreeScreensPlatform.paintOrganizations()], ['accesos', t('legacyC.pages.panel.access'), () => legacyFreeComponentsEmbeddedWindow.showModuleInPanel(('accesos'))],
       ['auditoria', t('legacyC.pages.panel.audit'), () => legacyFreeComponentsEmbeddedWindow.showModuleInPanel(('auditoria'))]] };
   wrapTabs('organizacion', tabs => tabs.filter(tab => tab[0] !== 'orgs'));
   // Icons of the new sections: Usuarios y roles with the access key and the panel with the shield
@@ -64,7 +72,7 @@ export function defineUsersAndPanel(): void {
 
 /** v2.13x: in the test environment, Organización has «Entorno de pruebas». */
 export const addTestEnvironmentTab = (): void => {
-  wrapTabs('organizacion', tabs => (EN_PRUEBAS ? [...tabs, ['pruebas', t('legacyC.pages.organization.testEnvironment'), () => pintarCfgPruebas()]] : tabs));
+  wrapTabs('organizacion', tabs => (EN_PRUEBAS ? [...tabs, ['pruebas', t('legacyC.pages.organization.testEnvironment'), () => legacyFreeScreensSettings.paintTestEnvironment()]] : tabs));
 };
 
 /** v2.139.0: Proveedores, Compras and Oportunidades in the Ventas group, after Pedidos. */
@@ -82,16 +90,16 @@ export function iconsForAllSections(): void {
 /** v2.159.0: Panel delcos → Errores; v2.16x: read-only billing hides its Organización tabs. */
 export function addErrorsTab(): void {
   const panel = pages().delcos;
-  if (panel && !panel.tabs.some(tab => tab[0] === 'errores')) panel.tabs.push(['errores', t('legacyC.pages.panel.errors'), () => pintarErroresDelcos()]);
+  if (panel && !panel.tabs.some(tab => tab[0] === 'errores')) panel.tabs.push(['errores', t('legacyC.pages.panel.errors'), () => legacyFreeScreensPlatform.paintPlatformErrors()]);
 }
 export const hideReadOnlyBillingTabs = (): void => {
-  wrapTabs('organizacion', tabs => (facConsulta() ? tabs.filter(tab => !['fiscal', 'series', 'vf', 'pdf'].includes(tab[0])) : tabs));
+  wrapTabs('organizacion', tabs => (legacyFreeScreensBilling.readOnlyBilling() ? tabs.filter(tab => !['fiscal', 'series', 'vf', 'pdf'].includes(tab[0])) : tabs));
 };
 
 /** v2.166.0: Panel delcos → Solicitudes, second. */
 export function addRequestsTab(): void {
   const panel = pages().delcos;
-  if (panel && !panel.tabs.some(tab => tab[0] === 'solicitudes')) panel.tabs.splice(1, 0, ['solicitudes', t('legacyC.pages.panel.requests'), () => pintarSolicitudesPlan()]);
+  if (panel && !panel.tabs.some(tab => tab[0] === 'solicitudes')) panel.tabs.splice(1, 0, ['solicitudes', t('legacyC.pages.panel.requests'), () => legacyFreeScreensPlatform.paintRequests()]);
 }
 
 /** v2.16x: in platform mode, the delcos team and the template of new companies. */
@@ -99,7 +107,7 @@ export function addPlatformTabs(): void {
   const panel = pages().delcos; if (!panel) return;
   const base = panel.tabs;
   Object.defineProperty(panel, 'tabs', { configurable: true, get: (): Tab[] => (navigationStore.platformMode
-    ? [...base, ['equipo', t('legacyC.pages.panel.team'), () => pintarUsuarios2()], ['plantilla', t('legacyC.pages.panel.template'), () => pintarPlantillaDelcos()]] : base) });
+    ? [...base, ['equipo', t('legacyC.pages.panel.team'), () => legacyFreeScreensSettingsRest.paintUsers()], ['plantilla', t('legacyC.pages.panel.template'), () => legacyFreeScreensPlatform.paintTemplate(undefined)]] : base) });
 }
 
 /** The panel sections as hidden buttons of the main menu, with their icons. */
@@ -126,7 +134,7 @@ export function completePanel(): void {
   if (!document.getElementById('nav')) return;
   addPanelButtons();
   const group = groups().find(item => item.id === 'panel'); if (group) group.items = sections.map(section => section[0] ?? '');
-  const extra: Record<string, () => unknown> = { cobros: () => pintarCobrosDelcos(), altas: () => pintarAltasDelcos(), estado: () => pintarEstadoDelcos() };
+  const extra: Record<string, () => unknown> = { cobros: () => legacyFreeScreensPlatform.paintBilling(), altas: () => legacyFreeScreensPlatform.paintSignups(), estado: () => legacyFreeScreensPlatform.paintStatus() };
   wrapTabs('delcos', base => (navigationStore.platformMode
     ? sections.map(([, key = '', name = '']): Tab | null => { const tab = base.find(item => item[0] === key); return tab ? [key, name, tab[2]] : extra[key] ? [key, name, extra[key]] : null; })
       .filter((tab): tab is Tab => tab !== null)
@@ -146,8 +154,8 @@ export function defineEvents(): void {
   const page: Page = { t: t('legacyC.pages.events.title'), permiso: () => !ES_MEDICO() && puedeModulo('directorio') && planIncluyeSeccion('eventos'), tabs: [] };
   pages().eventos = page;
   Object.defineProperty(page, 'd', { get: () => t('legacyC.pages.events.description') });
-  Object.defineProperty(page, 'tabs', { get: (): Tab[] => [['lista', t('legacyC.pages.events.list'), () => pintarEventos()] as Tab]
-    .concat(verTransparencia() ? [['transparencia', t('legacyC.pages.events.expenses'), () => pintarTransparencia()]] : []) });
+  Object.defineProperty(page, 'tabs', { get: (): Tab[] => [['lista', t('legacyC.pages.events.list'), () => legacyFreeScreensEvents.paintEvents()] as Tab]
+    .concat(verTransparencia() ? [['transparencia', t('legacyC.pages.events.expenses'), () => legacyFreeScreensEvents.paintExpenseReport(undefined)]] : []) });
 }
 
 /** v2.197.0: Ciclo de visitas, in «Tu día». */
@@ -158,9 +166,9 @@ export function defineCycle(): void {
   pages().ciclo = page;
   Object.defineProperty(page, 't', { get: () => t('legacyC.pages.cycle.title', { visits: term('visita', { number: 'p' }) }) });
   Object.defineProperty(page, 'd', { get: () => t('legacyC.pages.cycle.description', { professionals: term('medico', { number: 'p', capital: 'C' }), visits: term('visita', { number: 'p' }) }) });
-  Object.defineProperty(page, 'tabs', { get: (): Tab[] => [['ciclo', t('legacyC.pages.cycle.current'), () => pintarCiclo()] as Tab]
-    .concat(planIncluyeSeccion('cobertura') ? [['cobertura', t('legacyC.pages.cycle.coverage'), () => pintarCobertura()]] : [], [['clasificar', t('legacyC.pages.cycle.classify'), () => pintarClasificar()]])
-    .concat(VE_TODO() ? [['equipo', t('legacyC.pages.cycle.team'), () => pintarCicloEquipo()]] : []) });
+  Object.defineProperty(page, 'tabs', { get: (): Tab[] => [['ciclo', t('legacyC.pages.cycle.current'), () => legacyFreeScreensCycle.paintCycle()] as Tab]
+    .concat(planIncluyeSeccion('cobertura') ? [['cobertura', t('legacyC.pages.cycle.coverage'), () => legacyFreeScreensCycle.paintCoverage()]] : [], [['clasificar', t('legacyC.pages.cycle.classify'), () => legacyFreeScreensCycle.paintClassify()]])
+    .concat(VE_TODO() ? [['equipo', t('legacyC.pages.cycle.team'), () => legacyFreeScreensCycle.paintCycleTeam()]] : []) });
 }
 
 /** v2.199.0: the coverage by product goes with Comercial, Empresa and A medida (as on the web). */
@@ -170,7 +178,7 @@ export const coverageInPlans = (): void => { (PLAN_SECCIONES as Record<string, s
 export function defineSurgeries(): void {
   navIcons().cirugias = 'scissors'; moduleIcons().cirugias = svgIco(ICON_NOM.scissors ?? '');
   addToGroup('dia', 'cirugias');
-  const page: Page = { t: t('legacyC.pages.surgeries.title'), permiso: () => !ES_MEDICO() && puedeModulo('agenda'), tabs: [['lista', t('legacyC.pages.surgeries.title'), () => pintarCirugias()]] };
+  const page: Page = { t: t('legacyC.pages.surgeries.title'), permiso: () => !ES_MEDICO() && puedeModulo('agenda'), tabs: [['lista', t('legacyC.pages.surgeries.title'), () => legacyFreeScreensSurgeries.paintSurgeries()]] };
   pages().cirugias = page;
   Object.defineProperty(page, 'd', { get: () => t('legacyC.pages.surgeries.description') });
 }

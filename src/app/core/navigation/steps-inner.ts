@@ -7,6 +7,8 @@ import type { NavigationStep } from './pipeline';
 import { navigationStore } from './store';
 import { settingsStore } from '../../screens/settings/store';
 import { billingStore } from '../../screens/billing/store';
+import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-window';
+import * as legacyFreeCoreNavigationApi from './api';
 
 const COMPANY_SECTIONS = ['__empresa', 'empresa', 'marca', 'correo', 'copias'];
 const MAIL_SECTIONS = ['correo', 'copias'];
@@ -28,7 +30,7 @@ export const configToOwnPages: NavigationStep = {
 
 export const closeEmbeddedWindows: NavigationStep = {
   name: 'v2.117 · windows embedded in a page close when leaving it',
-  before: () => { cerrarEncajadas(); },
+  before: () => { legacyFreeComponentsEmbeddedWindow.closeEmbedded(); },
 };
 
 export const organizationPage: NavigationStep = {
@@ -57,7 +59,7 @@ export const atomicReveal: NavigationStep = {
   before: () => { revealSince.push(Date.now() - 2); },
   after: () => {
     const section = screenSection();
-    if (section) { section.classList.remove('cargando', 'cargando-pend'); revelar(section, 4000, revealSince[revealSince.length - 1] ?? Date.now()); }
+    if (section) { section.classList.remove('cargando', 'cargando-pend'); legacyFreeCoreNavigationApi.reveal(section, 4000, (revealSince[revealSince.length - 1] ?? Date.now())); }
     document.querySelectorAll('main > section.preparando').forEach(other => { if (other !== section) other.classList.remove('preparando'); });
   },
   cleanup: () => { revealSince.pop(); },

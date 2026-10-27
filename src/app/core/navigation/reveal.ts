@@ -9,6 +9,7 @@ import { PAGES } from './pages';
 import * as legacyFreeScreensHome from '../../screens/home';
 import { settingsStore } from '../../screens/settings/store';
 import { navigationStore } from './store';
+import * as legacyFreeComponentsListBar from '../../components/list-bar';
 
 const QUIET_MS = 50, CHECK_EVERY_MS = 15, DEFAULT_MAX_MS = 4000, ARRIVAL_MS = 700, CARD_MAX_MS = 5000, LIST_MAX_MS = 6000, MIN_WAIT_MS = 300, RETRY_MS = 60;
 /** v2.144.0: the main action of own pages goes up to the header */
@@ -95,7 +96,7 @@ export function reveal(element: HTMLElement | null, maxMs?: number, since?: numb
   const startedAt = Date.now(); element.classList.add('preparando');
   // The section may be decided a moment later (when it paints): it is looked at again
   setTimeout(() => {
-    if (plCfg(screen)) plSync(screen);
+    if (legacyFreeComponentsListBar.configOf(screen)) plSync(screen);
     // While the usual reveal runs, this screen is not treated as a template
     const lists = navLegacy.listTemplates(), keep = lists[screen];
     Reflect.deleteProperty(lists, screen);

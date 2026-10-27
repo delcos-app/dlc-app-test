@@ -7,7 +7,4 @@ declare const ICO_MOD: Readonly<Record<string, string | undefined>>;
 declare const MOTIVO_REFRESCO: Readonly<Record<string, string | undefined>>;
 declare const RPC_ORIG_FROM: <T>(table: string) => LegacyQuery<T>;
 declare const deshacible: (entry: object) => boolean;
-declare function campoInput(field: CustomField, value: unknown): string;
-declare function cambiarNavegador(name: string): Promise<void>;
 declare function cajaDeshacerPersona(box: HTMLElement | null, userId: string, from: string | null, name: string, then: () => void): void;
-declare function limpiarDatosLocales(): void;

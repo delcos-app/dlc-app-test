@@ -12,6 +12,7 @@ import * as legacyFreeCoreServices from '../services';
 import { navigationStore } from '../navigation/store';
 import { accountsStore } from '../../screens/accounts/store';
 import { routesStore } from '../../screens/routes/store';
+import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
 
 const PULL_FACTOR = 0.6, PULL_READY = 80, PULL_MAX = 90, PULL_SHOW = 70, PULL_OFFSET = 50, PULL_MIN_MS = 600;
 
@@ -99,7 +100,7 @@ export function openCentreFromSearch(): void {
 export function decorateVisitResults(): void {
   const body = byId('dbody'); if (!body) return;
   observe(body, () => {
-    if (body.querySelector('[data-vdest]:not([data-vend])')) { body.querySelectorAll<HTMLElement>('[data-vdest]').forEach(item => { item.dataset.vend = '1'; }); decorarResultados(); }
+    if (body.querySelector('[data-vdest]:not([data-vend])')) { body.querySelectorAll<HTMLElement>('[data-vdest]').forEach(item => { item.dataset.vend = '1'; }); legacyFreeScreensSettingsMore.decorateResults(); }
   }, { childList: true, subtree: true });
 }
 

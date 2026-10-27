@@ -1,5 +1,4 @@
 // Legacy names the shared list components read (src/app/components/list, filters; v2.416.0).
-declare function fijarTam(size: number): void;
 declare const TAMANOS: readonly number[];
 declare function normalizar(text: string | null): string;
 declare const MESES_CORTOS: Readonly<Record<string, number>>;

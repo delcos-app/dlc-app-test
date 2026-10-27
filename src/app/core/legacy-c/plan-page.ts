@@ -8,6 +8,7 @@ import { byId, signedIn, whenSignedIn } from './dom';
 import * as legacyFreeCoreServices from '../services';
 import * as legacyFreeCoreLegacyC from './';
 import { sessionStore } from '../session-store';
+import * as legacyFreeScreensSettingsRest from '../../screens/settings/rest';
 
 const CHECK_EVERY_MS = 1500, CHECKS = 90, VERSION_EVERY_MS = 2000, WELCOME_EVERY_MS = 1000, WELCOME_CHECKS = 60, WELCOME_DELAY_MS = 900;
 const SIGNUP_NOTICE_DELAY_MS = 400, BACK_TO_PLAN_FOR_MS = 30000, ANNUAL_MONTHS = 10, MIN_USERS = 3;
@@ -26,9 +27,9 @@ function annualFee(cards: NodeListOf<Element>, plan: CurrentPlan): void {
     if (!label || !amount || (label.textContent ?? '').trim() !== t('legacyC.plan.perMonth')) return;
     const definition = planDe(plan.plan ?? '') as unknown as { minimo?: number; precio: number };
     const base = Math.max(Number(plan.usuarios) || 0, definition.minimo ?? MIN_USERS) * definition.precio * ANNUAL_MONTHS;
-    amount.textContent = eurW(base); label.textContent = t('legacyC.plan.perYear');
+    amount.textContent = legacyFreeCoreServices.money.eurosWeb(base); label.textContent = t('legacyC.plan.perYear');
     card.querySelector('.kpiiva')?.remove();
-    card.insertAdjacentHTML('beforeend', `<span class="sm kpiiva">${t('legacyC.plan.withVat', { amount: eurW(base + ivaDe(base)) })}</span>`);
+    card.insertAdjacentHTML('beforeend', `<span class="sm kpiiva">${t('legacyC.plan.withVat', { amount: legacyFreeCoreServices.money.eurosWeb((base + legacyFreeCoreServices.money.vatOf(base))) })}</span>`);
   });
 }
 
@@ -38,16 +39,16 @@ function feeWithVat(cards: NodeListOf<Element>): void {
     const label = card.querySelector(':scope > span'), amount = card.querySelector(':scope > b');
     if (!label || !amount || (label.textContent ?? '').trim() !== t('legacyC.plan.perMonth') || card.querySelector('.kpiiva')) return;
     const value = parseFloat((amount.textContent ?? '').replace(/[^\d,]/g, '').replace(',', '.'));
-    if (value > 0) card.insertAdjacentHTML('beforeend', `<span class="sm kpiiva">${t('legacyC.plan.withVat', { amount: eurW(value + ivaDe(value)) })}</span>`);
+    if (value > 0) card.insertAdjacentHTML('beforeend', `<span class="sm kpiiva">${t('legacyC.plan.withVat', { amount: legacyFreeCoreServices.money.eurosWeb((value + legacyFreeCoreServices.money.vatOf(value))) })}</span>`);
   });
 }
 
 function receiptText(plan: CurrentPlan, next: NextReceipt | null): string {
-  const receipt = reciboCalculado(plan) as Receipt;
+  const receipt = legacyFreeScreensSettingsRest.receiptOf(plan) as Receipt;
   const date = next?.fecha ? next.fecha : plan.periodo_fin ?? '', total = next?.total ?? receipt.primero;
-  if (!plan.en_prueba) return t('legacyC.plan.nextReceipt', { total: eurW(total) }) + (date ? t('legacyC.plan.onDate', { date: legacyFreeCoreServices.calendar.dayAndMonth(date) }) : '') + '.';
-  const setup = receipt.puesta ? t('legacyC.plan.includesSetup', { setup: eurW(receipt.puesta) }) : receipt.anual ? t('legacyC.plan.setupIncluded') : '';
-  return t('legacyC.plan.trial', { date: legacyFreeCoreServices.calendar.dayAndMonth(date), total: eurW(total), setup, after: eurW(receipt.despues), every: t(receipt.anual ? 'legacyC.plan.perYearShort' : 'legacyC.plan.perMonthShort') });
+  if (!plan.en_prueba) return t('legacyC.plan.nextReceipt', { total: legacyFreeCoreServices.money.eurosWeb(total) }) + (date ? t('legacyC.plan.onDate', { date: legacyFreeCoreServices.calendar.dayAndMonth(date) }) : '') + '.';
+  const setup = receipt.puesta ? t('legacyC.plan.includesSetup', { setup: legacyFreeCoreServices.money.eurosWeb(receipt.puesta) }) : receipt.anual ? t('legacyC.plan.setupIncluded') : '';
+  return t('legacyC.plan.trial', { date: legacyFreeCoreServices.calendar.dayAndMonth(date), total: legacyFreeCoreServices.money.eurosWeb(total), setup, after: legacyFreeCoreServices.money.eurosWeb(receipt.despues), every: t(receipt.anual ? 'legacyC.plan.perYearShort' : 'legacyC.plan.perMonthShort') });
 }
 
 function receiptBox(title: Element): HTMLElement | null {

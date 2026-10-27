@@ -11,6 +11,7 @@ import * as legacyFreeCoreServices from '../services';
 import { sessionStore } from '../session-store';
 import { settingsStore } from '../../screens/settings/store';
 import { navigationStore } from '../navigation/store';
+import * as legacyFreeCoreSettings from '../settings';
 
 interface MenuGroup { id: string; t: string; items: string[] }
 
@@ -121,7 +122,7 @@ export function mountSideMenu(): void {
     document.body.classList.toggle('menulat', side);
     if (side) buildSideMenu(nav);
   }
-  colocarIndPruebas();
+  legacyFreeCoreSettings.placeTestBadge();
   if (!nav || !document.body.classList.contains('menulat')) return;
   markOutOfPlan(nav);
 }

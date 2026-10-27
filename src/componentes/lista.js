@@ -50,21 +50,10 @@ const PL_SECC = window.delcos.components.listBar.sections;
 const BLQ = window.delcos.components.listBar.blocks;
 const TAMANOS = window.delcos.components.listBar.PAGE_SIZES;
 function plSync(tab) { window.delcos.components.listBar.syncListBar(tab); }
-function plCfg(tab) { return window.delcos.components.listBar.configOf(tab); }
-function plVigilar(tab) { window.delcos.components.listBar.watch(tab); }
 function plIco(...n) { return window.delcos.components.listBar.icon(...n); }
 // Las pruebas cambian tamPagina para paginar de 5 en 5: las listas la leen siempre por este nombre
 function tamPagina() { return window.delcos.components.listBar.storedPageSize(); }
-function fijarTam(n) { window.delcos.components.listBar.savePageSize(n); }
 
 // Las piezas comunes de las listas están en src/app/components/list (v2.416.0). Estos nombres se quedan: el motor de la barra
 // de listas (PL, plSync), el panel «Filtros y columnas», otras pantallas antiguas y las pruebas los usan.
-function paginarListas() { window.delcos.components.list.paginateLists(); }
-function pagHTML(total, pagina, tam) { return window.delcos.components.list.pageHtml(total, pagina, tam); }
-function plEsqueleto(tab, conCab) { return window.delcos.components.list.tableSkeleton(tab, !!conCab); }
 function plCerrarPop() { window.delcos.components.list.closePopovers(); }
-function plPop(btn, items) { window.delcos.components.list.openPopover(btn, items); }
-function ordMemOrdenar(tipo, l) { return window.delcos.components.list.sortRemembered(tipo, l); }
-function plYaContado(clave, valores) { return window.delcos.components.list.alreadyCounted(clave, valores); }
-function itemHTML(id, ico, clase, titulo, sub) { return window.delcos.components.list.itemHtml({ id, icon: ico, iconClass: clase || '', title: titulo, detail: sub }); }
-function anchosGuardados(tipo) { return window.delcos.components.filters.savedWidths(tipo); }

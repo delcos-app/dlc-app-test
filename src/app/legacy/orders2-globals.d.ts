@@ -12,5 +12,4 @@ declare function pagoPortal(button: HTMLElement): Promise<void>;
 declare function diasHasta(isoDate: unknown): number | null;
 declare function isoMas(isoDate: string, days: number): string;
 declare const KPI_DEF: readonly string[];
-declare function guardarKpis(list: readonly Record<string, unknown>[]): Promise<boolean>;
 declare const ES_IMPORTE: RegExp;

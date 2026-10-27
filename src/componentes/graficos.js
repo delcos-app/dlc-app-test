@@ -2,17 +2,9 @@
 // componentes/graficos.js · los gráficos están en src/app/components/charts (v2.416.0); sus nombres se quedan como adaptadores
 // (Analítica, Inicio, la ficha, el portal y Oportunidades los usan). Aquí siguen las reglas de los indicadores de Inicio.
 
-/** @param {string[]} meses @param {number[]} a @param {number[] | null | undefined} b @param {string[]} etiquetas */
-function svgBarras(meses, a, b, etiquetas) { return window.delcos.components.monthBars(meses, a, b, etiquetas); }
-/** @param {number[]} vals @param {[string, ...unknown[]][]} meses */
-function anLinea(vals, meses) { return window.delcos.components.sixMonthLine(vals, meses); }
 /** @param {any} u @param {string} k */
 function sparkUnidades(u, k) { return window.delcos.components.unitsSparkline(u, k); }
-/** @param {{ n: string, v: number }[]} items */
-function svgDonut(items) { return window.delcos.components.donut(items); }
 function graficoCanal() { return window.delcos.components.channelChart(); }
-/** @param {string} t */
-function vacioGrafico(t) { return window.delcos.components.emptyChart(t); }
 
 const KPI_DEF = window.delcos.content.defaultIndicators();
 

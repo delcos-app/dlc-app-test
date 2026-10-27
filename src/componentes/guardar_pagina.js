@@ -4,9 +4,7 @@
 
 function pagActual() { return window.delcos.leftovers.currentPage(); }
 
-function pagBloque(el, cuerpo) { return window.delcos.leftovers.blockOf(el, cuerpo); }
 
-function pagPonerGuardar() { window.delcos.leftovers.placeSave(); }
 
 /* ============================================================
     v2.376.0 · D-042 (Eric): en una página, un solo «Guardar», arriba a la derecha. En Configuración cada bloque traía su

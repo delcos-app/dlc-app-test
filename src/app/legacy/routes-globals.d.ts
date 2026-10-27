@@ -25,7 +25,4 @@ type PendingMap = Promise<void> & { el?: HTMLElement };
 
 declare function salidaUsuario(): PlanStart;
 declare function minutosEntre(from: [number, number], to: [number, number]): number;
-declare function siguienteLaborable(): string;
 declare function mejorarCampos(root: Element): void;
-declare function pedirCampo(title: string, type: string, value: string, label: string): Promise<string | null>;
-declare function bloqueadosSemana(from: string, to: string): Promise<Record<string, string>>;

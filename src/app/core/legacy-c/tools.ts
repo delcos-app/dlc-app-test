@@ -9,6 +9,8 @@ import { escapeHtml } from '../../services/format';
 import { byId, closestTo, currentSection, observe } from './dom';
 import { navigationStore } from '../navigation/store';
 import { homeStore } from '../../screens/home/store';
+import * as legacyFreeComponentsFilters from '../../components/filters';
+import * as legacyFreeComponentsFiltersPanel from '../../components/filters-panel';
 
 const SAVE_FILTER_DELAY_MS = 60;
 interface ColumnChoice { i: number; n: string; on?: boolean; fija?: boolean }
@@ -76,7 +78,7 @@ function addResetWidths(grid: HTMLElement): void {
   byId('tools2')?.querySelector('.tbox')?.insertAdjacentHTML('beforeend', `<div class="acts"><button class="btn sec" type="button" id="t2anchos">${t('legacyC.tools.resetWidths')}</button></div>`);
   const reset = byId('t2anchos');
   if (reset) reset.onclick = (): void => {
-    localStorage.removeItem(claveAnchos(htTipo(grid))); grid.style.minWidth = ''; delete grid.dataset.ht; htAplicarColumnas(grid); toast(t('legacyC.tools.widthsReset'));
+    localStorage.removeItem(claveAnchos(legacyFreeComponentsFilters.tableKind(grid))); grid.style.minWidth = ''; delete grid.dataset.ht; legacyFreeComponentsFiltersPanel.applyColumns(grid); toast(t('legacyC.tools.widthsReset'));
   };
 }
 
@@ -104,17 +106,17 @@ export function createColumnsPanel(): void {
 export function prepareToolsOnChanges(): void {
   observe(document.querySelector('main'), () => {
     if (HT_PEND) return; HT_PEND = true;
-    queueMicrotask(() => { HT_PEND = false; const section = currentSection(); if (section && !section.classList.contains('hide')) htPreparar(section); });
+    queueMicrotask(() => { HT_PEND = false; const section = currentSection(); if (section && !section.classList.contains('hide')) legacyFreeComponentsFiltersPanel.prepare(section); });
   }, { childList: true, subtree: true });
 }
 
 /** v2.54.0: closing the side panel gives the screen its filters back; the button is placed on every change. */
 export function placeToolsButton(): void {
   const tools = byId('tools');
-  observe(tools, () => { if (!tools?.classList.contains('abierto')) htDevolver(); }, { attributes: true, attributeFilter: ['class'] });
+  observe(tools, () => { if (!tools?.classList.contains('abierto')) legacyFreeComponentsFiltersPanel.giveBack(); }, { attributes: true, attributeFilter: ['class'] });
   observe(document.querySelector('main'), () => {
     if (HT2_PEND) return; HT2_PEND = true;
-    queueMicrotask(() => { HT2_PEND = false; const section = currentSection(); if (section) htColocarBoton(section); });
+    queueMicrotask(() => { HT2_PEND = false; const section = currentSection(); if (section) legacyFreeComponentsFiltersPanel.placeButton(section); });
   }, { childList: true, subtree: true });
 }
 
@@ -134,7 +136,7 @@ export function resizeColumnsByDragging(): void {
     const handle = closestTo(event.target, '.dgrid .colres'); if (!handle) return;
     event.preventDefault(); event.stopPropagation();
     const grid = handle.closest<HTMLElement>('.dgrid'), header = grid?.querySelector(':scope > .dh'); if (!grid || !header) return;
-    const kind = htTipo(grid), index = Number(handle.dataset.colres), widths: Record<number, number> = {};
+    const kind = legacyFreeComponentsFilters.tableKind(grid), index = Number(handle.dataset.colres), widths: Record<number, number> = {};
     [...header.children].forEach((cell, position) => { if (!cell.classList.contains('htno')) widths[position] = Math.round(cell.getBoundingClientRect().width); });
     const startX = event.clientX, startWidth = widths[index] ?? 0;
     const move = (moveEvent: PointerEvent): void => {

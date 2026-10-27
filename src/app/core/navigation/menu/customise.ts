@@ -69,7 +69,7 @@ function preview(session: Session): void {
 function lockOutOfPlan(box: HTMLElement): void {
   box.querySelectorAll<HTMLElement>('.mlpi[data-k]').forEach(row => {
     const button = sectionButton(row.dataset.k ?? ''); if (!button || !legacyFreeCoreServices.session.outOfPlan(button)) return;
-    row.classList.add('off', 'fueraplan'); row.title = t('navigationCore.menu.notInPlan', { plan: PLAN_NOMBRE() });
+    row.classList.add('off', 'fueraplan'); row.title = t('navigationCore.menu.notInPlan', { plan: legacyFreeCoreServices.plans.currentPlanName() });
     const toggle = row.querySelector<HTMLInputElement>('[data-vk]'); if (toggle) { toggle.checked = false; toggle.disabled = true; }
     if (!row.querySelector('.mlpcand')) row.querySelector('.mlpn')?.insertAdjacentHTML('afterend', `<span class="mlpcand" role="img" aria-label="${t('navigationCore.menu.notInPlanShort')}"></span>`);
   });

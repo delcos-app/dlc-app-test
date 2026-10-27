@@ -7,6 +7,7 @@
 import { runNavigation, type NavigationStep } from './pipeline';
 import * as outer from './steps-outer';
 import * as inner from './steps-inner';
+import * as legacyFreeCoreLegacyA from '../legacy-a';
 
 export const NAVIGATION_STEPS: readonly NavigationStep[] = [
   outer.resetBackStack,
@@ -39,5 +40,5 @@ export const NAVIGATION_STEPS: readonly NavigationStep[] = [
 ];
 
 export function navigate(target: string, ...args: unknown[]): void {
-  runNavigation(NAVIGATION_STEPS, screen => { irBase(screen); }, target, args);
+  runNavigation(NAVIGATION_STEPS, screen => { legacyFreeCoreLegacyA.switchScreen(screen); }, target, args);
 }

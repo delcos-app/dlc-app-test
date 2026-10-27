@@ -39,8 +39,3 @@ function pintarVerifactu() { return window.delcos.screens.billing.paintVerifactu
 
 // Emitir, la vista previa, las facturas del pedido y el correo están en src/app/screens/billing/issue (v2.427.0). Estos nombres
 // se quedan: Pedidos, el plan, Organización y la capa de pantallas los usan.
-function facConsulta() { return window.delcos.screens.billing.readOnlyBilling(); }
-function cobroDe(p) { return window.delcos.screens.billing.paymentStateOf(p); }
-function ajustarFacturacion() { return window.delcos.screens.billing.arrangeBilling(); }
-function pedidoFacturas(id) { return window.delcos.screens.billing.paintOrderInvoices(id); }
-function enviarFacturaEmail(f, rn) { return window.delcos.screens.billing.sendInvoiceByEmail(f, rn); }

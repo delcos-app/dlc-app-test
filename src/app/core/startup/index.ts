@@ -10,6 +10,7 @@ import * as legacyFreeCoreSettings from '../settings';
 import { settingsStore } from '../../screens/settings/store';
 import { sessionStore } from '../session-store';
 import { navigationStore } from '../navigation/store';
+import * as legacyFreeScreensAccess from '../../screens/access';
 
 const RETRIES = 2, RETRY_WAIT_MS = 1500, NOT_FOUND = 'PGRST116', MOBILE_QUERY = '(max-width: 760px)';
 
@@ -52,7 +53,7 @@ async function refuse(profile: Profile | null): Promise<void> {
   const text = await refusalText(profile);
   localStorage.removeItem(PKEY);
   await db.auth.signOut();
-  mostrarLogin(text);
+  legacyFreeScreensAccess.showLogin(text);
 }
 
 async function enter(profile: Profile, saved: Profile | null, roles: Promise<unknown>): Promise<void> {
@@ -79,7 +80,7 @@ export async function start(): Promise<void> {
   marca('sesión comprobada');
   if (!session) {
     if (!navigator.onLine && saved && navigationStore.appVisible) return;   // v2.259.0: offline, the saved profile goes on
-    localStorage.removeItem(PKEY); mostrarLogin(); return;
+    localStorage.removeItem(PKEY); legacyFreeScreensAccess.showLogin(undefined); return;
   }
   const roles = cargarRoles().catch(() => false);
   const { profile, error } = await profileOrSaved(session.user.id, saved);

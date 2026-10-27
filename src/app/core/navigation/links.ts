@@ -13,6 +13,10 @@ import { ordersStore } from '../../screens/orders/store';
 import { productsStore } from '../../screens/products/store';
 import { settingsStore } from '../../screens/settings/store';
 import { navigationStore } from './store';
+import * as legacyFreeComponentsList from '../../components/list';
+import * as legacyFreeComponentsListBar from '../../components/list-bar';
+import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeComponents from '../../components';
 
 const RELOAD_WINDOW_MS = 60000;
 const OWN_PAGES = ['config', 'perfil', 'empresa', 'plan'];
@@ -77,10 +81,10 @@ export function pager(element: HTMLElement | null, position: { total: number; pa
   if (element.id) document.querySelectorAll(`#${element.id}`).forEach(other => { if (other !== element) other.remove(); });
   const size = tamPagina();
   if (total <= (TAMANOS[0] ?? 0)) { element.innerHTML = ''; return; }
-  element.innerHTML = pagHTML(total, page, size);
+  element.innerHTML = legacyFreeComponentsList.pageHtml(total, page, size);
   element.querySelectorAll<HTMLElement>('[data-pg]').forEach(button => { button.onclick = (): void => { onPage(Number(button.dataset.pg)); }; });
   const sizeSelect = element.querySelector<HTMLSelectElement>('[data-pgtam]');
-  if (sizeSelect) sizeSelect.onchange = (): void => { fijarTam(Number(sizeSelect.value)); onSize(); };
+  if (sizeSelect) sizeSelect.onchange = (): void => { legacyFreeComponentsListBar.savePageSize((Number(sizeSelect.value))); onSize(); };
 }
 
 const resetFailure = (result: { ok?: boolean; error?: string } | null, error: { message?: string } | null): string => {
@@ -92,24 +96,24 @@ const resetFailure = (result: { ok?: boolean; error?: string } | null, error: { 
 /** v2.137.0: the test environment goes back to the data as it was copied from production. */
 export async function backToTestData(): Promise<void> {
   if (!await preguntar(t('navigationCore.testData.question'), { titulo: t('navigationCore.testData.title'), ok: t('navigationCore.testData.ok'), peligro: true })) return;
-  pantallaCarga(t('navigationCore.testData.loading'));
+  legacyFreeComponents.showFullLoading((t('navigationCore.testData.loading')));
   type Reset = { ok?: boolean; error?: string } | null;
   let { data: result, error } = await RPC_ORIG<Reset>('pruebas_resetear_responsable', { p_confirmacion: 'RESTABLECER' });
   if (error && /pruebas_resetear_responsable|PGRST202|not find/i.test((error as { message?: string }).message ?? '')) {
     ({ data: result, error } = await RPC_ORIG<Reset>('pruebas_resetear', { p_confirmacion: 'RESTABLECER' }));
   }
-  if (error || !result?.ok) { quitarCarga(); toast(resetFailure(result ?? null, error as { message?: string } | null), true); return; }
-  limpiarDatosLocales(); location.reload();
+  if (error || !result?.ok) { legacyFreeComponents.hideFullLoading(); toast(resetFailure(result ?? null, error as { message?: string } | null), true); return; }
+  legacyFreeCoreServices.session.clearLocalData(); location.reload();
 }
 
 /** Back to one's own session after impersonating someone. */
 export async function backToMySession(): Promise<void> {
-  const impersonated = suplantando();
-  pantallaCarga(t('navigationCore.session.backToMine', { name: impersonated ? `, ${nombrePila(impersonated.nombre)}` : '' }));
+  const impersonated = legacyFreeCoreServices.session.impersonating();
+  legacyFreeComponents.showFullLoading((t('navigationCore.session.backToMine', { name: impersonated ? `, ${legacyFreeCoreServices.vocabulary.firstName(impersonated.nombre)}` : '' })));
   if (!impersonated) return;
-  const { error } = await navLegacy.auth().setSession({ access_token: impersonated.access_token, refresh_token: impersonated.refresh_token });
+  const { error } = await navLegacy.auth().setSession({ access_token: impersonated.access_token, refresh_token: impersonated.refresh_token } as { access_token: string; refresh_token: string });
   localStorage.removeItem(SKEY);
-  limpiarDatosLocales();
+  legacyFreeCoreServices.session.clearLocalData();
   if (error) { await db.auth.signOut(); toast(t('navigationCore.session.expired'), true); }
   location.reload();
 }

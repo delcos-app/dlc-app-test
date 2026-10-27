@@ -27,7 +27,7 @@ export const PAGES: Record<string, PageDefinition> = {
     ['datos', t('navigationCore.pages.profileData'), (): unknown => pintarPerfil()], ['notif', t('navigationCore.pages.notifications'), (): unknown => pintarNotif()]] },
   empresa: { t: t('navigationCore.pages.company'), d: t('navigationCore.pages.companyDescription'), admin: true, tabs: [
     ['marca', t('navigationCore.pages.brand'), (): unknown => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('navigationCore.pages.mail'), (): unknown => legacyFreeScreensSettingsExtra.paintEmail()],
-    ['copias', t('navigationCore.pages.backups'), (): unknown => pintarCopias()]] },
+    ['copias', t('navigationCore.pages.backups'), (): unknown => legacyFreeScreensSettingsMore.paintBackups()]] },
   plan: { t: t('navigationCore.pages.plan'), d: '', admin: true, tabs: [['plan', t('navigationCore.pages.planTab'), (): unknown => pintarPaginaPlan()]] },
 };
 

@@ -6,10 +6,7 @@
    que los saca del vocabulario de cada cliente (ajuste «terminos») con su plural, su género y el artículo que concuerda.
    TT(término, 's'|'p', determinante, mayúsculas del determinante, mayúsculas del nombre[, adjetivo en masculino singular]) · 'l' minúscula, 'C' inicial, 'U' todo. */
 function TT(k, n, det, cd, cn, adj) { return window.delcos.core.vocabulary.wordFor(k, n, { determiner: det, determinerCase: cd, nounCase: cn, adjective: adj }); }
-function etiquetaCanal(p, total) { return window.delcos.core.vocabulary.channelLabel(p, total); }
-function terminoDe(k) { return window.delcos.core.vocabulary.termOf(k); }
 // v2.347.0: «Todos los segmentos» / «Todas las especialidades»
-function todosLos(k) { return window.delcos.core.vocabulary.allOf(k); }
 // v2.105.0: sin etiqueta propia, el nombre sale del vocabulario de la empresa («Farmacias», «Contactos»…)
 function etiquetaContactos() { return window.delcos.core.vocabulary.contactsLabel(); }
 

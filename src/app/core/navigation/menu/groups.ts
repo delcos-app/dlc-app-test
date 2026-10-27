@@ -10,6 +10,7 @@ import { orFallback } from '../../../services/values';
 import { sessionStore } from '../../session-store';
 import { settingsStore } from '../../../screens/settings/store';
 import { navigationStore } from '../store';
+import * as legacyFreeCoreServices from '../../services';
 
 export interface MenuGroup { id: string; t: string; items: string[] }
 interface MenuPrefs { orden?: string[]; items?: Record<string, string[] | undefined>; ocultos?: string[]; barra?: string[]; mas?: string[] }
@@ -129,7 +130,7 @@ function lockButton(button: Element, key: string): void {
 export function lockModules(): void {
   document.querySelectorAll<HTMLElement>('nav.main [data-t]').forEach(button => {
     const key = button.dataset.t ?? ''; if (!(key in MODULO_AREA)) return;
-    const locked = puedeModuloV2400(key) && !planIncluye(key);
+    const locked = puedeModuloV2400(key) && !legacyFreeCoreServices.plans.planIncludes(key);
     button.classList.toggle('bloq', locked);
     if (locked) { button.classList.remove('hide'); if (!button.querySelector('.cand')) button.insertAdjacentHTML('beforeend', LOCK); }
     else button.querySelector('.cand')?.remove();

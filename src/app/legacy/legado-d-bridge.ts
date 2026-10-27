@@ -18,6 +18,14 @@ import { accountsStore } from '../screens/accounts/store';
 import { sessionStore } from '../core/session-store';
 import { billingStore } from '../screens/billing/store';
 import { ordersStore } from '../screens/orders/store';
+import * as legacyFreeScreensOrders from '../screens/orders';
+import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
+import * as legacyFreeComponents from '../components';
+import * as legacyFreeComponentsList from '../components/list';
+import * as legacyFreeComponentsFilters from '../components/filters';
+import * as legacyFreeScreensCustomers from '../screens/customers';
+import * as legacyFreeScreensSettingsRest from '../screens/settings/rest';
+import * as legacyFreeScreensSettings from '../screens/settings';
 
 type AnyFunction = (...args: unknown[]) => unknown;
 type Wrapper = (original: AnyFunction) => AnyFunction;
@@ -47,13 +55,13 @@ export const treeLegacy = {
   pageTabs: (page: string): PageTabs => pages()[page]?.tabs ?? [],
   paintProfile: (): unknown => pintarPerfil(),
   paintNotifications: (): unknown => pintarNotif(),
-  paintUsers: (): unknown => pintarUsuarios2(),
+  paintUsers: (): unknown => legacyFreeScreensSettingsRest.paintUsers(),
   paintRoles: (): unknown => legacyFreeScreensSettingsMore.paintRoles(),
   paintTexts: (): unknown => legacyFreeScreensSettingsExtra.paintMenuNames(),
-  paintDistributors: (): unknown => pintarDistribuidores(),
-  paintStateRoles: (): unknown => pintarEstadosPapel(),
+  paintDistributors: (): unknown => legacyFreeScreensOrders.paintDistributors(),
+  paintStateRoles: (): unknown => legacyFreeScreensSettingsMore.paintCommercialStates(),
   paintCardPayment: (): unknown => pintarTpv(),
-  paintTestEnvironment: (): unknown => pintarCfgPruebas(),
+  paintTestEnvironment: (): unknown => legacyFreeScreensSettings.paintTestEnvironment(),
   setSearchWords: (words: Record<string, string>): void => { Object.assign(CFG_CLAVES, words); },
 };
 
@@ -73,7 +81,7 @@ export const menuLegacy = {
   pageTab: (key: string): string | undefined => navigationStore.pageTabs[key],
   tendersMenu: (): void => { legacyFreeCoreLeftovers.menuTenders(); },
   equipmentMenu: (): void => { legacyFreeCoreLeftovers.menuEquipment(); },
-  lockSections: (): void => { candadoSecciones(); },
+  lockSections: (): void => { legacyFreeCoreNavigationApi.lockSections(); },
   setPlanSections: (sections: Record<string, string[]>): void => { Object.assign(PLAN_SECCIONES, sections); },
   requirePlanSection: (key: string): void => { const page = pages()[key]; if (!page) return; const before = page.permiso; page.permiso = (): boolean => before() && planIncluyeSeccion(key); },
   addNotificationTypes: (types: NotificationType[]): void => { TIPOS_NOTIF.push(...types); },
@@ -96,7 +104,7 @@ export const polishLegacy = {
   currentScreen: (): string => navigationStore.screen,
   polishedKeys: (): string[] => CFG_PULIR,
   settingsKey: (): string => CFG_KEY,
-  roleNames: (): string[] => rolesNombres(),
+  roleNames: (): string[] => legacyFreeCoreSettings.roleNames(),
   adjustIndexSoon: (): void => { cancelAnimationFrame(settingsStore.indexFrame); settingsStore.indexFrame = requestAnimationFrame(() => { legacyFreeScreensSettingsShell.fitIndex(); }); },
   markOpenedFromMenu: (): void => { settingsStore.section = '__cfg'; IR_DESDE_MENU_CFG = true; },
   setManualAnchor: (screen: string, anchor: () => string): void => { Object.defineProperty(MANUAL_ANCLA, screen, { configurable: true, enumerable: true, get: anchor }); },
@@ -106,16 +114,16 @@ export const polishLegacy = {
 export const pageLegacy = {
   currentScreen: (): string => navigationStore.screen,
   isMobile: (): boolean => ES_MOVIL(),
-  freeze: (element: HTMLElement | null): void => { congelar(element); },
+  freeze: (element: HTMLElement | null): void => { legacyFreeCoreNavigationApi.freeze(element); },
   settingsKey: (): string => CFG_KEY,
   wakeSection: (section: HTMLElement): void => { void cfgSecDespertar(section); },
   cloneSettingsStyles: (): void => { void cfgClonarEstilos(); },
   currentPage: (): { cuerpo: HTMLElement } | null => pagActual(),
   notAChange: (): string => PAG_NO_CAMBIA,
-  markChanged: (element: Element, body: HTMLElement): void => { PAG_SUCIO.add(pagBloque(element, body)); legacyFreeScreensSettingsShell.markUnsaved(); },
+  markChanged: (element: Element, body: HTMLElement): void => { PAG_SUCIO.add(legacyFreeCoreLeftovers.blockOf(element, body)); legacyFreeScreensSettingsShell.markUnsaved(); },
   placeSaveButtonSoon: (): void => {
     if (navigationStore.saveButtonFrame || !PAG_GUARDA.some(page => page.tab === navigationStore.screen)) return;
-    navigationStore.saveButtonFrame = requestAnimationFrame(() => { navigationStore.saveButtonFrame = 0; pagPonerGuardar(); });
+    navigationStore.saveButtonFrame = requestAnimationFrame(() => { navigationStore.saveButtonFrame = 0; legacyFreeCoreLeftovers.placeSave(); });
   },
 };
 
@@ -149,7 +157,7 @@ export const backLegacy = {
   stackSize: (): number => backStack().length,
   openDialog: (): HTMLDialogElement | null => vistaDlg(),
   setViewDialog: (view: BackView, dialog: HTMLDialogElement | null): void => { view.dlg = dialog; },
-  button: (view: BackView, dialog?: HTMLDialogElement): void => { vistaBoton(view, dialog); },
+  button: (view: BackView, dialog?: HTMLDialogElement): void => { legacyFreeCoreNavigationApi.backButton(view, dialog); },
   callGlobal: (name: string, args: unknown[]): unknown => (globals[name] as AnyFunction)(...args),
 };
 
@@ -158,8 +166,8 @@ export const saveLegacy = {
   requestEnded: (): void => { sessionStore.networkInFlight = Math.max(0, sessionStore.networkInFlight - 1); sessionStore.lastNetworkEnd = performance.now(); },
   inFlight: (): number => sessionStore.networkInFlight,
   lastRequest: (): number => sessionStore.lastNetworkEnd,
-  isSaveButton: (button: HTMLButtonElement | null): boolean => Boolean(esBotonGuardar(button)),
-  raiseNotice: (): void => { subirAviso(); },
+  isSaveButton: (button: HTMLButtonElement | null): boolean => Boolean(legacyFreeComponents.isSaveButton(button)),
+  raiseNotice: (): void => { legacyFreeComponents.raiseNotice(); },
 };
 
 export type RpcCall = () => unknown;
@@ -171,17 +179,17 @@ export const rpcLegacy = {
   tableOrder: (kind: string): { i: number; dir: number; k?: string | null } | undefined => HT_ORDEN[kind],
   forgetInFlight: (name: string): void => { [...RC_VUELO.keys()].forEach(key => { if (key.startsWith(`${name}|`)) RC_VUELO.delete(key); }); },
   direct: (name: string, args: Record<string, unknown>, ...rest: unknown[]): PromiseLike<unknown> => (RPC_ORIG as unknown as (...all: unknown[]) => PromiseLike<unknown>)(name, args, ...rest),
-  logError: (type: string, message: string, detail: Record<string, unknown>): void => { registrarError(type, message, detail); },
+  logError: (type: string, message: string, detail: Record<string, unknown>): void => { legacyFreeCoreServices.errors.registerError(type, message, detail); },
   currentScreen: (): string => navigationStore.screen,
   preloaded: (): Map<string, unknown> => DB_PRE,
   rememberedSortOf: (name: string): string | undefined => Object.keys(ORD_MEM).find(kind => ORD_MEM[kind]?.fn === name),
-  sortRemembered: (kind: string, rows: unknown[]): unknown[] => ordMemOrdenar(kind, rows),
+  sortRemembered: (kind: string, rows: unknown[]): unknown[] => legacyFreeComponentsList.sortRemembered(kind, rows),
   forgetCache: (): void => { invalidarCache(); try { DB_PRE.clear(); } catch { /* nothing preloaded */ } },
-  refreshBelow: (): void => { refrescarDebajo(); },
+  refreshBelow: (): void => { legacyFreeCoreNavigationApi.refreshBelow(); },
   dataChanged: (): boolean => settingsStore.unsavedChanges,
   reportedFilter: (): string => AN_REP,
   pdfEditing: (): string | null => billingStore.pdfEditing,
-  pdfTemplates: (): { lista: { id: string; cfg?: unknown }[]; defecto: string } => listaPDF(),
+  pdfTemplates: (): { lista: { id: string; cfg?: unknown }[]; defecto: string } => legacyFreeCoreServices.pdf.templateList(),
   savePdfTemplates: (templates: { lista: unknown[]; defecto: string }): Promise<boolean> => guardarPDFPlantillas(templates),
   setInvoicePdf: (design: unknown): void => { settingsStore.settings.factura_pdf = design ? design : settingsStore.settings.factura_pdf; },
 };
@@ -191,15 +199,15 @@ export const sortLegacy = {
   listOrders: (): void => { if (typeof listaPedidos === 'function') void listaPedidos(); },
   setCustomersPage: (page: number): void => { PAC.pagina = page; },
   listCustomers: (): void => { if (typeof listaPacientes === 'function') void listaPacientes(); },
-  markHeader: (grid: Element): void => { htMarcarCabecera(grid); },
-  tableKind: (grid: Element): string => htTipo(grid),
+  markHeader: (grid: Element): void => { legacyFreeComponentsFilters.markHeader(grid); },
+  tableKind: (grid: Element): string => legacyFreeComponentsFilters.tableKind(grid),
   serverSort: (kind: string): ((index: number, name: string) => string | null) | undefined => ORD_SRV[kind],
   setServerSort: (kind: string, sort: (index: number, name: string) => string | null): void => { ORD_SRV[kind] = sort; },
-  notSortable: (name: string): boolean => Boolean(htCeldaNoOrdenable(name)),
+  notSortable: (name: string): boolean => Boolean(legacyFreeComponentsFilters.notSortable(name)),
   orders: (): Record<string, { i: number; dir: number; k?: string | null } | undefined> => HT_ORDEN,
   saveOrders: (): void => { htGuardarOrden(); },
-  sortRows: (grid: Element): void => { htOrdenarFilas(grid); },
-  unsort: (grid: Element): void => { htQuitarOrden(grid); },
+  sortRows: (grid: Element): void => { legacyFreeComponentsFilters.sortRows(grid); },
+  unsort: (grid: Element): void => { legacyFreeComponentsFilters.clearSort(grid); },
   accountsSortKey: (column: string): string | undefined => ORD_DIR[column],
   // eslint-disable-next-line id-length -- the legacy name of Cuentas' filters
   accountFilters: (): AccountFilters => F,
@@ -226,8 +234,8 @@ export const removedLegacy = {
   listCustomers: (): void => { void listaPacientes(); },
   number: (value: number): string => num(value),
   whatAccountHas: (key: string): string => BAJA_QUE[key] ?? key,
-  deregisterAccount: (id: string, away: boolean): Promise<unknown> => bajaCuenta(id, away),
-  deregisterCustomer: (id: string, away: boolean): Promise<unknown> => bajaCliente(id, away),
+  deregisterAccount: (id: string, away: boolean): Promise<unknown> => legacyFreeScreensAccounts.setAccountOut(id, !!away),
+  deregisterCustomer: (id: string, away: boolean): Promise<unknown> => legacyFreeScreensCustomers.setCustomerOff(id, away),
   archived: async <T>(table: string, columns: string, limit: number): Promise<T[]> => ((await db.from<T[]>(table).select(columns).not('archivado_en', 'is', null).order('archivado_en', { ascending: false }).limit(limit)).data ?? []),
   deleted: async <T>(table: string, columns: string, limit: number): Promise<T[]> => ((await db.from<T[]>(table).select(columns).not('eliminado_en', 'is', null).order('eliminado_en', { ascending: false }).limit(limit)).data ?? []),
   addListMenuEntry: (screen: string, entry: [string, string]): void => {

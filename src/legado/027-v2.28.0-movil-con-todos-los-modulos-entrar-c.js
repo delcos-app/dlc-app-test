@@ -26,7 +26,6 @@ const FAQ = window.delcos.content.questions();
 /* ---------------- reglas de cartera ---------------- */
 
 // Agenda → Equipo con «Reglas de cartera» (src/app/screens/agenda/team-rules.ts, v2.424.0)
-function pintarEquipo() { return window.delcos.legacyB.paintTeam(); }
 
 /* ---------------- aviso de visita reciente ---------------- */
 

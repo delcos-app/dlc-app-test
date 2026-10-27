@@ -13,6 +13,9 @@ import { accountsStore } from '../screens/accounts/store';
 import { homeStore } from '../screens/home/store';
 import { agendaStore } from '../screens/agenda/store';
 import { routesStore } from '../screens/routes/store';
+import * as legacyFreeScreensBilling from '../screens/billing';
+import * as legacyFreeComponents from '../components';
+import * as legacyFreeCoreServices from '../core/services';
 export interface LegacyProfile {
   id: string; nombre: string; rol: string; areas?: Record<string, number | string>; capacidades?: string[];
   preferencias?: Record<string, unknown> & { navegador?: string };
@@ -49,7 +52,7 @@ export const coreLegacy = {
   currentPlan: (): { plan: string } => sessionStore.plan as { plan: string },
   plans: (): readonly LegacyPlan[] => PLANES as readonly LegacyPlan[],
   planPrice: (plan: LegacyPlan): string => precioPlan(plan),
-  billingReadOnly: (): boolean => facConsulta(),
+  billingReadOnly: (): boolean => legacyFreeScreensBilling.readOnlyBilling(),
   notificationTypes: (): readonly (readonly unknown[])[] => TIPOS_NOTIF,
   sectionTitle: (section: string): string | undefined => TITULO_PEDSEC[section]?.[0],
   openPlanSettings: (): void => { settingsStore.section = 'plan'; ir('config'); },
@@ -81,12 +84,12 @@ export const coreLegacy = {
   trail: (): readonly unknown[] => RASTRO,
   toast: (message: string, isError = false): void => { toast(message, isError); },
   confirm: (message: string, options: { titulo?: string; ok?: string }): Promise<boolean> => preguntar(message, options),
-  choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => elegirOpcion(title, message, buttons),
+  choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => legacyFreeComponents.chooseOption(title, message, buttons),
   showDialog: (options: { titulo: string; msg: string; ok: string; campo: { valor: string; tipo: string } }): Promise<unknown> => appVentana(options),
-  showLoading: (message: string): void => { pantallaCarga(message); },
-  hideLoading: (): void => { quitarCarga(); },
+  showLoading: (message: string): void => { legacyFreeComponents.showFullLoading(message); },
+  hideLoading: (): void => { legacyFreeComponents.hideFullLoading(); },
   withButtonLoading: <T>(button: HTMLElement, text: string, work: () => Promise<T>): Promise<T> => conCarga(button, text, work),
-  registerError: (type: string, message: string, detail?: Record<string, unknown>): void => { registrarError(type, message, detail); },
+  registerError: (type: string, message: string, detail?: Record<string, unknown>): void => { legacyFreeCoreServices.errors.registerError(type, message, detail); },
   icon: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   paintConnection: (): void => { pintarConexion(); },
   reloadHome: (): void => { void cargarInicio(); },

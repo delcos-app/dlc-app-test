@@ -9,6 +9,8 @@ import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
 import { menuGroups, menuPrefs } from './groups';
 import { navigationStore } from '../store';
+import * as legacyFreeCoreServices from '../../services';
+import * as legacyFreeCoreLegacyB from '../../legacy-b';
 
 /** The screens that never go in the phone menu (v2.335.0: Usuarios is in Configuración). */
 export const MENU_OUT = ['usuarios'];
@@ -64,8 +66,8 @@ function lockOutOfPlan(sheet: HTMLElement): void {
   const close = (): void => { sheet.classList.add('hide'); document.body.classList.remove('masabierto'); };
   sheet.querySelectorAll<HTMLElement>('[data-bm]').forEach(button => {
     const key = button.dataset.bm ?? '';
-    if (planIncluye(key) && planIncluyeSeccion(key)) return;
-    button.classList.add('bloq'); button.onclick = (): void => { close(); avisoPlan(key); };
+    if (legacyFreeCoreServices.plans.planIncludes(key) && planIncluyeSeccion(key)) return;
+    button.classList.add('bloq'); button.onclick = (): void => { close(); legacyFreeCoreServices.plans.planNotice(key); };
   });
   // Locked ones are removed from «Más»
   sheet.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(button => { button.remove(); });
@@ -94,7 +96,7 @@ export function setMobileCustomise(open: () => unknown): void { openMobileCustom
 
 /** Opens «Más» on the phone. */
 export function openMoreMenu(): void {
-  abrirMasMovilBase();
+  legacyFreeCoreLegacyB.openMoreMenu();
   const sheet = document.getElementById('bmas'); if (!sheet) return;
   sheet.querySelectorAll('.bmasbox > .sm').forEach(note => { note.remove(); });
   lockOutOfPlan(sheet);

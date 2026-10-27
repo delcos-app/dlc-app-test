@@ -22,7 +22,3 @@ function editorContacto(c, alGuardar, op) { return window.delcos.leftovers.editC
 // campos, Pedidos, Oportunidades, legado 137, «‹ Volver» y las pruebas los usan.
 function cargarPacientes() { return window.delcos.screens.customers.loadCustomers(); }
 function listaPacientes() { return window.delcos.screens.customers.listCustomers(); }
-function fichaPaciente(id) { return window.delcos.screens.customers.showCustomer(id); }
-function selectorPaciente(el, o) { return window.delcos.screens.customers.pickCustomer(el, o || {}); }
-function bajaCliente(id, baja) { return window.delcos.screens.customers.setCustomerOff(id, baja); }
-function buscarClientes(q) { return window.delcos.screens.customers.searchCustomers(q); }

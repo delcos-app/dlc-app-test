@@ -13,6 +13,7 @@ import * as legacyFreeComponents from '../components';
 import { sessionStore } from '../core/session-store';
 import { routesStore } from '../screens/routes/store';
 import { agendaStore } from '../screens/agenda/store';
+import * as legacyFreeScreensAgenda from '../screens/agenda';
 
 interface LastPlan { conXY: PlanMember[]; rutaId: string; opts: PlanOptions }
 interface Profile { id: string; preferencias?: Record<string, unknown> | null }
@@ -49,19 +50,19 @@ export const routes2Legacy = {
   travelMinutes: (from: unknown, to: unknown): number => minutosEntre(from as [number, number], to as [number, number]),
   km: (from: unknown, to: unknown): number => km(from, to),
   minutesOf: (time: string | null | undefined): number | null => legacyFreeCoreServices.calendar.timeToMinutes(time),
-  possibleStart: (item: object, arrival: number, length: number): number | null => inicioPosible(item, arrival, length),
+  possibleStart: (item: object, arrival: number, length: number): number | null => legacyFreeCoreLeftovers.earliestStart(item, arrival, length),
   windowsOf: (days: Record<string, string | null> | null | undefined, isoDate: string): [number, number][] | null => ventanasDe(days, isoDate) as [number, number][] | null,
   windowsText: (windows: readonly [number, number][]): string => txtVentanas(windows),
   hoursOfAppointments: (list: readonly object[]): { salida: string | null; vuelta: string | null } | null => horDeCitas(list),
   estimateDay: (list: readonly object[], isoDate: string): { est: Record<string, number | undefined>; tope: number } => estimarDia(list, isoDate) as unknown as { est: Record<string, number | undefined>; tope: number },
-  nextWorkingDay: (): string => siguienteLaborable(),
+  nextWorkingDay: (): string => legacyFreeCoreServices.calendar.nextWorkingDay(),
   shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
-  weekdayName: (isoDate: string): string => DIAN[LETRA_DIA(isoDate)] ?? '',
+  weekdayName: (isoDate: string): string => DIAN[legacyFreeCoreServices.calendar.dayLetter(isoDate)] ?? '',
   weekdayOf: (letter: string): string => DIAN[letter] ?? '',
   isDone: (state: string): boolean => citaHecha(state),
   myPlannedAppointments: (): Promise<Record<string, string | undefined>> => legacyFreeCoreLeftovers.myPlannedAppointments(),
   recentContacts: (ids: string[], isoDate: string): Promise<Record<string, RecentContact[] | undefined>> => recientesDe(ids, isoDate),
-  recentText: (list: RecentContact[]): string => txtReciente(list),
+  recentText: (list: RecentContact[]): string => legacyFreeCoreServices.calendar.recentText(list),
   revisitNotice: (): { on: boolean; dias: number } => avisoRevisita(),
   noStartWarning: (element: Element | null): void => { legacyFreeComponents.noStartNotice((element as HTMLElement | null)); },
   openPlanTimes: (): void => { abrirHorarioPlan(); },
@@ -70,8 +71,8 @@ export const routes2Legacy = {
   },
   iconOrEmpty: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   // Working day
-  workingDay: (): { fecha: string; inicio: number } | null => jornadaActiva(),
-  endWorkingDay: (): Promise<void> => terminarJornada(),
+  workingDay: (): { fecha: string; inicio: number } | null => legacyFreeScreensAgenda.activeWorkingDay(),
+  endWorkingDay: (): Promise<void> => legacyFreeScreensAgenda.endWorkingDay(),
   // Stops of «Tu día» and their real times
   stops: (): RouteAppointment[] => agendaStore.dayStops,
   setStops: (list: readonly object[]): void => { agendaStore.dayStops = list as RouteAppointment[]; },

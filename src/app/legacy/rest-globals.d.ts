@@ -16,4 +16,3 @@ interface Leaflet {
 declare function pagoCargarEstado(): Promise<unknown>;
 
 declare const JKEY: () => string;
-declare function colEstado(state: string): string;

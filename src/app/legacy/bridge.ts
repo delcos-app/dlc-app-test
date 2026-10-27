@@ -17,6 +17,14 @@ import { accountsStore } from '../screens/accounts/store';
 import { routesStore } from '../screens/routes/store';
 import { productsStore } from '../screens/products/store';
 import { settingsStore } from '../screens/settings/store';
+import * as legacyFreeScreensAgenda from '../screens/agenda';
+import * as legacyFreeCoreLegacyB from '../core/legacy-b';
+import * as legacyFreeScreensVisit from '../screens/visit';
+import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
+import * as legacyFreeScreensEvents from '../screens/events';
+import * as legacyFreeScreensSurgeries from '../screens/surgeries';
+import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
+import * as legacyFreeScreensCustomers from '../screens/customers';
 export const legacyDb = (): LegacyDb => db;
 export const callRpc = <T>(name: string, params: Record<string, unknown> = {}): PromiseLike<LegacyResult<T>> => RPC_ORIG<T>(name, params);
 
@@ -129,7 +137,7 @@ export const sidePanel = {
 /** Agenda pieces still in legacy. */
 export const legacyAgendaParts = {
   mode: (): string => agendaStore.mode,
-  blockedDays: (fromIsoDate: string, days: number): Promise<Record<string, string>> => agBloqueos(fromIsoDate, days),
+  blockedDays: (fromIsoDate: string, days: number): Promise<Record<string, string>> => legacyFreeCoreLeftovers.blockedFrom(fromIsoDate, days),
 };
 
 /** What the Agenda data loader needs from legacy: whose agenda, the strip start and the day tasks. */
@@ -140,8 +148,8 @@ export const agendaSources = {
   stripStart: (): string | null => agendaStore.stripStart,
   /** «Tu día» of this date arrives already loaded (from Inicio). */
   hasPresetDay: (isoDate: string): boolean => agendaStore.presetDay?.fecha === isoDate,
-  dayTasks: (isoDate: string): Promise<unknown> => tareasDelDia(isoDate),
-  blockedDays: (fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>> => bloqueadosSemanaBase(fromIsoDate, toIsoDate),
+  dayTasks: (isoDate: string): Promise<unknown> => legacyFreeCoreLeftovers.tasksOfDay(isoDate),
+  blockedDays: (fromIsoDate: string, toIsoDate: string): Promise<Record<string, string>> => legacyFreeCoreLeftovers.readBlockedDays(fromIsoDate, toIsoDate),
   setSuggestions: (isoDate: string, suggestions: { pend: PendingAppointment[]; toca: DueAccount[]; centros: SameCentreGroup[] }): void => {
     agendaStore.pendingSuggestions = suggestions.pend; agendaStore.suggestions = { fecha: isoDate, toca: suggestions.toca, centros: suggestions.centros };
   },
@@ -171,15 +179,15 @@ export const agendaState = {
 /** The sales team (COMS) for the team views, loaded once. */
 export const salesTeam = {
   members: (): readonly { id: string; nombre: string }[] => homeStore.salesTeam,
-  load: (): Promise<void> => cargarComerciales(),
+  load: (): Promise<void> => legacyFreeCoreLeftovers.loadSalesTeam(),
   currentUserId: (): string => (sessionStore.profile as { id: string }).id,
   showAgendaOf: (userId: string): void => { void legacyFreeCoreLeftovers.showAgendaOf(userId); },
 };
 
 /** Agenda pieces painted by legacy code. */
 export const legacyAgendaPaint = {
-  yourDay: (): Promise<void> => pintarTuDia(),
-  team: (): Promise<void> => pintarEquipo(),
+  yourDay: (): Promise<void> => legacyFreeScreensAgenda.paintYourDay(),
+  team: (): Promise<void> => legacyFreeCoreLegacyB.paintTeam(),
   noStartWarning: (element: HTMLElement | null): void => { legacyFreeComponents.noStartNotice(element); },
 };
 
@@ -197,12 +205,12 @@ export const weekPlanner = {
 export const notices = {
   toast: (message: string, isError = false): void => { toast(message, isError); },
   confirm: (message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean> => preguntar(message, options),
-  choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => elegirOpcion(title, message, buttons),
+  choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => legacyFreeComponents.chooseOption(title, message, buttons),
   askDate: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => pedirFecha(message, value, options),
   askTime: async (title: string, value: string, ok: string): Promise<string | null> => (await appVentana({ titulo: title, ok, campo: { valor: value, tipo: 'time' } })) as string | null,
 };
 
-export const initialsOf = (name: string): string => iniciales(name);
+export const initialsOf = (name: string): string => legacyFreeCoreServices.vocabulary.initials(name);
 /** Mounts Agenda again from its current state (legacy adapter of loadAgenda: avoids an import cycle between the pieces). */
 export const reloadAgenda = (): void => { void cargarAgenda(); };
 
@@ -267,7 +275,7 @@ export const editorLegacy = {
     selectorMedico(element, { valor: value, alElegir: onPick, ...(placeholder ? { placeholder } : {}) });
   },
   recentContacts: (accountId: string, isoDate: string): Promise<RecentContact[]> => recientesDe([accountId], isoDate).then(found => found[accountId] ?? []),
-  recentText: (list: RecentContact[]): string => txtReciente(list),
+  recentText: (list: RecentContact[]): string => legacyFreeCoreServices.calendar.recentText(list),
   turnOffRecentNotice: (): Promise<void> => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
   centreFromCard: (): string | null => accountsStore.cardCentre,
   viewedUserId: (): string | null => (currentScreen() === 'agenda' && agendaStore.viewedUser ? agendaStore.viewedUser.id : null),
@@ -287,7 +295,7 @@ export const accountCardLegacy = {
 
 /** Windows and labels of other modules (events, deposit, surgeries, tenders, equipment, visit photos), still in legacy. */
 export const relatedLegacy = {
-  openVisitPhotos: (activityId: string, accountId: string): void => { void verFotosVisita(activityId, accountId); },
+  openVisitPhotos: (activityId: string, accountId: string): void => { void legacyFreeScreensVisit.showVisitPhotos(activityId, accountId); },
   openEvent: (id: string): void => { void verEvento(id); },
   openDeposit: (accountId: string, name: string): void => { void verDeposito(accountId, name); },
   expiresSoon: (isoDate: string | null | undefined): boolean => depCaducaPronto(isoDate),
@@ -303,7 +311,7 @@ export const cardBaseLegacy = {
   states: (): string[] => estados(),
   canRecord: (): boolean => legacyFreeCoreServices.permissions.canRecord(),
   canEdit: (): boolean => legacyFreeCoreServices.permissions.canEdit(),
-  directionsAttribute: (point: [number, number]): string => navAttr(point),
+  directionsAttribute: (point: [number, number]): string => legacyFreeCoreServices.maps.navigationAttribute(point, undefined),
   unitsChart: (units: AccountUnits, series: string): string => sparkUnidades(units, series),
   unitsLegend: (series: string): string => leyendaUnidades(series),
   unitsSeries: (): readonly [string, string][] => UDS_SERIES,
@@ -317,14 +325,14 @@ export const cardSectionsLegacy = {
   /** Sales level of the user (area V). */
   salesArea: (): number => (sessionStore.profile as { areas?: Record<string, number> }).areas?.V ?? 0,
   roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
-  openPatient: (id: string): void => { void fichaPaciente(id); },
+  openPatient: (id: string): void => { void legacyFreeScreensCustomers.showCustomer(id); },
   /** Opens Pacientes filtered by this account. */
   patientsOf: (accountId: string, name: string): void => { Object.assign(PAC, { q: '', medico: accountId, medicoNombre: name, pagina: 0 }); goTo('pacientes'); },
   visitDetails: (visit: object): string => detTxt(visit),
   fieldName: (field: string): string => campoTxt(field),
-  valueText: (value: unknown): string => textoValor(value),
-  detailSummary: (detail: unknown): string => resumenDetalle(detail),
-  undo: (id: number, then: () => void): void => { void deshacerUno(id, then); },
+  valueText: (value: unknown): string => legacyFreeScreensSettingsMore.valueText(value),
+  detailSummary: (detail: unknown): string => legacyFreeScreensSettingsMore.detailSummary(detail),
+  undo: (id: number, then: () => void): void => { void legacyFreeScreensSettingsMore.undoChange(id, then); },
 };
 
 /** Portal of the account (material requested, messages, products it can order) and platform access: legacy helpers. */
@@ -332,7 +340,7 @@ export const portalLegacy = {
   hasPortal: (): boolean => hayExtra('portal'),
   materialPill: (state: string): string => pillMaterial(state),
   products: async (): Promise<readonly CatalogProduct[]> => { if (!productsStore.products.length) await cargarProductos(); return productsStore.products; },
-  euros: (value: number): string => eurI(value),
+  euros: (value: number): string => legacyFreeCoreServices.money.eurosRounded(value),
 };
 
 export const accessLegacy = {
@@ -356,19 +364,19 @@ export const accountListLegacy = {
   mapMode: (): boolean => accountsStore.mapMode,
   /** The database order key of a column (only the sortable ones). */
   sortKey: (column: string): string | undefined => ORD_DIR[column],
-  fieldChips: (state: Record<string, unknown>): { k: string; t: string }[] => clasChips('medico', state),
+  fieldChips: (state: Record<string, unknown>): { k: string; t: string }[] => legacyFreeComponents.filterChips(('medico'), state),
   contactsLabel: (): string => etiquetaContactos(),
   pageSize: (): number => tamPagina(),
   paginate: (options: { element: HTMLElement | null; total: number; page: number; onPage: (page: number) => void; onSize: () => void }): void => {
-    paginador(options.element, options.total, options.page, options.onPage, options.onSize);
+    legacyFreeCoreNavigationApi.pager(options.element, { total: options.total, page: options.page }, { onPage: options.onPage, onSize: options.onSize });
   },
 };
 
 /** What the columns and cells of Cuentas use from legacy: custom fields, platform access and names. */
 export const accountColumnsLegacy = {
   customFields: (): readonly CustomField[] => CAMPOS.medico ?? [],
-  fieldText: (field: CustomField | undefined, value: unknown): string => campoTexto(field, value),
-  firstName: (name: string): string => nombrePila(name),
+  fieldText: (field: CustomField | undefined, value: unknown): string => legacyFreeComponents.fieldText(field, value),
+  firstName: (name: string): string => legacyFreeCoreServices.vocabulary.firstName(name),
   /** Platform access by account (loaded once; null until it arrives). */
   accessOf: (): Record<string, { activo?: boolean }> | null => accountsStore.portalAccess as Record<string, { activo?: boolean }> | null,
   loadAccess: (): Promise<void> => legacyFreeCoreLeftovers.loadAccountAccess(),
@@ -377,7 +385,7 @@ export const accountColumnsLegacy = {
 
 /** Eventos: the list repaints through its global name (the page tabs and the dialog-close listener of legado 079 use it). */
 export const eventsLegacy = {
-  repaintList: (): void => { void pintarEventos(); },
+  repaintList: (): void => { void legacyFreeScreensEvents.paintEvents(); },
 };
 
 /** Shared helpers some screens still need from legacy. */
@@ -398,7 +406,7 @@ export const cycleLegacy = {
 
 /** Intervenciones: the list repaints through its global name (page tab and dialog-close listener of legado 079). */
 export const surgeriesLegacy = {
-  repaintList: (): void => { void pintarCirugias(); },
+  repaintList: (): void => { void legacyFreeScreensSurgeries.paintSurgeries(); },
 };
 
 /** Parque instalado: the warning days of contracts (shared with Concursos), the contract kinds and the product catalog. */
@@ -435,7 +443,7 @@ export const purchasesLegacy = {
 /** Importar datos: the Excel reader (loaded on first use), the error log, the write counter and the «Importaciones» tab. */
 export const importLegacy = {
   excelReader: (): Promise<SheetReader> => cargarLectorExcel(),
-  reportError: (message: string): void => { registrarError('error', message); },
+  reportError: (message: string): void => { legacyFreeCoreServices.errors.registerError(('error'), message, undefined); },
   countWrite: (): void => { sessionStore.writes++; },
   showHistory: (): void => { settingsStore.subsection = 'historial'; },
 };
@@ -454,15 +462,15 @@ export const manualLegacy = {
   moduleCount: (): number => Object.keys(MODULO_AREA).filter(puedeModulo).length,
   settingsOf: (id: string): string | undefined => CFG_DE_MODULO[id],
   profile: (): { nombre: string; rol: string } => sessionStore.profile as { nombre: string; rol: string },
-  planIncludes: (module: string): boolean => planIncluye(module),
-  cheapestPlan: (module: string): string | undefined => planMinimo(module)?.nombre,
-  showPlanNotice: (module: string): void => { avisoPlan(module); },
+  planIncludes: (module: string): boolean => legacyFreeCoreServices.plans.planIncludes(module),
+  cheapestPlan: (module: string): string | undefined => legacyFreeCoreServices.plans.minimumPlan(module)?.nombre,
+  showPlanNotice: (module: string): void => { legacyFreeCoreServices.plans.planNotice(module); },
   go: (screen: string, configSection?: string): void => { if (configSection !== undefined) settingsStore.section = configSection; ir(screen); },
-  vocabulary: (): { empresa: string; terminos: Record<string, unknown> } => ({ empresa: nombreApp(), terminos: Object.fromEntries(Object.keys(TERM_DEF).map(key => [key, terminoDe(key)])) }),
+  vocabulary: (): { empresa: string; terminos: Record<string, unknown> } => ({ empresa: legacyFreeCoreServices.appName(), terminos: Object.fromEntries(Object.keys(TERM_DEF).map(key => [key, legacyFreeCoreServices.vocabulary.termOf(key)])) }),
   isIos: (): boolean => ES_IOS,
   back: (): { tab: string; y: number } | null => homeStore.manualReturn,
   takeBack: (): { tab: string; y: number } | null => { const back = homeStore.manualReturn; homeStore.manualReturn = null; return back; },
-  screenName: (screen: string): string => nombrePantalla(screen),
+  screenName: (screen: string): string => legacyFreeCoreNavigationApi.screenName(screen),
   pageInfo: (screen: string): { t?: string; d?: string } => (PAGINAS[screen] ?? {}) as { t?: string; d?: string },
   attachHelp: (title: HTMLElement, html: string): void => { legacyFreeComponents.glueHelp(title, html); },
 };
@@ -483,7 +491,7 @@ export const opportunitiesLegacy = {
   products: (): readonly (CatalogProduct & { iva?: number | null })[] => productsStore.products,
   loadProducts: async (): Promise<void> => { if (!productsStore.products.length) await cargarProductos(); },
   defaultProduct: (): string => productoPorDefecto(),
-  searchClients: <T>(query: string): Promise<T[]> => buscarClientes(query) as Promise<T[]>,
+  searchClients: <T>(query: string): Promise<T[]> => legacyFreeScreensCustomers.searchCustomers(query) as Promise<T[]>,
   editContact: (preset: Record<string, unknown>, onSave: (client: unknown) => void): void => { editorContacto(preset, onSave); },
   editOrder: (preset?: Record<string, unknown>): void => { void editorPedido(preset); },
   /** The order saved next is linked to this opportunity (legado 038). */
@@ -497,7 +505,7 @@ export const opportunitiesLegacy = {
   periodOf: (element: HTMLElement | null): { desde: string | null; hasta: string | null } =>
     (Reflect.get(element ?? {}, '__rango') as (() => { desde: string | null; hasta: string | null }) | undefined)?.() ?? { desde: null, hasta: null },
   barChart: (items: { n: string; v: number }[], format: (value: number) => string): string => legacyFreeComponents.rankingBars(items, format),
-  emptyChart: (text: string): string => vacioGrafico(text),
+  emptyChart: (text: string): string => legacyFreeComponents.emptyChart(text),
   page: (): number => ordersStore.callsPage,
   setPage: (page: number): void => { ordersStore.callsPage = page; },
   ordersSection: (): string => ordersStore.section,

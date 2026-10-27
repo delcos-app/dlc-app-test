@@ -7,6 +7,8 @@ import { byId, closestTo } from './dom';
 import * as legacyFreeCoreLegacyC from './';
 import { navigationStore } from '../navigation/store';
 import { sessionStore } from '../session-store';
+import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeScreensPlatform from '../../screens/platform';
 
 const COVER_MAX_MS = 9000, CHECK_EVERY_MS = 60, CHECKS = 80, REVEAL_STEP_MS = 100, REVEAL_STEPS = 30;
 
@@ -23,14 +25,14 @@ export function extrasAreExceptions(): void {
 
 /** «Salir» of the viewed organization covers the app while it goes back to the panel. */
 export function coverWhenLeavingOrganization(): void {
-  document.addEventListener('click', event => { if (closestTo(event.target, '#orgvistasal')) prepararCambioOrg(t('legacyC.platform.panel')); }, true);
+  document.addEventListener('click', event => { if (closestTo(event.target, '#orgvistasal')) legacyFreeCoreServices.session.prepareOrganizationChange((t('legacyC.platform.panel'))); }, true);
 }
 
 const pause = (ms: number): Promise<void> => new Promise(resolve => { setTimeout(resolve, ms); });
 
 async function finishWhenReady(): Promise<void> {
   try { await pagoCargarEstado(); } catch { /* the cover goes anyway */ }
-  try { await franjaVista(); } catch { /* the cover goes anyway */ }
+  try { await legacyFreeScreensPlatform.paintViewBand(); } catch { /* the cover goes anyway */ }
   try { legacyFreeCoreLegacyC.applyPlatformMode(); } catch { /* the cover goes anyway */ }
   if (navigationStore.platformMode && navigationStore.screen !== 'delcos') ir('pd-orgs');
   // Waits until the screen has revealed its data (3 s at most)

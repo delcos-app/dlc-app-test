@@ -2,7 +2,6 @@
 // pantallas/inicio.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function inicioPosible(it, llegada, dura) { return window.delcos.leftovers.earliestStart(it, llegada, dura); }
 
  // v2.440.0: ALERTAS_OCULTAS → estado de src/app (plan 6.6), accesible en window
 

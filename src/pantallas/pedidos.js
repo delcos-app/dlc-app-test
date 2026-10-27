@@ -72,19 +72,8 @@ const PK_TARJ = [['pago', 'pago', window.delcos.t('legacyTexts.orderCards.paymen
 function cargarVentas() { return window.delcos.screens.orders.loadSales(); }
 function listaPedidos() { return window.delcos.screens.orders.paintOrderList(); }
 function verPedido(id) { return window.delcos.screens.orders.showOrder(id); }
-function pintarDistribuidores() { return window.delcos.screens.orders.paintDistributors(); }
 function configurarAvisosPedidos(oblig) { return window.delcos.screens.orders.configureAlerts(oblig || []); }
-function enviarDatosPago(id) { return window.delcos.screens.orders.sendPaymentDetails(id); }
-function totalesPedido(lineas, d, dt, env) { return window.delcos.screens.orders.orderTotals(lineas, d, dt, env); }
-function lineaDesglose(l) { return window.delcos.screens.orders.lineBreakdown(l); }
-function bloqueTotales(t) { return window.delcos.screens.orders.totalsHtml(t); }
-function esTransferencia(fp) { return window.delcos.screens.orders.isBankTransfer(fp); }
 function sinCargoP(p, total) { return window.delcos.screens.orders.isFree(p, total); }
-function pasoPedido(p) { return window.delcos.screens.orders.orderStep(p); }
-function pillPaso(p) { return window.delcos.screens.orders.stepPill(p); }
-function pillEstado(e) { return window.delcos.screens.orders.statePill(e); }
-function asuntoEmailPago(p, total, cliente) { return window.delcos.screens.orders.paymentSubject(p, total, cliente); }
-function textoEmailPago(p, total, cliente) { return window.delcos.screens.orders.paymentText(p, total, cliente); }
 
 // El editor del pedido, el cobro con tarjeta, las suscripciones y las tarjetas están en src/app/screens/orders (v2.417.0). Estos nombres
 // se quedan: legado 058 (ventana amplia), 073, 075, 076, 147, Clientes, Configuración, el Panel delcos, Portal y las pruebas los usan.
@@ -93,19 +82,8 @@ function pintarTpv() { return window.delcos.screens.orders.paintTpvSettings(); }
 function pagoLlamar(cuerpo, boton) { return window.delcos.screens.orders.callPayments(cuerpo, boton || null); }
 function pagoEsperarActivo() { return window.delcos.screens.orders.waitUntilActive(); }
 function pagoEsperarBaja() { return window.delcos.screens.orders.waitUntilCancelled(); }
-function pagoAviso() { return window.delcos.screens.orders.paintPaymentNotices(); }
 function pagoCargarEstado() { return window.delcos.screens.orders.loadPaymentState(); }
 function elegirPago(planIni) { return window.delcos.screens.orders.choosePlan(planIni); }
-function pdCobroEstado(o) { return window.delcos.screens.orders.companyPaymentState(o); }
-function pdMensual(p) { return window.delcos.screens.orders.monthlyAmount(p); }
-function pdHace(v) { return window.delcos.screens.orders.ago(v); }
-function pdKpis(l) { return window.delcos.screens.orders.kpiTiles(l); }
-function pdEsqueleto() { return window.delcos.screens.orders.billingSkeleton(); }
 function pkMarcar() { return window.delcos.screens.orders.markChosenCard(); }
 function pkFestivo(iso) { return window.delcos.screens.orders.isHoliday(iso); }
-function pkLibre(iso) { return window.delcos.screens.orders.isDayOff(iso); }
-function pkDia(iso, n, hoy) { return window.delcos.screens.orders.dayHtml(iso, n, hoy); }
-function pkContar(els, fmt) { return window.delcos.screens.orders.countUp(els, fmt); }
-function menuPedidos2139() { return window.delcos.screens.orders.addOrderMenuEntries(); }
 function abrirKpis() { return window.delcos.screens.home.openIndicatorSettings(); }
-function esPorcentajeIva(i) { return window.delcos.screens.orders.isVatPercentField(i); }

@@ -4,9 +4,6 @@
 // nucleo/idioma.js · está en src/app/core/language.ts y la tabla en src/app/i18n/dom-translations.ts (v2.425.0). IDIOMA y MAPA_I18N
 // (estado que lee el legado) se quedan aquí; estos nombres también. Normas: docs/normas_codigo.md.
 
-function prepararIdioma(id) { return window.delcos.core.language.prepareLanguage(id); }
-function traducir(raiz) { return window.delcos.core.language.translate(raiz); }
-function aplicarIdioma(id) { return window.delcos.core.language.applyLanguage(id); }
 
 const IDIOMAS = window.delcos.core.language.LANGUAGES;
 

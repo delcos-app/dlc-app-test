@@ -9,6 +9,10 @@ import { vatRates } from '../organisation';
 import { addedElements, byId, closestTo, matchingIn, observe } from './dom';
 import * as legacyFreeCoreLegacyC from './';
 import * as legacyFreeComponents from '../../components';
+import * as legacyFreeScreensOrders from '../../screens/orders';
+import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeCoreLeftovers from '../leftovers';
+import * as legacyFreeCoreLegacyB from '../legacy-b';
 
 const MAX_TEXTAREA_PX = 420, REPEAT_AFTER_MS = 450, REPEAT_EVERY_MS = 90;
 
@@ -36,7 +40,7 @@ function replaceWithSelect(input: HTMLInputElement): void {
 
 /** VAT selector (the legacy ivaSelector): only on percentages, never on an amount «con IVA»; without the «+»/«−» buttons. */
 export function vatSelector(input: HTMLInputElement | null | undefined): void {
-  if (!input || !esPorcentajeIva(input) || input.dataset.ivasel) return;
+  if (!input || !legacyFreeScreensOrders.isVatPercentField(input) || input.dataset.ivasel) return;
   input.dataset.sel = '1';
   const wrapper = input.closest('.numw');
   if (wrapper) { wrapper.parentNode?.insertBefore(input, wrapper); wrapper.remove(); }
@@ -54,9 +58,9 @@ export const watchVatFields = (): void => { onAdded('#priva, #penvv, input[data-
 export function watchFormFields(): void {
   onAdded('input[type=number],input[type=text]', element => {
     const input = element as HTMLInputElement;
-    if (!input.dataset.ivasel && ES_IVA(input) && !/iban|precio|importe/i.test(input.id)) legacyFreeCoreLegacyC.vatSelector(input);
+    if (!input.dataset.ivasel && legacyFreeCoreServices.money.isVatField(input) && !/iban|precio|importe/i.test(input.id)) legacyFreeCoreLegacyC.vatSelector(input);
   });
-  onAdded('input[type=file]', element => { selectorArchivo(element as HTMLInputElement); });
+  onAdded('input[type=file]', element => { legacyFreeCoreServices.files.filePicker((element as HTMLInputElement)); });
   document.addEventListener('input', event => {
     const area = event.target;
     if (area instanceof HTMLTextAreaElement) { area.style.height = 'auto'; area.style.height = `${Math.min(area.scrollHeight + 2, MAX_TEXTAREA_PX)}px`; }
@@ -68,19 +72,19 @@ export function undoWrongVat(): void {
   observe(document.body, () => {
     document.querySelectorAll('select.ivasel').forEach(select => {
       const input = select.previousElementSibling;
-      if (!(input instanceof HTMLInputElement) || esPorcentajeIva(input)) return;
+      if (!(input instanceof HTMLInputElement) || legacyFreeScreensOrders.isVatPercentField(input)) return;
       input.classList.remove('hide'); delete input.dataset.ivasel; delete input.dataset.sel; select.remove();
       if (input.id) document.querySelector(`label[for="${input.id}_sel"]`)?.setAttribute('for', input.id);
     });
   }, { childList: true, subtree: true });
 }
 
-export const watchWideNotes = (): void => { onAdded('input[type=text]', element => { notaAmplia(element as HTMLInputElement); }); };
+export const watchWideNotes = (): void => { onAdded('input[type=text]', element => { legacyFreeCoreLeftovers.wideNote((element as HTMLInputElement)); }); };
 
 /** v2.101.0: the visible value of a month and of a date with time (the legacy valorVisible). */
 export function visibleValue(input: HTMLInputElement): void {
-  const kind = selTipo(input);
-  if (kind !== 'mes' && kind !== 'fechahora') { valorVisibleBase(input); return; }
+  const kind = legacyFreeComponents.kindOf(input);
+  if (kind !== 'mes' && kind !== 'fechahora') { legacyFreeCoreLegacyB.showVisibleValue(input); return; }
   const shown = input.closest('.selw')?.querySelector('.selval'); if (!shown) return;
   const value = input.value;
   if (!value) { shown.textContent = t(kind === 'mes' ? 'legacyC.fields.chooseMonth' : 'legacyC.fields.chooseDateTime'); shown.classList.add('vacio'); return; }

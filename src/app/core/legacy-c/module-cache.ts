@@ -13,6 +13,7 @@ import { productsStore } from '../../screens/products/store';
 import { billingStore } from '../../screens/billing/store';
 import { agendaStore } from '../../screens/agenda/store';
 import { navigationStore } from '../navigation/store';
+import * as legacyFreeCoreServices from '../services';
 
 const UNCHANGED_FOR_MS = 800, MINUTE_MS = 60000, SAFETY_MS = 6000;
 type Loader = (...args: unknown[]) => Promise<unknown>;
@@ -44,7 +45,7 @@ export function cacheModuleLoaders(): void {
   LOADERS.forEach(([screen, name]) => {
     const original = globals[name]; if (!original) return;
     globals[name] = async function (this: unknown, ...args: unknown[]): Promise<unknown> {
-      if (usarCache(screen)) { if (screen === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); return undefined; }
+      if (legacyFreeCoreServices.reads.canReuseScreen(screen)) { if (screen === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); return undefined; }
       if (screen === 'agenda' && Date.now() < unchangedUntil && !navigationStore.via) return undefined;   // a window closed without changes
       const result = await original.apply(this, args); legacyFreeCoreSettings.markModuleCache(screen); if (screen === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); return result;
     };
@@ -87,10 +88,10 @@ export function keepUpdateTime(): void {
 export function loaderOnPageChange(): void {
   document.addEventListener('click', event => {
     const button = closestTo<HTMLButtonElement>(event.target, 'main .pag button:not(:disabled)');
-    if (button) cargaLocal(button.closest('.card') ?? button.closest('.pag')?.parentElement ?? null);
+    if (button) legacyFreeCoreServices.reads.localLoading((button.closest('.card') ?? button.closest('.pag')?.parentElement ?? null));
   }, true);
   document.addEventListener('change', event => {
     const select = closestTo(event.target, 'main .pag select');
-    if (select) cargaLocal(select.closest('.card') ?? select.closest('.pag')?.parentElement ?? null);
+    if (select) legacyFreeCoreServices.reads.localLoading((select.closest('.card') ?? select.closest('.pag')?.parentElement ?? null));
   }, true);
 }

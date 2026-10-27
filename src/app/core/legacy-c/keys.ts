@@ -1,6 +1,7 @@
 import { sessionStore } from '../session-store';
 import { navigationStore } from '../navigation/store';
 import { settingsStore } from '../../screens/settings/store';
+import * as legacyFreeComponents from '../../components';
 /**
  * Keyboard: ↑ ↓ and Enter in the search suggestions (the mouse moves the mark too), and F5 / Ctrl+R remembers the screen to come back to
  * it (Ctrl+F5 and Shift start again). Folded from legado 071 (v2.425.0).
@@ -14,11 +15,11 @@ const isListKey = (event: KeyboardEvent): boolean =>
 function moveMark(event: KeyboardEvent): void {
   if (!isListKey(event)) return;
   const list = teclaLista(event.target); if (!list) return;
-  const items = teclaItems(list); if (!items.length) return;
+  const items = legacyFreeComponents.listItems(list); if (!items.length) return;
   let index = items.findIndex(item => item.classList.contains('activo'));
   if (event.key === 'Enter') {
     const marked = items[index]; if (!marked) return;
-    event.preventDefault(); event.stopImmediatePropagation(); teclaActivar(marked); return;
+    event.preventDefault(); event.stopImmediatePropagation(); legacyFreeComponents.activateItem(marked); return;
   }
   event.preventDefault();
   items.forEach(item => { item.classList.remove('activo'); item.removeAttribute('aria-selected'); });
@@ -37,7 +38,7 @@ export function navigateSuggestions(): void {
   }, true);
   document.addEventListener('mouseover', event => {
     const list = event.target instanceof Element ? event.target.closest('.gsug, .cpres') : null; if (!list) return;
-    const item = teclaItems(list).find(candidate => candidate.contains(event.target as Node));
+    const item = legacyFreeComponents.listItems(list).find(candidate => candidate.contains(event.target as Node));
     if (!item || item.classList.contains('activo')) return;
     clearMark(list);
     item.classList.add('activo');
