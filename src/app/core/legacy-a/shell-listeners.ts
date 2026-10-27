@@ -5,6 +5,7 @@
 import { legacyDb } from '../../legacy/bridge';
 import { shellLegacy } from '../../legacy/legado-a-bridge';
 import { t } from '../../i18n';
+import { loadPlanUsage } from '../boot/startup';
 
 const SEARCH_WAIT_MS = 300, NOT_CONFIRMED = /not confirmed/i, WRONG_CREDENTIALS = 'Invalid login credentials';
 const byId = (id: string): HTMLElement | null => document.getElementById(id);
@@ -22,6 +23,7 @@ async function signIn(event: Event): Promise<void> {
     message.textContent = error.message === WRONG_CREDENTIALS ? t('legacyA.signIn.wrong') : t('legacyA.signIn.failed', { error: error.message });
     return;
   }
+  loadPlanUsage();
   shellLegacy.start();
 }
 

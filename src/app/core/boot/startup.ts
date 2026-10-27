@@ -4,6 +4,7 @@
  * the company, the bell refresh and the directory map's close button.
  */
 import { legacyBActions, legacyBState } from '../../legacy/legado-b-bridge';
+import { navLegacy } from '../../legacy/nav-bridge';
 import { t, type MessageKey } from '../../i18n';
 
 const CACHE_PREFIX = 'dlc-rc-', CACHE_KEEP = 60, CACHE_CHECK_MS = 10 * 60 * 1000, MAPS_CHECK_MS = 30000, BELL_MS = 30000, ZOOMED = 1.01;
@@ -74,13 +75,16 @@ export function loadPublicBrand(): void {
   }, () => undefined);
 }
 
-/** v2.41.0: the company's plan, then the menu with what it includes. */
+/** v2.41.0: the company's plan, then the menu with what it includes. v2.444.0: only with a session (without one the server refuses it
+ * since SQL 181, and the entry screen showed that 401 in the console); signing in asks for it again. */
 export function loadPlanUsage(): void {
-  Promise.resolve(legacyBActions.rpcOriginal<{ plan?: Record<string, unknown> }>('plan_uso', {})).then(result => {
+  Promise.resolve(navLegacy.auth().getSession()).then(async ({ data: { session } }) => {
+    if (!session) return;
+    const result = await legacyBActions.rpcOriginal<{ plan?: Record<string, unknown> }>('plan_uso', {});
     if (!result.data?.plan) return;
     legacyBState.setPlan(result.data.plan);
     if (legacyBState.profile()) legacyBActions.applyMenuPermissions();
-  }, () => undefined);
+  }).catch(() => undefined);
 }
 
 /** v2.41.0: Administración is inside Configuración, so its menu entry is hidden. */

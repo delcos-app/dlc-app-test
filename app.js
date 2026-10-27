@@ -35899,8 +35899,8 @@
     const classes = ["cdia", isoDate === today2 ? "hoy" : "", isoDate === selected3 ? "sel" : "", [0, 6].includes(date.getDay()) ? "finde" : "", reason ? "bloq" : ""].filter(Boolean).join(" ");
     const options5 = isoDate >= today2 ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t("agenda.strip.dayOptions")}" title="${t("agenda.strip.dayOptions")}">⋯</span>` : "";
     const letter = t("dates.weekdayLetters").split(",")[(date.getDay() + 6) % 7] ?? "";
-    return `<button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ""} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count2}" title="${count2}">
-      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span>${options5}</button>`;
+    return `<div><button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ""} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count2}" title="${count2}">
+      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span></button>${options5}</div>`;
   }
   function weekButtonHtml(open2) {
     const label = t(open2 ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
@@ -35946,7 +35946,7 @@
   }
   function bindDayOptions(strip) {
     strip.querySelectorAll(".cdmas").forEach((options5) => {
-      const day = options5.closest("[data-cf]");
+      const day = options5.parentElement?.querySelector("[data-cf]");
       const open2 = (event) => {
         event.stopPropagation();
         event.preventDefault();
@@ -35954,7 +35954,7 @@
       };
       options5.addEventListener("click", open2, true);
       options5.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") open2(event);
+        if (event.key === "Enter" || event.key === " ") open2(event);
       });
     });
   }
@@ -36052,11 +36052,11 @@
     const date = fromIsoDate(isoDate), blockedReason = context.blocked[isoDate];
     const classes = ["agsld", isoDate === context.today ? "hoy" : "", isoDate === context.selected ? "sel" : "", blockedReason ? "bloq" : ""].filter(Boolean).join(" ");
     const weekday = t("dates.weekdaysShort").split(",")[date.getDay()] ?? "";
-    const menu = isoDate >= context.today ? `<button type="button" class="agslm" data-agslm="${isoDate}" aria-label="${t("agenda.week.dayOptions", { date: formatShortDate(isoDate) })}">⋯</button>` : "<span></span>";
-    return `<div class="${classes}" data-agsl="${isoDate}" role="button" tabindex="0" aria-label="${t("agenda.week.seeDay", { date: formatShortDate(isoDate) })}">
+    const menu = isoDate >= context.today ? `<button type="button" class="agslm" data-agslm="${isoDate}" aria-label="${t("agenda.week.dayOptions", { date: formatShortDate(isoDate) })}">⋯</button>` : "";
+    return `<div><div class="${classes}" data-agsl="${isoDate}" role="button" tabindex="0" aria-label="${t("agenda.week.seeDay", { date: formatShortDate(isoDate) })}">
         <span class="agslf">${date.getDate()}<small>${weekday}</small></span>
         <span class="agslc">${dayContent(items, blockedReason)}</span>
-        ${menu}</div>`;
+        <span></span></div>${menu}</div>`;
   }
   function bind20(box5, blocked) {
     box5.querySelectorAll("[data-agslm]").forEach((button3) => {
@@ -36072,7 +36072,10 @@
       };
       day.onclick = show3;
       day.onkeydown = (event) => {
-        if (event.key === "Enter") show3();
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          show3();
+        }
       };
     });
     const share = document.getElementById("agslrep");
@@ -38477,11 +38480,13 @@
     }, () => void 0);
   }
   function loadPlanUsage() {
-    Promise.resolve(legacyBActions.rpcOriginal("plan_uso", {})).then((result) => {
+    Promise.resolve(navLegacy.auth().getSession()).then(async ({ data: { session: session2 } }) => {
+      if (!session2) return;
+      const result = await legacyBActions.rpcOriginal("plan_uso", {});
       if (!result.data?.plan) return;
       legacyBState.setPlan(result.data.plan);
       if (legacyBState.profile()) legacyBActions.applyMenuPermissions();
-    }, () => void 0);
+    }).catch(() => void 0);
   }
   function hideAdminMenu() {
     document.querySelectorAll('[data-u="adm"]').forEach((button3) => {
@@ -40530,6 +40535,7 @@
       message4.textContent = error.message === WRONG_CREDENTIALS ? t("legacyA.signIn.wrong") : t("legacyA.signIn.failed", { error: error.message });
       return;
     }
+    loadPlanUsage();
     shellLegacy2.start();
   }
   async function userMenu(event) {

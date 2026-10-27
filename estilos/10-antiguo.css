@@ -3628,7 +3628,9 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 #agsemlat .agslnota{margin:2px 16px 0}
 #agsemlat .agsl{display:flex;flex-direction:column;gap:8px;margin:12px 16px 0}
 #agsemlat .agsld{display:grid;grid-template-columns:42px minmax(0,1fr) 28px;gap:10px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--panel,#fff);cursor:pointer}
-#agsemlat .agsld:hover{border-color:#B9CCE0}
+#agsemlat .agsl>div{position:relative;display:grid;min-width:0}   /* v2.444.0: tarjeta del día con su «⋯» al lado, no dentro */
+#agsemlat .agsl>div>.agslm{position:absolute;top:10px;right:11px}
+#agsemlat .agsl>div:hover .agsld:not(.sel){border-color:#B9CCE0}
 #agsemlat .agsld.hoy .agslf{color:var(--azul,#3F82C0)}
 #agsemlat .agsld.sel{border-color:var(--navy);box-shadow:inset 0 0 0 1px var(--navy)}
 #agsemlat .agsld.bloq{background:repeating-linear-gradient(135deg,#F7F9FC 0 6px,#EEF2F7 6px 12px)}
@@ -3642,9 +3644,10 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 #agsemlat .agslm{border:0;background:#EEF4FB;display:inline-grid;place-items:center;cursor:pointer;color:var(--navy);font-weight:700}
 #agsemlat .agslacts{justify-content:flex-end;margin:12px 16px 16px}
 #agcinta .cdia{position:relative}
+#agcinta .c7>div{position:relative;display:grid;min-width:0}   /* v2.444.0: celda del día con su «⋯» al lado del botón, no dentro */
 #agcinta .cdmas{position:absolute;width:22px;height:22px;border-radius:7px;background:var(--panel,#fff);color:var(--navy);display:grid;place-items:center;font:700 14px/1 var(--f-titulo);opacity:0;box-shadow:0 1px 3px rgba(11,37,64,.15)}
-#agcinta .cdia:hover .cdmas,#agcinta .cdia:focus-within .cdmas,#agcinta .cdia.sel .cdmas{opacity:1}
-@media (pointer:coarse){#agcinta .cdmas{pointer-events:none}#agcinta .cdia.sel .cdmas{pointer-events:auto}}
+#agcinta .c7>div:hover .cdmas,#agcinta .c7>div:focus-within .cdmas,#agcinta .cdia.sel+.cdmas{opacity:1}
+@media (pointer:coarse){#agcinta .cdmas{pointer-events:none}#agcinta .cdia.sel+.cdmas{pointer-events:auto}}
 #agcinta .cdia.bloq{background:repeating-linear-gradient(135deg,#F3F6FA 0 6px,#E9EEF5 6px 12px);border-radius:12px}
 #agcinta .cdia.bloq::after{content:attr(data-bloq);position:absolute;left:4px;right:4px;bottom:2px;font:700 9.5px var(--f-texto);color:#8A5A00;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #cplan{display:inline-flex;align-items:center;gap:6px}
@@ -3735,7 +3738,7 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
 #agcuerpo .tdtitw > .tdstats{flex:0 0 100%}
 #agcuerpo .tddiamas{width:34px;height:34px;min-height:0;padding:0;display:inline-grid;place-items:center;border-radius:10px;margin-left:auto}
 #agcuerpo .tddiamas svg{width:18px;height:18px}
-@media (pointer:coarse){#agcinta .cdmas,#agcinta .cdia.sel .cdmas{display:none}}
+@media (pointer:coarse){#agcinta .cdmas,#agcinta .cdia.sel+.cdmas{display:none}}
 /* Tu día con los mismos márgenes */
 #v-agenda.agcinta #agcuerpo > .agband,#v-agenda.agcinta #agcuerpo > #tdnocabe,#v-agenda.agcinta #agcuerpo > .tdesc,#v-agenda.agcinta #agcuerpo > #tdtareas{margin-left:16px;margin-right:16px}
 #v-agenda.agcinta #agcuerpo > .tdesc{margin-bottom:16px}
@@ -4330,7 +4333,7 @@ body.modo-medico #v-config #cfgcuerpo{grid-template-columns:repeat(2,minmax(0,1f
 #agcuerpo .tdhead #tddiamas{position:absolute;top:14px;right:16px;margin:0}
 
 /* v2.274.0 · Agenda: el «⋯» de cada día de la cinta a la derecha (sin tapar la letra), sitio para el «⋯» de Tu día y margen bajo «Tu semana» */
-#agcinta .cdmas{top:4px;right:4px;transform:none}   /* v2.363.0: centrado en vertical se montaba sobre el número del día */
+#agcinta .cdmas{top:5px;right:5px;transform:none}   /* v2.363.0: centrado en vertical se montaba sobre el número del día */
 #agsemlat .agsl{margin-bottom:16px}
 @media (min-width:761px){#agcuerpo .tdhead .acts{flex-basis:100%;width:100%}}
 

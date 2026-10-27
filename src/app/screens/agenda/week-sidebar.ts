@@ -38,11 +38,13 @@ function dayHtml(isoDate: string, items: readonly RangeAppointment[], context: D
   const classes = ['agsld', isoDate === context.today ? 'hoy' : '', isoDate === context.selected ? 'sel' : '', blockedReason ? 'bloq' : ''].filter(Boolean).join(' ');
   const weekday = t('dates.weekdaysShort').split(',')[date.getDay()] ?? '';
   const menu = isoDate >= context.today
-    ? `<button type="button" class="agslm" data-agslm="${isoDate}" aria-label="${t('agenda.week.dayOptions', { date: formatShortDate(isoDate) })}">⋯</button>` : '<span></span>';
-  return `<div class="${classes}" data-agsl="${isoDate}" role="button" tabindex="0" aria-label="${t('agenda.week.seeDay', { date: formatShortDate(isoDate) })}">
+    ? `<button type="button" class="agslm" data-agslm="${isoDate}" aria-label="${t('agenda.week.dayOptions', { date: formatShortDate(isoDate) })}">⋯</button>` : '';
+  // The «⋯» sits next to the day card, not inside it: a control inside another one is not reachable by assistive technology
+  // (axe nested-interactive). The cell wraps both and the menu is placed over the card's last column as before.
+  return `<div><div class="${classes}" data-agsl="${isoDate}" role="button" tabindex="0" aria-label="${t('agenda.week.seeDay', { date: formatShortDate(isoDate) })}">
         <span class="agslf">${date.getDate()}<small>${weekday}</small></span>
         <span class="agslc">${dayContent(items, blockedReason)}</span>
-        ${menu}</div>`;
+        <span></span></div>${menu}</div>`;
 }
 
 function bind(box: HTMLElement, blocked: Readonly<Record<string, string>>): void {
@@ -52,7 +54,7 @@ function bind(box: HTMLElement, blocked: Readonly<Record<string, string>>): void
   box.querySelectorAll<HTMLElement>('[data-agsl]').forEach(day => {
     const show = (): void => { legacyAgenda.showDay(day.dataset.agsl ?? ''); };
     day.onclick = show;
-    day.onkeydown = (event): void => { if (event.key === 'Enter') show(); };
+    day.onkeydown = (event): void => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); show(); } };
   });
   const share = document.getElementById('agslrep'); if (share) share.onclick = (): void => { void shareWeek(); };
 }

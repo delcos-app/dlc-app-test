@@ -41,8 +41,10 @@ function dayButton(isoDate: string, context: StripContext): string {
   const classes = ['cdia', isoDate === today ? 'hoy' : '', isoDate === selected ? 'sel' : '', [0, 6].includes(date.getDay()) ? 'finde' : '', reason ? 'bloq' : ''].filter(Boolean).join(' ');
   const options = isoDate >= today ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t('agenda.strip.dayOptions')}" title="${t('agenda.strip.dayOptions')}">⋯</span>` : '';
   const letter = t('dates.weekdayLetters').split(',')[(date.getDay() + 6) % 7] ?? '';
-  return `<button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ''} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count}" title="${count}">
-      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || '<b></b>'}</span>${options}</button>`;
+  // The «⋯» options sit next to the day button, not inside it: a control inside another one is not reachable by assistive
+  // technology (axe nested-interactive). The cell wraps both and the menu is placed over the day's corner as before.
+  return `<div><button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ''} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count}" title="${count}">
+      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || '<b></b>'}</span></button>${options}</div>`;
 }
 
 function weekButtonHtml(open: boolean): string {
@@ -85,10 +87,10 @@ export function bindWeekButton(): void {
 
 function bindDayOptions(strip: HTMLElement): void {
   strip.querySelectorAll<HTMLElement>('.cdmas').forEach(options => {
-    const day = options.closest<HTMLElement>('[data-cf]');
+    const day = options.parentElement?.querySelector<HTMLElement>('[data-cf]');
     const open = (event: Event): void => { event.stopPropagation(); event.preventDefault(); openDayMenu(options, day?.dataset.cf ?? '', Boolean(day?.classList.contains('bloq'))); };
     options.addEventListener('click', open, true);
-    options.addEventListener('keydown', event => { if (event.key === 'Enter') open(event); });
+    options.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') open(event); });
   });
 }
 
