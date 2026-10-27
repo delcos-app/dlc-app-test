@@ -5,7 +5,7 @@
 import { coreLegacy } from '../legacy/core-bridge';
 import { t } from '../i18n';
 import { LOCALES } from '../i18n/dom-translations';
-import { addDays, mondayOf, toIsoDate, todayIso } from './dates';
+import { addDays, fromIsoDate, mondayOf, toIsoDate, todayIso } from './dates';
 
 import { formatMinutes } from './dates';
 const NOON = 12, SATURDAY = 6, SUNDAY = 0, MAX_MONTHS = 36, MS_PER_DAY = 864e5;
@@ -41,7 +41,8 @@ const rangeBuilders = (base: Date): ReadonlyMap<string, () => [string, string]> 
 
 /** First and last day of a period key (hoy, semana, mes, tri…); [null, null] for any other. */
 export function periodRange(key: string): [string | null, string | null] {
-  const base = new Date(); base.setHours(NOON, 0, 0, 0);
+  // v2.447.0: from «today» (the organisation's zone, if it has one), at noon
+  const base = fromIsoDate(todayIso()); base.setHours(NOON, 0, 0, 0);
   const build = rangeBuilders(base).get(key);
   return build ? build() : [null, null];
 }
@@ -90,14 +91,14 @@ export const periodText = (period: string): string => {
 
 /** The next weekday (Monday to Friday) after today. */
 export function nextWorkingDay(): string {
-  const date = new Date();
+  const date = fromIsoDate(todayIso());
   do { date.setDate(date.getDate() + 1); } while (date.getDay() === SUNDAY || date.getDay() === SATURDAY);
   return localIso(date);
 }
 
 /** Letter of the day of a date (L, M, X…; D for Sunday). */
 export const dayLetter = (isoDate: string): string => LETTERS[new Date(`${isoDate}T12:00:00`).getDay()] ?? '';
-export const todayLetter = (): string => LETTERS[new Date().getDay()] ?? '';
+export const todayLetter = (): string => dayLetter(todayIso());
 
 /** «visitado el 3 oct (Ana), cita el 9 oct». */
 export const recentText = (list: readonly { tipo: string; fecha: string; usuario?: string | null }[]): string =>

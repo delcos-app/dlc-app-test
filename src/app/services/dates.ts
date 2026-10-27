@@ -1,11 +1,24 @@
-/** Dates as «YYYY-MM-DD» in local time (Spain), the format the database and the screens use. */
+/**
+ * Dates as «YYYY-MM-DD» in local time (Spain), the format the database and the screens use. «Today» follows the organisation's time
+ * zone when it has one (plan 11.3, v2.447.0; set by core/organisation), and the device's clock otherwise, as before.
+ */
 
 export function toIsoDate(date: Date): string {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
 
+/** Where «today» comes from: the organisation's time zone (IANA name), or empty for the device's clock. */
+let dayZone: () => string = () => '';
+export function useDayZone(zone: () => string): void { dayZone = zone; }
+
+/** «YYYY-MM-DD» of an instant in a time zone (en-CA writes the date in that order). */
+export function isoDateIn(date: Date, zone: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+}
+
 export function todayIso(): string {
-  return toIsoDate(new Date());
+  const zone = dayZone();
+  return zone ? isoDateIn(new Date(), zone) : toIsoDate(new Date());
 }
 
 /** «2026-10-24» plus `days` (negative goes back). Noon avoids daylight-saving surprises. */

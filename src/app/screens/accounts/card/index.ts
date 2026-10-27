@@ -5,7 +5,8 @@
  * Sections still in legacy are reached through the bridge and migrate one by one. abrirFicha stays as the global adapter:
  * «‹ Volver» (legado 126) wraps the windows by their global names.
  */
-import { accountCardLegacy } from '../../../legacy/bridge';
+import { accountCardLegacy, agendaActions } from '../../../legacy/bridge';
+import { addPrivacySection } from '../../privacy/person-data';
 import { paintBase as paintBaseBlocks } from './base';
 import { archiveButtons, centreProfessionals, cycle } from './sections-account';
 import { platformAccess } from './sections-access';
@@ -13,6 +14,7 @@ import { changeHistory, portalProposal } from './sections-admin';
 import { timetableNotice, units } from './sections-base';
 import { presentedProducts, visitMaterial, visitPhotos } from './sections-history';
 import { deposit, equipment, events, samples, surgeries, tenders } from './sections-related';
+import { stillShown } from './card-tools';
 import { centreProducts, portalActivity } from './sections-portal';
 import { associatedClients, salesRepAndPatients } from './sections-sales';
 
@@ -55,6 +57,8 @@ const SECTIONS: readonly Section[] = [
   { name: 'portalProposal', run: portalProposal },
   { name: 'centreProfessionals', run: centreProfessionals },
   { name: 'archiveButtons', run: archiveButtons },
+  // v2.446.0: «Protección de datos» (RGPD), at the foot, for whoever configures the company
+  { name: 'privacy', run: id => { addPrivacySection('cuenta', id, () => stillShown(id), () => { agendaActions.openAccount(id); }); return Promise.resolve(); } },
 ];
 
 async function runSection(section: Section, id: string): Promise<void> {

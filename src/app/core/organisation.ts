@@ -1,10 +1,11 @@
 /**
  * What depends on each organisation and not on the code (plan 12.2, v2.436.0): its country for address searches, the general VAT
  * rate used as default, and the words a password should not start with. Each one has today's value as default, so a company
- * without the setting sees exactly the same as before.
+ * without the setting sees exactly the same as before. v2.447.0: its time zone for «today» (plan 11.3).
  */
 import { organisationLegacy } from '../legacy/organisation-bridge';
 import { VAT_RATES, vatRateText } from '../services/money';
+import { useDayZone } from '../services/dates';
 
 /** The country stored in Datos fiscales (setting «empresa», field «pais»); the default is a database value, never translated. */
 export const DEFAULT_COUNTRY = 'España';
@@ -57,3 +58,24 @@ export function obviousPasswordWords(): string[] {
   const first = /[a-zñ]+/.exec(organisationLegacy.name().toLowerCase())?.[0] ?? '';
   return ['delcos', ...(first.length >= MIN_NAME_LENGTH ? [first] : [])];
 }
+
+/**
+ * Time zones offered in Organización → Zona horaria (IANA names; the database keeps the same list valid). Without the setting, the
+ * database works in Spain's (Europe/Madrid) and the screens with the device's clock, as before.
+ */
+export const TIME_ZONES = ['Europe/Madrid', 'Atlantic/Canary', 'Europe/Lisbon', 'Europe/London', 'Europe/Paris', 'Europe/Rome', 'Europe/Berlin',
+  'America/Mexico_City', 'America/Bogota', 'America/Lima', 'America/Santiago', 'America/Argentina/Buenos_Aires', 'America/New_York'] as const;
+
+/** True when the browser knows the zone (an unknown one would stop every date). */
+export function knownZone(zone: string): boolean {
+  try { new Intl.DateTimeFormat('en-CA', { timeZone: zone }); return true; } catch { return false; }
+}
+
+/** The organisation's time zone (setting «zona_horaria», field «zona»), empty when it has none. */
+export function organisationZone(): string {
+  const zone = (organisationLegacy.setting('zona_horaria') as { zona?: unknown } | undefined)?.zona;
+  return typeof zone === 'string' && zone && knownZone(zone) ? zone : '';
+}
+
+// «Today» in the whole app follows the organisation's zone once its settings have loaded
+useDayZone(organisationZone);

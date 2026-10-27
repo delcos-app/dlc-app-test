@@ -9,6 +9,7 @@ import { t } from '../../i18n';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback, sum } from '../../services/values';
+import { addPrivacySection } from '../privacy/person-data';
 import { words, type Customer } from './model';
 
 /** Order states that do not count (database values). */
@@ -122,4 +123,6 @@ export async function showCustomer(id: string): Promise<void> {
   const box = sheetBox();
   void customersLegacy.customFields(id, box ? box.querySelector('.fbody, #fbody') ?? box.firstElementChild : null);
   try { await addStatusButtons(id); } catch { /* the foot buttons are optional */ }
+  // v2.446.0: «Protección de datos» (RGPD), for whoever configures the company
+  addPrivacySection('contacto', id, () => customersLegacy.shownCustomer() === id, () => { void showCustomer(id); });
 }

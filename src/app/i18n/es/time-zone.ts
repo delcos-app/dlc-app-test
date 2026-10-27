@@ -1,0 +1,25 @@
+/** Organización → Zona horaria (plan 11.3, v2.447.0; part of es.ts). The zone keys are the IANA names with «_» for «/». */
+export const timeZone = {
+  title: 'Zona horaria',
+  treeHint: 'Qué día es «hoy» para toda la empresa',
+  intro: 'La hora de la empresa: decide qué día es «hoy» en la agenda, en Inicio, en los avisos y en los periodos de la analítica, para todo el equipo.',
+  label: 'Zona horaria de la empresa',
+  default: 'España peninsular (la de siempre)',
+  saved: 'Zona horaria guardada. El equipo la verá al volver a entrar.',
+  couldNotSave: 'No se ha podido guardar la zona horaria',
+  zones: {
+    Europe_Madrid: 'España peninsular y Baleares (Madrid)',
+    Atlantic_Canary: 'Canarias',
+    Europe_Lisbon: 'Portugal (Lisboa)',
+    Europe_London: 'Reino Unido (Londres)',
+    Europe_Paris: 'Francia (París)',
+    Europe_Rome: 'Italia (Roma)',
+    Europe_Berlin: 'Alemania (Berlín)',
+    America_Mexico_City: 'México (Ciudad de México)',
+    America_Bogota: 'Colombia (Bogotá)',
+    America_Lima: 'Perú (Lima)',
+    America_Santiago: 'Chile (Santiago)',
+    America_Argentina_Buenos_Aires: 'Argentina (Buenos Aires)',
+    America_New_York: 'Estados Unidos, costa este (Nueva York)',
+  },
+};

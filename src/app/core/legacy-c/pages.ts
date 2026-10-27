@@ -11,6 +11,7 @@ import * as legacyFreeScreensSettingsExtra from '../../screens/settings/extra';
 import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-window';
 import { navigationStore } from '../navigation/store';
 import { usesVerifactu } from '../organisation';
+import { paintTimeZone } from '../../screens/settings/time-zone/page';
 
 type Tab = [string, string, () => unknown];
 interface Page { t?: string; d?: string; tabs: Tab[]; permiso?: () => boolean; admin?: boolean }
@@ -29,13 +30,17 @@ function wrapTabs(name: string, change: (tabs: Tab[]) => Tab[]): void {
   Object.defineProperty(page, 'tabs', { configurable: true, get: () => change(previous()) });
 }
 
-/** v2.117.0: Organización, with billing only when the plan includes it (v2.131.0: without the organizations list; v2.445.0: VeriFactu only in Spain). */
+/**
+ * v2.117.0: Organización, with billing only when the plan includes it (v2.131.0: without the organizations list; v2.445.0: VeriFactu only
+ * in Spain; v2.447.0: Zona horaria).
+ */
 export function defineOrganization(): void {
   const page: Page = {
     t: t('legacyC.pages.organization.title'), d: t('legacyC.pages.organization.description'), permiso: puedeOrganizacion,
     get tabs(): Tab[] {
       const billing = planIncluye('facturacion');
       return [['marca', t('legacyC.pages.organization.brand'), () => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('legacyC.pages.organization.email'), () => legacyFreeScreensSettingsExtra.paintEmail()],
+        ['zona', t('timeZone.title'), () => paintTimeZone()],
         ['copias', t('legacyC.pages.organization.backups'), () => pintarCopias()], ['plan', t('legacyC.pages.organization.plan'), () => pintarPaginaPlan()],
         ...(billing ? [['fiscal', t('legacyC.pages.organization.fiscal'), facOrg(pintarEmpresa)], ['series', t('legacyC.pages.organization.series'), facOrg(pintarSeries)],
           ...(usesVerifactu() ? [['vf', t('legacyC.pages.organization.verifactu'), facOrg(pintarVerifactu)]] as Tab[] : []), ['pdf', t('legacyC.pages.organization.pdf'), () => disenoPDF()]] as Tab[] : []),

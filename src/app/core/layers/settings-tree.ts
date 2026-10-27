@@ -49,7 +49,7 @@ function baseTree(): Group[] {
       { k: 'usuarios', t: t('legacyD.tree.users'), ic: 'users', d: t('legacyD.tree.usersHint'), r: (): unknown => treeLegacy.paintUsers() },
       { k: 'roles', t: t('legacyD.tree.roles'), ic: 'lock-keyhole', d: t('legacyD.tree.rolesHint'), r: (): unknown => treeLegacy.paintRoles() },
       ...leavesOf(find('cartera')), ...leavesOf(find('comis')), ...leavesOf(find('seguridad'))] : []],
-    [t('legacyD.tree.company'), [...org('marca', 'palette', 'legacyD.tree.brandHint', 'legacyD.tree.brand'), ...org('correo', 'mail', 'legacyD.tree.emailHint'),
+    [t('legacyD.tree.company'), [...org('marca', 'palette', 'legacyD.tree.brandHint', 'legacyD.tree.brand'), ...org('correo', 'mail', 'legacyD.tree.emailHint'), ...org('zona', 'clock', 'timeZone.treeHint'),
       ...org('plan', 'credit-card', 'legacyD.tree.planHint'), ...org('copias', 'save', 'legacyD.tree.backupsHint'), ...org('orgs', 'building', 'legacyD.tree.orgsHint')]],
     [t('legacyD.tree.billing'), [...org('fiscal', 'receipt', 'legacyD.tree.fiscalHint'), ...org('series', 'receipt', 'legacyD.tree.seriesHint'),
       ...org('vf', 'receipt', 'legacyD.tree.verifactuHint'), ...org('pdf', 'receipt', 'legacyD.tree.pdfHint')]],

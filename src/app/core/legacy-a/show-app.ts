@@ -5,6 +5,7 @@
 import { showAppLegacy, type Profile } from '../../legacy/legado-a-bridge';
 import { t } from '../../i18n';
 import { orFallback } from '../../services/values';
+import { fromIsoDate, todayIso } from '../../services/dates';
 
 const ADDED_INDICATORS = ['uds_mes', 'prescriptores', 'citas_7d', 'sin_visita_60'];
 const MORNING_UNTIL = 13, AFTERNOON_UNTIL = 20, START_DELAY_MS = 50, BELL_DELAY_MS = 800, DAY_NOTICES_DELAY_MS = 1500;
@@ -48,7 +49,7 @@ function paintFrame(profile: Profile): void {
   setText('umnom', profile.nombre);
   setText('umrol', `${profile.rol} · ${profile.email}`);
   setText('hola', `${greeting()}, ${showAppLegacy.firstName(profile.nombre)}`);
-  setText('hoyfecha', showAppLegacy.longDate(new Date()).replace(/^./, letter => letter.toUpperCase()));
+  setText('hoyfecha', showAppLegacy.longDate(fromIsoDate(todayIso())).replace(/^./, letter => letter.toUpperCase()));
   byId('nuevoBtn')?.classList.toggle('hide', !showAppLegacy.canCreate());
   byId('dupBtn')?.classList.toggle('hide', !showAppLegacy.can('administrar'));
   document.querySelectorAll('#nav [data-t="ventas"], #nav [data-t="pacientes"], #nav [data-t="productos"]').forEach(button => { button.classList.toggle('hide', !showAppLegacy.seesSales()); });
