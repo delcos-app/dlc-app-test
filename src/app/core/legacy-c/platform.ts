@@ -16,7 +16,7 @@ export function extrasAreExceptions(): void {
     if (!closestTo(event.target, '[data-orgext]')) return;
     setTimeout(() => {
       const subtitle = byId('dbody')?.querySelector('.fh .sm');
-      if (subtitle && (subtitle.textContent ?? '').includes('aparte de su plan')) subtitle.textContent = t('legacyC.platform.extras');
+      if (subtitle && (subtitle.textContent ?? '').includes(t('platform.extras.subtitle'))) subtitle.textContent = t('legacyC.platform.extras');
     }, 0);
   }, true);
 }

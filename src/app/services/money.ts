@@ -23,9 +23,14 @@ export const eurosRounded = (value: unknown): string => euros(round2(value));
 /** Percentage of `part` in `whole` (0 without whole). */
 export const percent = (part: number, whole: number): number => (whole ? Math.round(part / whole * 100) : 0);
 
-/** The legal VAT rates, with their names. */
+/** «General · 21 %»: a VAT rate with its name («21 %» without one). */
+export const vatRateText = (rate: number, name: string): string =>
+  (name ? t('core.vat.rate', { name, rate: formatNumber(rate) }) : t('core.vat.rateOnly', { rate: formatNumber(rate) }));
+
+/** Spain's VAT rates, with their names: the list of an organisation that has not set its own (core/organisation.ts, vatRates). */
 export const VAT_RATES: readonly (readonly [number, string])[] = [
-  [21, t('core.vat.general')], [10, t('core.vat.reduced')], [4, t('core.vat.superReduced')], [0, t('core.vat.exempt')],
+  [21, vatRateText(21, t('core.vat.general'))], [10, vatRateText(10, t('core.vat.reduced'))], [4, vatRateText(4, t('core.vat.superReduced'))],
+  [0, vatRateText(0, t('core.vat.exempt'))],
 ];
 
 const labelText = (input: HTMLInputElement): string => (input.id ? document.querySelector(`label[for="${input.id}"]`)?.textContent ?? '' : '');

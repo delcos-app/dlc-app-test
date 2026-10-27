@@ -1,10 +1,11 @@
 /**
- * Form fields wherever they appear: VAT as a list of the legal rates and never on an amount (v2.54.0–v2.57.0), files, long notes and
+ * Form fields wherever they appear: VAT as a list of the organisation's rates (Spain's by default, v2.445.0) and never on an amount (v2.54.0–v2.57.0), files, long notes and
  * textareas that grow (v2.56.0/v2.57.0), month and date-time values, held «+»/«−», the wheel, minimum and maximum, no browser history,
  * keyboard in the search suggestions (v2.101.0), and dates and times on touch screens without the system picker (v2.175.0–v2.184.0).
  * Folded from legado 055, 057, 058, 071, 074, 077 and 078 (v2.425.0).
  */
 import { t } from '../../i18n';
+import { vatRates } from '../organisation';
 import { addedElements, byId, closestTo, matchingIn, observe } from './dom';
 import * as legacyFreeCoreLegacyC from './';
 import * as legacyFreeComponents from '../../components';
@@ -13,10 +14,10 @@ const MAX_TEXTAREA_PX = 420, REPEAT_AFTER_MS = 450, REPEAT_EVERY_MS = 90;
 
 function vatSelect(input: HTMLInputElement): HTMLSelectElement {
   const value = input.value === '' ? '' : Number(input.value);
-  const select = document.createElement('select');
+  const select = document.createElement('select'), rates = vatRates();
   select.className = 'ivasel'; if (input.disabled || input.readOnly) select.disabled = true;
-  select.innerHTML = TIPOS_IVA.map(([rate, text]) => `<option value="${rate}" ${rate === value ? 'selected' : ''}>${text}</option>`).join('')
-    + (value !== '' && !TIPOS_IVA.some(rate => rate[0] === value) ? `<option value="${value}" selected>${t('legacyC.vat.unusual', { rate: value })}</option>` : '');
+  select.innerHTML = rates.map(([rate, text]) => `<option value="${rate}" ${rate === value ? 'selected' : ''}>${text}</option>`).join('')
+    + (value !== '' && !rates.some(rate => rate[0] === value) ? `<option value="${value}" selected>${t('legacyC.vat.unusual', { rate: value })}</option>` : '');
   return select;
 }
 

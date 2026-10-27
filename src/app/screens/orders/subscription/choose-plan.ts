@@ -45,7 +45,7 @@ function receiptHtml(context: Context, choice: Choice): string {
   return `<div class="pgres">
         <div><span>${formatNumber(choice.usuarios)} × ${euros(yearly ? plan.precio * YEARLY_MONTHS : plan.precio)} ${t(yearly ? 'ordersMore.choosePlan.perYear' : 'ordersMore.choosePlan.perMonth')}</span><b>${euros(base)}</b></div>
         ${setup ? `<div><span>${t('ordersMore.choosePlan.setup')}</span><b>${euros(setup)}</b></div>` : ''}
-        <div><span>${t('ordersMore.choosePlan.vat')}</span><b>${euros(vat)}</b></div>
+        <div><span>${t('ordersMore.choosePlan.vat', { rate: VAT_RATE })}</span><b>${euros(vat)}</b></div>
         <div class="pgtot"><span>${label}</span><b>${euros(base + setup + vat)}</b></div></div>`;
 }
 

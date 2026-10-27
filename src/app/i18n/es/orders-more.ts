@@ -235,7 +235,7 @@ export const ordersMore = {
     perYear: 'al año',
     perMonth: 'al mes',
     setup: 'Puesta en marcha (una vez; incluida con pago anual)',
-    vat: 'IVA 21 %',
+    vat: 'IVA {rate} %',
     firstCharge: 'Primer cobro',
     amountFrom: 'Importe desde el {date}',
     newAmount: 'Nuevo importe',

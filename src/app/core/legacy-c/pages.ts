@@ -10,6 +10,7 @@ import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
 import * as legacyFreeScreensSettingsExtra from '../../screens/settings/extra';
 import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-window';
 import { navigationStore } from '../navigation/store';
+import { usesVerifactu } from '../organisation';
 
 type Tab = [string, string, () => unknown];
 interface Page { t?: string; d?: string; tabs: Tab[]; permiso?: () => boolean; admin?: boolean }
@@ -28,7 +29,7 @@ function wrapTabs(name: string, change: (tabs: Tab[]) => Tab[]): void {
   Object.defineProperty(page, 'tabs', { configurable: true, get: () => change(previous()) });
 }
 
-/** v2.117.0: Organización, with billing only when the plan includes it (v2.131.0: without the organizations list). */
+/** v2.117.0: Organización, with billing only when the plan includes it (v2.131.0: without the organizations list; v2.445.0: VeriFactu only in Spain). */
 export function defineOrganization(): void {
   const page: Page = {
     t: t('legacyC.pages.organization.title'), d: t('legacyC.pages.organization.description'), permiso: puedeOrganizacion,
@@ -37,7 +38,7 @@ export function defineOrganization(): void {
       return [['marca', t('legacyC.pages.organization.brand'), () => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('legacyC.pages.organization.email'), () => legacyFreeScreensSettingsExtra.paintEmail()],
         ['copias', t('legacyC.pages.organization.backups'), () => pintarCopias()], ['plan', t('legacyC.pages.organization.plan'), () => pintarPaginaPlan()],
         ...(billing ? [['fiscal', t('legacyC.pages.organization.fiscal'), facOrg(pintarEmpresa)], ['series', t('legacyC.pages.organization.series'), facOrg(pintarSeries)],
-          ['vf', t('legacyC.pages.organization.verifactu'), facOrg(pintarVerifactu)], ['pdf', t('legacyC.pages.organization.pdf'), () => disenoPDF()]] as Tab[] : []),
+          ...(usesVerifactu() ? [['vf', t('legacyC.pages.organization.verifactu'), facOrg(pintarVerifactu)]] as Tab[] : []), ['pdf', t('legacyC.pages.organization.pdf'), () => disenoPDF()]] as Tab[] : []),
         ...(puede('gestionar_plataforma') ? [['orgs', t('legacyC.pages.organization.organizations'), () => pintarOrganizaciones()]] as Tab[] : [])];
     },
   };

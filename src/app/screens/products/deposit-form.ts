@@ -3,7 +3,7 @@
  * patient data) and «Recuento» (what is missing counts as used). What is used leaves a draft order of the centre and offers to
  * replenish it. Migrated from the legacy formDeposito (v2.413.0).
  */
-import { appLegacy, legacyDb, notices, purchasesLegacy } from '../../legacy/bridge';
+import { appLegacy, legacyDb, notices, purchasesLegacy, term } from '../../legacy/bridge';
 import { productsLegacy } from '../../legacy/products-bridge';
 import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
@@ -32,7 +32,7 @@ function useHtml(lines: readonly DepositLine[]): string {
   return `<div class="depbox"><b>${t('products.deposit.useTitle')}</b>
       <div class="depitems">${lines.map((line, index) => `<label><span>${escapeHtml(line.nombre)} <span class="sm">· ${batchOf(line)} · ${t('products.deposit.left', { units: formatNumber(line.unidades) })}</span></span>
         <input type="number" min="0" max="${line.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t('products.deposit.usedOf', { name: escapeHtml(line.nombre) })}"></label>`).join('')}</div>
-      <label for="depref">${t('products.deposit.reference')}</label><input id="depref" maxlength="120" placeholder="${t('products.deposit.referencePlaceholder')}">
+      <label for="depref">${t('products.deposit.reference')}</label><input id="depref" maxlength="120" placeholder="${t('products.deposit.referencePlaceholder', { ofTheCustomer: term('paciente', { article: 'del' }) })}">
       ${actsHtml(t('products.deposit.record'))}</div>`;
 }
 

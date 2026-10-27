@@ -4,6 +4,7 @@
  * without the setting sees exactly the same as before.
  */
 import { organisationLegacy } from '../legacy/organisation-bridge';
+import { VAT_RATES, vatRateText } from '../services/money';
 
 /** The country stored in Datos fiscales (setting «empresa», field «pais»); the default is a database value, never translated. */
 export const DEFAULT_COUNTRY = 'España';
@@ -22,6 +23,9 @@ export function organisationCountry(): string {
 /** Its two-letter code for the map searches (empty when unknown: the search is then not limited to one country). */
 export const countryCode = (): string => COUNTRY_CODES[organisationCountry().toLowerCase()] ?? '';
 
+/** VeriFactu is a Spanish rule: its section only shows to organisations from Spain (v2.445.0). */
+export const usesVerifactu = (): boolean => countryCode() === 'es';
+
 /** «calle, cp, municipio, provincia, país»: the text of an address search, ending with the organisation's country. */
 export const addressQuery = (parts: readonly (string | null | undefined)[]): string => [...parts, organisationCountry()].filter(Boolean).join(', ');
 
@@ -31,6 +35,21 @@ export function generalVat(): number {
   if (raw === undefined || raw === null || raw === '') return DEFAULT_GENERAL_VAT;
   const rate = Number(raw);
   return Number.isFinite(rate) && rate >= 0 && rate <= MAX_RATE ? rate : DEFAULT_GENERAL_VAT;
+}
+
+/**
+ * The VAT rates offered in the forms: the organisation's own list (setting «impuestos», field «tipos»: [{ "tipo": 21, "nombre": "General" }…],
+ * v2.445.0) or, without it, Spain's.
+ */
+export function vatRates(): readonly (readonly [number, string])[] {
+  const own = (organisationLegacy.setting('impuestos') as { tipos?: unknown } | undefined)?.tipos;
+  if (!Array.isArray(own)) return VAT_RATES;
+  const rates = own.flatMap((item: { tipo?: unknown; nombre?: unknown } | null) => {
+    const rate = Number(item?.tipo);
+    return item && item.tipo !== '' && item.tipo !== null && Number.isFinite(rate) && rate >= 0 && rate <= MAX_RATE
+      ? [[rate, vatRateText(rate, String(item.nombre ?? '').trim())] as const] : [];
+  });
+  return rates.length ? rates : VAT_RATES;
 }
 
 /** Words a password should not start with: the platform's name and the first word of the organisation's name. */

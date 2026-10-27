@@ -11,6 +11,7 @@ import { escapeHtml } from '../../services/format';
 import { paintInvoices } from './list';
 import { paintSeries } from './series';
 import { paintVerifactu } from './verifactu';
+import { usesVerifactu } from '../../core/organisation';
 
 const SECTIONS: readonly (readonly [string, MessageKey, boolean])[] = [
   ['facturas', 'billing.page.invoices', false], ['series', 'billing.page.series', false],
@@ -32,7 +33,7 @@ function readOnlyHtml(): string {
 
 export function loadBilling(): Promise<void> {
   const screen = document.getElementById('v-facturacion'); if (!screen) return Promise.resolve();
-  const admin = cardSectionsLegacy.can('administrar'), sections = SECTIONS.filter(([, , adminOnly]) => admin || !adminOnly);
+  const admin = cardSectionsLegacy.can('administrar'), sections = SECTIONS.filter(([key, , adminOnly]) => (admin || !adminOnly) && (key !== 'verifactu' || usesVerifactu()));
   if (!sections.some(([key]) => key === billingLegacy.section())) billingLegacy.setSection('facturas');
   const current = billingLegacy.section();
   screen.innerHTML = `

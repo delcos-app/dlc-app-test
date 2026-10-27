@@ -1,0 +1,76 @@
+/**
+ * Texts of the startup HTML (src/index/cuerpo.html): entry screen, header, menu and the first screens, painted before the code loads
+ * (plan 11.2, v2.445.0; part of es.ts). herramientas/construir.mjs writes them into index.html at build time where cuerpo.html says
+ * {{startup.key}}, so they show at once and still come from the catalogue.
+ * Keep this file a plain object of strings: the build reads it without compiling TypeScript.
+ */
+export const startup = {
+  opening: 'Abriendo delcos…',
+  login: {
+    welcome: 'Bienvenido',
+    subtitle: 'Entra con tu correo y contraseña.',
+    email: 'Correo',
+    password: 'Contraseña',
+    enter: 'Entrar',
+    poweredBy: 'funciona con',
+  },
+  header: {
+    search: 'Buscar profesional, centro o municipio',
+    settings: 'Configuración',
+    changePassword: 'Cambiar contraseña',
+    administration: 'Administración',
+    signOut: 'Cerrar sesión',
+  },
+  nav: {
+    home: 'Inicio',
+    agenda: 'Agenda',
+    routes: 'Rutas',
+    accounts: 'Profesionales',
+    customers: 'Clientes',
+    products: 'Productos',
+    quality: 'Calidad del dato',
+    orders: 'Pedidos',
+    analytics: 'Analítica',
+    billing: 'Facturación',
+    qualityShort: 'Segui.',
+  },
+  home: {
+    hello: 'Hola',
+    customiseIndicators: 'Personalizar indicadores',
+    suggestedRoutes: 'Rutas sugeridas',
+    todayAgenda: 'Tu agenda de hoy',
+    nextActions: 'Próximas acciones',
+    urgentNotVisited: 'Urgentes sin visitar',
+    lastVisits: 'Últimas visitas',
+  },
+  directory: {
+    province: 'Provincia',
+    town: 'Municipio',
+    segment: 'Segmento',
+    reporting: 'Reporting',
+    allMasculine: 'Todos',
+    withReporting: 'Con reporting',
+    withoutReporting: 'Sin reporting',
+    type: 'Tipo',
+    allFeminine: 'Todas',
+    people: 'Profesionales',
+    centres: 'Centros',
+    commercialStatus: 'Estado comercial',
+    salesRep: 'Comercial',
+    sortBy: 'Ordenar por',
+    byName: 'Nombre',
+    urgentFirst: 'Urgentes primero',
+    latestVisit: 'Visita más reciente',
+    createNew: '+ Crear nuevo',
+    showMap: 'Ver mapa',
+    saveFilter: '★ Guardar filtro',
+    nearMe: 'Cerca de mí',
+    duplicates: 'Duplicados',
+    filtersAndColumns: 'Filtros y columnas',
+    loading: 'Cargando…',
+  },
+  update: {
+    newVersion: 'Hay una versión nueva de la app',
+    update: 'Actualizar',
+  },
+} as const;

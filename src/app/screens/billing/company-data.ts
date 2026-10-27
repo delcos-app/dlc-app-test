@@ -7,6 +7,7 @@ import { notices } from '../../legacy/bridge';
 import { legacyBActions, legacyBState, rawDb, type RpcAnswer } from '../../legacy/legado-b-bridge';
 import { t, type MessageKey } from '../../i18n';
 import { escapeHtml } from '../../services/format';
+import { DEFAULT_COUNTRY } from '../../core/organisation';
 
 interface Billing { vencimiento_dias?: number; forma_pago?: string; emitir_al_validar?: boolean }
 type Company = Record<string, string | undefined>;
@@ -43,7 +44,7 @@ const value = (id: string): string => (document.getElementById(id) as HTMLInputE
 async function save(previous: Company): Promise<void> {
   const company: Company = {};
   FIELDS.forEach(key => { company[key] = value(`em_${key}`); });
-  company.pais = previous.pais ?? 'España';
+  company.pais = previous.pais ?? DEFAULT_COUNTRY;
   if (!company.razon_social || !company.nif) { notices.toast(t('legacyB.company.required'), true); return; }
   const billing = { vencimiento_dias: Number(value('fcv')) || 0, forma_pago: value('fcf'), emitir_al_validar: Boolean((document.getElementById('fce') as HTMLInputElement | null)?.checked) };
   const rpc = rawDb().rpc;

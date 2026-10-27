@@ -413,6 +413,7 @@
     live: () => live_exports,
     maps: () => maps_exports,
     money: () => money_exports,
+    organisation: () => organisation_exports,
     pdf: () => pdf_exports,
     permissions: () => permissions_exports,
     plans: () => plans_exports,
@@ -820,6 +821,78 @@
     },
     lists: {
       orderDone: "Pedido hecho"
+    }
+  };
+
+  // src/app/i18n/es/startup.ts
+  var startup = {
+    opening: "Abriendo delcos…",
+    login: {
+      welcome: "Bienvenido",
+      subtitle: "Entra con tu correo y contraseña.",
+      email: "Correo",
+      password: "Contraseña",
+      enter: "Entrar",
+      poweredBy: "funciona con"
+    },
+    header: {
+      search: "Buscar profesional, centro o municipio",
+      settings: "Configuración",
+      changePassword: "Cambiar contraseña",
+      administration: "Administración",
+      signOut: "Cerrar sesión"
+    },
+    nav: {
+      home: "Inicio",
+      agenda: "Agenda",
+      routes: "Rutas",
+      accounts: "Profesionales",
+      customers: "Clientes",
+      products: "Productos",
+      quality: "Calidad del dato",
+      orders: "Pedidos",
+      analytics: "Analítica",
+      billing: "Facturación",
+      qualityShort: "Segui."
+    },
+    home: {
+      hello: "Hola",
+      customiseIndicators: "Personalizar indicadores",
+      suggestedRoutes: "Rutas sugeridas",
+      todayAgenda: "Tu agenda de hoy",
+      nextActions: "Próximas acciones",
+      urgentNotVisited: "Urgentes sin visitar",
+      lastVisits: "Últimas visitas"
+    },
+    directory: {
+      province: "Provincia",
+      town: "Municipio",
+      segment: "Segmento",
+      reporting: "Reporting",
+      allMasculine: "Todos",
+      withReporting: "Con reporting",
+      withoutReporting: "Sin reporting",
+      type: "Tipo",
+      allFeminine: "Todas",
+      people: "Profesionales",
+      centres: "Centros",
+      commercialStatus: "Estado comercial",
+      salesRep: "Comercial",
+      sortBy: "Ordenar por",
+      byName: "Nombre",
+      urgentFirst: "Urgentes primero",
+      latestVisit: "Visita más reciente",
+      createNew: "+ Crear nuevo",
+      showMap: "Ver mapa",
+      saveFilter: "★ Guardar filtro",
+      nearMe: "Cerca de mí",
+      duplicates: "Duplicados",
+      filtersAndColumns: "Filtros y columnas",
+      loading: "Cargando…"
+    },
+    update: {
+      newVersion: "Hay una versión nueva de la app",
+      update: "Actualizar"
     }
   };
 
@@ -1549,10 +1622,12 @@
       custom: "Personalizado"
     },
     vat: {
-      general: "General · 21 %",
-      reduced: "Reducido · 10 %",
-      superReduced: "Superreducido · 4 %",
-      exempt: "Exento · 0 %"
+      general: "General",
+      reduced: "Reducido",
+      superReduced: "Superreducido",
+      exempt: "Exento",
+      rate: "{name} · {rate} %",
+      rateOnly: "{rate} %"
     },
     terms: {
       professional: "profesional",
@@ -4322,7 +4397,7 @@
       perYear: "al año",
       perMonth: "al mes",
       setup: "Puesta en marcha (una vez; incluida con pago anual)",
-      vat: "IVA 21 %",
+      vat: "IVA {rate} %",
       firstCharge: "Primer cobro",
       amountFrom: "Importe desde el {date}",
       newAmount: "Nuevo importe",
@@ -5701,7 +5776,7 @@
       left: "quedan {units}",
       usedOf: "Usadas de {name}",
       reference: "Referencia",
-      referencePlaceholder: "p. ej. {Surgery} del martes, sala 2 (sin datos del paciente)",
+      referencePlaceholder: "p. ej. {Surgery} del martes, sala 2 (sin datos {ofTheCustomer})",
       record: "Apuntar",
       countTitle: "Recuento",
       countHint: "Escribe lo que hay ahora; lo que falte se apunta como usado.",
@@ -8332,6 +8407,7 @@
     leftovers,
     settingsCore,
     legacyTexts,
+    startup,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -17342,16 +17418,110 @@
     }, { childList: true, subtree: true });
   }
 
+  // src/app/core/organisation.ts
+  var organisation_exports = {};
+  __export(organisation_exports, {
+    DEFAULT_COUNTRY: () => DEFAULT_COUNTRY,
+    DEFAULT_GENERAL_VAT: () => DEFAULT_GENERAL_VAT,
+    addressQuery: () => addressQuery,
+    countryCode: () => countryCode,
+    generalVat: () => generalVat,
+    obviousPasswordWords: () => obviousPasswordWords,
+    organisationCountry: () => organisationCountry,
+    usesVerifactu: () => usesVerifactu,
+    vatRates: () => vatRates
+  });
+
+  // src/app/legacy/organisation-bridge.ts
+  var organisationLegacy = {
+    setting: (key) => settingsStore.settings[key],
+    name: () => nombreApp()
+  };
+
+  // src/app/services/money.ts
+  var money_exports = {};
+  __export(money_exports, {
+    AMOUNT_FIELD: () => AMOUNT_FIELD,
+    VAT_RATES: () => VAT_RATES,
+    duration: () => duration,
+    euros: () => euros,
+    eurosRounded: () => eurosRounded,
+    eurosWeb: () => eurosWeb,
+    isVatField: () => isVatField,
+    number: () => number,
+    percent: () => percent,
+    round2: () => round2,
+    vatOf: () => vatOf,
+    vatRateText: () => vatRateText
+  });
+  var number = (value27) => formatNumber(value27 || 0);
+  var duration = (milliseconds) => formatDuration(milliseconds);
+  var euros = (value27) => Number(value27 || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  function round2(value27) {
+    const amount3 = Number(value27) || 0, cents = Math.round(Number((Math.abs(amount3) * 100).toPrecision(12)));
+    return (amount3 < 0 ? -cents : cents) / 100;
+  }
+  var eurosRounded = (value27) => euros(round2(value27));
+  var percent = (part, whole2) => whole2 ? Math.round(part / whole2 * 100) : 0;
+  var vatRateText = (rate, name) => name ? t("core.vat.rate", { name, rate: formatNumber(rate) }) : t("core.vat.rateOnly", { rate: formatNumber(rate) });
+  var VAT_RATES = [
+    [21, vatRateText(21, t("core.vat.general"))],
+    [10, vatRateText(10, t("core.vat.reduced"))],
+    [4, vatRateText(4, t("core.vat.superReduced"))],
+    [0, vatRateText(0, t("core.vat.exempt"))]
+  ];
+  var labelText = (input12) => input12.id ? document.querySelector(`label[for="${input12.id}"]`)?.textContent ?? "" : "";
+  var isVatField = (input12) => /iva/i.test(`${input12.id} ${input12.dataset.f ?? ""} ${input12.name}`) || /\bIVA\s*\(%\)|tipo de iva/i.test(labelText(input12));
+  var AMOUNT_FIELD = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
+  var vatOf = (amount3) => Math.round(amount3 * 21) / 100;
+  var eurosWeb = (value27) => {
+    const text5 = euros(value27);
+    return Math.round(Number(value27) * 100) % 100 === 0 ? text5.replace(/,00(?=\s?€)/, "") : text5;
+  };
+
+  // src/app/core/organisation.ts
+  var DEFAULT_COUNTRY = "España";
+  var COUNTRY_CODES = { "españa": "es", "portugal": "pt", "francia": "fr", "italia": "it", "andorra": "ad" };
+  var DEFAULT_GENERAL_VAT = 21;
+  var MAX_RATE = 100;
+  var MIN_NAME_LENGTH = 3;
+  function organisationCountry() {
+    const company = organisationLegacy.setting("empresa");
+    return String(company?.pais ?? "").trim() || DEFAULT_COUNTRY;
+  }
+  var countryCode = () => COUNTRY_CODES[organisationCountry().toLowerCase()] ?? "";
+  var usesVerifactu = () => countryCode() === "es";
+  var addressQuery = (parts) => [...parts, organisationCountry()].filter(Boolean).join(", ");
+  function generalVat() {
+    const raw = organisationLegacy.setting("impuestos")?.general;
+    if (raw === void 0 || raw === null || raw === "") return DEFAULT_GENERAL_VAT;
+    const rate = Number(raw);
+    return Number.isFinite(rate) && rate >= 0 && rate <= MAX_RATE ? rate : DEFAULT_GENERAL_VAT;
+  }
+  function vatRates() {
+    const own = organisationLegacy.setting("impuestos")?.tipos;
+    if (!Array.isArray(own)) return VAT_RATES;
+    const rates = own.flatMap((item) => {
+      const rate = Number(item?.tipo);
+      return item && item.tipo !== "" && item.tipo !== null && Number.isFinite(rate) && rate >= 0 && rate <= MAX_RATE ? [[rate, vatRateText(rate, String(item.nombre ?? "").trim())]] : [];
+    });
+    return rates.length ? rates : VAT_RATES;
+  }
+  function obviousPasswordWords() {
+    const first2 = /[a-zñ]+/.exec(organisationLegacy.name().toLowerCase())?.[0] ?? "";
+    return ["delcos", ...first2.length >= MIN_NAME_LENGTH ? [first2] : []];
+  }
+
   // src/app/core/legacy-c/form-fields.ts
   var MAX_TEXTAREA_PX = 420;
   var REPEAT_AFTER_MS = 450;
   var REPEAT_EVERY_MS = 90;
   function vatSelect(input12) {
     const value27 = input12.value === "" ? "" : Number(input12.value);
-    const select3 = document.createElement("select");
+    const select3 = document.createElement("select"), rates = vatRates();
     select3.className = "ivasel";
     if (input12.disabled || input12.readOnly) select3.disabled = true;
-    select3.innerHTML = TIPOS_IVA.map(([rate, text5]) => `<option value="${rate}" ${rate === value27 ? "selected" : ""}>${text5}</option>`).join("") + (value27 !== "" && !TIPOS_IVA.some((rate) => rate[0] === value27) ? `<option value="${value27}" selected>${t("legacyC.vat.unusual", { rate: value27 })}</option>` : "");
+    select3.innerHTML = rates.map(([rate, text5]) => `<option value="${rate}" ${rate === value27 ? "selected" : ""}>${text5}</option>`).join("") + (value27 !== "" && !rates.some((rate) => rate[0] === value27) ? `<option value="${value27}" selected>${t("legacyC.vat.unusual", { rate: value27 })}</option>` : "");
     return select3;
   }
   function replaceWithSelect(input12) {
@@ -18217,7 +18387,7 @@
           ...billing2 ? [
             ["fiscal", t("legacyC.pages.organization.fiscal"), facOrg(pintarEmpresa)],
             ["series", t("legacyC.pages.organization.series"), facOrg(pintarSeries)],
-            ["vf", t("legacyC.pages.organization.verifactu"), facOrg(pintarVerifactu)],
+            ...usesVerifactu() ? [["vf", t("legacyC.pages.organization.verifactu"), facOrg(pintarVerifactu)]] : [],
             ["pdf", t("legacyC.pages.organization.pdf"), () => disenoPDF()]
           ] : [],
           ...puede("gestionar_plataforma") ? [["orgs", t("legacyC.pages.organization.organizations"), () => pintarOrganizaciones()]] : []
@@ -18755,7 +18925,7 @@
       if (!closestTo(event.target, "[data-orgext]")) return;
       setTimeout(() => {
         const subtitle3 = byId2("dbody")?.querySelector(".fh .sm");
-        if (subtitle3 && (subtitle3.textContent ?? "").includes("aparte de su plan")) subtitle3.textContent = t("legacyC.platform.extras");
+        if (subtitle3 && (subtitle3.textContent ?? "").includes(t("platform.extras.subtitle"))) subtitle3.textContent = t("legacyC.platform.extras");
       }, 0);
     }, true);
   }
@@ -22176,35 +22346,6 @@
       <button type="button" class="btn sec" data-cpcambiar>${t("accountsEditor.centre.change")}</button></div></div>`;
   }
   var centreCard = (centre, linked) => linked || !isPrivateConsultation(centre) ? centreCardHtml(centre, linked) : privateCardHtml(centre);
-
-  // src/app/legacy/organisation-bridge.ts
-  var organisationLegacy = {
-    setting: (key) => settingsStore.settings[key],
-    name: () => nombreApp()
-  };
-
-  // src/app/core/organisation.ts
-  var DEFAULT_COUNTRY = "España";
-  var COUNTRY_CODES = { "españa": "es", "portugal": "pt", "francia": "fr", "italia": "it", "andorra": "ad" };
-  var DEFAULT_GENERAL_VAT = 21;
-  var MAX_RATE = 100;
-  var MIN_NAME_LENGTH = 3;
-  function organisationCountry() {
-    const company = organisationLegacy.setting("empresa");
-    return String(company?.pais ?? "").trim() || DEFAULT_COUNTRY;
-  }
-  var countryCode = () => COUNTRY_CODES[organisationCountry().toLowerCase()] ?? "";
-  var addressQuery = (parts) => [...parts, organisationCountry()].filter(Boolean).join(", ");
-  function generalVat() {
-    const raw = organisationLegacy.setting("impuestos")?.general;
-    if (raw === void 0 || raw === null || raw === "") return DEFAULT_GENERAL_VAT;
-    const rate = Number(raw);
-    return Number.isFinite(rate) && rate >= 0 && rate <= MAX_RATE ? rate : DEFAULT_GENERAL_VAT;
-  }
-  function obviousPasswordWords() {
-    const first2 = /[a-zñ]+/.exec(organisationLegacy.name().toLowerCase())?.[0] ?? "";
-    return ["delcos", ...first2.length >= MIN_NAME_LENGTH ? [first2] : []];
-  }
 
   // src/app/screens/accounts/editor-form/private-form.ts
   var LOCATION_TIMEOUT_MS = 12e3;
@@ -28132,45 +28273,6 @@
     if (inSettings && !row4) addSecondRow(nav, sections2);
     else if (!inSettings && row4) row4.remove();
   }
-
-  // src/app/services/money.ts
-  var money_exports = {};
-  __export(money_exports, {
-    AMOUNT_FIELD: () => AMOUNT_FIELD,
-    VAT_RATES: () => VAT_RATES,
-    duration: () => duration,
-    euros: () => euros,
-    eurosRounded: () => eurosRounded,
-    eurosWeb: () => eurosWeb,
-    isVatField: () => isVatField,
-    number: () => number,
-    percent: () => percent,
-    round2: () => round2,
-    vatOf: () => vatOf
-  });
-  var number = (value27) => formatNumber(value27 || 0);
-  var duration = (milliseconds) => formatDuration(milliseconds);
-  var euros = (value27) => Number(value27 || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
-  function round2(value27) {
-    const amount3 = Number(value27) || 0, cents = Math.round(Number((Math.abs(amount3) * 100).toPrecision(12)));
-    return (amount3 < 0 ? -cents : cents) / 100;
-  }
-  var eurosRounded = (value27) => euros(round2(value27));
-  var percent = (part, whole2) => whole2 ? Math.round(part / whole2 * 100) : 0;
-  var VAT_RATES = [
-    [21, t("core.vat.general")],
-    [10, t("core.vat.reduced")],
-    [4, t("core.vat.superReduced")],
-    [0, t("core.vat.exempt")]
-  ];
-  var labelText = (input12) => input12.id ? document.querySelector(`label[for="${input12.id}"]`)?.textContent ?? "" : "";
-  var isVatField = (input12) => /iva/i.test(`${input12.id} ${input12.dataset.f ?? ""} ${input12.name}`) || /\bIVA\s*\(%\)|tipo de iva/i.test(labelText(input12));
-  var AMOUNT_FIELD = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
-  var vatOf = (amount3) => Math.round(amount3 * 21) / 100;
-  var eurosWeb = (value27) => {
-    const text5 = euros(value27);
-    return Math.round(Number(value27) * 100) % 100 === 0 ? text5.replace(/,00(?=\s?€)/, "") : text5;
-  };
 
   // src/app/screens/opportunities/model.ts
   var ORDER_DONE = "Pedido hecho";
@@ -39219,7 +39321,7 @@
     FIELDS5.forEach((key) => {
       company[key] = value12(`em_${key}`);
     });
-    company.pais = previous.pais ?? "España";
+    company.pais = previous.pais ?? DEFAULT_COUNTRY;
     if (!company.razon_social || !company.nif) {
       notices.toast(t("legacyB.company.required"), true);
       return;
@@ -43237,7 +43339,7 @@
     return `<div class="pgres">
         <div><span>${formatNumber(choice2.usuarios)} × ${euros2(yearly ? plan3.precio * YEARLY_MONTHS : plan3.precio)} ${t(yearly ? "ordersMore.choosePlan.perYear" : "ordersMore.choosePlan.perMonth")}</span><b>${euros2(base)}</b></div>
         ${setup ? `<div><span>${t("ordersMore.choosePlan.setup")}</span><b>${euros2(setup)}</b></div>` : ""}
-        <div><span>${t("ordersMore.choosePlan.vat")}</span><b>${euros2(vat)}</b></div>
+        <div><span>${t("ordersMore.choosePlan.vat", { rate: VAT_RATE })}</span><b>${euros2(vat)}</b></div>
         <div class="pgtot"><span>${label}</span><b>${euros2(base + setup + vat)}</b></div></div>`;
   }
   function headerHtml10(context, choice2) {
@@ -44000,12 +44102,12 @@
     const known = usersLegacy.provinces();
     if (known) return known;
     const [{ data: regions }, { data: counts }] = await Promise.all([
-      legacyDb().from("provincias_ccaa").select("provincia,comunidad"),
+      legacyDb().from("provincias_ccaa").select("*"),
       legacyDb().rpc("zonas_resumen")
     ]);
     const byProvince = new Map((counts ?? []).map((item) => [item.provincia, item.medicos]));
-    const result = {};
-    (regions ?? []).forEach((item) => {
+    const result = {}, country = organisationCountry().toLowerCase();
+    (regions ?? []).filter((item) => !item.pais || item.pais.toLowerCase() === country).forEach((item) => {
       var _a;
       (result[_a = item.comunidad] ?? (result[_a] = [])).push({ p: item.provincia, n: byProvince.get(item.provincia) ?? 0 });
     });
@@ -50108,7 +50210,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="depbox"><b>${t("products.deposit.useTitle")}</b>
       <div class="depitems">${lines4.map((line3, index) => `<label><span>${escapeHtml(line3.nombre)} <span class="sm">· ${batchOf(line3)} · ${t("products.deposit.left", { units: formatNumber(line3.unidades) })}</span></span>
         <input type="number" min="0" max="${line3.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t("products.deposit.usedOf", { name: escapeHtml(line3.nombre) })}"></label>`).join("")}</div>
-      <label for="depref">${t("products.deposit.reference")}</label><input id="depref" maxlength="120" placeholder="${t("products.deposit.referencePlaceholder")}">
+      <label for="depref">${t("products.deposit.reference")}</label><input id="depref" maxlength="120" placeholder="${t("products.deposit.referencePlaceholder", { ofTheCustomer: term("paciente", { article: "del" }) })}">
       ${actsHtml(t("products.deposit.record"))}</div>`;
   }
   function countHtml3(lines4) {
@@ -51823,7 +51925,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function loadBilling() {
     const screen3 = document.getElementById("v-facturacion");
     if (!screen3) return Promise.resolve();
-    const admin = cardSectionsLegacy.can("administrar"), sections2 = SECTIONS2.filter(([, , adminOnly]) => admin || !adminOnly);
+    const admin = cardSectionsLegacy.can("administrar"), sections2 = SECTIONS2.filter(([key, , adminOnly]) => (admin || !adminOnly) && (key !== "verifactu" || usesVerifactu()));
     if (!sections2.some(([key]) => key === billingLegacy.section())) billingLegacy.setSection("facturas");
     const current = billingLegacy.section();
     screen3.innerHTML = `

@@ -1,13 +1,15 @@
 /**
  * «Zona de trabajo» in the user editor (roles with a portfolio): the provinces by region with how many accounts each has; saving
  * assigns the free accounts of those provinces. Migrated from the legacy bloqueZonas and the zone part of usuarioComisionYZona
- * (v2.420.0).
+ * (v2.420.0). v2.445.0: only the provinces of the organisation's country (column «pais» of provincias_ccaa, SQL 185; without it,
+ * all).
  */
 import { legacyDb, notices } from '../../../legacy/bridge';
 import { usersLegacy, type UserRow } from '../../../legacy/settings4-bridge';
 import { t } from '../../../i18n';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { sum } from '../../../services/values';
+import { organisationCountry } from '../../../core/organisation';
 import { dialog, dialogBody, words } from './model';
 
 interface Province { p: string; n: number }
@@ -23,11 +25,11 @@ export const markedZones = (): string[] =>
 async function provinces(): Promise<Record<string, Province[]>> {
   const known = usersLegacy.provinces(); if (known) return known;
   const [{ data: regions }, { data: counts }] = await Promise.all([
-    legacyDb().from<{ provincia: string; comunidad: string }[]>('provincias_ccaa').select('provincia,comunidad'),
+    legacyDb().from<{ provincia: string; comunidad: string; pais?: string | null }[]>('provincias_ccaa').select('*'),
     legacyDb().rpc<{ provincia: string; medicos: number }[]>('zonas_resumen')]);
   const byProvince = new Map((counts ?? []).map(item => [item.provincia, item.medicos]));
-  const result: Record<string, Province[]> = {};
-  (regions ?? []).forEach(item => { (result[item.comunidad] ??= []).push({ p: item.provincia, n: byProvince.get(item.provincia) ?? 0 }); });
+  const result: Record<string, Province[]> = {}, country = organisationCountry().toLowerCase();
+  (regions ?? []).filter(item => !item.pais || item.pais.toLowerCase() === country).forEach(item => { (result[item.comunidad] ??= []).push({ p: item.provincia, n: byProvince.get(item.provincia) ?? 0 }); });
   usersLegacy.setProvinces(result);
   return result;
 }

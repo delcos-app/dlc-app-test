@@ -22,10 +22,12 @@ export const core = {
     custom: 'Personalizado',
   },
   vat: {
-    general: 'General · 21 %',
-    reduced: 'Reducido · 10 %',
-    superReduced: 'Superreducido · 4 %',
-    exempt: 'Exento · 0 %',
+    general: 'General',
+    reduced: 'Reducido',
+    superReduced: 'Superreducido',
+    exempt: 'Exento',
+    rate: '{name} · {rate} %',
+    rateOnly: '{rate} %',
   },
   terms: {
     professional: 'profesional',

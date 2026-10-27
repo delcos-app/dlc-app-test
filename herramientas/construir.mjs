@@ -21,6 +21,23 @@ import { fileURLToPath } from 'node:url';
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const leer = f => fs.readFileSync(path.join(RAIZ, f), 'utf8').replace(/\r\n/g, '\n');
 const ORDEN = JSON.parse(leer('src/orden.json'));
+
+// v2.445.0 (plan 11.2): the texts of the startup HTML live in the catalogue src/app/i18n/es/startup.ts. The pieces say
+// {{startup.key}} and the build writes the text in, so index.html carries it before the code loads. The catalogue is a plain object
+// of strings, read here without compiling TypeScript.
+const STARTUP_CATALOGUE = 'src/app/i18n/es/startup.ts';
+let startupTexts = null;
+function startupText(key) {
+  if (!startupTexts) {
+    const source = leer(STARTUP_CATALOGUE), match = source.match(/export const startup = (\{[\s\S]*\}) as const;/);
+    if (!match) throw new Error(`${STARTUP_CATALOGUE}: no tiene «export const startup = { … } as const;»`);
+    startupTexts = new Function(`return (${match[1]});`)();
+  }
+  const value = key.split('.').slice(1).reduce((node, part) => (node && typeof node === 'object' ? node[part] : undefined), startupTexts);
+  if (typeof value !== 'string') throw new Error(`index.html: {{${key}}} no está en ${STARTUP_CATALOGUE}`);
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+const fillStartupTexts = (output, text) => (output.endsWith('.html') ? text.replace(/\{\{(startup(?:\.\w+)+)\}\}/g, (_, key) => startupText(key)) : text);
 // --repartir: solo para herramientas mecánicas que reescriben app.js o index.html enteros (p. ej. fundir capas). Compara, línea a
 // línea, lo que salía de las piezas con el archivo nuevo (diferencias de Myers): cada línea que no cambia sigue en su pieza, una línea
 // nueva va a la pieza de la línea anterior y una borrada desaparece. Así nunca pasa texto de una pieza a otra.
@@ -50,6 +67,8 @@ function diferencias(a, b) {
 }
 if (process.argv.includes('--repartir')) {
   for (const [destino, piezas] of Object.entries(ORDEN.salidas)) {
+    // The texts written in at build time cannot go back to their {{startup.…}} placeholders
+    if (piezas.some(p => /\{\{startup\./.test(leer(p)))) { console.error(`✗ --repartir no reparte ${destino}: sus piezas llevan textos del catálogo ({{startup.…}})`); process.exit(1); }
     const viejas = [], dueno = [];
     piezas.forEach((p, k) => { const l = leer(p).split('\n'); if (k < piezas.length - 1) l.pop(); l.forEach(t => { viejas.push(t); dueno.push(k); }); });
     const nuevas = leer(destino).split('\n');
@@ -68,7 +87,7 @@ let mal = 0;
 for (const [destino, piezas] of Object.entries(ORDEN.salidas)) {
   const falta = piezas.filter(p => !fs.existsSync(path.join(RAIZ, p)));
   if (falta.length) { console.error(`✗ ${destino}: faltan ${falta.join(', ')}`); mal++; continue; }
-  const texto = piezas.map(leer).join('');
+  const texto = fillStartupTexts(destino, piezas.map(leer).join(''));
   if (comprobar) {
     const actual = fs.existsSync(path.join(RAIZ, destino)) ? leer(destino) : '';
     if (actual !== texto) { console.error(`✗ ${destino} no es lo que sale de src/: edita src/ y ejecuta «node herramientas/construir.mjs»`); mal++; }

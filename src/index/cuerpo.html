@@ -2,22 +2,22 @@
 </head>
 <body>
 
-<div id="bootsplash" class="cargador"><img src="./logo-app.png" alt="" style="height:44px;width:44px;border-radius:50%"><span class="spin"></span><span class="sm">Abriendo delcos…</span></div>
+<div id="bootsplash" class="cargador"><img src="./logo-app.png" alt="" style="height:44px;width:44px;border-radius:50%"><span class="spin"></span><span class="sm">{{startup.opening}}</span></div>
 <script>/* v2.173.0: al cambiar de organización (o en el panel de delcos) la app se abre tapada hasta tener lo suyo */
 try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.getItem('dlc-modo')==='plataforma'){document.documentElement.classList.add('cambiando-org');if(co){var s=document.querySelector('#bootsplash .sm');if(s)s.textContent='Abriendo '+co+'…';}}}catch(e){}</script>
 
 <section id="login" class="hide">
   <form class="lbox" id="lform">
     <img src="./logo-app.png" alt="">
-    <h1>Bienvenido</h1>
-    <p class="sub">Entra con tu correo y contraseña.</p>
-    <label for="lu">Correo</label>
+    <h1>{{startup.login.welcome}}</h1>
+    <p class="sub">{{startup.login.subtitle}}</p>
+    <label for="lu">{{startup.login.email}}</label>
     <input id="lu" type="email" autocomplete="username" required>
-    <label for="lp">Contraseña</label>
+    <label for="lp">{{startup.login.password}}</label>
     <input id="lp" type="password" autocomplete="current-password" required>
-    <button class="btn block" id="lbtn">Entrar</button>
+    <button class="btn block" id="lbtn">{{startup.login.enter}}</button>
     <div class="msg" id="lmsg"></div>
-    <div class="firmaplat"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="20" cy="24" r="16" fill="#17457A"/><circle cx="35" cy="9" r="6" fill="#7CC3EC"/></svg>funciona con <b>delc<span>os</span></b></div>
+    <div class="firmaplat"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="20" cy="24" r="16" fill="#17457A"/><circle cx="35" cy="9" r="6" fill="#7CC3EC"/></svg>{{startup.login.poweredBy}} <b>delc<span>os</span></b></div>
   </form>
 </section>
 
@@ -25,50 +25,50 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
   <header>
     <div class="top">
       <img class="logo" src="./logo-app.png" alt="">
-      <div class="gsearch"><input id="q" type="search" placeholder="Buscar profesional, centro o municipio" autocomplete="off"><div class="gsug hide" id="gsug"></div></div>
+      <div class="gsearch"><input id="q" type="search" placeholder="{{startup.header.search}}" autocomplete="off"><div class="gsug hide" id="gsug"></div></div>
       <div class="uwrap">
         <button class="ubtn" id="ubtn"><span class="av" id="av"></span><span class="uname" id="uname"></span></button>
         <div class="umenu hide" id="umenu">
           <div class="uh"><div id="umnom" style="font-weight:600"></div><div class="sm" id="umrol"></div></div>
-          <button data-u="cfg">Configuración</button>
-          <button data-u="pass">Cambiar contraseña</button>
-          <button data-u="adm" class="hide">Administración</button>
-          <button data-u="salir" class="sal">Cerrar sesión</button>
+          <button data-u="cfg">{{startup.header.settings}}</button>
+          <button data-u="pass">{{startup.header.changePassword}}</button>
+          <button data-u="adm" class="hide">{{startup.header.administration}}</button>
+          <button data-u="salir" class="sal">{{startup.header.signOut}}</button>
         </div>
       </div>
     </div>
     <nav class="main"><div class="in" id="nav">
-      <button data-t="inicio" aria-current="page">Inicio</button>
-      <button data-t="agenda">Agenda</button>
-      <button data-t="rutas">Rutas</button>
-      <button data-t="directorio">Profesionales</button>
-      <button data-t="pacientes">Clientes</button>
-      <button data-t="productos">Productos</button>
-      <button data-t="seguimiento">Calidad del dato</button>
-      <button data-t="ventas">Pedidos</button>
-      <button data-t="analitica">Analítica</button>
-      <button data-t="facturacion" class="hide">Facturación</button>
+      <button data-t="inicio" aria-current="page">{{startup.nav.home}}</button>
+      <button data-t="agenda">{{startup.nav.agenda}}</button>
+      <button data-t="rutas">{{startup.nav.routes}}</button>
+      <button data-t="directorio">{{startup.nav.accounts}}</button>
+      <button data-t="pacientes">{{startup.nav.customers}}</button>
+      <button data-t="productos">{{startup.nav.products}}</button>
+      <button data-t="seguimiento">{{startup.nav.quality}}</button>
+      <button data-t="ventas">{{startup.nav.orders}}</button>
+      <button data-t="analitica">{{startup.nav.analytics}}</button>
+      <button data-t="facturacion" class="hide">{{startup.nav.billing}}</button>
     </div></nav>
   </header>
 
   <main>
     <section id="v-inicio">
       <div class="saludo">
-        <div><h1 id="hola">Hola</h1><div class="fecha" id="hoyfecha"></div></div>
-        <div class="acts" style="margin:0"><button class="btn sec icoonly" data-k="cfgkpis" title="Personalizar indicadores" aria-label="Personalizar indicadores"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+        <div><h1 id="hola">{{startup.home.hello}}</h1><div class="fecha" id="hoyfecha"></div></div>
+        <div class="acts" style="margin:0"><button class="btn sec icoonly" data-k="cfgkpis" title="{{startup.home.customiseIndicators}}" aria-label="{{startup.home.customiseIndicators}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
       </div>
       <div class="kpis" id="kpis"><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div></div>
       <div class="cols">
         <div>
           <div class="card" id="c-comision"></div>
-          <div class="card" id="c-recom"><h2>Rutas sugeridas</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
-          <div class="card" id="c-agenda"><h2>Tu agenda de hoy</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
-          <div class="card" id="c-acciones"><h2>Próximas acciones</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
+          <div class="card" id="c-recom"><h2>{{startup.home.suggestedRoutes}}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
+          <div class="card" id="c-agenda"><h2>{{startup.home.todayAgenda}}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
+          <div class="card" id="c-acciones"><h2>{{startup.home.nextActions}}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
         </div>
         <div>
           <div class="card" id="c-pend"></div>
-          <div class="card" id="c-urgentes"><h2>Urgentes sin visitar</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
-          <div class="card" id="c-ultimas"><h2>Últimas visitas</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
+          <div class="card" id="c-urgentes"><h2>{{startup.home.urgentNotVisited}}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
+          <div class="card" id="c-ultimas"><h2>{{startup.home.lastVisits}}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>
         </div>
       </div>
     </section>
@@ -76,23 +76,23 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
     <section id="v-directorio" class="hide">
       <div class="panel">
         <div class="filtros">
-          <div><label for="fprov">Provincia</label><select id="fprov"></select></div>
-          <div><label for="fmuni">Municipio</label><select id="fmuni"></select></div>
-          <div><label for="fesp">Segmento</label><select id="fesp"></select></div>
-          <div><label for="frep">Reporting</label><select id="frep"><option value="">Todos</option><option value="con">Con reporting</option><option value="sin">Sin reporting</option></select></div>
-          <div><label for="ftipo">Tipo</label><select id="ftipo"><option value="">Todas</option><option value="Persona">Profesionales</option><option value="Centro">Centros</option></select></div>
-          <div><label for="fest">Estado comercial</label><select id="fest"></select></div>
-          <div id="fcomwrap" class="hide"><label for="fcom">Comercial</label><select id="fcom"></select></div>
-          <div><label for="forden">Ordenar por</label>
+          <div><label for="fprov">{{startup.directory.province}}</label><select id="fprov"></select></div>
+          <div><label for="fmuni">{{startup.directory.town}}</label><select id="fmuni"></select></div>
+          <div><label for="fesp">{{startup.directory.segment}}</label><select id="fesp"></select></div>
+          <div><label for="frep">{{startup.directory.reporting}}</label><select id="frep"><option value="">{{startup.directory.allMasculine}}</option><option value="con">{{startup.directory.withReporting}}</option><option value="sin">{{startup.directory.withoutReporting}}</option></select></div>
+          <div><label for="ftipo">{{startup.directory.type}}</label><select id="ftipo"><option value="">{{startup.directory.allFeminine}}</option><option value="Persona">{{startup.directory.people}}</option><option value="Centro">{{startup.directory.centres}}</option></select></div>
+          <div><label for="fest">{{startup.directory.commercialStatus}}</label><select id="fest"></select></div>
+          <div id="fcomwrap" class="hide"><label for="fcom">{{startup.directory.salesRep}}</label><select id="fcom"></select></div>
+          <div><label for="forden">{{startup.directory.sortBy}}</label>
             <select id="forden">
-              <option value="nombre">Nombre</option>
-              <option value="urgentes">Urgentes primero</option>
-              <option value="reciente">Visita más reciente</option>
+              <option value="nombre">{{startup.directory.byName}}</option>
+              <option value="urgentes">{{startup.directory.urgentFirst}}</option>
+              <option value="reciente">{{startup.directory.latestVisit}}</option>
             </select></div>
         </div>
         <div class="chips" id="chips"></div>
-        <div class="acts" style="padding:12px 14px 0;margin:0"><button class="btn sec" id="nuevoBtn">+ Crear nuevo</button><button class="btn sec" id="mapaBtn">Ver mapa</button><button class="btn sec" id="guardarFiltro">★ Guardar filtro</button><button class="btn sec" id="cercaBtn">Cerca de mí</button><button class="btn sec hide" id="dupBtn">Duplicados</button><button class="btn sec kebab" id="dirtools" title="Filtros y columnas">⋮</button></div>
-        <div class="cuenta" id="cuenta">Cargando…</div>
+        <div class="acts" style="padding:12px 14px 0;margin:0"><button class="btn sec" id="nuevoBtn">{{startup.directory.createNew}}</button><button class="btn sec" id="mapaBtn">{{startup.directory.showMap}}</button><button class="btn sec" id="guardarFiltro">{{startup.directory.saveFilter}}</button><button class="btn sec" id="cercaBtn">{{startup.directory.nearMe}}</button><button class="btn sec hide" id="dupBtn">{{startup.directory.duplicates}}</button><button class="btn sec kebab" id="dirtools" title="{{startup.directory.filtersAndColumns}}">⋮</button></div>
+        <div class="cuenta" id="cuenta">{{startup.directory.loading}}</div>
         <div id="mapawrap" class="hide"><div id="mapa"></div><div class="mapleg" id="mapleg"></div></div>
         <div class="tabla" id="tabla"><div class="thead" id="thead"></div><div id="lista"></div></div>
         <div id="dirpag"></div>
@@ -123,18 +123,18 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <div id="toast" class="toast hide"></div>
 <div id="conex" class="conex hide"></div>
 <div id="rutabar" class="rutabar hide"></div>
-<div id="nuevaver" class="upd hide"><span>Hay una versión nueva de la app</span><button class="btn" id="actualizar">Actualizar</button></div>
+<div id="nuevaver" class="upd hide"><span>{{startup.update.newVersion}}</span><button class="btn" id="actualizar">{{startup.update.update}}</button></div>
 <nav class="bnav" id="bnav">
-  <button data-t="inicio"><span>◉</span>Inicio</button>
-  <button data-t="agenda"><span>▤</span>Agenda</button>
-  <button data-t="rutas"><span>➤</span>Rutas</button>
-  <button data-t="directorio"><span>☰</span>Profesionales</button>
-  <button data-t="seguimiento"><span>✓</span>Segui.</button>
+  <button data-t="inicio"><span>◉</span>{{startup.nav.home}}</button>
+  <button data-t="agenda"><span>▤</span>{{startup.nav.agenda}}</button>
+  <button data-t="rutas"><span>➤</span>{{startup.nav.routes}}</button>
+  <button data-t="directorio"><span>☰</span>{{startup.nav.accounts}}</button>
+  <button data-t="seguimiento"><span>✓</span>{{startup.nav.qualityShort}}</button>
 </nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./min/app.js?v=2.444.0"></script>
+<script src="./min/app.js?v=2.445.0"></script>
 </body>
 </html>

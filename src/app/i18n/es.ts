@@ -6,6 +6,7 @@
  */
 import { accounts } from './es/accounts';
 import { legacyTexts } from './es/legacy-texts';
+import { startup } from './es/startup';
 import { settingsCore } from './es/settings-core';
 import { leftovers } from './es/leftovers';
 import { billingMore } from './es/billing-more';
@@ -101,6 +102,7 @@ export const es = {
   leftovers,
   settingsCore,
   legacyTexts,
+  startup,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',
