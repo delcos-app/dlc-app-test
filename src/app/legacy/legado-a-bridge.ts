@@ -140,7 +140,8 @@ export const adminLegacy = {
   setUsers: (users: AdminUser[]): void => { settingsStore.users = users; },
   initials: (name: string): string => legacyFreeCoreServices.vocabulary.initials(name),
   canImpersonate: (user: AdminUser): boolean => legacyFreeCoreServices.permissions.canImpersonateUser(user as unknown as Parameters<typeof legacyFreeCoreServices.permissions.canImpersonateUser>[0]),
-  paintCommissions: (): void => { void pintarComisiones(); },
+  // Plan 7.3: the promise is returned so Administración waits for the page (its code may still be loading)
+  paintCommissions: (): unknown => pintarComisiones(),
   paintAccesses: (): void => { void legacyFreeScreensSettingsMore.paintAccesses(); },
   paintAudit: (): void => { void legacyFreeScreensSettings.paintAudit(); },
   newUser: (): void => { nuevoUsuario({}); },

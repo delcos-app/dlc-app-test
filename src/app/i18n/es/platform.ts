@@ -169,7 +169,7 @@ export const platform = {
     loading: 'Leyendo el mapa del código…',
     noStack: 'Este error no guardó dónde ocurrió.',
     otherVersion: 'El error es de la versión {version} y el mapa del código solo sirve para la versión publicada ahora ({current}).',
-    notMinified: 'La pila no apunta al código publicado (min/app.js): ya se lee tal cual arriba.',
+    notMinified: 'La pila no apunta al código publicado (min/app.js o min/chunks): ya se lee tal cual arriba.',
     noMap: 'No se ha podido leer el mapa del código: {error}',
     unmapped: '(sin correspondencia)',
   },

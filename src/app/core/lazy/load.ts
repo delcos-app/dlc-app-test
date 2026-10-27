@@ -18,7 +18,9 @@ export type ChunkName = (typeof LAZY_CHUNKS)[number];
 
 const CHUNK_FOLDER = 'min/chunks/', IDLE_DELAY_MS = 1500, IDLE_TIMEOUT_MS = 4000;
 /** The screens (ids of ir()) whose loader is in a chunk. */
-const SCREEN_CHUNKS: Readonly<Record<string, ChunkName | undefined>> = { analitica: 'analytics', seguimiento: 'quality', manual: 'manual' };
+const SCREEN_CHUNKS: Readonly<Record<string, ChunkName | undefined>> = {
+  analitica: 'analytics', seguimiento: 'quality', manual: 'manual', eventos: 'events', facturacion: 'billing', delcos: 'platform',
+};
 
 const loads = new Map<ChunkName, Promise<unknown>>();
 /** The chunks already evaluated: their functions are called at once, without waiting a turn. */

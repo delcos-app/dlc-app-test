@@ -76,7 +76,8 @@ export const treePainters = {
   brand: (): unknown => legacyFreeScreensSettingsMore.paintBrand(),
   email: (): unknown => legacyFreeScreensSettingsExtra.paintEmail(),
   backups: (): unknown => legacyFreeScreensSettingsMore.paintBackups(),
-  newImport: (): unknown => { legacyFreeScreensImport.paintImport(); return undefined; },
+  // Plan 7.3: the promise is returned so Configuración waits for the wizard before moving on to the next part
+  newImport: (): unknown => legacyFreeScreensImport.paintImport(),
   imports: (): unknown => legacyFreeScreensImport.paintImports(),
   portalSettings: (): unknown => pintarCfgPortal(),
 };

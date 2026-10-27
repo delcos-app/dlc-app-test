@@ -1,6 +1,7 @@
 /**
  * Source maps (v3) without dependencies: since v2.434.0 the page loads min/app.js, so error stacks point at positions in the minified
  * file; with min/app.js.map they are turned back into source files and lines (Panel delcos → Errores, «Ver en el código»).
+ * Plan 7.3: the screens loaded on first use run from min/chunks/<screen>.js, each with its own map next to it.
  * Pure functions: no DOM, no network.
  */
 
@@ -80,12 +81,15 @@ export function originalPosition(map: SourceMap, line: number, column: number): 
   return { source: map.sources[hit.source] ?? '?', line: hit.line + 1, column: hit.sourceColumn + 1, name: hit.name === null ? null : map.names[hit.name] ?? null };
 }
 
-/** A frame of a stack that points at the bundle: which file, which version (from «?v=») and where. */
+/** A frame of a stack that points at the bundle or a chunk: which file, which version (from «?v=») and where. */
 export interface StackFrame { file: string; version: string | null; line: number; column: number; text: string }
 
-const FRAME = /((?:min\/)?app\.js)(?:\?v=([\d.]+))?:(\d+):(\d+)/;
+const FRAME = /(min\/chunks\/[\w-]+\.js|(?:min\/)?app\.js)(?:\?v=([\d.]+))?:(\d+):(\d+)/;
 
-/** The frames of a stack that point at app.js or min/app.js (other files — libraries, extensions — are left out). */
+/** The published, minified files that have their map next to them (<file>.map): min/app.js and the chunks in min/chunks. */
+export const isMinified = (file: string): boolean => file === 'min/app.js' || /^min\/chunks\/[\w-]+\.js$/.test(file);
+
+/** The frames of a stack that point at app.js, min/app.js or a chunk of min/chunks (libraries and extensions are left out). */
 export function stackFrames(stack: string): StackFrame[] {
   return stack.split('\n').map(text => {
     const match = FRAME.exec(text);

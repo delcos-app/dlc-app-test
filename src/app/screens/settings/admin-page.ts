@@ -51,9 +51,9 @@ function bindUsers(): void {
 export async function loadAdmin(): Promise<void> {
   const view = document.getElementById('v-admin'), section = adminLegacy.section();
   if (view) view.innerHTML = headerHtml(section);
-  const others: Readonly<Record<string, () => void>> = { comisiones: adminLegacy.paintCommissions, accesos: adminLegacy.paintAccesses, auditoria: adminLegacy.paintAudit };
+  const others: Readonly<Record<string, () => unknown>> = { comisiones: adminLegacy.paintCommissions, accesos: adminLegacy.paintAccesses, auditoria: adminLegacy.paintAudit };
   const other = others[section];
-  if (other) { other(); return; }
+  if (other) { await other(); return; }
   const add = document.getElementById('unuevo'); if (add) add.onclick = (): void => { adminLegacy.newUser(); };
   const { data, error } = await legacyDb().rpc<AdminUser[]>('usuarios_lista');
   if (error) { box().innerHTML = `<div class="vacio">${t('legacyA.admin.couldNotLoad', { error: escapeHtml((error as { message?: string }).message ?? '') })}</div>`; return; }

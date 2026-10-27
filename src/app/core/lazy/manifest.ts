@@ -12,13 +12,20 @@ import * as componentsLoading from '../../components/loading';
 import * as coreNavigationCurrent from '../../core/navigation/current';
 import * as coreOrganisation from '../../core/organisation';
 import * as i18nIndex from '../../i18n/index';
+import * as legacyBillingBridge from '../../legacy/billing-bridge';
 import * as legacyBridge from '../../legacy/bridge';
 import * as legacyCommissionsBridge from '../../legacy/commissions-bridge';
 import * as legacyPanelsBridge from '../../legacy/panels-bridge';
+import * as legacyPlatformBridge from '../../legacy/platform-bridge';
+import * as screensEventsModel from '../../screens/events/model';
 import * as screensHomeIndex from '../../screens/home/index';
 import * as screensHomeStore from '../../screens/home/store';
+import * as screensImportFields from '../../screens/import/fields';
+import * as screensImportMatching from '../../screens/import/matching';
 import * as screensOrdersCards from '../../screens/orders/cards';
+import * as screensPlatformModel from '../../screens/platform/model';
 import * as screensRoutesTitleCase from '../../screens/routes/title-case';
+import * as screensSettingsPlanUsage from '../../screens/settings/plan/usage';
 import * as servicesDateFormat from '../../services/date-format';
 import * as servicesDates from '../../services/dates';
 import * as servicesFormat from '../../services/format';
@@ -36,13 +43,20 @@ export const sharedModules = (): Record<string, object> => ({
   'core/navigation/current': coreNavigationCurrent,
   'core/organisation': coreOrganisation,
   'i18n/index': i18nIndex,
+  'legacy/billing-bridge': legacyBillingBridge,
   'legacy/bridge': legacyBridge,
   'legacy/commissions-bridge': legacyCommissionsBridge,
   'legacy/panels-bridge': legacyPanelsBridge,
+  'legacy/platform-bridge': legacyPlatformBridge,
+  'screens/events/model': screensEventsModel,
   'screens/home/index': screensHomeIndex,
   'screens/home/store': screensHomeStore,
+  'screens/import/fields': screensImportFields,
+  'screens/import/matching': screensImportMatching,
   'screens/orders/cards': screensOrdersCards,
+  'screens/platform/model': screensPlatformModel,
   'screens/routes/title-case': screensRoutesTitleCase,
+  'screens/settings/plan/usage': screensSettingsPlanUsage,
   'services/date-format': servicesDateFormat,
   'services/dates': servicesDates,
   'services/format': servicesFormat,
@@ -51,4 +65,4 @@ export const sharedModules = (): Record<string, object> => ({
 });
 
 /** The lazy chunks: min/chunks/<name>.js. */
-export const LAZY_CHUNKS = ['analytics', 'commissions', 'manual', 'quality'] as const;
+export const LAZY_CHUNKS = ['analytics', 'billing', 'commissions', 'events', 'import', 'manual', 'platform', 'quality'] as const;

@@ -2,20 +2,15 @@
  * Configuración → Importar datos (v2.410.0): the wizard «Nueva importación» (what, file, columns, review and run) and the list
  * «Importaciones» with undo. The legacy names pintarImportar and pintarImportaciones stay as adapters (Configuración opens them),
  * and impNorm (Configuración and the manual compare texts with it).
+ * Plan 7.3 (cut B): the wizard and the list are loaded on first use (chunk.ts → min/chunks/import.js); normaliseHeader is called
+ * synchronously by other screens, so it stays in the core.
  */
-import { paintColumnsStep } from './columns-step';
-import { paintFileStep, paintImport } from './file-step';
-import { paintImports } from './history';
-import { paintReviewStep } from './review-step';
-import { steps } from './wizard';
-
-Object.assign(steps, {
-  start: paintImport,
-  file: paintFileStep,
-  columns: paintColumnsStep,
-  review: (): void => { void paintReviewStep(); },
-  history: (): void => { void paintImports(); },
-});
+import { lazyChunk } from '../../core/lazy/load';
+import type * as Chunk from './chunk';
 
 export { normaliseHeader } from './matching';
-export { paintImport, paintImports };
+
+const fromChunk = lazyChunk<typeof Chunk>('import');
+
+export const paintImport = fromChunk('paintImport');
+export const paintImports = fromChunk('paintImports');

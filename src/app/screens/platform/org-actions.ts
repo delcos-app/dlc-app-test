@@ -1,14 +1,14 @@
 /**
  * What the platform does with a company: download all its data, delete a trial or deactivated one, deactivate or reactivate it,
- * and enter it to see it as it is (with the «Estás viendo…» band). Migrated from the legacy orgAccionesBase, orgAcciones,
- * entrarEnOrganizacion, franjaVista and quitarFranja (v2.413.0).
+ * and enter it to see it as it is. Migrated from the legacy orgAccionesBase, orgAcciones and entrarEnOrganizacion (v2.413.0).
+ * The «Estás viendo…» band is in view-band.ts (plan 7.3: it is painted at start-up, so it stays in the core).
  */
 import { callRpc, legacyDb, notices } from '../../legacy/bridge';
 import { platformLegacy } from '../../legacy/platform-bridge';
 import { t, type MessageKey } from '../../i18n';
 import { todayIso } from '../../services/dates';
-import { escapeHtml, formatNumber } from '../../services/format';
-import { downloadJson, errorMessage, type Organization, platformState } from './model';
+import { formatNumber } from '../../services/format';
+import { downloadJson, errorMessage, type Organization } from './model';
 
 const URL_LIFE_MS = 60000;
 
@@ -75,34 +75,4 @@ export async function enterOrganization(organization: Organization): Promise<voi
   if (!result?.ok) { notices.toast(t(result?.motivo === 'permiso' ? 'platform.orgs.onlyAdmin' : 'platform.orgs.couldNotEnter'), true); return; }
   platformLegacy.prepareOrganizationChange(organization.nombre);
   location.reload();
-}
-
-/** Removes the «Estás viendo…» band. */
-export function removeViewBand(): void {
-  document.getElementById('orgvista')?.remove();
-  document.body.classList.remove('con-vista'); document.documentElement.style.setProperty('--alto-franja', '0px');
-}
-
-async function leave(button: HTMLButtonElement): Promise<void> {
-  button.disabled = true;
-  const { data: result } = await legacyDb().rpc<Answer>('salir_organizacion', {});
-  if (!result?.ok) { button.disabled = false; notices.toast(t('platform.orgs.couldNotLeave'), true); return; }
-  location.reload();
-}
-
-/** «Estás viendo X · Salir» when the delcos administrator is inside another company. */
-export async function paintViewBand(): Promise<void> {
-  if (!platformLegacy.hasProfile() || !platformLegacy.can('gestionar_plataforma')) { removeViewBand(); return; }
-  const { data } = await callRpc<typeof platformState.viewed>('vista_organizacion', {});
-  platformState.viewed = data ?? null;
-  const viewed = platformState.viewed;
-  if (!viewed) { removeViewBand(); return; }
-  if (!document.getElementById('orgvista')) document.body.insertAdjacentHTML('afterbegin', '<div id="orgvista" class="orgvista" role="status"></div>');
-  const band = document.getElementById('orgvista'); if (!band) return;
-  const blocked = viewed.bloqueada ? ` <span class="pill p-warn">${t(viewed.bloqueada === 'desactivada' ? 'platform.view.deactivated' : 'platform.view.trialEnded')}</span>` : '';
-  band.innerHTML = `<span>${t('platform.view.seeing', { name: `<b>${escapeHtml(viewed.nombre)}</b>${blocked}` })}</span>
-    <button type="button" class="btn sec" id="orgvistasal">${t('platform.view.leave')}</button>`;
-  document.body.classList.add('con-vista');
-  document.documentElement.style.setProperty('--alto-franja', `${band.offsetHeight}px`);
-  const exit = document.getElementById('orgvistasal') as HTMLButtonElement | null; if (exit) exit.onclick = (): void => { void leave(exit); };
 }

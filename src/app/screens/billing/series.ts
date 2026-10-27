@@ -10,7 +10,7 @@ import { todayIso } from '../../services/dates';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 
-interface Series {
+export interface Series {
   id?: string; codigo: string; nombre: string; tipo: string; formato: string; siguiente: number; anio: number; reinicio_anual: boolean;
   por_defecto?: boolean; activa?: boolean; proximo?: string; ultima?: string | null; emitidas?: number;
 }
