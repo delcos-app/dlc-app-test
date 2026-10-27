@@ -14,6 +14,7 @@ import { deleteOrganization, downloadData, enterOrganization, toggleActive } fro
 import { editExtras } from './org-extras';
 import { openNewOrganization } from './org-new';
 import { editPlan } from './org-plan';
+import { loadOrganisationLimits, organisationLimitsHtml, type OrganisationLimits } from '../settings/plan/usage';
 
 function detailsText(organization: Organization): string {
   const extras = planOf(organization).extras ?? [];
@@ -35,11 +36,11 @@ function buttonsHtml(organization: Organization): string {
         ${toggle}${remove}</span>`;
 }
 
-function rowHtml(organization: Organization): string {
+function rowHtml(organization: Organization, limits?: OrganisationLimits): string {
   const domains = organization.dominios ?? [];
   return `<div class="item u-cursor-default">
       <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
-        <span class="sm">${domains.length ? t('platform.orgs.domainList', { domains: domains.map(escapeHtml).join(', ') }) : t('platform.orgs.noDomain')}</span></span>
+        <span class="sm">${domains.length ? t('platform.orgs.domainList', { domains: domains.map(escapeHtml).join(', ') }) : t('platform.orgs.noDomain')}</span>${limits ? `<span class="orglim">${organisationLimitsHtml(limits)}</span>` : ''}</span>
       ${buttonsHtml(organization)}</div>`;
 }
 
@@ -83,12 +84,12 @@ function bind(box: HTMLElement, list: readonly Organization[]): void {
 export async function paintOrganizations(): Promise<void> {
   const start = document.getElementById('cfgcuerpo'); if (!start) return;
   start.innerHTML = `<div class="card"><div class="sm">${t('common.loading')}</div></div>`;
-  const { data, error } = await legacyDb().rpc<Organization[]>('organizaciones_lista');
+  const [{ data, error }, limits] = await Promise.all([legacyDb().rpc<Organization[]>('organizaciones_lista'), loadOrganisationLimits()]);
   const box = document.getElementById('cfgcuerpo'); if (!box) return;
   const list = Array.isArray(data) ? data : [];
   box.innerHTML = `<div class="card"><div class="fh"><div><h2>${t('platform.orgs.title')}</h2>
       <div class="sm">${t('platform.orgs.subtitle')}</div></div>
       <button class="btn" id="orgnueva">${t('platform.orgs.new')}</button></div>
-    ${error ? `<div class="vacio">${t('platform.orgs.couldNotLoad', { error: escapeHtml(errorMessage(error)) })}</div>` : `<div class="lista">${list.map(rowHtml).join('')}</div>`}</div>`;
+    ${error ? `<div class="vacio">${t('platform.orgs.couldNotLoad', { error: escapeHtml(errorMessage(error)) })}</div>` : `<div class="lista">${list.map(organization => rowHtml(organization, limits.get(organization.id))).join('')}</div>`}</div>`;
   bind(box, list);
 }

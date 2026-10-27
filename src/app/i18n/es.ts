@@ -57,6 +57,7 @@ import { events } from './es/events';
 import { surgeries } from './es/surgeries';
 import { cycle } from './es/cycle';
 import { privacy } from './es/privacy';
+import { limits } from './es/limits';
 
 export const es = {
   equipment,
@@ -139,6 +140,7 @@ export const es = {
   surgeries,
   cycle,
   privacy,
+  limits,
   home: {
     showIndicators: 'Ver tus indicadores',
     hideIndicators: 'Ocultar tus indicadores',

@@ -8435,6 +8435,26 @@
     }
   };
 
+  // src/app/i18n/es/limits.ts
+  var limits = {
+    title: "Uso de la cuenta",
+    intro: "Lo que ocupa tu empresa frente a lo que incluye tu plan. Te avisamos desde el 80 %; el trabajo diario no se corta.",
+    records: "Registros",
+    recordsHint: "Profesionales, centros, clientes, citas, visitas, pedidos, facturas, cobros, productos y movimientos de stock",
+    space: "Espacio",
+    spaceHint: "Fotos de las visitas y archivos subidos",
+    noLimit: "sin límite",
+    ofLimit: "{used} de {limit}",
+    megabytes: "{value} MB",
+    fileMax: "Cada foto puede ocupar hasta {value} MB.",
+    warning: "<b>Tu empresa está cerca del límite de su plan.</b> Revisa qué datos ya no necesitas o habla con delcos para ampliarlo.",
+    exceeded: "<b>Tu empresa ha pasado el límite de su plan.</b> Todo sigue funcionando; habla con delcos para ampliarlo o pasar a otro plan.",
+    filesBlocked: "Las fotos nuevas no se guardarán mientras se pase del espacio del plan.",
+    pillWarning: "Uso {pct} %",
+    pillExceeded: "Límite pasado ({pct} %)",
+    panelUse: "Uso: {records} registros · {space}"
+  };
+
   // src/app/i18n/es.ts
   var es = {
     equipment,
@@ -8517,6 +8537,7 @@
     surgeries,
     cycle,
     privacy,
+    limits,
     home: {
       showIndicators: "Ver tus indicadores",
       hideIndicators: "Ocultar tus indicadores",
@@ -43912,6 +43933,50 @@
     document.getElementById("dlg")?.showModal();
   }
 
+  // src/app/screens/settings/plan/usage.ts
+  var FULL2 = 100;
+  var MIN_BAR2 = 2;
+  async function loadLimits() {
+    try {
+      const { data, error } = await callRpc("limites_uso", {});
+      return !error && data?.estado ? data : null;
+    } catch {
+      return null;
+    }
+  }
+  async function loadOrganisationLimits() {
+    try {
+      const { data, error } = await callRpc("limites_organizaciones", {});
+      return new Map(!error && Array.isArray(data) ? data.map((item) => [item.id, item]) : []);
+    } catch {
+      return /* @__PURE__ */ new Map();
+    }
+  }
+  var megabytes = (value27) => t("limits.megabytes", { value: formatNumber(value27 ?? 0) });
+  function meterRow(name, hint, meter = {}, format) {
+    const { uso, limite } = meter, pct2 = meter.pct ?? 0, hasLimit = limite !== null && limite !== void 0;
+    const text5 = hasLimit ? t("limits.ofLimit", { used: format(uso), limit: format(limite) }) : `${format(uso)} · ${t("limits.noLimit")}`;
+    const width = hasLimit ? Math.max(MIN_BAR2, Math.min(FULL2, pct2)) : 0;
+    return `<div class="bh" title="${escapeHtml(hint)}"><span class="bhn">${escapeHtml(name)}</span>
+    <span class="bhb"><i style="width:${width}%"></i></span><b>${hasLimit ? `${pct2} %` : "–"}</b></div>
+    <div class="sm">${text5}</div>`;
+  }
+  function usageCardHtml(use) {
+    if (!use) return "";
+    const band3 = use.estado === "excedido" ? `<div class="banda-aviso u-mt-8" id="limaviso" data-estado="excedido">${t("limits.exceeded")}${use.bloquear_archivos ? ` ${t("limits.filesBlocked")}` : ""}</div>` : use.estado === "aviso" ? `<div class="banda-aviso u-mt-8" id="limaviso" data-estado="aviso">${t("limits.warning")}</div>` : "";
+    const fileMax = use.archivo_mb !== null && use.archivo_mb !== void 0 ? `<p class="sm">${t("limits.fileMax", { value: formatNumber(use.archivo_mb) })}</p>` : "";
+    return `<div class="card cfgpanel" id="limuso"><h2 style="padding:0 0 4px">${t("limits.title")}</h2>
+    <p class="sm">${t("limits.intro")}</p>
+    <div class="barrash">${meterRow(t("limits.records"), t("limits.recordsHint"), use.filas, (value27) => formatNumber(value27 ?? 0))}
+      ${meterRow(t("limits.space"), t("limits.spaceHint"), use.almacenamiento_mb, megabytes)}</div>${fileMax}${band3}</div>`;
+  }
+  function organisationLimitsHtml(use) {
+    if (!use) return "";
+    const pct2 = Math.max(use.filas?.pct ?? 0, use.almacenamiento_mb?.pct ?? 0);
+    const pill = use.estado === "excedido" ? `<span class="pill p-urg" data-limite="excedido">${t("limits.pillExceeded", { pct: pct2 })}</span> ` : use.estado === "aviso" ? `<span class="pill p-warn" data-limite="aviso">${t("limits.pillWarning", { pct: pct2 })}</span> ` : "";
+    return `${pill}<span class="sm">${t("limits.panelUse", { records: formatNumber(use.filas?.uso ?? 0), space: megabytes(use.almacenamiento_mb?.uso) })}</span>`;
+  }
+
   // src/app/screens/settings/plan/page.ts
   var REQUEST_SHOWN_DAYS = 30;
   var DAY_MS10 = 864e5;
@@ -43997,7 +44062,7 @@
     const use = data ?? {}, base = use.plan ?? {};
     if (base.plan) planLegacy.setCurrent(base);
     const plan3 = planLegacy.current(), definition = planLegacy.of(base.plan), all2 = planLegacy.all();
-    const [request2, billing2] = await Promise.all([lastRequest(), billingData(plan3)]);
+    const [request2, billing2, limits2] = await Promise.all([lastRequest(), billingData(plan3), loadLimits()]);
     const box5 = document.getElementById("cfgcuerpo");
     if (!box5) return;
     const canPay = subscriptionLegacy.canManageCompany(), next = all2[all2.findIndex((item) => item.id === definition.id) + 1] ?? null;
@@ -44005,7 +44070,7 @@
     const asksDelcos = all2.some((item) => item.id !== definition.id && !planLegacy.paymentPlans().includes(item.id));
     const canTalk = plan3.plan === "medida" && !asksDelcos && !cardSectionsLegacy.can("gestionar_plataforma");
     box5.innerHTML = `${header2()}
-    ${currentCardHtml({ base, plan: plan3, definition, used: Number(use.usuarios ?? 0), professionals: Number(use.medicos ?? 0), canPay, request: request2, canTalk })}${billingHtml(plan3, billing2)}
+    ${currentCardHtml({ base, plan: plan3, definition, used: Number(use.usuarios ?? 0), professionals: Number(use.medicos ?? 0), canPay, request: request2, canTalk })}${billingHtml(plan3, billing2)}${usageCardHtml(limits2)}
     ${plansHtml(view)}
     ${conditionsHtml()}
     ${matrixHtml(definition.id)}`;
@@ -53554,11 +53619,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <button class="btn sec chico" type="button" data-orgexp="${organization.id}">${t("platform.orgs.download")}</button>
         ${toggle4}${remove11}</span>`;
   }
-  function rowHtml32(organization) {
+  function rowHtml32(organization, limits2) {
     const domains = organization.dominios ?? [];
     return `<div class="item u-cursor-default">
       <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
-        <span class="sm">${domains.length ? t("platform.orgs.domainList", { domains: domains.map(escapeHtml).join(", ") }) : t("platform.orgs.noDomain")}</span></span>
+        <span class="sm">${domains.length ? t("platform.orgs.domainList", { domains: domains.map(escapeHtml).join(", ") }) : t("platform.orgs.noDomain")}</span>${limits2 ? `<span class="orglim">${organisationLimitsHtml(limits2)}</span>` : ""}</span>
       ${buttonsHtml4(organization)}</div>`;
   }
   var DOMAIN_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["dominio", "platform.orgs.badDomain"], ["en_uso", "platform.orgs.domainInUse"], ["no_existe", "platform.orgs.gone"]]);
@@ -53617,14 +53682,14 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const start4 = document.getElementById("cfgcuerpo");
     if (!start4) return;
     start4.innerHTML = `<div class="card"><div class="sm">${t("common.loading")}</div></div>`;
-    const { data, error } = await legacyDb().rpc("organizaciones_lista");
+    const [{ data, error }, limits2] = await Promise.all([legacyDb().rpc("organizaciones_lista"), loadOrganisationLimits()]);
     const box5 = document.getElementById("cfgcuerpo");
     if (!box5) return;
     const list = Array.isArray(data) ? data : [];
     box5.innerHTML = `<div class="card"><div class="fh"><div><h2>${t("platform.orgs.title")}</h2>
       <div class="sm">${t("platform.orgs.subtitle")}</div></div>
       <button class="btn" id="orgnueva">${t("platform.orgs.new")}</button></div>
-    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map(rowHtml32).join("")}</div>`}</div>`;
+    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map((organization) => rowHtml32(organization, limits2.get(organization.id))).join("")}</div>`}</div>`;
     bind34(box5, list);
   }
 
@@ -55805,7 +55870,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var SKELETONS2 = 4;
   var TOP2 = 10;
   var PRODUCTS = 20;
-  var MIN_BAR2 = 3;
+  var MIN_BAR3 = 3;
   var box4 = () => document.getElementById("angraf");
   var percent4 = (part, whole2) => whole2 ? Math.round(part / whole2 * 100) : 0;
   var words15 = () => ({
@@ -55839,7 +55904,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!total2) return emptyChart(t("panels.charts.funnelEmpty", words15()));
     const rows2 = order.map((state2, index) => {
       const value27 = Number(funnel2[state2]) || 0, before = index ? Number(funnel2[order[index - 1] ?? ""]) || 0 : 0;
-      return `<div class="emb"><span class="embn">${escapeHtml(state2)}</span><span class="embb"><i style="width:${Math.max(MIN_BAR2, value27 / total2 * 100)}%"></i></span><b>${formatNumber(value27)}</b>
+      return `<div class="emb"><span class="embn">${escapeHtml(state2)}</span><span class="embb"><i style="width:${Math.max(MIN_BAR3, value27 / total2 * 100)}%"></i></span><b>${formatNumber(value27)}</b>
           ${index ? `<span class="sm">${before ? t("panels.charts.advances", { percent: percent4(value27, before + value27) }) : ""}</span>` : '<span class="sm"></span>'}</div>`;
     }).join("");
     return `<div class="embudo">${rows2}
@@ -57790,7 +57855,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   });
 
   // src/app/screens/manual/model.ts
-  var FULL2 = 3;
+  var FULL3 = 3;
   var HELP_KEY = /* @__PURE__ */ new Map([["visitas", "agenda"], ["centros", "directorio"]]);
   var PLAN_MODULES = /* @__PURE__ */ new Set(["agenda", "rutas", "directorio", "ventas", "facturacion", "analitica", "productos", "pacientes", "seguimiento"]);
   function firstSteps2() {
@@ -57799,12 +57864,12 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function cardLevel(section2) {
     if (section2.a) return permissions.levelOf(section2.a);
-    if (manualLegacy.can("administrar")) return FULL2;
+    if (manualLegacy.can("administrar")) return FULL3;
     return section2.id === "roles" || section2.id === "permisos" ? 1 : 0;
   }
   function sheetLevel(section2) {
     if (section2.a) return permissions.levelOf(section2.a);
-    return manualLegacy.can("administrar") ? FULL2 : 1;
+    return manualLegacy.can("administrar") ? FULL3 : 1;
   }
   function accessText(section2) {
     if (section2.a) return manualLegacy.levelText(permissions.levelOf(section2.a));

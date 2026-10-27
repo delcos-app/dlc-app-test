@@ -16,6 +16,7 @@ import { choosePlan } from '../../orders/subscription/choose-plan';
 import { conditionsHtml, matrixHtml, plansHtml } from './catalog';
 import { currentCardHtml, type PlanRequest } from './current-card';
 import { askBudget } from './request';
+import { loadLimits, usageCardHtml } from './usage';
 
 const REQUEST_SHOWN_DAYS = 30, DAY_MS = 864e5;
 
@@ -83,14 +84,14 @@ export async function paintPlanPage(): Promise<void> {
   const use = data ?? {}, base = use.plan ?? {};
   if (base.plan) planLegacy.setCurrent(base);
   const plan = planLegacy.current(), definition = planLegacy.of(base.plan), all = planLegacy.all();
-  const [request, billing] = await Promise.all([lastRequest(), billingData(plan)]);
+  const [request, billing, limits] = await Promise.all([lastRequest(), billingData(plan), loadLimits()]);
   const box = document.getElementById('cfgcuerpo'); if (!box) return;
   const canPay = subscriptionLegacy.canManageCompany(), next = all[all.findIndex(item => item.id === definition.id) + 1] ?? null;
   const view = { currentId: definition.id, next, canPay, subscribed: Boolean(plan.stripe_suscripcion), plan: plan.plan, stripeSubscription: Boolean(plan.stripe_suscripcion) };
   const asksDelcos = all.some(item => item.id !== definition.id && !planLegacy.paymentPlans().includes(item.id));
   const canTalk = plan.plan === 'medida' && !asksDelcos && !cardSectionsLegacy.can('gestionar_plataforma');
   box.innerHTML = `${header()}
-    ${currentCardHtml({ base, plan, definition, used: Number(use.usuarios ?? 0), professionals: Number(use.medicos ?? 0), canPay, request, canTalk })}${billingHtml(plan, billing)}
+    ${currentCardHtml({ base, plan, definition, used: Number(use.usuarios ?? 0), professionals: Number(use.medicos ?? 0), canPay, request, canTalk })}${billingHtml(plan, billing)}${usageCardHtml(limits)}
     ${plansHtml(view)}
     ${conditionsHtml()}
     ${matrixHtml(definition.id)}`;
