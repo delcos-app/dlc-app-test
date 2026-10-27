@@ -3,52 +3,16 @@
  * subtitle that says how today goes, «⚙ Tiempos de visita», and today's map. Migrated from the legacy pintarRutaBarra,
  * pintarRutaEnCurso(Base), cargarRutas, cargarRutasBase2, cargarRutasPaso1 and cargarRutasPaso2(Base, Base2) (v2.418.0); cargarRutas,
  * pintarRutaBarra and pintarRutaEnCurso stay as adapters (legado 001, 007, 018 and 019, and the tests use them).
+ * Plan 7.3 (cut C): the bar and the day in progress card moved to day-bar.ts (core); this page is in the Rutas chunk.
  */
-import { agendaState, appointments, currentScreen, goTo, term } from '../../legacy/bridge';
+import { appointments, term } from '../../legacy/bridge';
 import { routes2Legacy } from '../../legacy/routes2-bridge';
 import { t } from '../../i18n';
-import { formatDuration, todayIso } from '../../services/dates';
+import { todayIso } from '../../services/dates';
 import { escapeHtml } from '../../services/format';
+import { paintDayInProgress, showToday, VISITED, type DayItem } from './day-bar';
 import { paintRoutes } from './list';
 import { planSettings } from './planner/settings';
-
-/** Values stored in the database. */
-const VISITED = 'Visitada', NOT_THERE = 'No estaba', NOT_COUNTED = ['Descartada', 'Aplazada'];
-
-interface DayItem { estado: string }
-
-const showToday = (): void => { agendaState.setMode('dia'); agendaState.setSelectedDate(todayIso()); goTo('agenda'); };
-
-/** The bar «Jornada en curso» at the top of every screen while the working day is on. */
-export async function paintRouteBar(): Promise<void> {
-  const day = routes2Legacy.workingDay(), bar = document.getElementById('rutabar'); if (!bar) return;
-  if (!day) { bar.classList.add('hide'); document.body.classList.remove('conruta'); return; }
-  bar.classList.remove('hide'); document.body.classList.add('conruta');
-  const list = await appointments.ofDay(todayIso()) as DayItem[];
-  const done = list.filter(item => item.estado === VISITED || item.estado === NOT_THERE).length, total = list.filter(item => !NOT_COUNTED.includes(item.estado)).length;
-  bar.innerHTML = t('routesMore.page.bar', { time: formatDuration(Date.now() - day.inicio), done, total });
-  // The content of the page starts right under the bar, whatever its height
-  requestAnimationFrame(() => { document.documentElement.style.setProperty('--rbh', `${bar.offsetHeight}px`); });
-  const see = document.getElementById('rbver'), end = document.getElementById('rbfin');
-  if (see) see.onclick = showToday;
-  if (end) end.onclick = (): void => { void routes2Legacy.endWorkingDay(); };
-}
-
-/** In Rutas, the working day in progress is shown in a card (the order, hours and visits are in today's agenda). */
-export function paintDayInProgress(): void {
-  if (routes2Legacy.draft() || currentScreen() !== 'rutas') return;
-  const view = document.getElementById('v-rutas'); if (!view) return;
-  if (!document.getElementById('renc')) view.querySelector('.saludo')?.insertAdjacentHTML('afterend', '<div id="renc"></div>');
-  const box = document.getElementById('renc'), day = routes2Legacy.workingDay(); if (!box) return;
-  box.innerHTML = day ? `<div class="card renc"><h2>${t('routesMore.page.inProgress')}</h2>
-    <p class="sm">${t('routesMore.page.startedAgo', { time: formatDuration(Date.now() - day.inicio), visits: term('visita', { number: 'p' }) })}</p>
-    <div class="acts" style="padding:0 16px 16px"><button class="btn" id="rencver">${t('routesMore.page.seeDay')}</button>
-      <button class="btn sec dang" id="rencfin">${t('routesMore.page.endDay')}</button></div></div>` : '';
-  if (!day) return;
-  const see = document.getElementById('rencver'), end = document.getElementById('rencfin');
-  if (see) see.onclick = showToday;
-  if (end) end.onclick = (): void => { void routes2Legacy.endWorkingDay(); };
-}
 
 /** «⚙ Tiempos de visita» and the subtitle with the minutes per visit. */
 function headerTimes(view: HTMLElement): void {

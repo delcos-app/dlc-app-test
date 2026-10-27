@@ -1,30 +1,25 @@
 /**
  * The working day: start it (with open appointments today), its time and visits when it ends, and the open appointments left,
  * proposed to another day. It is kept on this device for its own day. Migrated from the legacy jornadaActiva, empezarJornada and
- * terminarJornada (v2.414.0); the three names stay as adapters (Rutas and the tests use them).
+ * terminarJornada (v2.414.0); the three names stay as adapters (Rutas and the tests use them). Plan 7.3 (cut C): the working day in
+ * progress (activeWorkingDay) is read at once by the bar of every screen, so it is in active-day.ts (core).
  */
 import { agendaState, appLegacy, appointments, currentScreen, goTo, legacyAgenda, notices, reloadAgenda } from '../../legacy/bridge';
-import { paintRouteBar } from '../routes/page';
+import { paintRouteBar } from '../routes/day-bar';
 import { requestTraffic } from './traffic';
 import { restLegacy } from '../../legacy/rest-bridge';
 import { t } from '../../i18n';
 import { formatDuration, todayIso } from '../../services/dates';
+import { activeWorkingDay, type WorkingDay } from './active-day';
 import { isOpen } from './appointment-state';
 import { rescheduleAppointments, type ReschedulableAppointment } from './reschedule';
 
 /** Values stored in the database. */
 const VISITED = 'Visitada', NOT_COUNTED = ['Descartada', 'Aplazada'];
 
-interface WorkingDay { fecha: string; inicio: number }
 type DayAppointment = ReschedulableAppointment & { estado: string };
 
-/** The working day in progress today, or null (one from another day is forgotten). */
-export function activeWorkingDay(): WorkingDay | null {
-  let stored: WorkingDay | null = null;
-  try { stored = JSON.parse(localStorage.getItem(restLegacy.workingDayKey()) ?? 'null') as WorkingDay | null; } catch { /* nothing stored */ }
-  if (stored && stored.fecha !== todayIso()) { localStorage.removeItem(restLegacy.workingDayKey()); return null; }
-  return stored;
-}
+export { activeWorkingDay } from './active-day';
 
 export async function startWorkingDay(): Promise<void> {
   const list = await appointments.ofDay(todayIso()) as DayAppointment[];

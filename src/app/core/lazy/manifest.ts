@@ -7,6 +7,7 @@ import * as componentsChartsMonthBars from '../../components/charts/month-bars';
 import * as componentsChartsSmallCharts from '../../components/charts/small-charts';
 import * as componentsFiltersPanelCounter from '../../components/filters-panel/counter';
 import * as componentsFiltersPanelPrepare from '../../components/filters-panel/prepare';
+import * as componentsFiltersMemory from '../../components/filters/memory';
 import * as componentsIndex from '../../components/index';
 import * as componentsLoading from '../../components/loading';
 import * as coreNavigationCurrent from '../../core/navigation/current';
@@ -15,20 +16,51 @@ import * as i18nIndex from '../../i18n/index';
 import * as legacyBillingBridge from '../../legacy/billing-bridge';
 import * as legacyBridge from '../../legacy/bridge';
 import * as legacyCommissionsBridge from '../../legacy/commissions-bridge';
+import * as legacyCustomersBridge from '../../legacy/customers-bridge';
+import * as legacyOrdersBridge from '../../legacy/orders-bridge';
+import * as legacyOrders2Bridge from '../../legacy/orders2-bridge';
 import * as legacyPanelsBridge from '../../legacy/panels-bridge';
 import * as legacyPlatformBridge from '../../legacy/platform-bridge';
+import * as legacyRestBridge from '../../legacy/rest-bridge';
+import * as legacyRoutesBridge from '../../legacy/routes-bridge';
+import * as legacyRoutes2Bridge from '../../legacy/routes2-bridge';
+import * as legacySettingsCoreBridge from '../../legacy/settings-core-bridge';
+import * as screensAccountsEditorFormModel from '../../screens/accounts/editor-form/model';
+import * as screensAccountsTimetable from '../../screens/accounts/timetable';
+import * as screensAgendaActiveDay from '../../screens/agenda/active-day';
+import * as screensAgendaAppointmentOptions from '../../screens/agenda/appointment-options';
+import * as screensAgendaAppointmentOrigin from '../../screens/agenda/appointment-origin';
+import * as screensAgendaAppointmentState from '../../screens/agenda/appointment-state';
+import * as screensAgendaPreload from '../../screens/agenda/preload';
+import * as screensAgendaSameCentre from '../../screens/agenda/same-centre';
+import * as screensAgendaTrafficTimes from '../../screens/agenda/traffic-times';
+import * as screensAgendaYourDayCompact from '../../screens/agenda/your-day/compact';
+import * as screensCustomersPicker from '../../screens/customers/picker';
 import * as screensEventsModel from '../../screens/events/model';
 import * as screensHomeIndex from '../../screens/home/index';
 import * as screensHomeStore from '../../screens/home/store';
 import * as screensImportFields from '../../screens/import/fields';
 import * as screensImportMatching from '../../screens/import/matching';
 import * as screensOrdersCards from '../../screens/orders/cards';
+import * as screensOrdersModel from '../../screens/orders/model';
+import * as screensOrdersPaymentEmail from '../../screens/orders/payment-email';
+import * as screensOrdersSubscriptionPayments from '../../screens/orders/subscription/payments';
 import * as screensPlatformModel from '../../screens/platform/model';
+import * as screensPurchasesIndex from '../../screens/purchases/index';
+import * as screensRoutesDayBar from '../../screens/routes/day-bar';
+import * as screensRoutesIndex from '../../screens/routes/index';
+import * as screensRoutesModel from '../../screens/routes/model';
+import * as screensRoutesPlannerSettings from '../../screens/routes/planner/settings';
+import * as screensRoutesPlannerVisits from '../../screens/routes/planner/visits';
 import * as screensRoutesTitleCase from '../../screens/routes/title-case';
+import * as screensRoutesTodayDayPlan from '../../screens/routes/today/day-plan';
+import * as screensRoutesTodayService from '../../screens/routes/today/service';
 import * as screensSettingsPlanUsage from '../../screens/settings/plan/usage';
+import * as servicesCalendar from '../../services/calendar';
 import * as servicesDateFormat from '../../services/date-format';
 import * as servicesDates from '../../services/dates';
 import * as servicesFormat from '../../services/format';
+import * as servicesMaps from '../../services/maps';
 import * as servicesMoney from '../../services/money';
 import * as servicesValues from '../../services/values';
 
@@ -38,6 +70,7 @@ export const sharedModules = (): Record<string, object> => ({
   'components/charts/small-charts': componentsChartsSmallCharts,
   'components/filters-panel/counter': componentsFiltersPanelCounter,
   'components/filters-panel/prepare': componentsFiltersPanelPrepare,
+  'components/filters/memory': componentsFiltersMemory,
   'components/index': componentsIndex,
   'components/loading': componentsLoading,
   'core/navigation/current': coreNavigationCurrent,
@@ -46,23 +79,54 @@ export const sharedModules = (): Record<string, object> => ({
   'legacy/billing-bridge': legacyBillingBridge,
   'legacy/bridge': legacyBridge,
   'legacy/commissions-bridge': legacyCommissionsBridge,
+  'legacy/customers-bridge': legacyCustomersBridge,
+  'legacy/orders-bridge': legacyOrdersBridge,
+  'legacy/orders2-bridge': legacyOrders2Bridge,
   'legacy/panels-bridge': legacyPanelsBridge,
   'legacy/platform-bridge': legacyPlatformBridge,
+  'legacy/rest-bridge': legacyRestBridge,
+  'legacy/routes-bridge': legacyRoutesBridge,
+  'legacy/routes2-bridge': legacyRoutes2Bridge,
+  'legacy/settings-core-bridge': legacySettingsCoreBridge,
+  'screens/accounts/editor-form/model': screensAccountsEditorFormModel,
+  'screens/accounts/timetable': screensAccountsTimetable,
+  'screens/agenda/active-day': screensAgendaActiveDay,
+  'screens/agenda/appointment-options': screensAgendaAppointmentOptions,
+  'screens/agenda/appointment-origin': screensAgendaAppointmentOrigin,
+  'screens/agenda/appointment-state': screensAgendaAppointmentState,
+  'screens/agenda/preload': screensAgendaPreload,
+  'screens/agenda/same-centre': screensAgendaSameCentre,
+  'screens/agenda/traffic-times': screensAgendaTrafficTimes,
+  'screens/agenda/your-day/compact': screensAgendaYourDayCompact,
+  'screens/customers/picker': screensCustomersPicker,
   'screens/events/model': screensEventsModel,
   'screens/home/index': screensHomeIndex,
   'screens/home/store': screensHomeStore,
   'screens/import/fields': screensImportFields,
   'screens/import/matching': screensImportMatching,
   'screens/orders/cards': screensOrdersCards,
+  'screens/orders/model': screensOrdersModel,
+  'screens/orders/payment-email': screensOrdersPaymentEmail,
+  'screens/orders/subscription/payments': screensOrdersSubscriptionPayments,
   'screens/platform/model': screensPlatformModel,
+  'screens/purchases/index': screensPurchasesIndex,
+  'screens/routes/day-bar': screensRoutesDayBar,
+  'screens/routes/index': screensRoutesIndex,
+  'screens/routes/model': screensRoutesModel,
+  'screens/routes/planner/settings': screensRoutesPlannerSettings,
+  'screens/routes/planner/visits': screensRoutesPlannerVisits,
   'screens/routes/title-case': screensRoutesTitleCase,
+  'screens/routes/today/day-plan': screensRoutesTodayDayPlan,
+  'screens/routes/today/service': screensRoutesTodayService,
   'screens/settings/plan/usage': screensSettingsPlanUsage,
+  'services/calendar': servicesCalendar,
   'services/date-format': servicesDateFormat,
   'services/dates': servicesDates,
   'services/format': servicesFormat,
+  'services/maps': servicesMaps,
   'services/money': servicesMoney,
   'services/values': servicesValues,
 });
 
 /** The lazy chunks: min/chunks/<name>.js. */
-export const LAZY_CHUNKS = ['analytics', 'billing', 'commissions', 'events', 'import', 'manual', 'platform', 'quality'] as const;
+export const LAZY_CHUNKS = ['agenda', 'analytics', 'billing', 'commissions', 'events', 'import', 'manual', 'orders', 'platform', 'quality', 'routes'] as const;

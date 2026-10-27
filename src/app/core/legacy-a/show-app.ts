@@ -7,6 +7,7 @@ import { t } from '../../i18n';
 import { orFallback } from '../../services/values';
 import { fromIsoDate, todayIso } from '../../services/dates';
 import { preloadChunks } from '../lazy/load';
+import { navigationStore } from '../navigation/store';
 
 const ADDED_INDICATORS = ['uds_mes', 'prescriptores', 'citas_7d', 'sin_visita_60'];
 const MORNING_UNTIL = 13, AFTERNOON_UNTIL = 20, START_DELAY_MS = 50, BELL_DELAY_MS = 800, DAY_NOTICES_DELAY_MS = 1500;
@@ -99,13 +100,24 @@ function userMenu(): void {
   document.querySelector('[data-u="empresa"]')?.classList.toggle('hide', !admin);
 }
 
+/**
+ * The first screen is another one (the one before F5, or the preferred start screen, such as the Agenda of the sales reps): Inicio,
+ * painted underneath, does not show for a moment before it (pantallas sin fantasmas). If the switch does not happen (no permission),
+ * Inicio shows as usual.
+ */
+function startElsewhere(go: () => void): void {
+  const home = byId('v-inicio');
+  home?.classList.add('hide');
+  setTimeout(() => { go(); if (navigationStore.screen === 'inicio') home?.classList.remove('hide'); }, START_DELAY_MS);
+}
+
 /** 8. Notifications, preferred start screen (or the one before F5) and the summary of the day. */
 function startScreen(first: boolean, start: string | undefined): void {
   setTimeout(() => { showAppLegacy.refreshBell(); }, BELL_DELAY_MS);
   // v2.111.0: after F5 it goes back to the screen it was on (Ctrl+F5 starts from scratch, on Inicio)
   const afterF5 = first ? showAppLegacy.screenAfterF5() : null;
-  if (afterF5) setTimeout(() => { showAppLegacy.backAfterF5(afterF5); }, START_DELAY_MS);
-  else if (first && start && start !== 'inicio' && showAppLegacy.moduleAllowed(start)) setTimeout(() => { showAppLegacy.goTo(start); }, START_DELAY_MS);
+  if (afterF5) startElsewhere(() => { showAppLegacy.backAfterF5(afterF5); });
+  else if (first && start && start !== 'inicio' && showAppLegacy.moduleAllowed(start)) startElsewhere(() => { showAppLegacy.goTo(start); });
   if (!showAppLegacy.can('portal_prescriptor')) setTimeout(() => { showAppLegacy.dayNotices(); }, DAY_NOTICES_DELAY_MS);
   // Plan 7.3: the code of the first screen, if it is loaded on first use, starts coming now; the other lazy screens when idle
   if (first) preloadChunks(afterF5 ? (afterF5 as { t?: string }).t : start);

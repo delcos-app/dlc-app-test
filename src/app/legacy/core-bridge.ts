@@ -99,7 +99,7 @@ export const coreLegacy = {
   paintConnection: (): void => { pintarConexion(); },
   reloadHome: (): void => { void cargarInicio(); },
   reloadAgenda: (): void => { void cargarAgenda(); },
-  markQueuedVisits: (): void => { window.delcos.screens.agenda.markQueuedVisits(); },
+  markQueuedVisits: (): void => { void window.delcos.screens.agenda.markQueuedVisits(); },
   openNotifications: (list: readonly unknown[]): void => { panelNotificaciones(list); },
   setUnreadNotifications: (count: number): void => { settingsStore.notificationCount = count; },
   liveChannel: (): unknown => sessionStore.live,

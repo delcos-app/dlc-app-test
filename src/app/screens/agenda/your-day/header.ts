@@ -6,6 +6,7 @@ import { formatMinutes } from '../../../services/dates';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { statePill } from '../appointment-state';
 import { timeText } from './card';
+import { compactButton } from './compact';
 
 const DAY_MINUTES = 24 * 60;
 
@@ -14,19 +15,6 @@ export interface DaySummary {
   readonly active: number; readonly done: number; readonly absent: number; readonly open: number;
   readonly end: number; readonly overReturn: boolean; readonly withPlace: number; readonly own: boolean; readonly isOwner: boolean;
   readonly workingDay: { inicio: number } | null; readonly compact: boolean; readonly visit: string;
-}
-
-function compactButton(compact: boolean): string {
-  const title = t(compact ? 'agenda.yourDay.showDetail' : 'agenda.yourDay.compactTitle'), label = t(compact ? 'agenda.yourDay.showDetail' : 'agenda.yourDay.compactLabel');
-  return `<button type="button" class="btn sec chico plic" id="tdcompactar" aria-pressed="${String(compact)}" title="${title}" aria-label="${label}">${legacyIcons.list(compact ? 'file-text' : 'list')}</button>`;
-}
-
-/** The compact button after a toggle (same markup as when painted). */
-export function setCompactButton(button: HTMLElement, compact: boolean): void {
-  button.title = t(compact ? 'agenda.yourDay.showDetail' : 'agenda.yourDay.compactTitle');
-  button.setAttribute('aria-label', t(compact ? 'agenda.yourDay.showDetail' : 'agenda.yourDay.compactLabel'));
-  button.innerHTML = legacyIcons.list(compact ? 'file-text' : 'list');
-  button.setAttribute('aria-pressed', String(compact));
 }
 
 function statsHtml(summary: DaySummary): string {

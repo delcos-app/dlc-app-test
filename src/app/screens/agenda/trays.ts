@@ -9,7 +9,8 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml } from '../../services/format';
 import { isPresent } from '../../services/values';
 import { withAppointmentToday } from './same-centre';
-import { planFromList, type PlanMember } from '../routes/planner/plan';
+import { planFromList } from '../routes';
+import type { PlanMember } from '../routes/planner/plan';
 import { rescheduleAppointments } from './reschedule';
 
 type Tray = 'toca' | 'pend';

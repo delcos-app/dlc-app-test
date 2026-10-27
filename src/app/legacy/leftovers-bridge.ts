@@ -123,5 +123,5 @@ export const leftoversLegacy = {
   chosenIndicators: (): IndicatorSetting[] | undefined => profile().preferencias?.kpis,
   defaultIndicators: (): readonly string[] => KPI_DEF,
   indicatorCatalog: (): readonly { id: string }[] => KPI_CAT,
-  openPlanHoursWindow: (): void => { legacyFreeCoreSettings.openPlanTimesWindow(); },
+  openPlanHoursWindow: (): void => { void legacyFreeCoreSettings.openPlanTimesWindow(); },
 };

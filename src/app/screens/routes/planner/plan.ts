@@ -12,7 +12,7 @@ import { formatMinutes, todayIso } from '../../../services/dates';
 import { formatLongDate } from '../../../services/date-format';
 import { orFallback } from '../../../services/values';
 import { editRoute } from '../editor';
-import { paintRouteBar } from '../page';
+import { paintRouteBar } from '../day-bar';
 import { currentHours, hoursOfRoute, planSettings, setHours, type PlanHours } from './settings';
 import { nowMinutes, nowRounded, scheduleVisits, type LeftOut, type Point, type ScheduledVisit, type Windows } from './visits';
 import { withTimetables } from '../../accounts/timetable';

@@ -11,7 +11,7 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { range } from '../../services/values';
 import { weekLoads, withData } from './preload';
-import { planWeek, saveWeekDraft } from '../routes/planner/week';
+import { planWeek, saveWeekDraft } from '../routes';
 import { openDayMenu } from './day-menu';
 
 const WEEK_DAYS = 7, SHOWN_PER_DAY = 9, SHOWN_WITHOUT_DAY = 25;

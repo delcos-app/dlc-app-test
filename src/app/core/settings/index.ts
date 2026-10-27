@@ -8,4 +8,5 @@ export { contractedUsers, isUndoable, markMenuFooter, markModuleCache, menuLabel
 export { applyBrand, invoiceLogo, loadCatalogs, loadSettings, NEUTRAL_LOGO } from './load';
 export { defaultRole, loadRoles, roleCan, roleDefinition, roleNames, ROLES_KEY, roleTemplate, roleWith } from './roles';
 export { settingsTree } from './tree';
-export { openPlanTimesWindow, paintPlanCard } from '../../screens/routes/planner/plan-card';
+// Plan 7.3 (cut C): the plan card is in the Rutas chunk (async; it paints at once once the chunk is here)
+export { openPlanTimesWindow, paintPlanCard } from '../../screens/routes';

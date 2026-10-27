@@ -12,7 +12,8 @@ export function installAgendaListeners(): void {
     const month = document.getElementById('agmes');
     if (month?.classList.contains('pop') && !(event.target as Element).closest('#agmes, #cmesb, .agmpop, .agpop')) agendaGlueLegacy.closeMonth();
   });
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') agendaGlueLegacy.closeMonth(); });
+  // Only where the Agenda has painted its month (plan 7.3 cut C: Escape elsewhere does not ask for the Agenda chunk)
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && document.querySelector('#agmes, #cmesb')) agendaGlueLegacy.closeMonth(); });
   // Pressing the card (outside its buttons) opens the appointment, like the row of before
   document.addEventListener('click', event => {
     const target = event.target as Element, card = target.closest<HTMLElement>('.tdu');

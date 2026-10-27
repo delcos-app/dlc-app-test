@@ -62,7 +62,7 @@ export const treeLegacy = {
   paintTexts: (): unknown => legacyFreeScreensSettingsExtra.paintMenuNames(),
   paintDistributors: (): unknown => legacyFreeScreensOrders.paintDistributors(),
   paintStateRoles: (): unknown => legacyFreeScreensSettingsMore.paintCommercialStates(),
-  paintCardPayment: (): unknown => { legacyFreeScreensOrders.paintTpvSettings(); return undefined; },
+  paintCardPayment: (): unknown => legacyFreeScreensOrders.paintTpvSettings(),
   paintTestEnvironment: (): unknown => legacyFreeScreensSettings.paintTestEnvironment(),
   setSearchWords: (words: Record<string, string>): void => { Object.assign(CFG_CLAVES, words); },
 };

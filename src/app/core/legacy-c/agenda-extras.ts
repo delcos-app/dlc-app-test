@@ -118,10 +118,16 @@ export function checkSamplesBeforeSaving(): void {
 
 interface Booked { m: { nombre: string; municipio?: string | null }; fecha: string }
 
-/** v2.64.0: the plan shows apart the professionals that already have an appointment (the legacy pintarPlan). */
-export function paintPlan(args: readonly unknown[]): unknown {
+/**
+ * v2.64.0: the plan shows apart the professionals that already have an appointment (the legacy pintarPlan). The plan card is in the
+ * Rutas chunk (plan 7.3, cut C): once it is here the card is painted at once and the booked list right after, in the same task.
+ */
+export function paintPlan(args: readonly unknown[]): Promise<void> {
   void args;   // the legacy callers pass their arguments; the plan card takes none
-  legacyFreeCoreSettings.paintPlanCard();
+  return legacyFreeCoreSettings.paintPlanCard().then(paintBooked);
+}
+
+function paintBooked(): void {
   const box = byId('rplan'), booked = (routesStore.plan as { citados?: Booked[] } | null)?.citados ?? [];
   if (box && booked.length && !box.querySelector('.plancitados')) {
     box.insertAdjacentHTML('beforeend', `<div class="plancitados"><h3>${t('legacyC.plan.booked', { count: booked.length })}</h3>
@@ -129,5 +135,4 @@ export function paintPlan(args: readonly unknown[]): unknown {
       <div class="lista">${booked.map(item => `<div class="item u-cursor-default"><span class="ic">📅</span><span class="txt"><b>${escapeHtml(item.m.nombre)}</b>
         <span class="sm">${t('legacyC.plan.bookedOn', { date: escapeHtml(legacyFreeCoreServices.calendar.longDate((new Date(`${item.fecha}T12:00:00`)))) })}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ''}</span></span></div>`).join('')}</div></div>`);
   }
-  return undefined;
 }

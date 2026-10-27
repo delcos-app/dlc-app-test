@@ -12,7 +12,7 @@ import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml } from '../../../services/format';
 import { callPayments, loadPaymentState } from '../../orders/subscription/payments';
-import { choosePlan } from '../../orders/subscription/choose-plan';
+import { choosePlan } from '../../orders';
 import { conditionsHtml, matrixHtml, plansHtml } from './catalog';
 import { currentCardHtml, type PlanRequest } from './current-card';
 import { askBudget } from './request';
@@ -68,10 +68,10 @@ function bind(box: HTMLElement, plan: CurrentPlan): void {
   const on = (id: string, action: (button: HTMLButtonElement) => void): void => {
     const button = document.getElementById(id) as HTMLButtonElement | null; if (button) button.onclick = (): void => { action(button); };
   };
-  box.querySelectorAll<HTMLElement>('[data-pgplan]').forEach(button => { button.onclick = (): void => { choosePlan(button.dataset.pgplan); }; });
-  on('pgusu2', () => { choosePlan(plan.plan); });
+  box.querySelectorAll<HTMLElement>('[data-pgplan]').forEach(button => { button.onclick = (): void => { void choosePlan(button.dataset.pgplan); }; });
+  on('pgusu2', () => { void choosePlan(plan.plan); });
   on('pgportal', button => { subscriptionLegacy.openPortal(button); });
-  on('pgelegir', () => { choosePlan(); });
+  on('pgelegir', () => { void choosePlan(); });
   on('pganular', button => { void payAndReload({ accion: 'anular_cambio' }, button, 'cancel'); });
   on('pgseguir', button => { void payAndReload({ accion: 'reanudar' }, button, 'keep'); });
   on('pgdarbaja', button => { void callPayments({ accion: 'baja' }, button).then(answer => { if (answer?.url) location.href = answer.url; }); });

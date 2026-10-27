@@ -17,6 +17,14 @@ import * as legacyFreeScreensSurgeries from '../../screens/surgeries';
 const REVEAL_MAX_MS = 1500, REVEAL_SINCE_MS = 50, REPAINT_AFTER_CLOSE_MS = 300, SCROLLED_PX = 4, FOCUS_DELAY_MS = 30;
 type Opener = (...args: unknown[]) => unknown;
 
+/**
+ * v2.57.0: this window opens wide (what sizeWindows does to the wide windows opened by name). The screens split in chunks wrap their
+ * own opener instead of having their global name wrapped (plan 7.3 cut C).
+ */
+export function wideOpener<Open extends (...args: never[]) => unknown>(open: Open): Open {
+  return function (this: unknown, ...args: Parameters<Open>): unknown { byId('dlg')?.classList.add('amplia'); return open.apply(this, args); } as Open;
+}
+
 /** v2.57.0: the wide windows (order, purchase, invoice…) and their size class goes when they close. */
 export function sizeWindows(): void {
   const globals = window as unknown as Record<string, Opener>;

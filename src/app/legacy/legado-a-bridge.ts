@@ -25,6 +25,7 @@ import * as legacyFreeComponentsList from '../components/list';
 import * as legacyFreeScreensPortal from '../screens/portal';
 import * as legacyFreeScreensAgenda from '../screens/agenda';
 import * as legacyFreeScreensManual from '../screens/manual';
+import * as legacyFreeScreensOrders from '../screens/orders';
 
 type AuthAnswer = PromiseLike<{ error: { message: string } | null }>;
 interface AskOptions { titulo?: string; ok?: string; tipo?: string; opciones?: string[] }
@@ -36,8 +37,8 @@ export const startupLegacy = {
 
 const MODULE_LOADERS: Readonly<Record<string, () => unknown>> = {
   directorio: () => { if (!document.getElementById('lista')?.children.length) buscar(true); },
-  inicio: () => cargarInicio(), agenda: () => cargarAgenda(), rutas: () => legacyFreeScreensRoutes.loadRoutesPage(), seguimiento: () => legacyFreeScreensQuality.loadQuality(),
-  ventas: () => cargarVentas(), analitica: () => cargarAnalitica(), config: () => cargarConfig(), duplicados: () => legacyFreeScreensAccounts.loadDuplicates(),
+  inicio: () => cargarInicio(), agenda: () => legacyFreeScreensAgenda.loadAgenda(), rutas: () => legacyFreeScreensRoutes.loadRoutesPage(), seguimiento: () => legacyFreeScreensQuality.loadQuality(),
+  ventas: () => legacyFreeScreensOrders.loadSales(), analitica: () => cargarAnalitica(), config: () => cargarConfig(), duplicados: () => legacyFreeScreensAccounts.loadDuplicates(),
   pacientes: () => cargarPacientes(), productos: () => cargarProductosModulo(), manual: () => { void legacyFreeScreensManual.paintManual(); },
   facturacion: () => cargarFacturacion(), informe: () => legacyFreeScreensPortal.loadReport(),
 };

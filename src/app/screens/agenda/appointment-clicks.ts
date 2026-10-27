@@ -1,14 +1,15 @@
 /**
  * The appointment buttons that are not in the cards of «Tu día» (legado 003 and 022, v2.424.0): «+ Nueva cita», change the time,
  * open the card, record, discard, delete, move to today, move to another day (it postpones), and «Añadir a mi agenda» from the
- * account card. Each listener is registered by its legado file at its place in the load order.
+ * account card. Each listener is registered by its legado file at its place in the load order. Plan 7.3 (cut C): changing the time
+ * is in the Agenda chunk (called through the screen).
  */
 import { legacyDb, notices, term } from '../../legacy/bridge';
 import { agendaClicksLegacy } from '../../legacy/legado-a-bridge';
 import { t } from '../../i18n';
 import { formatShortDate } from '../../services/date-format';
 import { addDays, todayIso } from '../../services/dates';
-import { changeTime } from './appointment-actions';
+import { changeTime } from '.';
 
 const STATES = { planned: 'Planificada', discarded: 'Descartada', rescheduled: 'Reprogramada' } as const;
 const REFRESH_AFTER_DIALOG_MS = 350;

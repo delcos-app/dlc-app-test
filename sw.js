@@ -2,12 +2,12 @@
    y solo se usa la copia guardada si no hay conexión. Nunca guarda datos.
    v2.350.0: guarda también las dos librerías de fuera que la app necesita (Supabase, para arrancar sin conexión, y Leaflet) y, si
    la red no contesta en 6 s, usa la copia guardada. */
-const CACHE = 'dlc-os-2.451.0';
-const FILES = ['./', './index.html', './min/app.js?v=2.451.0', './config.js', './manifest.webmanifest',
+const CACHE = 'dlc-os-2.452.0';
+const FILES = ['./', './index.html', './min/app.js?v=2.452.0', './config.js', './manifest.webmanifest',
                './logo-app.png', './icon-192.png', './icon-512.png', './apple-touch-180.png', './favicon.svg'];
 // Plan 7.3: the screens loaded on first use (herramientas/construir.mjs writes this list). They are kept with the same ?v= as
 // min/app.js, which is the address the app asks for, so they open without network even if they were never opened before.
-const CHUNKS = ['./min/chunks/analytics.js', './min/chunks/billing.js', './min/chunks/commissions.js', './min/chunks/events.js', './min/chunks/import.js', './min/chunks/manual.js', './min/chunks/platform.js', './min/chunks/quality.js'];
+const CHUNKS = ['./min/chunks/agenda.js', './min/chunks/analytics.js', './min/chunks/billing.js', './min/chunks/commissions.js', './min/chunks/events.js', './min/chunks/import.js', './min/chunks/manual.js', './min/chunks/orders.js', './min/chunks/platform.js', './min/chunks/quality.js', './min/chunks/routes.js'];
 const APP_QUERY = FILES.find(f => f.includes('min/app.js')).split('app.js')[1];
 const CDN = ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'];
 

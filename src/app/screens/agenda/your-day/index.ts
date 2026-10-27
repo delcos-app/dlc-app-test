@@ -16,7 +16,8 @@ import { paintSameCentre } from '../same-centre';
 import { hasStrip } from '../strip';
 import { paintTrayButtons } from '../trays';
 import { appointmentCard, nextOf, type DayContext } from './card';
-import { headerHtml, noFitHtml, othersHtml, setCompactButton, workingDayHtml, type DaySummary } from './header';
+import { compact } from './compact';
+import { headerHtml, noFitHtml, othersHtml, workingDayHtml, type DaySummary } from './header';
 import { applyTaskFolding, paintTasks } from './tasks';
 import { openDayMenu } from '../day-menu';
 import { rescheduleAppointments } from '../reschedule';
@@ -24,13 +25,7 @@ import { activeWorkingDay, endWorkingDay, startWorkingDay } from '../working-day
 import { prepareRouteStops } from '../route-buttons';
 import { markTraffic } from '../traffic';
 
-const COMPACT_KEY = 'delcos-tdcompacto', DEFAULT_LIMIT = 21 * 60, WARNINGS_FOR_BANNER = 3;
-
-function compact(): boolean {
-  try { return localStorage.getItem(COMPACT_KEY) === '1'; } catch { return false; }
-}
-
-const applyCompact = (): void => { document.body.classList.toggle('tdcompacto', compact()); };
+const DEFAULT_LIMIT = 21 * 60, WARNINGS_FOR_BANNER = 3;
 
 interface DayData { readonly day: string; readonly today: string; readonly mine: DayAppointmentFull[]; readonly others: DayAppointmentFull[] }
 
@@ -137,21 +132,4 @@ export async function paintYourDay(): Promise<void> {
     if (hasStrip()) markQueuedVisits();
   }
   applyTaskFolding();
-}
-
-/** The compact toggle and the «i» of a warning (one listener each for the whole app); the compact mode applies on start. */
-export function listenToYourDay(): void {
-  applyCompact();
-  document.addEventListener('click', event => {
-    const button = event.target instanceof Element ? event.target.closest<HTMLElement>('#tdcompactar') : null; if (!button) return;
-    const value = !compact();
-    try { localStorage.setItem(COMPACT_KEY, value ? '1' : '0'); } catch { /* not remembered */ }
-    applyCompact(); setCompactButton(button, value);
-  });
-  document.addEventListener('click', event => {
-    const button = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-tdavi]') : null; if (!button) return;
-    event.stopPropagation();
-    const info = yourDayLegacy.stopInfo()[button.dataset.tdavi ?? '']; if (!info) return;
-    yourDayLegacy.showDialog(t('agenda.yourDay.whyWarning'), yourDayLegacy.explainWarning(info), t('agenda.yourDay.understood'));
-  }, true);
 }

@@ -3,7 +3,7 @@
  * and moves the ticked ones. Migrated from the legacy reprogramarCitas (v2.414.0); the name stays as an adapter.
  */
 import { legacyDb, notices, reloadAgenda, term } from '../../legacy/bridge';
-import { paintRouteBar } from '../routes/page';
+import { paintRouteBar } from '../routes/day-bar';
 import { restLegacy } from '../../legacy/rest-bridge';
 import { t } from '../../i18n';
 import { todayIso } from '../../services/dates';

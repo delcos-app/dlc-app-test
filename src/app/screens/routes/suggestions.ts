@@ -1,13 +1,15 @@
 /**
  * The route cards of the professional's old home: «Rutas sugeridas» (who attends today, urgent, interested without a visit, never
  * visited; pressing one plans it) and «Pendientes de rutas anteriores». Migrated from the legacy tarjetasRuta (v2.418.0); the name
- * stays as an adapter (pantallas/inicio.js paints it).
+ * stays as an adapter (pantallas/inicio.js paints it). Plan 7.3 (cut C): it stays in the core, painted with Inicio; planning from
+ * a card goes through the screen (the planner is in the Rutas chunk).
  */
 import { goTo, legacyDb, term } from '../../legacy/bridge';
 import { routes2Legacy } from '../../legacy/routes2-bridge';
 import { t, type MessageKey } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
-import { planFromList, type PlanMember } from './planner/plan';
+import { planFromList } from '.';
+import type { PlanMember } from './planner/plan';
 
 const LIMIT = 40, MOUNT_MS = 60, SHOWN_PENDING = 5;
 

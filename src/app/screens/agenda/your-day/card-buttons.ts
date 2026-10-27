@@ -1,7 +1,8 @@
 /**
  * The buttons of «Tu día», answered in one place (one listener for the whole app): each card (data-td="action|id": menu, record
  * the visit, a new date, up and down), the task arrows (data-tamov) and «Ordenar por cercanía» (also in the «no cabe» banner).
- * Migrated from the card buttons listener of legado 022 (v2.399.0).
+ * Migrated from the card buttons listener of legado 022 (v2.399.0). Plan 7.3 (cut C): the listener is in the core (listeners.ts)
+ * and says which kind of button was pressed; what each one does is here, in the Agenda chunk.
  */
 import { agendaCache, appointmentLegacy, legacyAgenda, yourDayLegacy } from '../../../legacy/bridge';
 import { openMenu } from '../appointment-menu';
@@ -9,6 +10,7 @@ import { isOpen } from '../appointment-state';
 import { editTask } from '../editors/task-editor';
 import { moveAppointment, moveTask, orderByDistance } from './reorder';
 import { newDateAfterAbsent } from '../absent';
+import type { CardClick } from './listeners';
 
 function swapWithNeighbour(item: AgendaAppointment, action: 'sube' | 'baja'): void {
   const all = legacyAgenda.dayAppointments() as AgendaAppointment[], open = all.filter(entry => isOpen(entry.estado));
@@ -43,18 +45,14 @@ function taskArrow(arrow: HTMLElement): void {
   void moveTask(id, Number(direction));
 }
 
-export function listenToCards(): void {
-  document.addEventListener('click', event => {
-    const target = event.target instanceof Element ? event.target : null;
-    if (!target) return;
-    if (target.closest('#tdordenar, #tdnocord')) { void orderByDistance(); return; }
-    const arrow = target.closest<HTMLElement>('[data-tamov]');
-    if (arrow) { taskArrow(arrow); return; }
-    if (target.closest('#tdtarea')) { editTask(null, legacyAgenda.selectedDate()); return; }
-    const row = target.closest<HTMLElement>('#tdtareas .tdtarea');
-    if (row) { taskRow(row, target); return; }
-    const button = target.closest<HTMLElement>('[data-td]');
-    if (button) { event.stopPropagation(); cardButton(button); }
-  });
+/** What a press on a button of «Tu día» does (the listener of the core has already found which kind it is). */
+export function answerCardClick(kind: CardClick, target: Element): void {
+  if (kind === 'order') { void orderByDistance(); return; }
+  const arrow = target.closest<HTMLElement>('[data-tamov]');
+  if (kind === 'arrow' && arrow) { taskArrow(arrow); return; }
+  if (kind === 'newTask') { editTask(null, legacyAgenda.selectedDate()); return; }
+  const row = target.closest<HTMLElement>('#tdtareas .tdtarea');
+  if (kind === 'task' && row) { taskRow(row, target); return; }
+  const button = target.closest<HTMLElement>('[data-td]');
+  if (kind === 'card' && button) cardButton(button);
 }
-

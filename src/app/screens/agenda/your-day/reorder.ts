@@ -10,7 +10,7 @@ import { t } from '../../../i18n';
 import { load as loadHome } from '../../home';
 import { loadAgenda, refreshAfterChange } from '../day-view';
 import { paintYourDay } from './index';
-import { paintRouteBar } from '../../routes/page';
+import { paintRouteBar } from '../../routes/day-bar';
 import { orderByDistance as orderByNearness } from '../../routes/planner/visits';
 
 const CARDS = '#agcuerpo .tdu[data-tdu]', TASKS = '#tdtareas .tdtarea';
