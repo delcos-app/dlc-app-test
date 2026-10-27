@@ -97,10 +97,16 @@ for (const [destino, piezas] of Object.entries(ORDEN.salidas)) {
     console.log(`${destino}: ${piezas.length} piezas, ${texto.split('\n').length - 1} líneas`);
   }
 }
+// Plan 7.3 (cut A): the screens loaded on first use. herramientas/bundle.mjs writes them readable to src/generated/chunks (they are
+// not part of app.js); here each one is minimised to min/chunks/<screen>.js with its map, and sw.js gets their list so the service
+// worker keeps a copy (the app keeps working offline).
+const CHUNKS_SRC = 'src/generated/chunks', CHUNKS_MIN = 'min/chunks';
+const chunkNames = () => (fs.existsSync(path.join(RAIZ, CHUNKS_SRC)) ? fs.readdirSync(path.join(RAIZ, CHUNKS_SRC)).filter(f => f.endsWith('.js')).map(f => f.slice(0, -3)).sort() : []);
+
 // Archivos de src/ y estilos/ que no están en el orden: se olvidarían en silencio
 const enOrden = new Set(Object.values(ORDEN.salidas).flat());
 const sueltos = ['src', 'estilos'].flatMap(d => fs.existsSync(path.join(RAIZ, d)) ? fs.readdirSync(path.join(RAIZ, d), { recursive: true }).map(f => `${d}/${f}`.replace(/\\/g, '/')) : [])
-  .filter(f => /\.(js|css|html)$/.test(f) && !enOrden.has(f));
+  .filter(f => /\.(js|css|html)$/.test(f) && !enOrden.has(f) && !f.startsWith(`${CHUNKS_SRC}/`));
 if (sueltos.length) { console.error('✗ No están en src/orden.json: ' + sueltos.join(', ')); mal++; }
 
 // v2.435.0 (plan 9.1): la política de seguridad (CSP) de index.html. Cada <script> en línea lleva su huella en script-src (si se
@@ -133,12 +139,12 @@ const MIN = 'min/app.js', MAPA = 'min/app.js.map';
 const PESO = { bruto: 2_230_000, gzip: 690_000 };
 const kb = n => `${Math.round(n / 1024)} KB`;
 
-async function minimizar(texto) {
+async function minimizar(texto, origen = '../app.js', mapa = 'app.js.map') {
   let esbuild;
   try { esbuild = await import('esbuild'); } catch { return null; }
   try {
-    const r = await esbuild.transform(texto, { minify: true, sourcemap: 'external', sourcefile: '../app.js', target: 'es2020', charset: 'utf8', legalComments: 'none' });
-    return { codigo: r.code + '//# sourceMappingURL=app.js.map\n', mapa: r.map };
+    const r = await esbuild.transform(texto, { minify: true, sourcemap: 'external', sourcefile: origen, target: 'es2020', charset: 'utf8', legalComments: 'none' });
+    return { codigo: r.code + `//# sourceMappingURL=${mapa}\n`, mapa: r.map };
   } catch (e) {
     // esbuild instalado para otro sistema (node_modules de Windows usado desde WSL): no se puede minimizar aquí
     if (/platform/i.test(String(e && e.message))) return null;
@@ -170,4 +176,51 @@ if (min) {
   console.log(`· sin esbuild: no se minimiza; se mira el peso del ${MIN} que hay`);
   mal += pesar(leer(MIN));
 } else { console.error(`✗ Falta ${MIN} y no hay esbuild para hacerlo (npm ci)`); mal++; }
+
+// The lazy chunks: min/chunks/<screen>.js (and its map) from src/generated/chunks
+async function minimizeChunk(name) {
+  const file = `${CHUNKS_MIN}/${name}.js`, map = `${file}.map`, exists = fs.existsSync(path.join(RAIZ, file));
+  const result = await minimizar(leer(`${CHUNKS_SRC}/${name}.js`), `../../${CHUNKS_SRC}/${name}.js`, `${name}.js.map`);
+  if (!result) {
+    if (exists) return 0;
+    console.error(`✗ Falta ${file} y no hay esbuild para hacerlo (npm ci)`); return 1;
+  }
+  if (!comprobar) {
+    fs.mkdirSync(path.join(RAIZ, CHUNKS_MIN), { recursive: true });
+    fs.writeFileSync(path.join(RAIZ, file), result.codigo);
+    fs.writeFileSync(path.join(RAIZ, map), result.mapa);
+    return 0;
+  }
+  if (exists && leer(file) === result.codigo && fs.existsSync(path.join(RAIZ, map)) && leer(map) === result.mapa) return 0;
+  console.error(`✗ ${file} no es ${CHUNKS_SRC}/${name}.js minimizado: ejecuta «node herramientas/construir.mjs»`); return 1;
+}
+
+async function minimizeChunks() {
+  const names = chunkNames(), folder = path.join(RAIZ, CHUNKS_MIN);
+  let failures = 0;
+  for (const name of names) failures += await minimizeChunk(name);
+  // Chunks of screens that are no longer loaded on first use
+  const stale = fs.existsSync(folder) ? fs.readdirSync(folder).filter(f => !names.includes(f.replace(/\.js(\.map)?$/, ''))) : [];
+  if (stale.length && comprobar) { console.error(`✗ ${CHUNKS_MIN} tiene archivos que ya no salen de ${CHUNKS_SRC}: ${stale.join(', ')}`); failures++; }
+  else stale.forEach(f => { fs.rmSync(path.join(folder, f)); });
+  const size = name => { const f = path.join(folder, `${name}.js`); return fs.existsSync(f) ? kb(fs.statSync(f).size) : '-'; };
+  if (names.length) console.log(`· ${CHUNKS_MIN}: ${names.map(name => `${name} ${size(name)}`).join(', ')}`);
+  return failures;
+}
+
+// sw.js keeps a copy of every chunk: its list (const CHUNKS = [...];) is written from the chunks there are
+function chunkListInServiceWorker() {
+  if (!fs.existsSync(path.join(RAIZ, 'sw.js'))) return 0;
+  const text = leer('sw.js'), line = /^const CHUNKS = \[.*\];$/m;
+  if (!line.test(text)) { console.error('✗ sw.js no tiene la lista de pantallas que se cargan al usarlas (const CHUNKS = [...];)'); return 1; }
+  const wanted = text.replace(line, `const CHUNKS = [${chunkNames().map(name => `'./${CHUNKS_MIN}/${name}.js'`).join(', ')}];`);
+  if (wanted === text) return 0;
+  if (comprobar) { console.error('✗ La lista de pantallas de sw.js (const CHUNKS) no es la de src/generated/chunks: ejecuta «node herramientas/construir.mjs»'); return 1; }
+  fs.writeFileSync(path.join(RAIZ, 'sw.js'), wanted);
+  console.log('sw.js: lista de pantallas que se cargan al usarlas');
+  return 0;
+}
+
+mal += await minimizeChunks();
+mal += chunkListInServiceWorker();
 process.exit(mal ? 1 : 0);

@@ -213,6 +213,7 @@ export const core = {
   offline: {
     needsNetwork: 'Sin conexión: esta pantalla necesita conexión y se cargará al volver la red',
     orderNeedsNetwork: 'Sin conexión: los pedidos necesitan conexión para guardarse',
+    screenNotLoaded: 'No se ha podido abrir esta pantalla: comprueba la conexión y vuelve a intentarlo',
   },
   visit: {
     samplesRefused: '{visit}, pero las muestras no: {reason}',

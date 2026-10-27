@@ -16,8 +16,8 @@ jobs:
           cache: npm
       - name: Install tools (exact versions from package-lock.json)
         run: npm ci
-      - name: The bundle of src/app is up to date (src/generated/core.js)
-        run: npm run build:core && git diff --exit-code src/generated/core.js
+      - name: The bundle of src/app is up to date (src/generated/core.js, the lazy chunks and their manifest)
+        run: npm run build:core && git diff --exit-code src/generated src/app/core/lazy/manifest.ts && test -z "$(git status --porcelain src/generated src/app/core/lazy)"
       - name: Build, types (new and legacy code) and lint
         run: npm run check
       - name: External libraries pinned with a correct integrity hash

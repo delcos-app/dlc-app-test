@@ -6,6 +6,7 @@ import { showAppLegacy, type Profile } from '../../legacy/legado-a-bridge';
 import { t } from '../../i18n';
 import { orFallback } from '../../services/values';
 import { fromIsoDate, todayIso } from '../../services/dates';
+import { preloadChunks } from '../lazy/load';
 
 const ADDED_INDICATORS = ['uds_mes', 'prescriptores', 'citas_7d', 'sin_visita_60'];
 const MORNING_UNTIL = 13, AFTERNOON_UNTIL = 20, START_DELAY_MS = 50, BELL_DELAY_MS = 800, DAY_NOTICES_DELAY_MS = 1500;
@@ -106,6 +107,8 @@ function startScreen(first: boolean, start: string | undefined): void {
   if (afterF5) setTimeout(() => { showAppLegacy.backAfterF5(afterF5); }, START_DELAY_MS);
   else if (first && start && start !== 'inicio' && showAppLegacy.moduleAllowed(start)) setTimeout(() => { showAppLegacy.goTo(start); }, START_DELAY_MS);
   if (!showAppLegacy.can('portal_prescriptor')) setTimeout(() => { showAppLegacy.dayNotices(); }, DAY_NOTICES_DELAY_MS);
+  // Plan 7.3: the code of the first screen, if it is loaded on first use, starts coming now; the other lazy screens when idle
+  if (first) preloadChunks(afterF5 ? (afterF5 as { t?: string }).t : start);
 }
 
 /** 9. Translation, icons and menu order. */

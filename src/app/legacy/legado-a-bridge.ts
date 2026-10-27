@@ -38,7 +38,7 @@ const MODULE_LOADERS: Readonly<Record<string, () => unknown>> = {
   directorio: () => { if (!document.getElementById('lista')?.children.length) buscar(true); },
   inicio: () => cargarInicio(), agenda: () => cargarAgenda(), rutas: () => legacyFreeScreensRoutes.loadRoutesPage(), seguimiento: () => legacyFreeScreensQuality.loadQuality(),
   ventas: () => cargarVentas(), analitica: () => cargarAnalitica(), config: () => cargarConfig(), duplicados: () => legacyFreeScreensAccounts.loadDuplicates(),
-  pacientes: () => cargarPacientes(), productos: () => cargarProductosModulo(), manual: () => { legacyFreeScreensManual.paintManual(); },
+  pacientes: () => cargarPacientes(), productos: () => cargarProductosModulo(), manual: () => { void legacyFreeScreensManual.paintManual(); },
   facturacion: () => cargarFacturacion(), informe: () => legacyFreeScreensPortal.loadReport(),
 };
 

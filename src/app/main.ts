@@ -65,6 +65,7 @@ import * as equipment from './screens/equipment';
 import * as surgeries from './screens/surgeries';
 import * as cycle from './screens/cycle';
 import { listenToPolicyViolations } from './core/csp-watch';
+import { publishSharedModules } from './core/lazy/registry';
 import { listenToSameCentre } from './screens/agenda/same-centre';
 import { listenToYourDay } from './screens/agenda/your-day';
 import { listenToCards } from './screens/agenda/your-day/card-buttons';
@@ -142,6 +143,9 @@ declare global {
   }
 }
 
+// Plan 7.3: the modules the lazy screens share with the core, before any of them can load
+publishSharedModules();
+
 const router = createRouter('inicio');
 router.register(home.homeRoute);
 
@@ -204,7 +208,6 @@ listenToMapCards(id => { void accounts.openAccountCard(id); });
 listenToYourDay();
 listenToCards();
 listenToColumnResize(paintAccountsHeader);
-analytics.listenToVisitOrdersViews();
 cycle.listenToClassButtons(id => { void cycle.paintCardCycle(id); });
 portal.listenToForm();
 portal.listenToCentreDocs();
