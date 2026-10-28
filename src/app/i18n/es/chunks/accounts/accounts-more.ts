@@ -1,4 +1,7 @@
-/** Spanish texts of Duplicados, the centre sheet and «Cerca de mí» (part of es.ts: one file per screen keeps each one short). */
+/**
+ * Spanish texts of Duplicados, the centre sheet and «Cerca de mí» that only the chunk accounts uses: they arrive with it
+ * (min/chunks/accounts.js, plan 7.3, cut F).
+ */
 export const accountsMore = {
   duplicates: {
     title: 'Duplicados',

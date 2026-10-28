@@ -1,4 +1,4 @@
-/** Spanish texts of Facturación (part of es.ts: one file per screen keeps each one short). */
+/** Spanish texts of Facturación that only the chunk billing uses: they arrive with it (min/chunks/billing.js, plan 7.3, cut F). */
 export const billing = {
   page: {
     title: 'Facturación',

@@ -1,59 +1,8 @@
-/** Spanish texts of the last Agenda pieces (v2.414.0): rescheduling, the working day, the day menu and the appointment origin. */
+/**
+ * Spanish texts of the last Agenda pieces the core uses (part of es.ts). The ones only the chunk agenda uses are in
+ * chunks/agenda/agenda-more.ts and arrive with it (plan 7.3, cut F).
+ */
 export const agendaMore = {
-  reschedule: {
-    proposal: 'Te propongo el próximo día que cada {professional} atiende. Cambia la fecha si quieres o desmarca los que no quieras mover.',
-    move: 'Mover',
-    wasOn: ' · era el {date}',
-    attends: 'Atiende: {days}',
-    noDays: 'Sin días de atención conocidos',
-    leave: 'Dejarlas como están',
-    moveMarked: 'Mover las marcadas',
-    moving: 'Moviendo…',
-    oneMoved: '1 cita movida',
-    moved: '{count} citas movidas',
-    noneMoved: 'No se ha movido ninguna',
-  },
-  workday: {
-    noOpen: 'No tienes citas abiertas hoy. Añade citas o planifica una ruta.',
-    started: 'Jornada iniciada',
-    summary: 'Tiempo: {time} · Visitadas: {done} de {total}',
-    oneOpen: '\n\nTe queda 1 cita abierta. Al terminar te propongo a qué día moverla.',
-    open: '\n\nTe quedan {count} citas abiertas. Al terminar te propongo a qué día moverlas.',
-    endTitle: '¿Terminar la jornada?',
-    end: 'Terminar jornada',
-    ended: 'Jornada terminada · {count} visitadas',
-    leftTitle: 'Lo que ha quedado pendiente hoy',
-    leftText: '{count} sin visitar',
-  },
-  dayMenu: {
-    newAppointment: 'Nueva cita',
-    addOne: 'Añadir {professional} a este día',
-    seeDay: 'Ver el día',
-    seeDayText: 'Abrirlo en «Tu día»',
-    unblock: 'Desbloquear el día',
-    unblockText: 'Vuelve a estar disponible para planificar',
-    block: 'Bloquear el día',
-    blockText: 'Vacaciones, formación, congreso… El planificador no lo usará',
-    reason: 'Motivo (opcional)',
-    blockTitle: 'Bloquear el {date}',
-    blockOk: 'Bloquear',
-    couldNotChange: 'No se ha podido cambiar',
-    blocked: 'Día bloqueado',
-    unblocked: 'Día desbloqueado',
-  },
-  absent: {
-    title: '¿Le buscamos otro día?',
-    text: '{name}\n\nEl próximo día que atiende es el {date}.',
-    notNow: 'Ahora no',
-    other: 'Elegir otra fecha',
-    proposed: 'Cita el {date}',
-    whichDay: '¿Qué día?',
-    newTitle: 'Nueva cita',
-    create: 'Crear cita',
-    origin: 'No estaba el {date}',
-    couldNotCreate: 'No se ha podido crear la cita',
-    created: 'Nueva cita el {date}',
-  },
   origin: {
     movedTo: 'movida al {day}',
     comesFrom: 'viene del {day}',

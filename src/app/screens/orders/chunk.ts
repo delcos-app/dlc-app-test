@@ -5,6 +5,7 @@
  * once (the order model and its pills, the order cards of Inicio, the menu entries, the VAT field, the payment email texts, the
  * payment state and its notices, the company billing figures of the Panel delcos) stays in the core.
  */
+import './texts';
 export { configureAlerts } from './alerts-settings';
 export { paintDistributors } from './distributors';
 export { paintOrderList } from './list';

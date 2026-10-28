@@ -1,4 +1,7 @@
-/** Spanish texts of the company settings core, the Configuración tree and the route plan card (part of es.ts). */
+/**
+ * Spanish texts of the company settings core, the Configuración tree and the route plan card the core uses (part of es.ts). The
+ * ones only the chunk routes uses are in chunks/routes/settings-core.ts and arrive with it (plan 7.3, cut F).
+ */
 export const settingsCore = {
   detailNames: {
     importe: 'Importe', forma: 'Forma de pago', motivo: 'Motivo', para: 'Para', asunto: 'Asunto', clave: 'Ajuste', total: 'Total', serie: 'Serie', numero: 'Número',
@@ -26,7 +29,8 @@ export const settingsCore = {
   quoteWhen: {
     soon: 'Lo antes posible', quarter: 'Este trimestre', later: 'Más adelante', browsing: 'Solo me estoy informando',
   },
-  quoteStates: { received: 'Recibida', inProgress: 'En curso', attended: 'Atendida' },
+  quoteStates: { received: 'Recibida', inProgress: 'En curso', attended: 'Atendida',
+  },
   searchWords: {
     datos: 'nombre teléfono idioma perfil contraseña sesión cerrar',
     notif: 'avisos campana silencio resumen',
@@ -90,28 +94,5 @@ export const settingsCore = {
     imports: 'Importaciones',
     portal: 'Portal {ofTheProfessional}',
     portalHint: 'Material que pueden pedir',
-  },
-  plan: {
-    planFor: 'Plan para el {date}',
-    today: 'Plan de hoy',
-    summary: 'Salida de {start} a las {time} · {stops} · vuelta sobre las {back} ·',
-    oneStop: '1 parada',
-    stops: '{count} paradas',
-    changeHours: '⚙ Cambiar horario',
-    go: 'Ir',
-    seeMap: 'Ver la ruta en el mapa',
-    openInNavigator: 'Abrir la ruta en el navegador',
-    saveToAgenda: 'Guardar en mi agenda',
-    saving: 'Guardando…',
-    start: '▶ Empezar ruta',
-    close: 'Cerrar',
-    saved: '{count} citas guardadas en tu agenda',
-  },
-  planHours: {
-    title: 'Tiempos de {visit}',
-    subtitle: 'Se guardan en tus preferencias. La hora de salida y la de vuelta se ponen en cada ruta.',
-    perProfessional: 'Minutos por {professional}',
-    perStop: 'Minutos fijos por parada',
-    saved: 'Horario guardado',
   },
 };

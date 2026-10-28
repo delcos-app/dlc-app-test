@@ -2,25 +2,147 @@ var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value2) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value: value2 }) : obj[key] = value2;
 var __publicField = (obj, key, value2) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value2);
 
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
+// delcos-shared:src/app/i18n/index.ts
+var shared = globalThis["__delcosModules"]["i18n/index"];
 var pick = (name) => shared[name];
-var callRpc = /* @__PURE__ */ pick("callRpc");
-var cardSectionsLegacy = /* @__PURE__ */ pick("cardSectionsLegacy");
-var legacyDb = /* @__PURE__ */ pick("legacyDb");
-var notices = /* @__PURE__ */ pick("notices");
-var salesTeam = /* @__PURE__ */ pick("salesTeam");
-var term = /* @__PURE__ */ pick("term");
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/commissions/commissions.ts
+var commissions = {
+  page: {
+    schemes: "Esquemas de comisión",
+    schemesHint: "El tramo alcanzado se aplica a todas las unidades del periodo. Televenta suele ir con importe fijo por unidad.",
+    perSale: "Por venta cerrada",
+    perPortfolio: "Por cartera",
+    perUnit: "{amount} por unidad",
+    noTiers: "sin tramos",
+    unassigned: " · sin asignar",
+    edit: "Editar",
+    noSchemes: "Todavía no hay esquemas.",
+    newScheme: "+ Nuevo esquema",
+    settlements: "Liquidaciones",
+    calculate: "Calcular el periodo",
+    person: "Persona",
+    all: "Todas",
+    month: "Mes",
+    allMonths: "Todos",
+    settlementLine: "{period} · {units} unidades · {amount} · {state}",
+    approve: "Aprobar",
+    markPaid: "Marcar pagada",
+    noneFiltered: "Sin liquidaciones con estos filtros.",
+    none: "Sin liquidaciones todavía.",
+    oneSettlement: "1 liquidación",
+    settlementsCount: "{count} liquidaciones",
+    summary: "{settlements} · {units} unidades · {amount}",
+    unpaid: " · {amount} sin pagar",
+    approveText: "La liquidación quedará aprobada y congelada.",
+    payText: "La liquidación quedará marcada como pagada.",
+    approveTitle: "¿Aprobar?",
+    payTitle: "¿Marcar pagada?",
+    settled: "Liquidación {state}"
+  },
+  calculate: {
+    couldNotRead: "No se han podido leer las asignaciones: {error}",
+    nobody: "Nadie tuvo un esquema de comisión en {period}",
+    allClosed: "Las liquidaciones de {period} ya están aprobadas o pagadas: no se recalculan",
+    oneDone: "Calculada 1 liquidación",
+    done: "Calculadas {count} liquidaciones",
+    ofPeriod: " de {period}",
+    oneKept: " · 1 ya aprobada o pagada se deja como estaba",
+    kept: " · {count} ya aprobadas o pagadas se dejan como estaban",
+    failed: " · {count} sin calcular"
+  },
+  editor: {
+    editTitle: "Editar esquema",
+    newTitle: "Nuevo esquema",
+    subtitle: "Define cómo se calcula la comisión y a quién se aplica",
+    name: "Nombre",
+    namePlaceholder: "p. ej. Comercial zona norte",
+    countedBy: "Se cuenta por",
+    portfolio: "Cartera del comercial",
+    closes: "Ventas que cierra (televenta)",
+    calculation: "Cálculo",
+    tierReached: "Tramo alcanzado a todo el volumen",
+    marginal: "Por tramos (cada unidad a su tramo)",
+    fixed: "Importe fijo por unidad",
+    channel: "Canal",
+    allChannels: "Todos",
+    patientOnly: "Solo venta {toThePatient}",
+    centreOnly: "Solo venta a centro",
+    eurosPerUnit: "Euros por unidad",
+    tiers: "Tramos",
+    tiersHint: '· deja vacío el "hasta" del último',
+    from: "Desde (uds.)",
+    to: "Hasta (uds.)",
+    perUnit: "€ por unidad",
+    fromPlaceholder: "Desde",
+    toPlaceholder: "Hasta",
+    perUnitPlaceholder: "€/unidad",
+    addTier: "+ Añadir tramo",
+    cancel: "Cancelar",
+    save: "Guardar",
+    create: "Crear esquema",
+    giveName: "Ponle un nombre",
+    saving: "Guardando…",
+    couldNotSave: "No se ha podido guardar",
+    saved: "Esquema guardado"
+  },
+  people: {
+    title: "Quién cobra con este esquema",
+    saveFirst: "Guarda el esquema y después podrás asignarlo a las personas.",
+    loading: "Cargando…",
+    current: "Vigente",
+    scheduled: "Programado",
+    ended: "Terminado",
+    locked: "Guardado: no se puede modificar",
+    allHistory: "Todo el histórico",
+    since: "Desde {date}",
+    until: " hasta {date}",
+    endToday: "Terminar hoy",
+    cancelIt: "Anular",
+    nobody: "Nadie cobra todavía con este esquema.",
+    addPerson: "Añadir persona…",
+    fromToday: "desde hoy",
+    wholeHistory: "todo su histórico",
+    fromDate: "desde una fecha…",
+    assign: "Asignar",
+    lockedHint: "Una vez guardada, la asignación queda bloqueada 🔒. Para cambiarla, asigna otro esquema: el anterior termina el día antes.",
+    choosePerson: "Elige la persona",
+    inAllHistory: "en todo su histórico",
+    sinceDate: "desde el {date}",
+    assignText: "{name} cobrará con este esquema {when}. Si tenía otro, termina el día antes. Una vez guardado no se puede modificar.",
+    assignTitle: "¿Asignar el esquema?",
+    couldNotAssign: "No se ha podido asignar",
+    assigned: "Asignado a {name}",
+    endText: "Dejará de cobrar con este esquema a partir de mañana.",
+    endTitle: "¿Terminar hoy?",
+    endOk: "Terminar",
+    cancelText: "Se anula la asignación programada.",
+    cancelTitle: "¿Anular?"
+  }
+};
+
+// src/app/i18n/es/chunks/commissions/index.ts
+var texts = { commissions };
+
+// src/app/screens/commissions/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
+var pick2 = (name) => shared2[name];
+var callRpc = /* @__PURE__ */ pick2("callRpc");
+var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
+var legacyDb = /* @__PURE__ */ pick2("legacyDb");
+var notices = /* @__PURE__ */ pick2("notices");
+var salesTeam = /* @__PURE__ */ pick2("salesTeam");
+var term = /* @__PURE__ */ pick2("term");
 
 // delcos-shared:src/app/legacy/commissions-bridge.ts
-var shared2 = globalThis["__delcosModules"]["legacy/commissions-bridge"];
-var pick2 = (name) => shared2[name];
-var commissionsLegacy = /* @__PURE__ */ pick2("commissionsLegacy");
-
-// delcos-shared:src/app/i18n/index.ts
-var shared3 = globalThis["__delcosModules"]["i18n/index"];
+var shared3 = globalThis["__delcosModules"]["legacy/commissions-bridge"];
 var pick3 = (name) => shared3[name];
-var t = /* @__PURE__ */ pick3("t");
+var commissionsLegacy = /* @__PURE__ */ pick3("commissionsLegacy");
 
 // delcos-shared:src/app/services/dates.ts
 var shared4 = globalThis["__delcosModules"]["services/dates"];

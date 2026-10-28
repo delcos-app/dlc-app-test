@@ -1,41 +1,562 @@
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
+// delcos-shared:src/app/i18n/index.ts
+var shared = globalThis["__delcosModules"]["i18n/index"];
 var pick = (name) => shared[name];
-var accessLegacy = /* @__PURE__ */ pick("accessLegacy");
-var accountCardLegacy = /* @__PURE__ */ pick("accountCardLegacy");
-var accountColumnsLegacy = /* @__PURE__ */ pick("accountColumnsLegacy");
-var accountListLegacy = /* @__PURE__ */ pick("accountListLegacy");
-var agendaActions = /* @__PURE__ */ pick("agendaActions");
-var appLegacy = /* @__PURE__ */ pick("appLegacy");
-var appointmentLegacy = /* @__PURE__ */ pick("appointmentLegacy");
-var cachedRpc = /* @__PURE__ */ pick("cachedRpc");
-var callRpc = /* @__PURE__ */ pick("callRpc");
-var cardBaseLegacy = /* @__PURE__ */ pick("cardBaseLegacy");
-var cardSectionsLegacy = /* @__PURE__ */ pick("cardSectionsLegacy");
-var commercialStates = /* @__PURE__ */ pick("commercialStates");
-var currentScreen = /* @__PURE__ */ pick("currentScreen");
-var editorLegacy = /* @__PURE__ */ pick("editorLegacy");
-var goTo = /* @__PURE__ */ pick("goTo");
-var icon = /* @__PURE__ */ pick("icon");
-var legacyDb = /* @__PURE__ */ pick("legacyDb");
-var legacyIcons = /* @__PURE__ */ pick("legacyIcons");
-var notices = /* @__PURE__ */ pick("notices");
-var permissions = /* @__PURE__ */ pick("permissions");
-var portalLegacy = /* @__PURE__ */ pick("portalLegacy");
-var qualityLegacy = /* @__PURE__ */ pick("qualityLegacy");
-var relatedLegacy = /* @__PURE__ */ pick("relatedLegacy");
-var salesTeam = /* @__PURE__ */ pick("salesTeam");
-var term = /* @__PURE__ */ pick("term");
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/accounts/accounts.ts
+var accounts = {
+  list: {
+    searching: "Buscando {contacts}…",
+    searchingShort: "Buscando…",
+    couldNotLoad: "No se ha podido cargar la lista",
+    notResponding: " (la conexión no responde)",
+    retry: "Reintentar",
+    count: '<b>{count}</b> {contacts} <span class="sm">· {ms} ms</span>',
+    noMatches: "Ningún registro cumple estos filtros.",
+    sortBy: "Ordenar por esta columna",
+    urgent: "Urgente",
+    chipSearch: "Búsqueda: {text}",
+    chipUrgent: "Solo urgentes",
+    chipMine: "De mi cartera",
+    chipNeverVisited: "Sin visitar nunca"
+  },
+  columns: {
+    noReporting: "Sin reporting",
+    noReportingTitle: "Solo {visit} presencial: sin informes ni feedback",
+    unassigned: "Sin asignar",
+    withAccess: "Con acceso",
+    accessDisabled: "Acceso desactivado",
+    noAccess: "Sin acceso",
+    panelTitle: "Columnas",
+    back: "‹ Volver",
+    panelNote: "Marca las que quieres ver y ordénalas con las flechas. Se aplica al momento. El ancho se cambia arrastrando el borde de cada cabecera.",
+    alwaysVisible: "siempre visible",
+    up: "Subir",
+    down: "Bajar",
+    restore: "Restaurar las columnas",
+    keepOne: "Deja al menos una columna"
+  },
+  base: {
+    noConnection: "Sin conexión y sin copia guardada de esta ficha.",
+    cachedNotice: "Sin conexión · ficha guardada en este dispositivo",
+    urgent: "Urgente",
+    noReporting: "Sin reporting",
+    noReportingTitle: "Solo {visit} presencial: sin informes ni feedback",
+    code: " · código {code}",
+    record: "Registrar {visit}",
+    edit: "Editar ficha",
+    markUrgent: "Marcar urgente",
+    unmarkUrgent: "Quitar urgente",
+    addToAgenda: "+ Añadir a mi agenda",
+    salesRep: "Comercial: {names}",
+    noAddress: "Sin dirección",
+    phone: "Teléfono: {phone}",
+    directions: "Cómo llegar",
+    byPhone: " · Por teléfono",
+    byVideo: " · Por videollamada",
+    noResult: "Sin resultado",
+    samples: " · {count} muestras",
+    next: "Próxima: {date} · {action}",
+    editVisit: "Editar",
+    noVisits: "Todavía no hay {visits}.",
+    salesTitle: "Ventas y {patients}",
+    timetableMissing: "⚠ <b>Falta su horario de atención.</b> Sin él, las rutas y el planificador no saben qué días y horas atiende.",
+    completeTimetable: "Completar horario",
+    unitsTitle: "Unidades atribuidas",
+    unitsToday: "Hoy",
+    unitsWeek: "Semana",
+    unitsMonth: "Mes",
+    unitsQuarter: "Trimestre",
+    unitsYear: "Año",
+    unitsTotal: "Total",
+    evolution: "Evolución",
+    unitsSummary: "{count} {prescriptions} · última el {date} · ",
+    noPrescriptions: "Todavía sin {prescriptions} registradas."
+  },
+  sales: {
+    repTitle: "Comercial asignado",
+    loading: "Cargando…",
+    save: "Guardar",
+    repNote: "Las ventas nuevas se atribuyen al comercial asignado en ese momento. Las anteriores no cambian.",
+    noRep: "Sin comercial",
+    couldNotAssign: "No se ha podido asignar",
+    assigned: "Comercial asignado",
+    patientLine: "{units} uds. · {orders} pedidos",
+    lastOrder: " · último {date}",
+    seeAll: "Ver los {count} {patients}",
+    associatedTitle: "{patients} asociados",
+    associated: "Asociados",
+    withOrders: "Con pedidos",
+    withoutOrders: "Sin pedidos",
+    noneAssociated: "Todavía no tiene {patients} asociados."
+  },
+  portal: {
+    title: "Portal",
+    toDeliver: "{count} material por entregar",
+    unread: "{count} sin leer",
+    requested: "Pedido el {date}",
+    delivered: "Entregado",
+    messages: "Mensajes",
+    reply: "Contestar",
+    send: "Enviar",
+    deliveredDone: "Material entregado: se le avisa",
+    writeMessage: "Escribe el mensaje",
+    sent: "Mensaje enviado",
+    productsTitle: "Productos del centro",
+    productsNote: "Lo que puede pedir desde su portal. Precio sin IVA; si lo dejas vacío, el de tarifa.",
+    tariff: "Tarifa {price} sin IVA",
+    tariffPlaceholder: "Tarifa",
+    priceFor: "Precio de {name} para el centro",
+    noProducts: "No hay productos activos.",
+    saveProducts: "Guardar productos",
+    productsSaved: "Productos del centro guardados ({count})"
+  },
+  access: {
+    title: "Acceso a la plataforma",
+    hasAccess: "Tiene acceso",
+    asEmail: " como <b>{email}</b>",
+    disabled: " (desactivado)",
+    centreUses: "pide la reposición de sus productos, material y escribe a su comercial",
+    portalUses: "ve su portal: cifras agregadas, sin importes ni datos de personas",
+    impersonate: "👤 Impersonalizar",
+    centreCan: "Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.",
+    portalCan: "Puede tener acceso a su portal (cifras agregadas de {prescriptions}), pedir material y escribir a su comercial. No verá importes ni datos de {patients}.",
+    give: "Dar acceso",
+    email: "Correo",
+    emailPlaceholder: "nombre@correo.com",
+    invalidEmail: "Escribe un correo válido",
+    noPermission: "Tu rol no puede dar acceso",
+    notYours: "Solo puedes dar acceso a {professionals} de tu cartera",
+    alreadyHas: "Esta ficha ya tiene acceso",
+    emailInUse: "Ese correo ya es de otro usuario",
+    emailWrong: "El correo no es válido",
+    noPortalRole: "No hay ningún rol con acceso al portal: créalo en Configuración → Roles",
+    couldNotGive: "No se ha podido dar acceso",
+    couldNotCreate: "No se ha podido crear el acceso: {error}",
+    created: '<b class="u-ok">Acceso creado.</b> Contraseña temporal: <b>{password}</b>. Pásasela y que la cambie al entrar.'
+  },
+  history: {
+    title: "Historial de cambios",
+    undo: "Deshacer",
+    none: "Sin cambios registrados."
+  },
+  proposal: {
+    title: "Datos enviados desde su portal",
+    toReview: "Por revisar",
+    sent: "{who} los envió el {date}. Pásalos a la ficha con «Editar la ficha» y márcalos como revisados.",
+    phone: "Teléfono",
+    email: "Correo",
+    newCentre: "Centro nuevo",
+    noTimetable: "Sin horario",
+    notes: "Notas",
+    edit: "Editar la ficha",
+    reviewed: "Marcar como revisado",
+    noPermission: "No tienes permiso para revisarlo",
+    couldNotMark: "No se ha podido marcar",
+    marked: "Marcado como revisado"
+  },
+  card: {
+    stateTitle: "Estado",
+    photo: "1 foto",
+    photos: "{count} fotos",
+    addPhotos: "Añadir fotos",
+    presented: "Presentado: {list}",
+    samplesTitle: "Muestras este año",
+    samplesGiven: "{given} de {max}",
+    samplesOutOfTime: "Fuera de plazo",
+    samplesNoneLeft: "Sin muestras este año",
+    eventsTitle: "Eventos",
+    depositTitle: "Material en depósito",
+    depositUnits: "{units} unidades de {products}",
+    oneProduct: "1 producto",
+    products: "{count} productos",
+    oneBatchExpires: "1 lote caduca",
+    batchesExpire: "{count} lotes caducan",
+    inLessThan60Days: " en menos de 60 días",
+    depositNone: "Sin material en depósito.",
+    depositOpen: "Abrir el depósito",
+    depositLeave: "Dejar material en depósito",
+    surgeriesTitle: "{Surgeries}",
+    surgery: "{Surgery}",
+    tendersTitle: "Concursos",
+    tenderExpired: "vencido",
+    tenderExpiresOn: "vence el {date}",
+    equipmentTitle: "Equipos instalados",
+    equipment: "Equipo",
+    serial: " · nº {serial}",
+    equipmentNone: "Sin equipos instalados.",
+    addEquipment: "+ Equipo",
+    centreProfessionals: "Los {professionals} que atienden aquí y su horario",
+    seeCentreProfessionals: "Ver sus {professionals}",
+    reactivate: "Volver a dar de alta",
+    archive: "Dar de baja",
+    delete: "Eliminar la ficha"
+  }
+};
+
+// src/app/i18n/es/chunks/accounts/accounts-editor.ts
+var accountsEditor = {
+  editor: {
+    editTitle: "Editar ficha",
+    newCentre: "Nuevo centro",
+    centreSubtitle: "Empresa, tienda, oficina u otro local",
+    personSubtitle: "{professional} con sus centros",
+    centreName: "Nombre del centro",
+    personName: "Apellidos, Nombre",
+    centreNamePlaceholder: "CENTRO SANT JORDI",
+    personNamePlaceholder: "GARCIA LOPEZ, ANA",
+    area: "Área",
+    phone: "Teléfono",
+    email: "Email",
+    contact: "Contacto (secretaría, teléfono, email)",
+    noReporting: "Sin reporting",
+    noReportingHint: "Solo {visit} presencial: no quiere informes ni feedback.",
+    note: "Nota",
+    addConsultation: "+ Añadir {consultation}",
+    saveChanges: "Guardar cambios",
+    create: "Crear",
+    couldNotOpen: "No se ha podido abrir: {error}"
+  },
+  save: {
+    writeName: "Escribe el nombre",
+    fillField: "Rellena «{field}»",
+    nameFormat: "Escribe el nombre como APELLIDOS, NOMBRE",
+    mayExist: "Puede que ya exista",
+    mayExistHint: "Si es la misma persona, cancela y abre su ficha. Si no lo es, vuelve a pulsar Crear.",
+    createAnyway: "Crear de todos modos",
+    saving: "Guardando…",
+    couldNotSave: "No se ha podido guardar: {error}",
+    saved: "Ficha guardada",
+    created: "Creado correctamente"
+  },
+  salesperson: {
+    label: "Comercial asignado",
+    hint: "Las ventas nuevas se atribuyen al comercial asignado en ese momento.",
+    none: "Sin comercial",
+    couldNotChange: "No se ha podido cambiar el comercial"
+  },
+  consultation: {
+    main: "Principal",
+    upTitle: "Subir (más prioridad)",
+    up: "Subir",
+    downTitle: "Bajar (menos prioridad)",
+    down: "Bajar",
+    remove: "Quitar",
+    centre: "Centro",
+    floor: "Planta",
+    floorPlaceholder: "p. ej. 2.ª planta",
+    room: "Sala o despacho",
+    roomPlaceholder: "p. ej. Despacho 14",
+    directions: "Indicaciones para llegar",
+    directionsPlaceholder: "p. ej. Entrar por la puerta B y preguntar en recepción",
+    phone: "Teléfono {ofTheConsultation}",
+    phonePlaceholder: "Si es distinto del del centro",
+    days: "Días y horario de {visit}",
+    /** The start of the label above: the centre account renames it */
+    daysStart: "Días y horario"
+  },
+  days: {
+    morning: "Mañana",
+    afternoon: "Tarde",
+    noTime: "Sin hora",
+    weekMornings: "L-V mañanas",
+    weekAfternoons: "L-V tardes",
+    clear: "Limpiar"
+  },
+  centre: {
+    noName: "Sin nombre",
+    unlinked: "Sin enlazar",
+    unlinkedTitle: "{thisConsultation} aún no está enlazada con un centro de la base",
+    noAddress: "Sin dirección",
+    today: "Hoy {hours}",
+    noOpening: "Sin horario de apertura",
+    noLocation: "Sin ubicación: no saldrá en rutas ni en el mapa",
+    directions: "Cómo llegar",
+    edit: "Editar centro",
+    link: "Enlazar con un centro",
+    change: "Cambiar"
+  },
+  private: {
+    noCentre: "Sin centro",
+    noAddressYet: "Sin dirección todavía",
+    addAddressHint: "Añade la dirección para que salga en rutas y en el mapa",
+    edit: "Editar {theConsultation}",
+    addAddress: "Añadir la dirección",
+    hint: "Dónde atiende (en su casa, un despacho…). Se guarda con la ficha.",
+    address: "Dirección",
+    addressPlaceholder: "Calle, número, piso",
+    located: "✓ Ubicada",
+    withLocation: "con tu ubicación: revisa la dirección",
+    elsewhere: "Esa dirección sale en {place}, no en {town}: revísala (no se ha guardado el punto)",
+    noGeolocation: "Este dispositivo no da la ubicación",
+    locating: "Localizando…",
+    locationFailed: "No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador",
+    writeTown: "Escribe al menos la población",
+    /** The name the private consultation is saved with */
+    ready: "{privateConsultation} lista: se guarda con la ficha",
+    readyNoPoint: "Dirección puesta, sin punto en el mapa: se guarda con la ficha"
+  },
+  centreForm: {
+    editTitle: "Editar centro",
+    newTitle: "Centro nuevo",
+    name: "Nombre del centro",
+    namePlaceholder: "p. ej. Centro Sagrada Família",
+    phone: "Teléfono",
+    address: "Dirección",
+    postcode: "Código postal",
+    town: "Población",
+    province: "Provincia",
+    located: "✓ Ubicado",
+    notLocated: "Sin ubicación todavía",
+    findOnMap: "🔎 Buscar la dirección en el mapa",
+    searching: "Buscando…",
+    opening: "Horario de apertura",
+    closed: "Cerrado",
+    hoursPlaceholder: "8:00-20:00",
+    copyMonday: "Copiar el horario del lunes al resto de días laborables",
+    save: "Guardar cambios",
+    create: "Crear centro",
+    writeAddress: "Escribe la dirección o la población",
+    notFound: "No se ha encontrado esa dirección. Prueba con calle, número y población.",
+    elsewhere: "Esa dirección sale en {place}, no en {town}: revísala",
+    writeName: "Escribe el nombre del centro",
+    noPermission: "no tienes permiso",
+    couldNotSave: "No se ha podido guardar el centro",
+    updated: "Centro actualizado",
+    created: "Centro creado y elegido"
+  },
+  centreAccount: {
+    title: "Dirección del centro",
+    street: "Calle y número",
+    streetPlaceholder: "p. ej. Calle Mayor 12",
+    hours: "Horario de atención",
+    elsewhere: "La dirección sale en {place}, no en {town}: se guarda sin situarla en el mapa"
+  },
+  picker: {
+    away: " · a {distance}",
+    oneDoctor: "{count} médico",
+    doctors: "{count} médicos",
+    none: "No hay ningún centro con ese nombre.",
+    fromLocation: "Datos rellenados con tu ubicación: revísalos.",
+    fromLocationNoName: "Dirección rellenada con tu ubicación. El mapa no conoce el nombre del centro: escríbelo.",
+    located: "✓ Ubicado",
+    seeOnMap: "Ver en el mapa",
+    searchPlaceholder: "Busca el centro por nombre, calle o población",
+    imHere: "📍 Estoy aquí",
+    newCentre: "+ Centro nuevo",
+    private: "{privateConsultation} (sin centro)",
+    createNamed: "+ Crear «{name}» como centro nuevo"
+  },
+  portfolio: {
+    loading: "Cargando la cartera…",
+    title: "Cartera de {name}",
+    search: "Buscar dentro de la cartera",
+    notVisited: "sin visitar",
+    card: "Ficha",
+    remove: "Quitar",
+    none: "Sin {assigned}.",
+    assignMore: "Asignar más {professionals}",
+    removeText: "Dejará de verlo en su cartera. El histórico de {visits} no cambia.",
+    removeTitle: "¿Quitar de la cartera?",
+    noPermission: "No tienes permiso",
+    removed: "Quitado de la cartera"
+  },
+  status: {
+    couldNotChange: "No se ha podido cambiar: {error}",
+    changed: "Estado: {state}",
+    couldNot: "No se ha podido: {error}",
+    out: "Ficha dada de baja",
+    oneAppointmentRemoved: " · {count} cita quitada de la agenda",
+    appointmentsRemoved: " · {count} citas quitadas de la agenda",
+    backIn: "Ficha dada de alta de nuevo"
+  }
+};
+
+// src/app/i18n/es/chunks/accounts/accounts-map.ts
+var accountsMap = {
+  needsConnection: "El mapa necesita conexión.",
+  loading: "Cargando puntos…",
+  couldNotLoad: "No se ha podido cargar el mapa: {error}",
+  openCard: "Abrir ficha",
+  urgent: "Urgente sin visitar",
+  found: "{shown} con ubicación de {total} encontrados"
+};
+
+// src/app/i18n/es/chunks/accounts/accounts-more.ts
+var accountsMore = {
+  duplicates: {
+    title: "Duplicados",
+    subtitle: "Revisa fichas repetidas y unifícalas sin perder la lista",
+    back: "← Volver",
+    backToQuality: "‹ Calidad del dato",
+    searchAgain: "Volver a buscar parecidos",
+    pickPair: "Elige una pareja para revisarla",
+    pickPairHint: "Pulsa «Comparar» en la lista de la izquierda y aquí verás las dos fichas lado a lado. Al terminar, pasas a la siguiente.",
+    adminOnly: "Solo administración puede unificar fichas.",
+    searchingPending: "Buscando fichas pendientes…",
+    searchingSimilar: "Buscando nombres parecidos…",
+    pendingTitle: "Pendientes de unificar",
+    pendingHint: "Fichas marcadas como posible duplicado al darlas de alta.",
+    code: "Código {code}",
+    looksLike: "Se parece a {name}",
+    noPair: "Sin pareja identificada",
+    compare: "Comparar",
+    notDuplicate: "No es duplicado",
+    notDuplicates: "No son duplicados",
+    card: "Ficha",
+    noPending: "No hay fichas pendientes de unificar.",
+    similarTitle: "Nombres parecidos",
+    similarHint: "Parejas con un parecido del 80% o más. Si no son la misma persona, márcalas como distintas y no volverán a salir.",
+    codes: "códigos {a} y {b}",
+    noSimilar: "Sin parejas parecidas pendientes de revisar.",
+    kindLabel: "Tipo de ficha",
+    centres: "Centros",
+    couldNotSave: "No se ha podido guardar",
+    markedDifferent: "Marcadas como distintas",
+    markedDifferentPanel: "Marcadas como personas distintas.",
+    nextPair: "Elige la siguiente pareja de la lista."
+  },
+  compare: {
+    loading: "Cargando las dos fichas…",
+    gone: "Alguna de las dos fichas ya no existe.",
+    title: "Comparar fichas",
+    hint: "Elige cuál se conserva y con qué datos. {Consultations}, {visits}, citas y cartera se juntan en la que quede.",
+    summary: "{consultations} {consultationsWord} · {visits} {visitsWord}",
+    kept: "Se conserva esta",
+    goes: "Desaparece",
+    seeCard: "Ver ficha de {code}",
+    empty: "(vacío)",
+    same: "Los datos principales coinciden.",
+    unify: "Unificar",
+    unifying: "Unificando…",
+    confirmText: "Desaparece la ficha de {name}.\nNo se puede deshacer desde la app.",
+    confirmTitle: "¿Unificar fichas?",
+    couldNotUnify: "No se ha podido unificar",
+    unified: "Fichas unificadas",
+    unifiedPanel: "Fichas unificadas.",
+    keepOne: "Deja marcado al menos un centro o {consultation}",
+    couldNotTidy: "Unificadas, pero no se ha podido terminar de ordenar los centros: {error}",
+    noAddress: "Sin dirección",
+    centreAddress: "Dirección del centro",
+    keepMarked: "Se conserva la marcada.",
+    from: "· de {name}",
+    noAddresses: "Ninguno de los dos tiene dirección.",
+    professionalsMove: "Los de los dos centros ({a} + {b}) pasan al que se conserva. Si alguno estaba en los dos, queda una sola vez.",
+    centresAndConsultations: "Centros y {consultations}",
+    keepMarkedMany: "Se conservan los marcados en la ficha que queda: puedes quedarte con los dos."
+  },
+  fields: {
+    name: "Nombre",
+    area: "Área",
+    phone: "Teléfono",
+    email: "Email",
+    contact: "Contacto",
+    note: "Nota",
+    commercialState: "Estado comercial"
+  },
+  centre: {
+    title: "Centro",
+    couldNotOpen: "No se ha podido abrir el centro{error}.",
+    noAddress: "Sin dirección",
+    call: "Llamar · {phone}",
+    directions: "Cómo llegar",
+    edit: "Editar centro",
+    commercialCard: "Ficha comercial",
+    timetable: "Horario",
+    add: "+ Añadir",
+    floor: "Planta {value}",
+    room: "Sala {value}",
+    attends: "Atiende: {days}",
+    card: "Ficha",
+    appointment: "+ Cita",
+    remove: "Quitar",
+    removeLabel: "Quitar a {name} del centro",
+    nobody: "Todavía no hay {professionals} en este centro.",
+    addThem: " Añádelos con «+ Añadir».",
+    noPermission: "No puedes cambiar la ficha de {name}",
+    couldNotAdd: "No se ha podido añadir",
+    alreadyThere: "{name} ya estaba en el centro: queda enlazado",
+    added: "{name} añadido a {centre}",
+    removeText: "Se quita a {name} de {centre}: {thisConsultation} desaparece de su ficha.",
+    removeOnly: " Era su única {consultation}: su ficha se queda sin centro.",
+    removeTitle: "¿Quitar del centro?",
+    couldNotRemove: "No se ha podido quitar",
+    removed: "{name} ya no está en {centre}"
+  },
+  centreEditor: {
+    title: "Editar centro",
+    subtitle: "Los cambios se pasan a {consultations} enlazadas a este centro",
+    name: "Nombre del centro",
+    phone: "Teléfono",
+    address: "Dirección",
+    postcode: "Código postal",
+    town: "Población",
+    province: "Provincia",
+    opening: "Horario de apertura",
+    closed: "Cerrado",
+    hoursPlaceholder: "8:00-20:00",
+    back: "Volver",
+    save: "Guardar cambios",
+    writeName: "Escribe el nombre del centro",
+    elsewhere: "La dirección sale en {place}, no en {town}: se guarda sin mover el punto del mapa",
+    couldNotSave: "No se ha podido guardar",
+    saved: "Centro guardado"
+  },
+  nearby: {
+    noLocation: "Este dispositivo no tiene ubicación",
+    locating: "Localizando…",
+    button: "Cerca de mí",
+    couldNotSearch: "No se ha podido buscar: {error}",
+    noPosition: "No se ha podido obtener tu ubicación. Revisa los permisos del navegador.",
+    count: "<b>{count}</b> {professionals} a menos de 10 km de ti",
+    back: "Volver a la búsqueda",
+    urgent: "Urgente",
+    noReporting: "Sin reporting",
+    noReportingTitle: "Solo {visit} presencial: sin informes ni feedback",
+    none: "No hay {professionals} con ubicación a menos de 10 km."
+  }
+};
+
+// src/app/i18n/es/chunks/accounts/index.ts
+var texts = { accounts, accountsEditor, accountsMap, accountsMore };
+
+// src/app/screens/accounts/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
+var pick2 = (name) => shared2[name];
+var accessLegacy = /* @__PURE__ */ pick2("accessLegacy");
+var accountCardLegacy = /* @__PURE__ */ pick2("accountCardLegacy");
+var accountColumnsLegacy = /* @__PURE__ */ pick2("accountColumnsLegacy");
+var accountListLegacy = /* @__PURE__ */ pick2("accountListLegacy");
+var agendaActions = /* @__PURE__ */ pick2("agendaActions");
+var appLegacy = /* @__PURE__ */ pick2("appLegacy");
+var appointmentLegacy = /* @__PURE__ */ pick2("appointmentLegacy");
+var cachedRpc = /* @__PURE__ */ pick2("cachedRpc");
+var callRpc = /* @__PURE__ */ pick2("callRpc");
+var cardBaseLegacy = /* @__PURE__ */ pick2("cardBaseLegacy");
+var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
+var commercialStates = /* @__PURE__ */ pick2("commercialStates");
+var currentScreen = /* @__PURE__ */ pick2("currentScreen");
+var editorLegacy = /* @__PURE__ */ pick2("editorLegacy");
+var goTo = /* @__PURE__ */ pick2("goTo");
+var icon = /* @__PURE__ */ pick2("icon");
+var legacyDb = /* @__PURE__ */ pick2("legacyDb");
+var legacyIcons = /* @__PURE__ */ pick2("legacyIcons");
+var notices = /* @__PURE__ */ pick2("notices");
+var permissions = /* @__PURE__ */ pick2("permissions");
+var portalLegacy = /* @__PURE__ */ pick2("portalLegacy");
+var qualityLegacy = /* @__PURE__ */ pick2("qualityLegacy");
+var relatedLegacy = /* @__PURE__ */ pick2("relatedLegacy");
+var salesTeam = /* @__PURE__ */ pick2("salesTeam");
+var term = /* @__PURE__ */ pick2("term");
 
 // delcos-shared:src/app/screens/privacy/person-data.ts
-var shared2 = globalThis["__delcosModules"]["screens/privacy/person-data"];
-var pick2 = (name) => shared2[name];
-var addPrivacySection = /* @__PURE__ */ pick2("addPrivacySection");
-
-// delcos-shared:src/app/i18n/index.ts
-var shared3 = globalThis["__delcosModules"]["i18n/index"];
+var shared3 = globalThis["__delcosModules"]["screens/privacy/person-data"];
 var pick3 = (name) => shared3[name];
-var t = /* @__PURE__ */ pick3("t");
+var addPrivacySection = /* @__PURE__ */ pick3("addPrivacySection");
 
 // delcos-shared:src/app/services/date-format.ts
 var shared4 = globalThis["__delcosModules"]["services/date-format"];

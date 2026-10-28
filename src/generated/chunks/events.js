@@ -1,20 +1,100 @@
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
-var pick = (name) => shared[name];
-var cardSectionsLegacy = /* @__PURE__ */ pick("cardSectionsLegacy");
-var currentScreen = /* @__PURE__ */ pick("currentScreen");
-var editorLegacy = /* @__PURE__ */ pick("editorLegacy");
-var eventsLegacy = /* @__PURE__ */ pick("eventsLegacy");
-var legacyDb = /* @__PURE__ */ pick("legacyDb");
-var notices = /* @__PURE__ */ pick("notices");
-var relatedLegacy = /* @__PURE__ */ pick("relatedLegacy");
-var salesTeam = /* @__PURE__ */ pick("salesTeam");
-var term = /* @__PURE__ */ pick("term");
-
 // delcos-shared:src/app/i18n/index.ts
-var shared2 = globalThis["__delcosModules"]["i18n/index"];
+var shared = globalThis["__delcosModules"]["i18n/index"];
+var pick = (name) => shared[name];
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/events/events.ts
+var events = {
+  list: {
+    couldNotLoad: "No se han podido cargar los eventos.",
+    newEvent: "+ Nuevo evento",
+    upcoming: "Próximos",
+    past: "Pasados",
+    noUpcoming: "No hay eventos próximos.",
+    noPast: "Todavía no hay eventos pasados.",
+    online: "En línea",
+    noPlace: "Sin lugar",
+    oneAttendee: "1 asistente",
+    attendees: "{count} asistentes"
+  },
+  editor: {
+    editTitle: "Editar evento",
+    newTitle: "Nuevo evento",
+    subtitle: "Taller, curso, congreso, webinar…",
+    title: "Título",
+    titlePlaceholder: "p. ej. Taller de manejo del dolor articular",
+    type: "Tipo",
+    date: "Fecha",
+    time: "Hora",
+    place: "Lugar",
+    placePlaceholder: "Hotel, centro, sede…",
+    online: "En línea",
+    note: "Nota",
+    delete: "Borrar",
+    cancel: "Cancelar",
+    save: "Guardar",
+    create: "Crear evento",
+    writeTitle: "Escribe el título",
+    chooseDate: "Elige la fecha",
+    couldNotSave: "No se ha podido guardar: {error}",
+    saved: "Evento guardado",
+    created: "Evento creado",
+    deleteText: "El evento desaparece con su lista de asistentes y lo apuntado a cada uno.",
+    deleteTitle: "¿Borrar el evento?",
+    couldNotDelete: "No se ha podido borrar",
+    deleted: "Evento borrado"
+  },
+  sheet: {
+    notFound: "No se ha encontrado el evento",
+    attendees: "Asistentes · {count}",
+    add: "+ Añadir",
+    state: "Estado",
+    remove: "Quitar",
+    noAttendees: "Todavía no hay asistentes: añade los invitados.",
+    total: "Gastos de este evento",
+    note: "Las inscripciones y gastos de cada asistente (inscripción, viaje y alojamiento, comidas y honorarios) salen en el informe anual de gastos. Las comidas no deberían pasar de {max} € por persona.",
+    edit: "Editar evento",
+    done: "Hecho",
+    alreadyIn: "{name} ya está en este evento",
+    couldNotAdd: "No se ha podido añadir: {error}",
+    added: "{name} añadido",
+    couldNotSave: "No se ha podido guardar",
+    mealOver: "La comida pasa de {max} € por persona: revisa que cumpla el código de buenas prácticas",
+    removeText: "{name} deja de estar en este evento, con lo apuntado.",
+    removeTitle: "¿Quitar de la lista?",
+    couldNotRemove: "No se ha podido quitar"
+  },
+  report: {
+    year: "Año",
+    download: "Descargar (CSV)",
+    note: "Los gastos de eventos de cada {professional} durante el año, por concepto (las asistencias marcadas «No asistió» no cuentan). Es la base del informe anual de gastos de los códigos de Farmaindustria y Fenin: revísalo con vuestro responsable de cumplimiento antes de publicarlo.",
+    events: "Eventos",
+    total: "Total",
+    code: "Código",
+    empty: "En {year} no hay gastos de eventos apuntados.",
+    fileName: "informe de gastos-{year}.csv"
+  }
+};
+
+// src/app/i18n/es/chunks/events/index.ts
+var texts = { events };
+
+// src/app/screens/events/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
 var pick2 = (name) => shared2[name];
-var t = /* @__PURE__ */ pick2("t");
+var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
+var currentScreen = /* @__PURE__ */ pick2("currentScreen");
+var editorLegacy = /* @__PURE__ */ pick2("editorLegacy");
+var eventsLegacy = /* @__PURE__ */ pick2("eventsLegacy");
+var legacyDb = /* @__PURE__ */ pick2("legacyDb");
+var notices = /* @__PURE__ */ pick2("notices");
+var relatedLegacy = /* @__PURE__ */ pick2("relatedLegacy");
+var salesTeam = /* @__PURE__ */ pick2("salesTeam");
+var term = /* @__PURE__ */ pick2("term");
 
 // delcos-shared:src/app/services/dates.ts
 var shared3 = globalThis["__delcosModules"]["services/dates"];

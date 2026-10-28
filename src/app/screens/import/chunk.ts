@@ -3,6 +3,7 @@
  * «Importaciones». herramientas/bundle.mjs builds this file into min/chunks/import.js and index.ts calls it through core/lazy.
  * The steps are wired here, when the chunk runs: they are only used from then on.
  */
+import './texts';
 import { paintColumnsStep } from './columns-step';
 import { paintFileStep, paintImport } from './file-step';
 import { paintImports } from './history';

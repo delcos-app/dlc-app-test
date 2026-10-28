@@ -4,6 +4,7 @@
  * Clasificadores and the test environment. The shell, the tree, the store, «more» and what other screens read at once (custom
  * fields, notification modes, order alerts) stay in the core.
  */
+import './texts';
 export { paintPreferences, paintProfile } from '../preferences';
 export { paintMyProfile } from '../profile/page';
 export { paintPreferencesPart, saveIndicators } from '../profile/parts';

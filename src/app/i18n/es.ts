@@ -1,5 +1,7 @@
 /**
  * Spanish texts (default language). Every user-facing text lives here, under a dotted key; code never writes texts inline.
+ * This is the core catalog: the texts only one lazy chunk uses are in es/chunks/<chunk> and arrive with it (plan 7.3, cut F;
+ * herramientas/text-guard.mjs checks the split on every build). Their keys are part of `Messages` all the same.
  * Other languages (en.ts, ca.ts…) must define the same keys: the `Messages` type makes the compiler check it.
  * Business words (profesional, visita, cliente…) are written with {placeholders} and resolved per company by the vocabulary
  * (see i18n/index.ts), so each company sees its own words.
@@ -24,7 +26,6 @@ import { settingsRest } from './es/settings-rest';
 import { panels } from './es/panels';
 import { accountsEditor } from './es/accounts-editor';
 import { routesMore } from './es/routes-more';
-import { accountsMore } from './es/accounts-more';
 import { homeMore } from './es/home-more';
 import { settingsExtra } from './es/settings-extra';
 import { ordersMore } from './es/orders-more';
@@ -34,14 +35,11 @@ import { settingsMore } from './es/settings-more';
 import { settings } from './es/settings';
 import { access } from './es/access';
 import { agendaMore } from './es/agenda-more';
-import { accountsMap } from './es/accounts-map';
 import { routes } from './es/routes';
 import { orders } from './es/orders';
 import { products } from './es/products';
-import { billing } from './es/billing';
 import { platform } from './es/platform';
 import { portal } from './es/portal';
-import { analytics } from './es/analytics';
 import { visit } from './es/visit';
 import { commissions } from './es/commissions';
 import { customers } from './es/customers';
@@ -58,6 +56,22 @@ import { surgeries } from './es/surgeries';
 import { cycle } from './es/cycle';
 import { privacy } from './es/privacy';
 import { limits } from './es/limits';
+import type { texts as accountsTexts } from './es/chunks/accounts';
+import type { texts as agendaTexts } from './es/chunks/agenda';
+import type { texts as analyticsTexts } from './es/chunks/analytics';
+import type { texts as billingTexts } from './es/chunks/billing';
+import type { texts as commissionsTexts } from './es/chunks/commissions';
+import type { texts as eventsTexts } from './es/chunks/events';
+import type { texts as importTexts } from './es/chunks/import';
+import type { texts as manualTexts } from './es/chunks/manual';
+import type { texts as ordersTexts } from './es/chunks/orders';
+import type { texts as platformTexts } from './es/chunks/platform';
+import type { texts as qualityTexts } from './es/chunks/quality';
+import type { texts as routesTexts } from './es/chunks/routes';
+import type { texts as settingsEmailTexts } from './es/chunks/settings-email';
+import type { texts as settingsPartsTexts } from './es/chunks/settings-parts';
+import type { texts as settingsPlanTexts } from './es/chunks/settings-plan';
+import type { texts as settingsUsersTexts } from './es/chunks/settings-users';
 
 export const es = {
   equipment,
@@ -70,23 +84,19 @@ export const es = {
   customers,
   commissions,
   visit,
-  analytics,
   portal,
   platform,
-  billing,
   products,
   orders,
   routes,
   access,
   agendaMore,
-  accountsMap,
   settings,
   settingsMore,
   components,
   listComponents,
   ordersMore,
   settingsExtra,
-  accountsMore,
   homeMore,
   routesMore,
   accountsEditor,
@@ -243,5 +253,26 @@ export const es = {
 
 type Widen<T> = { readonly [K in keyof T]: T[K] extends string ? string : Widen<T[K]> };
 
-/** Shape every language file must have (same keys as Spanish, any text). */
-export type Messages = Widen<typeof es>;
+/**
+ * The texts that arrive with the lazy chunks (i18n/es/chunks/<chunk>, registered by screens/<…>/texts.ts when the chunk loads):
+ * not part of the core, but their keys are keys like any other.
+ */
+type ChunkTexts = typeof accountsTexts
+  & typeof agendaTexts
+  & typeof analyticsTexts
+  & typeof billingTexts
+  & typeof commissionsTexts
+  & typeof eventsTexts
+  & typeof importTexts
+  & typeof manualTexts
+  & typeof ordersTexts
+  & typeof platformTexts
+  & typeof qualityTexts
+  & typeof routesTexts
+  & typeof settingsEmailTexts
+  & typeof settingsPartsTexts
+  & typeof settingsPlanTexts
+  & typeof settingsUsersTexts;
+
+/** Shape every language must have (same keys as Spanish, any text): the core catalog and the texts of every chunk. */
+export type Messages = Widen<typeof es & ChunkTexts>;

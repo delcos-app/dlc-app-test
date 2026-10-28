@@ -2,36 +2,546 @@ var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value6) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value: value6 }) : obj[key] = value6;
 var __publicField = (obj, key, value6) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value6);
 
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
+// delcos-shared:src/app/i18n/index.ts
+var shared = globalThis["__delcosModules"]["i18n/index"];
 var pick = (name) => shared[name];
-var accountCardLegacy = /* @__PURE__ */ pick("accountCardLegacy");
-var accountListLegacy = /* @__PURE__ */ pick("accountListLegacy");
-var appLegacy = /* @__PURE__ */ pick("appLegacy");
-var cachedRpc = /* @__PURE__ */ pick("cachedRpc");
-var callRpc = /* @__PURE__ */ pick("callRpc");
-var cardSectionsLegacy = /* @__PURE__ */ pick("cardSectionsLegacy");
-var currentScreen = /* @__PURE__ */ pick("currentScreen");
-var cycleLegacy = /* @__PURE__ */ pick("cycleLegacy");
-var legacyDb = /* @__PURE__ */ pick("legacyDb");
-var notices = /* @__PURE__ */ pick("notices");
-var opportunitiesLegacy = /* @__PURE__ */ pick("opportunitiesLegacy");
-var permissions = /* @__PURE__ */ pick("permissions");
-var purchasesLegacy = /* @__PURE__ */ pick("purchasesLegacy");
-var showCacheNotice = /* @__PURE__ */ pick("showCacheNotice");
-var term = /* @__PURE__ */ pick("term");
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/orders/orders.ts
+var orders = {
+  page: {
+    newSale: "+ Nueva venta",
+    channel: "Canal",
+    all: "Todos",
+    saleTo: "Venta {customer}",
+    saleToCentre: "Venta a centro",
+    state: "Estado",
+    confirmed: "Confirmados",
+    drafts: "Borradores",
+    voided: "Anulados",
+    search: "Buscar",
+    searchPlaceholder: "{professional}, {customer} o nº de pedido",
+    tabSales: "Ventas",
+    tabPurchases: "Compras",
+    tabSuppliers: "Proveedores",
+    tabOpportunities: "Oportunidades",
+    newPurchase: "+ Nuevo pedido de compra",
+    newSupplier: "+ Nuevo proveedor"
+  },
+  list: {
+    operations: "Operativa",
+    everything: "Todo",
+    toCollect: "Pendiente de cobro",
+    toPack: "Paquete por preparar",
+    invoiceToSend: "Factura por enviar",
+    origin: "Origen",
+    web: "Por la web",
+    portal: "Portal del centro",
+    others: "Comercial, teléfono o correo",
+    report: "Reporte",
+    reported: "Reportados",
+    notReported: "Sin reportar",
+    loading: "Cargando pedidos…",
+    couldNotLoad: "No se ha podido cargar{error}.",
+    completed: "Pedidos completados",
+    inDraft: " · {count} en borrador",
+    units: "Unidades",
+    byWeb: "Por la web",
+    withoutVat: " · {amount} sin IVA",
+    base: "Base sin IVA",
+    vat: "IVA",
+    total: "Total con IVA",
+    packageReady: "Paquete preparado",
+    packageToPrepare: "Paquete por preparar",
+    paymentReceived: "Pago recibido",
+    paymentPending: "Pago pendiente",
+    invoiceSent: "Factura enviada",
+    invoiceToSendShort: "Factura por enviar",
+    webTag: "Web",
+    portalTag: "Portal",
+    withReceipt: "Con justificante de pago",
+    unattributed: "Sin atribuir",
+    none: "No hay pedidos con estos filtros.",
+    date: "Fecha",
+    customer: "Cliente",
+    salesperson: "Comercial",
+    products: "Productos",
+    unitsShort: "Uds.",
+    baseShort: "Base",
+    totalShort: "Total",
+    state: "Estado",
+    notes: "Notas"
+  },
+  operations: {
+    title: "Operativa",
+    onDelivery: " (se cobra al entregar)",
+    freeDelivery: "Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.",
+    reported: "Reportado {professional}",
+    noEmail: "El cliente no tiene email en su ficha.",
+    preparePaymentEmail: "✉️ Preparar email con los datos de pago",
+    couldNotSave: "No se ha podido guardar",
+    paidToast: "Cobrado",
+    paidOnInvoice: " · cobro anotado en la factura",
+    done: "Hecho",
+    unmarked: "Desmarcado",
+    reportedToast: "Reportado",
+    notReportedToast: "Ya no se reporta"
+  },
+  sheet: {
+    opening: "Abriendo el pedido…",
+    notFound: "No se ha encontrado el pedido.",
+    title: "Pedido",
+    draftNotice: "Borrador: todavía no cuenta en métricas ni en comisiones.",
+    seeCustomer: "Ver ficha {customer}",
+    code: "· código {code}",
+    salesperson: "Comercial: {name}",
+    lines: "Líneas",
+    noProduct: "Sin producto",
+    units: "{count} uds.",
+    base: "Base {amount}",
+    discount: " (dto. {percent}%)",
+    vat: "IVA {rate}% {amount}",
+    noLines: "Sin líneas.",
+    note: "Nota",
+    deleteDraft: "Eliminar borrador",
+    edit: "Editar",
+    confirm: "Confirmar pedido",
+    editData: "Editar datos",
+    editOrder: "Editar pedido",
+    void: "Anular pedido",
+    deleteText: "El borrador desaparece por completo.",
+    deleteTitle: "¿Eliminar el borrador?",
+    deleteOk: "Eliminar",
+    onlyDrafts: "Solo se pueden eliminar borradores",
+    couldNotDelete: "No se ha podido eliminar",
+    deleted: "Borrador eliminado",
+    paymentNoted: "Se anota el pago como recibido. ",
+    confirmText: "Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.",
+    confirmTitle: "¿Confirmar el pedido?",
+    confirmOk: "Confirmar",
+    couldNotConfirm: "No se ha podido confirmar: {error}",
+    confirmedAndPaid: "Pedido confirmado y cobrado",
+    confirmed: "Pedido confirmado",
+    voidReason: "Motivo de la anulación (opcional)",
+    voidTitle: "¿Anular el pedido?",
+    voidOk: "Anular",
+    voidInvoiced: "Tiene factura: emite antes una rectificativa de toda la factura y marca «Anular también el pedido»",
+    couldNotVoid: "No se ha podido anular: {error}",
+    voided: "Pedido anulado"
+  },
+  payment: {
+    title: "Pago",
+    byWeb: "Pedido por la web",
+    reference: "Referencia del pago",
+    see: "Ver",
+    couldNotOpen: "No se ha podido abrir el justificante"
+  },
+  nonFiscal: {
+    title: "Editar datos del pedido {number}",
+    subtitle: "Solo lo que no es fiscal: las líneas, los importes, el cliente y la fecha no cambian.",
+    note: "Nota",
+    paymentMethod: "Forma de pago",
+    paymentReference: "Referencia del pago",
+    referencePlaceholder: "p. ej. número de la transferencia",
+    invoiceKeeps: "Este pedido ya tiene factura: la factura emitida conserva la forma de pago con la que se hizo.",
+    fillIn: "Rellena «{field}»",
+    couldNotSave: "No se ha podido guardar: {error}",
+    saved: "Datos del pedido guardados"
+  },
+  bankTransfer: {
+    title: "Pago por transferencia",
+    sentOn: "Datos de pago enviados el {date}. El pedido espera en borrador hasta que llegue el pago.",
+    notSent: "Datos de pago sin enviar. El pedido espera en borrador hasta que llegue el pago.",
+    send: "Enviar los datos de pago",
+    sendAgain: "Volver a enviar los datos de pago",
+    noEmail: "{customer} no tiene email en su ficha.",
+    paidConfirm: "Cobrado · confirmar"
+  },
+  distributor: {
+    title: "Distribuidor",
+    fallbackName: "Distribuidor",
+    servedBy: "Lo sirve <b>{name}</b>",
+    customerCode: " · código del cliente <b>{code}</b>",
+    theyInvoice: "lo factura el distribuidor",
+    weInvoice: "lo facturamos nosotros",
+    prepareMail: "Preparar correo al distribuidor",
+    noEmail: "El distribuidor no tiene correo: añádelo en sus datos.",
+    mailPreparedOn: "Correo preparado el {date}",
+    mailNotPrepared: "Correo sin preparar",
+    afterConfirm: "Al confirmarlo podrás preparar el correo al distribuidor.",
+    mailOrder: "Pedido {number} de {app}",
+    mailCustomer: "Cliente: {name}{code}",
+    mailCode: " · código {code}",
+    mailAddress: "Dirección: {address}",
+    invoicedByThem: "Lo factura el distribuidor.",
+    invoicedBy: "Lo factura {app}.",
+    mailNote: "Nota: {note}",
+    mailSubject: "Pedido {number} · {name}"
+  },
+  transfer: {
+    state: "Estado del transfer",
+    download: "Descargar transfer",
+    note: "Nota: {note}",
+    issueQuestion: "Qué ha pasado (falta de stock, dirección, código del cliente…)",
+    issueTitle: "Incidencia en el transfer",
+    noPermission: "No tienes permiso para cambiarlo",
+    couldNotChange: "No se ha podido cambiar{error}",
+    sentOn: "Enviado el {date}",
+    changed: "Transfer: {state}",
+    pdfFailed: "No se ha podido preparar el PDF: {error}",
+    pdfTitle: "Transfer · Pedido {number}",
+    pdfDistributor: "Distribuidor",
+    pdfCustomer: "Cliente",
+    pdfCode: "Código en el distribuidor: {code}",
+    pdfTaxId: "NIF: {id}",
+    pdfProduct: "Producto",
+    pdfReference: "Referencia",
+    pdfBarcode: "Código de barras",
+    pdfUnits: "Uds.",
+    pdfTotal: "Total: {units} unidades"
+  },
+  equipment: {
+    title: "Equipos",
+    oneMissing: "Falta dar de alta 1 equipo de este pedido en el parque instalado.",
+    missing: "Faltan por dar de alta {count} equipos de este pedido en el parque instalado.",
+    registerAll: "Dar de alta los equipos",
+    writeSerials: "Escribe el número de serie de cada unidad.",
+    serialOf: "Nº de serie de la unidad {unit}",
+    serialLabel: "Número de serie de la unidad {unit} de {name}",
+    installedOn: "Instalado el",
+    place: "Ubicación",
+    placePlaceholder: "p. ej. Sala 2",
+    register: "Dar de alta",
+    noAccount: "El pedido no tiene ficha: da de alta los equipos desde la ficha del centro",
+    writeOne: "Escribe al menos un número de serie",
+    noPermission: "No puedes dar de alta equipos de esta ficha",
+    couldNotSave: "No se ha podido guardar: {error}",
+    oneRegistered: "Equipo dado de alta",
+    registered: "{count} equipos dados de alta"
+  },
+  distributors: {
+    loading: "Cargando los distribuidores…",
+    couldNotRead: "No se han podido leer los distribuidores: {error}",
+    hint: "Mayoristas o depósitos que sirven pedidos a vuestros clientes. Al hacer un pedido se elige si lo servís vosotros o uno de ellos; el suyo no descuenta stock de vuestro almacén.",
+    new: "+ Nuevo distribuidor",
+    noLongerUsed: "Que ya no se usan",
+    none: "Todavía no hay distribuidores.",
+    notUsed: "No se usa",
+    noContact: "Sin correo ni teléfono",
+    transfers: "Transfers",
+    edit: "Editar",
+    stopUsing: "Dejar de usar",
+    useAgain: "Volver a usar",
+    stopText: "No saldrá al hacer pedidos nuevos. Los pedidos que ya sirvió siguen diciendo que fue él.",
+    stopTitle: "¿Dejar de usar {name}?",
+    couldNotChange: "No se ha podido cambiar: {error}",
+    notUsedNow: "Ya no se usa",
+    usedAgain: "Se vuelve a usar",
+    newTitle: "Nuevo distribuidor",
+    editTitle: "Editar distribuidor",
+    subtitle: "Mayorista o depósito que sirve pedidos a vuestros clientes",
+    name: "Nombre",
+    namePlaceholder: "p. ej. Cofares",
+    email: "Correo para pedidos",
+    phone: "Teléfono",
+    note: "Nota",
+    notePlaceholder: "Horario de pedidos, persona de contacto…",
+    add: "Añadir",
+    writeName: "Escribe el nombre",
+    badEmail: "El correo no parece válido",
+    couldNotAdd: "No se ha podido añadir: {error}",
+    couldNotSave: "No se ha podido guardar: {error}",
+    added: "Distribuidor añadido",
+    saved: "Guardado"
+  },
+  transfers: {
+    title: "Transfers · {name}",
+    subtitle: "Pedidos que sirve este distribuidor (los 200 últimos)",
+    loading: "Cargando los transfers…",
+    couldNotRead: "No se han podido leer: {error}",
+    notSent: "Sin enviar",
+    sent: "Enviados",
+    accepted: "Aceptados",
+    served: "Servidos",
+    withIssue: "Con incidencia",
+    order: "Pedido",
+    units: "{count} uds",
+    none: "Todavía no hay pedidos de este distribuidor."
+  },
+  alerts: {
+    title: "Avisos de pedidos",
+    subtitle: "Qué avisos quieres ver arriba en Pedidos",
+    toCollect: "Pendientes de cobro",
+    toPack: "Paquetes por preparar",
+    invoicesToSend: "Facturas por enviar",
+    paymentToSend: "Datos de pago por enviar",
+    mandatoryForRole: "Obligatorio para tu rol",
+    byRole: "Obligatorios por rol",
+    byRoleHint: "Los marcados no se pueden ocultar ni quitar.",
+    role: "Rol",
+    mandatoryLabel: "{role}: obligatorio",
+    couldNotSaveMandatory: "No se han podido guardar los obligatorios",
+    saved: "Avisos guardados"
+  }
+};
+
+// src/app/i18n/es/chunks/orders/orders-more.ts
+var ordersMore = {
+  editor: {
+    alreadyInvoiced: "Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa",
+    voided: "Un pedido anulado no se puede editar",
+    editOrder: "Editar pedido",
+    editDraft: "Editar borrador",
+    newOrder: "Nuevo pedido",
+    subtitle: "Escribe los importes con IVA: la base y el IVA se calculan solos.",
+    date: "Fecha",
+    channel: "Canal",
+    toPatient: "Venta {toPatient}",
+    toCentre: "Venta a centro (con descuento)",
+    origin: "Origen",
+    manual: "Comercial, teléfono o correo",
+    web: "Pedido por la web",
+    portal: "Portal del centro",
+    reference: "{Professional} de referencia",
+    buyingCentre: "Centro que compra",
+    leaveName: "Si no lo encuentras, deja el nombre escrito: el pedido quedará pendiente de atribuir.",
+    pickCentre: "Elige su ficha (de tipo centro): las unidades cuentan para el centro y su comercial.",
+    report: "Reportar {toProfessional}",
+    lines: "Líneas",
+    product: "Producto",
+    units: "Unidades",
+    amountWithVat: "Importe con IVA",
+    discount: "% dto.",
+    removeLine: "Quitar línea",
+    addLine: "+ Añadir línea",
+    free: "Entrega sin cargo (muestra)",
+    freeHint: "Las unidades cuentan {toProfessional} de referencia y salen del stock, pero no es una venta: 0 €, sin factura, sin cobro y sin comisión.",
+    paymentMethod: "Forma de pago",
+    generalDiscount: "Descuento general",
+    paymentReference: "Referencia del pago",
+    paymentReferencePlaceholder: "Código de la transferencia, bizum…",
+    sendPaymentDetails: "Enviar los datos de pago",
+    transferHelpTitle: "Pago por transferencia",
+    transferHelp: "Envía al cliente los datos de pago y el pedido se guarda en borrador. Cuando llegue el pago, lo confirmas desde el pedido.",
+    sendPaymentLink: "Enviar enlace de pago",
+    cardHelpTitle: "Pago con tarjeta o Bizum",
+    cardHelp: "Al cliente le llega por SMS el enlace y elige cómo pagar. El pedido espera en borrador y, cuando paga, se confirma solo y queda cobrado con la forma de pago que haya usado.",
+    receipt: "Justificante (foto o PDF)",
+    attach: "📎 Adjuntar",
+    removeReceipt: "Quitar {name}",
+    remove: "quitar",
+    service: "Servicio",
+    noService: "Sin servicio",
+    serviceOption: "{name} · {price} con IVA",
+    serviceAmount: "Importe del servicio con IVA (€)",
+    serviceVat: "IVA del servicio (%)",
+    note: "Nota",
+    cancel: "Cancelar",
+    saveDraft: "Guardar borrador",
+    saveChanges: "Guardar cambios",
+    saveAndConfirm: "Guardar y confirmar",
+    base: "Base <b>{amount}</b>",
+    vat: "IVA {rate}% <b>{amount}</b>",
+    total: "Total <b>{amount}</b>",
+    unitPrice: "Precio unidad {price} con IVA",
+    tenderPrice: "Precio de concurso",
+    accountPlaceholder: "Nombre, código, centro o municipio",
+    serviceDefault: "Servicio"
+  },
+  save: {
+    addProduct: "Añade al menos un producto",
+    fillIn: "Rellena «{field}»",
+    cardTitle: "Pago con tarjeta o Bizum",
+    cardText: "Se le puede enviar por SMS el enlace de pago: el pedido espera en borrador y, cuando paga, se confirma solo y queda cobrado. Si ya lo habéis cobrado de otra forma, valídalo ya.",
+    cancel: "Cancelar",
+    confirmNow: "Confirmar ya",
+    sendLink: "Enviar enlace de pago",
+    freeWithoutAccount: "Sin {professional} de referencia, estas unidades no cuentan a nadie.",
+    freeTitle: "Entrega sin cargo",
+    saveAnyway: "Guardar igualmente",
+    transferTitle: "Pago por transferencia",
+    transferText: "Este pedido se puede guardar en borrador hasta que llegue el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo confirmas desde el pedido.",
+    saveAsDraft: "Guardar en borrador",
+    confirmText: "Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.",
+    confirmTitle: "¿Confirmar el pedido?",
+    confirm: "Confirmar",
+    saving: "Guardando…",
+    noLongerEditable: "Ese pedido ya no se puede editar",
+    couldNotSave: "No se ha podido guardar: {error}",
+    noPermission: "sin permiso",
+    reportFailed: "El pedido se ha guardado, pero no se ha podido cambiar «Reportar»",
+    updated: "Pedido actualizado",
+    freeDraft: "Entrega sin cargo guardada en borrador",
+    freeConfirmed: "Entrega sin cargo confirmada",
+    draftUntilPaid: "Guardado en borrador hasta que llegue el pago",
+    draftSaved: "Borrador guardado",
+    confirmedAttributed: "Pedido confirmado y atribuido",
+    confirmedUnattributed: "Pedido confirmado · pendiente de atribuir",
+    noMobile: "Pedido confirmado. Sin móvil {ofPatient} no se puede enviar el enlace de pago: cóbralo como siempre",
+    pickForDetails: "Elige {thePatient} para enviarle los datos de pago",
+    missingIban: "Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago",
+    pickForLink: "Elige {thePatient} para enviarle el enlace de pago",
+    patientWithoutMobile: "{Patient} no tiene móvil: añádelo en su ficha para enviarle el enlace de pago"
+  },
+  distributor: {
+    servedBy: "Lo sirve",
+    us: "Nosotros",
+    aDistributor: "Un distribuidor",
+    distributor: "Distribuidor",
+    customerCode: "Código del cliente en el distribuidor",
+    ifAny: "Si lo tiene",
+    invoicedByDistributor: "Lo factura el distribuidor",
+    noInvoiceOfOurs: "· no se emite factura nuestra",
+    noneYet: "Todavía no hay distribuidores.",
+    askAdmin: " Pide a administración que los añada.",
+    addNew: "+ Nuevo distribuidor",
+    noStock: "Un pedido que sirve el distribuidor no descuenta stock de vuestro almacén.",
+    newTitle: "Nuevo distribuidor",
+    newSubtitle: "Mayorista o depósito que sirve pedidos a vuestros clientes",
+    name: "Nombre",
+    namePlaceholder: "p. ej. Cofares",
+    email: "Correo para pedidos",
+    phone: "Teléfono",
+    cancel: "Cancelar",
+    add: "Añadir",
+    writeName: "Escribe el nombre",
+    couldNotAdd: "No se ha podido añadir: {error}",
+    added: "Distribuidor añadido"
+  },
+  tpv: {
+    noMobile: "Falta el móvil {ofPatient}: hace falta un móvil español para enviarle el enlace",
+    bankRejected: "El banco no ha aceptado el cobro",
+    couldNotSend: "No se ha podido enviar el enlace de pago",
+    notPublished: "falta publicar la función «cobro_tpv» en el servidor",
+    sent: "Enlace de pago enviado por SMS al {mobile}",
+    errors: {
+      permiso: "No tienes permiso para enviar cobros",
+      estado: "El pedido tiene que estar confirmado",
+      pagado: "Este pedido ya está cobrado",
+      sinCargo: "Una entrega sin cargo no se cobra",
+      importe: "El pedido no tiene importe",
+      sesion: "La sesión ha caducado: vuelve a entrar",
+      sinConfigurar: "El cobro con tarjeta o Bizum no está configurado (Configuración → Facturación)",
+      noEncontrado: "No se encuentra el pedido"
+    },
+    states: {
+      sent: "Enviado",
+      paid: "Pagado",
+      failed: "No pagado",
+      expired: "Caducado",
+      sending: "Enviando…"
+    },
+    when: "{date} a las {time}",
+    notSentYet: "Todavía no se ha enviado el enlace de pago.",
+    paidWith: "Pagado{method} el {when}{authorisation}{chose}",
+    with: " con {method}",
+    authorisation: " · autorización {code}",
+    chose: " · el pedido se hizo con «{asked}» y el cliente eligió {method}",
+    notAuthorised: "El banco no ha autorizado el pago",
+    expiredText: "El enlace enviado al {mobile} el {when} ha caducado sin pagar",
+    waiting: "Enviado por SMS al {mobile} el {when} · esperando el pago{draft}",
+    confirmsAlone: ". Cuando pague, el pedido se confirma solo.",
+    title: "Cobro con tarjeta o Bizum",
+    openTestPage: "Abrir la página de pago (pruebas)",
+    sendAgain: "Volver a enviar",
+    sendLink: "Enviar enlace de pago",
+    resendText: "El enlace anterior deja de valer y le llega uno nuevo por SMS.",
+    resendTitle: "¿Volver a enviar el enlace de pago?",
+    send: "Enviar",
+    paidConfirmed: "Cobrado · pedido confirmado",
+    paid: "Cobrado",
+    amountChanged: "El enlace de pago enviado era de {sent} y el pedido es ahora de {now}: envía uno nuevo desde el pedido"
+  },
+  tpvSettings: {
+    intro: "Al confirmar un pedido con forma de pago tarjeta o Bizum, {thePatient} recibe un SMS de vuestro banco con un enlace para pagar con tarjeta o Bizum. Cuando paga, el pedido queda cobrado solo. Funciona con el TPV virtual de Redsys (el de la mayoría de bancos) con PayGold activado: los datos los da el banco.",
+    active: "Cobrar con tarjeta o Bizum desde los pedidos",
+    merchant: "Número de comercio",
+    terminal: "Terminal",
+    secret: "Clave secreta del TPV",
+    secretSaved: "•••••••• guardada · escribe solo para cambiarla",
+    environment: "Entorno",
+    test: "Pruebas (sin dinero real)",
+    real: "Real",
+    noticeAddress: "Dirección de aviso que hay que dar al banco:",
+    useTestData: "Usar los datos de pruebas de Redsys",
+    try: "Probar",
+    save: "Guardar",
+    merchantDigits: "El número de comercio son solo cifras (hasta 9)",
+    terminalDigits: "El terminal son solo cifras (hasta 3)",
+    secretMissing: "Para activarlo falta la clave secreta del TPV",
+    noPermission: "Solo quien configura la empresa puede cambiar esto",
+    couldNotSave: "No se ha podido guardar",
+    saved: "✓ Guardado",
+    saving: "Guardando…",
+    trying: "Probando…",
+    bankAccepts: "✓ El banco acepta los datos.",
+    testPage: "Ver la página de pago de prueba (1 €)"
+  },
+  choosePlan: {
+    custom: "Con el plan A medida, los cambios se hacen con delcos",
+    changeTitle: "Cambiar la suscripción",
+    contractTitle: "Contratar delcos",
+    pricesPerUser: "Precios por usuario, IVA no incluido.",
+    stripePage: "El pago se hace en la página segura de Stripe.",
+    appliedNow: "El cambio se aplica ya y se prorratea en el próximo recibo.",
+    plan: "Plan",
+    payment: "Pago",
+    monthly: "Mensual",
+    yearly: "Anual · pagas 10 meses de 12",
+    users: "Usuarios",
+    usingNow: "Ahora usáis {count}. ",
+    minimum: "Mínimo {count}.",
+    endOfPeriod: "el final del periodo pagado",
+    downgrade: "El cambio se aplicará el <b>{date}</b>, al acabar lo que ya has pagado. Hasta entonces sigues con {plan}",
+    youLose: " y después dejarás de tener:",
+    perYear: "al año",
+    perMonth: "al mes",
+    setup: "Puesta en marcha (una vez; incluida con pago anual)",
+    vat: "IVA {rate} %",
+    firstCharge: "Primer cobro",
+    amountFrom: "Importe desde el {date}",
+    newAmount: "Nuevo importe",
+    cancel: "Cancelar",
+    goToPayment: "Ir al pago seguro",
+    schedule: "Programar el cambio",
+    confirm: "Confirmar el cambio",
+    scheduled: "Cambio programado para el {date}",
+    done: "Cambio hecho: en unos segundos verás el plan nuevo"
+  }
+};
+
+// src/app/i18n/es/chunks/orders/index.ts
+var texts = { orders, ordersMore };
+
+// src/app/screens/orders/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
+var pick2 = (name) => shared2[name];
+var accountCardLegacy = /* @__PURE__ */ pick2("accountCardLegacy");
+var accountListLegacy = /* @__PURE__ */ pick2("accountListLegacy");
+var appLegacy = /* @__PURE__ */ pick2("appLegacy");
+var cachedRpc = /* @__PURE__ */ pick2("cachedRpc");
+var callRpc = /* @__PURE__ */ pick2("callRpc");
+var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
+var currentScreen = /* @__PURE__ */ pick2("currentScreen");
+var cycleLegacy = /* @__PURE__ */ pick2("cycleLegacy");
+var legacyDb = /* @__PURE__ */ pick2("legacyDb");
+var notices = /* @__PURE__ */ pick2("notices");
+var opportunitiesLegacy = /* @__PURE__ */ pick2("opportunitiesLegacy");
+var permissions = /* @__PURE__ */ pick2("permissions");
+var purchasesLegacy = /* @__PURE__ */ pick2("purchasesLegacy");
+var showCacheNotice = /* @__PURE__ */ pick2("showCacheNotice");
+var term = /* @__PURE__ */ pick2("term");
 
 // delcos-shared:src/app/legacy/orders-bridge.ts
-var shared2 = globalThis["__delcosModules"]["legacy/orders-bridge"];
-var pick2 = (name) => shared2[name];
-var orderMailLegacy = /* @__PURE__ */ pick2("orderMailLegacy");
-var orderSheetLegacy = /* @__PURE__ */ pick2("orderSheetLegacy");
-var ordersLegacy = /* @__PURE__ */ pick2("ordersLegacy");
-
-// delcos-shared:src/app/i18n/index.ts
-var shared3 = globalThis["__delcosModules"]["i18n/index"];
+var shared3 = globalThis["__delcosModules"]["legacy/orders-bridge"];
 var pick3 = (name) => shared3[name];
-var t = /* @__PURE__ */ pick3("t");
+var orderMailLegacy = /* @__PURE__ */ pick3("orderMailLegacy");
+var orderSheetLegacy = /* @__PURE__ */ pick3("orderSheetLegacy");
+var ordersLegacy = /* @__PURE__ */ pick3("ordersLegacy");
 
 // delcos-shared:src/app/services/format.ts
 var shared4 = globalThis["__delcosModules"]["services/format"];

@@ -3,6 +3,7 @@
  * rectifications, the series and VeriFactu. herramientas/bundle.mjs builds this file into min/chunks/billing.js and index.ts calls
  * it through core/lazy. Issuing from an order (issue/), the store, the company data and the settings subnav stay in the core.
  */
+import './texts';
 export { paintInvoices, refreshInvoices } from './list';
 export { loadBilling } from './page';
 export { editSeries, paintSeries } from './series';

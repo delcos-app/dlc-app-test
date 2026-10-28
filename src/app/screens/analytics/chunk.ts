@@ -3,6 +3,7 @@
  * index.ts calls it through core/lazy. The ‹ › of «Pedidos tras la visita» start listening here: the card only exists once this
  * chunk has painted it.
  */
+import './texts';
 import { listenToVisitOrdersViews } from './visit-orders';
 
 export { paintRanking, refreshExplore } from './explore';

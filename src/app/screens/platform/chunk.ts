@@ -3,6 +3,7 @@
  * Configuración → Errores. herramientas/bundle.mjs builds this file into min/chunks/platform.js and index.ts calls it through
  * core/lazy. The «Estás viendo…» band (view-band.ts) stays in the core.
  */
+import './texts';
 export { paintBilling } from './billing';
 export { paintCompanyErrors, paintPlatformErrors } from './errors';
 export { paintOrganizations } from './organizations';

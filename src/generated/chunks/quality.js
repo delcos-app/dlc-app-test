@@ -1,22 +1,107 @@
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
-var pick = (name) => shared[name];
-var accountListLegacy = /* @__PURE__ */ pick("accountListLegacy");
-var agendaActions = /* @__PURE__ */ pick("agendaActions");
-var callRpc = /* @__PURE__ */ pick("callRpc");
-var cardSectionsLegacy = /* @__PURE__ */ pick("cardSectionsLegacy");
-var goTo = /* @__PURE__ */ pick("goTo");
-var icon = /* @__PURE__ */ pick("icon");
-var legacyDb = /* @__PURE__ */ pick("legacyDb");
-var notices = /* @__PURE__ */ pick("notices");
-var permissions = /* @__PURE__ */ pick("permissions");
-var qualityLegacy = /* @__PURE__ */ pick("qualityLegacy");
-var term = /* @__PURE__ */ pick("term");
-
 // delcos-shared:src/app/i18n/index.ts
-var shared2 = globalThis["__delcosModules"]["i18n/index"];
+var shared = globalThis["__delcosModules"]["i18n/index"];
+var pick = (name) => shared[name];
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/quality/quality.ts
+var quality = {
+  page: {
+    title: "Calidad del dato",
+    subtitle: "Fichas completas, datos que faltan y avance de cada {professional}",
+    commercialState: "Estado comercial",
+    province: "Provincia",
+    municipality: "Municipio",
+    show: "Mostrar",
+    showAll: "Todos",
+    showVisited: "Solo visitados",
+    showNotVisited: "Sin visitar",
+    showWithAction: "Con próxima acción",
+    showLate: "Acciones atrasadas",
+    allStates: "Todos los estados",
+    allProvinces: "Todas las provincias",
+    allMunicipalities: "Todos los municipios",
+    loading: "Cargando…",
+    loadingFollowUp: "Cargando el seguimiento…",
+    samplesGiven: "muestras entregadas",
+    withAddress: "fichas con dirección",
+    withDays: "con días de atención",
+    duplicates: "Duplicados"
+  },
+  summary: {
+    complete: "Fichas completas: {percent}%",
+    completeOf: "{done} de {total} {professionals}",
+    whatIs: "Qué es",
+    noLocation: "sin ubicación",
+    noLocationHelp: "Sin coordenadas en {anyPlace}: no entran en rutas ni en el mapa.",
+    noTimetable: "sin horario de atención",
+    noTimetableHelp: "Sin días ni horas de atención: las rutas no pueden ajustarse a su horario.",
+    noSpeciality: "sin {speciality}",
+    noSpecialityHelp: "Sin {speciality} en la ficha: no se pueden filtrar ni analizar por {speciality}.",
+    noContact: "sin teléfono ni email",
+    noContactHelp: "No hay forma de contactar con ellos fuera {ofVisit}.",
+    noProvince: "sin provincia",
+    noProvinceHelp: "Sin provincia no se pueden asignar por zona a un comercial.",
+    noSalesperson: "sin comercial",
+    noSalespersonHelp: "{Professionals} que no están en ninguna cartera.",
+    duplicates: "pendientes de unificar",
+    duplicatesHelp: "Fichas marcadas como posibles duplicados.",
+    completeHint: "Una ficha completa tiene ubicación, horario, {speciality} y teléfono o email. Debajo, el avance de cada {professional}."
+  },
+  addresses: {
+    title: "Direcciones que no cuadran · {count}",
+    hint: "El punto del mapa de {thesePlaces} está lejos de su municipio: «Cómo llegar», las rutas y la agenda las sitúan mal.",
+    noAddress: "Sin dirección",
+    farFrom: "El punto está a {km} km de {municipality}",
+    outOfSpain: "El punto está fuera de España",
+    card: "Ficha",
+    relocate: "Volver a situar",
+    searching: "Buscando…",
+    notFound: "No se encuentra esa dirección: corrígela en la ficha",
+    elsewhere: "Esa dirección sale en {place}, no en {municipality}: corrígela en la ficha",
+    couldNotSave: "No se ha podido guardar: {error}",
+    placed: "{name}: situado en {municipality}"
+  },
+  followUp: {
+    searching: "Buscando…",
+    couldNotLoad: "No se ha podido cargar: {error}",
+    nothing: "Nada que mostrar con estos filtros.",
+    urgent: "Urgente",
+    noReporting: "Sin reporting",
+    noReportingHelp: "Solo {visit} presencial: sin informes ni feedback",
+    last: "Última: <b>{date}</b> · {result}",
+    notVisited: "Sin visitar",
+    samples: " · {count} muestras",
+    done: "Hecha",
+    postpone: "Aplazar",
+    postponeQuestion: "¿Para cuándo la aplazas?",
+    postponeTitle: "Aplazar acción",
+    couldNot: "No se ha podido",
+    markedDone: "Acción marcada como hecha",
+    postponed: "Acción aplazada"
+  }
+};
+
+// src/app/i18n/es/chunks/quality/index.ts
+var texts = { quality };
+
+// src/app/screens/quality/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
 var pick2 = (name) => shared2[name];
-var t = /* @__PURE__ */ pick2("t");
+var accountListLegacy = /* @__PURE__ */ pick2("accountListLegacy");
+var agendaActions = /* @__PURE__ */ pick2("agendaActions");
+var callRpc = /* @__PURE__ */ pick2("callRpc");
+var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
+var goTo = /* @__PURE__ */ pick2("goTo");
+var icon = /* @__PURE__ */ pick2("icon");
+var legacyDb = /* @__PURE__ */ pick2("legacyDb");
+var notices = /* @__PURE__ */ pick2("notices");
+var permissions = /* @__PURE__ */ pick2("permissions");
+var qualityLegacy = /* @__PURE__ */ pick2("qualityLegacy");
+var term = /* @__PURE__ */ pick2("term");
 
 // delcos-shared:src/app/services/format.ts
 var shared3 = globalThis["__delcosModules"]["services/format"];
@@ -56,20 +141,20 @@ var INDICATORS = [
   ["sin_comercial", "quality.summary.noSalesperson", "quality.summary.noSalespersonHelp"],
   ["duplicados", "quality.summary.duplicates", "quality.summary.duplicatesHelp"]
 ];
-function summaryHtml(quality) {
-  const percent = percentOf(quality.completas, quality.total);
+function summaryHtml(quality2) {
+  const percent = percentOf(quality2.completas, quality2.total);
   return `<div class="card" id="calidad" style="padding-bottom:6px">
-    <div class="manh" style="padding:14px 16px 0"><h2 class="u-p-0">${t("quality.summary.complete", { percent })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words(), done: formatNumber(quality.completas), total: formatNumber(quality.total) })}</span></div>
+    <div class="manh" style="padding:14px 16px 0"><h2 class="u-p-0">${t("quality.summary.complete", { percent })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words(), done: formatNumber(quality2.completas), total: formatNumber(quality2.total) })}</span></div>
     <div class="barra" style="margin:8px 16px 10px"><i style="width:${percent}%"></i></div>
     <div class="kpis" style="padding:0 16px 10px">
-      ${INDICATORS.map(([key, title, help]) => indicator(quality[key], t(title, words()), t(help, words()))).join("")}
+      ${INDICATORS.map(([key, title, help]) => indicator(quality2[key], t(title, words()), t(help, words()))).join("")}
     </div>
     <p class="sm" style="padding:0 16px 10px">${t("quality.summary.completeHint", words())}</p></div>`;
 }
 async function paintSummary() {
-  const { data: quality } = await callRpc("calidad_datos", {});
-  if (!quality || document.getElementById("calidad")) return;
-  document.querySelector("#v-seguimiento .saludo")?.insertAdjacentHTML("afterend", summaryHtml(quality));
+  const { data: quality2 } = await callRpc("calidad_datos", {});
+  if (!quality2 || document.getElementById("calidad")) return;
+  document.querySelector("#v-seguimiento .saludo")?.insertAdjacentHTML("afterend", summaryHtml(quality2));
 }
 function placeRow(place) {
   const address = [place.centro_nombre, place.direccion, [place.cp, place.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");

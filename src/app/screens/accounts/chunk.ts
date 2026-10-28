@@ -4,6 +4,7 @@
  * Duplicados and changing the state of an account. Built as min/chunks/accounts.js by herramientas/bundle.mjs; the core publishes
  * these functions through screens/accounts/index.ts (lazy.ts), async.
  */
+import './texts';
 export { openAccountCard } from './card';
 export { refreshPortal } from './card/sections-portal';
 export { searchAccounts } from './list/search';

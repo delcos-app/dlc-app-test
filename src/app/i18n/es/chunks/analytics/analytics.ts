@@ -1,4 +1,4 @@
-/** Spanish texts of Analítica (part of es.ts: one file per screen keeps each one short). */
+/** Spanish texts of Analítica that only the chunk analytics uses: they arrive with it (min/chunks/analytics.js, plan 7.3, cut F). */
 export const analytics = {
   explore: {
     calculating: 'Calculando…',

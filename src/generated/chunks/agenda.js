@@ -1,41 +1,423 @@
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
-var pick = (name) => shared[name];
-var agendaActions = /* @__PURE__ */ pick("agendaActions");
-var agendaCache = /* @__PURE__ */ pick("agendaCache");
-var agendaSources = /* @__PURE__ */ pick("agendaSources");
-var agendaState = /* @__PURE__ */ pick("agendaState");
-var agendaSuggestions = /* @__PURE__ */ pick("agendaSuggestions");
-var appLegacy = /* @__PURE__ */ pick("appLegacy");
-var appointmentLegacy = /* @__PURE__ */ pick("appointmentLegacy");
-var appointments = /* @__PURE__ */ pick("appointments");
-var cachedRpc = /* @__PURE__ */ pick("cachedRpc");
-var callRpc = /* @__PURE__ */ pick("callRpc");
-var commercialStates = /* @__PURE__ */ pick("commercialStates");
-var currentScreen = /* @__PURE__ */ pick("currentScreen");
-var editorLegacy = /* @__PURE__ */ pick("editorLegacy");
-var goTo = /* @__PURE__ */ pick("goTo");
-var icon = /* @__PURE__ */ pick("icon");
-var initialsOf = /* @__PURE__ */ pick("initialsOf");
-var legacyAgenda = /* @__PURE__ */ pick("legacyAgenda");
-var legacyAgendaPaint = /* @__PURE__ */ pick("legacyAgendaPaint");
-var legacyAgendaParts = /* @__PURE__ */ pick("legacyAgendaParts");
-var legacyDb = /* @__PURE__ */ pick("legacyDb");
-var legacyIcons = /* @__PURE__ */ pick("legacyIcons");
-var notices = /* @__PURE__ */ pick("notices");
-var permissions = /* @__PURE__ */ pick("permissions");
-var reloadAgenda = /* @__PURE__ */ pick("reloadAgenda");
-var salesTeam = /* @__PURE__ */ pick("salesTeam");
-var sidePanel = /* @__PURE__ */ pick("sidePanel");
-var stripState = /* @__PURE__ */ pick("stripState");
-var term = /* @__PURE__ */ pick("term");
-var weekPlanner = /* @__PURE__ */ pick("weekPlanner");
-var yourDayLegacy = /* @__PURE__ */ pick("yourDayLegacy");
-
 // delcos-shared:src/app/i18n/index.ts
-var shared2 = globalThis["__delcosModules"]["i18n/index"];
+var shared = globalThis["__delcosModules"]["i18n/index"];
+var pick = (name) => shared[name];
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/agenda/agenda.ts
+var agenda = {
+  title: "Agenda",
+  todayTitle: "Hoy · {date}",
+  agendaOf: " · agenda de {name}",
+  yourNumbers: "Tus números",
+  newAppointment: "+ Nueva cita",
+  backToToday: "Volver a hoy",
+  noAppointmentsThatDay: "No tuviste citas este día.",
+  team: {
+    title: "Cumplimiento del equipo",
+    agendaOf: "Agenda de",
+    seeOthers: "Ver la agenda de otra persona",
+    myAgenda: "Mi agenda",
+    team: "Equipo",
+    backToMine: "Volver a tu agenda",
+    seeTeam: "Ver el cumplimiento del equipo"
+  },
+  month: {
+    previous: "Mes anterior",
+    next: "Mes siguiente",
+    choose: "Elegir mes y año",
+    today: "Hoy",
+    previousYear: "Año anterior",
+    nextYear: "Año siguiente",
+    dayLabel: "{date}: {count} citas"
+  },
+  metrics: {
+    today: "Hoy",
+    week: "Semana",
+    closings: "Cierres",
+    toVisit: "Por visitar",
+    todayDetail: "{done} de {total} citas · media {average} {visits}/día",
+    weekDetail: "{count} {visits} · media {average}/semana",
+    closingsDetail: "{count} cierres con éxito hoy · media {average}/día",
+    toVisitDetail: "{urgent} urgentes · {noVisit} sin {visit} en 60 días"
+  },
+  trays: {
+    due: "Les toca {visit}",
+    dueText: "Según la frecuencia objetivo de cada {professional}. Añádelos a este día o planifica una ruta con ellos.",
+    pending: "Pendientes de días anteriores",
+    pendingShort: "Pendientes anteriores",
+    pendingText: "Los planificaste y no se visitaron. Muévelos a hoy o descártalos.",
+    daysWithout: "{days} días sin {visit}",
+    neverVisited: "nunca visitado",
+    card: "Ficha",
+    addAppointment: "+ Cita",
+    moveToToday: "Mover a hoy",
+    discard: "Descartar",
+    planRoute: "Planificar ruta",
+    rescheduleAll: "Reprogramar todas",
+    notVisited: "{count} sin visitar",
+    nothingPending: "Nada pendiente."
+  },
+  yourDay: {
+    titleToday: "Tu día",
+    titlePast: "Lo que pasó este día",
+    titleFuture: "Tu agenda de este día",
+    dayOptions: "Opciones del día",
+    dayOptionsTitle: "Opciones del día: nueva cita, bloquear el día…",
+    appointments: "<b>{count}</b> citas",
+    visited: '<b class="u-ok">{count}</b> visitadas',
+    absent: '<b class="u-warn">{count}</b> no estaban',
+    toDo: "<b>{count}</b> por hacer",
+    estimatedEnd: "Fin estimado",
+    overReturn: " · pasa de la hora de vuelta",
+    nextDay: "(día siguiente: revisa los avisos)",
+    addTask: "+ Tarea",
+    orderByDistance: "Ordenar por cercanía",
+    orderTitle: "Ordena las citas abiertas para recorrer menos kilómetros. Las que tienen hora fija se respetan.",
+    startDay: "▶ Empezar jornada",
+    endDay: "Terminar jornada",
+    reschedulePending: "Reprogramar pendientes",
+    workingDay: "● Jornada en curso desde hace {time}. Registra cada {visit} al terminarla.",
+    noFit: "<b>Este día no cabe en una jornada.</b> Con este orden acabarías {end}{outside}.",
+    outsideOne: " y una cita queda fuera de tu horario",
+    outsideMany: " y {count} citas quedan fuera de tu horario",
+    badWindows: "<b>Varias citas no encajan con sus horarios.</b>",
+    beforeEach: "Antes de mirar cada cita: ",
+    or: " o ",
+    moveFarthest: "pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).",
+    endAround: "hacia las {time}",
+    endAfterMidnight: "pasada la medianoche (hacia las {time} del día siguiente)",
+    emptyToday: "No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.",
+    emptyOther: "Sin citas este día.",
+    offlineNoCopy: "Sin conexión y sin copia guardada de este día: se verá al volver la red.",
+    dayAppointments: "Citas del día",
+    othersTitle: "Citas de otras personas · {count}",
+    pendingOf: "Pendientes del {date}",
+    notVisitedThatDay: "Sin visitar ese día",
+    ordered: "Citas ordenadas por cercanía",
+    orderedWithLeft: "Ordenadas · {count} no caben en su horario o en el tuyo y quedan al final",
+    queued: "Registrada en el móvil · pendiente de enviar",
+    couldNotSaveOrder: "No se ha podido guardar el orden"
+  },
+  card: {
+    inTime: "en {time}",
+    estimatedTime: "Hora estimada",
+    farLocation: "Ubicación a {km} km de la parada anterior: revisa la dirección",
+    attends: "Atiende {windows}",
+    waits: " · esperas {minutes} min",
+    due: "Toca: {action}",
+    lastVisit: "Última {visit} hace {days} {unit}",
+    day: "día",
+    days: "días",
+    firstVisit: "Primera {visit}",
+    noLocation: "Sin ubicación",
+    next: "Siguiente",
+    seeAppointment: "Ver la cita",
+    classTitle: "Clase {name}",
+    urgent: "Urgente",
+    noCentre: "Sin centro",
+    fixedTime: "Hora fijada",
+    estimatedByOrder: "Hora estimada según el orden",
+    keep: " · mantener",
+    moveUp: "Subir en el orden",
+    moveDown: "Bajar en el orden",
+    moreActions: "Más acciones",
+    newAppointment: "Nueva cita",
+    record: "Registrar {visit}"
+  },
+  sheet: {
+    when: "Cuándo",
+    where: "Dónde",
+    timetable: "Horario",
+    state: "Estado",
+    around: "hacia las {time} (estimada)",
+    noTime: "sin hora",
+    noCentre: "Sin centro",
+    atCentre: "En {centre}: ",
+    notAttending: "Ese día no atiende",
+    notes: "Notas de la cita",
+    notesPlaceholder: "p. ej. quedamos en el bar de enfrente, llevar el reporting…",
+    seeCard: "Ver ficha",
+    directions: "Cómo llegar",
+    changeTime: "Cambiar hora",
+    moveDay: "Mover a otro día",
+    saveNotes: "Guardar notas",
+    record: "Registrar {visit}",
+    discard: "Descartar la cita",
+    discardText: "No se hará: queda en el historial.",
+    delete: "Eliminar la cita",
+    deleteText: "Fue un error: desaparece sin dejar rastro.",
+    planAgain: "Volver a planificarla",
+    goTo: "Ir al {day}",
+    seeDay: "Ver el {day}",
+    closed: "<b>Cita cerrada: {state}.</b>",
+    closedReopen: "Si hace falta, puedes volver a planificarla desde «⋯».",
+    closedFinal: "La hora y el día ya no se cambian; las notas sí. Si hace falta volver, crea una cita nueva.",
+    recorded: "Se registró la {visit}{time}{results}.",
+    recordedAt: " a las {time}",
+    couldNotSave: "No se ha podido guardar: {error}",
+    notesSaved: "Notas guardadas"
+  },
+  menu: {
+    alreadyClosed: "Esta cita ya está cerrada"
+  },
+  actions: {
+    couldNotChange: "No se ha podido cambiar",
+    confirmed: "Cita confirmada",
+    discarded: "Cita descartada",
+    unconfirmed: "Confirmación quitada",
+    deleteQuestion: "La cita desaparece de la agenda sin dejar rastro.",
+    deleteTitle: "¿Eliminar la cita?",
+    delete: "Eliminar",
+    onlyFuture: "Solo se pueden eliminar citas de hoy en adelante",
+    couldNotDelete: "No se ha podido eliminar",
+    deleted: "Cita eliminada",
+    whichDay: "¿A qué día la pasas?",
+    postponeTitle: "Aplazar la cita",
+    postpone: "Aplazar",
+    couldNotPostpone: "No se ha podido aplazar",
+    alreadyThatDay: "Ya tenía una cita ese día",
+    sameDay: "Sigue en el mismo día",
+    backToOwn: "Vuelve a su cita del {date}",
+    postponedTo: "Aplazada al {date}",
+    missingNegative: "Falta un resultado negativo en Configuración → Clasificadores",
+    whatHappened: "¿Qué ha pasado?",
+    cancel: "Cancelar",
+    couldNotSave: "No se ha podido guardar: {error}",
+    noted: "Anotado: {result}",
+    reopenOnlyFuture: "Solo se pueden volver a planificar citas de hoy en adelante",
+    couldNotReopen: "No se ha podido volver a planificar",
+    reopenedRemoving: "Vuelve a estar planificada (se quita la del {date})",
+    reopened: "Vuelve a estar planificada",
+    timeTitle: "Hora de la cita",
+    save: "Guardar",
+    couldNotTime: "No se ha podido: {error}",
+    timeUpdated: "Hora actualizada"
+  },
+  tasks: {
+    title: "Tareas y notas · {count}",
+    done: "Hecha",
+    up: "Subir la tarea",
+    down: "Bajar la tarea",
+    couldNotSave: "No se ha podido guardar",
+    show: "Ver las tareas",
+    hide: "Ocultar las tareas"
+  },
+  strip: {
+    thisWeek: "Esta semana",
+    nextWeek: "La semana que viene",
+    lastWeek: "La semana pasada",
+    weekOf: "Semana del {day} de {month}",
+    previousWeekNav: "Semana anterior",
+    nextWeekNav: "Semana siguiente",
+    seeMonth: "Ver el mes",
+    today: "Hoy",
+    done: "Hecha",
+    toDo: "Por hacer",
+    notClosed: "Sin cerrar",
+    oneAppointment: "{count} cita",
+    appointments: "{count} citas",
+    dayOptions: "Opciones del día",
+    showWeek: "Ver la semana",
+    hideWeek: "Ocultar la semana",
+    showWeekTitle: "Ver la semana entera, moverla y repartirla"
+  },
+  openWeek: {
+    hint: "Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita",
+    share: "Repartir la semana",
+    draft: "Propuesta sin guardar",
+    draftSummary: "{count} {visits} en {days} días",
+    draftWithoutDay: " · {count} sin día",
+    discard: "Descartar",
+    save: "Guardar en la agenda",
+    dayOptions: "Opciones del {date}",
+    dayOptionsTitle: "Opciones del día",
+    estimatedEnd: "Hora de fin estimada",
+    overReturn: ": pasa de la hora de vuelta {time}",
+    dragToMove: " · arrástrala a otro día para moverla",
+    proposal: "Propuesta: {name}",
+    andMore: "y {count} más",
+    withoutDay: "Se quedan sin día · {count}",
+    notToPast: "No se puede mover a un día pasado",
+    blockedDay: "ese día está bloqueado ({reason})",
+    notAttending: "ese día no atiende",
+    moveAnyway: "¿Moverla igualmente?",
+    move: "Mover",
+    couldNotMove: "No se ha podido mover",
+    movedTo: "Movida al {date}"
+  },
+  week: {
+    title: "Tu semana",
+    hint: "«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.",
+    seeDay: "Ver el {date}",
+    dayOptions: "Opciones del {date}",
+    andMore: "y {count} más",
+    free: "Libre",
+    share: "Repartir la semana"
+  },
+  editor: {
+    newTitle: "Nueva cita",
+    newSubtitle: "Se añade a tu agenda",
+    day: "Día",
+    time: "Hora",
+    optional: "(opcional)",
+    centre: "Centro",
+    notes: "Notas",
+    cancel: "Cancelar",
+    add: "Añadir a la agenda",
+    choose: "Elige {professional}",
+    couldNot: "No se ha podido: {error}",
+    added: "Cita añadida el {date}",
+    duplicateTitle: "Ya tiene una cita ese día",
+    duplicateText: "{name}\n{date}{time} · {state}{origin}\n\n¿Qué quieres hacer?",
+    at: " a las {time}",
+    keepBoth: "Mantener las dos",
+    onlyNew: "Quedarme solo con la nueva",
+    couldNotRemovePrevious: "No se ha podido quitar la cita anterior",
+    recentTitle: "Ya se ha visto hace poco",
+    recentText: "{list}.\n\n¿Añades la cita igualmente?",
+    yesNoMore: "Sí, y no volver a avisarme",
+    addAnyway: "Añadir igualmente",
+    noticeOff: "Aviso desactivado. Puedes activarlo en Configuración → Rutas"
+  },
+  taskEditor: {
+    title: "Tarea",
+    newTitle: "Nueva tarea",
+    subtitle: "Una nota o tarea tuya para ese día, sin cliente",
+    what: "Qué hay que hacer",
+    whatPlaceholder: "p. ej. Llamar al almacén, reunión de equipo…",
+    delete: "Borrar",
+    save: "Guardar",
+    add: "Añadir",
+    writeWhat: "Escribe qué hay que hacer",
+    saved: "Tarea guardada",
+    addedOn: "Tarea añadida el {date}",
+    deleteText: "La tarea desaparece.",
+    deleteTitle: "¿Borrar la tarea?",
+    couldNotDelete: "No se ha podido borrar",
+    deleted: "Tarea borrada",
+    doneTitle: "Tarea hecha",
+    done: "Hecha",
+    reopen: "Volver a pendiente",
+    couldNotChange: "No se ha podido cambiar"
+  }
+};
+
+// src/app/i18n/es/chunks/agenda/agenda-more.ts
+var agendaMore = {
+  reschedule: {
+    proposal: "Te propongo el próximo día que cada {professional} atiende. Cambia la fecha si quieres o desmarca los que no quieras mover.",
+    move: "Mover",
+    wasOn: " · era el {date}",
+    attends: "Atiende: {days}",
+    noDays: "Sin días de atención conocidos",
+    leave: "Dejarlas como están",
+    moveMarked: "Mover las marcadas",
+    moving: "Moviendo…",
+    oneMoved: "1 cita movida",
+    moved: "{count} citas movidas",
+    noneMoved: "No se ha movido ninguna"
+  },
+  workday: {
+    noOpen: "No tienes citas abiertas hoy. Añade citas o planifica una ruta.",
+    started: "Jornada iniciada",
+    summary: "Tiempo: {time} · Visitadas: {done} de {total}",
+    oneOpen: "\n\nTe queda 1 cita abierta. Al terminar te propongo a qué día moverla.",
+    open: "\n\nTe quedan {count} citas abiertas. Al terminar te propongo a qué día moverlas.",
+    endTitle: "¿Terminar la jornada?",
+    end: "Terminar jornada",
+    ended: "Jornada terminada · {count} visitadas",
+    leftTitle: "Lo que ha quedado pendiente hoy",
+    leftText: "{count} sin visitar"
+  },
+  dayMenu: {
+    newAppointment: "Nueva cita",
+    addOne: "Añadir {professional} a este día",
+    seeDay: "Ver el día",
+    seeDayText: "Abrirlo en «Tu día»",
+    unblock: "Desbloquear el día",
+    unblockText: "Vuelve a estar disponible para planificar",
+    block: "Bloquear el día",
+    blockText: "Vacaciones, formación, congreso… El planificador no lo usará",
+    reason: "Motivo (opcional)",
+    blockTitle: "Bloquear el {date}",
+    blockOk: "Bloquear",
+    couldNotChange: "No se ha podido cambiar",
+    blocked: "Día bloqueado",
+    unblocked: "Día desbloqueado"
+  },
+  absent: {
+    title: "¿Le buscamos otro día?",
+    text: "{name}\n\nEl próximo día que atiende es el {date}.",
+    notNow: "Ahora no",
+    other: "Elegir otra fecha",
+    proposed: "Cita el {date}",
+    whichDay: "¿Qué día?",
+    newTitle: "Nueva cita",
+    create: "Crear cita",
+    origin: "No estaba el {date}",
+    couldNotCreate: "No se ha podido crear la cita",
+    created: "Nueva cita el {date}"
+  }
+};
+
+// src/app/i18n/es/chunks/agenda/routes-more.ts
+var routesMore = {
+  agenda: {
+    startRoute: "▶ Empezar ruta",
+    startRouteTitle: "Inicia la jornada y abre la navegación hacia la primera parada",
+    fullRoute: "Ruta completa",
+    fullRouteTitle: "Abre todas las paradas del día en el navegador, en orden"
+  },
+  traffic: {
+    calculating: "Calculando…",
+    calculate: "Calcular con tráfico",
+    calculateTitle: "Una petición al servicio de rutas: horas por las calles y con el tráfico de ahora",
+    real: "Con tráfico real",
+    realTitle: "Horas calculadas por las calles y con el tráfico de ahora (TomTom)",
+    approximate: "{reason}: las horas siguen siendo aproximadas"
+  }
+};
+
+// src/app/i18n/es/chunks/agenda/index.ts
+var texts = { agenda, agendaMore, routesMore };
+
+// src/app/screens/agenda/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
 var pick2 = (name) => shared2[name];
-var t = /* @__PURE__ */ pick2("t");
+var agendaActions = /* @__PURE__ */ pick2("agendaActions");
+var agendaCache = /* @__PURE__ */ pick2("agendaCache");
+var agendaSources = /* @__PURE__ */ pick2("agendaSources");
+var agendaState = /* @__PURE__ */ pick2("agendaState");
+var agendaSuggestions = /* @__PURE__ */ pick2("agendaSuggestions");
+var appLegacy = /* @__PURE__ */ pick2("appLegacy");
+var appointmentLegacy = /* @__PURE__ */ pick2("appointmentLegacy");
+var appointments = /* @__PURE__ */ pick2("appointments");
+var cachedRpc = /* @__PURE__ */ pick2("cachedRpc");
+var callRpc = /* @__PURE__ */ pick2("callRpc");
+var commercialStates = /* @__PURE__ */ pick2("commercialStates");
+var currentScreen = /* @__PURE__ */ pick2("currentScreen");
+var editorLegacy = /* @__PURE__ */ pick2("editorLegacy");
+var goTo = /* @__PURE__ */ pick2("goTo");
+var icon = /* @__PURE__ */ pick2("icon");
+var initialsOf = /* @__PURE__ */ pick2("initialsOf");
+var legacyAgenda = /* @__PURE__ */ pick2("legacyAgenda");
+var legacyAgendaPaint = /* @__PURE__ */ pick2("legacyAgendaPaint");
+var legacyAgendaParts = /* @__PURE__ */ pick2("legacyAgendaParts");
+var legacyDb = /* @__PURE__ */ pick2("legacyDb");
+var legacyIcons = /* @__PURE__ */ pick2("legacyIcons");
+var notices = /* @__PURE__ */ pick2("notices");
+var permissions = /* @__PURE__ */ pick2("permissions");
+var reloadAgenda = /* @__PURE__ */ pick2("reloadAgenda");
+var salesTeam = /* @__PURE__ */ pick2("salesTeam");
+var sidePanel = /* @__PURE__ */ pick2("sidePanel");
+var stripState = /* @__PURE__ */ pick2("stripState");
+var term = /* @__PURE__ */ pick2("term");
+var weekPlanner = /* @__PURE__ */ pick2("weekPlanner");
+var yourDayLegacy = /* @__PURE__ */ pick2("yourDayLegacy");
 
 // delcos-shared:src/app/services/dates.ts
 var shared3 = globalThis["__delcosModules"]["services/dates"];

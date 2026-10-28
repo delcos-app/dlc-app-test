@@ -1,4 +1,7 @@
-/** Spanish texts of the accounts map (part of es.ts). */
+/**
+ * Spanish texts of the accounts map that only the chunk accounts uses: they arrive with it (min/chunks/accounts.js, plan 7.3, cut
+ * F).
+ */
 export const accountsMap = {
   needsConnection: 'El mapa necesita conexión.',
   loading: 'Cargando puntos…',

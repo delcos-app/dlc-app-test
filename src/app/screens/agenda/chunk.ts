@@ -5,6 +5,7 @@
  * min/chunks/agenda.js and index.ts calls it through core/lazy. It is the start screen of the sales reps: when it is the first
  * screen its chunk is asked for at once (SCREEN_CHUNKS) and the screen waits for it hidden, as for its data.
  */
+import './texts';
 export { closeMonth, refreshOpenMonth, renderMonth, toggleMonth } from './month-calendar';
 export { metricsHtml, refreshMetrics, reloadMetrics } from './metrics';
 export { paintWeekSidebar } from './week-sidebar';

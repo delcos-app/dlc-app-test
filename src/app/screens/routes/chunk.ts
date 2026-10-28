@@ -5,6 +5,7 @@
  * core calls at start-up or expects an answer from at once (the plan settings, ordering by distance, the day estimate, the bar of the
  * working day, the street route service, the state, the route cards of Inicio) stays in the core.
  */
+import './texts';
 export { paintRoutes } from './list';
 export { openRoute } from './wizard';
 export { appointmentsOn, copyToAgenda, refillRepeating } from './to-agenda';

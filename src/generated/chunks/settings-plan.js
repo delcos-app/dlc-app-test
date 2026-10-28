@@ -1,35 +1,165 @@
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
+// delcos-shared:src/app/i18n/index.ts
+var shared = globalThis["__delcosModules"]["i18n/index"];
 var pick = (name) => shared[name];
-var callRpc = /* @__PURE__ */ pick("callRpc");
-var cardSectionsLegacy = /* @__PURE__ */ pick("cardSectionsLegacy");
-var currentScreen = /* @__PURE__ */ pick("currentScreen");
-var goTo = /* @__PURE__ */ pick("goTo");
-var icon = /* @__PURE__ */ pick("icon");
-var legacyDb = /* @__PURE__ */ pick("legacyDb");
-var notices = /* @__PURE__ */ pick("notices");
-var term = /* @__PURE__ */ pick("term");
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/settings-plan/settings-rest.ts
+var settingsRest = {
+  plan: {
+    priceNote: "Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.",
+    pageTitle: "Plan y suscripción",
+    yourPlan: "Tu plan: {plan}",
+    trial: "Estás en la prueba gratuita hasta el <b>{date}</b>. Sin permanencia: si no sigues, te llevas tus datos.",
+    noLimit: "Sin límite",
+    contracted: "Usuarios contratados",
+    inUse: "Usuarios en uso",
+    custom: "A medida",
+    yearly: "Anual",
+    monthly: "Mensual",
+    payment: "Pago",
+    perMonth: "Al mes, sin IVA",
+    withAccess: "{Professionals} con acceso",
+    usage: "{used} de {total}",
+    overOne: "1 usuario",
+    overMany: "{count} usuarios",
+    over: "Tienes {extra} más de {total} contratados. Añádelos a tu plan o desactiva los que ya no usen la plataforma.",
+    customPrice: '<b>A medida</b> <span class="sm">Presupuesto · desde 50 usuarios</span>',
+    price: '<b>{price}</b> <span class="sm">por usuario al mes · {yearly} con pago anual ({year} al año)</span>',
+    current: "Tu plan actual",
+    askBudget: "Pedir presupuesto",
+    talk: "Hablar con delcos",
+    changeTo: "Cambiar a {plan}",
+    hire: "Contratar {plan}",
+    usersButton: "Añadir o quitar usuarios",
+    managePayment: "Gestionar el pago",
+    choose: "Elegir plan y pagar",
+    unpaid: "No hemos podido cobrar el último recibo{since}.\n    Actualiza el método de pago con «Gestionar el pago»; si en 14 días no se puede cobrar, la cuenta queda en solo lectura.",
+    unpaidSince: " (desde el {date})",
+    cancelled: "Suscripción cancelada: puedes usar la plataforma hasta el\n    <b>{date}</b> y descargar tus datos. Para seguir, vuelve a contratar.",
+    nextReceipt: "Próximo recibo el {date}.",
+    planned: "El <b>{date}</b> pasarás al plan\n    <b>{plan}</b> con {users} usuarios y pago {payment}.",
+    yearlyLower: "anual",
+    monthlyLower: "mensual",
+    cancelChange: "Anular el cambio",
+    changeCancelled: "Cambio anulado: sigues con tu plan",
+    leaving: "Has pedido la baja: puedes usar la plataforma\n    hasta el <b>{date}</b>. Si quieres seguir, entra en «Gestionar el pago» y renueva la suscripción.",
+    leavingWithButton: "Has pedido la baja: puedes usar la plataforma hasta el <b>{date}</b>.",
+    keep: "Seguir con la suscripción",
+    kept: "Seguimos: tu suscripción continúa",
+    leave: "Darme de baja",
+    commitment: "Contrato A medida hasta el {date}.",
+    request: "Tu solicitud {kind} del\n        {date}: <b>{state}</b>.",
+    requestContract: "sobre el contrato",
+    requestBudget: "de presupuesto",
+    requestNew: " Te contestamos en un día laborable.",
+    stripeTrial: "Estás en el periodo de prueba hasta el <b>{date}</b>:\n      hasta entonces no se cobra nada. Ese día se pasará el primer recibo, salvo que te des de baja antes.",
+    billingTitle: "Datos de facturación",
+    billingHint: "Con estos datos se hacen tus recibos y facturas. ",
+    billingReview: "Revísalos antes del {date}, cuando se pasa el primer recibo.",
+    fixData: "Corregir datos",
+    unreadable: "No se han podido leer ahora. Puedes verlos y cambiarlos con «Corregir datos».",
+    missing: "Falta",
+    missingData: "Faltan datos para poder facturarte: complétalos con «Corregir datos».",
+    companyName: "Razón social",
+    taxId: "NIF o CIF",
+    receiptEmail: "Correo para los recibos",
+    taxAddress: "Dirección fiscal",
+    conditions: "Condiciones",
+    condition1: "Mínimo 3 usuarios en Campo, Comercial y Empresa. Añades o quitas usuarios cuando quieras.",
+    condition2: "Puesta en marcha (importar tus Excel, configurar la empresa y formar al equipo): incluida con pago anual; con pago mensual, {fee} una sola vez.",
+    condition3: "Prueba de 30 días con tus propios datos, sin permanencia. Si no sigues, te llevas tus datos.",
+    condition4: "Desarrollos y configuraciones a medida: presupuesto según lo que necesites.",
+    whatIncludes: "Qué incluye cada plan",
+    module: "Módulo",
+    included: "Incluido",
+    notIncluded: "No incluido",
+    portal: "Portal {ofTheProfessional} y del centro",
+    portalHint: "Informe, constancia, material, mensajes y pedidos del centro",
+    upTo: "Hasta {count}",
+    asEachPerson: "Ver la plataforma como cada persona",
+    asEachPersonHint: "De tu equipo, para ayudarla",
+    pricePerUser: "Precio por usuario",
+    pricePerUserHint: "Al mes, IVA no incluido",
+    priceCell: "{price} · {yearly} anual"
+  },
+  request: {
+    contractTitle: "Hablar de tu contrato A medida",
+    budgetTitle: "Pide tu plan A medida",
+    subtitle: "Cuéntanos qué necesitáis y te respondemos en un día laborable. No te comprometes a nada.",
+    lookingFor: "Qué buscáis",
+    lookingForHint: "(marca lo que encaje; no hace falta acertar)",
+    program: "¿Con qué programa?",
+    programPlaceholder: "Por ejemplo: Holded, Sage, A3, Salesforce…",
+    words: "Cuéntanos con tus palabras",
+    wordsPlaceholder: "Qué queréis conseguir, cómo trabajáis hoy, qué os falta… Todo nos ayuda a proponeros lo mejor.",
+    team: "Vuestro equipo",
+    users: "Usuarios aproximados",
+    nowYouAre: "Ahora sois {count}.",
+    withPortal: "{Professionals} o centros con portal",
+    optional: "Opcional",
+    when: "¿Cuándo os gustaría empezar?",
+    contact: "Cómo te contactamos",
+    name: "Nombre",
+    email: "Correo",
+    phone: "Teléfono",
+    bestTime: "Mejor momento",
+    bestTimePlaceholder: "Por ejemplo: mañanas de 9 a 13",
+    prefers: "Prefieres",
+    byEmail: "Correo",
+    byCall: "Llamada",
+    byVideo: "Videollamada",
+    cancel: "Cancelar",
+    send: "Enviar solicitud",
+    tellUs: "Marca qué buscáis o cuéntanoslo con tus palabras",
+    leaveContact: "Déjanos un correo o un teléfono para contestarte",
+    tooMany: "Ya nos has enviado varias hoy: te contestamos enseguida",
+    empty: "Cuéntanos qué buscáis",
+    noPermission: "No puedes enviar solicitudes",
+    couldNotSend: "No se ha podido enviar",
+    sentTitle: "Solicitud enviada",
+    thanks: "<b>Gracias, {name}.</b> Ya la tenemos: te {how}\n          en un día laborable{email}.",
+    howEmail: "escribimos",
+    howCall: "llamamos",
+    howVideo: "proponemos una videollamada",
+    seeState: "Puedes ver en qué punto está en Plan y suscripción.",
+    understood: "Entendido"
+  }
+};
+
+// src/app/i18n/es/chunks/settings-plan/index.ts
+var texts = { settingsRest };
+
+// src/app/screens/settings/plan/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
+var pick2 = (name) => shared2[name];
+var callRpc = /* @__PURE__ */ pick2("callRpc");
+var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
+var currentScreen = /* @__PURE__ */ pick2("currentScreen");
+var goTo = /* @__PURE__ */ pick2("goTo");
+var icon = /* @__PURE__ */ pick2("icon");
+var legacyDb = /* @__PURE__ */ pick2("legacyDb");
+var notices = /* @__PURE__ */ pick2("notices");
+var term = /* @__PURE__ */ pick2("term");
 
 // delcos-shared:src/app/legacy/orders-bridge.ts
-var shared2 = globalThis["__delcosModules"]["legacy/orders-bridge"];
-var pick2 = (name) => shared2[name];
-var orderMailLegacy = /* @__PURE__ */ pick2("orderMailLegacy");
+var shared3 = globalThis["__delcosModules"]["legacy/orders-bridge"];
+var pick3 = (name) => shared3[name];
+var orderMailLegacy = /* @__PURE__ */ pick3("orderMailLegacy");
 
 // delcos-shared:src/app/legacy/orders2-bridge.ts
-var shared3 = globalThis["__delcosModules"]["legacy/orders2-bridge"];
-var pick3 = (name) => shared3[name];
-var subscriptionLegacy = /* @__PURE__ */ pick3("subscriptionLegacy");
+var shared4 = globalThis["__delcosModules"]["legacy/orders2-bridge"];
+var pick4 = (name) => shared4[name];
+var subscriptionLegacy = /* @__PURE__ */ pick4("subscriptionLegacy");
 
 // delcos-shared:src/app/legacy/settings4-bridge.ts
-var shared4 = globalThis["__delcosModules"]["legacy/settings4-bridge"];
-var pick4 = (name) => shared4[name];
-var planLegacy = /* @__PURE__ */ pick4("planLegacy");
-var profileLegacy = /* @__PURE__ */ pick4("profileLegacy");
-
-// delcos-shared:src/app/i18n/index.ts
-var shared5 = globalThis["__delcosModules"]["i18n/index"];
+var shared5 = globalThis["__delcosModules"]["legacy/settings4-bridge"];
 var pick5 = (name) => shared5[name];
-var t = /* @__PURE__ */ pick5("t");
+var planLegacy = /* @__PURE__ */ pick5("planLegacy");
+var profileLegacy = /* @__PURE__ */ pick5("profileLegacy");
 
 // delcos-shared:src/app/services/date-format.ts
 var shared6 = globalThis["__delcosModules"]["services/date-format"];

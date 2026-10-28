@@ -1,26 +1,272 @@
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
+// delcos-shared:src/app/i18n/index.ts
+var shared = globalThis["__delcosModules"]["i18n/index"];
 var pick = (name) => shared[name];
-var agendaActions = /* @__PURE__ */ pick("agendaActions");
-var appLegacy = /* @__PURE__ */ pick("appLegacy");
-var callRpc = /* @__PURE__ */ pick("callRpc");
-var cardSectionsLegacy = /* @__PURE__ */ pick("cardSectionsLegacy");
-var currentScreen = /* @__PURE__ */ pick("currentScreen");
-var icon = /* @__PURE__ */ pick("icon");
-var initialsOf = /* @__PURE__ */ pick("initialsOf");
-var legacyDb = /* @__PURE__ */ pick("legacyDb");
-var notices = /* @__PURE__ */ pick("notices");
-var term = /* @__PURE__ */ pick("term");
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/settings-parts/settings.ts
+var settings = {
+  preferences: {
+    intro: "El punto de salida y el de llegada se usan para calcular el plan del día y los recorridos.",
+    startTitle: "Punto de salida",
+    startHint: "Dónde empiezas el día",
+    endTitle: "Punto de llegada",
+    endHint: "Déjalo vacío para volver al punto de salida",
+    name: "Nombre",
+    namePlaceholder: "Casa, Oficina…",
+    address: "Dirección",
+    addressPlaceholder: "Calle, número y población",
+    located: "✓ Ubicado",
+    notLocated: "Sin ubicar: pulsa Buscar dirección",
+    fromGps: "desde el GPS",
+    findAddress: "Buscar dirección",
+    finding: "Buscando…",
+    useLocation: "Usar mi ubicación",
+    locating: "Localizando…",
+    save: "Guardar preferencias",
+    saving: "Guardando…",
+    writeAddress: "Escribe la dirección",
+    addressNotFound: "No se ha encontrado esa dirección",
+    addressFound: "Dirección encontrada",
+    couldNotSearch: "No se ha podido buscar la dirección",
+    noLocationDevice: "Este dispositivo no tiene ubicación",
+    myLocation: "Mi ubicación",
+    locationTaken: "Ubicación tomada",
+    couldNotLocate: "No se ha podido obtener la ubicación",
+    locateStart: "Ubica el punto de salida antes de guardar",
+    locateEnd: "Ubica el punto de llegada o déjalo vacío",
+    couldNotSave: "No se ha podido guardar: {error}",
+    saved: "Guardado · sales de {start} y terminas en {end}"
+  },
+  notice: {
+    title: "Avisos",
+    revisit: "Avisarme si {aProfessional} ya se ha visitado hace poco",
+    revisitHint: "Al añadir una cita, al planificar una ruta o la semana. Cuenta {visits} y citas de cualquier persona.",
+    days: "Cuántos días cuentan como «hace poco»",
+    saved: "Aviso guardado"
+  },
+  profile: {
+    modules: "Tus módulos",
+    activity: "Tu actividad",
+    loading: "Cargando…",
+    permissions: "Tus permisos los gestiona administración. Debajo, las preferencias que puedes cambiar tú.",
+    portfolio: "en tu cartera",
+    thisMonth: "este mes",
+    zone: "Zona: {zones}",
+    commission: "Comisión: {scheme}",
+    moduleNames: {
+      inicio: "Inicio",
+      agenda: "Agenda",
+      rutas: "Rutas",
+      directorio: "Directorio",
+      pacientes: "Clientes",
+      productos: "Productos",
+      seguimiento: "Calidad del dato",
+      ventas: "Pedidos",
+      analitica: "Analítica",
+      facturacion: "Facturación"
+    }
+  },
+  classifiers: {
+    loading: "Cargando los clasificadores…",
+    intro: "Listas que usan todos los usuarios en fichas, {visits}, pedidos y filtros.",
+    readOnly: "Tienes permiso de solo lectura.",
+    newClassifier: "+ Nuevo clasificador",
+    general: "General",
+    sales: "Ventas",
+    oneClassifier: "clasificador",
+    classifiers: "clasificadores",
+    system: "del sistema",
+    readOnlyTitle: "Solo lectura",
+    oneActive: "valor activo",
+    activeValues: "valores activos"
+  },
+  newClassifier: {
+    title: "Nuevo clasificador",
+    subtitle: "Una lista propia que podrás usar en fichas, {visits} o pedidos",
+    name: "Nombre",
+    namePlaceholder: "p. ej. Tipo de centro",
+    group: "Grupo",
+    where: "¿Dónde se usa?",
+    onAccount: "En la ficha {ofTheProfessional}",
+    onVisit: "Al registrar {aVisit}",
+    onOrder: "En los pedidos",
+    onCustomer: "En la ficha {ofTheCustomer}",
+    onProduct: "En la ficha del producto",
+    description: "Descripción",
+    descriptionPlaceholder: "Para qué sirve",
+    values: "Valores",
+    valuePlaceholder: "Valor {index}",
+    addValue: "+ Añadir valor",
+    cancel: "Cancelar",
+    create: "Crear clasificador",
+    nameIt: "Ponle un nombre",
+    noPermission: "No tienes permiso",
+    created: "Clasificador creado"
+  },
+  audit: {
+    loading: "Cargando la auditoría…",
+    title: "Auditoría",
+    hint: "Quién ha cambiado qué y cuándo. Se guarda automáticamente.",
+    user: "Usuario",
+    all: "Todos",
+    entity: "Entidad",
+    allEntities: "Todas",
+    filtering: "Filtrando…",
+    empty: "Sin movimientos con estos filtros.",
+    undo: "Deshacer",
+    portfolio: "Cartera",
+    appointment: "Cita",
+    route: "Ruta",
+    order: "Pedido",
+    userEntity: "Usuario",
+    product: "Producto"
+  },
+  billingLog: {
+    loading: "Cargando el registro…",
+    intro: "Todo lo que ocurre en la facturación queda anotado: emisiones, rectificaciones, cobros y cambios de configuración.",
+    date: "Fecha y hora",
+    event: "Evento",
+    invoice: "Factura",
+    person: "Persona",
+    detail: "Detalle",
+    empty: "Sin eventos."
+  },
+  testEnvironment: {
+    loading: "Cargando…",
+    title: "Entorno de pruebas",
+    subtitle: "Una copia completa de la plataforma con su propia base de datos: nada de lo que hagas aquí afecta a los datos reales.",
+    startData: "Datos de partida (copia de producción)",
+    lastReset: "Última vuelta a los datos de partida",
+    bring: "⇣ Traer los datos de producción",
+    reset: "↺ Volver a los datos de partida",
+    explain: "<b>Traer los datos de producción</b> copia aquí los datos de hoy (producción solo se lee) y pasan a ser los nuevos datos de partida. <b>Volver a los datos de partida</b> deshace todo lo hecho en pruebas desde la última copia. En los dos casos se pierde lo hecho en pruebas.",
+    onlyResponsible: "Solo la persona responsable del entorno de pruebas puede traer los datos de producción o volver a los datos de partida.",
+    copyingStarting: "· Copiando los datos de producción (empezando): tarda unos minutos",
+    copyingRunning: "· Copiando los datos de producción (en marcha): tarda unos minutos",
+    copyFailed: "· La última copia de producción falló",
+    copied: "Datos de producción copiados",
+    copyFailedToast: "La copia de producción ha fallado",
+    askText: "Se copiarán aquí los datos actuales de producción (producción no se toca) y pasarán a ser los nuevos datos de partida. Todo lo hecho en pruebas se perderá. Tarda unos minutos; puedes seguir usando la app mientras tanto.",
+    askTitle: "¿Traer los datos de producción?",
+    askOk: "Sí, traerlos",
+    couldNotStart: "No se ha podido lanzar la copia",
+    missingFunction: ": falta la función «refrescar-pruebas» en Supabase",
+    started: "Copia de producción en marcha: tarda unos minutos"
+  }
+};
+
+// src/app/i18n/es/chunks/settings-parts/settings-extra.ts
+var settingsExtra = {
+  notifications: {
+    title: "Notificaciones",
+    unread: "{count} sin leer",
+    upToDate: "Estás al día",
+    lastWeek: " · últimos 7 días",
+    choose: "Elegir qué recibo y cuándo",
+    close: "Cerrar",
+    filter: "Filtrar",
+    all: "Todas",
+    fresh: "Nuevas · {count}",
+    earlier: "Anteriores",
+    noneInArea: "No hay avisos de esta área.",
+    none: "No tienes notificaciones de los últimos 7 días.",
+    keptFor: "Se guardan las de los últimos 7 días. Las que borras no vuelven a salir.",
+    markAllRead: "Marcar todas como leídas",
+    removeRead: "Borrar las leídas",
+    removeAll: "Borrar todas",
+    yesterday: "Ayer",
+    fromDigest: " · del resumen del día",
+    postpone: "Posponer a mañana",
+    removeOne: "Borrar esta notificación",
+    remove: "Borrar",
+    couldNotPostpone: "No se ha podido posponer",
+    postponed: "Te lo volvemos a enseñar mañana",
+    couldNotRemove: "No se han podido borrar",
+    readRemoved: "Notificaciones leídas borradas",
+    removeAllTitle: "Borrar todas las notificaciones",
+    removeAllText: "Se borran todas, también las que no has leído, y no vuelven a salir.",
+    removed: "Notificaciones borradas",
+    call: "Llamar",
+    newSale: "Nueva venta",
+    seeCard: "Ver ficha",
+    appoint: "Citar",
+    recordVisit: "Registrar {visit}",
+    seeOrder: "Ver pedido",
+    open: "Abrir"
+  },
+  menuNames: {
+    title: "Menús",
+    help: "Cómo se llama cada módulo en el menú y en el título de su pantalla. Escribe el nombre que usa tu empresa; en blanco, se usa el de siempre.",
+    module: "Módulo",
+    companyName: "Nombre en tu empresa",
+    nameOf: "Nombre de {name} en tu empresa",
+    save: "Guardar",
+    saving: "Guardando…",
+    couldNotSave: "No se han podido guardar los nombres",
+    saved: "Nombres guardados"
+  }
+};
+
+// src/app/i18n/es/chunks/settings-parts/settings-rest.ts
+var settingsRest = {
+  profile: {
+    myData: "Mis datos",
+    visibleName: "Nombre visible",
+    phone: "Teléfono",
+    phonePlaceholder: "Para que el equipo pueda llamarte",
+    openOnStart: "Al entrar, abrir",
+    language: "Idioma",
+    save: "Guardar",
+    emptyName: "El nombre no puede quedar vacío",
+    couldNotSave: "No se ha podido guardar",
+    saved: "Datos guardados",
+    startScreens: {
+      inicio: "Inicio",
+      agenda: "Agenda",
+      rutas: "Rutas",
+      directorio: "Directorio",
+      ventas: "Pedidos"
+    },
+    security: "Seguridad y sesión",
+    securityHint: "Para cambiar la contraseña te enviamos un enlace a tu correo. Así nadie puede cambiarla desde un dispositivo que hayas dejado abierto.",
+    accessEmail: "Correo de acceso",
+    role: "Rol",
+    sendLink: "Enviarme el enlace para cambiar la contraseña",
+    signOut: "Cerrar sesión",
+    sending: "Enviando…",
+    couldNotSend: "No se ha podido enviar: {error}",
+    linkSent: "Te hemos enviado el enlace a {email}",
+    routesTitle: "Rutas y desplazamientos",
+    routesHint: "Desde dónde sales y dónde terminas. Al pulsar «Cómo llegar» eliges con qué app navegar (Google Maps, Waze o Apple Maps). El horario de las rutas está en su propio apartado.",
+    couldNotSaveError: "No se ha podido guardar: {error}"
+  }
+};
+
+// src/app/i18n/es/chunks/settings-parts/index.ts
+var texts = { settings, settingsExtra, settingsRest };
+
+// src/app/screens/settings/parts/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
+var pick2 = (name) => shared2[name];
+var agendaActions = /* @__PURE__ */ pick2("agendaActions");
+var appLegacy = /* @__PURE__ */ pick2("appLegacy");
+var callRpc = /* @__PURE__ */ pick2("callRpc");
+var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
+var currentScreen = /* @__PURE__ */ pick2("currentScreen");
+var icon = /* @__PURE__ */ pick2("icon");
+var initialsOf = /* @__PURE__ */ pick2("initialsOf");
+var legacyDb = /* @__PURE__ */ pick2("legacyDb");
+var notices = /* @__PURE__ */ pick2("notices");
+var term = /* @__PURE__ */ pick2("term");
 
 // delcos-shared:src/app/legacy/settings1-bridge.ts
-var shared2 = globalThis["__delcosModules"]["legacy/settings1-bridge"];
-var pick2 = (name) => shared2[name];
-var settingsLegacy = /* @__PURE__ */ pick2("settingsLegacy");
-
-// delcos-shared:src/app/i18n/index.ts
-var shared3 = globalThis["__delcosModules"]["i18n/index"];
+var shared3 = globalThis["__delcosModules"]["legacy/settings1-bridge"];
 var pick3 = (name) => shared3[name];
-var t = /* @__PURE__ */ pick3("t");
+var settingsLegacy = /* @__PURE__ */ pick3("settingsLegacy");
 
 // src/app/screens/settings/preferences/notice.ts
 var DEFAULT_DAYS = 7;

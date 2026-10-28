@@ -1,37 +1,394 @@
-// delcos-shared:src/app/legacy/routes-bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/routes-bridge"];
+// delcos-shared:src/app/i18n/index.ts
+var shared = globalThis["__delcosModules"]["i18n/index"];
 var pick = (name) => shared[name];
-var routesLegacy = /* @__PURE__ */ pick("routesLegacy");
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/routes/routes.ts
+var routes = {
+  list: {
+    title: "Rutas",
+    subtitle: "Tus rutas: créalas paso a paso, revísalas y pásalas a tu agenda",
+    newRoute: "+ Nueva ruta",
+    newRouteCard: "Nueva ruta",
+    newRouteHint: "Elige a quién vas a ver y en qué orden",
+    firstRouteHint: "Tu primera ruta: elige a quién vas a ver, el orden y cuándo. La app calcula las horas.",
+    oneStop: "parada",
+    stops: "paradas",
+    kilometres: " · {km} km",
+    fromTo: "De {start} a {end}",
+    nobodyYet: "Todavía sin nadie",
+    next: " · próxima: {date}",
+    owner: " · de {name}",
+    toAgenda: "Pasar a mi agenda",
+    edit: "Editar",
+    remove: "Eliminar",
+    removeRoute: "Eliminar {name}",
+    see: "Ver",
+    removeText: "Se elimina «{name}». Las citas que ya están en tu agenda no se borran.",
+    removeTitle: "¿Eliminar la ruta?",
+    couldNotRemove: "No se ha podido eliminar",
+    removed: "Ruta eliminada"
+  },
+  when: {
+    /** Options of «Qué semana del mes» */
+    weeksOfMonth: "La primera,La segunda,La tercera,La cuarta,La última"
+  },
+  sketch: {
+    noLocations: "Sin ubicaciones"
+  },
+  hours: {
+    noLocation: "Sin ubicación",
+    notThatDay: "Ese día no atiende",
+    outOfHours: "Fuera de su horario ({hours})"
+  },
+  wizard: {
+    back: "‹ Mis rutas",
+    nameLabel: "Nombre de la ruta",
+    autoNameHint: "Nombre propuesto con el día y los municipios: puedes cambiarlo",
+    nameHint: "Nombre de la ruta",
+    stepWho: "A quién vas a ver",
+    stepOrder: "Orden y horario",
+    stepWhen: "Vista previa y cuándo"
+  },
+  who: {
+    search: "Busca por nombre, centro o municipio",
+    filters: "Filtros",
+    mine: "Mi cartera",
+    urgent: "Urgentes",
+    attendDay: "Atienden el {day}",
+    neverVisited: "Nunca visitados",
+    searching: "Buscando…",
+    inRoute: "En la ruta",
+    toAdd: "Para añadir",
+    urgentLegend: "Urgente",
+    chosen: '<b id="rnn">{count}</b> elegidos',
+    nextStep: "Siguiente: orden y horario",
+    attends: " · atiende {hours}",
+    notAttending: " · no atiende el {day}",
+    urgentTag: "Urgente",
+    noneWithFilters: "No hay {professionals} con esos filtros."
+  },
+  order: {
+    leaveAt: "Sales a las",
+    backBy: "Vuelves como tarde",
+    noTime: "Sin hora",
+    from: "Desde {place} · horas calculadas para el {date}",
+    yourStart: "tu punto de salida",
+    backToAuto: "Volver al orden automático",
+    auto: "Orden automático",
+    manualText: "Has cambiado el orden a mano.",
+    autoText: "El mejor orden: el más corto que respeta las horas de atención.",
+    howTo: "Usa las flechas para cambiarlo y toca una hora para fijarla.",
+    minutes: "{minutes} min",
+    attends: "Atiende {hours}",
+    attendsShort: "atiende {hours}",
+    fixedTitle: "Hora fijada: toca para cambiarla o quitarla",
+    computedTitle: "Hora calculada: toca para fijarla",
+    up: "Subir",
+    down: "Bajar",
+    remove: "Quitar",
+    stops: "paradas",
+    approx: "aprox.",
+    finish: "terminas",
+    pastBack: " (pasa de tu hora de vuelta)",
+    mapNext: "Lo ves en el mapa en el paso siguiente.",
+    previous: "‹ Atrás",
+    nextStep: "Siguiente: vista previa",
+    timeTitle: "Hora de la visita",
+    cancel: "Cancelar",
+    letAppCompute: "Que la calcule la app",
+    fixTime: "Fijar una hora",
+    fixTimeTitle: "Fijar la hora",
+    timeLabel: "Hora"
+  },
+  preview: {
+    calculating: "Calculando la ruta…",
+    dayTitle: "{date} · así será tu día",
+    savedKeepsAgenda: "Los cambios se guardan en la ruta; las citas que ya están en tu agenda no cambian.",
+    savedInList: "Se guarda en Mis rutas.",
+    save: "Guardar ruta",
+    saveToAgenda: "Guardar y pasar a mi agenda",
+    saveChooseDay: "Guardar y elegir el día",
+    leave: "Sales de {place}",
+    driving: "{minutes} min de coche",
+    lastVisit: "Terminas la última {visit}",
+    straight: "Vista previa en línea recta",
+    streets: 'Por las calles, con tráfico · <b>{km} km</b> · <b>{duration}</b> al volante <span class="rmfuente">Ruta: © TomTom</span>',
+    fallback: "{reason}: vista previa en línea recta",
+    whenTitle: "¿Cuándo la haces?",
+    when: "Cuándo",
+    oneDay: "Un día",
+    weekly: "Cada semana",
+    fortnightly: "Cada 15 días",
+    monthly: "Una vez al mes",
+    noDate: "Sin fecha",
+    day: "Día",
+    weekday: "Día de la semana",
+    weekOfMonth: "Qué semana del mes",
+    startingOn: "Empezando el",
+    savedNoDate: "Se guarda sin fecha: la pasas a tu agenda cuando quieras.",
+    nextDates: " Próximas: {dates}.",
+    couldNotSave: "No se ha podido guardar la ruta",
+    couldNotSaveError: "No se ha podido guardar la ruta: {error}",
+    saved: "Ruta guardada"
+  },
+  agenda: {
+    noLocated: "Esta ruta no tiene {professionals} con ubicación",
+    whichDay: "¿Qué día la haces?",
+    day: "Día",
+    noNextDay: "No hay ningún día próximo para esta ruta",
+    oneAppointment: "cita",
+    appointments: "citas",
+    confirmText: "Se añaden {count} {appointments} cada día, en {days} días: {dates}. Los días bloqueados se saltan y no se repite a nadie que ya tenga cita ese día.",
+    confirmTitle: "Pasar la ruta a tu agenda",
+    add: "Añadir",
+    oneAdded: "cita añadida",
+    added: "citas añadidas",
+    oneBlocked: "día bloqueado",
+    blocked: "días bloqueados",
+    addedText: "{count} {added}",
+    skipped: " · {count} {blocked} sin tocar",
+    couldNotSave: "No se ha podido guardar alguna cita"
+  }
+};
+
+// src/app/i18n/es/chunks/routes/routes-more.ts
+var routesMore = {
+  planner: {
+    noRoomOnDays: "no cabe en los días elegidos",
+    noneOfDays: "no atiende ninguno de los días elegidos"
+  },
+  plan: {
+    lateTitle: "Ya ha pasado la hora de vuelta de esta ruta",
+    lateText: "Esta ruta sale a las {leave} y vuelve como tarde a las {back}, y ahora son las {now}.\n\nPuedes planificarla para el {date}{orChange}.",
+    orChangeHours: " o cambiar el horario de la ruta",
+    changeHours: "Cambiar el horario de la ruta",
+    forTomorrow: "Planificar para mañana",
+    tryTomorrow: "Probar para mañana",
+    allCitedTitle: "Ya están todos citados",
+    oneCited: "{theProfessional} de esta ruta ya tiene una cita planificada en tu agenda.",
+    allCitedText: "Los {count} {professionals} de esta ruta ya tienen una cita planificada en tu agenda.",
+    seeAgenda: "Ver mi agenda",
+    noneFitsTitle: "No cabe {visit}",
+    noneAttends: "Ninguno de estos {count} {professionals} atiende el {date}.",
+    noTimeWithHours: "Con el horario de la ruta ({leave}–{back}) y las horas de atención no da tiempo a {visit}.",
+    noTime: "Con las horas de atención no da tiempo a {visit}.",
+    alsoOneCited: "\n\nAdemás, {count} ya tiene una cita planificada y no se proponen.",
+    alsoCited: "\n\nAdemás, {count} ya tienen una cita planificada y no se proponen.",
+    calculating: "Calculando…",
+    couldNotPlan: "No se ha podido planificar: {error}",
+    noLocated: "Esta ruta no tiene {professionals} con ubicación",
+    noneLocated: "Ninguno de esos {professionals} tiene ubicación",
+    couldNotSave: "No se ha podido guardar alguna cita",
+    otherDay: "Este plan es para otro día: guárdalo en tu agenda.",
+    started: "Plan pasado a tu agenda · jornada iniciada"
+  },
+  planView: {
+    saved: "{count} citas en tu agenda del {date}",
+    startButton: "▶ Pasar a mi agenda y empezar",
+    saveButton: "Guardar en mi agenda",
+    attends: "atiende {hours}",
+    leftOut: "Se quedan fuera · {count}",
+    seeRest: "Ver los {count} restantes",
+    discard: "✕ Descartar plan",
+    discardTitle: "Descarta este plan (la ruta guardada no cambia)",
+    showMap: "Ver la ruta en el mapa",
+    hideMap: "Ocultar el mapa",
+    oneRecent: "1 {professional} del plan ya se ha",
+    recent: "{count} {professionals} del plan ya se han",
+    recentText: "{who} visitado o tienen cita en los últimos {days} días.",
+    removeThem: "Quitarlos del plan",
+    openCard: "Abrir la ficha",
+    card: "Ficha",
+    note: "Nota",
+    editNote: "Editar nota",
+    noteText: "Se guardará en la cita de cada {professional} de esta parada al pasar el plan a tu agenda.",
+    noteTitle: "Nota para {centre}",
+    saveNote: "Guardar nota",
+    start: "Salida · {place}"
+  },
+  week: {
+    title: "Planificar la semana",
+    of: " de {name}",
+    subtitle: "Reparte {theProfessionals} entre los días, cada uno un día que atienda y agrupados por zona",
+    whom: "¿A quién?",
+    due: "A quien le toca {visit} (según su frecuencia objetivo)",
+    urgent: "Urgentes sin visitar",
+    interested: "{interested} sin {visit} en 20 días",
+    neverVisited: "Nunca visitados",
+    route: "Ruta: {name}",
+    days: "Días",
+    blocked: " · bloqueado",
+    past: " · pasado",
+    maxPerDay: "Máximo de {newVisits} por día",
+    untilBack: "Hasta la hora de vuelta",
+    leave: "Hora de salida",
+    back: "Vuelta como tarde",
+    times: "Tiempos",
+    timesText: "{minutes} min por {professional} · sin hora de vuelta, sin límite",
+    hint: "Las citas que ya hay en la agenda se respetan y cuentan para el tiempo de cada día. No se proponen {professionals} que ya tienen una cita abierta.",
+    propose: "Proponer reparto",
+    chooseDay: "Elige al menos un día",
+    calculating: "Calculando…",
+    visitedOn: "visitado el {date}{who}",
+    noneFits: "No cabe {visit} con estos datos",
+    noFreeDays: "No quedan días laborables libres esta semana",
+    saving: "Guardando…",
+    saved: "{count} citas guardadas en la agenda"
+  },
+  editor: {
+    remove: "Quitar {name}",
+    removeCentre: "Quitar el centro",
+    noneYet: "Todavía no has añadido {professionals}.",
+    others: "Otros {professionals}",
+    addCentre: "Añadir un centro",
+    centrePlaceholder: "Busca el centro: se añaden todos sus {professionals}",
+    addAccounts: "Añadir {professionals}",
+    accountPlaceholder: "Busca por nombre, centro o municipio",
+    province: "Provincia",
+    municipality: "Municipio",
+    centre: "Centro",
+    commercialState: "Estado comercial",
+    notVisitedFor: "Sin visitar hace más de (días)",
+    attend: "Atienden",
+    onlyUrgent: "Solo urgentes",
+    editTitle: "Editar ruta",
+    newTitle: "Nueva ruta",
+    subtitle: "Una lista fija de {professionals}, o criterios que se recalculan cada día",
+    name: "Nombre",
+    namePlaceholder: "p. ej. Urgentes zona alta",
+    type: "Tipo",
+    countFrom: "Contar {visits} desde",
+    leave: "Hora de salida",
+    back: "Vuelta como tarde",
+    howChosen: "Cómo se eligen {theProfessionals}",
+    byList: "Lista de {professionals}",
+    byCriteria: "Por criterios",
+    howMany: "Ver cuántos cumplen",
+    save: "Guardar",
+    create: "Crear ruta",
+    couldNotAddCentre: "No se ha podido añadir el centro: {error}",
+    centreAdded: "{count} {professionals} de {centre} añadidos: quita los que no vayas a ver",
+    centreEmpty: "{centre} no tiene {professionals} en la base",
+    noCentre: "Ningún centro con ese nombre.",
+    noMatches: "Sin coincidencias.",
+    matching: "<b>{count}</b> {professionals} cumplen ahora estos criterios{beforeDays}.",
+    beforeDays: ", antes de aplicar los días sin visitar",
+    writeName: "Ponle un nombre a la ruta",
+    addOne: "Añade al menos {professional}",
+    saving: "Guardando…",
+    couldNotSave: "No se ha podido guardar: {error}",
+    saved: "Ruta guardada",
+    opening: "Abriendo…"
+  },
+  frequency: {
+    title: "Frecuencia objetivo de {visit}",
+    subtitle: "Cada cuántos días hay que visitar a {aProfessional} según su estado. 0 = no se exige.",
+    daysFor: "Días para {state}",
+    hint: "Se usa en «A quien le toca {visit}» (planificador y sugerencias) y en la columna «Les toca» del equipo.",
+    couldNotSave: "No se ha podido guardar",
+    saved: "Frecuencia guardada"
+  },
+  dayMap: {
+    title: "Tu día en el mapa",
+    searching: "Buscando la ruta por las calles…",
+    play: "Ver el día",
+    stop: "Parar",
+    hourLabel: "Hora del día",
+    noMap: "No se ha podido cargar el mapa. Comprueba la conexión.",
+    streets: 'Por las calles, con tráfico · <b>{km} km</b> · <b>{duration}</b> al volante{delay} · fin hacia las <b>{end}</b> <span class="rmfuente">Ruta: © TomTom</span>',
+    delay: " ({minutes} min por el tráfico)",
+    straight: "{reason}: tiempos aproximados en línea recta · fin hacia las <b>{end}</b>",
+    start: "Salida",
+    theStart: "la salida",
+    afterBack: "Después de tu hora de vuelta",
+    towards: "Hacia {place}",
+    arrive: "Llegas hacia las {time}",
+    at: "En {place}",
+    until: "Hasta las {time}",
+    after: " · después, {name}",
+    next: "Siguiente: {name}",
+    around: "Hacia las {time}",
+    dayOver: "Jornada terminada",
+    backAround: "De vuelta hacia las {time}",
+    atTime: "A las <b>{time}</b>"
+  },
+  page: {
+    times: "⚙ Tiempos de {visit}",
+    timesTitle: "Minutos por {visit} y por parada",
+    subtitle: "Crea, edita y planifica tus rutas · {minutes} min por {professional}",
+    today: "Hoy tienes {count} {appointments}: {done} {visited} y {open} por hacer",
+    appointment: "cita",
+    appointments: "citas",
+    visitedOne: "visitada",
+    visited: "visitadas",
+    noneToday: "Hoy no tienes citas"
+  }
+};
+
+// src/app/i18n/es/chunks/routes/settings-core.ts
+var settingsCore = {
+  plan: {
+    planFor: "Plan para el {date}",
+    today: "Plan de hoy",
+    summary: "Salida de {start} a las {time} · {stops} · vuelta sobre las {back} ·",
+    oneStop: "1 parada",
+    stops: "{count} paradas",
+    changeHours: "⚙ Cambiar horario",
+    go: "Ir",
+    seeMap: "Ver la ruta en el mapa",
+    openInNavigator: "Abrir la ruta en el navegador",
+    saveToAgenda: "Guardar en mi agenda",
+    saving: "Guardando…",
+    start: "▶ Empezar ruta",
+    close: "Cerrar",
+    saved: "{count} citas guardadas en tu agenda"
+  },
+  planHours: {
+    title: "Tiempos de {visit}",
+    subtitle: "Se guardan en tus preferencias. La hora de salida y la de vuelta se ponen en cada ruta.",
+    perProfessional: "Minutos por {professional}",
+    perStop: "Minutos fijos por parada",
+    saved: "Horario guardado"
+  }
+};
+
+// src/app/i18n/es/chunks/routes/index.ts
+var texts = { routes, routesMore, settingsCore };
+
+// src/app/screens/routes/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/routes-bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/routes-bridge"];
+var pick2 = (name) => shared2[name];
+var routesLegacy = /* @__PURE__ */ pick2("routesLegacy");
 
 // delcos-shared:src/app/legacy/bridge.ts
-var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
-var pick2 = (name) => shared2[name];
-var agendaActions = /* @__PURE__ */ pick2("agendaActions");
-var agendaState = /* @__PURE__ */ pick2("agendaState");
-var appLegacy = /* @__PURE__ */ pick2("appLegacy");
-var appointmentLegacy = /* @__PURE__ */ pick2("appointmentLegacy");
-var appointments = /* @__PURE__ */ pick2("appointments");
-var callRpc = /* @__PURE__ */ pick2("callRpc");
-var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
-var commercialStates = /* @__PURE__ */ pick2("commercialStates");
-var currentScreen = /* @__PURE__ */ pick2("currentScreen");
-var cycleLegacy = /* @__PURE__ */ pick2("cycleLegacy");
-var goTo = /* @__PURE__ */ pick2("goTo");
-var icon = /* @__PURE__ */ pick2("icon");
-var legacyAgendaPaint = /* @__PURE__ */ pick2("legacyAgendaPaint");
-var legacyAgendaParts = /* @__PURE__ */ pick2("legacyAgendaParts");
-var legacyDb = /* @__PURE__ */ pick2("legacyDb");
-var notices = /* @__PURE__ */ pick2("notices");
-var permissions = /* @__PURE__ */ pick2("permissions");
-var salesTeam = /* @__PURE__ */ pick2("salesTeam");
-var term = /* @__PURE__ */ pick2("term");
-var weekPlanner = /* @__PURE__ */ pick2("weekPlanner");
-var yourDayLegacy = /* @__PURE__ */ pick2("yourDayLegacy");
-
-// delcos-shared:src/app/i18n/index.ts
-var shared3 = globalThis["__delcosModules"]["i18n/index"];
+var shared3 = globalThis["__delcosModules"]["legacy/bridge"];
 var pick3 = (name) => shared3[name];
-var t = /* @__PURE__ */ pick3("t");
+var agendaActions = /* @__PURE__ */ pick3("agendaActions");
+var agendaState = /* @__PURE__ */ pick3("agendaState");
+var appLegacy = /* @__PURE__ */ pick3("appLegacy");
+var appointmentLegacy = /* @__PURE__ */ pick3("appointmentLegacy");
+var appointments = /* @__PURE__ */ pick3("appointments");
+var callRpc = /* @__PURE__ */ pick3("callRpc");
+var cardSectionsLegacy = /* @__PURE__ */ pick3("cardSectionsLegacy");
+var commercialStates = /* @__PURE__ */ pick3("commercialStates");
+var currentScreen = /* @__PURE__ */ pick3("currentScreen");
+var cycleLegacy = /* @__PURE__ */ pick3("cycleLegacy");
+var goTo = /* @__PURE__ */ pick3("goTo");
+var icon = /* @__PURE__ */ pick3("icon");
+var legacyAgendaPaint = /* @__PURE__ */ pick3("legacyAgendaPaint");
+var legacyAgendaParts = /* @__PURE__ */ pick3("legacyAgendaParts");
+var legacyDb = /* @__PURE__ */ pick3("legacyDb");
+var notices = /* @__PURE__ */ pick3("notices");
+var permissions = /* @__PURE__ */ pick3("permissions");
+var salesTeam = /* @__PURE__ */ pick3("salesTeam");
+var term = /* @__PURE__ */ pick3("term");
+var weekPlanner = /* @__PURE__ */ pick3("weekPlanner");
+var yourDayLegacy = /* @__PURE__ */ pick3("yourDayLegacy");
 
 // delcos-shared:src/app/services/dates.ts
 var shared4 = globalThis["__delcosModules"]["services/dates"];
@@ -1100,9 +1457,9 @@ async function paintRoutes() {
     return;
   }
   const { data } = await legacyDb().rpc("rutas_visibles");
-  const routes = data ?? [];
-  routesLegacy.setRoutes(routes);
-  const cards = await Promise.all(routes.map(async (route) => ({ r: route, ms: await routeMembers(route) })));
+  const routes2 = data ?? [];
+  routesLegacy.setRoutes(routes2);
+  const cards = await Promise.all(routes2.map(async (route) => ({ r: route, ms: await routeMembers(route) })));
   routesLegacy.setCards(cards);
   if (!view) return;
   view.innerHTML = pageHtml(cards);
@@ -1321,8 +1678,8 @@ function bindSearches(state) {
 var field2 = (id) => document.getElementById(id)?.value ?? "";
 function readRules() {
   const rules = {};
-  const texts = [["provincia", "cprov"], ["municipio", "cmuni"], ["especialidad", "cesp"], ["centro", "ccen"], ["estado", "cest"]];
-  for (const [key, id] of texts) if (field2(id)) rules[key] = field2(id);
+  const texts2 = [["provincia", "cprov"], ["municipio", "cmuni"], ["especialidad", "cesp"], ["centro", "ccen"], ["estado", "cest"]];
+  for (const [key, id] of texts2) if (field2(id)) rules[key] = field2(id);
   if (field2("csv")) rules.sinVisita = Number(field2("csv"));
   if (field2("cdia")) rules.dia = field2("cdia");
   if (document.getElementById("curg")?.checked) rules.urgentes = true;
@@ -2104,7 +2461,7 @@ function dayOption(isoDate, free, blocked) {
   return `<label class="opt ${ok ? "" : "off"} u-m-0"><input type="checkbox" data-spd="${isoDate}" ${ok ? "checked" : "disabled"}>
         ${routes2Legacy.weekdayName(isoDate).slice(0, 3)} ${date.getDate()}${note}</label>`;
 }
-function formHtml(days, free, blocked, routes) {
+function formHtml(days, free, blocked, routes2) {
   const viewed = agendaState.viewed(), saved = activePreferences().plan_semana;
   return `
     <div class="fh"><div><h2>${t("routesMore.week.title")}${viewed ? t("routesMore.week.of", { name: escapeHtml(viewed.nombre) }) : ""}</h2>
@@ -2116,7 +2473,7 @@ function formHtml(days, free, blocked, routes) {
       <option value="urgentes">${t("routesMore.week.urgent")}</option>
       <option value="interesados">${t("routesMore.week.interested", { interested: term("medico", { number: "p", capital: "C", adjective: "interesado" }), visit: term("visita") })}</option>
       <option value="sin_visitar">${t("routesMore.week.neverVisited")}</option>
-      ${routes.map((route) => `<option value="ruta:${route.id}">${t("routesMore.week.route", { name: escapeHtml(route.nombre) })}</option>`).join("")}
+      ${routes2.map((route) => `<option value="ruta:${route.id}">${t("routesMore.week.route", { name: escapeHtml(route.nombre) })}</option>`).join("")}
     </select>
     <label>${t("routesMore.week.days")}</label>
     <div class="spdias">${days.slice(0, WEEKDAYS_SHOWN).map((day) => dayOption(day, free, blocked)).join("")}</div>
@@ -2193,10 +2550,10 @@ async function planWeek(monday, days, blocked, perDay) {
   }
   const { data } = await callRpc("rutas_visibles", {});
   const viewed = agendaState.viewed(), owner = routes2Legacy.agendaOwner();
-  const routes = (data ?? []).filter((route) => !viewed || route.usuario_id === owner || route.visible_para === "*");
+  const routes2 = (data ?? []).filter((route) => !viewed || route.usuario_id === owner || route.visible_para === "*");
   const body = document.getElementById("dbody"), box2 = document.getElementById("dlg");
   if (!body || !box2) return;
-  body.innerHTML = formHtml(days, free, blocked, routes);
+  body.innerHTML = formHtml(days, free, blocked, routes2);
   box2.showModal();
   const ok = document.getElementById("spok");
   if (ok) ok.onclick = () => {
@@ -2622,7 +2979,7 @@ function follow(parts, point) {
   camera.centre = camera.centre ? [camera.centre[0] + (point[0] - camera.centre[0]) * ease, camera.centre[1] + (point[1] - camera.centre[1]) * ease] : point;
   parts.map.jumpTo({ center: camera.centre, zoom: FOLLOW_ZOOM });
 }
-function paintDayMap(library, plan, legs, texts) {
+function paintDayMap(library, plan, legs, texts2) {
   stopAnimation();
   const previous = routes2Legacy.dayMap();
   if (previous) {
@@ -2643,7 +3000,7 @@ function paintDayMap(library, plan, legs, texts) {
   if (!slider) return;
   homeMarker(library, map, plan);
   const markers = stopMarkers(library, map, plan), first = points[0] ?? [0, 0], own = ownMarker(library, map, first), scale = trackScale(plan);
-  const parts = { map, plan, travel, lines, markers, own: own.element, ownMarker: own.marker, slider, scale, start: first, camera: { on: false, centre: null, last: 0 }, texts };
+  const parts = { map, plan, travel, lines, markers, own: own.element, ownMarker: own.marker, slider, scale, start: first, camera: { on: false, centre: null, last: 0 }, texts: texts2 };
   const move = (minutes) => {
     const point = dayPosition(parts, minutes);
     if (point) follow(parts, point);

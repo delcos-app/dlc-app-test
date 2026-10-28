@@ -1,16 +1,56 @@
-// delcos-shared:src/app/legacy/bridge.ts
-var shared = globalThis["__delcosModules"]["legacy/bridge"];
-var pick = (name) => shared[name];
-var currentScreen = /* @__PURE__ */ pick("currentScreen");
-var goTo = /* @__PURE__ */ pick("goTo");
-var icon = /* @__PURE__ */ pick("icon");
-var manualLegacy = /* @__PURE__ */ pick("manualLegacy");
-var permissions = /* @__PURE__ */ pick("permissions");
-
 // delcos-shared:src/app/i18n/index.ts
-var shared2 = globalThis["__delcosModules"]["i18n/index"];
+var shared = globalThis["__delcosModules"]["i18n/index"];
+var pick = (name) => shared[name];
+var registerMessages = /* @__PURE__ */ pick("registerMessages");
+var t = /* @__PURE__ */ pick("t");
+
+// src/app/i18n/es/chunks/manual/manual.ts
+var manual = {
+  title: "Manual de uso",
+  book: {
+    subtitle: "Todo lo que puedes hacer con delcos, paso a paso, con fotos y vídeos",
+    backTo: "Volver a {name}"
+  },
+  portal: {
+    subtitle: "Todo lo que puedes hacer en la plataforma, explicado para tu perfil.",
+    modules: "{count} módulos disponibles",
+    search: "¿Qué quieres hacer? Aplazar una cita, bloquear un día, emitir una factura…",
+    searchLabel: "Buscar en el manual",
+    firstSteps: "Primeros pasos",
+    byModule: "Por módulo",
+    faq: "Preguntas frecuentes",
+    yourAccess: "Tu acceso: {level}",
+    noAccess: "Sin acceso",
+    full: "Completo",
+    faqHit: "Pregunta frecuente",
+    configuredIn: "Dónde se configura: {place}",
+    noResults: "No hay resultados para «{query}». Prueba con otra palabra: cita, ruta, pedido, factura…",
+    inPlan: "Incluido en el plan {plan}",
+    premium: "Premium",
+    notNow: "Ahora no",
+    takeMe: "Llévame",
+    whatYouCanDo: "Qué puedes hacer",
+    howItWorks: "Cómo funciona",
+    whereConfigured: "Dónde se configura",
+    goToSettings: "Ir a su configuración",
+    open: "Abrir {name}"
+  }
+};
+
+// src/app/i18n/es/chunks/manual/index.ts
+var texts = { manual };
+
+// src/app/screens/manual/texts.ts
+registerMessages(texts);
+
+// delcos-shared:src/app/legacy/bridge.ts
+var shared2 = globalThis["__delcosModules"]["legacy/bridge"];
 var pick2 = (name) => shared2[name];
-var t = /* @__PURE__ */ pick2("t");
+var currentScreen = /* @__PURE__ */ pick2("currentScreen");
+var goTo = /* @__PURE__ */ pick2("goTo");
+var icon = /* @__PURE__ */ pick2("icon");
+var manualLegacy = /* @__PURE__ */ pick2("manualLegacy");
+var permissions = /* @__PURE__ */ pick2("permissions");
 
 // delcos-shared:src/app/services/format.ts
 var shared3 = globalThis["__delcosModules"]["services/format"];
