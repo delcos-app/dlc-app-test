@@ -21,6 +21,8 @@ export interface Order {
   email_factura_en?: string | null; reportar_profesional?: boolean | null; completado?: boolean | null; unidades?: number | null; total?: number | null;
   distribuidor_id?: string | null; distribuidor_codigo?: string | null; factura_distribuidor?: boolean | null; transfer_estado?: string | null;
   transfer_nota?: string | null; transfer_enviado_en?: string | null; clasificadores?: Record<string, unknown> | null;
+  /** The step computed by the database (SQL 191, pedidos_pasos), when the order comes from the list. */
+  paso?: string | null;
 }
 export interface OrderContact { id: string; nombre: string; telefono?: string | null; movil?: string | null; email?: string | null; direccion?: string | null; cp?: string | null; municipio?: string | null; nif?: string | null }
 export interface OrderDetail { pedido: Order; lineas?: OrderLine[] | null; contacto?: OrderContact | null; medico?: { id: string; nombre: string; codigo?: string | null } | null; totales?: { total?: number | null } | null }
@@ -111,26 +113,46 @@ export function paymentPill(order: Order): string {
   return ` <span class="pill ${payment === PAID ? 'p-trfok' : payment === FREE ? 'p-sr' : 'p-bor'}">${payment}</span>`;
 }
 
-type Step = [MessageKey, string];
+/**
+ * The steps of an order, in the order of the «Estado» column and filter: [code, text key, pill class]. The code is the one the
+ * database uses (SQL 191: pedidos_pasos, the same rule as stepCode, and the p_estado filter of pedidos_pagina).
+ */
+export const ORDER_STEPS = [
+  ['borrador', 'orders.steps.draft', 'p-sr'], ['esperando_pago', 'orders.steps.awaitingPayment', 'p-bor'],
+  ['por_cobrar', 'orders.steps.toCollect', 'p-bor'], ['por_preparar', 'orders.steps.toPack', 'p-est'],
+  ['por_facturar', 'orders.steps.toInvoice', 'p-est'], ['completado', 'orders.steps.completed', 'p-trfok'], ['anulado', 'orders.steps.voided', 'p-anu'],
+] as const satisfies readonly (readonly [string, MessageKey, string])[];
+export type StepCode = typeof ORDER_STEPS[number][0];
 
-function confirmedStep(order: Partial<Order>): Step {
+export const isStepCode = (code: string | null | undefined): code is StepCode => ORDER_STEPS.some(([step]) => step === code);
+
+/** The stored state that holds a step (to filter with a database that does not know the steps yet: without SQL 191). */
+export const storedStateOf = (code: StepCode): string =>
+  (code === 'anulado' ? STATES.voided : code === 'borrador' || code === 'esperando_pago' ? STATES.draft : STATES.confirmed);
+
+function confirmedStep(order: Partial<Order>): StepCode {
   const onDelivery = /reembolso/i.test(order.forma_pago ?? ''), toCollect = paymentOf(order) === PENDING_PAYMENT;
-  if (toCollect && !onDelivery) return ['orders.steps.toCollect', 'p-bor'];
-  if (!order.paquete_en) return ['orders.steps.toPack', 'p-est'];
-  if (toCollect) return ['orders.steps.toCollect', 'p-bor'];
-  if (order.completado === false || (!order.factura && !order.factura_id && paymentOf(order) !== FREE)) return ['orders.steps.toInvoice', 'p-est'];
-  return ['orders.steps.completed', 'p-trfok'];
+  if (toCollect && !onDelivery) return 'por_cobrar';
+  if (!order.paquete_en) return 'por_preparar';
+  if (toCollect) return 'por_cobrar';
+  if (order.completado === false || (!order.factura && !order.factura_id && paymentOf(order) !== FREE)) return 'por_facturar';
+  return 'completado';
+}
+
+/** The step of an order: the database's when it brings it (the same rule with all the data), otherwise computed here. */
+export function stepCode(order: Partial<Order>): StepCode {
+  if (isStepCode(order.paso)) return order.paso;
+  if (order.estado === STATES.voided) return 'anulado';
+  if (order.estado === STATES.draft) return order.email_pago_en ? 'esperando_pago' : 'borrador';
+  // v2.351.0: the same rule as the figures (pedido_completado)
+  if (order.completado === true) return 'completado';
+  return confirmedStep(order);
 }
 
 /** The step an order is at: [text, pill class]. */
 export function orderStep(order: Partial<Order>): [string, string] {
-  let step: Step;
-  if (order.estado === STATES.voided) step = ['orders.steps.voided', 'p-anu'];
-  else if (order.estado === STATES.draft) step = order.email_pago_en ? ['orders.steps.awaitingPayment', 'p-bor'] : ['orders.steps.draft', 'p-sr'];
-  // v2.351.0: the same rule as the figures (pedido_completado)
-  else if (order.completado === true) step = ['orders.steps.completed', 'p-trfok'];
-  else step = confirmedStep(order);
-  return [t(step[0]), step[1]];
+  const code = stepCode(order), [, key, pillClass] = ORDER_STEPS.find(([step]) => step === code) ?? ORDER_STEPS[0];
+  return [t(key), pillClass];
 }
 
 export function stepPill(order: Partial<Order>): string {

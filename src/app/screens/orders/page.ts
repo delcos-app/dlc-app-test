@@ -11,11 +11,15 @@ import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { editSupplier, paintPurchases, paintSuppliers } from '../purchases';
 import { paintOrderList } from './list';
+import { ORDER_STEPS } from './model';
 
 const SEARCH_WAIT_MS = 350;
 const SALES = 'ventas', PURCHASES = 'compras', SUPPLIERS = 'proveedores', CALLS = 'llamadas';
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** v2.462.0 (SQL 191): the «Estado» filter offers the same steps as the «Estado» column, in its order and with its texts. */
+const stepOptions = (): string => ORDER_STEPS.map(([code, key]) => `<option value="${code}">${t(key)}</option>`).join('');
 
 /** The page, already with the title of the section it opens (before, «Ventas» first and the section title after loading). */
 function baseHtml([title, subtitle]: readonly [string, string]): string {
@@ -30,8 +34,7 @@ function baseHtml([title, subtitle]: readonly [string, string]): string {
             <option value="">${t('orders.page.all')}</option><option value="paciente">${t('orders.page.saleTo', { customer: term('paciente', { article: 'al' }) })}</option>
             <option value="centro">${t('orders.page.saleToCentre')}</option></select></div>
           <div><label for="pestado">${t('orders.page.state')}</label><select id="pestado">
-            <option value="">${t('orders.page.all')}</option><option value="Confirmado">${t('orders.page.confirmed')}</option>
-            <option value="Borrador">${t('orders.page.drafts')}</option><option value="Anulado">${t('orders.page.voided')}</option></select></div>
+            <option value="">${t('orders.page.all')}</option>${stepOptions()}</select></div>
           <div><label for="pq">${t('orders.page.search')}</label><input id="pq" type="search" placeholder="${t('orders.page.searchPlaceholder', { professional: term('medico', { capital: 'C' }), customer: term('paciente') })}"></div>
         </div>
         <div class="kpis vtot" id="ptotales"></div>

@@ -10776,12 +10776,14 @@
   var model_exports5 = {};
   __export(model_exports5, {
     OPERATIONS: () => OPERATIONS,
+    ORDER_STEPS: () => ORDER_STEPS,
     STATES: () => STATES2,
     TRANSFER_ISSUE: () => TRANSFER_ISSUE,
     TRANSFER_STATES: () => TRANSFER_STATES,
     euros: () => euros2,
     isBankTransfer: () => isBankTransfer,
     isFree: () => isFree,
+    isStepCode: () => isStepCode,
     lineBreakdown: () => lineBreakdown,
     operationDone: () => operationDone,
     orderStep: () => orderStep,
@@ -10789,7 +10791,9 @@
     paymentPill: () => paymentPill,
     round2: () => round2,
     statePill: () => statePill2,
+    stepCode: () => stepCode,
     stepPill: () => stepPill,
+    storedStateOf: () => storedStateOf,
     storedTotals: () => storedTotals,
     totalsHtml: () => totalsHtml,
     transferPill: () => transferPill
@@ -13259,21 +13263,35 @@
     const payment = paymentOf(order);
     return ` <span class="pill ${payment === PAID2 ? "p-trfok" : payment === FREE2 ? "p-sr" : "p-bor"}">${payment}</span>`;
   }
+  var ORDER_STEPS = [
+    ["borrador", "orders.steps.draft", "p-sr"],
+    ["esperando_pago", "orders.steps.awaitingPayment", "p-bor"],
+    ["por_cobrar", "orders.steps.toCollect", "p-bor"],
+    ["por_preparar", "orders.steps.toPack", "p-est"],
+    ["por_facturar", "orders.steps.toInvoice", "p-est"],
+    ["completado", "orders.steps.completed", "p-trfok"],
+    ["anulado", "orders.steps.voided", "p-anu"]
+  ];
+  var isStepCode = (code) => ORDER_STEPS.some(([step]) => step === code);
+  var storedStateOf = (code) => code === "anulado" ? STATES2.voided : code === "borrador" || code === "esperando_pago" ? STATES2.draft : STATES2.confirmed;
   function confirmedStep(order) {
     const onDelivery = /reembolso/i.test(order.forma_pago ?? ""), toCollect = paymentOf(order) === PENDING_PAYMENT;
-    if (toCollect && !onDelivery) return ["orders.steps.toCollect", "p-bor"];
-    if (!order.paquete_en) return ["orders.steps.toPack", "p-est"];
-    if (toCollect) return ["orders.steps.toCollect", "p-bor"];
-    if (order.completado === false || !order.factura && !order.factura_id && paymentOf(order) !== FREE2) return ["orders.steps.toInvoice", "p-est"];
-    return ["orders.steps.completed", "p-trfok"];
+    if (toCollect && !onDelivery) return "por_cobrar";
+    if (!order.paquete_en) return "por_preparar";
+    if (toCollect) return "por_cobrar";
+    if (order.completado === false || !order.factura && !order.factura_id && paymentOf(order) !== FREE2) return "por_facturar";
+    return "completado";
+  }
+  function stepCode(order) {
+    if (isStepCode(order.paso)) return order.paso;
+    if (order.estado === STATES2.voided) return "anulado";
+    if (order.estado === STATES2.draft) return order.email_pago_en ? "esperando_pago" : "borrador";
+    if (order.completado === true) return "completado";
+    return confirmedStep(order);
   }
   function orderStep(order) {
-    let step;
-    if (order.estado === STATES2.voided) step = ["orders.steps.voided", "p-anu"];
-    else if (order.estado === STATES2.draft) step = order.email_pago_en ? ["orders.steps.awaitingPayment", "p-bor"] : ["orders.steps.draft", "p-sr"];
-    else if (order.completado === true) step = ["orders.steps.completed", "p-trfok"];
-    else step = confirmedStep(order);
-    return [t(step[0]), step[1]];
+    const code = stepCode(order), [, key, pillClass] = ORDER_STEPS.find(([step]) => step === code) ?? ORDER_STEPS[0];
+    return [t(key), pillClass];
   }
   function stepPill(order) {
     const [text, pillClass] = orderStep(order);

@@ -9,24 +9,30 @@ import { t } from '../../i18n';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
-import { euros, STATES, stepPill } from './model';
+import { euros, isStepCode, STATES, stepPill, storedStateOf } from './model';
 import { restoreFilters } from '../../components/filters/memory';
 
 interface OrderRow {
   id: string; fecha: string; estado: string; numero?: string | null; factura?: string | null; contacto?: string | null; centro?: string | null; cuenta_texto?: string | null;
   origen?: string | null; forma_pago?: string | null; justificante?: boolean | null; medico?: string | null; comercial?: string | null; productos?: string | null;
   unidades: number; base?: number | null; total?: number | null; nota?: string | null; sin_cargo?: boolean | null; pago_estado?: string | null; paquete_en?: string | null;
-  email_factura_en?: string | null; clasificadores?: Record<string, unknown> | null;
+  email_factura_en?: string | null; clasificadores?: Record<string, unknown> | null; paso?: string | null;
 }
 interface Summary { pedidos?: number; borradores?: number; unidades?: number; web_pedidos?: number | null; web_base?: number | null; base?: number; iva?: number; total?: number }
-interface OrdersPage { filas?: OrderRow[] | null; resumen?: Summary | null; total: number }
+/** por_paso: the database filters by step and each row brings its own (SQL 191). */
+interface OrdersPage { filas?: OrderRow[] | null; resumen?: Summary | null; total: number; por_paso?: boolean }
 
 const PAID = 'Cobrado';
 
-/** The extra filter selects, added once after the state filter (each one after the previous). */
+/**
+ * The extra filter selects, added once after the state filter (each one after the previous). v2.462.0 (Eric, option A): «Operativa»
+ * only offers «Factura por enviar»; the steps are in «Estado». «pago» and «paquete» stay as hidden options: the «Por hacer» cards
+ * (legacy-c/order-alerts) still filter the table with them.
+ */
 const EXTRA_FILTERS: readonly { id: string; after: string; html: () => string; onlyTeam?: boolean }[] = [
   { id: 'popf', after: 'pestado', html: (): string => `<div><label for="popf">${t('orders.list.operations')}</label><select id="popf">
-      <option value="">${t('orders.list.everything')}</option><option value="pago">${t('orders.list.toCollect')}</option><option value="paquete">${t('orders.list.toPack')}</option><option value="email">${t('orders.list.invoiceToSend')}</option></select></div>` },
+      <option value="">${t('orders.list.everything')}</option><option value="email">${t('orders.list.invoiceToSend')}</option>
+      <option value="pago" hidden>${t('orders.list.toCollect')}</option><option value="paquete" hidden>${t('orders.list.toPack')}</option></select></div>` },
   // v2.115.0: the order's origin (web or the rest)
   { id: 'porigf', after: 'popf', html: (): string => `<div><label for="porigf">${t('orders.list.origin')}</label><select id="porigf">
       <option value="">${t('orders.page.all')}</option><option value="web">${t('orders.list.web')}</option><option value="portal">${t('orders.list.portal')}</option><option value="otros">${t('orders.list.others')}</option></select></div>` },
@@ -130,6 +136,20 @@ function paint(list: HTMLElement, data: OrdersPage): void {
   list.querySelectorAll<HTMLElement>('[data-ped]').forEach(button => { button.onclick = (): void => { appLegacy.openOrder(button.dataset.ped ?? ''); }; });
 }
 
+type PageResult = Awaited<ReturnType<typeof cachedRpc<OrdersPage>>>;
+
+const requestPage = (query: Record<string, unknown>): Promise<PageResult> => cachedRpc<OrdersPage>('pedidos_pagina', query, `pedidos-${JSON.stringify(query)}`);
+
+/**
+ * The page of orders. A database without SQL 191 does not know the steps (it answers without por_paso and finds nothing): then the
+ * stored state that holds the step is asked for instead (Por cobrar, Por preparar, Por facturar and Completado → Confirmado).
+ */
+async function loadPage(query: Record<string, unknown>): Promise<PageResult> {
+  const result = await requestPage(query), step = query.p_estado as string | null;
+  if (!isStepCode(step) || !result.data || result.data.por_paso) return result;
+  return requestPage({ ...query, p_estado: storedStateOf(step) });
+}
+
 export async function paintOrderList(): Promise<void> {
   if (!document.getElementById('pedlista') || !document.getElementById('pper') || !document.getElementById('pcanal')) return;
   addExtraFilters();
@@ -137,7 +157,7 @@ export async function paintOrderList(): Promise<void> {
   restoreFilters(document.getElementById('v-ventas'));
   const query = params(), loading = document.getElementById('pedlista');
   if (loading && !loading.querySelector('.dgrid')) customersLegacy.showLoading(loading, t('orders.list.loading'));
-  const result = await cachedRpc<OrdersPage>('pedidos_pagina', query, `pedidos-${JSON.stringify(query)}`);
+  const result = await loadPage(query);
   const list = document.getElementById('pedlista');
   if (!list || !document.getElementById('pestado')) return;
   if (!result.data) {

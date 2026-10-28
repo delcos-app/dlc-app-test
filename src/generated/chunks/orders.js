@@ -17,9 +17,6 @@ var orders = {
     saleTo: "Venta {customer}",
     saleToCentre: "Venta a centro",
     state: "Estado",
-    confirmed: "Confirmados",
-    drafts: "Borradores",
-    voided: "Anulados",
     search: "Buscar",
     searchPlaceholder: "{professional}, {customer} o nº de pedido",
     tabSales: "Ventas",
@@ -628,11 +625,13 @@ var sum = /* @__PURE__ */ pick7("sum");
 var shared8 = globalThis["__delcosModules"]["screens/orders/model"];
 var pick8 = (name) => shared8[name];
 var OPERATIONS = /* @__PURE__ */ pick8("OPERATIONS");
+var ORDER_STEPS = /* @__PURE__ */ pick8("ORDER_STEPS");
 var STATES = /* @__PURE__ */ pick8("STATES");
 var TRANSFER_ISSUE = /* @__PURE__ */ pick8("TRANSFER_ISSUE");
 var TRANSFER_STATES = /* @__PURE__ */ pick8("TRANSFER_STATES");
 var euros = /* @__PURE__ */ pick8("euros");
 var isBankTransfer = /* @__PURE__ */ pick8("isBankTransfer");
+var isStepCode = /* @__PURE__ */ pick8("isStepCode");
 var lineBreakdown = /* @__PURE__ */ pick8("lineBreakdown");
 var operationDone = /* @__PURE__ */ pick8("operationDone");
 var orderTotals = /* @__PURE__ */ pick8("orderTotals");
@@ -640,6 +639,7 @@ var paymentPill = /* @__PURE__ */ pick8("paymentPill");
 var round2 = /* @__PURE__ */ pick8("round2");
 var statePill = /* @__PURE__ */ pick8("statePill");
 var stepPill = /* @__PURE__ */ pick8("stepPill");
+var storedStateOf = /* @__PURE__ */ pick8("storedStateOf");
 var storedTotals = /* @__PURE__ */ pick8("storedTotals");
 var totalsHtml = /* @__PURE__ */ pick8("totalsHtml");
 var transferPill = /* @__PURE__ */ pick8("transferPill");
@@ -921,7 +921,8 @@ var restoreFilters = /* @__PURE__ */ pick10("restoreFilters");
 var PAID = "Cobrado";
 var EXTRA_FILTERS = [
   { id: "popf", after: "pestado", html: () => `<div><label for="popf">${t("orders.list.operations")}</label><select id="popf">
-      <option value="">${t("orders.list.everything")}</option><option value="pago">${t("orders.list.toCollect")}</option><option value="paquete">${t("orders.list.toPack")}</option><option value="email">${t("orders.list.invoiceToSend")}</option></select></div>` },
+      <option value="">${t("orders.list.everything")}</option><option value="email">${t("orders.list.invoiceToSend")}</option>
+      <option value="pago" hidden>${t("orders.list.toCollect")}</option><option value="paquete" hidden>${t("orders.list.toPack")}</option></select></div>` },
   // v2.115.0: the order's origin (web or the rest)
   { id: "porigf", after: "popf", html: () => `<div><label for="porigf">${t("orders.list.origin")}</label><select id="porigf">
       <option value="">${t("orders.page.all")}</option><option value="web">${t("orders.list.web")}</option><option value="portal">${t("orders.list.portal")}</option><option value="otros">${t("orders.list.others")}</option></select></div>` },
@@ -1034,13 +1035,19 @@ function paint(list, data) {
     };
   });
 }
+var requestPage = (query) => cachedRpc("pedidos_pagina", query, `pedidos-${JSON.stringify(query)}`);
+async function loadPage(query) {
+  const result = await requestPage(query), step = query.p_estado;
+  if (!isStepCode(step) || !result.data || result.data.por_paso) return result;
+  return requestPage({ ...query, p_estado: storedStateOf(step) });
+}
 async function paintOrderList() {
   if (!document.getElementById("pedlista") || !document.getElementById("pper") || !document.getElementById("pcanal")) return;
   addExtraFilters();
   restoreFilters(document.getElementById("v-ventas"));
   const query = params(), loading = document.getElementById("pedlista");
   if (loading && !loading.querySelector(".dgrid")) customersLegacy.showLoading(loading, t("orders.list.loading"));
-  const result = await cachedRpc("pedidos_pagina", query, `pedidos-${JSON.stringify(query)}`);
+  const result = await loadPage(query);
   const list = document.getElementById("pedlista");
   if (!list || !document.getElementById("pestado")) return;
   if (!result.data) {
@@ -1071,6 +1078,7 @@ var PURCHASES = "compras";
 var SUPPLIERS = "proveedores";
 var CALLS = "llamadas";
 var searchTimer;
+var stepOptions = () => ORDER_STEPS.map(([code, key]) => `<option value="${code}">${t(key)}</option>`).join("");
 function baseHtml([title, subtitle]) {
   return `
     <div class="saludo"><div><h1>${escapeHtml(title)}</h1><div class="fecha">${escapeHtml(subtitle)}</div></div>
@@ -1083,8 +1091,7 @@ function baseHtml([title, subtitle]) {
             <option value="">${t("orders.page.all")}</option><option value="paciente">${t("orders.page.saleTo", { customer: term("paciente", { article: "al" }) })}</option>
             <option value="centro">${t("orders.page.saleToCentre")}</option></select></div>
           <div><label for="pestado">${t("orders.page.state")}</label><select id="pestado">
-            <option value="">${t("orders.page.all")}</option><option value="Confirmado">${t("orders.page.confirmed")}</option>
-            <option value="Borrador">${t("orders.page.drafts")}</option><option value="Anulado">${t("orders.page.voided")}</option></select></div>
+            <option value="">${t("orders.page.all")}</option>${stepOptions()}</select></div>
           <div><label for="pq">${t("orders.page.search")}</label><input id="pq" type="search" placeholder="${t("orders.page.searchPlaceholder", { professional: term("medico", { capital: "C" }), customer: term("paciente") })}"></div>
         </div>
         <div class="kpis vtot" id="ptotales"></div>
