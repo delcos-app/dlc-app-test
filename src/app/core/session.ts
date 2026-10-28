@@ -7,6 +7,7 @@ import { coreLegacy } from '../legacy/core-bridge';
 import { t, type MessageKey } from '../i18n';
 import { escapeHtml } from '../services/format';
 import { firstName, wordFor } from './vocabulary';
+import { rpc } from '../api/client';
 
 const ACCESS_CHECK_MS = 3000;
 
@@ -118,6 +119,14 @@ function failed(answer: ImpersonationAnswer | null, error: ServerError): void {
   coreLegacy.hideLoading();
 }
 
+/**
+ * Marks the session just opened as impersonated (SQL 190), so it counts neither as the person's last connection nor as their entry.
+ * Before the SQL is applied the function does not exist: the error is ignored and impersonating still works.
+ */
+async function markImpersonatedSession(): Promise<void> {
+  try { await rpc('suplantar_marcar_sesion'); } catch { /* without the SQL or without network, impersonating goes on */ }
+}
+
 /** «Impersonalizar» a user: after confirming, opens their session; the own session is kept to come back. */
 export async function impersonate(id: string): Promise<void> {
   const user = coreLegacy.users().find(item => item.id === id) ?? { id, nombre: t('core.session.thisPerson'), rol: '' };
@@ -138,6 +147,7 @@ export async function impersonate(id: string): Promise<void> {
     coreLegacy.registerError('api', 'Impersonalizar: no se abre la sesión', { mensaje: opening.message });
     coreLegacy.toast(t('core.session.couldNotOpen', { error: opening.message ?? '' }), true); coreLegacy.hideLoading(); return;
   }
+  await markImpersonatedSession();
   clearLocalData();
   location.reload();
 }

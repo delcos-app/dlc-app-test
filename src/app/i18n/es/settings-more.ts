@@ -109,6 +109,7 @@ export const settingsMore = {
     title: 'Accesos',
     hint: 'Últimas entradas y salidas de la plataforma.',
     none: 'Todavía no hay accesos registrados.',
+    impersonatedBy: ' · Impersonalizado por {name}',
   },
   audit: {
     yes: 'sí',

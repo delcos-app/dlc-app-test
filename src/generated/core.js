@@ -3218,7 +3218,8 @@
       loading: "Cargando los accesos…",
       title: "Accesos",
       hint: "Últimas entradas y salidas de la plataforma.",
-      none: "Todavía no hay accesos registrados."
+      none: "Todavía no hay accesos registrados.",
+      impersonatedBy: " · Impersonalizado por {name}"
     },
     audit: {
       yes: "sí",
@@ -5622,6 +5623,12 @@
   ]);
   setVocabularyResolver((name) => SURGERY_WORDS.get(name)?.());
 
+  // src/app/api/client.ts
+  function rpc(name, ...params) {
+    const [values2] = params;
+    return legacyDb().rpc(name, values2);
+  }
+
   // src/app/core/session.ts
   var ACCESS_CHECK_MS = 3e3;
   var SESSION_ERRORS = [];
@@ -5740,6 +5747,12 @@
     if (!known || code === "sesion") logFailure(code || message, error, detail);
     coreLegacy.hideLoading();
   }
+  async function markImpersonatedSession() {
+    try {
+      await rpc("suplantar_marcar_sesion");
+    } catch {
+    }
+  }
   async function impersonate(id) {
     const user = coreLegacy.users().find((item) => item.id === id) ?? { id, nombre: t("core.session.thisPerson"), rol: "" };
     const text = t(isGuest(user) ? "core.session.confirmGuest" : "core.session.confirmUser", { name: user.nombre });
@@ -5775,6 +5788,7 @@
       coreLegacy.hideLoading();
       return;
     }
+    await markImpersonatedSession();
     clearLocalData();
     location.reload();
   }
@@ -6467,7 +6481,7 @@
     const when = new Date(entry2.creado_en).toLocaleString("es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
     return `<div class="item u-cursor-default">
       <span class="ic ${entering ? "o" : ""}">${entering ? "→" : "←"}</span>
-      <span class="tx"><b>${escapeHtml(entry2.usuario)}</b><span class="sm">${escapeHtml(entry2.evento)} ·
+      <span class="tx"><b>${escapeHtml(entry2.usuario)}</b><span class="sm">${escapeHtml(entry2.evento)}${entry2.suplantado_por ? escapeHtml(t("settingsMore.access.impersonatedBy", { name: entry2.suplantado_por })) : ""} ·
         ${when}
         ${entry2.agente ? ` · ${escapeHtml(String(entry2.agente).slice(0, AGENT_LENGTH))}` : ""}</span></span></div>`;
   }
@@ -34767,12 +34781,6 @@
     paintCycle: () => paintCycle,
     paintCycleTeam: () => paintCycleTeam
   });
-
-  // src/app/api/client.ts
-  function rpc(name, ...params) {
-    const [values2] = params;
-    return legacyDb().rpc(name, values2);
-  }
 
   // src/app/screens/cycle/model.ts
   var CLASSES = ["A", "B", "C"];

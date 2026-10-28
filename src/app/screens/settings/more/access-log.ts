@@ -32,14 +32,15 @@ export function connectionText(connection: Connection | null | undefined, long =
   return t(long ? 'settingsMore.access.lastLong' : 'settingsMore.access.connected', { when: whenText(date, long) });
 }
 
-interface AccessEntry { usuario: string; evento: string; creado_en: string; agente?: string | null }
+/** `suplantado_por`: who was behind an impersonated entry (SQL 190), so it is not taken for the person's own. */
+interface AccessEntry { usuario: string; evento: string; creado_en: string; agente?: string | null; suplantado_por?: string | null }
 
 function entryHtml(entry: AccessEntry): string {
   const entering = entry.evento === 'Entrada';
   const when = new Date(entry.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   return `<div class="item u-cursor-default">
       <span class="ic ${entering ? 'o' : ''}">${entering ? '→' : '←'}</span>
-      <span class="tx"><b>${escapeHtml(entry.usuario)}</b><span class="sm">${escapeHtml(entry.evento)} ·
+      <span class="tx"><b>${escapeHtml(entry.usuario)}</b><span class="sm">${escapeHtml(entry.evento)}${entry.suplantado_por ? escapeHtml(t('settingsMore.access.impersonatedBy', { name: entry.suplantado_por })) : ''} ·
         ${when}
         ${entry.agente ? ` · ${escapeHtml(String(entry.agente).slice(0, AGENT_LENGTH))}` : ''}</span></span></div>`;
 }
