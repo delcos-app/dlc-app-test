@@ -20,7 +20,8 @@ const CHUNK_FOLDER = 'min/chunks/', IDLE_DELAY_MS = 1500, IDLE_TIMEOUT_MS = 4000
 /** The screens (ids of ir()) whose loader is in a chunk. */
 const SCREEN_CHUNKS: Readonly<Record<string, ChunkName | undefined>> = {
   analitica: 'analytics', seguimiento: 'quality', manual: 'manual', eventos: 'events', facturacion: 'billing', delcos: 'platform',
-  rutas: 'routes', ventas: 'orders', agenda: 'agenda',
+  rutas: 'routes', ventas: 'orders', agenda: 'agenda', directorio: 'accounts', duplicados: 'accounts',
+  usuarios: 'settings-users', plan: 'settings-plan', perfil: 'settings-parts', config: 'settings-parts',
 };
 
 const loads = new Map<ChunkName, Promise<unknown>>();

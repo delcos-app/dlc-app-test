@@ -6,4 +6,8 @@
 export { editEquipment } from './editor';
 export { paintEquipment } from './list';
 export { expiryPill, reviewPill } from './model';
-export { showEquipment } from './sheet';
+import { backOpener, sheetOpener } from '../../core/layers/dialogs';
+import { showEquipment as openEquipmentSheet } from './sheet';
+
+/** The sheet look and «‹ Volver», added here instead of wrapping the global name verEquipo (plan 7.3, cut D). */
+export const showEquipment = backOpener('verEquipo', sheetOpener(openEquipmentSheet));

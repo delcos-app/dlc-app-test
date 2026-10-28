@@ -10,7 +10,7 @@ import { t } from '../../../i18n';
 const WATCH_MS = 20000, RELOAD_MS = 800, ADMINISTER = 'administrar';
 const REQUESTED = 'pedido', COPYING = 'copiando', FAILED = 'error', DONE = 'ok';
 
-interface TestEnvironment { refresco_estado?: string | null; refresco_error?: string | null; maestro_guardado_en?: string | null; ultimo_reset?: string | null }
+export interface TestEnvironment { refresco_estado?: string | null; refresco_error?: string | null; maestro_guardado_en?: string | null; ultimo_reset?: string | null }
 
 let watcher: ReturnType<typeof setInterval> | null = null;
 

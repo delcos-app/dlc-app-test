@@ -4,7 +4,7 @@
  * Migrated from the legacy agTamb / agTambGrupos and the click handlers of legado 092 (v2.391.0).
  */
 import { agendaActions, agendaSuggestions, appointments, icon, legacyAgenda } from '../../legacy/bridge';
-import { showCentre } from '../accounts/centre';
+import { showCentreSheet as showCentre } from '../accounts/lazy';
 import { t } from '../../i18n';
 import { fromIsoDate } from '../../services/dates';
 import { escapeHtml, looseText } from '../../services/format';

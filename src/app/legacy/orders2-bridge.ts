@@ -83,7 +83,7 @@ export const orderCardsLegacy = {
 
 export const indicatorSettingsLegacy = {
   defaults: (): readonly string[] => KPI_DEF,
-  save: (list: readonly Record<string, unknown>[]): Promise<boolean> => legacyFreeScreensSettingsRest.saveIndicators(list),
+  save: (list: readonly Record<string, unknown>[]): Promise<boolean> => legacyFreeScreensSettingsRest.saveIndicators(list).then(saved => saved === true),
   reloadHome: (): void => { void cargarInicio(); },
   eye: (open: boolean): string => (open ? ICO.ojo : ICO.ojoNo) ?? '',
 };

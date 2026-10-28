@@ -60,16 +60,13 @@ async function markDifferent(button: HTMLButtonElement): Promise<void> {
   paintLists(); notices.toast(t('accountsMore.duplicates.markedDifferent'));
 }
 
-/** The buttons of the page, wherever they are painted (lists and compare panel). */
-export function listenToDuplicates(): void {
-  document.addEventListener('click', event => {
-    const target = event.target as Element | null;
-    const tab = target?.closest<HTMLElement>('#duppest [data-dpest]');
-    if (tab) { duplicatesState.tab = tab.dataset.dpest ?? duplicatesState.tab; duplicatesState.current = null; paintLists(); emptyPanel(''); return; }
-    if (currentScreen() !== 'duplicados' || !target) return;
-    const comparison = target.closest<HTMLElement>('[data-dcmp]'), card = target.closest<HTMLElement>('[data-dver]'), different = target.closest<HTMLButtonElement>('[data-ddes]');
-    if (comparison) compare(comparison);
-    if (card) agendaActions.openAccount(card.dataset.dver ?? '');
-    if (different) void markDifferent(different);
-  });
+/** What a click on Duplicados does (its listener, ../listeners.ts, is in the core): a tab, compare, open a card, mark as different. */
+export function answerDuplicatesClick(target: Element): void {
+  const tab = target.closest<HTMLElement>('#duppest [data-dpest]');
+  if (tab) { duplicatesState.tab = tab.dataset.dpest ?? duplicatesState.tab; duplicatesState.current = null; paintLists(); emptyPanel(''); return; }
+  if (currentScreen() !== 'duplicados') return;
+  const comparison = target.closest<HTMLElement>('[data-dcmp]'), card = target.closest<HTMLElement>('[data-dver]'), different = target.closest<HTMLButtonElement>('[data-ddes]');
+  if (comparison) compare(comparison);
+  if (card) agendaActions.openAccount(card.dataset.dver ?? '');
+  if (different) void markDifferent(different);
 }

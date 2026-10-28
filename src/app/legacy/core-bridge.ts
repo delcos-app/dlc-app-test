@@ -106,7 +106,7 @@ export const coreLegacy = {
   setLiveChannel: (channel: unknown): void => { sessionStore.live = channel; },
   repaintPortal: (isCentre: boolean): void => { if (isCentre && typeof centroPintar === 'function') centroPintar(); else void legacyFreeScreensPortal.paintMaterial(); },
   shownAccount: (): string | null => accountsStore.shownId,
-  refreshCardPortal: (id: string): void => { window.delcos.screens.accounts.refreshPortal(id); },
+  refreshCardPortal: (id: string): void => { void window.delcos.screens.accounts.refreshPortal(id); },
   // ---- Reads, writes and their caches
   forgetReadCache: (): void => { RC.clear(); RC_VUELO.clear(); sessionStore.cacheEpoch++; },
   forgetSchemes: (): void => { homeStore.commissionSchemes = []; },
@@ -134,8 +134,8 @@ export const coreLegacy = {
   paintRoutePlan: (): void => { pintarPlan(); },
   centreFromLocation: (box: Element, index: string | number, lat: number, lon: number): Promise<void> => legacyFreeScreensAccounts.centreFromLocation(box as HTMLElement, index as string, lat, lon),
   centreList: (list: Element, centres: readonly unknown[], options: CentreListOptions): void => {
-    legacyFreeScreensAccounts.centreList(list as HTMLElement, centres as Parameters<typeof legacyFreeScreensAccounts.centreList>[1], options.onPick as Parameters<typeof legacyFreeScreensAccounts.centreList>[2], options.extra ? { html: options.extra, onClick: options.onExtra } : undefined);
+    void legacyFreeScreensAccounts.centreList(list as HTMLElement, centres as Parameters<typeof legacyFreeScreensAccounts.centreList>[1], options.onPick as Parameters<typeof legacyFreeScreensAccounts.centreList>[2], options.extra ? { html: options.extra, onClick: options.onExtra } : undefined);
   },
-  setCentre: (box: Element, index: string | number, centre: object): void => { legacyFreeScreensAccounts.setCentre(box as HTMLElement, index as string, centre); },
+  setCentre: (box: Element, index: string | number, centre: object): void => { void legacyFreeScreensAccounts.setCentre(box as HTMLElement, index as string, centre); },
   paintCentreChoice: (box: Element, index: string | number): void => { void legacyFreeScreensAccounts.paintCentrePicker(box as HTMLElement, index as string, undefined); },
 };

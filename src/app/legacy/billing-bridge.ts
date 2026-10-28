@@ -24,7 +24,7 @@ export const billingLegacy = {
   page: (): number => ordersStore.invoicePage,
   setPage: (page: number): void => { ordersStore.invoicePage = page; },
   canInvoice: (): boolean => Boolean(legacyFreeCoreServices.permissions.canInvoice()),
-  /** Through the global names: legado 057 caches the screen and legado 089 / the wide window wrap verFactura. */
+  /** Through the global names (the adapters of pantallas/facturacion.js), which call the screen with its cache and its window. */
   reload: (): void => { void cargarFacturacion(); },
   openInvoice: (id: string): void => { void verFactura(id); },
   withLoading: <T>(work: () => Promise<T>): Promise<T> => legacyFreeComponentsEmbeddedWindow.withDialogLoading(work),

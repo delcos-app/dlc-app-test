@@ -5,4 +5,8 @@
  */
 export { editSurgery } from './editor';
 export { paintSurgeries } from './list';
-export { showSurgery } from './sheet';
+import { backOpener, sheetOpener } from '../../core/layers/dialogs';
+import { showSurgery as openSurgerySheet } from './sheet';
+
+/** The sheet look and «‹ Volver», added here instead of wrapping the global name verCirugia (plan 7.3, cut D). */
+export const showSurgery = backOpener('verCirugia', sheetOpener(openSurgerySheet));

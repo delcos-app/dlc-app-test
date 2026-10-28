@@ -1,6 +1,6 @@
 /**
  * Bridge of the folded legacy layers 080–161 (src/app/core/layers, v2.424.0) to the legacy state and helpers they still use, kept
- * apart from bridge.ts (at its size limit). Global names other code wraps (verPedido, montarMenuLateral…) are wrapped through window.
+ * apart from bridge.ts (at its size limit).
  */
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeCoreSettings from '../core/settings';
@@ -29,16 +29,6 @@ import * as legacyFreeScreensSettings from '../screens/settings';
 import * as legacyFreeScreensTenders from '../screens/tenders';
 import * as legacyFreeCoreLegacyA from '../core/legacy-a';
 
-type AnyFunction = (...args: unknown[]) => unknown;
-type Wrapper = (original: AnyFunction) => AnyFunction;
-const globals = window as unknown as Record<string, unknown>;
-
-/** Replaces a legacy global function by a wrapper of it (if it exists): the same as the legacy `name = (orig => …)(name)`. */
-function wrapGlobal(name: string, wrapper: Wrapper): void {
-  const original = globals[name];
-  if (typeof original === 'function') globals[name] = wrapper(original as AnyFunction);
-}
-
 export interface LegacyConfigItem { k: string; t: string; ic?: string; d?: string; r?: () => unknown; mod?: string; sub?: [string, string, () => unknown][] }
 export interface LegacyPage { t: string; d?: string; permiso: () => boolean; tabs: [string, string, () => unknown][] }
 type PageTabs = readonly (readonly [string, string, () => unknown])[];
@@ -55,7 +45,8 @@ export const treeLegacy = {
   inTestEnvironment: (): boolean => EN_PRUEBAS,
   configTree: (): readonly (readonly [string, readonly LegacyConfigItem[]])[] => legacyFreeCoreSettings.settingsTree(),
   pageTabs: (page: string): PageTabs => pages()[page]?.tabs ?? [],
-  paintProfile: (): unknown => { legacyFreeScreensSettingsRest.paintMyProfile(); return undefined; },
+  // Returned: Configuración waits for it before painting the next part (Mi perfil is loaded on first use, plan 7.3 cut D3)
+  paintProfile: (): unknown => legacyFreeScreensSettingsRest.paintMyProfile(),
   paintNotifications: (): unknown => { legacyFreeScreensSettingsExtra.paintNotificationSettings(); return undefined; },
   paintUsers: (): unknown => legacyFreeScreensSettingsRest.paintUsers(),
   paintRoles: (): unknown => legacyFreeScreensSettingsMore.paintRoles(),
@@ -133,7 +124,6 @@ export const dialogLegacy = {
   dialog: (id: string): HTMLDialogElement | null => document.getElementById(id) as HTMLDialogElement | null,
   openingSheet: (): boolean => Boolean(accountsStore.cardEffect),
   sheetOpening: (step: number): void => { accountsStore.cardEffect = Number(accountsStore.cardEffect) + step; },
-  wrapGlobal,
   openAccount: (id: string): void => { void abrirFicha(id); },
   openCentre: (id: string): void => { void fichaCentro(id); },
   setLastAction: (time: number): void => { settingsStore.lastAction = time; },
@@ -143,8 +133,6 @@ export const dialogLegacy = {
 export interface BackView { fn: string; args: unknown[]; t: number; dlg?: HTMLDialogElement | null; cerrada?: number | null }
 const backStack = (): BackView[] => VUELTA as BackView[];
 export const backLegacy = {
-  titledViews: (): string[] => Object.keys(VISTA_TITULO),
-  wrapGlobal,
   view: (): BackView | null => navigationStore.view as BackView | null,
   setView: (view: BackView | null): void => { navigationStore.view = view; },
   lastClick: (): { d: Element; t: number } | null => navigationStore.backClick,
@@ -160,7 +148,6 @@ export const backLegacy = {
   openDialog: (): HTMLDialogElement | null => vistaDlg(),
   setViewDialog: (view: BackView, dialog: HTMLDialogElement | null): void => { view.dlg = dialog; },
   button: (view: BackView, dialog?: HTMLDialogElement): void => { legacyFreeCoreNavigationApi.backButton(view, dialog); },
-  callGlobal: (name: string, args: unknown[]): unknown => (globals[name] as AnyFunction)(...args),
 };
 
 export const saveLegacy = {
@@ -214,7 +201,7 @@ export const sortLegacy = {
   // eslint-disable-next-line id-length -- the legacy name of Cuentas' filters
   accountFilters: (): AccountFilters => F,
   searchAccounts: (): void => { void buscar(true); },
-  paintAccountsHeader: (): void => { legacyFreeScreensAccounts.paintAccountsHeader(); },
+  paintAccountsHeader: (): void => { void legacyFreeScreensAccounts.paintAccountsHeader(); },
   rememberedKinds: (): string[] => Object.keys(ORD_MEM),
   rememberedHasField: (kind: string, index: number): boolean => ((ORD_MEM[kind]?.campos as readonly unknown[] | undefined)?.[index] ?? null) !== null,
   isRemembered: (kind: string): boolean => Boolean(ORD_MEM[kind]),

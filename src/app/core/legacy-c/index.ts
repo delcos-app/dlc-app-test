@@ -11,7 +11,7 @@ import { keepContactsLabel, applyVocabularyToFixedTexts } from './contacts-label
 import { createColumnsPanel, listenToFieldChips, placeToolsButton, prepareToolsOnChanges, resizeColumnsByDragging, setPanelFilters } from './tools';
 import { arrangeEveryScreen, arrangeTableBars, keepOneTitleHelp, listenToSeeMore, nameInEveryText, raisePageAction, renameIndicators, watchAnalyticsChannel, watchBillingSettings, watchModuleSections } from './screen-layout';
 import { improveNumbers, noSystemPickers, undoWrongVat, watchFormFields, watchVatFields, watchWideNotes } from './form-fields';
-import { cacheModuleLoaders, keepUpdateTime, loaderOnPageChange, watchDialogWrites } from './module-cache';
+import { keepUpdateTime, loaderOnPageChange, watchDialogWrites } from './module-cache';
 import { embedWindows, focusOpenedWindows, forgetVisitOnClose, neverHalfOpen, repaintCycleOnClose, repaintEventsOnClose, repaintSurgeriesOnClose, revealWindows, sizeWindows, stackWindows, trackDialogEpoch } from './dialogs';
 import { freezeOnTabChange, rememberLogin, rememberPressedTab, summariseNewHelps } from './tabs-and-help';
 import { navigateSuggestions, rememberScreenOnReload } from './keys';
@@ -51,7 +51,7 @@ export function start054(): void { prepareToolsOnChanges(); openOwnPages(); }
 export function start055(): void { placeToolsButton(); freezeOnTabChange(); watchVatFields(); }
 export function start056(): void { createColumnsPanel(); arrangeEveryScreen(); }
 export function start057(): void {
-  addIconsOf('057'); countWrites(); watchDialogWrites(); cacheModuleLoaders(); keepUpdateTime(); loaderOnPageChange(); resizeColumnsByDragging();
+  addIconsOf('057'); countWrites(); watchDialogWrites(); keepUpdateTime(); loaderOnPageChange(); resizeColumnsByDragging();
   watchFormFields(); watchModuleSections(); renameIndicators();
 }
 export function start058(): void {

@@ -36,10 +36,6 @@ export const moduleStates = (): Record<string, () => string> => ({
   agenda: () => [agendaStore.mode, agendaStore.selectedDate, agendaStore.viewedUser ? agendaStore.viewedUser.id : ''].join('|'),
 });
 
-/** The loaders still wrapped by their global name; the screens split in chunks wrap their own loader (cachedModuleLoader, plan 7.3 cut C). */
-const LOADERS: readonly (readonly [string, string])[] = [['inicio', 'cargarInicio'], ['productos', 'cargarProductosModulo'],
-  ['facturacion', 'cargarFacturacion'], ['analitica', 'cargarAnalitica'], ['pacientes', 'cargarPacientes']];
-
 /** A loader that uses the cache of its screen; the Agenda is not reloaded right after closing a window without changes. */
 function cached(screen: string, original: Loader): Loader {
   return async function (this: unknown, ...args: unknown[]): Promise<unknown> {
@@ -49,17 +45,9 @@ function cached(screen: string, original: Loader): Loader {
   };
 }
 
-/** Each loader uses the cache of its screen; the Agenda is not reloaded right after closing a window without changes. */
-export function cacheModuleLoaders(): void {
-  const globals = window as unknown as Record<string, Loader>;
-  LOADERS.forEach(([screen, name]) => {
-    const original = globals[name]; if (original) globals[name] = cached(screen, original);
-  });
-}
-
 /**
- * The loader of a screen split in a chunk, with the cache of its screen (what cacheModuleLoaders does to the loaders by name): the
- * screen wraps its own loader instead of having its global name wrapped (plan 7.3 cut C).
+ * The loader of a screen with the cache of its screen: each screen wraps its own loader instead of having its global name wrapped
+ * (plan 7.3, cuts C and D).
  */
 export function cachedModuleLoader<Load extends (...args: never[]) => Promise<unknown>>(screen: string, load: Load): Load {
   return cached(screen, load as unknown as Loader) as unknown as Load;

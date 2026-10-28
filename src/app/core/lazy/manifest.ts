@@ -13,10 +13,12 @@ import * as componentsLoading from '../../components/loading';
 import * as coreNavigationCurrent from '../../core/navigation/current';
 import * as coreOrganisation from '../../core/organisation';
 import * as i18nIndex from '../../i18n/index';
+import * as legacyAccounts2Bridge from '../../legacy/accounts2-bridge';
 import * as legacyBillingBridge from '../../legacy/billing-bridge';
 import * as legacyBridge from '../../legacy/bridge';
 import * as legacyCommissionsBridge from '../../legacy/commissions-bridge';
 import * as legacyCustomersBridge from '../../legacy/customers-bridge';
+import * as legacyMiscBridge from '../../legacy/misc-bridge';
 import * as legacyOrdersBridge from '../../legacy/orders-bridge';
 import * as legacyOrders2Bridge from '../../legacy/orders2-bridge';
 import * as legacyPanelsBridge from '../../legacy/panels-bridge';
@@ -25,7 +27,12 @@ import * as legacyRestBridge from '../../legacy/rest-bridge';
 import * as legacyRoutesBridge from '../../legacy/routes-bridge';
 import * as legacyRoutes2Bridge from '../../legacy/routes2-bridge';
 import * as legacySettingsCoreBridge from '../../legacy/settings-core-bridge';
+import * as legacySettings1Bridge from '../../legacy/settings1-bridge';
+import * as legacySettings3Bridge from '../../legacy/settings3-bridge';
+import * as legacySettings4Bridge from '../../legacy/settings4-bridge';
+import * as screensAccessIndex from '../../screens/access/index';
 import * as screensAccountsEditorFormModel from '../../screens/accounts/editor-form/model';
+import * as screensAccountsListColumns from '../../screens/accounts/list/columns';
 import * as screensAccountsTimetable from '../../screens/accounts/timetable';
 import * as screensAgendaActiveDay from '../../screens/agenda/active-day';
 import * as screensAgendaAppointmentOptions from '../../screens/agenda/appointment-options';
@@ -36,16 +43,21 @@ import * as screensAgendaSameCentre from '../../screens/agenda/same-centre';
 import * as screensAgendaTrafficTimes from '../../screens/agenda/traffic-times';
 import * as screensAgendaYourDayCompact from '../../screens/agenda/your-day/compact';
 import * as screensCustomersPicker from '../../screens/customers/picker';
+import * as screensCycleCard from '../../screens/cycle/card';
+import * as screensEquipmentModel from '../../screens/equipment/model';
 import * as screensEventsModel from '../../screens/events/model';
 import * as screensHomeIndex from '../../screens/home/index';
 import * as screensHomeStore from '../../screens/home/store';
 import * as screensImportFields from '../../screens/import/fields';
 import * as screensImportMatching from '../../screens/import/matching';
 import * as screensOrdersCards from '../../screens/orders/cards';
+import * as screensOrdersIndex from '../../screens/orders/index';
 import * as screensOrdersModel from '../../screens/orders/model';
 import * as screensOrdersPaymentEmail from '../../screens/orders/payment-email';
 import * as screensOrdersSubscriptionPayments from '../../screens/orders/subscription/payments';
 import * as screensPlatformModel from '../../screens/platform/model';
+import * as screensPortalModel from '../../screens/portal/model';
+import * as screensPrivacyPersonData from '../../screens/privacy/person-data';
 import * as screensPurchasesIndex from '../../screens/purchases/index';
 import * as screensRoutesDayBar from '../../screens/routes/day-bar';
 import * as screensRoutesIndex from '../../screens/routes/index';
@@ -55,7 +67,15 @@ import * as screensRoutesPlannerVisits from '../../screens/routes/planner/visits
 import * as screensRoutesTitleCase from '../../screens/routes/title-case';
 import * as screensRoutesTodayDayPlan from '../../screens/routes/today/day-plan';
 import * as screensRoutesTodayService from '../../screens/routes/today/service';
+import * as screensSettingsCustomFieldsIndex from '../../screens/settings/custom-fields/index';
+import * as screensSettingsEmailTemplates from '../../screens/settings/email/templates';
+import * as screensSettingsMoreAccessLog from '../../screens/settings/more/access-log';
 import * as screensSettingsPlanUsage from '../../screens/settings/plan/usage';
+import * as screensSettingsUsersModel from '../../screens/settings/users/model';
+import * as screensSurgeriesModel from '../../screens/surgeries/model';
+import * as screensTendersModel from '../../screens/tenders/model';
+import * as screensVisitCardBlock from '../../screens/visit/card-block';
+import * as screensVisitEdit from '../../screens/visit/edit';
 import * as servicesCalendar from '../../services/calendar';
 import * as servicesDateFormat from '../../services/date-format';
 import * as servicesDates from '../../services/dates';
@@ -76,10 +96,12 @@ export const sharedModules = (): Record<string, object> => ({
   'core/navigation/current': coreNavigationCurrent,
   'core/organisation': coreOrganisation,
   'i18n/index': i18nIndex,
+  'legacy/accounts2-bridge': legacyAccounts2Bridge,
   'legacy/billing-bridge': legacyBillingBridge,
   'legacy/bridge': legacyBridge,
   'legacy/commissions-bridge': legacyCommissionsBridge,
   'legacy/customers-bridge': legacyCustomersBridge,
+  'legacy/misc-bridge': legacyMiscBridge,
   'legacy/orders-bridge': legacyOrdersBridge,
   'legacy/orders2-bridge': legacyOrders2Bridge,
   'legacy/panels-bridge': legacyPanelsBridge,
@@ -88,7 +110,12 @@ export const sharedModules = (): Record<string, object> => ({
   'legacy/routes-bridge': legacyRoutesBridge,
   'legacy/routes2-bridge': legacyRoutes2Bridge,
   'legacy/settings-core-bridge': legacySettingsCoreBridge,
+  'legacy/settings1-bridge': legacySettings1Bridge,
+  'legacy/settings3-bridge': legacySettings3Bridge,
+  'legacy/settings4-bridge': legacySettings4Bridge,
+  'screens/access/index': screensAccessIndex,
   'screens/accounts/editor-form/model': screensAccountsEditorFormModel,
+  'screens/accounts/list/columns': screensAccountsListColumns,
   'screens/accounts/timetable': screensAccountsTimetable,
   'screens/agenda/active-day': screensAgendaActiveDay,
   'screens/agenda/appointment-options': screensAgendaAppointmentOptions,
@@ -99,16 +126,21 @@ export const sharedModules = (): Record<string, object> => ({
   'screens/agenda/traffic-times': screensAgendaTrafficTimes,
   'screens/agenda/your-day/compact': screensAgendaYourDayCompact,
   'screens/customers/picker': screensCustomersPicker,
+  'screens/cycle/card': screensCycleCard,
+  'screens/equipment/model': screensEquipmentModel,
   'screens/events/model': screensEventsModel,
   'screens/home/index': screensHomeIndex,
   'screens/home/store': screensHomeStore,
   'screens/import/fields': screensImportFields,
   'screens/import/matching': screensImportMatching,
   'screens/orders/cards': screensOrdersCards,
+  'screens/orders/index': screensOrdersIndex,
   'screens/orders/model': screensOrdersModel,
   'screens/orders/payment-email': screensOrdersPaymentEmail,
   'screens/orders/subscription/payments': screensOrdersSubscriptionPayments,
   'screens/platform/model': screensPlatformModel,
+  'screens/portal/model': screensPortalModel,
+  'screens/privacy/person-data': screensPrivacyPersonData,
   'screens/purchases/index': screensPurchasesIndex,
   'screens/routes/day-bar': screensRoutesDayBar,
   'screens/routes/index': screensRoutesIndex,
@@ -118,7 +150,15 @@ export const sharedModules = (): Record<string, object> => ({
   'screens/routes/title-case': screensRoutesTitleCase,
   'screens/routes/today/day-plan': screensRoutesTodayDayPlan,
   'screens/routes/today/service': screensRoutesTodayService,
+  'screens/settings/custom-fields/index': screensSettingsCustomFieldsIndex,
+  'screens/settings/email/templates': screensSettingsEmailTemplates,
+  'screens/settings/more/access-log': screensSettingsMoreAccessLog,
   'screens/settings/plan/usage': screensSettingsPlanUsage,
+  'screens/settings/users/model': screensSettingsUsersModel,
+  'screens/surgeries/model': screensSurgeriesModel,
+  'screens/tenders/model': screensTendersModel,
+  'screens/visit/card-block': screensVisitCardBlock,
+  'screens/visit/edit': screensVisitEdit,
   'services/calendar': servicesCalendar,
   'services/date-format': servicesDateFormat,
   'services/dates': servicesDates,
@@ -129,4 +169,4 @@ export const sharedModules = (): Record<string, object> => ({
 });
 
 /** The lazy chunks: min/chunks/<name>.js. */
-export const LAZY_CHUNKS = ['agenda', 'analytics', 'billing', 'commissions', 'events', 'import', 'manual', 'orders', 'platform', 'quality', 'routes'] as const;
+export const LAZY_CHUNKS = ['accounts', 'agenda', 'analytics', 'billing', 'commissions', 'events', 'import', 'manual', 'orders', 'platform', 'quality', 'routes', 'settings-email', 'settings-parts', 'settings-plan', 'settings-users'] as const;

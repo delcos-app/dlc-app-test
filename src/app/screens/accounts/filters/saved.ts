@@ -7,7 +7,7 @@ import { goTo, legacyDb, salesTeam, term } from '../../../legacy/bridge';
 import { accountsEditorLegacy } from '../../../legacy/accounts2-bridge';
 import { t } from '../../../i18n';
 import { orFallback } from '../../../services/values';
-import { searchAccounts } from '../list/search';
+import { searchAccounts } from '../lazy';
 
 export interface SavedFilter { q?: string; prov?: string; muni?: string; esp?: string; est?: string; com?: string; urg?: boolean; mios?: boolean; sin?: boolean }
 

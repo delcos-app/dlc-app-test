@@ -1,8 +1,6 @@
 /** Spanish texts of Pedidos (part of es.ts: one file per screen keeps each one short). */
 export const orders = {
   page: {
-    salesTitle: 'Ventas',
-    salesSubtitle: 'Pedidos, unidades e importes',
     newSale: '+ Nueva venta',
     channel: 'Canal',
     all: 'Todos',

@@ -6,7 +6,9 @@
 import { opportunitiesLegacy, permissions, purchasesLegacy, term } from '../../legacy/bridge';
 import { customersLegacy } from '../../legacy/customers-bridge';
 import { ordersLegacy } from '../../legacy/orders-bridge';
+import { glueHelp } from '../../components';
 import { t } from '../../i18n';
+import { escapeHtml } from '../../services/format';
 import { editSupplier, paintPurchases, paintSuppliers } from '../purchases';
 import { paintOrderList } from './list';
 
@@ -15,9 +17,10 @@ const SALES = 'ventas', PURCHASES = 'compras', SUPPLIERS = 'proveedores', CALLS 
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
 
-function baseHtml(): string {
+/** The page, already with the title of the section it opens (before, «Ventas» first and the section title after loading). */
+function baseHtml([title, subtitle]: readonly [string, string]): string {
   return `
-    <div class="saludo"><div><h1>${t('orders.page.salesTitle')}</h1><div class="fecha">${t('orders.page.salesSubtitle')}</div></div>
+    <div class="saludo"><div><h1>${escapeHtml(title)}</h1><div class="fecha">${escapeHtml(subtitle)}</div></div>
       <div class="acts u-m-0">${customersLegacy.canSell() ? `<button class="btn" id="pednuevo">${t('orders.page.newSale')}</button>` : ''}</div></div>
     <div id="vcuerpo">
       <div class="panel">
@@ -38,10 +41,10 @@ function baseHtml(): string {
 }
 
 /** The page with the sales filters (every section starts from it; the others replace #vcuerpo). */
-async function paintBase(): Promise<void> {
+async function paintBase(section: string): Promise<void> {
   const view = document.getElementById('v-ventas'); if (!view) return;
   customersLegacy.clearModules('v-ventas');
-  view.innerHTML = baseHtml();
+  view.innerHTML = baseHtml(ordersLegacy.sectionTitle(section));
   const add = document.getElementById('pednuevo'); if (add) add.onclick = (): void => { ordersLegacy.newSale(); };
   const repaint = (): void => { void paintOrderList(); };
   opportunitiesLegacy.mountPeriod(document.getElementById('pper'), { id: 'ventas', valor: 'mes', alCambiar: repaint });
@@ -101,9 +104,22 @@ function paintCalls(section: string): void {
   opportunitiesLegacy.repaintList();
 }
 
+/**
+ * The title of a heading that may already have its «i» of help glued to the last word (components/help.ts): the whole text changes
+ * and the «i» is glued again. Before, only the first text node changed and the glued word stayed: «Compras Ventas» when the «i»
+ * arrived while the page was loading (the intermittent «Compras no tiene su título» of rapidos2139).
+ */
+function setHeading(heading: Element, title: string): void {
+  const help = heading.querySelector('.ai');
+  heading.textContent = title;
+  if (!help) return;
+  glueHelp(heading, '');
+  (heading.querySelector('.ai-pegada') ?? heading).append(help);
+}
+
 function paintTitle(): void {
   const view = document.getElementById('v-ventas'), [title, subtitle] = ordersLegacy.sectionTitle(ordersLegacy.section());
-  const heading = view?.querySelector('.saludo h1'); if (heading?.firstChild) heading.firstChild.textContent = title;
+  const heading = view?.querySelector('.saludo h1'); if (heading) setHeading(heading, title);
   const date = view?.querySelector('.saludo .fecha'); if (date) date.textContent = subtitle;
   ordersLegacy.markSection();
 }
@@ -117,7 +133,7 @@ export async function loadSales(): Promise<void> {
   // v2.335.0: while it is mounted over Compras, the menu and the tabs already mark the real section
   ordersLegacy.setLoadingSection(section);
   try {
-    await paintBase();
+    await paintBase(section);
     paintSections(section);
   } finally { ordersLegacy.setLoadingSection(null); }
   paintCalls(section);

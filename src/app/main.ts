@@ -33,9 +33,8 @@ import * as settingsShell from './screens/settings/shell';
 import * as embeddedWindow from './components/embedded-window';
 import * as settingsRest from './screens/settings/rest';
 import * as portalHome from './screens/home/portal-home';
-import { listenToDuplicates } from './screens/accounts/duplicates';
-import { listenToDayPickers } from './screens/accounts/editor-form';
-import { listenToStateSelects } from './screens/accounts/status';
+import { listenToColumnResize, listenToDayPickers, listenToDuplicates, listenToMapCards, listenToStateSelects } from './screens/accounts/listeners';
+import { openCard } from './screens/accounts/lazy';
 import * as settingsExtra from './screens/settings/extra';
 import * as listComponents from './components/list';
 import * as filterComponents from './components/filters';
@@ -44,7 +43,6 @@ import * as listBar from './components/list-bar';
 import * as settingsMore from './screens/settings/more';
 import * as settings from './screens/settings';
 import * as access from './screens/access';
-import { listenToMapCards } from './screens/accounts/map';
 import * as routes from './screens/routes';
 import * as orders from './screens/orders';
 import * as products from './screens/products';
@@ -68,8 +66,6 @@ import { listenToPolicyViolations } from './core/csp-watch';
 import { publishSharedModules } from './core/lazy/registry';
 import { listenToSameCentre } from './screens/agenda/same-centre';
 import { listenToCards, listenToYourDay } from './screens/agenda/your-day/listeners';
-import { listenToColumnResize } from './screens/accounts/list/column-panel';
-import { paintHeader as paintAccountsHeader } from './screens/accounts/list/table';
 import * as home from './screens/home';
 import { paintIndicators } from './screens/home/indicators';
 import { openIndicatorSettings } from './screens/home/indicator-settings';
@@ -103,7 +99,7 @@ export interface DelcosCore {
   /** What legado 025–049 did (v2.424.0): each legado file calls its part at its place in the load order. */
   readonly legacyB: typeof legacyB;
   readonly screens: {
-    readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators; readonly openIndicatorSettings: typeof openIndicatorSettings };
+    readonly home: { readonly load: typeof home.loadWithCache; readonly renderSkeleton: typeof home.renderSkeleton; readonly paintIndicators: typeof paintIndicators; readonly openIndicatorSettings: typeof openIndicatorSettings };
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
@@ -165,7 +161,7 @@ window.delcos = {
   components: { ...components, embeddedWindow, list: listComponents, filters: filterComponents, filtersPanel, listBar },
   legacyB,
   screens: {
-    home: { load: home.load, renderSkeleton: home.renderSkeleton, paintIndicators, openIndicatorSettings },
+    home: { load: home.loadWithCache, renderSkeleton: home.renderSkeleton, paintIndicators, openIndicatorSettings },
     agenda,
     accounts,
     events,
@@ -203,10 +199,11 @@ listenToSameCentre();
 listenToDuplicates();
 listenToDayPickers();
 listenToStateSelects();
-listenToMapCards(id => { void accounts.openAccountCard(id); });
+// The card itself, as before plan 7.3 cut D (the map was never wrapped by the global name abrirFicha)
+listenToMapCards(id => { void openCard(id); });
 listenToYourDay();
 listenToCards();
-listenToColumnResize(paintAccountsHeader);
+listenToColumnResize();
 cycle.listenToClassButtons(id => { void cycle.paintCardCycle(id); });
 portal.listenToForm();
 portal.listenToCentreDocs();

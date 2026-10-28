@@ -3,6 +3,7 @@
  * The header actions and the professional portal home are in ./portal-home (v2.417.0).
  */
 import { currentScreen, permissions } from '../../legacy/bridge';
+import { cachedModuleLoader } from '../../core/legacy-c/module-cache';
 import type { Route } from '../../core/router';
 import { loadIndicators } from './indicators';
 import { paintProfessionalHome, placeHeader, removeOldBlocks } from './portal-home';
@@ -51,5 +52,8 @@ export function load(): Promise<void> {
   void done.then(() => paintMosaic()).catch(() => undefined);
   return done;
 }
+
+/** Inicio with the cache of its screen (what cargarInicio calls), added here instead of wrapping that global name (plan 7.3, cut D). */
+export const loadWithCache = cachedModuleLoader('inicio', load);
 
 export const homeRoute: Route = { id: 'inicio', enter: () => load() };

@@ -14,14 +14,6 @@ export async function changeState(id: string, state: string): Promise<void> {
   void searchAccounts(true); miscLegacy.reloadHome();
 }
 
-/** A commercial state chosen in any [data-estado] select. */
-export function listenToStateSelects(): void {
-  document.addEventListener('change', event => {
-    const select = (event.target as Element | null)?.closest<HTMLSelectElement>('[data-estado]');
-    if (select) void changeState(select.dataset.estado ?? '', select.value);
-  });
-}
-
 interface Deactivated { ok?: boolean; error?: string; citas_quitadas?: number }
 
 const removedText = (removed: number): string =>

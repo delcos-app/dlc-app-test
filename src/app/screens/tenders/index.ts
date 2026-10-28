@@ -5,5 +5,9 @@
  */
 export { editTender } from './editor';
 export { paintTenders, type TenderView } from './list';
-export { showTender } from './sheet';
 export { editWarnings } from './warnings';
+import { backOpener, sheetOpener } from '../../core/layers/dialogs';
+import { showTender as openTenderSheet } from './sheet';
+
+/** The sheet look and «‹ Volver», added here instead of wrapping the global name verConcurso (plan 7.3, cut D). */
+export const showTender = backOpener('verConcurso', sheetOpener(openTenderSheet));

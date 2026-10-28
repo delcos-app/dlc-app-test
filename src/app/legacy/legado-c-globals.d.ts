@@ -31,7 +31,6 @@ declare function menuEscritorio(): boolean;
 declare function clasPintar(zone: Element, kind: string, state: Record<string, unknown>, onChange: () => void, onClear: () => void, heading: string): void;
 declare function bienvenidaAlta(): void;
 declare function aplicarPermisosMenuBase2(...args: unknown[]): unknown;
-declare const VENT_AMPLIA: readonly string[];
 declare let RED_ULTIMO_FIN: number;
 declare const PK_TARJ: readonly (readonly [string, string, string, string])[];
 declare const MESES_L: readonly string[];

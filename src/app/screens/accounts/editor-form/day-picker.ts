@@ -113,12 +113,10 @@ function shortcut(button: HTMLElement, picker: Element): void {
   repaint(picker, index, state);
 }
 
-/** Morning/afternoon buttons and the quick buttons of any day picker. */
-export function listenToDayPickers(): void {
-  document.addEventListener('click', event => {
-    const target = event.target as Element | null, day = target?.closest<HTMLElement>('[data-dt]'), quickButton = target?.closest<HTMLElement>('[data-qk]');
-    const picker = (day ?? quickButton)?.closest('.dp');
-    if (picker && day) toggle(day, picker);
-    else if (picker && quickButton) shortcut(quickButton, picker);
-  });
+/** A morning/afternoon button or a quick button of a day picker (its listener, ../listeners.ts, is in the core). */
+export function answerDayPickerClick(target: Element): void {
+  const day = target.closest<HTMLElement>('[data-dt]'), quickButton = target.closest<HTMLElement>('[data-qk]');
+  const picker = (day ?? quickButton)?.closest('.dp');
+  if (picker && day) toggle(day, picker);
+  else if (picker && quickButton) shortcut(quickButton, picker);
 }

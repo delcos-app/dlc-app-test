@@ -12,7 +12,7 @@ export type ProductValues = Record<string, unknown>;
 export const productsLegacy = {
   section: (): string => productsStore.section,
   setSection: (section: string): void => { productsStore.section = section; },
-  /** Through the global names: legado 057 caches the screen and legado 089 wraps fichaStock and verDeposito («‹ Volver»). */
+  /** Through the global names (the adapters of pantallas/productos.js), which call the screen with its cache and «‹ Volver». */
   reload: (): void => { void cargarProductosModulo(); },
   openStock: (line: object): void => { void fichaStock(line); },
   openDeposit: (accountId: string, name: string, notice?: string): Promise<void> => verDeposito(accountId, name, notice),

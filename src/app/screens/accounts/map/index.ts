@@ -61,12 +61,3 @@ export async function paintMap(): Promise<void> {
   setTimeout(() => { ready.map.invalidateSize(); }, RESIZE_MS);
   legend.innerHTML = legendHtml(points.length, filters.total);
 }
-
-/** «Abrir ficha» inside a point's popup. */
-export function listenToMapCards(open: (id: string) => void): void {
-  document.addEventListener('click', event => {
-    const link = (event.target as Element | null)?.closest<HTMLElement>('[data-mapficha]');
-    if (!link) return;
-    event.preventDefault(); open(link.dataset.mapficha ?? '');
-  });
-}

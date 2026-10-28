@@ -6,5 +6,5 @@
 export { openEditor } from './editor';
 export { centreFromLocation, centreList, markLocated, paintCentrePicker, setCentre } from './centre-picker';
 export { consultationHtml } from './consultation';
-export { listenToDayPickers, readDays } from './day-picker';
+export { answerDayPickerClick, readDays } from './day-picker';
 export { hoursText, isPrivateConsultation, newAccountNames, privateConsultation } from './model';

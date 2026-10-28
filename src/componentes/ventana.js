@@ -27,5 +27,4 @@ function preguntar(msg, o) { return window.delcos.components.confirmAction(msg, 
 
 // La ventana dentro del panel, el encaje en la página, la pila y «cargando» están en src/app/components/embedded-window (v2.422.0).
 // Estos nombres se quedan: Configuración, los parches de las ventanas (legado 058 y 072), Facturación y los puentes los usan.
-const VENT_AMPLIA = window.delcos.components.embeddedWindow.WIDE_WINDOWS;
 const ENCAJE_MIN = window.delcos.components.embeddedWindow.EMBED_MIN_WIDTH;

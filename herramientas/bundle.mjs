@@ -4,7 +4,8 @@
 //
 // - The core (src/app/main.ts) is one classic script (IIFE): it runs first in app.js, before the legacy pieces that call window.delcos.
 // - Every src/app/screens/<screen>/chunk.ts is the entry of a lazy chunk: an ES module that src/app/core/lazy loads with import()
-//   the first time the screen is used (min/chunks/<screen>.js, minimised by herramientas/construir.mjs).
+//   the first time the screen is used (min/chunks/<screen>.js, minimised by herramientas/construir.mjs). A screen loaded in parts
+//   has one per part: src/app/screens/<screen>/<part>/chunk.ts is the chunk <screen>-<part> (plan 7.3, cut D3: Configuración).
 // - A chunk never carries its own copy of a module the core already has (that would duplicate its state): each such import is
 //   read from the registry the core publishes (window.__delcosModules, src/app/core/lazy/registry.ts). The list of shared modules
 //   is written to src/app/core/lazy/manifest.ts, so it is reviewed, typed and linted like any other source file.
@@ -33,10 +34,21 @@ const write = (file, text) => {
   return true;
 };
 
-/** The lazy chunks: one per screen folder with a chunk.ts. */
-const chunkNames = () => fs.readdirSync(path.join(ROOT, SCREENS), { withFileTypes: true })
-  .filter(entry => entry.isDirectory() && fs.existsSync(path.join(ROOT, SCREENS, entry.name, 'chunk.ts')))
-  .map(entry => entry.name).sort();
+const folders = dir => fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name);
+
+/** The lazy chunks and their entries: one per screen folder with a chunk.ts, and one per part folder of a screen with its own. */
+function chunkEntries() {
+  const entries = new Map();
+  for (const screen of folders(SCREENS)) {
+    const own = `${SCREENS}/${screen}/chunk.ts`;
+    if (fs.existsSync(path.join(ROOT, own))) entries.set(screen, own);
+    for (const part of folders(`${SCREENS}/${screen}`)) {
+      const entry = `${SCREENS}/${screen}/${part}/chunk.ts`;
+      if (fs.existsSync(path.join(ROOT, entry))) entries.set(`${screen}-${part}`, entry);
+    }
+  }
+  return entries;
+}
 
 /** The registry key of a module: its path inside src/app, without the extension («services/format»). */
 const registryKey = file => file.replace(/^src\/app\//, '').replace(/\.ts$/, '');
@@ -93,8 +105,7 @@ function registryPlugin(coreInputs, used) {
   };
 }
 
-async function buildChunk(name, coreInputs, used) {
-  const entry = `${SCREENS}/${name}/chunk.ts`;
+async function buildChunk(name, entry, coreInputs, used) {
   const result = await esbuild.build({ ...COMMON, entryPoints: [entry], format: 'esm', outfile: `${CHUNKS_OUT}/${name}.js`, plugins: [registryPlugin(coreInputs, used)] });
   const own = Object.keys(result.metafile.inputs).filter(file => !file.startsWith('delcos-shared:') && !file.startsWith('<'));
   return { name, text: result.outputFiles[0].text, own };
@@ -123,10 +134,10 @@ export const LAZY_CHUNKS = [${chunks.map(name => `'${name}'`).join(', ')}] as co
 `;
 }
 
-const names = chunkNames();
+const entries = chunkEntries(), names = [...entries.keys()].sort();
 const measured = await buildCore(true);
 const used = new Set(), chunks = [];
-for (const name of names) chunks.push(await buildChunk(name, measured.inputs, used));
+for (const name of names) chunks.push(await buildChunk(name, entries.get(name), measured.inputs, used));
 
 // A module outside the core that two chunks carry would exist twice
 const owners = new Map();

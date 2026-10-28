@@ -214,7 +214,7 @@ export const saveFilterLegacy = {
   filterText: (filter: Record<string, unknown>): string => legacyFreeScreensAccounts.filterText(filter),
   askText: (message: string, value: string, options: AskOptions): Promise<string | null> => legacyFreeComponents.askText(message, value, options),
   indicators: (): unknown[] => [...kpiConfig()],
-  saveIndicators: (list: unknown[]): Promise<boolean> => legacyFreeScreensSettingsRest.saveIndicators((list as Record<string, unknown>[])),
+  saveIndicators: (list: unknown[]): Promise<boolean> => legacyFreeScreensSettingsRest.saveIndicators((list as Record<string, unknown>[])).then(saved => saved === true),
   reloadHome: (): void => { void cargarInicio(); },
 };
 

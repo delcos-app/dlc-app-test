@@ -5,6 +5,7 @@
  * Plan 7.3 (cut B): the screen is loaded on first use (chunk.ts → min/chunks/events.js); the event types (model.ts) are read by the
  * list bar, so they stay in the core.
  */
+import { backOpener, sheetOpener } from '../../core/layers/dialogs';
 import { lazyChunk } from '../../core/lazy/load';
 import type * as Chunk from './chunk';
 
@@ -15,4 +16,5 @@ const fromChunk = lazyChunk<typeof Chunk>('events');
 export const editEvent = fromChunk('editEvent');
 export const paintEvents = fromChunk('paintEvents');
 export const paintExpenseReport = fromChunk('paintExpenseReport');
-export const showEvent = fromChunk('showEvent');
+/** The sheet look and «‹ Volver», added here instead of wrapping the global name verEvento (plan 7.3, cut D). */
+export const showEvent = backOpener('verEvento', sheetOpener(fromChunk('showEvent')));

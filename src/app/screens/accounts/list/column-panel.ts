@@ -1,6 +1,6 @@
 /**
- * Choosing the columns of Cuentas: the second side panel (#tools2, over the filters one) to show, hide and order them, and
- * dragging the border of a header to change its width. Migrated from the legacy abrirColumnasBase / abrirColumnas (which
+ * Choosing the columns of Cuentas: the second side panel (#tools2, over the filters one) to show, hide and order them (dragging the
+ * border of a header to change its width is in ../listeners.ts, in the core: plan 7.3 cut D2). Migrated from the legacy abrirColumnasBase / abrirColumnas (which
  * painted by swapping the ids of the two panels for a moment and then fixed its buttons with an observer) and the column
  * resize listeners of legado 008 (v2.406.0).
  */
@@ -8,8 +8,6 @@ import { legacyIcons, notices } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { columnDefinitions, columnSettings, resetColumns, saveColumns } from './columns';
-
-const MIN_WIDTH = 80, MAX_WIDTH = 600;
 
 function panelHtml(settings: readonly ColumnSetting[]): string {
   const definitions = columnDefinitions();
@@ -67,31 +65,4 @@ export function openColumnsPanel(onChange: () => void): void {
   const apply = (list: ColumnSetting[]): void => { saveColumns(list); onChange(); };
   paint(filters, panel, columnSettings(), apply);
   filters.classList.add('abierto'); panel.classList.add('abierto');
-}
-
-interface Drag { readonly key: string; readonly startX: number; readonly startWidth: number; readonly settings: ColumnSetting[] }
-
-/** Dragging the border of a header changes the width of its column at once (header and rows), and it is remembered. */
-export function listenToColumnResize(paintHeader: () => void): void {
-  let drag: Drag | null = null;
-  document.addEventListener('pointerdown', event => {
-    const handle = event.target instanceof Element ? event.target.closest<HTMLElement>('i.res[data-res]') : null; if (!handle) return;
-    const settings = columnSettings(), column = settings.find(item => item.k === handle.dataset.res);
-    if (!column) return;
-    event.preventDefault();
-    drag = { key: column.k, startX: event.clientX, startWidth: column.w, settings };
-    document.body.style.cursor = 'col-resize';
-  });
-  document.addEventListener('pointermove', event => {
-    if (!drag) return;
-    const width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, Math.round(drag.startWidth + (event.clientX - drag.startX)))), key = drag.key;
-    const settings = drag.settings.map(item => (item.k === key ? { ...item, w: width } : item));
-    saveColumns(settings);
-    paintHeader();
-    const visible = settings.filter(item => item.on);
-    document.querySelectorAll('#lista .trow').forEach(row => {
-      [...row.children].forEach((cellElement, index) => { const column = visible[index]; if (column && cellElement instanceof HTMLElement) { cellElement.style.width = `${column.w}px`; cellElement.style.minWidth = `${column.w}px`; } });
-    });
-  });
-  document.addEventListener('pointerup', () => { if (drag) { drag = null; document.body.style.cursor = ''; } });
 }

@@ -10,12 +10,6 @@ import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { orFallback } from '../../services/values';
 
-/**
- * Legacy painters opened in the wide window (legado 058 wraps them by these names). The order window and the order editor wrap their
- * own opener (wideOpener of core/legacy-c/dialogs, plan 7.3 cut C).
- */
-export const WIDE_WINDOWS: readonly string[] = ['editorCompra', 'verFactura'];
-
 /** Below this width, windows are not put in the page. */
 export const EMBED_MIN_WIDTH = 900;
 

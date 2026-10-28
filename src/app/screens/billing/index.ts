@@ -5,7 +5,10 @@
  * Plan 7.3 (cut B): the screen is loaded on first use (chunk.ts → min/chunks/billing.js). Issuing (issue/) is called synchronously
  * by Pedidos, Configuración and the screen layout (readOnlyBilling, paymentStateOf, arrangeBilling…), so it stays in the core.
  */
+import { backOpener, sheetOpener } from '../../core/layers/dialogs';
 import { lazyChunk } from '../../core/lazy/load';
+import { wideOpener } from '../../core/legacy-c/dialogs';
+import { cachedModuleLoader } from '../../core/legacy-c/module-cache';
 import type * as Chunk from './chunk';
 
 // v2.427.0: issuing, the order's invoices, sending by email, the read-only mode and the payment state
@@ -15,8 +18,10 @@ const fromChunk = lazyChunk<typeof Chunk>('billing');
 
 export const paintInvoices = fromChunk('paintInvoices');
 export const refreshInvoices = fromChunk('refreshInvoices');
-export const loadBilling = fromChunk('loadBilling');
+// The cache of the screen, the wide window, the sheet look and «‹ Volver», added to the screen's own functions instead of wrapping the
+// global names cargarFacturacion and verFactura (plan 7.3, cut D)
+export const loadBilling = cachedModuleLoader('facturacion', fromChunk('loadBilling'));
 export const editSeries = fromChunk('editSeries');
 export const paintSeries = fromChunk('paintSeries');
-export const showInvoice = fromChunk('showInvoice');
+export const showInvoice = backOpener('verFactura', sheetOpener(wideOpener(fromChunk('showInvoice'))));
 export const paintVerifactu = fromChunk('paintVerifactu');

@@ -15,23 +15,16 @@ import * as legacyFreeScreensEvents from '../../screens/events';
 import * as legacyFreeScreensSurgeries from '../../screens/surgeries';
 
 const REVEAL_MAX_MS = 1500, REVEAL_SINCE_MS = 50, REPAINT_AFTER_CLOSE_MS = 300, SCROLLED_PX = 4, FOCUS_DELAY_MS = 30;
-type Opener = (...args: unknown[]) => unknown;
-
 /**
- * v2.57.0: this window opens wide (what sizeWindows does to the wide windows opened by name). The screens split in chunks wrap their
- * own opener instead of having their global name wrapped (plan 7.3 cut C).
+ * v2.57.0: this window opens wide (order, purchase, invoice…). Each screen wraps its own opener instead of having its global name
+ * wrapped (plan 7.3, cuts C and D).
  */
 export function wideOpener<Open extends (...args: never[]) => unknown>(open: Open): Open {
   return function (this: unknown, ...args: Parameters<Open>): unknown { byId('dlg')?.classList.add('amplia'); return open.apply(this, args); } as Open;
 }
 
-/** v2.57.0: the wide windows (order, purchase, invoice…) and their size class goes when they close. */
+/** v2.57.0: the size class of a window (wideOpener, «pequeña») goes when it closes. */
 export function sizeWindows(): void {
-  const globals = window as unknown as Record<string, Opener>;
-  VENT_AMPLIA.forEach(name => {
-    const original = globals[name]; if (!original) return;
-    globals[name] = function (this: unknown, ...args: unknown[]): unknown { byId('dlg')?.classList.add('amplia'); return original.apply(this, args); };
-  });
   const dialog = byId<HTMLDialogElement>('dlg');
   observe(dialog, () => { if (!dialog?.open) dialog?.classList.remove('amplia'); }, { attributes: true, attributeFilter: ['open'] });
   observe(dialog, () => { if (!dialog?.open) dialog?.classList.remove('pequena'); }, { attributes: true, attributeFilter: ['open'] });
