@@ -8,6 +8,7 @@ import { byId, closestTo, observe } from './dom';
 import * as legacyFreeCoreLayers from '../layers';
 import { navigationStore } from '../navigation/store';
 import * as legacyFreeCoreNavigationApi from '../navigation/api';
+import { navigate } from '../navigation';
 
 const SUMMARY_CHARS = 320, MAX_ITEMS = 3, FIRST_SENTENCE_CHARS = 200, MANUAL_SEARCH_DELAY_MS = 350, FOCUS_DELAY_MS = 50;
 
@@ -49,7 +50,7 @@ export function summariseHelp(popup: HTMLElement): void {
   popup.insertAdjacentHTML('beforeend', `<a href="#" class="aiman">${t('legacyC.help.moreInManual')}</a>`);
   const link = popup.querySelector<HTMLAnchorElement>('.aiman');
   if (link) link.onclick = (event): void => {
-    event.preventDefault(); popup.remove(); ir('manual');
+    event.preventDefault(); popup.remove(); navigate('manual');
     setTimeout(() => {
       const search = byId<HTMLInputElement>('manq'), name = document.querySelector(`nav.main [data-t="${screen}"]`)?.textContent ?? screen;
       if (search) { search.value = name.trim(); search.dispatchEvent(new Event('input', { bubbles: true })); }

@@ -7,6 +7,7 @@
 import { t } from '../../i18n';
 import { closestTo } from './dom';
 import * as legacyFreeCoreServices from '../services';
+import { navigate } from '../navigation';
 
 const hideUserMenus = (): void => { document.querySelectorAll('.umenu, #umenu').forEach(menu => { menu.classList.add('hide'); }); };
 
@@ -38,7 +39,7 @@ function openPageFromMenu(selector: string): void {
     const button = closestTo(event.target, selector); if (!button) return;
     event.stopImmediatePropagation(); event.preventDefault();
     hideUserMenus();
-    ir(button.dataset.u ?? '');
+    navigate(button.dataset.u ?? '');
   }, true);
 }
 

@@ -13,6 +13,5 @@ interface Leaflet {
   layerGroup(): LeafletLayer;
   circleMarker(point: [number, number], options: Record<string, unknown>): LeafletLayer;
 }
-declare function pagoCargarEstado(): Promise<unknown>;
 
 declare const JKEY: () => string;

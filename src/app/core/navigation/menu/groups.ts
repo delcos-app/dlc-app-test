@@ -12,6 +12,7 @@ import { settingsStore } from '../../../screens/settings/store';
 import { navigationStore } from '../store';
 import * as legacyFreeCoreServices from '../../services';
 import * as legacyFreeCoreSettings from '../../settings';
+import * as legacyFreeCoreLayers from '../../layers';
 
 export interface MenuGroup { id: string; t: string; items: string[] }
 interface MenuPrefs { orden?: string[]; items?: Record<string, string[] | undefined>; ocultos?: string[]; barra?: string[]; mas?: string[] }
@@ -110,7 +111,7 @@ export function orderMenu(): void {
   MENU_ORDER.forEach(key => { const button = nav.querySelector(`:scope > [data-t="${key}"]`); if (button) nav.appendChild(button); });
   nav.querySelector('[data-t="seguimiento"]')?.classList.add('hide', 'fuera');
   const directory = nav.querySelector('[data-t="directorio"]');
-  if (directory) [...directory.childNodes].forEach(node => { if (node.nodeType === Node.TEXT_NODE && (node.nodeValue ?? '').includes('Directorio')) node.nodeValue = (node.nodeValue ?? '').replace('Directorio', TT('medico', 'p', '', 'l', 'C')); });
+  if (directory) [...directory.childNodes].forEach(node => { if (node.nodeType === Node.TEXT_NODE && (node.nodeValue ?? '').includes('Directorio')) node.nodeValue = (node.nodeValue ?? '').replace('Directorio', legacyFreeCoreServices.vocabulary.wordFor('medico', 'p', { determiner: '', determinerCase: 'l', nounCase: 'C' })); });
 }
 
 const LOCK = '<span class="cand">🔒</span>';
@@ -121,7 +122,7 @@ export function lockSections(): void {
 }
 
 function lockButton(button: Element, key: string): void {
-  const locked = !planIncluyeSeccion(key), lock = button.querySelector('.cand');
+  const locked = !legacyFreeCoreServices.plans.planIncludesSection(key), lock = button.querySelector('.cand');
   button.classList.toggle('bloq', locked);
   if (locked && !lock && button.matches('nav.main [data-t]')) button.insertAdjacentHTML('beforeend', LOCK);
   if (!locked && lock) lock.remove();
@@ -145,8 +146,8 @@ export function orderAfterPermissions(): void {
 
 /** The base of applying permissions: each module button shown only to who can use it. */
 export function showAllowedModules(): void {
-  document.querySelectorAll<HTMLElement>('nav.main [data-t]').forEach(button => { if ((button.dataset.t ?? '') in MODULO_AREA) button.classList.toggle('hide', !puedeModulo(button.dataset.t ?? '')); });
-  pintarBnav();
+  document.querySelectorAll<HTMLElement>('nav.main [data-t]').forEach(button => { if ((button.dataset.t ?? '') in MODULO_AREA) button.classList.toggle('hide', !legacyFreeCoreServices.permissions.canUseModule(button.dataset.t ?? '')); });
+  legacyFreeCoreLayers.paintBottomBar([]);
 }
 
 function placePageButton(nav: Element, key: string, text: string, shown: boolean): void {
@@ -162,8 +163,8 @@ function placePageButton(nav: Element, key: string, text: string, shown: boolean
 export function pageButtons(): void {
   const nav = document.querySelector('nav.main .in');
   if (nav && !ES_MEDICO()) {
-    placePageButton(nav, 'usuarios', t('navigationCore.menu.usersAndRoles'), puede('administrar'));
-    placePageButton(nav, 'delcos', t('navigationCore.menu.platformPanel'), puede('gestionar_plataforma'));
+    placePageButton(nav, 'usuarios', t('navigationCore.menu.usersAndRoles'), legacyFreeCoreServices.permissions.can('administrar'));
+    placePageButton(nav, 'delcos', t('navigationCore.menu.platformPanel'), legacyFreeCoreServices.permissions.can('gestionar_plataforma'));
   }
   const users = document.querySelector<HTMLElement>('nav.main [data-t="usuarios"]'); if (!users) return;
   const text = legacyFreeCoreSettings.menuLabelText(users), label = t('navigationCore.menu.users');

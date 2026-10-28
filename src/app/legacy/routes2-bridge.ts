@@ -14,6 +14,10 @@ import { sessionStore } from '../core/session-store';
 import { routesStore } from '../screens/routes/store';
 import { agendaStore } from '../screens/agenda/store';
 import * as legacyFreeScreensAgenda from '../screens/agenda';
+import * as legacyFreeCoreLegacyA from '../core/legacy-a';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import * as legacyFreeCoreLayers from '../core/layers';
+import * as legacyFreeCoreSettings from '../core/settings';
 
 interface LastPlan { conXY: PlanMember[]; rutaId: string; opts: PlanOptions }
 interface Profile { id: string; preferencias?: Record<string, unknown> | null }
@@ -26,7 +30,7 @@ export const routes2Legacy = {
   setPlan: (plan: unknown): void => { routesStore.plan = plan; },
   lastPlan: (): LastPlan | null => routesStore.lastPlan as LastPlan | null,
   setLastPlan: (value: unknown): void => { routesStore.lastPlan = value; },
-  paintPlan: (): void => { pintarPlan(); },
+  paintPlan: (): void => { void legacyFreeCoreLegacyC.paintPlan([]); },
   savedRoutes: (): SavedRoute[] => (Array.isArray(routesStore.routes) ? routesStore.routes : []),
   setSection: (section: string): void => { routesStore.section = section; },
   proposals: (): Record<string, unknown> | null => routesStore.proposals,
@@ -35,7 +39,7 @@ export const routes2Legacy = {
   setWeekDraft: (draft: unknown): void => { routesStore.weekDraft = draft as WeekDraft | null; },
   draft: (): RouteDraft | null => routesStore.wizard,
   reloadRoutes: (): void => { void legacyFreeScreensRoutes.loadRoutesPage(); },
-  reloadAgenda: (): void => { void cargarAgenda(); },
+  reloadAgenda: (): void => { void legacyFreeScreensAgenda.loadAgenda(); },
   /** The legacy rutasMapa: today's map, moved under the route cards. */
   paintDayMapAround: (): Promise<void> => rutasMapa(),
   // Preferences and the agenda shown
@@ -45,16 +49,16 @@ export const routes2Legacy = {
   agendaOwner: (): string => legacyFreeCoreLeftovers.agendaOwnerId(),
   selectedDate: (): string | null => agendaStore.selectedDate,
   // Places, hours and times
-  start: (): PlanStart => salidaUsuario(),
+  start: (): PlanStart => legacyFreeCoreSettings.userStart(),
   pointOf: (item: object): [number, number] | null => xyCita(item),
-  travelMinutes: (from: unknown, to: unknown): number => minutosEntre(from as [number, number], to as [number, number]),
-  km: (from: unknown, to: unknown): number => km(from, to),
+  travelMinutes: (from: unknown, to: unknown): number => legacyFreeCoreServices.maps.minutesBetween(from as [number, number], to as [number, number]),
+  km: (from: unknown, to: unknown): number => legacyFreeCoreLegacyA.km(from as Parameters<typeof legacyFreeCoreLegacyA.km>[0], to as Parameters<typeof legacyFreeCoreLegacyA.km>[1]),
   minutesOf: (time: string | null | undefined): number | null => legacyFreeCoreServices.calendar.timeToMinutes(time),
   possibleStart: (item: object, arrival: number, length: number): number | null => legacyFreeCoreLeftovers.earliestStart(item, arrival, length),
   windowsOf: (days: Record<string, string | null> | null | undefined, isoDate: string): [number, number][] | null => legacyFreeComponents.attendanceWindows(days, isoDate),
   windowsText: (windows: readonly [number, number][]): string => txtVentanas(windows),
   hoursOfAppointments: (list: readonly object[]): { salida: string | null; vuelta: string | null } | null => horDeCitas(list),
-  estimateDay: (list: readonly object[], isoDate: string): { est: Record<string, number | undefined>; tope: number } => estimarDia(list, isoDate) as unknown as { est: Record<string, number | undefined>; tope: number },
+  estimateDay: (list: readonly object[], isoDate: string): { est: Record<string, number | undefined>; tope: number } => legacyFreeCoreLayers.estimateDay(list, isoDate, []) as { est: Record<string, number | undefined>; tope: number },
   nextWorkingDay: (): string => legacyFreeCoreServices.calendar.nextWorkingDay(),
   shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
   weekdayName: (isoDate: string): string => DIAN[legacyFreeCoreServices.calendar.dayLetter(isoDate)] ?? '',
@@ -65,9 +69,9 @@ export const routes2Legacy = {
   recentText: (list: RecentContact[]): string => legacyFreeCoreServices.calendar.recentText(list),
   revisitNotice: (): { on: boolean; dias: number } => avisoRevisita(),
   noStartWarning: (element: Element | null): void => { legacyFreeComponents.noStartNotice((element as HTMLElement | null)); },
-  openPlanTimes: (): void => { abrirHorarioPlan(); },
+  openPlanTimes: (): void => { legacyFreeCoreLeftovers.openPlanHours(); },
   navigate: (destination: [number, number] | null, stops: [number, number][] | null): void => {
-    void (navegarA as unknown as (point: [number, number] | null, stops?: [number, number][] | null) => Promise<void>)(destination, stops);
+    void legacyFreeCoreServices.maps.navigateTo(destination, stops);
   },
   iconOrEmpty: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   // Working day

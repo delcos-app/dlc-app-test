@@ -20,6 +20,7 @@ import * as legacyFreeScreensSurgeries from '../../screens/surgeries';
 import * as legacyFreeScreensSettingsRest from '../../screens/settings/rest';
 import * as legacyFreeScreensSettings from '../../screens/settings';
 import * as legacyFreeScreensBilling from '../../screens/billing';
+import * as legacyFreeCoreLegacyC from './';
 
 type Tab = [string, string, () => unknown];
 interface Page { t?: string; d?: string; tabs: Tab[]; permiso?: () => boolean; admin?: boolean }
@@ -44,15 +45,15 @@ function wrapTabs(name: string, change: (tabs: Tab[]) => Tab[]): void {
  */
 export function defineOrganization(): void {
   const page: Page = {
-    t: t('legacyC.pages.organization.title'), d: t('legacyC.pages.organization.description'), permiso: puedeOrganizacion,
+    t: t('legacyC.pages.organization.title'), d: t('legacyC.pages.organization.description'), permiso: () => legacyFreeCoreServices.permissions.canManageOrganization(),
     get tabs(): Tab[] {
       const billing = legacyFreeCoreServices.plans.planIncludes(('facturacion'));
       return [['marca', t('legacyC.pages.organization.brand'), () => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('legacyC.pages.organization.email'), () => legacyFreeScreensSettingsExtra.paintEmail()],
         ['zona', t('timeZone.title'), () => paintTimeZone()],
-        ['copias', t('legacyC.pages.organization.backups'), () => legacyFreeScreensSettingsMore.paintBackups()], ['plan', t('legacyC.pages.organization.plan'), () => pintarPaginaPlan()],
-        ...(billing ? [['fiscal', t('legacyC.pages.organization.fiscal'), facOrg(pintarEmpresa)], ['series', t('legacyC.pages.organization.series'), facOrg(pintarSeries)],
-          ...(usesVerifactu() ? [['vf', t('legacyC.pages.organization.verifactu'), facOrg(pintarVerifactu)]] as Tab[] : []), ['pdf', t('legacyC.pages.organization.pdf'), () => legacyFreeCoreServices.pdf.openDesigner()]] as Tab[] : []),
-        ...(puede('gestionar_plataforma') ? [['orgs', t('legacyC.pages.organization.organizations'), () => legacyFreeScreensPlatform.paintOrganizations()]] as Tab[] : [])];
+        ['copias', t('legacyC.pages.organization.backups'), () => legacyFreeScreensSettingsMore.paintBackups()], ['plan', t('legacyC.pages.organization.plan'), () => legacyFreeCoreLegacyC.paintPlanPage([])],
+        ...(billing ? [['fiscal', t('legacyC.pages.organization.fiscal'), facOrg(() => { void legacyFreeCoreLegacyC.paintCompany([]); })], ['series', t('legacyC.pages.organization.series'), facOrg(() => { void legacyFreeScreensBilling.paintSeries(); })],
+          ...(usesVerifactu() ? [['vf', t('legacyC.pages.organization.verifactu'), facOrg(() => { void legacyFreeScreensBilling.paintVerifactu(); })]] as Tab[] : []), ['pdf', t('legacyC.pages.organization.pdf'), () => legacyFreeCoreServices.pdf.openDesigner()]] as Tab[] : []),
+        ...(legacyFreeCoreServices.permissions.can('gestionar_plataforma') ? [['orgs', t('legacyC.pages.organization.organizations'), () => legacyFreeScreensPlatform.paintOrganizations()]] as Tab[] : [])];
     },
   };
   pages().organizacion = page;
@@ -62,7 +63,7 @@ export function defineOrganization(): void {
 export function defineUsersAndPanel(): void {
   pages().usuarios = { t: t('legacyC.pages.users.title'), d: t('legacyC.pages.users.description'), admin: true,
     tabs: [['usuarios', t('legacyC.pages.users.users'), () => legacyFreeScreensSettingsRest.paintUsers()], ['roles', t('legacyC.pages.users.roles'), () => legacyFreeScreensSettingsMore.paintRoles()]] };
-  pages().delcos = { t: t('legacyC.pages.panel.title'), d: t('legacyC.pages.panel.description'), permiso: () => puede('gestionar_plataforma'),
+  pages().delcos = { t: t('legacyC.pages.panel.title'), d: t('legacyC.pages.panel.description'), permiso: () => legacyFreeCoreServices.permissions.can('gestionar_plataforma'),
     tabs: [['orgs', t('legacyC.pages.panel.organizations'), () => legacyFreeScreensPlatform.paintOrganizations()], ['accesos', t('legacyC.pages.panel.access'), () => legacyFreeComponentsEmbeddedWindow.showModuleInPanel(('accesos'))],
       ['auditoria', t('legacyC.pages.panel.audit'), () => legacyFreeComponentsEmbeddedWindow.showModuleInPanel(('auditoria'))]] };
   wrapTabs('organizacion', tabs => tabs.filter(tab => tab[0] !== 'orgs'));
@@ -151,7 +152,7 @@ export function defineEvents(): void {
   navIcons().eventos = 'graduation-cap'; moduleIcons().eventos = svgIco(ICON_NOM['graduation-cap'] ?? '');
   (PLAN_SECCIONES as Record<string, string[]>).eventos = ['comercial', 'empresa', 'medida'];
   addToGroup('cartera', 'eventos', 'directorio');
-  const page: Page = { t: t('legacyC.pages.events.title'), permiso: () => !ES_MEDICO() && puedeModulo('directorio') && planIncluyeSeccion('eventos'), tabs: [] };
+  const page: Page = { t: t('legacyC.pages.events.title'), permiso: () => !ES_MEDICO() && legacyFreeCoreServices.permissions.canUseModule('directorio') && legacyFreeCoreServices.plans.planIncludesSection('eventos'), tabs: [] };
   pages().eventos = page;
   Object.defineProperty(page, 'd', { get: () => t('legacyC.pages.events.description') });
   Object.defineProperty(page, 'tabs', { get: (): Tab[] => [['lista', t('legacyC.pages.events.list'), () => legacyFreeScreensEvents.paintEvents()] as Tab]
@@ -162,13 +163,13 @@ export function defineEvents(): void {
 export function defineCycle(): void {
   navIcons().ciclo = 'target'; moduleIcons().ciclo = svgIco(ICON_NOM.target ?? '');
   addToGroup('dia', 'ciclo');
-  const page: Page = { permiso: () => !ES_MEDICO() && puedeModulo('agenda'), tabs: [] };
+  const page: Page = { permiso: () => !ES_MEDICO() && legacyFreeCoreServices.permissions.canUseModule('agenda'), tabs: [] };
   pages().ciclo = page;
   Object.defineProperty(page, 't', { get: () => t('legacyC.pages.cycle.title', { visits: term('visita', { number: 'p' }) }) });
   Object.defineProperty(page, 'd', { get: () => t('legacyC.pages.cycle.description', { professionals: term('medico', { number: 'p', capital: 'C' }), visits: term('visita', { number: 'p' }) }) });
   Object.defineProperty(page, 'tabs', { get: (): Tab[] => [['ciclo', t('legacyC.pages.cycle.current'), () => legacyFreeScreensCycle.paintCycle()] as Tab]
-    .concat(planIncluyeSeccion('cobertura') ? [['cobertura', t('legacyC.pages.cycle.coverage'), () => legacyFreeScreensCycle.paintCoverage()]] : [], [['clasificar', t('legacyC.pages.cycle.classify'), () => legacyFreeScreensCycle.paintClassify()]])
-    .concat(VE_TODO() ? [['equipo', t('legacyC.pages.cycle.team'), () => legacyFreeScreensCycle.paintCycleTeam()]] : []) });
+    .concat(legacyFreeCoreServices.plans.planIncludesSection('cobertura') ? [['cobertura', t('legacyC.pages.cycle.coverage'), () => legacyFreeScreensCycle.paintCoverage()]] : [], [['clasificar', t('legacyC.pages.cycle.classify'), () => legacyFreeScreensCycle.paintClassify()]])
+    .concat(legacyFreeCoreServices.permissions.seesEverything() ? [['equipo', t('legacyC.pages.cycle.team'), () => legacyFreeScreensCycle.paintCycleTeam()]] : []) });
 }
 
 /** v2.199.0: the coverage by product goes with Comercial, Empresa and A medida (as on the web). */
@@ -178,7 +179,7 @@ export const coverageInPlans = (): void => { (PLAN_SECCIONES as Record<string, s
 export function defineSurgeries(): void {
   navIcons().cirugias = 'scissors'; moduleIcons().cirugias = svgIco(ICON_NOM.scissors ?? '');
   addToGroup('dia', 'cirugias');
-  const page: Page = { t: t('legacyC.pages.surgeries.title'), permiso: () => !ES_MEDICO() && puedeModulo('agenda'), tabs: [['lista', t('legacyC.pages.surgeries.title'), () => legacyFreeScreensSurgeries.paintSurgeries()]] };
+  const page: Page = { t: t('legacyC.pages.surgeries.title'), permiso: () => !ES_MEDICO() && legacyFreeCoreServices.permissions.canUseModule('agenda'), tabs: [['lista', t('legacyC.pages.surgeries.title'), () => legacyFreeScreensSurgeries.paintSurgeries()]] };
   pages().cirugias = page;
   Object.defineProperty(page, 'd', { get: () => t('legacyC.pages.surgeries.description') });
 }

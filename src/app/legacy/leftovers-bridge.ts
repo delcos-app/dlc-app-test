@@ -16,6 +16,12 @@ import { ordersStore } from '../screens/orders/store';
 import { billingStore } from '../screens/billing/store';
 import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
 import * as legacyFreeScreensRoutes from '../screens/routes';
+import * as legacyFreeCoreLayers from '../core/layers';
+import * as legacyFreeScreensAgenda from '../screens/agenda';
+import * as legacyFreeScreensBilling from '../screens/billing';
+import * as legacyFreeScreensOpportunities from '../screens/opportunities';
+import * as legacyFreeScreensOrders from '../screens/orders';
+import * as legacyFreeComponents from '../components';
 export interface IndicatorSetting { readonly id: string; readonly on: boolean; readonly t?: string; readonly filtro?: Record<string, unknown> }
 export interface SavePageDefinition { tab: string; cab: () => Element | null; cuerpo: () => Element | null }
 export interface ViewedAgenda { id: string; nombre: string; rol?: string; preferencias?: Record<string, unknown> }
@@ -40,36 +46,36 @@ export const leftoversLegacy = {
   hasProfile: (): boolean => Boolean(sessionStore.profile),
   userId: (): string => profile().id,
   screen: (): string => navigationStore.screen,
-  can: (capability: string): boolean => puede(capability),
-  seesEverything: (): boolean => VE_TODO(),
+  can: (capability: string): boolean => legacyFreeCoreServices.permissions.can(capability),
+  seesEverything: (): boolean => legacyFreeCoreServices.permissions.seesEverything(),
   levelOf: (letter: string): number => legacyFreeCoreServices.permissions.levelOrNone(letter),
   roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
   isProfessionalPortal: (): boolean => ES_MEDICO(),
-  canUseModule: (module: string): boolean => puedeModulo(module),
-  canManageOrganization: (): boolean => puedeOrganizacion(),
-  canReviewDuplicates: (): boolean => puedeDuplicados(),
+  canUseModule: (module: string): boolean => legacyFreeCoreServices.permissions.canUseModule(module),
+  canManageOrganization: (): boolean => legacyFreeCoreServices.permissions.canManageOrganization(),
+  canReviewDuplicates: (): boolean => legacyFreeCoreServices.permissions.canReviewDuplicates(),
   // Data access
   cacheEpoch: (): number => sessionStore.cacheEpoch,
   dialogEpoch: (): number => agendaStore.dialogEpoch,
-  today: (): string => hoyISO(),
-  addDays: (isoDate: string, days: number): string => isoMas(isoDate, days),
+  today: (): string => legacyFreeCoreServices.calendar.today(),
+  addDays: (isoDate: string, days: number): string => legacyFreeCoreServices.calendar.plusDays(isoDate, days),
   shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
-  euros: (value: number): string => eur(value),
+  euros: (value: number): string => legacyFreeCoreServices.money.euros(value),
   valueText: (value: unknown): string => legacyFreeScreensSettingsMore.valueText(value),
-  toast: (message: string, isError = false): void => { toast(message, isError); },
-  showLoading: (element: HTMLElement | null, text: string): void => { cargando(element, text); },
+  toast: (message: string, isError = false): void => { legacyFreeComponents.toast(message, !!isError); },
+  showLoading: (element: HTMLElement | null, text: string): void => { legacyFreeComponents.showLoading(element, text); },
   // Agenda
   viewedAgenda: (): ViewedAgenda | null => agendaStore.viewedUser,
   setViewedAgenda: (viewed: ViewedAgenda | null): void => { agendaStore.viewedUser = viewed; },
-  reloadAgenda: (): void => { void cargarAgenda(); },
-  showWeekFromToday: (): void => { agendaStore.mode = 'semana'; agendaStore.selectedDate = hoyISO(); },
+  reloadAgenda: (): void => { void legacyFreeScreensAgenda.loadAgenda(); },
+  showWeekFromToday: (): void => { agendaStore.mode = 'semana'; agendaStore.selectedDate = legacyFreeCoreServices.calendar.today(); },
   dayTasks: (): { f: string; l: unknown[] } | null => agendaStore.dayTasks,
   setDayTasks: (tasks: { f: string; l: unknown[] }): void => { agendaStore.dayTasks = tasks as typeof agendaStore.dayTasks; },
   tasks: (isoDate: string): Answer<unknown[]> => rawDb().from('tareas').select('*').eq('fecha', isoDate)
     .order('orden', { ascending: true, nullsFirst: false }).order('hora', { ascending: true, nullsFirst: false }).order('creado_en') as Answer<unknown[]>,
   planned: (states: readonly string[], from: string, limit: number): Answer<{ cuenta_id: string; fecha: string }[]> =>
     rawDb().from('agenda').select('cuenta_id,fecha').eq('usuario_id', profile().id).in('estado', states).gte('fecha', from).order('fecha').limit(limit) as Answer<{ cuenta_id: string; fecha: string }[]>,
-  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
+  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { legacyFreeCoreLayers.mountPeriod(element, [options]); },
   /** The range of a period picker (the legacy montarPeriodo leaves its reader on the element). */
   periodRange: (element: HTMLElement): PeriodRange => (Reflect.get(element, RANGE_READER) as () => PeriodRange)(),
   editFrequency: (): void => { void legacyFreeScreensRoutes.editFrequency(); },
@@ -84,9 +90,9 @@ export const leftoversLegacy = {
   contractPrices: (): ContractPrices => ordersStore.contractPrices,
   setContractPrices: (prices: ContractPrices): void => { ordersStore.contractPrices = prices; },
   setPendingCall: (id: string): void => { ordersStore.pendingCall = id; },
-  editOrder: (preset: Record<string, unknown>): Promise<void> => editorPedido(preset),
+  editOrder: (preset: Record<string, unknown>): Promise<void> => legacyFreeScreensOrders.editOrder(preset),
   ordersSection: (): string => ordersStore.section,
-  repaintCalls: (): void => { void pintarLlamadas(); },
+  repaintCalls: (): void => { void legacyFreeScreensOpportunities.paintOpportunities(); },
   helpButton: (title: string, text: string): string => pmAyu(title, text),
   // Fields, page save and icons
   fieldTable: (area: string): string | undefined => CAMPO_TABLA[area],
@@ -98,7 +104,7 @@ export const leftoversLegacy = {
   pageKey: (): string => navigationStore.pageKey,
   setPageKey: (key: string): void => { navigationStore.pageKey = key; },
   markChanged: (): void => { legacyFreeScreensSettingsShell.markUnsaved(); },
-  reloadSettings: (): void => { void cargarConfig(); },
+  reloadSettings: (): void => { void legacyFreeScreensSettingsShell.loadSettingsPage(); },
   settingsKey: (): string => CFG_KEY,
   requestsInFlight: (): number => sessionStore.networkInFlight,
   navIcon: (screen: string): string | undefined => ICO_NAV[screen],
@@ -116,7 +122,7 @@ export const leftoversLegacy = {
   lastBillingSettings: (): string | null => billingStore.lastSection,
   setLastBillingSettings: (section: string): void => { billingStore.lastSection = section; },
   billingSettingsSections: (): readonly (readonly [string, string])[] => FAC_CONFIG,
-  loadBilling: (): void => { void cargarFacturacion(); },
+  loadBilling: (): void => { void legacyFreeScreensBilling.loadBilling(); },
   pdfDesign: (): void => { void legacyFreeCoreServices.pdf.openDesigner(); },
   // Configuración, Inicio and Rutas
   detailName: (key: string): string | undefined => NOMBRES_DETALLE[key],

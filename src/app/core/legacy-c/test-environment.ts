@@ -6,6 +6,9 @@ import { t } from '../../i18n';
 import { byId } from './dom';
 import { navigationStore } from '../navigation/store';
 import * as legacyFreeScreensSettings from '../../screens/settings';
+import { navigate } from '../navigation';
+import * as legacyFreeComponents from '../../components';
+import * as legacyFreeCoreServices from '../services';
 
 const STRIP_DELAY_MS = 120;
 type Painter = () => unknown;
@@ -19,14 +22,14 @@ function failureText(answer: RefreshAnswer | null, failed: boolean): string {
 }
 
 async function bringProduction(button: HTMLButtonElement): Promise<void> {
-  if (!await preguntar(t('legacyC.testEnvironment.bringText'), { titulo: t('legacyC.testEnvironment.bringTitle'), ok: t('legacyC.testEnvironment.bringOk'), peligro: true })) return;
+  if (!await legacyFreeComponents.confirmAction(t('legacyC.testEnvironment.bringText'), { titulo: t('legacyC.testEnvironment.bringTitle'), ok: t('legacyC.testEnvironment.bringOk'), peligro: true })) return;
   button.disabled = true;
   const functions = (db as unknown as { functions: { invoke: (name: string, options: object) => Promise<{ data: RefreshAnswer | null; error: { context?: { json?: () => Promise<RefreshAnswer> } } | null }> } }).functions;
   const { data, error } = await functions.invoke('refrescar-pruebas', { body: {} });
   let answer = data;
   if (error?.context?.json) { try { answer = await error.context.json(); } catch { /* the answer stays */ } }
-  if (!answer?.ok) { button.disabled = false; toast(failureText(answer, Boolean(error)), true); return; }
-  toast(t('legacyC.testEnvironment.started'));
+  if (!answer?.ok) { button.disabled = false; legacyFreeComponents.toast(failureText(answer, Boolean(error)), true); return; }
+  legacyFreeComponents.toast(t('legacyC.testEnvironment.started'), false);
   void legacyFreeScreensSettings.refreshStatus();
 }
 
@@ -53,7 +56,7 @@ function paintMarker(): void {
   logo.insertAdjacentHTML('afterend', `<button type="button" id="indpruebas" class="indpruebas" title="${t('legacyC.testEnvironment.markerHint')}">${t('legacyC.testEnvironment.marker')}</button>`);
   const marker = byId('indpruebas');
   if (marker) marker.onclick = (): void => {
-    if (puedeOrganizacion()) { navigationStore.pageTabs.organizacion = 'pruebas'; ir('organizacion'); } else toast(t('legacyC.testEnvironment.markerHint'));
+    if (legacyFreeCoreServices.permissions.canManageOrganization()) { navigationStore.pageTabs.organizacion = 'pruebas'; navigate('organizacion'); } else legacyFreeComponents.toast(t('legacyC.testEnvironment.markerHint'), false);
   };
 }
 

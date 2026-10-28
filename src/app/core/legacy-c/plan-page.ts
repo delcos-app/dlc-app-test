@@ -10,6 +10,8 @@ import * as legacyFreeCoreLegacyC from './';
 import { sessionStore } from '../session-store';
 import * as legacyFreeScreensSettingsRest from '../../screens/settings/rest';
 import * as legacyFreeScreensOrders from '../../screens/orders';
+import * as legacyFreeScreensAccess from '../../screens/access';
+import * as legacyFreeComponents from '../../components';
 
 const CHECK_EVERY_MS = 1500, CHECKS = 90, VERSION_EVERY_MS = 2000, WELCOME_EVERY_MS = 1000, WELCOME_CHECKS = 60, WELCOME_DELAY_MS = 900;
 const SIGNUP_NOTICE_DELAY_MS = 400, BACK_TO_PLAN_FOR_MS = 30000, ANNUAL_MONTHS = 10, MIN_USERS = 3;
@@ -96,8 +98,8 @@ export function paymentOnStart(): void {
   whenSignedIn(() => {
     const result = new URLSearchParams(location.search).get('pago');
     if (result) history.replaceState(null, '', location.pathname + location.hash);
-    if (result === 'ok') { toast(t('legacyC.plan.paymentReceived')); void legacyFreeScreensOrders.waitUntilActive(); } else if (result === 'cancelado') toast(t('legacyC.plan.paymentLeft'));
-    void pagoCargarEstado();
+    if (result === 'ok') { legacyFreeComponents.toast(t('legacyC.plan.paymentReceived'), false); void legacyFreeScreensOrders.waitUntilActive(); } else if (result === 'cancelado') legacyFreeComponents.toast(t('legacyC.plan.paymentLeft'), false);
+    void legacyFreeScreensOrders.loadPaymentState();
   }, CHECK_EVERY_MS, CHECKS);
 }
 
@@ -120,14 +122,14 @@ export function signUpNotices(): void {
     history.replaceState(null, '', location.pathname + location.hash);
     setTimeout(() => {
       const message = byId('lmsg');
-      if (message && !(sessionStore.profile)) { message.style.color = 'var(--ok)'; message.textContent = t('legacyC.plan.signupLogin'); } else toast(t('legacyC.plan.signupToast'));
+      if (message && !(sessionStore.profile)) { message.style.color = 'var(--ok)'; message.textContent = t('legacyC.plan.signupLogin'); } else legacyFreeComponents.toast(t('legacyC.plan.signupToast'), false);
     }, SIGNUP_NOTICE_DELAY_MS);
   }
   if (query.get('bienvenida') === '1') {
     history.replaceState(null, '', location.pathname);
     let tries = 0;
     const timer = setInterval(() => {
-      if (signedIn()) { clearInterval(timer); setTimeout(bienvenidaAlta, WELCOME_DELAY_MS); } else if (++tries > WELCOME_CHECKS) clearInterval(timer);
+      if (signedIn()) { clearInterval(timer); setTimeout(() => { void legacyFreeScreensAccess.showWelcome(); }, WELCOME_DELAY_MS); } else if (++tries > WELCOME_CHECKS) clearInterval(timer);
     }, WELCOME_EVERY_MS);
   }
 }

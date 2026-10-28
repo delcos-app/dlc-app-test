@@ -21,6 +21,3 @@ const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 
 // Acceso está en src/app/screens/access (v2.414.0). Estos nombres se quedan: el acceso, la navegación, Configuración,
 // legado 001, 047, 076 y 129 y las pruebas los usan.
-function accesoSinActivar(texto) { window.delcos.screens.access.showNotActivated(texto); }
-function bienvenidaAlta() { return window.delcos.screens.access.showWelcome(); }
-function reenviarActivacion(email, o = {}) { return window.delcos.screens.access.resendActivation(email, o); }

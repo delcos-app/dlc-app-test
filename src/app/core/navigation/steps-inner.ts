@@ -9,6 +9,7 @@ import { settingsStore } from '../../screens/settings/store';
 import { billingStore } from '../../screens/billing/store';
 import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-window';
 import * as legacyFreeCoreNavigationApi from './api';
+import * as legacyFreeCoreServices from '../services';
 
 const COMPANY_SECTIONS = ['__empresa', 'empresa', 'marca', 'correo', 'copias'];
 const MAIL_SECTIONS = ['correo', 'copias'];
@@ -21,10 +22,10 @@ export const configToOwnPages: NavigationStep = {
     if (nav.target === 'config' && settingsStore.section === 'equipo') {
       navigationStore.pageTabs.usuarios = settingsStore.subsection === 'roles' ? 'roles' : 'usuarios'; settingsStore.section = 'inicio'; settingsStore.subsection = null; nav.target = 'usuarios';
     }
-    if (nav.target === 'config' && settingsStore.section === 'seguridad' && puede('gestionar_plataforma')) {
+    if (nav.target === 'config' && settingsStore.section === 'seguridad' && legacyFreeCoreServices.permissions.can('gestionar_plataforma')) {
       navigationStore.pageTabs.delcos = settingsStore.subsection === 'accesos' ? 'accesos' : 'auditoria'; settingsStore.section = 'inicio'; settingsStore.subsection = null; nav.target = 'delcos';
     }
-    if (nav.target === 'config' && settingsStore.section === 'orgs' && puede('gestionar_plataforma')) { navigationStore.pageTabs.delcos = 'orgs'; settingsStore.section = 'inicio'; nav.target = 'delcos'; }
+    if (nav.target === 'config' && settingsStore.section === 'orgs' && legacyFreeCoreServices.permissions.can('gestionar_plataforma')) { navigationStore.pageTabs.delcos = 'orgs'; settingsStore.section = 'inicio'; nav.target = 'delcos'; }
   },
 };
 
@@ -40,7 +41,7 @@ export const organizationPage: NavigationStep = {
     if (nav.target === 'empresa') { navigationStore.pageTabs.organizacion = orFallback(navigationStore.pageTabs.empresa, 'marca'); nav.target = 'organizacion'; }
     else if (nav.target === 'plan') { navigationStore.pageTabs.organizacion = 'plan'; nav.target = 'organizacion'; }
     else if (fromConfig) { navigationStore.pageTabs.organizacion = orFallback(settingsStore.subsection !== null ? ORG_DESDE[settingsStore.subsection] : undefined, fromConfig); settingsStore.section = 'rutas'; nav.target = 'organizacion'; }
-    if (nav.target === 'organizacion' && !puedeOrganizacion()) nav.target = 'inicio';
+    if (nav.target === 'organizacion' && !legacyFreeCoreServices.permissions.canManageOrganization()) nav.target = 'inicio';
   },
 };
 
@@ -111,7 +112,7 @@ export const legacyConfigPages: NavigationStep = {
     if (nav.target === 'config' && COMPANY_SECTIONS.includes(settingsStore.section ?? '')) { navigationStore.pageTabs.empresa = companyTab(); settingsStore.section = 'rutas'; nav.target = 'empresa'; }
     if (nav.target === 'config' && settingsStore.section === 'plan') { settingsStore.section = 'rutas'; nav.target = 'plan'; }
   },
-  after: target => { if (PAGINAS[target]) cargarPagina(target); },
+  after: target => { if (PAGINAS[target]) legacyFreeCoreNavigationApi.loadPage(target); },
 };
 
 export const noFlashOnFastLoad: NavigationStep = {

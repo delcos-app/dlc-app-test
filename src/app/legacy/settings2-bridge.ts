@@ -5,6 +5,8 @@ import { sessionStore } from '../core/session-store';
 import { settingsStore } from '../screens/settings/store';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import * as legacyFreeCoreLayers from '../core/layers';
 /**
  * Bridge of Configuración (second part: portfolio rules, backups, undo, commercial states, visit material, accesses, classifiers,
  * roles and brand) to the legacy code (kept apart from bridge.ts, which is at its size limit). The settings, the catalogs, the
@@ -27,7 +29,7 @@ const profile = (): { id: string; nombre?: string; areas?: Record<string, number
 export const settingsMoreLegacy = {
   loading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   appName: (): string => legacyFreeCoreServices.appName(),
-  hasPortal: (): boolean => hayExtra('portal'),
+  hasPortal: (): boolean => legacyFreeCoreLegacyC.hasExtra('portal'),
   reloadCatalogs: (): Promise<void> => legacyFreeCoreSettings.loadCatalogs(),
   /** Level (0–3) of the user in an area of the legacy profile (K = classifiers). */
   areaLevel: (letter: string): number => profile().areas?.[letter] ?? 0,
@@ -55,9 +57,9 @@ export const settingsMoreLegacy = {
   setBrand: (brand: { nombre: string; logo: string | null }): void => {
     MARCA = brand; localStorage.setItem('app-marca', JSON.stringify(brand)); settingsStore.invoiceLogo = null; legacyFreeCoreSettings.applyBrand();
   },
-  contactsLabel: (): string => etiquetaContactos(),
+  contactsLabel: (): string => legacyFreeCoreServices.vocabulary.contactsLabel(),
   contactLabels: (): readonly string[] => ETIQUETAS,
-  applyLabel: (): void => { aplicarEtiqueta(); },
+  applyLabel: (): void => { legacyFreeCoreLayers.applyLabel([]); },
   termDefaults: (): Readonly<Record<string, { s: string; p: string; g?: string }>> => TERM_DEF as Readonly<Record<string, { s: string; p: string; g?: string }>>,
   terms: (): Readonly<Record<string, TermSettings>> => (sessionStore.terms ?? {}) as Readonly<Record<string, TermSettings>>,
   saveTermsCopy: (terms: Record<string, TermSettings>): void => { try { localStorage.setItem(TERMKEY, JSON.stringify(terms)); } catch { /* not remembered */ } },

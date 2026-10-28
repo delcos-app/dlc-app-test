@@ -10,6 +10,8 @@ import { menuPrefs } from './groups';
 import { availableScreens, BAR_DEFAULT, bottomBar, mobileName, moreOrder } from './mobile';
 import { sessionStore } from '../../session-store';
 import { navigationStore } from '../store';
+import * as legacyFreeCoreLayers from '../../layers';
+import * as legacyFreeComponents from '../../../components';
 
 type Zone = 'barra' | 'mas' | 'oculta';
 interface State { groups: Record<Zone, string[]>; fixed: string | null; available: string[] }
@@ -63,7 +65,7 @@ function move(state: State, data: string): void {
 function changeZone(state: State, data: string): void {
   const [zone, key = ''] = data.split('|') as [Zone, string], from = zoneOf(state, key);
   if (zone === from) return;
-  if (from === 'barra' && !state.fixed && state.groups.barra.length <= 1) { toast(t('navigationCore.mobileMenu.barNeedsOne'), true); return; }
+  if (from === 'barra' && !state.fixed && state.groups.barra.length <= 1) { legacyFreeComponents.toast(t('navigationCore.mobileMenu.barNeedsOne'), true); return; }
   state.groups[from] = state.groups[from].filter(other => other !== key);
   if (zone === 'barra' && state.groups.barra.length >= maxBar(state)) { const last = state.groups.barra.pop(); if (last) state.groups.mas.unshift(last); }
   state.groups[zone].push(key); paint(state);
@@ -77,11 +79,11 @@ async function save(state: State, button: HTMLButtonElement): Promise<void> {
   button.disabled = true;
   const { data, error } = await db.rpc<Record<string, unknown>>('guardar_preferencias', { p: saved });
   button.disabled = false;
-  if (error) { toast(t('navigationCore.menu.couldNotSave'), true); return; }
+  if (error) { legacyFreeComponents.toast(t('navigationCore.menu.couldNotSave'), true); return; }
   profile.preferencias = data ?? saved;
   (document.getElementById('dlg2') as HTMLDialogElement | null)?.close();
-  pintarBnav(); navigationStore.menuSignature = ''; try { montarMenuLateral(); } catch { /* the side menu is optional on the phone */ }
-  toast(t('navigationCore.menu.saved'));
+  legacyFreeCoreLayers.paintBottomBar([]); navigationStore.menuSignature = ''; try { montarMenuLateral(); } catch { /* the side menu is optional on the phone */ }
+  legacyFreeComponents.toast(t('navigationCore.menu.saved'), false);
 }
 
 function onClick(state: State, event: MouseEvent): void {
@@ -124,7 +126,7 @@ function dragEnd(state: State, box: HTMLElement, dragged: Dragged): void {
   box.querySelectorAll<HTMLElement>('.movpl').forEach(list => { state.groups[list.dataset.mpg as Zone] = [...list.querySelectorAll<HTMLElement>(':scope > .movp')].map(item => item.dataset.mpt ?? ''); });
   if (!state.fixed && !state.groups.barra.length) {
     ZONES.forEach(zone => { state.groups[zone] = state.groups[zone].filter(other => other !== key); }); state.groups.barra = [key];
-    toast(t('navigationCore.mobileMenu.barNeedsOne'), true);
+    legacyFreeComponents.toast(t('navigationCore.mobileMenu.barNeedsOne'), true);
   }
   fit(state); paint(state);
 }

@@ -4,5 +4,5 @@ export const contentLegacy = {
   stateOf: (role: string): string => legacyFreeCoreServices.states.stateOfRole(role),
   allOf: (word: string): string => legacyFreeCoreServices.vocabulary.allOf(word),
   roundEuros: (value: number): string => legacyFreeCoreServices.money.eurosRounded(value),
-  percent: (part: number | undefined, total: number | undefined): number => pct(part, total),
+  percent: (part: number | undefined, total: number | undefined): number => legacyFreeCoreServices.money.percent(Number(part), Number(total)),
 };

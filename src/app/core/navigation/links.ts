@@ -17,33 +17,40 @@ import * as legacyFreeComponentsList from '../../components/list';
 import * as legacyFreeComponentsListBar from '../../components/list-bar';
 import * as legacyFreeCoreServices from '../services';
 import * as legacyFreeComponents from '../../components';
+import { navigate } from './';
+import * as legacyFreeScreensSurgeries from '../../screens/surgeries';
+import * as legacyFreeScreensTenders from '../../screens/tenders';
+import * as legacyFreeScreensAccounts from '../../screens/accounts';
+import * as legacyFreeScreensEquipment from '../../screens/equipment';
+import * as legacyFreeScreensOrders from '../../screens/orders';
+import * as legacyFreeScreensOpportunities from '../../screens/opportunities';
 
 const RELOAD_WINDOW_MS = 60000;
 const OWN_PAGES = ['config', 'perfil', 'empresa', 'plan'];
 
 type LinkHandler = (id: string | undefined) => unknown;
 
-const toToday = (): unknown => { agendaStore.mode = 'dia'; agendaStore.selectedDate = hoyISO(); return ir('agenda'); };
-const toOrders = (section: string): unknown => { ordersStore.section = section; return ir('ventas'); };
+const toToday = (): void => { agendaStore.mode = 'dia'; agendaStore.selectedDate = legacyFreeCoreServices.calendar.today(); navigate('agenda'); };
+const toOrders = (section: string): void => { ordersStore.section = section; navigate('ventas'); };
 
 const LINKS = new Map<string, LinkHandler>([
-  ['plan', (): unknown => ir('plan')],
-  ['equipo', (id): unknown => (id ? verEquipo(id) : undefined)],
-  ['concurso', (id): unknown => (id ? verConcurso(id) : undefined)],
-  ['cirugia', (id): unknown => (id ? verCirugia(id) : undefined)],
-  ['cliente', (id): unknown => (id ? nuevaVenta({ contacto_id: id }) : undefined)],
+  ['plan', (): void => { navigate('plan'); }],
+  ['equipo', (id): unknown => (id ? legacyFreeScreensEquipment.showEquipment(id) : undefined)],
+  ['concurso', (id): unknown => (id ? legacyFreeScreensTenders.showTender(id) : undefined)],
+  ['cirugia', (id): unknown => (id ? legacyFreeScreensSurgeries.showSurgery(id, '') : undefined)],
+  ['cliente', (id): unknown => (id ? legacyFreeScreensOpportunities.editOpportunity({ contacto_id: id }, null) : undefined)],
   ['cita', toToday], ['agenda', toToday],
-  ['llamadas', (): unknown => toOrders('llamadas')], ['ventas', (): unknown => toOrders('ventas')],
-  ['stock', (): unknown => { productsStore.section = 'stock'; return ir('productos'); }],
-  ['facturacion', (): unknown => ir('facturacion')], ['duplicados', (): unknown => ir('duplicados')],
-  ['ficha', (id): unknown => (id ? abrirFicha(id) : undefined)], ['pedido', (id): unknown => (id ? verPedido(id) : undefined)],
-  ['informe', (): unknown => ir('informe')], ['directorio', (): unknown => ir('directorio')],
+  ['llamadas', (): void => { toOrders('llamadas'); }], ['ventas', (): void => { toOrders('ventas'); }],
+  ['stock', (): void => { productsStore.section = 'stock'; navigate('productos'); }],
+  ['facturacion', (): void => { navigate('facturacion'); }], ['duplicados', (): void => { navigate('duplicados'); }],
+  ['ficha', (id): unknown => (id ? legacyFreeScreensAccounts.openAccountCard(id) : undefined)], ['pedido', (id): unknown => (id ? legacyFreeScreensOrders.showOrder(id) : undefined)],
+  ['informe', (): void => { navigate('informe'); }], ['directorio', (): void => { navigate('directorio'); }],
 ]);
 
 /** Follows the link of a notice. Links with an id that arrive without it do nothing (as before). */
 export function followLink(link: string | null | undefined): unknown {
   const [kind = '', id] = String(link ?? '').split(':');
-  if (kind === 'delcos') return puede('gestionar_plataforma') ? ir('delcos') : undefined;
+  if (kind === 'delcos') { if (legacyFreeCoreServices.permissions.can('gestionar_plataforma')) navigate('delcos'); return undefined; }
   return LINKS.get(kind)?.(id);
 }
 
@@ -62,7 +69,7 @@ export function returnAfterReload(point: ReloadPoint): void {
   if (point.c) settingsStore.section = point.c;
   if (point.s) settingsStore.subsection = point.s;
   if (point.p) Object.assign(navigationStore.pageTabs, point.p);
-  if (point.t && (OWN_PAGES.includes(point.t) || puedeModulo(point.t))) ir(point.t);
+  if (point.t && (OWN_PAGES.includes(point.t) || legacyFreeCoreServices.permissions.canUseModule(point.t))) navigate(point.t);
 }
 
 /** The name of a screen as the menu shows it. */
@@ -95,14 +102,14 @@ const resetFailure = (result: { ok?: boolean; error?: string } | null, error: { 
 
 /** v2.137.0: the test environment goes back to the data as it was copied from production. */
 export async function backToTestData(): Promise<void> {
-  if (!await preguntar(t('navigationCore.testData.question'), { titulo: t('navigationCore.testData.title'), ok: t('navigationCore.testData.ok'), peligro: true })) return;
+  if (!await legacyFreeComponents.confirmAction(t('navigationCore.testData.question'), { titulo: t('navigationCore.testData.title'), ok: t('navigationCore.testData.ok'), peligro: true })) return;
   legacyFreeComponents.showFullLoading((t('navigationCore.testData.loading')));
   type Reset = { ok?: boolean; error?: string } | null;
   let { data: result, error } = await RPC_ORIG<Reset>('pruebas_resetear_responsable', { p_confirmacion: 'RESTABLECER' });
   if (error && /pruebas_resetear_responsable|PGRST202|not find/i.test((error as { message?: string }).message ?? '')) {
     ({ data: result, error } = await RPC_ORIG<Reset>('pruebas_resetear', { p_confirmacion: 'RESTABLECER' }));
   }
-  if (error || !result?.ok) { legacyFreeComponents.hideFullLoading(); toast(resetFailure(result ?? null, error as { message?: string } | null), true); return; }
+  if (error || !result?.ok) { legacyFreeComponents.hideFullLoading(); legacyFreeComponents.toast(resetFailure(result ?? null, error as { message?: string } | null), true); return; }
   legacyFreeCoreServices.session.clearLocalData(); location.reload();
 }
 
@@ -114,6 +121,6 @@ export async function backToMySession(): Promise<void> {
   const { error } = await navLegacy.auth().setSession({ access_token: impersonated.access_token, refresh_token: impersonated.refresh_token } as { access_token: string; refresh_token: string });
   localStorage.removeItem(SKEY);
   legacyFreeCoreServices.session.clearLocalData();
-  if (error) { await db.auth.signOut(); toast(t('navigationCore.session.expired'), true); }
+  if (error) { await db.auth.signOut(); legacyFreeComponents.toast(t('navigationCore.session.expired'), true); }
   location.reload();
 }

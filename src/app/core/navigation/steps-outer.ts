@@ -13,6 +13,10 @@ import { agendaStore } from '../../screens/agenda/store';
 import { ordersStore } from '../../screens/orders/store';
 import * as legacyFreeComponentsListBar from '../../components/list-bar';
 import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeCoreLayers from '../layers';
+import * as legacyFreeCoreSettings from '../settings';
+import * as legacyFreeScreensManual from '../../screens/manual';
+import * as legacyFreeCoreNavigationApi from './api';
 
 const PORTAL_SCREENS = ['informe', 'config', 'perfil'];
 const PLATFORM_SCREENS = ['delcos', 'config', 'perfil', 'manual'];
@@ -34,7 +38,7 @@ export const professionalPortalOnly: NavigationStep = {
 
 export const loadingComet: NavigationStep = {
   name: 'v2.267 · the loading line at the top when the screen changes',
-  before: nav => { if (nav.target && nav.target !== navigationStore.screen) safely(cometa); },
+  before: nav => { if (nav.target && nav.target !== navigationStore.screen) safely(() => { legacyFreeCoreNavigationApi.comet(); }); },
 };
 
 export const watchListPage: NavigationStep = {
@@ -44,7 +48,7 @@ export const watchListPage: NavigationStep = {
 
 export const customMenuNames: NavigationStep = {
   name: 'v2.231 · menu names chosen by the company',
-  after: () => { setTimeout(() => { safely(aplicarNombresMenu); }, 0); queueMicrotask(() => { safely(aplicarNombresMenu); }); },
+  after: () => { setTimeout(() => { safely(() => { legacyFreeCoreNavigationApi.applyMenuNames(); }); }, 0); queueMicrotask(() => { safely(() => { legacyFreeCoreNavigationApi.applyMenuNames(); }); }); },
 };
 
 export const rememberManualReturn: NavigationStep = {
@@ -85,12 +89,12 @@ export const singleConfiguration: NavigationStep = {
 
 export const directoryLabel: NavigationStep = {
   name: 'v2.210 · the directory title with the company word for its accounts',
-  after: target => { if (target === 'directorio') later([0, 300, 1200], aplicarEtiqueta); },
+  after: target => { if (target === 'directorio') later([0, 300, 1200], () => { legacyFreeCoreLayers.applyLabel([]); }); },
 };
 
 export const manualHelpButton: NavigationStep = {
   name: 'v2.226 · the «i» help next to each screen title',
-  after: () => { later([400, 1200, 2500], ponerAyudaManual); },
+  after: () => { later([400, 1200, 2500], () => { legacyFreeScreensManual.putHelpButton(); }); },
 };
 
 export const platformPanel: NavigationStep = {
@@ -108,20 +112,20 @@ export const stripeReturnToPlan: NavigationStep = {
   before: nav => {
     if (!PAGO_IR_PLAN || !sessionStore.profile) return;
     pagoAlPlan();
-    if (!ES_MEDICO() && puedeOrganizacion()) nav.target = 'plan';
+    if (!ES_MEDICO() && legacyFreeCoreServices.permissions.canManageOrganization()) nav.target = 'plan';
   },
 };
 
 export const planSections: NavigationStep = {
   name: 'v2.152 · sections outside the contracted plan show the plan notice instead',
   before: nav => {
-    if (nav.target in PLAN_SECCIONES && sessionStore.profile && !ES_MEDICO() && !planIncluyeSeccion(nav.target)) { legacyFreeCoreServices.plans.planNotice(nav.target); nav.blocked = true; }
+    if (nav.target in PLAN_SECCIONES && sessionStore.profile && !ES_MEDICO() && !legacyFreeCoreServices.plans.planIncludesSection(nav.target)) { legacyFreeCoreServices.plans.planNotice(nav.target); nav.blocked = true; }
   },
 };
 
 export const agendaFromMenuIsToday: NavigationStep = {
   name: 'v2.140 · Agenda from the menu always opens today',
-  before: nav => { if (nav.target === 'agenda' && IR_DESDE_MENU) { agendaStore.mode = 'dia'; agendaStore.selectedDate = hoyISO(); } },
+  before: nav => { if (nav.target === 'agenda' && IR_DESDE_MENU) { agendaStore.mode = 'dia'; agendaStore.selectedDate = legacyFreeCoreServices.calendar.today(); } },
 };
 
 export const ordersSections: NavigationStep = {
@@ -144,5 +148,5 @@ export const closePageDialog: NavigationStep = {
 
 export const footerMenuMark: NavigationStep = {
   name: 'v2.128 · mark the current screen in the footer menu',
-  after: () => { menuMarcarPie(); setTimeout(menuMarcarPie, 0); },
+  after: () => { legacyFreeCoreSettings.markMenuFooter(); setTimeout(() => { legacyFreeCoreSettings.markMenuFooter(); }, 0); },
 };

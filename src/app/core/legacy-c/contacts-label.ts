@@ -6,6 +6,8 @@ import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { byId, observe } from './dom';
 import { sessionStore } from '../session-store';
+import * as legacyFreeCoreLayers from '../layers';
+import * as legacyFreeCoreServices from '../services';
 
 /** The names a company can give to the contacts module (the legacy ETIQUETAS). */
 export const contactLabels = (): string[] =>
@@ -15,7 +17,7 @@ const isText = (node: ChildNode): boolean => node.nodeType === Node.TEXT_NODE &&
 
 /** Writes the configured name in the menus, the header of Cuentas and «‹ Volver» of Calidad (the legacy aplicarEtiquetaBase). */
 export function applyContactsLabel(): void {
-  const name = etiquetaContactos();
+  const name = legacyFreeCoreServices.vocabulary.contactsLabel();
   document.querySelectorAll('nav.main [data-t="directorio"], #bnav [data-t="directorio"], .bmasgrid [data-bm="directorio"]').forEach(button => {
     [...button.childNodes].forEach(node => { if (isText(node)) node.nodeValue = name; });
     const label = button.querySelector('b, em, small, .lb'); if (label && !label.querySelector('svg')) label.textContent = name;
@@ -29,7 +31,7 @@ export function applyContactsLabel(): void {
 export function keepContactsLabel(): void {
   observe(document.body, () => {
     const button = document.querySelector('#bnav [data-t="directorio"]');
-    if (button && !(button.textContent ?? '').includes(etiquetaContactos())) aplicarEtiqueta();
+    if (button && !(button.textContent ?? '').includes(legacyFreeCoreServices.vocabulary.contactsLabel())) legacyFreeCoreLayers.applyLabel([]);
   }, { childList: true, subtree: true });
   observe(document.body, () => {
     document.querySelectorAll('.cfgnav .cfgg').forEach(group => { if (group.querySelector('h3')?.textContent === '__oculto') group.remove(); });

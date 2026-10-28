@@ -9,6 +9,8 @@ import { navigationStore } from '../navigation/store';
 import { sessionStore } from '../session-store';
 import * as legacyFreeCoreServices from '../services';
 import * as legacyFreeScreensPlatform from '../../screens/platform';
+import { navigate } from '../navigation';
+import * as legacyFreeScreensOrders from '../../screens/orders';
 
 const COVER_MAX_MS = 9000, CHECK_EVERY_MS = 60, CHECKS = 80, REVEAL_STEP_MS = 100, REVEAL_STEPS = 30;
 
@@ -31,10 +33,10 @@ export function coverWhenLeavingOrganization(): void {
 const pause = (ms: number): Promise<void> => new Promise(resolve => { setTimeout(resolve, ms); });
 
 async function finishWhenReady(): Promise<void> {
-  try { await pagoCargarEstado(); } catch { /* the cover goes anyway */ }
+  try { await legacyFreeScreensOrders.loadPaymentState(); } catch { /* the cover goes anyway */ }
   try { await legacyFreeScreensPlatform.paintViewBand(); } catch { /* the cover goes anyway */ }
   try { legacyFreeCoreLegacyC.applyPlatformMode(); } catch { /* the cover goes anyway */ }
-  if (navigationStore.platformMode && navigationStore.screen !== 'delcos') ir('pd-orgs');
+  if (navigationStore.platformMode && navigationStore.screen !== 'delcos') navigate('pd-orgs');
   // Waits until the screen has revealed its data (3 s at most)
   for (let step = 0; step < REVEAL_STEPS; step++) { await pause(REVEAL_STEP_MS); if (!document.querySelector('main > section.preparando, main > section.cargando')) break; }
 }

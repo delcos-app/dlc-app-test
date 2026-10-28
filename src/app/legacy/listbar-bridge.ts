@@ -4,6 +4,7 @@ import { billingStore } from '../screens/billing/store';
 import { productsStore } from '../screens/products/store';
 import { accountsStore } from '../screens/accounts/store';
 import * as legacyFreeScreensAccounts from '../screens/accounts';
+import * as legacyFreeScreensCustomers from '../screens/customers';
 /**
  * Legacy pieces the list bar still needs (v2.421.0): the icons, the open section of Ventas, Facturación and Productos, the
  * filters of Cuentas and Clientes and their searches, the tools panel and the cache epoch. The page size is read through the
@@ -23,10 +24,10 @@ export const listBarLegacy = {
   // eslint-disable-next-line id-length -- F is the legacy name of the Cuentas filters
   accountFilters: (): AccountFilters => F,
   customerFilters: (): typeof PAC => PAC,
-  searchAccounts: (reset: boolean): void => { void buscar(reset); },
+  searchAccounts: (reset: boolean): void => { void legacyFreeScreensAccounts.searchAccounts(reset); },
   loadAccountFilters: (): void => { void legacyFreeScreensAccounts.loadFilters(false); },
-  searchCustomers: (): void => { void listaPacientes(); },
-  openAccountColumns: (): void => { abrirColumnas(); },
+  searchCustomers: (): void => { void legacyFreeScreensCustomers.listCustomers(); },
+  openAccountColumns: (): void => { void legacyFreeScreensAccounts.openColumnsPanel(() => { void legacyFreeScreensAccounts.searchAccounts(true); }); },
   toolsContext: (): string | null => accountsStore.toolsContext,
   /** What the «Filtros y columnas» panel chose per table (the bar's search writes its free text when the screen has no search). */
   tableFilters: (): typeof HT_ESTADO => HT_ESTADO,

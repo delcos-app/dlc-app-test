@@ -7,5 +7,3 @@ declare const SKEY: string;
 declare const PKEY: string;
 
 declare function muestraError(result: object): string;
-declare function panelNotificaciones(list: readonly unknown[]): void;
-declare function centroPintar(): void;

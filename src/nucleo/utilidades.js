@@ -4,6 +4,5 @@
 
 /** Elemento por id. Devuelve any: cada id es un tipo distinto (dialog, input, select…) y se resuelve al ejecutar. @type {(id: string) => any} */
 function $(id) { return window.delcos.core.byId(id); }
-function esc(s) { return window.delcos.core.escapeText(s); }
 
 let temporizador;

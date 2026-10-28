@@ -3,8 +3,4 @@
 // src/app/components/date-picker (v2.416.0). Estos nombres se quedan: las escuchas de legado 001, 019, 035, 037, 071 y 078, la
 // ficha y las ventanas los usan.
 
-function mejorarCampos(raiz) { window.delcos.components.enhanceFields(raiz); }
 function sinSelectorDelSistema(raiz) { if (raiz && raiz.querySelectorAll) window.delcos.components.withoutSystemPicker(raiz); }
-function cerrarSelector() { window.delcos.components.closePicker(); }
-function abrirCalendario(inp, o) { window.delcos.components.openCalendar(inp, o || {}); }
-function abrirReloj(inp, o) { window.delcos.components.openClock(inp, o || {}); }

@@ -21,6 +21,13 @@ import * as legacyFreeComponentsFilters from '../components/filters';
 import * as legacyFreeCoreLegacyA from '../core/legacy-a';
 import * as legacyFreeScreensAgenda from '../screens/agenda';
 import * as legacyFreeCoreLegacyB from '../core/legacy-b';
+import { navigate } from '../core/navigation';
+import * as legacyFreeCoreLayers from '../core/layers';
+import * as legacyFreeScreensAccounts from '../screens/accounts';
+import * as legacyFreeScreensAccess from '../screens/access';
+import * as legacyFreeScreensCustomers from '../screens/customers';
+import * as legacyFreeScreensManual from '../screens/manual';
+import * as legacyFreeComponentsListBar from '../components/list-bar';
 
 /** The arguments of a function after the first (legacy passes them through as they come). */
 type Tail<T extends readonly unknown[]> = T extends readonly [unknown, ...infer R] ? R : never;
@@ -34,14 +41,14 @@ function wrapGlobal(name: string, wrapper: (original: AnyFunction) => AnyFunctio
 }
 
 export const agendaGlueLegacy = {
-  closeMonth: (): void => { cerrarMesCinta(); },
+  closeMonth: (): void => { void legacyFreeScreensAgenda.closeMonth(); },
   dayAppointments: (): AgendaAppointment[] => agendaStore.dayAppointments,
-  openAppointment: (appointment: AgendaAppointment): void => { void verCita(appointment); },
+  openAppointment: (appointment: AgendaAppointment): void => { void legacyFreeScreensAgenda.showAppointment(appointment as Parameters<typeof legacyFreeScreensAgenda.showAppointment>[0]); },
   mode: (): string => agendaStore.mode,
   backToDay: (): void => {
     agendaStore.mode = 'dia'; agendaStore.viewedUser = null;
     const select = document.getElementById('agvista') as HTMLSelectElement | null; if (select) select.value = '';
-    void cargarAgenda();
+    void legacyFreeScreensAgenda.loadAgenda();
   },
   calculating: (): boolean => agendaStore.trafficCalculated,
   baseEstimate: (appointments: unknown, isoDate: string, rest: unknown[]): unknown => { void rest; return legacyFreeCoreLegacyA.estimateDayWithRouteHours(appointments as Parameters<typeof legacyFreeCoreLegacyA.estimateDayWithRouteHours>[0], isoDate); },
@@ -49,14 +56,14 @@ export const agendaGlueLegacy = {
   realTimes: (): { k: string } | null => agendaStore.realTimes,
   setRealTimes: (value: null): void => { agendaStore.realTimes = value; },
   realTimesValid: (): boolean => Boolean(tdRealVigente()),
-  today: (): string => hoyISO(),
+  today: (): string => legacyFreeCoreServices.calendar.today(),
   rememberedRoute: (key: string): { t: number; r: unknown } | undefined => RM_MEM.get(key),
   putRealTimes: (route: { k: string }, result: unknown): void => { legacyFreeScreensAgenda.setRealTimes(route as Parameters<typeof legacyFreeScreensAgenda.setRealTimes>[0], result as Parameters<typeof legacyFreeScreensAgenda.setRealTimes>[1]); },
   baseToggleUrgent: (id: string, rest: unknown[]): Promise<unknown> => legacyFreeCoreLegacyA.toggleUrgent(id, ...(rest as unknown as Tail<Parameters<typeof legacyFreeCoreLegacyA.toggleUrgent>>)),
-  forgetCaches: (): void => { invalidarCache(); try { DB_PRE.clear(); } catch { /* nothing preloaded */ } },
+  forgetCaches: (): void => { legacyFreeCoreServices.queue.forgetCache(); try { DB_PRE.clear(); } catch { /* nothing preloaded */ } },
   currentScreen: (): string => navigationStore.screen,
-  searchAccounts: (): void => { void buscar(true); },
-  quietRefresh: (): void => { if (typeof agRefrescoQuieto === 'function') agRefrescoQuieto(); },
+  searchAccounts: (): void => { void legacyFreeScreensAccounts.searchAccounts(true); },
+  quietRefresh: (): void => { void legacyFreeScreensAgenda.refreshQuietly(undefined, true); },
 };
 
 /** Read when called: core.js runs before the legacy code declares PAGINAS and PL. */
@@ -64,15 +71,15 @@ const pages = (): Record<string, { t: string; d?: string; tabs: [string, string,
 export const navigationGlueLegacy = {
   profileLoaded: (): boolean => Boolean(sessionStore.profile),
   addIconIfMissing: (name: string, svg: string): void => { const icons = ICON_NOM as Record<string, string>; if (!icons[name]) icons[name] = svg; },
-  canSeeArea: (area: string): boolean => typeof verArea !== 'function' || verArea(area),
+  canSeeArea: (area: string): boolean => legacyFreeCoreServices.permissions.canSeeArea(area),
   refillRoutes: (): void => { void legacyFreeScreensRoutes.refillRepeating(); },
   routeDraft: (): unknown => routesStore.wizard,
   forgetRouteDraft: (): void => { routesStore.wizard = null; },
   wrapGlobal,
-  applyMenuNames: (): void => { aplicarNombresMenu(); },
+  applyMenuNames: (): void => { legacyFreeCoreNavigationApi.applyMenuNames(); },
   applyMenuNamesSoon: (): void => {
     if (!Object.keys(menuNombres()).length || settingsStore.textsObserverTimer) return;
-    settingsStore.textsObserverTimer = requestAnimationFrame(() => { settingsStore.textsObserverTimer = 0; try { aplicarNombresMenu(); } catch { /* the menu may be incomplete */ } });
+    settingsStore.textsObserverTimer = requestAnimationFrame(() => { settingsStore.textsObserverTimer = 0; try { legacyFreeCoreNavigationApi.applyMenuNames(); } catch { /* the menu may be incomplete */ } });
   },
   baseApplyLabel: (args: unknown[]): unknown => { void args; legacyFreeCoreLegacyC.applyContactsLabel(); return undefined; },
   currentScreen: (): string => navigationStore.screen,
@@ -89,13 +96,13 @@ export const navigationGlueLegacy = {
   mobileModules: (): string[] => legacyFreeCoreNavigationApi.bottomBar(),
   moduleIcon: (module: string): string | undefined => ICO_MOD[module],
   mobileName: (module: string): string => legacyFreeCoreNavigationApi.mobileName(module),
-  goTo: (screen: string): void => { void ir(screen); },
-  openMoreMenu: (): void => { abrirMasMovil(); },
+  goTo: (screen: string): void => { navigate(screen); },
+  openMoreMenu: (): void => { legacyFreeCoreNavigationApi.openMoreMenu(); },
   measureBottomBar: (): void => { legacyFreeCoreNavigationApi.measureBottomBar(); },
   baseSummariseHelp: (popup: HTMLElement): void => { legacyFreeCoreLegacyC.summariseHelp(popup); },
   helpAnchor: (button: HTMLElement): string => legacyFreeComponents.helpAnchor(button),
   manualAnchor: (screen: string): string | undefined => MANUAL_ANCLA[screen],
-  openManual: (anchor: string): void => { abrirManual(anchor); },
+  openManual: (anchor: string): void => { void legacyFreeScreensManual.openManual(anchor || ''); },
 };
 
 export interface CountItem { k: string; t: string; n: number; s: string }
@@ -103,20 +110,20 @@ export interface LegacyOrderRow { id: string; contacto?: string | null; centro?:
 type ListConfig = { kpiFirma?: () => string; kpis?: () => Promise<CountItem[]>; pedidos?: { card?: (row: HTMLElement) => Record<string, string> } } | undefined;
 const lists = (): Record<string, ListConfig> => PL as Record<string, ListConfig>;
 export const listGlueLegacy = {
-  leaveNearby: (): void => { accountsStore.nearby = null; void buscar(true); },
+  leaveNearby: (): void => { accountsStore.nearby = null; void legacyFreeScreensAccounts.searchAccounts(true); },
   clearCustomerDoctor: (): void => { PAC.medico = null; PAC.medicoNombre = ''; PAC.pagina = 0; },
-  listCustomers: (): void => { void listaPacientes(); },
+  listCustomers: (): void => { void legacyFreeScreensCustomers.listCustomers(); },
   setAccountType: (type: string): void => { F.tipo = type; },
-  searchAccounts: (): void => { void buscar(true); },
+  searchAccounts: (): void => { void legacyFreeScreensAccounts.searchAccounts(true); },
   rememberFilter: (event: Event): void => { legacyFreeComponentsFilters.rememberFilter(event); },
   baseMountPeriod: (element: HTMLElement | null, args: unknown[]): unknown => legacyFreeCoreLegacyA.mountPeriod(element as unknown as HTMLElement, ...(args as unknown as Tail<Parameters<typeof legacyFreeCoreLegacyA.mountPeriod>>)),
   restoreFilters: (root: HTMLElement | null): void => { legacyFreeComponentsFilters.restoreFilters(root); },
   setOrderCard: (card: (row: HTMLElement) => Record<string, string>): void => { const sales = lists().ventas as unknown as { pedidos: { card?: unknown } }; sales.pedidos.card = card; },
   orders: (): LegacyOrderRow[] => (typeof ordersStore.orders === 'undefined' ? [] : ordersStore.orders as LegacyOrderRow[]),
-  number: (value: unknown): string => num(value),
+  number: (value: unknown): string => legacyFreeCoreServices.money.number(value),
   isFree: (order: LegacyOrderRow): boolean => Boolean(legacyFreeScreensOrders.isFree(order, order.total)),
   shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
-  canSeeAmounts: (): boolean => verImportes(),
+  canSeeAmounts: (): boolean => legacyFreeCoreServices.permissions.canSeeAmounts(),
   euros: (value: number): string => legacyFreeCoreServices.money.eurosRounded(value),
   stepPill: (order: LegacyOrderRow): string => legacyFreeScreensOrders.stepPill(order),
   accountFilters: (): (() => AccountFilters & { campos?: Record<string, unknown> }) => () => F as AccountFilters & { campos?: Record<string, unknown> },
@@ -133,15 +140,15 @@ export const deviceLegacy = {
   debounceAddButton: (work: () => void, ms: number): void => { clearTimeout(navigationStore.fabResize); navigationStore.fabResize = setTimeout(work, ms); },
   addButtonToDesktop: (): void => { legacyFreeCoreNavigationApi.fabToDesktop(); },
   currentScreen: (): string => navigationStore.screen,
-  syncListBar: (screen: string): void => { if (typeof plSync === 'function') plSync(screen); },
+  syncListBar: (screen: string): void => { legacyFreeComponentsListBar.syncListBar(screen); },
   basePaintConnection: (args: unknown[]): unknown => { void args; legacyFreeCoreLegacyA.paintConnection(); return undefined; },
   refusedChanges: (): QueuedChange[] => legacyFreeCoreServices.queue.refused() as QueuedChange[],
-  queuedChanges: (): QueuedChange[] => colaLeer() as QueuedChange[],
+  queuedChanges: (): QueuedChange[] => legacyFreeCoreServices.queue.queued() as QueuedChange[],
   choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => legacyFreeComponents.chooseOption(title, message, buttons),
-  confirm: (message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean> => preguntar(message, options),
+  confirm: (message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean> => legacyFreeComponents.confirmAction(message, options),
   saveQueue: (queue: QueuedChange[]): void => { legacyFreeCoreServices.queue.saveQueue(queue as unknown as Parameters<typeof legacyFreeCoreServices.queue.saveQueue>[0]); },
   forgetRefused: (): void => { localStorage.removeItem(COLA_KO); },
-  paintConnection: (): void => { pintarConexion(); },
+  paintConnection: (): void => { legacyFreeCoreLayers.paintConnection([]); },
   sendQueue: (): void => { void legacyFreeCoreServices.queue.sendQueue(); },
   addScannerButtonsSoon: (): void => { if (navigationStore.scannerPending) return; navigationStore.scannerPending = true; queueMicrotask(() => { navigationStore.scannerPending = false; legacyFreeCoreLeftovers.addScannerButtons(undefined); }); },
   openScanner: (input: HTMLInputElement): void => { void legacyFreeCoreLeftovers.openScanner(input); },
@@ -154,13 +161,13 @@ export const sessionGlueLegacy = {
   defineHelp: (key: string, get: () => HelpText | undefined, set: (value: HelpText | undefined) => void): void => { Object.defineProperty(AYUDA, key, { configurable: true, enumerable: true, get, set }); },
   isProfessionalPortal: (): boolean => typeof ES_MEDICO === 'function' && ES_MEDICO(),
   checkAccess: (force?: boolean): void => { void legacyFreeCoreServices.session.checkAccess(force); },
-  refreshBell: (): void => { void refrescarCampana(); },
+  refreshBell: (): void => { void legacyFreeCoreServices.live.refreshBell(); },
   profileLoaded: (): boolean => Boolean((sessionStore.profile as { id?: string } | null)?.id),
   liveNotices: (): void => { legacyFreeCoreServices.live.listenLive(); },
   setCentreStateClass: (state: string, pill: string): void => { NOMBRE_ESTADO_CENTRO[state] = pill; },
   setMaterialForPortal: (id: string, offered: boolean): PromiseLike<LegacyResult<unknown>> => db.from('producto_materiales').update({ para_portal: offered }).eq('id', id),
-  toast: (message: string, isError = false): void => { toast(message, isError); },
+  toast: (message: string, isError = false): void => { legacyFreeComponents.toast(message, !!isError); },
   materials: (): { id: string; para_portal?: boolean }[] | null => productsStore.presentationMaterials as { id: string; para_portal?: boolean }[] | null,
   linkError: (): string | null => ENLACE_ERROR,
-  accessWithoutActivation: (text: string): void => { accesoSinActivar(text); },
+  accessWithoutActivation: (text: string): void => { legacyFreeScreensAccess.showNotActivated(text); },
 };

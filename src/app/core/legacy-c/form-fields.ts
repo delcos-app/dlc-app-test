@@ -129,7 +129,7 @@ export function improveNumbers(): void {
   }, { passive: true });
   document.addEventListener('change', clampNumber, true);
   observe(document.body, sinHistorialLuego, { childList: true, subtree: true });
-  sinHistorial(document.body);
+  legacyFreeCoreLeftovers.withoutHistory(document.body);
 }
 
 const touchScreen = (): boolean => window.matchMedia('(pointer: coarse)').matches;
@@ -141,11 +141,11 @@ export function noSystemPickers(): void {
     if (input instanceof HTMLInputElement && input.matches('.selw input') && touchScreen()) input.blur();
   }, true);
   const mini = byId<HTMLDialogElement>('mini');
-  if (mini) { const open = mini.showModal.bind(mini); mini.showModal = (): void => { try { mejorarCampos(mini); } catch { /* the window opens anyway */ } open(); }; }
+  if (mini) { const open = mini.showModal.bind(mini); mini.showModal = (): void => { try { legacyFreeComponents.enhanceFields(mini); } catch { /* the window opens anyway */ } open(); }; }
   document.addEventListener('focusin', event => {
     const input = event.target;
     if (!(input instanceof HTMLInputElement) || !input.matches('input[type=date], input[type=time]') || input.closest('.selpop') || !touchScreen()) return;
-    if (!input.closest('.selw')) { try { mejorarCampos(input.parentNode as Element); } catch { /* it stays a plain field */ } }
+    if (!input.closest('.selw')) { try { legacyFreeComponents.enhanceFields(input.parentNode as Element); } catch { /* it stays a plain field */ } }
     input.blur();
   }, true);
 }

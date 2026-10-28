@@ -4,4 +4,3 @@
 let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
  // v2.440.0: TD_ULTIMO, TD_PRESET → estado de src/app (plan 6.6), accesible en window
 window.delcos.legacyC.start076();
-async function pintarPaginaPlan(...a) { return window.delcos.legacyC.paintPlanPage(a); }

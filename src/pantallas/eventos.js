@@ -13,9 +13,7 @@
    - Eventos → «Informe de gastos» (administración o quien ve todo el equipo): por año, lo dado a cada profesional por concepto, para descargar.
    - Ficha: bloque «Eventos» con los últimos a los que ha ido o está invitado. */
 
-const verTransparencia = () => puede('administrar') || VE_TODO();
+const verTransparencia = () => window.delcos.core.permissions.can('administrar') || window.delcos.core.permissions.seesEverything();
 
 // Eventos está en src/app/screens/events (v2.407.0). Estos nombres se quedan: las pestañas de la página (legado 079),
 // «‹ Volver» (envuelve las ventanas por su nombre) y las pruebas los usan.
-function editarEvento(ev) { window.delcos.screens.events.editEvent(ev || null); }
-function verEvento(id) { return window.delcos.screens.events.showEvent(id); }

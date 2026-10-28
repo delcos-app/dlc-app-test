@@ -7,7 +7,6 @@ const ESTKEY = window.delcos.core.states.STATES_KEY;
 
  // v2.440.0: ESTADOS_DEF → estado de src/app (plan 6.6), accesible en window
 
-function estados() { return window.delcos.core.states.stateNames(); }
 
 const EST_COL = window.delcos.core.states.APPOINTMENT_COLOURS;
 

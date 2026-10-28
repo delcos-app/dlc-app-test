@@ -6,6 +6,7 @@ import * as legacyFreeScreensRoutes from '../screens/routes';
 import * as legacyFreeCoreServices from '../core/services';
 import { routesStore } from '../screens/routes/store';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import * as legacyFreeCoreSettings from '../core/settings';
 /**
  * Bridge of Rutas to the legacy code (kept apart from bridge.ts, which is at its size limit). The planner (conHor, programarVisitas,
  * PLANCFG), the day map (rmLib, rmRuta and its palette and reasons) and the page chain (cargarRutas) stay in legacy: the Agenda and
@@ -22,9 +23,9 @@ export const routesLegacy = {
   withSchedule: <T>(hours: { salida: string | null; vuelta: string | null }, work: () => T): T => withHours(hours, work),
   schedule: (items: PlanItem[], start: number): { seq: { it: PlanItem }[]; fuera: { it: PlanItem }[] } => scheduleVisits(items, start) as unknown as { seq: { it: PlanItem }[]; fuera: { it: PlanItem }[] },
   settings: (): PlanSettings => planSettings(),
-  start: (): PlanStart => salidaUsuario(),
+  start: (): PlanStart => legacyFreeCoreSettings.userStart(),
   minutesOf: (time: string | null | undefined): number | null => legacyFreeCoreServices.calendar.timeToMinutes(time),
-  travelMinutes: (from: [number, number], to: [number, number]): number => minutosEntre(from, to),
+  travelMinutes: (from: [number, number], to: [number, number]): number => legacyFreeCoreServices.maps.minutesBetween(from, to),
   nextWorkingDay: (): string => legacyFreeCoreServices.calendar.nextWorkingDay(),
   mapLibrary: (): Promise<MapLibrary> => mapLibrary(),
   streetRoute: (points: [number, number][], start: string): Promise<StreetRoute> => streetRoute(points, start),

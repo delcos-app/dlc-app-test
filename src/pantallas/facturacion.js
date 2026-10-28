@@ -32,10 +32,6 @@ const AN_SERIE = new Map();
 
 // Facturación está en src/app/screens/billing (v2.413.0). Estos nombres se quedan: el menú, la caché de pantallas (legado 057),
 // la barra de configuración, Configuración, Organización, Pedidos, «‹ Volver» (legado 089), la ventana amplia y las pruebas los usan.
-function cargarFacturacion() { return window.delcos.screens.billing.loadBilling(); }
-function verFactura(id) { return window.delcos.screens.billing.showInvoice(id); }
-function pintarSeries() { return window.delcos.screens.billing.paintSeries(); }
-function pintarVerifactu() { return window.delcos.screens.billing.paintVerifactu(); }
 
 // Emitir, la vista previa, las facturas del pedido y el correo están en src/app/screens/billing/issue (v2.427.0). Estos nombres
 // se quedan: Pedidos, el plan, Organización y la capa de pantallas los usan.

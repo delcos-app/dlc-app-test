@@ -9,6 +9,8 @@ import { sessionStore } from '../core/session-store';
 import { accountsStore } from '../screens/accounts/store';
 import { settingsStore } from '../screens/settings/store';
 import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeCoreLayers from '../core/layers';
+import * as legacyFreeCoreLegacyA from '../core/legacy-a';
 
 export interface FilterOption { v: string; n: number }
 export interface FilterOptions { provincias: FilterOption[]; municipios: FilterOption[]; especialidades: FilterOption[]; estados: FilterOption[]; centros?: FilterOption[] }
@@ -33,8 +35,8 @@ export const accountsEditorLegacy = {
   filterOptions: (): FilterOptions => accountsStore.filterOptions as FilterOptions,
   setFilterOptions: (options: FilterOptions): void => { accountsStore.filterOptions = options; },
   teamUsers: (): readonly TeamUser[] => settingsStore.users as TeamUser[],
-  reloadAdmin: (): void => { void cargarAdmin(); },
-  assignPortfolio: (userId: string): void => { void asignarCartera(userId); },
+  reloadAdmin: (): void => { void legacyFreeCoreLayers.loadAdmin([]); },
+  assignPortfolio: (userId: string): void => { void legacyFreeCoreLegacyA.assignPortfolioToUser(userId); },
   /** The «Ver en el mapa» icon of the directory, changed by the map mode. */
   iconOf: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
 };

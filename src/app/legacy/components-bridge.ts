@@ -13,6 +13,8 @@ import * as legacyFreeScreensRoutes from '../screens/routes';
 import * as legacyFreeComponentsFiltersPanel from '../components/filters-panel';
 import * as legacyFreeScreensProducts from '../screens/products';
 import * as legacyFreeCoreLegacyB from '../core/legacy-b';
+import * as legacyFreeScreensCustomers from '../screens/customers';
+import * as legacyFreeScreensOrders from '../screens/orders';
 export const componentsLegacy = {
   popup: (): HTMLElement | null => navigationStore.pickerPopup,
   setPopup: (popup: HTMLElement | null): void => { navigationStore.pickerPopup = popup; },
@@ -36,9 +38,9 @@ export const componentsLegacy = {
   canEditCatalogs: (): boolean => Boolean(legacyFreeCoreServices.permissions.canManageLists()),
   sidePanelOpen: (): boolean => legacyFreeComponentsFiltersPanel.sideOpen(),
   customerFilters: (): Record<string, unknown> => (PAC.campos = PAC.campos ?? {}),
-  reloadCustomers: (): void => { PAC.pagina = 0; void listaPacientes(); },
+  reloadCustomers: (): void => { PAC.pagina = 0; void legacyFreeScreensCustomers.listCustomers(); },
   orderFilters: (): Record<string, unknown> => ordersStore.filters,
-  reloadOrders: (): void => { ordersStore.page = 0; void listaPedidos(); },
+  reloadOrders: (): void => { ordersStore.page = 0; void legacyFreeScreensOrders.paintOrderList(); },
   productFilters: (): Record<string, unknown> => productsStore.filters,
   reloadProducts: (): void => { void legacyFreeScreensProducts.paintProducts(); },
   productsSection: (): string => productsStore.section,

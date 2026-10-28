@@ -16,9 +16,6 @@ const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
 const BAJA_QUE = { visitas: window.delcos.t('legacyTexts.accountRemoval.visits'), ventas: window.delcos.t('legacyTexts.accountRemoval.sales'), muestras: window.delcos.t('legacyTexts.accountRemoval.samples'), eventos: window.delcos.t('legacyTexts.accountRemoval.events'), cirugias: window.delcos.t('legacyTexts.accountRemoval.surgeries'), concursos: window.delcos.t('legacyTexts.accountRemoval.tenders'), equipos: window.delcos.t('legacyTexts.accountRemoval.equipment'), portal: window.delcos.t('legacyTexts.accountRemoval.portal') };
 
 // El editor del cliente está en src/app/screens/customers/contact-editor (v2.427.0); Clientes, Pedidos, Oportunidades y las pruebas lo abren por este nombre
-function editorContacto(c, alGuardar, op) { return window.delcos.leftovers.editContact(c || null, alGuardar || null, op || null); }
 
 // Clientes está en src/app/screens/customers (v2.411.0). Estos nombres se quedan: el menú, la barra de la lista, los filtros de
 // campos, Pedidos, Oportunidades, legado 137, «‹ Volver» y las pruebas los usan.
-function cargarPacientes() { return window.delcos.screens.customers.loadCustomers(); }
-function listaPacientes() { return window.delcos.screens.customers.listCustomers(); }

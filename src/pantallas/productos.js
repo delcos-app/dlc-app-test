@@ -10,7 +10,7 @@ function loteRecepcion(l, uds, almId) {
       <div><label>${window.delcos.t('legacyTexts.stockReception.batch')}</label><input data-r="lote" placeholder="${window.delcos.t('legacyTexts.stockReception.batchPlaceholder')}"></div></div>
     <div class="g2" style="margin:0"><div><label>${window.delcos.t('legacyTexts.stockReception.expiry')}</label><input type="date" data-r="cad"></div>
       <div><label>${window.delcos.t('legacyTexts.stockReception.manufacture')}</label><input type="date" data-r="fab"></div></div>
-    <div><label>${window.delcos.t('legacyTexts.stockReception.store')}</label><select data-r="alm">${ALMACENES.filter(a => a.activo).map(a => `<option value="${a.id}" ${a.id === almId ? 'selected' : ''}>${esc(a.nombre)}</option>`).join('')}</select></div></div>`;
+    <div><label>${window.delcos.t('legacyTexts.stockReception.store')}</label><select data-r="alm">${ALMACENES.filter(a => a.activo).map(a => `<option value="${a.id}" ${a.id === almId ? 'selected' : ''}>${window.delcos.core.escapeText(a.nombre)}</option>`).join('')}</select></div></div>`;
 }
 
 
@@ -24,9 +24,9 @@ function loteRecepcion(l, uds, almId) {
 
 
 async function refrescarProductos() {
-  try { invalidarCache(); } catch (e) {}
+  try { window.delcos.core.queue.forgetCache(); } catch (e) {}
   await cargarProductos();
-  if (TAB === 'productos' && typeof cargarProductosModulo === 'function') cargarProductosModulo();
+  if (TAB === 'productos' && typeof window.delcos.screens.products.loadProductsModule === 'function') window.delcos.screens.products.loadProductsModule();
 }
 
 
@@ -43,7 +43,7 @@ async function refrescarProductos() {
 
 const vendible = p => (p.estado || 'Activo') === 'Activo';
 
-const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e === 'Entregado' ? 'p-est' : 'p-anu'}">${esc(e)}</span>`;
+const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e === 'Entregado' ? 'p-est' : 'p-anu'}">${window.delcos.core.escapeText(e)}</span>`;
 
 /* v2.196.0 · Material en depósito en el cliente (segunda tanda del estudio por sectores, SQL 122). Decisiones de Eric: solo en fichas de tipo
    Centro; lo usado se sabe por recuento o apuntando cada uso; lo usado crea un pedido en borrador y se propone reponerlo.
@@ -52,7 +52,7 @@ const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e 
      movimientos; «Reponer» (de tu maletín o del almacén central), «Apuntar uso» (con referencia, sin datos del paciente) y «Recuento».
      Lo usado deja un pedido en borrador del centro («Ver el pedido») y ofrece «Reponer lo usado». */
 
-const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
+const depCaducaPronto = f => f && f <= window.delcos.core.calendar.plusDays(window.delcos.core.calendar.today(), 60);
 
 /* v2.198.0 · Cobertura por producto en el ciclo (segunda tanda, «Panel y ciclos», SQL 124). Decisiones de Eric: la cobertura mide los
    productos presentados en las visitas, y solo salen los que la administración marca como «Se promociona en las visitas».
@@ -88,18 +88,13 @@ function opcionesProducto(id, nombre) {
   // En los pedidos solo aparecen los productos activos (y el que ya tuviera la línea)
   const lista = PRODUCTOS.filter(p => (p.tipo !== 'servicio' && vendible(p)) || p.id === id);
   const falta = id && !lista.some(p => p.id === id);
-  return (falta ? `<option value="${id}" selected>${esc(nombre || window.delcos.t('legacyTexts.products.fromOrder'))}</option>` : '') +
-    lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}${vendible(p) ? '' : ' (' + esc(p.estado.toLowerCase()) + ')'}</option>`).join('')
+  return (falta ? `<option value="${id}" selected>${window.delcos.core.escapeText(nombre || window.delcos.t('legacyTexts.products.fromOrder'))}</option>` : '') +
+    lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${window.delcos.core.escapeText(p.nombre)}${vendible(p) ? '' : ' (' + window.delcos.core.escapeText(p.estado.toLowerCase()) + ')'}</option>`).join('')
     || '<option value="">' + window.delcos.t('legacyTexts.products.noneActive') + '</option>';
 }
 
 // Productos está en src/app/screens/products (v2.413.0). Estos nombres se quedan: el menú, la caché de pantallas (legado 057),
 // los filtros de campos, Configuración, la ficha de la cuenta, «‹ Volver» (legado 089) y las pruebas los usan.
-function cargarProductosModulo() { return window.delcos.screens.products.loadProductsModule(); }
-function fichaStock(s) { return window.delcos.screens.products.showStock(s); }
-function verDeposito(cuenta, nombre, aviso) { return window.delcos.screens.products.showDeposit(cuenta, nombre, aviso || ''); }
-function movimientoStock(s, tipo, loteId, almId) { return window.delcos.screens.products.stockMovement(s || null, tipo, loteId ? { batchId: loteId, storeId: almId } : undefined); }
 
 // El editor de producto y el material de visita están en src/app/screens/products/editor (v2.427.0). Estos nombres se quedan:
 // Productos, Configuración, Visita y las pruebas los usan.
-function editorProducto(p) { return window.delcos.screens.products.editProduct(p || null); }

@@ -14,6 +14,10 @@ import { accountsStore } from '../../screens/accounts/store';
 import { routesStore } from '../../screens/routes/store';
 import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
 import * as legacyFreeCoreSettings from '../settings';
+import { navigate } from '../navigation';
+import * as legacyFreeScreensAgenda from '../../screens/agenda';
+import * as legacyFreeScreensAccounts from '../../screens/accounts';
+import * as legacyFreeComponents from '../../components';
 
 const PULL_FACTOR = 0.6, PULL_READY = 80, PULL_MAX = 90, PULL_SHOW = 70, PULL_OFFSET = 50, PULL_MIN_MS = 600;
 
@@ -22,7 +26,7 @@ export function addToAgendaFromCard(): void {
   window.addEventListener('click', event => {
     const button = closestTo(event.target, '[data-agendar]'); if (!button) return;
     event.stopImmediatePropagation(); event.stopPropagation(); event.preventDefault();
-    void (nuevaCita as (account: string, isoDate: string | null, options: object) => unknown)(button.dataset.agendar ?? '', null, { origen: 'Ficha' });
+    void legacyFreeScreensAgenda.newAppointment(button.dataset.agendar ?? '', null, { origen: 'Ficha' });
   }, true);
 }
 
@@ -81,7 +85,7 @@ export function pullToReload(): void {
     if (distance * PULL_FACTOR <= PULL_READY) { hidePull(); return; }
     loading = true; pullIndicator().classList.add('gira'); showPull(PULL_READY);
     const started = Date.now();
-    try { if (navigationStore.screen === 'agenda') await cargarAgenda(); else await ir(navigationStore.screen); } catch { /* the indicator goes anyway */ }
+    try { if (navigationStore.screen === 'agenda') await legacyFreeScreensAgenda.loadAgenda(); else navigate(navigationStore.screen); } catch { /* the indicator goes anyway */ }
     await new Promise(resolve => { setTimeout(resolve, Math.max(0, PULL_MIN_MS - (Date.now() - started))); });
     loading = false; hidePull();
   })(); });
@@ -93,7 +97,7 @@ export function openCentreFromSearch(): void {
     const button = closestTo(event.target, '[data-gcid]'); if (!button) return;
     event.stopImmediatePropagation(); event.stopPropagation(); event.preventDefault();
     byId('gsug')?.classList.add('hide'); const search = byId<HTMLInputElement>('q'); if (search) search.value = '';
-    void fichaCentro(button.dataset.gcid ?? '');
+    void legacyFreeScreensAccounts.showCentre(button.dataset.gcid ?? '');
   }, true);
 }
 
@@ -112,7 +116,7 @@ export function checkSamplesBeforeSaving(): void {
     const visit = accountsStore.currentVisit as { muestras?: { validar: () => string | null } } | null;
     if (!button || !visit?.muestras) return;
     const message = visit.muestras.validar();
-    if (message) { event.stopImmediatePropagation(); event.preventDefault(); toast(message, true); }
+    if (message) { event.stopImmediatePropagation(); event.preventDefault(); legacyFreeComponents.toast(message, true); }
   }, true);
 }
 

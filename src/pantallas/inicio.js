@@ -9,7 +9,6 @@ const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['
 
 // Inicio está migrado a src/app/screens/home (v2.385.0). Estos dos nombres se quedan como adaptadores porque los llama mucho código
 // antiguo; desaparecerán cuando la navegación pase al router.
-function cargarInicio() { return window.delcos.screens.home.load(); }
 
 // El Inicio del portal del profesional y las alertas ocultas están en src/app/screens/home/portal-home (v2.417.0). Estos nombres se
 // quedan: legado 040 (filtrarAlertasInicio) y 112 (inicioCabecera, al cargar, quizá antes de window.delcos) los usan.

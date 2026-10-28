@@ -17,6 +17,7 @@ import { navigationStore } from '../core/navigation/store';
 import * as legacyFreeScreensSettingsRest from '../screens/settings/rest';
 import * as legacyFreeScreensCustomers from '../screens/customers';
 import * as legacyFreeScreensAccounts from '../screens/accounts';
+import * as legacyFreeScreensHome from '../screens/home';
 export interface EditorProduct { id: string; nombre?: string; precio?: number | null; iva?: number | null; contrato?: string | null }
 export interface EditorService { id: string; nombre: string; activo?: boolean | null; por_defecto?: boolean | null; pvp?: number | null; iva?: number | null }
 export interface PlanInfo { id: string; nombre: string; precio: number; anual?: number | null; minimo?: number | null }
@@ -42,7 +43,7 @@ export const orderEditorLegacy = {
   orderFields: (): readonly CustomField[] => CAMPOS.pedido ?? [],
   customerCardOpen: (): unknown => accountsStore.cardPatients,
   openCustomer: (id: unknown): void => { void legacyFreeScreensCustomers.showCustomer((id as string)); },
-  repaintCustomers: (): void => { void listaPacientes(); },
+  repaintCustomers: (): void => { void legacyFreeScreensCustomers.listCustomers(); },
   distributors: (): DistributorRow[] | null => ordersStore.distributors,
   setDistributors: (list: DistributorRow[]): void => { ordersStore.distributors = list; },
 };
@@ -52,7 +53,7 @@ export const tpvLegacy = {
   setSettings: (value: Record<string, unknown>): void => { settingsStore.settings.cobro_tpv = value; },
   /** Only in the test environment until the bank terminal exists (legado 147). */
   visible: (): boolean => Boolean(TPV_VISIBLE),
-  canUseSales: (): boolean => puedeModulo('ventas'),
+  canUseSales: (): boolean => legacyFreeCoreServices.permissions.canUseModule('ventas'),
   serverUrl: (): string => CFG.url,
   whileWorking: (button: HTMLElement | null, text: string, work: () => Promise<unknown>): Promise<unknown> => legacyFreeCoreLegacyC.withLoading(button, text, work),
 };
@@ -71,20 +72,20 @@ export const subscriptionLegacy = {
   setPlatformMode: (value: boolean): void => { navigationStore.platformMode = value; },
   applyPlatformMode: (): void => { legacyFreeCoreLegacyC.applyPlatformMode(); },
   markBillingPlan: (): void => { legacyFreeScreensSettingsShell.markBillingPlan(); },
-  canManageCompany: (): boolean => puedeOrganizacion(),
+  canManageCompany: (): boolean => legacyFreeCoreServices.permissions.canManageOrganization(),
   openPortal: (button: HTMLElement): void => { void pagoPortal(button); },
   daysUntil: (isoDate: unknown): number | null => diasHasta(isoDate),
 };
 
 export const orderCardsLegacy = {
-  isoPlus: (isoDate: string, days: number): string => isoMas(isoDate, days),
+  isoPlus: (isoDate: string, days: number): string => legacyFreeCoreServices.calendar.plusDays(isoDate, days),
   easter: (year: number): string => legacyFreeCoreServices.calendar.easterSunday(year),
 };
 
 export const indicatorSettingsLegacy = {
   defaults: (): readonly string[] => KPI_DEF,
   save: (list: readonly Record<string, unknown>[]): Promise<boolean> => legacyFreeScreensSettingsRest.saveIndicators(list).then(saved => saved === true),
-  reloadHome: (): void => { void cargarInicio(); },
+  reloadHome: (): void => { void legacyFreeScreensHome.loadWithCache(); },
   eye: (open: boolean): string => (open ? ICO.ojo : ICO.ojoNo) ?? '',
 };
 

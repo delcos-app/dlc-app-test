@@ -15,6 +15,7 @@ import { navigationStore } from '../core/navigation/store';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeComponents from '../components';
 import * as legacyFreeScreensOrders from '../screens/orders';
+import * as legacyFreeScreensBilling from '../screens/billing';
 export interface CatalogItem { id: string; nombre: string; foto_url?: string | null; tipo?: string | null; estado?: string; precio?: number | null; iva?: number | null }
 export interface MailTemplate { id: string; nombre: string; defecto?: boolean }
 
@@ -42,7 +43,7 @@ export const billing2Legacy = {
   askText: (message: string, value: string, options: { titulo: string; ok: string }): Promise<string | null> => legacyFreeComponents.askText(message, value, options),
   newTemplateId: (): string => legacyFreeScreensSettingsExtra.newTemplateId(),
   helpButton: (title: string, text: string): string => pmAyu(title, text),
-  openInvoice: (id: string): void => { void verFactura(id); },
+  openInvoice: (id: string): void => { void legacyFreeScreensBilling.showInvoice(id); },
   /** The legacy name: legado 058 and the wide window wrap disenoPDF. */
   openDesigner: (): void => { void legacyFreeCoreServices.pdf.openDesigner(); },
   paymentState: (): { facturas?: unknown } | null => ordersStore.paymentState as { facturas?: unknown } | null,

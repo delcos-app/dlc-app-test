@@ -1,11 +1,12 @@
 /**
  * Assign or remove a user's portfolio by looking at the list (legado 019, v2.424.0): filters, the list with its pages, untick the
- * ones you do not want, and assign or remove all the selected ones. asignarCarteraBase stays as an adapter (legado 052 wraps it).
+ * ones you do not want, and assign or remove all the selected ones. assignPortfolioToUser is the legacy asignarCartera (legado 052).
  */
 import { legacyDb, notices, term } from '../../legacy/bridge';
 import { adminLegacy, portfolioLegacy, type AdminUser } from '../../legacy/legado-a-bridge';
 import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
+import { ensureUser } from './users/model';
 
 const PAGE = 50, FILTER_IDS = ['aprov', 'amuni', 'aesp', 'aest', 'aurg'];
 
@@ -100,6 +101,12 @@ async function apply(user: AdminUser, state: State, remove: boolean, button: HTM
   if (error || result?.ok === false) { notices.toast(failureText(error), true); return; }
   notices.toast(changedText(remove, result?.filas ?? 0, result?.movidos));
   (byId('dlg') as HTMLDialogElement | null)?.close(); portfolioLegacy.reloadAdmin();
+}
+
+/** Makes sure user `id` has its profile, then opens its portfolio window (legado 052: a new user could not take a portfolio yet). */
+export async function assignPortfolioToUser(id: string): Promise<void> {
+  await ensureUser(id);
+  await assignPortfolio(id);
 }
 
 /** Opens the portfolio window of user `id` (from the users list of Administración). */

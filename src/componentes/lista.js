@@ -4,7 +4,6 @@
 
 // Las columnas de Cuentas están en src/app/screens/accounts/list (v2.406.0); estos nombres los usan los campos personalizados y la lista
 const colsGuardar = c => window.delcos.screens.accounts.saveColumns(c);
-function abrirColumnas() { window.delcos.screens.accounts.openColumnsPanel(() => buscar(true)); }
 
 // Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
 const ORD_SRV = {
@@ -49,11 +48,8 @@ const PL = window.delcos.components.listBar.configs;
 const PL_SECC = window.delcos.components.listBar.sections;
 const BLQ = window.delcos.components.listBar.blocks;
 const TAMANOS = window.delcos.components.listBar.PAGE_SIZES;
-function plSync(tab) { window.delcos.components.listBar.syncListBar(tab); }
-function plIco(...n) { return window.delcos.components.listBar.icon(...n); }
 // Las pruebas cambian tamPagina para paginar de 5 en 5: las listas la leen siempre por este nombre
 function tamPagina() { return window.delcos.components.listBar.storedPageSize(); }
 
 // Las piezas comunes de las listas están en src/app/components/list (v2.416.0). Estos nombres se quedan: el motor de la barra
 // de listas (PL, plSync), el panel «Filtros y columnas», otras pantallas antiguas y las pruebas los usan.
-function plCerrarPop() { window.delcos.components.list.closePopovers(); }

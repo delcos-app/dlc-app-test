@@ -4,5 +4,3 @@
 
 const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
 
-/** @param {string} msg @param {boolean} [err] */
-function toast(msg, err) { window.delcos.components.toast(msg, !!err); }

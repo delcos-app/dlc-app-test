@@ -83,9 +83,11 @@ function bind(box: HTMLElement, list: readonly Organization[]): void {
 
 export async function paintOrganizations(): Promise<void> {
   const start = document.getElementById('cfgcuerpo'); if (!start) return;
+  const tab = start.dataset.tab;
   start.innerHTML = `<div class="card"><div class="sm">${t('common.loading')}</div></div>`;
   const [{ data, error }, limits] = await Promise.all([legacyDb().rpc<Organization[]>('organizaciones_lista'), loadOrganisationLimits()]);
-  const box = document.getElementById('cfgcuerpo'); if (!box) return;
+  // If another tab was opened meanwhile, the list (and its «+ Nueva organización») must not land on it
+  const box = document.getElementById('cfgcuerpo'); if (!box || box.dataset.tab !== tab) return;
   const list = Array.isArray(data) ? data : [];
   box.innerHTML = `<div class="card"><div class="fh"><div><h2>${t('platform.orgs.title')}</h2>
       <div class="sm">${t('platform.orgs.subtitle')}</div></div>

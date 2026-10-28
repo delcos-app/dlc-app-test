@@ -81,7 +81,7 @@ function bindHeader(): void {
   document.querySelectorAll<HTMLElement>('nav.main [data-t]').forEach(button => { markCurrent(button, button.dataset.t === 'directorio'); });
   // Downloads are switched off (servicios/archivos.js): the export menu only shows why nothing is saved. v2.432.0: it no longer asks
   // for the rows — exportar_seguimiento was dropped in SQL 20 (data protection) and the call always failed
-  qualityLegacy.setExport(format => { qualityLegacy.download([], 'Exportacion_seguimiento', format); });
+  qualityLegacy.setExport(() => { qualityLegacy.download(); });
 }
 
 /** Paints the whole screen. */

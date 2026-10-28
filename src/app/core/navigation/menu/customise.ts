@@ -9,6 +9,7 @@ import { MENU_GROUPS, menuGroups, menuPrefs } from './groups';
 import * as legacyFreeCoreServices from '../../services';
 import { sessionStore } from '../../session-store';
 import { navigationStore } from '../store';
+import * as legacyFreeComponents from '../../../components';
 
 export interface Draft { orden: string[]; items: Record<string, string[]>; ocultos: string[] }
 /** The panel keeps its close function as `__cerrar`, as legacy did (the tests close it with it). */
@@ -102,8 +103,8 @@ async function save(session: Session, button: HTMLButtonElement): Promise<void> 
   button.disabled = true;
   const { data, error } = await db.rpc<unknown>('guardar_preferencias', { p: prefs });
   button.disabled = false;
-  if (error) { toast(t('navigationCore.menu.couldNotSave'), true); return; }
-  (sessionStore.profile as { preferencias?: unknown }).preferencias = data ?? prefs; session.saved = true; close(session); navigationStore.menuSignature = ''; montarMenuLateral(); toast(t('navigationCore.menu.saved'));
+  if (error) { legacyFreeComponents.toast(t('navigationCore.menu.couldNotSave'), true); return; }
+  (sessionStore.profile as { preferencias?: unknown }).preferencias = data ?? prefs; session.saved = true; close(session); navigationStore.menuSignature = ''; montarMenuLateral(); legacyFreeComponents.toast(t('navigationCore.menu.saved'), false);
 }
 
 function onClick(session: Session, event: MouseEvent): void {

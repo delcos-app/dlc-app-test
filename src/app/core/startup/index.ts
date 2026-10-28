@@ -12,6 +12,11 @@ import { sessionStore } from '../session-store';
 import { navigationStore } from '../navigation/store';
 import * as legacyFreeScreensAccess from '../../screens/access';
 import * as legacyFreeCoreLeftovers from '../leftovers';
+import { navigate } from '../navigation';
+import * as legacyFreeCoreLegacyB from '../legacy-b';
+import * as legacyFreeCoreLegacyC from '../legacy-c';
+import * as legacyFreeCoreLayers from '../layers';
+import * as legacyFreeScreensHome from '../../screens/home';
 
 const RETRIES = 2, RETRY_WAIT_MS = 1500, NOT_FOUND = 'PGRST116', MOBILE_QUERY = '(max-width: 760px)';
 
@@ -61,19 +66,19 @@ async function enter(profile: Profile, saved: Profile | null, roles: Promise<unk
   try { localStorage.setItem(PKEY, JSON.stringify(profile)); } catch { /* not remembered on this device */ }
   if (!(await roles) && !(settingsStore.roles.length && sessionStore.commercialStates.length)) await legacyFreeCoreSettings.loadRoles().catch(() => false);
   const changed = !saved || JSON.stringify(saved) !== JSON.stringify(profile);
-  if (!navigationStore.appVisible) mostrarApp(profile);
-  else if (changed) { mostrarApp(profile); if (navigationStore.screen === 'inicio') void cargarInicio(); }
+  if (!navigationStore.appVisible) legacyFreeCoreLegacyC.showApp([profile]);
+  else if (changed) { legacyFreeCoreLegacyC.showApp([profile]); if (navigationStore.screen === 'inicio') void legacyFreeScreensHome.loadWithCache(); }
   Promise.resolve(db.rpc('registrar_acceso', { p_evento: 'Entrada', p_agente: navigator.userAgent })).catch(() => undefined);
 }
 
 /** Starts the app with the session. With the recovery link the platform neither starts nor paints. */
 /** The saved profile shows the app at once, if roles and states are already loaded. */
 function showSaved(saved: Profile | null): void {
-  if (saved && settingsStore.roles.length && sessionStore.commercialStates.length && localStorage.getItem('dlc-os-sesion') && !navigationStore.appVisible) { mostrarApp(saved); marca('app visible con el perfil guardado'); }
+  if (saved && settingsStore.roles.length && sessionStore.commercialStates.length && localStorage.getItem('dlc-os-sesion') && !navigationStore.appVisible) { legacyFreeCoreLegacyC.showApp([saved]); marca('app visible con el perfil guardado'); }
 }
 
 export async function start(): Promise<void> {
-  if (RECUPERANDO) { pantallaRecuperacion(); return; }
+  if (RECUPERANDO) { legacyFreeCoreLegacyB.showRecovery(); return; }
   marca('inicio del arranque');
   const saved = savedProfile();
   showSaved(saved);
@@ -100,10 +105,10 @@ async function profileOrSaved(userId: string, saved: Profile | null): Promise<{ 
 export function openApp(): void {
   navLegacy.improveFields();
   legacyFreeCoreSettings.applyBrand(); legacyFreeCoreSettings.applyBrand();
-  if (RECUPERANDO) pantallaRecuperacion();
-  pintarBnav(); pintarConexion(); void legacyFreeCoreServices.queue.sendQueue();
+  if (RECUPERANDO) legacyFreeCoreLegacyB.showRecovery();
+  legacyFreeCoreLayers.paintBottomBar([]); legacyFreeCoreLayers.paintConnection([]); void legacyFreeCoreServices.queue.sendQueue();
   void start();
   if (sessionStore.profile) legacyFreeCoreLeftovers.menuOrganization();
   // Back from Stripe (v2.167.0): if the app already entered (saved profile), it goes to «Plan y suscripción»
-  if (PAGO_IR_PLAN && sessionStore.profile) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);
+  if (PAGO_IR_PLAN && sessionStore.profile) setTimeout(() => { if (PAGO_IR_PLAN) navigate('plan'); }, 0);
 }

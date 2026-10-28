@@ -2,7 +2,6 @@
 // pantallas/agenda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function citasDelDia(fecha) { return window.delcos.leftovers.appointmentsOfDay(fecha); }
 
 
 
@@ -26,7 +25,6 @@ function citasDelDia(fecha) { return window.delcos.leftovers.appointmentsOfDay(f
    - Si vuelve a un día en que estaba aplazada, la base la reactiva y se ve como las demás (aplazar_cita y reabrir_cita).
    - En la ventana de la cita, botones para ir al día al que se movió o del que viene. */
 
-function puedeRegistrarEnDia(f) { return window.delcos.leftovers.canRecordOn(f); }
 
 
 // Las citas que cambian de sitio se deslizan y la tocada se resalta (antes se animaban las filas ocultas)
@@ -49,13 +47,12 @@ function puedeRegistrarEnDia(f) { return window.delcos.leftovers.canRecordOn(f);
    ============================================================ */
 
 // El mes está en src/app/screens/agenda (v2.390.0); este nombre se queda porque lo llaman el escuchador de Escape y las pruebas
-function cerrarMesCinta() { window.delcos.screens.agenda.closeMonth(); }
 
 const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
 
 const CITA_ABIERTA = ['Planificada', 'Confirmada'];
 
-const pillCita = e => `<span class="pill cest" style="background:color-mix(in srgb, ${EST_COL[e] || 'var(--muted)'} 12%, transparent);color:${EST_COL[e] || 'var(--muted)'}">${esc(e)}</span>`;
+const pillCita = e => `<span class="pill cest" style="background:color-mix(in srgb, ${EST_COL[e] || 'var(--muted)'} 12%, transparent);color:${EST_COL[e] || 'var(--muted)'}">${window.delcos.core.escapeText(e)}</span>`;
 
 const JKEY = () => 'dlc-jornada-' + (PERFIL ? PERFIL.id : '');
 
@@ -163,22 +160,16 @@ const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 
 // La vista del día y la de equipo están en src/app/screens/agenda (v2.395.0). Estos dos nombres se quedan como adaptadores
 // porque los llaman mucho código antiguo y las pruebas.
-function cargarAgenda() { return window.delcos.screens.agenda.loadAgenda(); }
-function agVerDia(f) { return window.delcos.screens.agenda.showDay(f); }
 
 // La ficha de la cita está en src/app/screens/agenda/appointment-sheet.ts (v2.398.0). El nombre global se queda: «‹ Volver»
 // (legado 126) envuelve las ventanas por su nombre, y lo llaman Rutas y las pruebas.
-function verCita(c) { return window.delcos.screens.agenda.showAppointment(c); }
 
 // El refresco tras un cambio está en src/app/screens/agenda/your-day/reorder.ts (v2.399.0); el nombre se queda porque
 // lo llaman cinco archivos antiguos (navegación, avisos, ventanas…).
-function agRefrescoQuieto(id, o = {}) { window.delcos.screens.agenda.refreshQuietly(id, o.cifras !== false); }
 
 // La ventana «Nueva cita» está en src/app/screens/agenda/editors/appointment-editor.ts (v2.400.0); el nombre se queda porque
 // la abren siete archivos antiguos (ficha, ciclo, configuración, parque…).
-function nuevaCita(medicoId, fecha, op = {}) { return window.delcos.screens.agenda.newAppointment(medicoId, fecha, op); }
 
 // La jornada, reprogramar, el menú del día y el origen de la cita están en src/app/screens/agenda (v2.414.0). Estos nombres
 // se quedan: Rutas y las pruebas los usan.
-function textoOrigenCita(c) { return window.delcos.screens.agenda.originText(c); }
 // El tráfico de «Tu día» está en src/app/screens/agenda/traffic.ts (v2.418.0); la estimación del día (legado 024 y 103) usa estos nombres

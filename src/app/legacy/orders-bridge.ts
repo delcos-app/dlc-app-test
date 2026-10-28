@@ -14,6 +14,8 @@ import * as legacyFreeScreensSettingsExtra from '../screens/settings/extra';
 import * as legacyFreeScreensCustomers from '../screens/customers';
 import * as legacyFreeCoreSettings from '../core/settings';
 import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
+import * as legacyFreeScreensOrders from '../screens/orders';
+import * as legacyFreeScreensOpportunities from '../screens/opportunities';
 /**
  * Bridge of Pedidos to the legacy code (kept apart from bridge.ts, which is at its size limit). The section, page, field filters
  * and the loaded rows stay in the legacy PEDSEC, PEDPAG, PEDF and PEDIDOS (the list bar, legado 034/082/139 and the tests read
@@ -38,11 +40,11 @@ export const ordersLegacy = {
   fieldFilters: (): Record<string, unknown> => ordersStore.filters,
   setRows: (rows: unknown[]): void => { ordersStore.orders = rows; },
   /** Through the global name (legado 057 keeps the screen cached around it). */
-  reload: (): void => { void cargarVentas(); },
+  reload: (): void => { void legacyFreeScreensOrders.loadSales(); },
   paintOperations: (): void => { void legacyFreeCoreLegacyC.paintOrderAlerts(); },
   paintUnattributed: (): void => { void pintarSinAtribuir(); },
   canAttribute: (): boolean => Boolean(legacyFreeCoreServices.permissions.canAttribute()),
-  newSale: (): void => { void (nuevaVenta as (preset?: object) => unknown)(); },
+  newSale: (): void => { void legacyFreeScreensOpportunities.editOpportunity(null, null); },
   services: (): readonly PickedService[] => productsStore.services,
   paymentState: (order: object): string => legacyFreeScreensBilling.paymentStateOf(order),
   channelLabel: (order: object, total: number | null | undefined): string => legacyFreeCoreServices.vocabulary.channelLabel(order, total),
@@ -57,7 +59,7 @@ export const orderSheetLegacy = {
   whenSteady: (element: Element | null, maxMs: number): Promise<void> => legacyFreeCoreNavigationApi.steady(element as unknown as Element, maxMs, undefined),
   invoices: (id: string): Promise<void> => legacyFreeScreensBilling.paintOrderInvoices(id),
   customFields: (id: string, container: Element | null): Promise<void> => legacyFreeScreensSettings.paintCustomFieldsBlock(('pedidos'), id, container),
-  edit: (detail: object): void => { void editorPedido(detail as Record<string, unknown>); },
+  edit: (detail: object): void => { void legacyFreeScreensOrders.editOrder(detail as Record<string, unknown>); },
   openCustomer: (id: string): void => { void legacyFreeScreensCustomers.showCustomer(id); },
   fieldsForm: (values: Record<string, unknown>): string => legacyFreeScreensSettings.customFieldsHtml(('pedido'), values),
   readFields: (root: Element | null): OrderFieldsRead | null => legacyFreeScreensSettings.readCustomFields(root),

@@ -4,5 +4,5 @@ window.delcos.layers.installTeamToggle();
 async function pintarSinAtribuir() { const c = $('cardsinatr'); if (c) c.remove(); }
 window.delcos.layers.installTableSort();
 window.delcos.layers.installOrderParameter();
-document.addEventListener('change', e => { if (e.target && /** @type {HTMLElement} */ (e.target).id === 'popf') pkMarcar(); });
+document.addEventListener('change', e => { if (e.target && /** @type {HTMLElement} */ (e.target).id === 'popf') window.delcos.screens.orders.markChosenCard(); });
 var AN_REP = '';   // v2.329.0: Analítica → Resumen, «Reporte»

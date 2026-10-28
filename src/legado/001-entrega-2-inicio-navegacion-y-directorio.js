@@ -32,7 +32,6 @@ window.delcos.legacyA.startShell();
 
 /* irBase: el cambio de pantalla en sí, ya en src/app/core/legacy-a/switch-screen.ts. ir(): las reglas (redirecciones, bloqueos y
    lo que pasa antes y después) están en src/app/core/navigation (v2.386.0). Los dos nombres se quedan para el código antiguo. */
-function ir(t, ...a) { window.delcos.navigate(t, ...a); }
 
 let UDS_SERIE = (() => { try { const v = localStorage.getItem('dlc-uds-serie'); return ['semana', 'mes', 'anio'].includes(v) ? v : 'mes'; } catch (e) { return 'mes'; } })();
 const leyendaUnidades = k => window.delcos.legacyA.unitsLegend(k);

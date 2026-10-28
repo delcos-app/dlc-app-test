@@ -13,12 +13,11 @@
 
 /* v2.109.0 · Las ventanas no muestran lo escrito en otras ocasiones. El navegador sugería, por ejemplo, la nota del pedido
    anterior al crear uno nuevo: los campos de las ventanas y de las pantallas no guardan historial (salvo los que lo piden). */
-function sinHistorial(raiz) { window.delcos.leftovers.withoutHistory(raiz); }
 
 // Una pasada por fotograma como mucho, aunque la pantalla cambie muchas veces seguidas
 let sinHistorialPend = false;
 
-const sinHistorialLuego = () => { if (sinHistorialPend) return; sinHistorialPend = true; requestAnimationFrame(() => { sinHistorialPend = false; sinHistorial(document.body); }); };
+const sinHistorialLuego = () => { if (sinHistorialPend) return; sinHistorialPend = true; requestAnimationFrame(() => { sinHistorialPend = false; window.delcos.leftovers.withoutHistory(document.body); }); };
 
 const campoTxt = k => CAMPO_TXT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '));
 

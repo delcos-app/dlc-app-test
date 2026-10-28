@@ -9,6 +9,7 @@ import * as legacyFreeCoreServices from '../services';
 import { agendaStore } from '../../screens/agenda/store';
 import * as legacyFreeScreensAccounts from '../../screens/accounts';
 import * as legacyFreeCoreLegacyA from '../legacy-a';
+import * as legacyFreeCoreSettings from '../settings';
 
 const FAR_MINUTES = 240;
 interface Stop { id: string; estado: string; dias?: unknown }
@@ -20,12 +21,12 @@ const infoOf = (id: string): Info | undefined => (agendaStore.stopInfo as Record
 /** Marks the stops far from the previous one (or from the start point) and keeps the estimated arrival in their info. */
 function markFarStops(stops: readonly Stop[], date: string, estimate: Estimate): void {
   try {
-    const start = salidaUsuario() as { lat?: number | null; lon?: number | null } | null;
+    const start = legacyFreeCoreSettings.userStart() as { lat?: number | null; lon?: number | null } | null;
     let position: [number, number] | null = start?.lat !== undefined && start.lat !== null ? [Number(start.lat), Number(start.lon)] : null;
     stops.forEach(stop => {
       const point = xyCita(stop), info = infoOf(stop.id);
       if (info) { info.llegada = estimate.est[stop.id]; info.fecha = date; }
-      if (point && position && info && CITA_ABIERTA.includes(stop.estado) && minutosEntre(position, point) > FAR_MINUTES) info.lejos = Math.round(km(position, point));
+      if (point && position && info && CITA_ABIERTA.includes(stop.estado) && legacyFreeCoreServices.maps.minutesBetween(position, point) > FAR_MINUTES) info.lejos = Math.round(legacyFreeCoreLegacyA.km(position, point));
       if (point) position = point;
     });
   } catch { /* the estimate stays as it is */ }
@@ -50,11 +51,11 @@ export function estimateDay(stops: readonly Stop[] | null | undefined, date: str
 
 function attendanceText(info: Info): string {
   const who = term('medico', { article: 'el' });
-  if (info.lejos) return t('legacyC.agenda.far', { km: num(info.lejos) });
+  if (info.lejos) return t('legacyC.agenda.far', { km: legacyFreeCoreServices.money.number(info.lejos) });
   const windows = info.ventanas?.length ? txtVentanas(info.ventanas) : '';
   const day = info.fecha ? legacyFreeCoreServices.calendar.weekdayOf(info.fecha) : t('legacyC.agenda.thatDay');
   if (info.ventanas && !info.ventanas.length) return t('legacyC.agenda.notThatDay', { who, day });
-  const arrival = info.llegada !== undefined && info.llegada !== null ? t('legacyC.agenda.wouldArriveAt', { time: hm(info.llegada) }) : '';
+  const arrival = info.llegada !== undefined && info.llegada !== null ? t('legacyC.agenda.wouldArriveAt', { time: legacyFreeCoreServices.calendar.minutesToTime(info.llegada) }) : '';
   return t('legacyC.agenda.attends', { who, day, windows, arrival });
 }
 

@@ -1,6 +1,7 @@
 import * as components from '../components';
 import { sessionStore } from '../core/session-store';
 import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeCoreLayers from '../core/layers';
 /**
  * Bridge of the professional and centre portal to the legacy code (kept apart from bridge.ts, which is at its size limit): charts,
  * the period selector, the plan, the company words, the invoice PDF and the colours of the centre's order states.
@@ -16,7 +17,7 @@ export const portalPageLegacy = {
   /** A company word with its singular, plural and gender. */
   wordOf: (key: string): { s: string; p: string; g?: string } => legacyFreeCoreServices.vocabulary.termOf(key) as { s: string; p: string; g?: string },
   userName: (): string => (sessionStore.profile as { nombre?: string } | null)?.nombre ?? '',
-  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
+  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { legacyFreeCoreLayers.mountPeriod(element, [options]); },
   periodOf: (element: HTMLElement | null): { desde: string | null; hasta: string | null } =>
     (Reflect.get(element ?? {}, '__rango') as (() => { desde: string | null; hasta: string | null }) | undefined)?.() ?? { desde: null, hasta: null },
   /** On entering the portal the period is always «Esta semana»: the remembered one is forgotten. */
@@ -30,7 +31,7 @@ export const portalPageLegacy = {
   /** Saves the invoice as PDF with the company design (and `overrides`, e.g. the proforma title). */
   saveInvoice: async (invoice: InvoiceData, rectifies: string, overrides: Partial<PdfDesign>, fileName: string | null): Promise<void> => {
     const design = invoice.diseno ?? {};
-    const doc = await facturaPDF(invoice, rectifies, { ...PDF_DEF, ...design, cols: { ...PDF_DEF.cols, ...design.cols }, ...overrides });
+    const doc = await legacyFreeCoreServices.pdf.invoicePdf(invoice, rectifies, { ...PDF_DEF, ...design, cols: { ...PDF_DEF.cols, ...design.cols }, ...overrides } as unknown as Parameters<typeof legacyFreeCoreServices.pdf.invoicePdf>[2]);
     doc.save(fileName ?? nombrePDF(invoice));
   },
   reportError: (message: string, error: unknown): void => { legacyFreeCoreServices.errors.registerError(('app'), message, ({ e: String(error) })); },

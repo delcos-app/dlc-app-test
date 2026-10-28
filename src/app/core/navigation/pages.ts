@@ -9,6 +9,9 @@ import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
 import * as legacyFreeScreensSettingsExtra from '../../screens/settings/extra';
 import { navigationStore } from './store';
 import * as legacyFreeScreensSettingsRest from '../../screens/settings/rest';
+import { navigate } from './';
+import * as legacyFreeCoreLegacyC from '../legacy-c';
+import * as legacyFreeCoreServices from '../services';
 
 /** [key, label, painter] of a page tab. */
 export type PageTab = [string, string, () => unknown];
@@ -29,7 +32,7 @@ export const PAGES: Record<string, PageDefinition> = {
   empresa: { t: t('navigationCore.pages.company'), d: t('navigationCore.pages.companyDescription'), admin: true, tabs: [
     ['marca', t('navigationCore.pages.brand'), (): unknown => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('navigationCore.pages.mail'), (): unknown => legacyFreeScreensSettingsExtra.paintEmail()],
     ['copias', t('navigationCore.pages.backups'), (): unknown => legacyFreeScreensSettingsMore.paintBackups()]] },
-  plan: { t: t('navigationCore.pages.plan'), d: '', admin: true, tabs: [['plan', t('navigationCore.pages.planTab'), (): unknown => pintarPaginaPlan()]] },
+  plan: { t: t('navigationCore.pages.plan'), d: '', admin: true, tabs: [['plan', t('navigationCore.pages.planTab'), (): unknown => legacyFreeCoreLegacyC.paintPlanPage([])]] },
 };
 
 const byId = (id: string): HTMLElement | null => document.getElementById(id);
@@ -46,7 +49,7 @@ function headerHtml(screen: string, page: PageDefinition, tab: string): string {
   const tabs = page.tabs.length > 1 ? `<div class="cfgsubs pagtabs">${page.tabs.map(([key, name]) => `<button data-ptab="${key}" class="${key === tab ? 'on' : ''}">${escapeHtml(name)}</button>`).join('')}</div>` : '';
   return `${header}
     ${tabs}
-    <div id="cfgcuerpo" class="pagcuerpo"></div>`;
+    <div id="cfgcuerpo" class="pagcuerpo" data-tab="${tab}"></div>`;
 }
 
 function sectionFor(screen: string): HTMLElement | null {
@@ -66,8 +69,8 @@ function platformTitle(): void {
 
 /** Builds the whole page: only one content container at a time (Configuración and the other pages are emptied). */
 function buildPage(screen: string, page: PageDefinition): void {
-  if (page.permiso && !page.permiso()) { ir('inicio'); return; }
-  if (page.admin && !puede('administrar')) { ir('inicio'); return; }
+  if (page.permiso && !page.permiso()) { navigate('inicio'); return; }
+  if (page.admin && !legacyFreeCoreServices.permissions.can('administrar')) { navigate('inicio'); return; }
   const section = sectionFor(screen); if (!section) return;
   const settings = byId('v-config'); if (settings) settings.innerHTML = '';
   Object.keys(PAGES).forEach(other => { const box = other === screen ? null : byId(`v-${other}`); if (box) box.innerHTML = ''; });
@@ -88,6 +91,8 @@ function switchListTab(screen: string, page: PageDefinition, box: Element, tabs:
   const isList = PL_SECC[screen];
   if (isList && !isList()) return null;
   box.classList.add('pagcambia');
+  // The body says which tab it belongs to, so a slow painter of the previous tab can tell it arrived late
+  box.setAttribute('data-tab', tab);
   return Promise.resolve().then(painterOf(page, tab)).finally(() => { byId('cfgcuerpo')?.classList.remove('pagcambia'); });
 }
 

@@ -20,6 +20,12 @@ import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
 import * as legacyFreeScreensAccess from '../screens/access';
 import * as legacyFreeScreensHomePortalHome from '../screens/home/portal-home';
+import { navigate } from '../core/navigation';
+import * as legacyFreeCoreLayers from '../core/layers';
+import * as legacyFreeScreensAgenda from '../screens/agenda';
+import * as legacyFreeScreensPurchases from '../screens/purchases';
+import * as legacyFreeScreensAccounts from '../screens/accounts';
+import * as legacyFreeScreensOrders from '../screens/orders';
 
 /** db.rpc as the legacy layers wrap it: (name, params, options) → the query builder or a promise. */
 export type RpcFunction = (name: string, params?: Record<string, unknown>, options?: unknown) => unknown;
@@ -70,10 +76,10 @@ export const legacyBState = {
 };
 
 export const legacyBActions = {
-  ask: (message: string, options: { titulo: string; ok: string; cancelar: string; peligro: boolean }): Promise<boolean> => preguntar(message, options),
-  goTo: (screen: string): void => { void ir(screen); },
-  todayIso: (): string => hoyISO(),
-  reloadAgenda: (): void => { void cargarAgenda(); },
+  ask: (message: string, options: { titulo: string; ok: string; cancelar: string; peligro: boolean }): Promise<boolean> => legacyFreeComponents.confirmAction(message, options),
+  goTo: (screen: string): void => { navigate(screen); },
+  todayIso: (): string => legacyFreeCoreServices.calendar.today(),
+  reloadAgenda: (): void => { void legacyFreeScreensAgenda.loadAgenda(); },
   impersonate: (id: string): void => { void legacyFreeCoreServices.session.impersonate(id); },
   orderTurn: (name: string): unknown => legacyFreeCoreServices.reads.takeTurn(name),
   isMyTurn: (name: string, turn: unknown): boolean => legacyFreeCoreServices.reads.isMyTurn(name, turn as number),
@@ -87,34 +93,34 @@ export const legacyBActions = {
   testStrip: (): (() => unknown) => pintarFranjaPruebas,
   setTestStrip: (paint: () => unknown): void => { pintarFranjaPruebas = paint; },
   applyBrand: (): void => { legacyFreeCoreSettings.applyBrand(); },
-  applyMenuPermissions: (): void => { aplicarPermisosMenu(); },
-  refreshBell: (): void => { void refrescarCampana(); },
+  applyMenuPermissions: (): void => { legacyFreeCoreLayers.applyMenuPermissions([]); },
+  refreshBell: (): void => { void legacyFreeCoreServices.live.refreshBell(); },
   translate: (element: Element): void => { legacyFreeCoreServices.language.translate(element); },
   prepareLanguage: (language: string): void => { legacyFreeCoreServices.language.prepareLanguage(language); },
   iconise: (element: Element): void => { legacyFreeCoreLeftovers.iconise(element); },
-  menuIcons: (): void => { iconosMenu(); },
+  menuIcons: (): void => { legacyFreeCoreLeftovers.menuIcons(); },
   iconSvg: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   moduleIcon: (tab: string): string | undefined => ICO_MOD[tab],
   mobileSettings: (): void => { legacyFreeScreensSettingsShell.mobileLayout(); },
   passwordMeter: (first: HTMLElement | null, second: HTMLElement | null, button: HTMLElement | null): void => { legacyFreeScreensAccess.addPasswordMeter(first as HTMLInputElement | null, second as HTMLInputElement | null, button as HTMLButtonElement | null); },
   isSamples: (detail: unknown): boolean => esMuestras(detail),
-  improveFields: (root: Element): void => { mejorarCampos(root); },
-  closeSelector: (): void => { cerrarSelector(); },
-  openCalendar: (input: HTMLInputElement): void => { abrirCalendario(input); },
-  openClock: (input: HTMLInputElement): void => { abrirReloj(input); },
+  improveFields: (root: Element): void => { legacyFreeComponents.enhanceFields(root); },
+  closeSelector: (): void => { legacyFreeComponents.closePicker(); },
+  openCalendar: (input: HTMLInputElement): void => { legacyFreeComponents.openCalendar(input, {}); },
+  openClock: (input: HTMLInputElement): void => { legacyFreeComponents.openClock(input, {}); },
   emit: (input: HTMLInputElement): void => { emitir(input); },
   orderMobileHeader: (view: HTMLElement | null): void => { legacyFreeCoreNavigationApi.mobileHeader(view); },
   alertKey: (title: string, item: Element): string => legacyFreeCoreLeftovers.alertKey(title, item as HTMLElement),
   paginate: (element: HTMLElement | null, total: number, page: number, onPage: (page: number) => void): void => {
     legacyFreeCoreNavigationApi.pager(element, { total: total, page: page }, { onPage: onPage, onSize: (() => { onPage(0); }) });
   },
-  openAccount: (id: string): void => { void abrirFicha(id); },
-  openOrder: (id: string): void => { void verPedido(id); },
-  openPurchase: (id: string): void => { void editorCompra(id); },
+  openAccount: (id: string): void => { void legacyFreeScreensAccounts.openAccountCard(id); },
+  openOrder: (id: string): void => { void legacyFreeScreensOrders.showOrder(id); },
+  openPurchase: (id: string): void => { void legacyFreeScreensPurchases.editPurchase(id || null); },
   filterHomeAlerts: (): void => { void legacyFreeScreensHomePortalHome.filterHiddenAlerts(); },
   portfolioRules: (): void => { void legacyFreeScreensSettingsMore.editPortfolioRules(); },
   teamTable: (): Promise<void> => legacyFreeCoreLeftovers.paintTeamCompliance(),
-  can: (capability: string): boolean => puede(capability),
+  can: (capability: string): boolean => legacyFreeCoreServices.permissions.can(capability),
   isProfessionalPortal: (): boolean => ES_MEDICO(),
-  openMoreMenu: (): void => { abrirMasMovil(); },
+  openMoreMenu: (): void => { legacyFreeCoreNavigationApi.openMoreMenu(); },
 };

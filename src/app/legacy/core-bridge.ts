@@ -21,6 +21,12 @@ import * as legacyFreeCoreLegacyC from '../core/legacy-c';
 import * as legacyFreeScreensPortal from '../screens/portal';
 import * as legacyFreeScreensVisit from '../screens/visit';
 import * as legacyFreeScreensAccounts from '../screens/accounts';
+import { navigate } from '../core/navigation';
+import * as legacyFreeCoreLegacyA from '../core/legacy-a';
+import * as legacyFreeCoreLayers from '../core/layers';
+import * as legacyFreeScreensAgenda from '../screens/agenda';
+import * as legacyFreeScreensSettingsExtra from '../screens/settings/extra';
+import * as legacyFreeScreensHome from '../screens/home';
 export interface LegacyProfile {
   id: string; nombre: string; rol: string; areas?: Record<string, number | string>; capacidades?: string[];
   preferencias?: Record<string, unknown> & { navegador?: string };
@@ -60,7 +66,7 @@ export const coreLegacy = {
   billingReadOnly: (): boolean => legacyFreeScreensBilling.readOnlyBilling(),
   notificationTypes: (): readonly (readonly unknown[])[] => TIPOS_NOTIF,
   sectionTitle: (section: string): string | undefined => TITULO_PEDSEC[section]?.[0],
-  openPlanSettings: (): void => { settingsStore.section = 'plan'; ir('config'); },
+  openPlanSettings: (): void => { settingsStore.section = 'plan'; navigate('config'); },
   paymentState: (): { solo_lectura?: boolean } | null => ordersStore.paymentState,
   impersonationKey: (): string => SKEY,
   profileKey: (): string => PKEY,
@@ -87,8 +93,8 @@ export const coreLegacy = {
   versionSeenAt: (): number => sessionStore.versionSeen,
   setVersionSeenAt: (time: number): void => { sessionStore.versionSeen = time; },
   trail: (): readonly unknown[] => RASTRO,
-  toast: (message: string, isError = false): void => { toast(message, isError); },
-  confirm: (message: string, options: { titulo?: string; ok?: string }): Promise<boolean> => preguntar(message, options),
+  toast: (message: string, isError = false): void => { legacyFreeComponents.toast(message, !!isError); },
+  confirm: (message: string, options: { titulo?: string; ok?: string }): Promise<boolean> => legacyFreeComponents.confirmAction(message, options),
   choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => legacyFreeComponents.chooseOption(title, message, buttons),
   showDialog: (options: { titulo: string; msg: string; ok: string; campo: { valor: string; tipo: string } }): Promise<unknown> => legacyFreeComponents.showDialog(options),
   showLoading: (message: string): void => { legacyFreeComponents.showFullLoading(message); },
@@ -96,15 +102,15 @@ export const coreLegacy = {
   withButtonLoading: <T>(button: HTMLElement, text: string, work: () => Promise<T>): Promise<T> => legacyFreeCoreLegacyC.withLoading(button, text, work) as Promise<T>,
   registerError: (type: string, message: string, detail?: Record<string, unknown>): void => { legacyFreeCoreServices.errors.registerError(type, message, detail); },
   icon: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
-  paintConnection: (): void => { pintarConexion(); },
-  reloadHome: (): void => { void cargarInicio(); },
-  reloadAgenda: (): void => { void cargarAgenda(); },
+  paintConnection: (): void => { legacyFreeCoreLayers.paintConnection([]); },
+  reloadHome: (): void => { void legacyFreeScreensHome.loadWithCache(); },
+  reloadAgenda: (): void => { void legacyFreeScreensAgenda.loadAgenda(); },
   markQueuedVisits: (): void => { void window.delcos.screens.agenda.markQueuedVisits(); },
-  openNotifications: (list: readonly unknown[]): void => { panelNotificaciones(list); },
+  openNotifications: (list: readonly unknown[]): void => { void legacyFreeScreensSettingsExtra.showNotifications(list as Parameters<typeof legacyFreeScreensSettingsExtra.showNotifications>[0]); },
   setUnreadNotifications: (count: number): void => { settingsStore.notificationCount = count; },
   liveChannel: (): unknown => sessionStore.live,
   setLiveChannel: (channel: unknown): void => { sessionStore.live = channel; },
-  repaintPortal: (isCentre: boolean): void => { if (isCentre && typeof centroPintar === 'function') centroPintar(); else void legacyFreeScreensPortal.paintMaterial(); },
+  repaintPortal: (isCentre: boolean): void => { if (isCentre) void legacyFreeScreensPortal.paintCentre(); else void legacyFreeScreensPortal.paintMaterial(); },
   shownAccount: (): string | null => accountsStore.shownId,
   refreshCardPortal: (id: string): void => { void window.delcos.screens.accounts.refreshPortal(id); },
   // ---- Reads, writes and their caches
@@ -129,9 +135,9 @@ export const coreLegacy = {
   // ---- Maps and centres
   isIos: (): boolean => ES_IOS,
   isAndroid: (): boolean => ES_ANDROID,
-  km: (from: unknown, to: unknown): number => km(from, to),
+  km: (from: unknown, to: unknown): number => legacyFreeCoreLegacyA.km(from as Parameters<typeof legacyFreeCoreLegacyA.km>[0], to as Parameters<typeof legacyFreeCoreLegacyA.km>[1]),
   routePlan: (): unknown => routesStore.plan,
-  paintRoutePlan: (): void => { pintarPlan(); },
+  paintRoutePlan: (): void => { void legacyFreeCoreLegacyC.paintPlan([]); },
   centreFromLocation: (box: Element, index: string | number, lat: number, lon: number): Promise<void> => legacyFreeScreensAccounts.centreFromLocation(box as HTMLElement, index as string, lat, lon),
   centreList: (list: Element, centres: readonly unknown[], options: CentreListOptions): void => {
     void legacyFreeScreensAccounts.centreList(list as HTMLElement, centres as Parameters<typeof legacyFreeScreensAccounts.centreList>[1], options.onPick as Parameters<typeof legacyFreeScreensAccounts.centreList>[2], options.extra ? { html: options.extra, onClick: options.onExtra } : undefined);

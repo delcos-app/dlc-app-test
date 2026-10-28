@@ -2,7 +2,6 @@
 // pantallas/pedidos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function nuevaVenta(pre) { return editorOportunidad(pre || null); }
 
 // Al volver de Stripe: se espera a que llegue el aviso y el plan quede activo
 
@@ -10,11 +9,11 @@ function nuevaVenta(pre) { return editorOportunidad(pre || null); }
 
 function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
 
-const veVentas = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 1 || puede('cartera'));
+const veVentas = () => PERFIL && (window.delcos.core.permissions.can('administrar') || ((PERFIL.areas || {}).V || 0) >= 1 || window.delcos.core.permissions.can('cartera'));
 
 let VSEC = 'pedidos';
 
-const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
+const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${window.delcos.core.calendar.minutesToTime(a)}–${window.delcos.core.calendar.minutesToTime(b)}`).join(' y ') : '';
 
  // v2.440.0: PEDPAG → estado de src/app (plan 6.6), accesible en window
 
@@ -69,16 +68,6 @@ const PK_TARJ = [['pago', 'pago', window.delcos.t('legacyTexts.orderCards.paymen
 
 // Pedidos está en src/app/screens/orders (v2.414.0). Estos nombres se quedan: el editor del pedido y el cobro con tarjeta (aquí),
 // otras pantallas, legado 001/034/057/058/073/082/089/105/139, «‹ Volver» y las pruebas los usan.
-function cargarVentas() { return window.delcos.screens.orders.loadSales(); }
-function listaPedidos() { return window.delcos.screens.orders.paintOrderList(); }
-function verPedido(id) { return window.delcos.screens.orders.showOrder(id); }
 
 // El editor del pedido, el cobro con tarjeta, las suscripciones y las tarjetas están en src/app/screens/orders (v2.417.0). Estos nombres
 // se quedan: legado 058 (ventana amplia), 073, 075, 076, 147, Clientes, Configuración, el Panel delcos, Portal y las pruebas los usan.
-function editorPedido(pedido) { return window.delcos.screens.orders.editOrder(pedido || null); }
-function pagoLlamar(cuerpo, boton) { return window.delcos.screens.orders.callPayments(cuerpo, boton || null); }
-function pagoCargarEstado() { return window.delcos.screens.orders.loadPaymentState(); }
-function elegirPago(planIni) { return window.delcos.screens.orders.choosePlan(planIni); }
-function pkMarcar() { return window.delcos.screens.orders.markChosenCard(); }
-function pkFestivo(iso) { return window.delcos.screens.orders.isHoliday(iso); }
-function abrirKpis() { return window.delcos.screens.home.openIndicatorSettings(); }

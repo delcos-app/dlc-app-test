@@ -20,4 +20,3 @@ const EQ_CONTRATOS = ['Venta', 'Alquiler', 'Cesión'];
 
 // Concursos está en src/app/screens/tenders (v2.409.0). Estos nombres se quedan: las pestañas y la escucha del cierre de la
 // ventana (legado 080), los avisos y enlaces (nucleo/navegacion.js), la ficha, «‹ Volver» y las pruebas los usan.
-function verConcurso(id) { return window.delcos.screens.tenders.showTender(id); }

@@ -12,6 +12,7 @@ import { sessionStore } from '../session-store';
 import { settingsStore } from '../../screens/settings/store';
 import { navigationStore } from '../navigation/store';
 import * as legacyFreeCoreSettings from '../settings';
+import { navigate } from '../navigation';
 
 interface MenuGroup { id: string; t: string; items: string[] }
 
@@ -75,12 +76,12 @@ function paintFooter(nav: HTMLElement): void {
       <button type="button" class="mlitem" id="mlpers" data-tip="${t('legacyC.sideMenu.customise')}" aria-label="${t('legacyC.sideMenu.customise')}">${svgIco(ICON_NOM['sliders-horizontal'] ?? '')}<span class="mllab">${t('legacyC.sideMenu.customise')}</span></button>
       <button type="button" class="mlplegar" id="mlplegar" aria-label="${t('legacyC.sideMenu.foldLabel')}">${svgIco(ICO_PLEGAR)}</button></div>`);
     const settings = byId('mlcfg'), customise = byId('mlpers'), fold = byId('mlplegar');
-    if (settings) settings.onclick = (): void => { ir('config'); };
-    if (customise) customise.onclick = (event): void => { event.stopPropagation(); menuPersonalizar(); };
+    if (settings) settings.onclick = (): void => { navigate('config'); };
+    if (customise) customise.onclick = (event): void => { event.stopPropagation(); legacyFreeCoreNavigationApi.customiseDesktopMenu(); };
     if (fold) fold.onclick = (): void => {
       const folded = !document.body.classList.contains('menupleg');
       try { localStorage.setItem('dlc-menu-plegado', folded ? '1' : '0'); } catch { /* private mode */ }
-      document.body.classList.toggle('menupleg', folded); menuTip(null); navigationStore.menuSignature = ''; montarMenuLateral();
+      document.body.classList.toggle('menupleg', folded); legacyFreeCoreNavigationApi.menuTip(null); navigationStore.menuSignature = ''; montarMenuLateral();
     };
   }
   const footer = nav.querySelector('.mlpie'); if (footer) nav.appendChild(footer);
@@ -129,7 +130,7 @@ export function mountSideMenu(): void {
 
 /** The menu follows its buttons, the window size and the app classes; the tips follow the pointer. */
 export function watchSideMenu(): void {
-  document.addEventListener('mouseover', event => { const button = event.target instanceof Element ? event.target.closest<HTMLElement>('nav.main [data-tip]') : null; menuTip(button); });
+  document.addEventListener('mouseover', event => { const button = event.target instanceof Element ? event.target.closest<HTMLElement>('nav.main [data-tip]') : null; legacyFreeCoreNavigationApi.menuTip(button); });
   observe(byId('nav'), menuRehacer, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
   addEventListener('resize', menuRehacer);
   observe(byId('app'), menuRehacer, { attributes: true, attributeFilter: ['class'] });

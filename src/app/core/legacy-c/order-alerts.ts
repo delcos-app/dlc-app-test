@@ -19,7 +19,7 @@ const dayOf = (entry: Entry): string => String(entry.fecha ?? '').slice(0, 10);
 function bars(list: readonly Entry[], today: string): number[] {
   const count: Record<string, number> = {};
   list.forEach(entry => { count[dayOf(entry)] = (count[dayOf(entry)] ?? 0) + 1; });
-  return [...Array(DAYS).keys()].map(index => count[isoMas(today, index - (DAYS - 1))] ?? 0);
+  return [...Array(DAYS).keys()].map(index => count[legacyFreeCoreServices.calendar.plusDays(today, index - (DAYS - 1))] ?? 0);
 }
 
 const oldestDays = (list: readonly Entry[], today: string): number =>
@@ -27,22 +27,22 @@ const oldestDays = (list: readonly Entry[], today: string): number =>
 
 function ago(days: number): string {
   if (days === 0) return t('legacyC.orderAlerts.today');
-  return days === 1 ? t('legacyC.orderAlerts.yesterday') : t('legacyC.orderAlerts.daysAgo', { days: num(days) });
+  return days === 1 ? t('legacyC.orderAlerts.yesterday') : t('legacyC.orderAlerts.daysAgo', { days: legacyFreeCoreServices.money.number(days) });
 }
 
 function sentence(key: string, list: readonly Entry[], today: string): string {
   if (!list.length) return t(key === 'pago' ? 'legacyC.orderAlerts.allPaid' : key === 'paquete' ? 'legacyC.orderAlerts.allPrepared' : 'legacyC.orderAlerts.allSent');
   const oldest = t('legacyC.orderAlerts.oldest', { ago: ago(oldestDays(list, today)) });
-  if (key === 'pago' && verImportes()) return t('legacyC.orderAlerts.toCollect', { amount: legacyFreeCoreServices.money.eurosRounded((list.reduce((total, entry) => total + (Number(entry.total) || 0), 0))), oldest });
+  if (key === 'pago' && legacyFreeCoreServices.permissions.canSeeAmounts()) return t('legacyC.orderAlerts.toCollect', { amount: legacyFreeCoreServices.money.eurosRounded((list.reduce((total, entry) => total + (Number(entry.total) || 0), 0))), oldest });
   return oldest.charAt(0).toUpperCase() + oldest.slice(1);
 }
 
 function cardHtml([key, filter, title, icon]: AlertCard, context: Context): string {
   const list = context.entries[key] ?? [], dayBars = bars(list, context.today), top = Math.max(1, ...dayBars), urgent = key === 'pago' && list.length;
-  const day = (index: number): string => isoMas(context.today, index - (DAYS - 1));
+  const day = (index: number): string => legacyFreeCoreServices.calendar.plusDays(context.today, index - (DAYS - 1));
   return `<button type="button" class="pkt ${urgent ? 'alta' : ''}" data-pk="${filter}" aria-pressed="false" ${list.length ? '' : 'data-cero'}>
           <span class="pkfil">${t('legacyC.orderAlerts.filtering')}</span><span class="pktt">${svgIco(ICON_NOM[icon] ?? ICON_NOM.info ?? '')} ${title}</span>
-          <span class="pkn" data-v="${list.length}">${num(list.length)}</span><span class="pks">${sentence(key, list, context.today)}</span>
+          <span class="pkn" data-v="${list.length}">${legacyFreeCoreServices.money.number(list.length)}</span><span class="pks">${sentence(key, list, context.today)}</span>
           <span class="pkbars" aria-hidden="true">${dayBars.map((count, index) => `<i class="${index === DAYS - 1 ? 'u' : legacyFreeScreensOrders.isDayOff((day(index))) ? 'fin' : ''}" style="height:${count ? Math.max(MIN_BAR, 100 * count / top) : EMPTY_BAR}%"></i>`).join('')}</span>
           <span class="pkdias">${dayBars.map((count, index) => legacyFreeScreensOrders.dayHtml((day(index)), count, (index === DAYS - 1))).join('')}</span>
           <span class="pklg">${t('legacyC.orderAlerts.lastDays')}</span></button>`;
@@ -58,15 +58,15 @@ function bindCards(box: HTMLElement, mandatory: readonly string[], shown: number
     card.onclick = (): void => {
       const select = byId<HTMLSelectElement>('popf'); if (!select) return;
       select.value = select.value === card.dataset.pk ? '' : card.dataset.pk ?? ''; select.dispatchEvent(new Event('change', { bubbles: true }));
-      pkMarcar();
+      legacyFreeScreensOrders.markChosenCard();
     };
   });
   // The gear, next to «Filtros y columnas» of the header (if it is in view)
   const tools = document.querySelector<HTMLElement>('#v-ventas .htbtn'), gear = byId('opcfg');
   if (tools?.offsetParent && gear && shown) { gear.className = 'btn sec pkcfg pkcfgcab'; tools.insertAdjacentElement('beforebegin', gear); }
   const settings = byId('opcfg'); if (settings) settings.onclick = (): void => { void legacyFreeScreensOrders.configureAlerts(mandatory); };
-  pkMarcar();
-  legacyFreeScreensOrders.countUp(([...box.querySelectorAll<HTMLElement>('.pkn[data-v]')]), ((value: number) => num(Math.round(value))));
+  legacyFreeScreensOrders.markChosenCard();
+  legacyFreeScreensOrders.countUp(([...box.querySelectorAll<HTMLElement>('.pkn[data-v]')]), ((value: number) => legacyFreeCoreServices.money.number(Math.round(value))));
 }
 
 /** Paints the alert cards of Pedidos (the legacy pintarOperativa). */
@@ -82,7 +82,7 @@ export async function paintOrderAlerts(): Promise<void> {
   const mandatory = settings?.valor?.obligatorios?.[profile.rol] ?? [], preferences = profile.preferencias?.avisos_pedidos ?? {};
   const shown = (PK_TARJ as readonly AlertCard[]).filter(([key]) => mandatory.includes(key) || preferences[key] !== false);
   const gear = `<button type="button" class="pkcfg" id="opcfg" aria-label="${t('legacyC.orderAlerts.choose')}" title="${t('legacyC.orderAlerts.choose')}">${svgIco(ICON_NOM.settings ?? '')}</button>`;
-  const context: Context = { today: hoyISO(), entries: data ?? {} };
+  const context: Context = { today: legacyFreeCoreServices.calendar.today(), entries: data ?? {} };
   box.innerHTML = !shown.length ? `<div class="pkvacio">${t('legacyC.orderAlerts.hidden')} ${gear}</div>` : `<div class="pk">${shown.map(card => cardHtml(card, context)).join('')}${gear}</div>`;
   bindCards(box, mandatory, shown.length);
 }

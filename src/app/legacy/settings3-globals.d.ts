@@ -3,9 +3,7 @@ declare const PROVEEDORES_CORREO: Readonly<Record<string, { n: string; host: str
 declare const NOTIF_AREAS: readonly (readonly [string, string, readonly string[]])[];
 declare const NOTIF_DIARIOS: readonly string[];
 
-declare function refrescarCampana(): Promise<void>;
 declare function menuNombres(): Record<string, string>;
 declare const MENU_FUERA: readonly string[];
 
 declare function montarMenuLateral(): void;
-declare function pintarBnav(): void;

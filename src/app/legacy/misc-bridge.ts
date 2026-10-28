@@ -15,12 +15,15 @@ import { productsStore } from '../screens/products/store';
 import * as legacyFreeComponentsList from '../components/list';
 import * as legacyFreeScreensCommissions from '../screens/commissions';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import { navigate } from '../core/navigation';
+import * as legacyFreeScreensPurchases from '../screens/purchases';
+import * as legacyFreeScreensHome from '../screens/home';
 export type NearbyAccount = LegacyNearbyAccount;
 export type NearbyResult = LegacyNearbyResult;
 export type HiddenAlert = LegacyHiddenAlert;
 
 export const miscLegacy = {
-  canUnify: (): boolean => puede('administrar') || ((sessionStore.profile as { areas?: Record<string, number> } | null)?.areas?.M ?? 0) >= 3,
+  canUnify: (): boolean => legacyFreeCoreServices.permissions.can('administrar') || ((sessionStore.profile as { areas?: Record<string, number> } | null)?.areas?.M ?? 0) >= 3,
   previousScreen: (): string | null => navigationStore.previousScreen,
   weekDays: (): readonly (readonly [string, string])[] => DIAS_SEM,
   setCardCentre: (name: string): void => { accountsStore.cardCentre = name; },
@@ -36,7 +39,7 @@ export const miscLegacy = {
   item: (id: string, look: { icon: string; kind: string }, name: string, detail: string): string => legacyFreeComponentsList.itemHtml({ id, icon: look.icon, iconClass: look.kind || '', title: name, detail: detail }),
   paintUpdated: (): void => { legacyFreeCoreLegacyC.paintUpdated(); },
   canBuy: (): boolean => Boolean(legacyFreeCoreServices.permissions.canBuy()),
-  openStock: (): void => { productsStore.section = 'stock'; ir('productos'); },
-  openPurchase: (id: string): void => { void editorCompra(id); },
-  reloadHome: (): void => { void cargarInicio(); },
+  openStock: (): void => { productsStore.section = 'stock'; navigate('productos'); },
+  openPurchase: (id: string): void => { void legacyFreeScreensPurchases.editPurchase(id || null); },
+  reloadHome: (): void => { void legacyFreeScreensHome.loadWithCache(); },
 };

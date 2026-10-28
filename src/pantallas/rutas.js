@@ -18,21 +18,15 @@ const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minu
 
  // v2.440.0: RN → estado de src/app (plan 6.6), accesible en window          // la ruta que se está creando o editando
 
-function rnAbrir(item, paso) { return window.delcos.screens.routes.openRoute(item || null, paso || 1); }
-function rutasMapaBase() { return window.delcos.screens.routes.loadDayMap(); }
-function planificar(rutaId, btn) { return window.delcos.screens.routes.planRoute(rutaId, btn); }
-function construirPlan(conXY, rutaId, btn, opts) { return window.delcos.screens.routes.buildPlan(conXY, rutaId, btn || null, opts || {}); }
 function ordenarPorCercania(citas) { const r = window.delcos.screens.routes.orderByDistance(citas); /** @type {any} */ (ordenarPorCercania).fuera = r.left; return r.list; }
-function PLANCFG() { return window.delcos.screens.routes.planSettings(); }
-function editorRuta(id) { return window.delcos.screens.routes.editRoute(id || null); }
 
 // Tiempos de una propuesta del día (v2.145.0): ya no se pintan, pero la prueba rutas2145 de qa_pantallas.py aún la nombra
 function rpTiempos(sel, t0) {
-  const cfg = PLANCFG(), sal = salidaUsuario();
+  const cfg = window.delcos.screens.routes.planSettings(), sal = window.delcos.settingsCore.userStart();
   let pos = sal.lat != null ? [+sal.lat, +sal.lon] : null, t = t0, kms = 0, paradas = 0;
   sel.forEach(c => {
-    const xy = [+c.lat, +c.lon], mismo = pos && km(pos, xy) < 0.05;
-    if (!mismo) { if (pos) { t += minutosEntre(pos, xy); kms += km(pos, xy); } t += cfg.parada; paradas++; }
+    const xy = [+c.lat, +c.lon], mismo = pos && window.delcos.legacyA.km(pos, xy) < 0.05;
+    if (!mismo) { if (pos) { t += window.delcos.core.maps.minutesBetween(pos, xy); kms += window.delcos.legacyA.km(pos, xy); } t += cfg.parada; paradas++; }
     t += cfg.visita; pos = xy;
   });
   return { fin: t, km: kms, paradas };

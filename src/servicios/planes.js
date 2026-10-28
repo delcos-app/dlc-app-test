@@ -2,7 +2,6 @@
 // servicios/planes.js · está en src/app/core/plans.ts y core/permissions.ts (v2.425.0). El plan de la empresa (PLAN_ACTUAL, que cambian el
 // arranque, Configuración y las pruebas) se queda aquí, y estos nombres también. Normas: docs/normas_codigo.md.
 
-function verImportes() { return window.delcos.core.permissions.canSeeAmounts(); }
 
 // Qué permiso abre cada módulo
 const MODULO_AREA = window.delcos.core.permissions.MODULE_AREA;
@@ -11,7 +10,6 @@ const MODULO_AREA = window.delcos.core.permissions.MODULE_AREA;
 
 // v2.165.0: sin Facturación en el plan pero con facturas, se entra en solo consulta (facConsulta)
 // Filas de la comparativa: [nombre, detalle, planes que lo incluyen]
-function planIncluyeSeccion(t) { return window.delcos.core.plans.planIncludesSection(t); }
 // Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
 
 /* v2.158.0 · Oportunidades y el portal entran en los planes (decisión de Eric, 3/10/2026; los precios no cambian). Oportunidades en

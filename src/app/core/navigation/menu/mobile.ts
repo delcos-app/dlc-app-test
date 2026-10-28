@@ -12,6 +12,8 @@ import { navigationStore } from '../store';
 import * as legacyFreeCoreServices from '../../services';
 import * as legacyFreeCoreLegacyB from '../../legacy-b';
 import * as legacyFreeCoreSettings from '../../settings';
+import { navigate } from '..';
+import * as legacyFreeComponentsListBar from '../../../components/list-bar';
 
 /** The screens that never go in the phone menu (v2.335.0: Usuarios is in Configuración). */
 export const MENU_OUT = ['usuarios'];
@@ -67,7 +69,7 @@ function lockOutOfPlan(sheet: HTMLElement): void {
   const close = (): void => { sheet.classList.add('hide'); document.body.classList.remove('masabierto'); };
   sheet.querySelectorAll<HTMLElement>('[data-bm]').forEach(button => {
     const key = button.dataset.bm ?? '';
-    if (legacyFreeCoreServices.plans.planIncludes(key) && planIncluyeSeccion(key)) return;
+    if (legacyFreeCoreServices.plans.planIncludes(key) && legacyFreeCoreServices.plans.planIncludesSection(key)) return;
     button.classList.add('bloq'); button.onclick = (): void => { close(); legacyFreeCoreServices.plans.planNotice(key); };
   });
   // Locked ones are removed from «Más»
@@ -82,7 +84,7 @@ function fillMore(sheet: HTMLElement, grid: Element): void {
   wanted.forEach(key => {
     if (grid.querySelector(`[data-bm="${key}"]`)) return;
     grid.insertAdjacentHTML('beforeend', `<button data-bm="${key}" class="${menuTab() === key ? 'on' : ''}"><span>${ICO_MOD[key] ?? '•'}</span>${escapeHtml(mobileName(key))}</button>`);
-    const added = grid.querySelector<HTMLElement>(`[data-bm="${key}"]`); if (added) added.onclick = (): void => { close(); ir(key); };
+    const added = grid.querySelector<HTMLElement>(`[data-bm="${key}"]`); if (added) added.onclick = (): void => { close(); navigate(key); };
   });
   wanted.forEach(key => { const button = grid.querySelector(`[data-bm="${key}"]`); if (button) grid.appendChild(button); });   // in the chosen order
   if (!sheet.querySelector('#bmaspers')) {
@@ -140,7 +142,7 @@ export function fabToDesktop(): void {
     const actions = button.closest('main > section')?.querySelector(':scope > .saludo .acts'); if (!actions) return;
     const text = button.dataset.txt ?? button.getAttribute('aria-label') ?? t('navigationCore.menu.add');
     button.classList.remove('fab', 'plfuera'); delete button.dataset.plfab; delete button.dataset.txt;
-    button.innerHTML = `${plIco('plus')} ${escapeHtml(text.replace(/^\s*\+\s*/, ''))}`;
+    button.innerHTML = `${legacyFreeComponentsListBar.icon('plus')} ${escapeHtml(text.replace(/^\s*\+\s*/, ''))}`;
     actions.appendChild(button);
   });
 }

@@ -12,6 +12,7 @@ import { billingStore } from '../screens/billing/store';
 import * as legacyFreeScreensRoutes from '../screens/routes';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeScreensAccounts from '../screens/accounts';
+import * as legacyFreeCoreLayers from '../core/layers';
 
 /** A column of the second panel «Columnas»: its index, name, whether it shows and whether it can be hidden. */
 export interface PanelColumn { i: number; n: string; on: boolean; fija: boolean }
@@ -31,9 +32,9 @@ export const panelsLegacy = {
   products: (): readonly CatalogProduct[] => productsStore.products,
   loadProducts: (): Promise<void> => cargarProductos(),
   stateWithRole: (role: string): string => legacyFreeCoreServices.states.stateOfRole(role),
-  canUseModule: (screen: string): boolean => puedeModulo(screen),
+  canUseModule: (screen: string): boolean => legacyFreeCoreServices.permissions.canUseModule(screen),
   monthsBetween: (from: string, to: string): string[] => legacyFreeCoreServices.calendar.monthsBetween(from, to),
-  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
+  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { legacyFreeCoreLayers.mountPeriod(element, [options]); },
   pickProfessional: (element: HTMLElement | null, options: { value: PickedAccount | null; placeholder: string; onPick: (account: PickedAccount) => void }): void => {
     legacyFreeScreensAccounts.pickAccount(element as unknown as HTMLElement, { valor: options.value, placeholder: options.placeholder, alElegir: options.onPick } as Parameters<typeof legacyFreeScreensAccounts.pickAccount>[1]);
   },

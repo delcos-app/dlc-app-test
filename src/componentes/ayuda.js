@@ -11,4 +11,3 @@ const ANCLAS_AYUDA = [
   ['#v-admin .saludo h1', 'admin'], ['#v-duplicados .saludo h1', 'duplicados']
 ];
 
-function ponerAyudas() { window.delcos.components.addHelpButtons(); }

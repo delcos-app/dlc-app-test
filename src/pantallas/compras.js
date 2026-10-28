@@ -15,5 +15,3 @@ const PROVEEDORES_CORREO = {
 
 // Compras y Proveedores están en src/app/screens/purchases (v2.409.0). Estos nombres se quedan: Pedidos, Inicio, los avisos,
 // legado 058 (ventana amplia de editorCompra) y las pruebas los usan.
-function editorCompra(id) { return window.delcos.screens.purchases.editPurchase(id || null); }
-function editorProveedor(p) { return window.delcos.screens.purchases.editSupplier(p || null); }

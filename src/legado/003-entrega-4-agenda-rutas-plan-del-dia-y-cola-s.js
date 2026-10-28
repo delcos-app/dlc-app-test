@@ -15,6 +15,5 @@ window.delcos.legacyA.listenToAppointmentClicks();
 window.delcos.legacyA.listenToRouteButtons();
 
 /* distancia aproximada en km entre dos puntos */
-function km(a, b) { return window.delcos.legacyA.km(a, b); }
 
 window.delcos.legacyA.listenToAddToAgenda();

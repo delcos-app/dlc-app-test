@@ -7,6 +7,7 @@ import { sessionStore } from '../core/session-store';
 import { settingsStore } from '../screens/settings/store';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeScreensVisit from '../screens/visit';
+import * as legacyFreeCoreLayers from '../core/layers';
 /**
  * Bridge of Configuración part 1 to the legacy code (kept apart from bridge.ts, which is at its size limit): the user profile and
  * its preferences, the classifier catalog, the undo helpers of the audit, the custom field definitions and the test environment.
@@ -51,6 +52,6 @@ export const settingsLegacy = {
     const read = element ? Reflect.get(element, '__rango') as (() => PeriodRange) | undefined : undefined;
     return read ? read() : { desde: null, hasta: null };
   },
-  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
-  modules: (): string[] => Object.keys(MODULO_AREA).filter(module => puedeModulo(module)),
+  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { legacyFreeCoreLayers.mountPeriod(element, [options]); },
+  modules: (): string[] => Object.keys(MODULO_AREA).filter(module => legacyFreeCoreServices.permissions.canUseModule(module)),
 };

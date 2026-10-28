@@ -9,6 +9,7 @@ import { sessionStore } from '../core/session-store';
 import { settingsStore } from '../screens/settings/store';
 import * as legacyFreeScreensSettings from '../screens/settings';
 import * as legacyFreeScreensBilling from '../screens/billing';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
 /**
  * Bridge of Facturación to the legacy code (kept apart from bridge.ts, which is at its size limit). The section (FSEC) and the
  * page of the list (FACPAG) stay in legacy: the tab bar, the filters and the cache of loaded screens read them. The PDF, the
@@ -16,7 +17,6 @@ import * as legacyFreeScreensBilling from '../screens/billing';
  */
 export interface InvoicePdf { output: (kind: string) => string }
 /** The legacy facturaPDF(invoice, rectifies, design?): the design is optional (the default one when it is missing). */
-type PdfMaker = (invoice: object, rectifies: string | null | undefined) => Promise<InvoicePdf>;
 
 export const billingLegacy = {
   section: (): string => billingStore.section,
@@ -25,16 +25,16 @@ export const billingLegacy = {
   setPage: (page: number): void => { ordersStore.invoicePage = page; },
   canInvoice: (): boolean => Boolean(legacyFreeCoreServices.permissions.canInvoice()),
   /** Through the global names (the adapters of pantallas/facturacion.js), which call the screen with its cache and its window. */
-  reload: (): void => { void cargarFacturacion(); },
-  openInvoice: (id: string): void => { void verFactura(id); },
+  reload: (): void => { void legacyFreeScreensBilling.loadBilling(); },
+  openInvoice: (id: string): void => { void legacyFreeScreensBilling.showInvoice(id); },
   withLoading: <T>(work: () => Promise<T>): Promise<T> => legacyFreeComponentsEmbeddedWindow.withDialogLoading(work),
   showLoading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   readOnly: (): boolean => Boolean(legacyFreeScreensBilling.readOnlyBilling()),
   planName: (): string => legacyFreeCoreServices.plans.planOf((String(sessionStore.plan.plan))).nombre,
-  paintCompany: (): void => { void pintarEmpresa(); },
+  paintCompany: (): void => { void legacyFreeCoreLegacyC.paintCompany([]); },
   paintLog: (): void => { void legacyFreeScreensSettings.paintBillingLog(); },
   paintTabs: (): void => { legacyFreeCoreLeftovers.billingSettingsSubnav(); },
-  invoicePdf: (invoice: object, rectifies: string | null | undefined): Promise<InvoicePdf> => (facturaPDF as unknown as PdfMaker)(invoice, rectifies),
+  invoicePdf: (invoice: object, rectifies: string | null | undefined): Promise<InvoicePdf> => legacyFreeCoreServices.pdf.invoicePdf(invoice, rectifies, null),
   downloadPdf: (invoice: object, rectifies: string | null | undefined): void => { void legacyFreeCoreServices.pdf.downloadInvoicePdf(invoice, rectifies); },
   sendByEmail: (invoice: object, rectifies: string | null | undefined): void => { void legacyFreeScreensBilling.sendInvoiceByEmail(invoice, rectifies); },
   loadSettings: (): Promise<void> => legacyFreeCoreSettings.loadSettings(),

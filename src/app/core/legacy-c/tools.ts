@@ -12,6 +12,8 @@ import { homeStore } from '../../screens/home/store';
 import * as legacyFreeComponentsFilters from '../../components/filters';
 import * as legacyFreeComponentsFiltersPanel from '../../components/filters-panel';
 import * as legacyFreeCoreLegacyA from '../legacy-a';
+import * as legacyFreeScreensAccounts from '../../screens/accounts';
+import * as legacyFreeComponents from '../../components';
 
 const SAVE_FILTER_DELAY_MS = 60;
 interface ColumnChoice { i: number; n: string; on?: boolean; fija?: boolean }
@@ -34,7 +36,7 @@ function addSaveFilter(): void {
 const repaintFields = (zone: Element): void => {
   const current = filters();
   current.campos ??= {};
-  clasPintar(zone, 'medico', current.campos, () => buscar(true), () => buscar(true), 'h3');
+  clasPintar(zone, 'medico', current.campos, () => { void legacyFreeScreensAccounts.searchAccounts(true); }, () => { void legacyFreeScreensAccounts.searchAccounts(true); }, 'h3');
 };
 
 /** Opens «Filtros y columnas» (the legacy abrirHerramientas): the second panel closes, and in Cuentas the custom fields go before Columnas. */
@@ -58,7 +60,7 @@ export function listenToFieldChips(): void {
     const chip = closestTo(event.target, '[data-xcp]'); if (!chip) return;
     const current = filters();
     if (current.campos) Reflect.deleteProperty(current.campos, chip.dataset.xcp ?? '');
-    buscar(true);
+    void legacyFreeScreensAccounts.searchAccounts(true);
     const tools = byId('tools'), zone = tools?.querySelector('.tfcampos');
     if (zone && tools?.classList.contains('abierto')) repaintFields(zone);
   });
@@ -80,7 +82,7 @@ function addResetWidths(grid: HTMLElement): void {
   byId('tools2')?.querySelector('.tbox')?.insertAdjacentHTML('beforeend', `<div class="acts"><button class="btn sec" type="button" id="t2anchos">${t('legacyC.tools.resetWidths')}</button></div>`);
   const reset = byId('t2anchos');
   if (reset) reset.onclick = (): void => {
-    localStorage.removeItem(claveAnchos(legacyFreeComponentsFilters.tableKind(grid))); grid.style.minWidth = ''; delete grid.dataset.ht; legacyFreeComponentsFiltersPanel.applyColumns(grid); toast(t('legacyC.tools.widthsReset'));
+    localStorage.removeItem(claveAnchos(legacyFreeComponentsFilters.tableKind(grid))); grid.style.minWidth = ''; delete grid.dataset.ht; legacyFreeComponentsFiltersPanel.applyColumns(grid); legacyFreeComponents.toast(t('legacyC.tools.widthsReset'), false);
   };
 }
 

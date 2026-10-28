@@ -20,14 +20,7 @@ async function respuestaConClavesAntiguas(url, r) {
   return new Response(JSON.stringify(j), { status: r.status, statusText: r.statusText, headers: h });
 }
 
-/** Ejecuta una escritura; si no hay conexión, la guarda y la reenvía después. */
-function escribir(fn, payload, etiqueta) { return window.delcos.core.queue.write(fn, payload, etiqueta); }
-function invalidarCache() { return window.delcos.core.queue.forgetCache(); }
 // Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
-function colaLeer() { return window.delcos.core.queue.queued(); }
-function escribirRpc(fn, payload) { return window.delcos.core.reads.writeQueued(fn, payload); }
-/** Llama a una función del servidor y guarda copia; sin conexión devuelve la última copia. */
-function rpcCache(fn, params, clave) { return window.delcos.core.reads.readCached(fn, params, clave); }
 
 const RPC_TTL = {                 // segundos
   panel_inicio: 60, propuestas_rutas: 120, comision_periodo: 120, resumen_duplicados: 600,

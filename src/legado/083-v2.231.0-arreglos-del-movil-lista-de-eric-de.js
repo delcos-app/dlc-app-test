@@ -4,6 +4,5 @@ window.delcos.layers.installMenuDetails();
 window.delcos.layers.installSlowReadRetry();
  // v2.440.0: RM_MAPA, RM_ANIM → estado de src/app (plan 6.6), accesible en window
  // v2.440.0: RN_LISTA, RN_MAPA_P → estado de src/app (plan 6.6), accesible en window    // tarjetas de Mis rutas: [{r, ms}]
-function aplicarEtiqueta(...a) { return window.delcos.layers.applyLabel(a); }
 window.delcos.layers.installMenuNames();
 window.delcos.layers.installSettingsSearchWords();

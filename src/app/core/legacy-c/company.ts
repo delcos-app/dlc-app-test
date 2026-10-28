@@ -21,7 +21,7 @@ function previewHtml(): string {
   return `<div class="fpcab">${logo ? `<img src="${escapeHtml(MARCA.logo ?? '')}" alt="">` : ''}<div><b>${escapeHtml(value('razon_social') || t('legacyC.company.legalName'))}</b>
         <span>${t('legacyC.company.taxId', { id: escapeHtml(value('nif') || '—') })}</span><span>${escapeHtml(address || t('legacyC.company.address'))}</span>
         <span>${escapeHtml([value('telefono'), value('email'), value('web')].filter(Boolean).join(' · '))}</span></div>
-        <div class="fpnum"><b>${t('legacyC.company.invoice')}</b><span>F260001</span><span>${legacyFreeCoreServices.calendar.shortDate((hoyISO()))}</span></div></div>
+        <div class="fpnum"><b>${t('legacyC.company.invoice')}</b><span>F260001</span><span>${legacyFreeCoreServices.calendar.shortDate((legacyFreeCoreServices.calendar.today()))}</span></div></div>
       <div class="fplineas"><div><span>${t('legacyC.company.sampleProduct')}</span><span>2 × 30,00 €</span></div></div>
       <div class="fppie">${value('iban') ? `${t('legacyC.company.transfer', { iban: escapeHtml(value('iban')) })}<br>` : ''}${escapeHtml(note)}</div>`;
 }

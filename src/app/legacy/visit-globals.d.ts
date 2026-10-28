@@ -7,4 +7,3 @@ interface PresentationMaterial { id: string; producto_id: string; nombre: string
 
 declare const PRES_DATOS: Map<string, string>;
 declare const FOTOS_VISITA_MAX: number;
-declare function cargarInicio(): Promise<void>;

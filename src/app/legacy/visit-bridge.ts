@@ -6,6 +6,7 @@ import { sessionStore } from '../core/session-store';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
 import * as legacyFreeScreensProducts from '../screens/products';
+import * as legacyFreeScreensHome from '../screens/home';
 /**
  * Bridge of the visit windows to the legacy code (kept apart from bridge.ts, which is at its size limit). The open visit stays in
  * the legacy VISITA_ACTUAL: the legacy escribirRpc adds its mode, photos, samples and products when it is saved, and the tests read
@@ -29,8 +30,8 @@ export const visitLegacy = {
   weekdayLetter: (): string => legacyFreeCoreServices.calendar.todayLetter(),
   /** The write queue: without connection the call is kept and `data.encolada` is true. */
   writeRpc: (name: string, payload: Record<string, unknown>): Promise<{ data?: unknown; error?: { message?: string } | null }> =>
-    escribirRpc(name, payload) as Promise<{ data?: unknown; error?: { message?: string } | null }>,
-  reloadHome: (): void => { void cargarInicio(); },
+    legacyFreeCoreServices.reads.writeQueued(name, payload) as Promise<{ data?: unknown; error?: { message?: string } | null }>,
+  reloadHome: (): void => { void legacyFreeScreensHome.loadWithCache(); },
   loading: (element: HTMLElement, text: string): void => { components.showLoading(element, text); },
   materials: (): readonly PresentationMaterial[] | null => productsStore.presentationMaterials,
   materialsTime: (): number => productsStore.presentationTime,

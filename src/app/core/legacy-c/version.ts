@@ -3,6 +3,7 @@
  * comes back to the front and every 10 minutes (v2.184.0). Folded from legado 050 and 078 (v2.425.0).
  */
 import { byId, observe } from './dom';
+import * as legacyFreeCoreServices from '../services';
 
 const CHECK_EVERY_MS = 10 * 60 * 1000, CHECKED_FOR_MS = 2000;
 
@@ -30,6 +31,6 @@ export function watchVersionNotice(): void {
 
 /** v2.184.0: check for a new version when the app comes back and every 10 minutes. */
 export function checkVersionPeriodically(): void {
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
-  setInterval(comprobarVersion, CHECK_EVERY_MS);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) void legacyFreeCoreServices.live.checkVersion(); });
+  setInterval(() => { void legacyFreeCoreServices.live.checkVersion(); }, CHECK_EVERY_MS);
 }

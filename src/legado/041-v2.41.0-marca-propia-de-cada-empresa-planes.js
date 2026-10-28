@@ -22,7 +22,7 @@ const PLANES = window.delcos.content.plans();
 window.delcos.legacyB.loadPlanUsage();
 
 // Los módulos que no entran en el plan se ven con candado y explican cómo conseguirlos
-const puedeModuloV2400 = puedeModulo;
+const puedeModuloV2400 = t => window.delcos.core.permissions.canUseModule(t);
 
 // No se puede superar el número de usuarios del plan
 

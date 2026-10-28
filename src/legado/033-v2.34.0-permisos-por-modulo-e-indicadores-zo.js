@@ -12,10 +12,10 @@ Object.assign(RPC_TTL, { operativa_pendiente: 20, llamadas_lista: 20, llamadas_r
 
 /* aplicarPermisosMenu: la parte base y, en orden, cada paso que se le añade (antes eran 3 capas separadas). */
 function aplicarPermisosMenuBase2() {
-  aplicarPermisosMenuBase();
-  aplicarPermisosMenuPaso1();
-  aplicarPermisosMenuPaso2();
-  aplicarPermisosMenuPaso3();
+  window.delcos.nav.showAllowedModules();
+  window.delcos.nav.lockModules();
+  window.delcos.leftovers.menuIcons();
+  window.delcos.nav.orderAfterPermissions();
 }
 
 /* ---------------- operativa de los pedidos ---------------- */

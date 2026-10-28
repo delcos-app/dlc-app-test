@@ -12,6 +12,10 @@ import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 import * as legacyFreeCoreLegacyC from '../core/legacy-c';
 import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import { navigate } from '../core/navigation';
+import * as legacyFreeCoreLayers from '../core/layers';
+import * as legacyFreeScreensVisit from '../screens/visit';
+import * as legacyFreeScreensOpportunities from '../screens/opportunities';
 export interface EmailProvider { n: string; host: string; puerto: number; seg: string; ayuda: string }
 export type NotificationType = readonly [string, string, string, string];
 export type NotificationArea = readonly [string, string, readonly string[]];
@@ -54,17 +58,17 @@ export const settingsExtraLegacy = {
   typesForMyRole: (): readonly NotificationType[] => legacyFreeCoreServices.plans.notificationTypesOfRole() as readonly NotificationType[],
   unread: (): number => settingsStore.notificationCount,
   setUnread: (count: number): void => { settingsStore.notificationCount = count; },
-  refreshBell: (): void => { void refrescarCampana(); },
+  refreshBell: (): void => { void legacyFreeCoreServices.live.refreshBell(); },
   icon: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   followLink: (link: string): void => { void legacyFreeCoreNavigationApi.followLink(link); },
-  newSale: (preset: Record<string, unknown>): void => { void nuevaVenta(preset); },
-  recordVisit: (accountId: string): void => { void abrirVisita(accountId); },
-  openNotificationSettings: (): void => { settingsStore.section = 'notif'; (window as unknown as { __CFG_DIRECTO?: boolean }).__CFG_DIRECTO = true; void ir('config'); },
+  newSale: (preset: Record<string, unknown>): void => { void legacyFreeScreensOpportunities.editOpportunity(preset, null); },
+  recordVisit: (accountId: string): void => { void legacyFreeScreensVisit.openVisit(accountId); },
+  openNotificationSettings: (): void => { settingsStore.section = 'notif'; (window as unknown as { __CFG_DIRECTO?: boolean }).__CFG_DIRECTO = true; navigate('config'); },
   // Menu names
   menuNames: (): Record<string, string> => menuNombres(),
   menuExcluded: (): readonly string[] => MENU_FUERA,
   moduleIcon: (module: string): string | undefined => ICO_MOD[module],
   menuText: (button: Element): { get: () => string } | null => legacyFreeCoreSettings.menuLabelText(button as HTMLElement),
-  applyMenuNames: (): void => { aplicarNombresMenu(); navigationStore.menuSignature = ''; try { montarMenuLateral(); pintarBnav(); } catch { /* the menu repaints later */ } },
-  applyLabel: (): void => { aplicarEtiqueta(); },
+  applyMenuNames: (): void => { legacyFreeCoreNavigationApi.applyMenuNames(); navigationStore.menuSignature = ''; try { montarMenuLateral(); legacyFreeCoreLayers.paintBottomBar([]); } catch { /* the menu repaints later */ } },
+  applyLabel: (): void => { legacyFreeCoreLayers.applyLabel([]); },
 };

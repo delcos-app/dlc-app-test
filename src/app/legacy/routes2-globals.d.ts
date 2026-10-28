@@ -11,12 +11,9 @@ interface Leaflet { marker(point: [number, number], options: Record<string, unkn
 declare const RM_MEM: Map<string, { t: number; r: StreetRoute }>;
 
 declare const DIAN: Readonly<Record<string, string | undefined>>;
-declare function pintarPlan(): void;
 declare function xyCita(item: object): [number, number] | null;
 declare function citaHecha(state: string): boolean;
-declare function km(from: unknown, to: unknown): number;
 declare function horDeCitas(list: readonly object[]): { salida: string | null; vuelta: string | null } | null;
-declare function abrirHorarioPlan(): void;
 declare function tdClaveXY(from: unknown, to: unknown): string;
 declare function tdRealVigente(): boolean;
 declare function rutasMapa(): Promise<void>;

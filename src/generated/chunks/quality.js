@@ -324,8 +324,8 @@ function bindHeader() {
   document.querySelectorAll("nav.main [data-t]").forEach((button) => {
     markCurrent(button, button.dataset.t === "directorio");
   });
-  qualityLegacy.setExport((format) => {
-    qualityLegacy.download([], "Exportacion_seguimiento", format);
+  qualityLegacy.setExport(() => {
+    qualityLegacy.download();
   });
 }
 async function loadQuality() {

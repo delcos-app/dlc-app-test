@@ -11,6 +11,7 @@ import { sessionStore } from '../core/session-store';
 import { navigationStore } from '../core/navigation/store';
 import * as legacyFreeCoreServices from '../core/services';
 import * as legacyFreeScreensRoutes from '../screens/routes';
+import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
 
 /** The window or module page shown inside the panel instead of floating. */
 export interface ActivePanel { tipo: 'dbody' | 'admin'; refrescar?: () => unknown }
@@ -24,7 +25,7 @@ export const shellLegacy = {
   activePanel: (): ActivePanel | null => settingsStore.activePanel as ActivePanel | null,
   setActivePanel: (panel: ActivePanel | null): void => { settingsStore.activePanel = panel; },
   setAdminSection: (section: string): void => { settingsStore.adminSection = section; },
-  loadAdmin: (): Promise<void> => cargarAdmin(),
+  loadAdmin: async (): Promise<void> => { await legacyFreeCoreLayers.loadAdmin([]); },
   openingCard: (): boolean => Boolean(accountsStore.cardEffect),
   hasPage: (screen: string): boolean => Boolean(PAGINAS[screen]),
   /** The stacked windows (legado 058 gives the previous one back when the top one closes). */
@@ -40,18 +41,18 @@ export const shellLegacy = {
   detail: (): boolean => settingsStore.detail,
   setDetail: (on: boolean): void => { settingsStore.detail = on; },
   /** Configuración again, through its global name (other code may wrap it). */
-  reload: (): void => { void cargarConfig(); },
+  reload: (): void => { void legacyFreeScreensSettingsShell.loadSettingsPage(); },
   planIncludes: (module: string): boolean => legacyFreeCoreServices.plans.planIncludes(module),
   planMinimum: (module: string): { nombre: string } | undefined => legacyFreeCoreServices.plans.minimumPlan(module),
   currentPlanName: (): string => legacyFreeCoreServices.plans.planOf(sessionStore.plan.plan as string).nombre,
-  canManageOrganisation: (): boolean => puedeOrganizacion(),
-  canUseModule: (module: string): boolean => puedeModulo(module),
+  canManageOrganisation: (): boolean => legacyFreeCoreServices.permissions.canManageOrganization(),
+  canUseModule: (module: string): boolean => legacyFreeCoreServices.permissions.canUseModule(module),
   hasDeparture: (): boolean => Boolean(legacyFreeScreensRoutes.activePreferences().salida),
   emailSettings: (): PromiseLike<{ data: { host?: string } | null }> => RPC_ORIG<{ host?: string }>('correo_config', {}),
   unsavedCount: (): number => PAG_SUCIO.size,
   orderAliases: (): Readonly<Record<string, string>> => ALIAS_PEDIDOS,
   orderSectionView: (): string => pedsecVista(),
   billingWithoutPlan: (): boolean => facSinPlan(),
-  applyMenuPermissions: (): void => { aplicarPermisosMenu(); },
+  applyMenuPermissions: (): void => { legacyFreeCoreLayers.applyMenuPermissions([]); },
   platformTab: (): string => navigationStore.pageTabs.delcos ?? 'orgs',
 };

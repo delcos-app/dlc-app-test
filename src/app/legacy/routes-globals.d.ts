@@ -23,6 +23,3 @@ interface RouteMap {
 interface MapLibrary { Map: new (options: Record<string, unknown>) => RouteMap; NavigationControl: new (options: Record<string, unknown>) => unknown; Marker: new (options: Record<string, unknown>) => MapMarker }
 type PendingMap = Promise<void> & { el?: HTMLElement };
 
-declare function salidaUsuario(): PlanStart;
-declare function minutosEntre(from: [number, number], to: [number, number]): number;
-declare function mejorarCampos(root: Element): void;

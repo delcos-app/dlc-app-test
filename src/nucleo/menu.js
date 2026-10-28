@@ -22,11 +22,3 @@ const menuRehacer = () => window.delcos.nav.redoMenu();
 
 const menuNombres = () => window.delcos.nav.menuNames();
 
-function menuTip(b) { return window.delcos.nav.menuTip(b); }
-function aplicarPermisosMenuPaso1() { return window.delcos.nav.lockModules(); }
-function aplicarPermisosMenuPaso2() { iconosMenu(); }
-function aplicarPermisosMenuPaso3() { return window.delcos.nav.orderAfterPermissions(); }
-function aplicarPermisosMenuBase() { return window.delcos.nav.showAllowedModules(); }
-function aplicarNombresMenu() { return window.delcos.nav.applyMenuNames(); }
-function menuPersonalizar() { return window.delcos.nav.customiseDesktopMenu(); }
-function abrirMasMovil() { return window.delcos.nav.openMoreMenu(); }

@@ -14,6 +14,7 @@ import { billingStore } from '../../screens/billing/store';
 import { agendaStore } from '../../screens/agenda/store';
 import { navigationStore } from '../navigation/store';
 import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeScreensHome from '../../screens/home';
 
 const UNCHANGED_FOR_MS = 800, MINUTE_MS = 60000, SAFETY_MS = 6000;
 type Loader = (...args: unknown[]) => Promise<unknown>;
@@ -61,7 +62,7 @@ function updateButton(): { button: HTMLElement | null; inHeader: boolean } {
   if (!button) {
     actions.insertAdjacentHTML('beforeend', `<button class="btn sec iniact" id="iniact" type="button" title="${t('legacyC.home.update')}">${svgIco(ICON_NOM['refresh-cw'] ?? '')}<span></span></button>`);
     button = byId('iniact');
-    if (button) { const target = button; target.onclick = (): void => { delete CACHE_MOD.inicio; void legacyFreeCoreLegacyC.withLoading(target, (t('legacyC.home.updating')), (() => cargarInicio())); }; }
+    if (button) { const target = button; target.onclick = (): void => { delete CACHE_MOD.inicio; void legacyFreeCoreLegacyC.withLoading(target, (t('legacyC.home.updating')), (() => legacyFreeScreensHome.loadWithCache())); }; }
   }
   return { button, inHeader: true };
 }

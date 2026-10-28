@@ -7,6 +7,7 @@
 import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { sessionStore } from '../session-store';
+import * as legacyFreeCoreServices from '../services';
 
 interface Plan {
   id: string; nombre: string; precio: number | null; anual: number | null; minimo: number; incluidos: number; bloque: [number, number];
@@ -38,7 +39,7 @@ export function planModules(): [string, string, string][] {
   const words = { visits: term('visita', { number: 'p' }), professionalsCapital: term('medico', { number: 'p', capital: 'C' }), patientsCapital: term('paciente', { number: 'p', capital: 'C' }), professionals: term('medico', { number: 'p' }) };
   return [
     ['agenda', t('legacyC.modules.agenda.name'), t('legacyC.modules.agenda.brings', words)], ['rutas', t('legacyC.modules.routes.name'), t('legacyC.modules.routes.brings')],
-    ['directorio', etiquetaContactos(), t('legacyC.modules.accounts.brings', words)], ['seguimiento', t('legacyC.modules.quality.name'), t('legacyC.modules.quality.brings')],
+    ['directorio', legacyFreeCoreServices.vocabulary.contactsLabel(), t('legacyC.modules.accounts.brings', words)], ['seguimiento', t('legacyC.modules.quality.name'), t('legacyC.modules.quality.brings')],
     ['ventas', t('legacyC.modules.sales.name'), t('legacyC.modules.sales.brings')], ['pacientes', t('legacyC.modules.customers.name'), t('legacyC.modules.customers.brings', words)],
     ['productos', t('legacyC.modules.products.name'), t('legacyC.modules.products.brings')], ['analitica', t('legacyC.modules.analytics.name'), t('legacyC.modules.analytics.brings', words)],
     ['facturacion', t('legacyC.modules.billing.name'), t('legacyC.modules.billing.brings')],

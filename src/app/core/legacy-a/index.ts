@@ -22,6 +22,6 @@ export { listenToAddToAgenda, listenToAppointmentClicks, listenToDayMenus } from
 export { km, listenToNavigationLinks, listenToRouteButtons, refreshRouteAfterDialog, refreshRouteBar } from '../../screens/routes/route-listeners';
 export { estimateDayBase, estimateDayWithRouteHours } from '../../screens/routes/day-estimate';
 export { listenToSectionButtons, loadAdmin } from '../../screens/settings/admin-page';
-export { assignPortfolio } from '../../screens/settings/portfolio-assign';
+export { assignPortfolio, assignPortfolioToUser } from '../../screens/settings/portfolio-assign';
 export { mountPeriod } from '../../components/period-picker';
 

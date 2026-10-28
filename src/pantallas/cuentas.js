@@ -18,7 +18,7 @@ const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nom
 
  // v2.440.0: FICHA_PAC → estado de src/app (plan 6.6), accesible en window
 
-const ES_MEDICO = () => puede('portal_prescriptor');
+const ES_MEDICO = () => window.delcos.core.permissions.can('portal_prescriptor');
 
 /* ============================================================
    v2.102.0 · «Tu día» por centros
@@ -50,24 +50,16 @@ const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: '
    ============================================================ */
  // v2.440.0: FX_FICHA → estado de src/app (plan 6.6), accesible en window
 
-function abrirHorarioPlan() { window.delcos.leftovers.openPlanHours(); }
 
 /* Ficha del prescriptor: la ficha base y, en orden, cada bloque que se le añade
    (antes eran 6 capas separadas). */
 
 // La ficha está en src/app/screens/accounts/card (v2.401.0): una lista de secciones con nombre en vez de 18 capas. El nombre
 // global se queda: lo llaman muchas pantallas y «‹ Volver» (legado 126) envuelve las ventanas por su nombre.
-function abrirFicha(id) { return window.delcos.screens.accounts.openAccountCard(id); }
 
 // La ficha del centro y «Cerca de mí» están en src/app/screens/accounts (v2.417.0). Estos nombres se quedan: «‹ Volver» (legado 089),
 // Agenda (legado 077 y 134), el botón de la lista (legado 008) y las pruebas los usan. CERCA se queda: legado 096 lo vacía.
-function fichaCentro(id) { return window.delcos.screens.accounts.showCentre(id); }
-function cercaDeMi(btn) { return window.delcos.screens.accounts.searchNearby(btn); }
 
 // El editor de cuentas, el selector de profesionales, los filtros guardados, los horarios, la cartera, el estado y la barra están en
 // src/app/screens/accounts (v2.419.0). Estos nombres se quedan: la ficha, «Crear nuevo» (legado 002), Analítica, Clientes, Configuración,
 // los puentes, legado 001, 004, 007, 014, 018, 044, 057, 077 y 135, servicios/mapas.js («Estoy aquí»), lista.js y las pruebas los usan.
-function abrirEditor(id, tipo) { return window.delcos.screens.accounts.openEditor(id || null, tipo || null); }
-function fichaNueva() { return window.delcos.screens.accounts.newAccountNames(); }
-function ordenarCabeceraCuentas() { return window.delcos.screens.accounts.arrangeHeader(); }
-function consultaPrivada(cn) { return window.delcos.screens.accounts.privateConsultation(cn || 'C'); }

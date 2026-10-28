@@ -11,7 +11,6 @@
 window.delcos.legacyA.startSelectorsAndWindows();
 window.delcos.legacyA.listenToSalespersonFilter();
 
-function asignarCarteraBase(id) { return window.delcos.legacyA.assignPortfolio(id); }
 
 window.delcos.legacyA.refreshRouteAfterDialog();
 window.delcos.legacyA.addHelpAnchors();

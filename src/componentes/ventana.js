@@ -23,7 +23,6 @@
 
 
 // Adaptadores (src/app/components/dialogs.ts y consultation-hours.ts)
-function preguntar(msg, o) { return window.delcos.components.confirmAction(msg, o || {}); }
 
 // La ventana dentro del panel, el encaje en la página, la pila y «cargando» están en src/app/components/embedded-window (v2.422.0).
 // Estos nombres se quedan: Configuración, los parches de las ventanas (legado 058 y 072), Facturación y los puentes los usan.
