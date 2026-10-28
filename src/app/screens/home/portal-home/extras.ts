@@ -33,8 +33,8 @@ export async function paintCallsToday(): Promise<void> {
   const today = todayIso(), due = (data ?? []).filter(call => call.proxima_fecha <= today);
   if (!due.length || document.getElementById('inillam')) return;
   document.getElementById('iniextra')?.insertAdjacentHTML('afterbegin', `<div class="card" id="inillam"><h2>${t('homeMore.calls.title')}<span class="n">${due.length}</span></h2>
-    <p class="sm" style="padding:0 16px">${t('homeMore.calls.hint', { late: due.some(call => call.proxima_fecha < today) ? t('homeMore.calls.late') : '' })}</p>
-    <div class="acts" style="padding:0 16px 14px"><button class="btn sec" id="inillamver">${t('homeMore.calls.seeOpportunities')}</button></div></div>`);
+    <p class="sm u-p-0-16">${t('homeMore.calls.hint', { late: due.some(call => call.proxima_fecha < today) ? t('homeMore.calls.late') : '' })}</p>
+    <div class="acts u-p-0-16-14"><button class="btn sec" id="inillamver">${t('homeMore.calls.seeOpportunities')}</button></div></div>`);
   const see = document.getElementById('inillamver'); if (see) see.onclick = (): void => { goToOrders('llamadas'); };
 }
 

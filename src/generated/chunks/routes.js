@@ -2101,7 +2101,7 @@ function planAgendaButtons() {
   }
   if (save4) save4.textContent = t("routesMore.planView.saveButton");
 }
-var leftOutRow = (item, index) => `<div class="item ${index >= SHOWN_LEFT_OUT ? "extra" : ""}" style="cursor:default">
+var leftOutRow = (item, index) => `<div class="item ${index >= SHOWN_LEFT_OUT ? "extra" : ""} u-cursor-default">
         <span class="ic w">!</span><span class="tx"><b>${escapeHtml(item.m.nombre)}</b>
           <span class="sm">${escapeHtml(item.motivo)}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ""}</span></span></div>`;
 function planHoursAndLeftOut() {
@@ -2613,7 +2613,7 @@ function formHtml2(days) {
     <div class="fh"><div><h2>${t("routesMore.frequency.title", { visit: term("visita") })}</h2>
       <div class="sm">${t("routesMore.frequency.subtitle", { aProfessional: term("medico", { article: "un" }) })}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    ${Object.keys(days).map((state) => `<div class="g2" style="align-items:center"><div><b>${escapeHtml(state)}</b></div>
+    ${Object.keys(days).map((state) => `<div class="g2 u-items-center"><div><b>${escapeHtml(state)}</b></div>
       <div><input type="number" min="0" max="${MAX_DAYS}" data-frec="${escapeHtml(state)}" value="${Number(days[state]) || 0}" aria-label="${t("routesMore.frequency.daysFor", { state: escapeHtml(state) })}"></div></div>`).join("")}
     <p class="sm">${t("routesMore.frequency.hint", { visit: term("visita") })}</p>
     <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="frok">${t("common.save")}</button></div>`;

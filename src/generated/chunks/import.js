@@ -180,7 +180,7 @@ function columnHtml(header, index) {
 function pageHtml() {
   const intro = t("importing.columns.summary", { rows: formatNumber(wizard.rows.length), columns: wizard.headers.length }) + (wizard.remembered ? t("importing.columns.remembered") : t("importing.columns.proposed")) + t("importing.columns.customHint", { type: escapeHtml(entityName(wizard.entity)) });
   return `<div class="card cfgpanel impcaja">${stepsHtml(3)}
-    <h2 style="padding:0 0 4px">${t("importing.columns.title", { name: escapeHtml(wizard.fileName) })}</h2>
+    <h2 class="u-p-0-0-4">${t("importing.columns.title", { name: escapeHtml(wizard.fileName) })}</h2>
     <p class="sm">${intro}</p>
     <div class="impmapa">${wizard.headers.map(columnHtml).join("")}</div>
     <div id="impaviso" class="sm u-mt-10"></div>
@@ -230,7 +230,7 @@ function paintImport() {
   wizard.book = null;
   const types = entityTypes().map((type) => `<button class="imptipo" type="button" data-impt="${type.key}"><span class="imptic">${icon(type.icon)}</span><b>${escapeHtml(type.name)}</b><span class="sm">${escapeHtml(type.hint)}</span></button>`).join("");
   const box = paint(`<div class="card cfgpanel impcaja">${stepsHtml(1)}
-    <h2 style="padding:0 0 4px">${t("importing.start.title")}</h2>
+    <h2 class="u-p-0-0-4">${t("importing.start.title")}</h2>
     <p class="sm">${t("importing.start.text")}</p>
     <div class="imptipos">${types}</div></div>`);
   box?.querySelectorAll("[data-impt]").forEach((button) => {
@@ -242,7 +242,7 @@ function paintImport() {
 }
 function paintFileStep() {
   paint(`<div class="card cfgpanel impcaja">${stepsHtml(2)}
-    <h2 style="padding:0 0 4px">${t("importing.file.title", { name: escapeHtml(entityName(wizard.entity).toLowerCase()) })}</h2>
+    <h2 class="u-p-0-0-4">${t("importing.file.title", { name: escapeHtml(entityName(wizard.entity).toLowerCase()) })}</h2>
     <p class="sm">${t("importing.file.text")}${wizard.entity === "ventas" ? t("importing.file.salesText") : ""}</p>
     <label class="impzona" id="impzona"><input type="file" id="impfile" accept=".xlsx,.xls,.csv,.txt" hidden>
       ${icon("file-spreadsheet")}<b>${t("importing.file.drop")}</b><span class="sm">${t("importing.file.maxRows")}</span></label>
@@ -443,7 +443,7 @@ async function start(rowCount) {
 function finishedHtml(result) {
   const errors = result.errores, figure = (value, label, extraClass = "") => `<div class="${extraClass}"><b>${formatNumber(value)}</b><span>${label}</span></div>`;
   return `<div class="card cfgpanel impcaja"><div class="impfin">${icon("check")}</div>
-    <h2 style="padding:0 0 4px;text-align:center">${t("importing.run.finished")}</h2>
+    <h2 class="u-p-0-0-4 u-center">${t("importing.run.finished")}</h2>
     <div class="impres">${figure(result.creados, t("importing.run.created"), "ok")}${figure(result.actualizados, t("importing.run.updated"))}
       ${figure(result.omitidos, t("importing.run.unchanged"))}${figure(errors.length, t("importing.run.withErrors"), errors.length ? "mal" : "")}</div>
     ${errors.length ? `<details class="imperr"><summary>${t("importing.review.seeErrors")}</summary><div>${errorLines(errors)}</div></details>` : ""}
@@ -463,7 +463,7 @@ async function runImport(rows, mode) {
   }
   const fields = customFields();
   if (fields.length) await callRpc("importar_campos", { p_entidad: wizard.entity, p_campos: fields });
-  paint(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+  paint(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 class="u-p-0-0-4">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
   let result;
   try {
     result = await sendInBatches(rows, { entity: wizard.entity, mode, simulate: false, importId }, showRunProgress);
@@ -549,7 +549,7 @@ function pageHtml2(check2, counts) {
   const custom = wizard.mapping.map((value, index) => value === "extra" ? wizard.headers[index] ?? "" : "").filter(Boolean);
   const errors = check2.errores;
   return `<div class="card cfgpanel impcaja">${stepsHtml(4)}
-    <h2 style="padding:0 0 4px">${t("importing.review.title", { name: escapeHtml(wizard.fileName) })}</h2>
+    <h2 class="u-p-0-0-4">${t("importing.review.title", { name: escapeHtml(wizard.fileName) })}</h2>
     ${summaryHtml(counts, errors.length)}
     ${modeHtml(counts)}
     ${custom.length ? `<p class="sm">${t("importing.review.customFields", { fields: custom.map(escapeHtml).join(", ") })}</p>` : ""}
@@ -576,7 +576,7 @@ function bind(rows, counts) {
 }
 async function paintReviewStep() {
   const rows = rowsToImport();
-  paint(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+  paint(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 class="u-p-0-0-4">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
   let check2;
   try {
     check2 = await sendInBatches(rows, { entity: wizard.entity, mode: "actualizar", simulate: true, importId: null }, showProgress);

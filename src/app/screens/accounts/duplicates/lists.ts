@@ -29,7 +29,7 @@ function pendingRow(item: PendingDuplicate): string {
 }
 
 function similarRow(pair: SimilarPair): string {
-  return `<div class="item ${selectedPair() === `${pair.a_id}|${pair.b_id}` ? 'sel' : ''}" style="cursor:default">
+  return `<div class="item ${selectedPair() === `${pair.a_id}|${pair.b_id}` ? 'sel' : ''} u-cursor-default">
       <span class="ic">${pair.pct}%</span>
       <span class="tx"><b>${escapeHtml(pair.a_nombre)}</b><span class="sm">${escapeHtml(pair.b_nombre)} · ${t('accountsMore.duplicates.codes', { a: escapeHtml(pair.a_codigo), b: escapeHtml(pair.b_codigo) })}</span></span>
       <span class="acts u-m-0">

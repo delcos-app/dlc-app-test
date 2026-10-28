@@ -17,8 +17,8 @@ const NOTHING = 'nada', AMOUNT = 'importe';
 
 function nextHtml(period: Period, withAmount: boolean): string {
   const next = period.siguiente;
-  if (!next) return `<p class="sm" style="padding:0 16px 14px">${t(period.sin_esquema ? 'commissions.homeCard.noScheme' : 'commissions.homeCard.topTier')}</p>`;
-  return `<p class="sm" style="padding:0 16px 14px">
+  if (!next) return `<p class="sm u-p-0-16-14">${t(period.sin_esquema ? 'commissions.homeCard.noScheme' : 'commissions.homeCard.topTier')}</p>`;
+  return `<p class="sm u-p-0-16-14">
       ${t('commissions.homeCard.nextTier', { missing: formatNumber(next.faltan) })}${withAmount ? t('commissions.homeCard.nextTierAmount', { amount: formatCurrency(next.valor) }) : ''}.</p>`;
 }
 

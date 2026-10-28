@@ -23,7 +23,7 @@ function formHtml(): string {
         <div><label for="ousu">${t('platform.newOrg.users')}</label><input id="ousu" type="number" min="3" value="3"></div>
         <div><label for="opago">${t('platform.newOrg.payment')}</label><select id="opago"><option value="mensual">${t('platform.newOrg.monthly')}</option><option value="anual">${t('platform.newOrg.yearly')}</option></select></div>
         <div><label class="chk"><input type="checkbox" id="oprueba" checked> ${t('platform.newOrg.trial')}</label></div></div>
-      <h3 style="margin-top:14px">${t('platform.newOrg.admin')}</h3>
+      <h3 class="u-mt-14">${t('platform.newOrg.admin')}</h3>
       <div class="g2"><div><label for="oanom">${t('platform.newOrg.adminName')}</label><input id="oanom"></div>
         <div><label for="oamail">${t('platform.newOrg.adminEmail')}</label><input id="oamail" type="email"></div>
         <div><label for="oapass">${t('platform.newOrg.password')}</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div></div>

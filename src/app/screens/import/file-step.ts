@@ -17,7 +17,7 @@ export function paintImport(): void {
   wizard.book = null;
   const types = entityTypes().map(type => `<button class="imptipo" type="button" data-impt="${type.key}"><span class="imptic">${icon(type.icon)}</span><b>${escapeHtml(type.name)}</b><span class="sm">${escapeHtml(type.hint)}</span></button>`).join('');
   const box = paint(`<div class="card cfgpanel impcaja">${stepsHtml(1)}
-    <h2 style="padding:0 0 4px">${t('importing.start.title')}</h2>
+    <h2 class="u-p-0-0-4">${t('importing.start.title')}</h2>
     <p class="sm">${t('importing.start.text')}</p>
     <div class="imptipos">${types}</div></div>`);
   box?.querySelectorAll<HTMLElement>('[data-impt]').forEach(button => { button.onclick = (): void => { wizard.entity = button.dataset.impt as Entity; paintFileStep(); }; });
@@ -26,7 +26,7 @@ export function paintImport(): void {
 /** Step 2: the file. */
 export function paintFileStep(): void {
   paint(`<div class="card cfgpanel impcaja">${stepsHtml(2)}
-    <h2 style="padding:0 0 4px">${t('importing.file.title', { name: escapeHtml(entityName(wizard.entity).toLowerCase()) })}</h2>
+    <h2 class="u-p-0-0-4">${t('importing.file.title', { name: escapeHtml(entityName(wizard.entity).toLowerCase()) })}</h2>
     <p class="sm">${t('importing.file.text')}${wizard.entity === 'ventas' ? t('importing.file.salesText') : ''}</p>
     <label class="impzona" id="impzona"><input type="file" id="impfile" accept=".xlsx,.xls,.csv,.txt" hidden>
       ${icon('file-spreadsheet')}<b>${t('importing.file.drop')}</b><span class="sm">${t('importing.file.maxRows')}</span></label>

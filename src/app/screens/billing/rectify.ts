@@ -17,7 +17,7 @@ const failure = (error: unknown, result: RectifyResult | null): string => orFall
 const partial = (body: HTMLElement): boolean => body.querySelector<HTMLInputElement>('[name=rft]:checked')?.value === 'parcial';
 
 function formHtml(invoice: Invoice): string {
-  const lines = invoice.lineas.map((line, index) => `<div class="g2" style="align-items:center"><div>${escapeHtml(line.descripcion)} <span class="sm">${t('billing.rectify.units', { units: formatNumber(line.unidades) })}</span></div>
+  const lines = invoice.lineas.map((line, index) => `<div class="g2 u-items-center"><div>${escapeHtml(line.descripcion)} <span class="sm">${t('billing.rectify.units', { units: formatNumber(line.unidades) })}</span></div>
       <div><input type="number" min="0" max="${line.unidades}" data-rfi="${index}" value="0" aria-label="${t('billing.rectify.unitsLabel')}"></div></div>`).join('');
   return `
     <div class="fh"><div><h2>${t('billing.rectify.title', { number: escapeHtml(invoice.numero) })}</h2><div class="sm">${t('billing.rectify.subtitle')}</div></div>

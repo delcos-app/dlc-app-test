@@ -40,10 +40,10 @@ function summaryHtml(quality: DataQuality): string {
   return `<div class="card" id="calidad" style="padding-bottom:6px">
     <div class="manh" style="padding:14px 16px 0"><h2 class="u-p-0">${t('quality.summary.complete', { percent })}</h2><span class="sm">${t('quality.summary.completeOf', { ...words(), done: formatNumber(quality.completas), total: formatNumber(quality.total) })}</span></div>
     <div class="barra" style="margin:8px 16px 10px"><i style="width:${percent}%"></i></div>
-    <div class="kpis" style="padding:0 16px 10px">
+    <div class="kpis u-p-0-16-10">
       ${INDICATORS.map(([key, title, help]) => indicator(quality[key], t(title, words()), t(help, words()))).join('')}
     </div>
-    <p class="sm" style="padding:0 16px 10px">${t('quality.summary.completeHint', words())}</p></div>`;
+    <p class="sm u-p-0-16-10">${t('quality.summary.completeHint', words())}</p></div>`;
 }
 
 /** Adds the «Fichas completas» card under the page header. */

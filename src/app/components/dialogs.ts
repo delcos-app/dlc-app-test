@@ -32,7 +32,7 @@ function dialogHtml(options: DialogOptions): string {
       <div class="fh"><h2>${escapeHtml(titulo ?? t('components.dialogs.confirm'))}</h2></div>
       ${msg ? `<p style="margin:0 0 10px;white-space:pre-line">${escapeHtml(msg)}</p>` : ''}
       ${fieldHtml(campo)}
-      ${opciones?.length ? `<div class="chips" style="padding:10px 0 0">${
+      ${opciones?.length ? `<div class="chips u-p-10-0-0">${
         opciones.map(option => `<button type="button" class="chip" data-mop="${escapeHtml(option)}">${escapeHtml(option)}</button>`).join('')}</div>` : ''}
       <div class="acts u-end">
         ${cancel === false ? '' : `<button class="btn sec" id="mno">${escapeHtml(cancel ?? t('components.dialogs.cancel'))}</button>`}

@@ -96,6 +96,19 @@ html:not(#_s) body :is(.u-mt-6, #_u#_u#_u#_u#_u){margin-top:6px}
 html:not(#_s) body :is(.u-mt-8, #_u#_u#_u#_u#_u){margin-top:8px}
 html:not(#_s) body :is(.u-mt-10, #_u#_u#_u#_u#_u){margin-top:10px}
 html:not(#_s) body :is(.u-mt-12, #_u#_u#_u#_u#_u){margin-top:12px}
+html:not(#_s) body :is(.u-mt-14, #_u#_u#_u#_u#_u){margin-top:14px}
+html:not(#_s) body :is(.u-mt-18, #_u#_u#_u#_u#_u){margin-top:18px}
+html:not(#_s) body :is(.u-m-6-0-0, #_u#_u#_u#_u#_u){margin:6px 0 0}
+html:not(#_s) body :is(.u-m-8-0-0, #_u#_u#_u#_u#_u){margin:8px 0 0}
+html:not(#_s) body :is(.u-m-10-0-0, #_u#_u#_u#_u#_u){margin:10px 0 0}
+html:not(#_s) body :is(.u-m-12-0-0, #_u#_u#_u#_u#_u){margin:12px 0 0}
+html:not(#_s) body :is(.u-p-0-0-4, #_u#_u#_u#_u#_u){padding:0 0 4px}
+html:not(#_s) body :is(.u-p-0-16, #_u#_u#_u#_u#_u){padding:0 16px}
+html:not(#_s) body :is(.u-p-0-16-10, #_u#_u#_u#_u#_u){padding:0 16px 10px}
+html:not(#_s) body :is(.u-p-0-16-14, #_u#_u#_u#_u#_u){padding:0 16px 14px}
+html:not(#_s) body :is(.u-p-10-0-0, #_u#_u#_u#_u#_u){padding:10px 0 0}
+html:not(#_s) body :is(.u-center, #_u#_u#_u#_u#_u){text-align:center}
+html:not(#_s) body :is(.u-items-center, #_u#_u#_u#_u#_u){align-items:center}
 html:not(#_s) body :is(.u-cursor-default, #_u#_u#_u#_u#_u){cursor:default}
 html:not(#_s) body :is(.u-ok, #_u#_u#_u#_u#_u){color:var(--ok)}
 html:not(#_s) body :is(.u-warn, #_u#_u#_u#_u#_u){color:var(--warn)}

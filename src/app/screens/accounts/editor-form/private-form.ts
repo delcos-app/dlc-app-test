@@ -29,7 +29,7 @@ function formHtml(box: HTMLElement, index: string, key: string, located: boolean
       <div><label for="${key}p">${t('accountsEditor.centreForm.province')}</label><input id="${key}p" value="${value('provincia')}"></div></div>
     <div class="cpubi sm">${located ? `<b class="u-ok">${t('accountsEditor.private.located')}</b>` : t('accountsEditor.centreForm.notLocated')}
       <button type="button" class="lnk" data-pvgeo>${t('accountsEditor.centreForm.findOnMap')}</button> <button type="button" class="lnk" data-pvaqui>${t('accountsEditor.picker.imHere')}</button></div>
-    <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-pvcancel>${t('common.cancel')}</button><button type="button" class="btn" data-pvok>${t('common.save')}</button></div></div>`;
+    <div class="acts u-end u-m-10-0-0"><button type="button" class="btn sec" data-pvcancel>${t('common.cancel')}</button><button type="button" class="btn" data-pvok>${t('common.save')}</button></div></div>`;
 }
 
 function showLocated(context: PrivateContext, extra = ''): void {

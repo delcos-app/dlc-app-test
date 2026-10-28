@@ -634,7 +634,7 @@ function listHtml(list) {
 function platformHtml(list, error) {
   const filters = platformState.platformErrors;
   const states = [["abiertos", "platform.errors.open"], ["resueltos", "platform.errors.solved"], ["todos", "platform.errors.all"]];
-  return `<div class="card cfgpanel errgrupos"><h2 style="padding:0 0 4px">${t("platform.errors.platformTitle")}</h2>
+  return `<div class="card cfgpanel errgrupos"><h2 class="u-p-0-0-4">${t("platform.errors.platformTitle")}</h2>
     <p class="sm">${t("platform.errors.platformText")}</p>
     ${error ? `<div class="banda-peligro">${t("platform.errors.couldNotRead", { error: escapeHtml(errorMessage(error)) })}</div>` : ""}
     <div class="usrbar"><select id="egest">${states.map(([key, label]) => `<option value="${key}" ${filters.estado === key ? "selected" : ""}>${t(label)}</option>`).join("")}</select>
@@ -868,7 +868,7 @@ function formHtml() {
         <div><label for="ousu">${t("platform.newOrg.users")}</label><input id="ousu" type="number" min="3" value="3"></div>
         <div><label for="opago">${t("platform.newOrg.payment")}</label><select id="opago"><option value="mensual">${t("platform.newOrg.monthly")}</option><option value="anual">${t("platform.newOrg.yearly")}</option></select></div>
         <div><label class="chk"><input type="checkbox" id="oprueba" checked> ${t("platform.newOrg.trial")}</label></div></div>
-      <h3 style="margin-top:14px">${t("platform.newOrg.admin")}</h3>
+      <h3 class="u-mt-14">${t("platform.newOrg.admin")}</h3>
       <div class="g2"><div><label for="oanom">${t("platform.newOrg.adminName")}</label><input id="oanom"></div>
         <div><label for="oamail">${t("platform.newOrg.adminEmail")}</label><input id="oamail" type="email"></div>
         <div><label for="oapass">${t("platform.newOrg.password")}</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div></div>

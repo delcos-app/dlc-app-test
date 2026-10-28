@@ -112,7 +112,7 @@ function productsHtml(catalog: readonly CatalogProduct[], chosenRows: readonly {
   return `<section class="blk" id="fprodc"><h3>${t('accounts.portal.productsTitle')} <span class="n">${formatNumber(chosenRows.length)}</span></h3>
     <p class="sm">${t('accounts.portal.productsNote')}</p>
     <div class="lista">${list.map(product => productRow(product, chosen)).join('') || `<div class="sm">${t('accounts.portal.noProducts')}</div>`}</div>
-    <div class="acts" style="margin:8px 0 0;justify-content:flex-end"><button type="button" class="btn sec" id="fpcok">${t('accounts.portal.saveProducts')}</button></div></section>`;
+    <div class="acts u-m-8-0-0 u-end"><button type="button" class="btn sec" id="fpcok">${t('accounts.portal.saveProducts')}</button></div></section>`;
 }
 
 /** A centre: the products it can order from its portal, each with its own price (empty: the tariff). */

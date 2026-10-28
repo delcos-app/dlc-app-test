@@ -28,7 +28,7 @@ function addSaveFilter(): void {
   const container = tools?.classList.contains('abierto') ? tools : document.querySelector('dialog[open] .fh') ? openDialog : null;
   const save = byId('guardarFiltro');
   if (!container || container.querySelector('#hguardarf') || !save || navigationStore.screen !== 'directorio') return;
-  container.insertAdjacentHTML('beforeend', `<div class="acts" style="margin:12px 0 0"><button class="btn sec" id="hguardarf">${svgIco(ICON_NOM.star ?? '')} ${t('legacyC.tools.saveFilter')}</button></div>`);
+  container.insertAdjacentHTML('beforeend', `<div class="acts u-m-12-0-0"><button class="btn sec" id="hguardarf">${svgIco(ICON_NOM.star ?? '')} ${t('legacyC.tools.saveFilter')}</button></div>`);
   const button = byId('hguardarf');
   if (button) button.onclick = (): void => { if (container instanceof HTMLDialogElement) container.close(); else container.classList.remove('abierto'); save.click(); };
 }

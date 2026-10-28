@@ -16,7 +16,7 @@ function formHtml(days: Record<string, number>): string {
     <div class="fh"><div><h2>${t('routesMore.frequency.title', { visit: term('visita') })}</h2>
       <div class="sm">${t('routesMore.frequency.subtitle', { aProfessional: term('medico', { article: 'un' }) })}</div></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
-    ${Object.keys(days).map(state => `<div class="g2" style="align-items:center"><div><b>${escapeHtml(state)}</b></div>
+    ${Object.keys(days).map(state => `<div class="g2 u-items-center"><div><b>${escapeHtml(state)}</b></div>
       <div><input type="number" min="0" max="${MAX_DAYS}" data-frec="${escapeHtml(state)}" value="${Number(days[state]) || 0}" aria-label="${t('routesMore.frequency.daysFor', { state: escapeHtml(state) })}"></div></div>`).join('')}
     <p class="sm">${t('routesMore.frequency.hint', { visit: term('visita') })}</p>
     <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="frok">${t('common.save')}</button></div>`;

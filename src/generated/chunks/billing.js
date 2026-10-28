@@ -657,7 +657,7 @@ function registerPayment(invoice, pending) {
 var failure = (error, result) => orFallback(errorMessage(error), result?.error ?? "");
 var partial = (body) => body.querySelector("[name=rft]:checked")?.value === "parcial";
 function formHtml2(invoice) {
-  const lines = invoice.lineas.map((line, index) => `<div class="g2" style="align-items:center"><div>${escapeHtml(line.descripcion)} <span class="sm">${t("billing.rectify.units", { units: formatNumber(line.unidades) })}</span></div>
+  const lines = invoice.lineas.map((line, index) => `<div class="g2 u-items-center"><div>${escapeHtml(line.descripcion)} <span class="sm">${t("billing.rectify.units", { units: formatNumber(line.unidades) })}</span></div>
       <div><input type="number" min="0" max="${line.unidades}" data-rfi="${index}" value="0" aria-label="${t("billing.rectify.unitsLabel")}"></div></div>`).join("");
   return `
     <div class="fh"><div><h2>${t("billing.rectify.title", { number: escapeHtml(invoice.numero) })}</h2><div class="sm">${t("billing.rectify.subtitle")}</div></div>

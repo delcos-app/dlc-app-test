@@ -22,7 +22,7 @@ function requestRow(request: MaterialRequest): string {
 
 function askHtml(allowed: readonly Allowed[]): string {
   const first = allowed[0];
-  if (!first) return `<p class="sm" style="padding:0 16px">${t('portal.material.nothingOffered')}</p>`;
+  if (!first) return `<p class="sm u-p-0-16">${t('portal.material.nothingOffered')}</p>`;
   return `<div class="g2"><div><label for="mdmatm">${t('portal.material.material')}</label><select id="mdmatm">${allowed.map(item => `<option value="${escapeHtml(item.valor)}" data-max="${item.max}">${escapeHtml(item.valor)}</option>`).join('')}</select></div>
         <div><label for="mdmatn">${t('portal.material.quantity')}</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">${t('portal.material.max', { max: formatNumber(first.max) })}</span></div></div>
         <label for="mdmatt">${t('portal.material.note')}</label><input id="mdmatt" placeholder="${t('portal.material.optional')}">

@@ -23,7 +23,7 @@ function ownHtml(mandatory: readonly string[], preferences: Record<string, boole
 function rolesHtml(fixed: Mandatory, roles: readonly string[]): string {
   return `<h3 style="margin:14px 0 4px">${t('orders.alerts.byRole')}</h3><p class="sm">${t('orders.alerts.byRoleHint')}</p>
       <div class="dgrid-wrap"><table class="tabla avrol"><thead><tr><th>${t('orders.alerts.role')}</th>${ALERTS.map(([, label]) => `<th>${t(label)}</th>`).join('')}</tr></thead>
-        <tbody>${roles.map(role => `<tr><td>${escapeHtml(role)}</td>${ALERTS.map(([key]) => `<td style="text-align:center"><input type="checkbox" data-avr="${escapeHtml(role)}|${key}" ${(fixed[role] ?? []).includes(key) ? 'checked' : ''} aria-label="${t('orders.alerts.mandatoryLabel', { role: escapeHtml(role) })}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+        <tbody>${roles.map(role => `<tr><td>${escapeHtml(role)}</td>${ALERTS.map(([key]) => `<td class="u-center"><input type="checkbox" data-avr="${escapeHtml(role)}|${key}" ${(fixed[role] ?? []).includes(key) ? 'checked' : ''} aria-label="${t('orders.alerts.mandatoryLabel', { role: escapeHtml(role) })}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
 async function save(body: HTMLElement, admin: boolean): Promise<void> {

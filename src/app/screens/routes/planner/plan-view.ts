@@ -35,7 +35,7 @@ export function planAgendaButtons(): void {
   if (save) save.textContent = t('routesMore.planView.saveButton');
 }
 
-const leftOutRow = (item: DayPlan['fuera'][number], index: number): string => `<div class="item ${index >= SHOWN_LEFT_OUT ? 'extra' : ''}" style="cursor:default">
+const leftOutRow = (item: DayPlan['fuera'][number], index: number): string => `<div class="item ${index >= SHOWN_LEFT_OUT ? 'extra' : ''} u-cursor-default">
         <span class="ic w">!</span><span class="tx"><b>${escapeHtml(item.m.nombre)}</b>
           <span class="sm">${escapeHtml(item.motivo)}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ''}</span></span></div>`;
 

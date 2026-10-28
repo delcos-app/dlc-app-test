@@ -28,7 +28,7 @@ function pageHtml(): string {
     + (wizard.remembered ? t('importing.columns.remembered') : t('importing.columns.proposed'))
     + t('importing.columns.customHint', { type: escapeHtml(entityName(wizard.entity)) });
   return `<div class="card cfgpanel impcaja">${stepsHtml(3)}
-    <h2 style="padding:0 0 4px">${t('importing.columns.title', { name: escapeHtml(wizard.fileName) })}</h2>
+    <h2 class="u-p-0-0-4">${t('importing.columns.title', { name: escapeHtml(wizard.fileName) })}</h2>
     <p class="sm">${intro}</p>
     <div class="impmapa">${wizard.headers.map(columnHtml).join('')}</div>
     <div id="impaviso" class="sm u-mt-10"></div>

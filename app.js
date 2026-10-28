@@ -6586,7 +6586,7 @@
     return `<div class="card cfgpanel"><h2>${t("settingsMore.backups.title")}</h2>
     <p class="sm">${t("settingsMore.backups.intro", { professionals: term("medico", { number: "p" }), visits: term("visita", { number: "p" }) })}</p>
     ${stateHtml(last)}
-    <div class="acts" style="margin:12px 0 0"><button class="btn" id="copok">${t("settingsMore.backups.download")}</button></div>
+    <div class="acts u-m-12-0-0"><button class="btn" id="copok">${t("settingsMore.backups.download")}</button></div>
     <h3 class="mansub">${t("settingsMore.backups.tips")}</h3><ul class="manlist">
       <li><span>📅</span><span>${t("settingsMore.backups.tipWeekly")}</span></li>
       <li><span>🔐</span><span>${t("settingsMore.backups.tipPrivate")}</span></li>
@@ -7207,7 +7207,7 @@
     const marked = new Set(value10.en_estados ?? []);
     return `<div class="venbox"><span class="sm">${t("settingsMore.results.hint", { name: escapeHtml(value10.valor), theVisit: term("visita", { article: "el" }) })}</span>
         <div class="chips">${cardBaseLegacy.states().map((state) => `<button type="button" class="chip ${marked.has(state) ? "on" : ""}" data-vene="${escapeHtml(state)}" aria-pressed="${String(marked.has(state))}">${escapeHtml(state)}</button>`).join("")}</div>
-        <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>${t("common.cancel")}</button><button type="button" class="btn" data-venok>${t("common.save")}</button></div></div>`;
+        <div class="acts u-end u-m-6-0-0"><button type="button" class="btn sec" data-vencerrar>${t("common.cancel")}</button><button type="button" class="btn" data-venok>${t("common.save")}</button></div></div>`;
   }
   async function save4(value10, item, box3, button3) {
     const chosen4 = [...box3.querySelectorAll('[data-vene][aria-pressed="true"]')].map((chip) => chip.dataset.vene ?? ""), all = cardBaseLegacy.states().length;
@@ -7469,7 +7469,7 @@
     const parts = Object.entries(check2.por_entidad ?? {}).map(([entity, count]) => t("settingsMore.undo.inEntity", { count: formatNumber(count), entity: entityName2(entity) })).join(", ");
     return `${t("settingsMore.undo.wouldUndo", { changes: formatNumber(check2.cambios), fields: formatNumber(check2.campos), parts })}
       ${check2.sin_deshacer ? ` ${t("settingsMore.undo.notUndoable", { count: formatNumber(check2.sin_deshacer) })}` : ""}
-      <div class="acts" style="margin:8px 0 0"><button type="button" class="btn" id="audok">${t("settingsMore.undo.undoCount", { count: formatNumber(check2.cambios) })}</button></div>`;
+      <div class="acts u-m-8-0-0"><button type="button" class="btn" id="audok">${t("settingsMore.undo.undoCount", { count: formatNumber(check2.cambios) })}</button></div>`;
   }
   var personParams = (undo, simulate2) => ({ p_usuario: undo.user, p_desde: `${undo.from}T00:00:00`, p_simular: simulate2 });
   async function undoAll(undo, check2, button3) {
@@ -7512,7 +7512,7 @@
     }
     undo.box.innerHTML = `<div class="card" id="audpersona" style="margin:0 16px 10px"><h3>${t("settingsMore.undo.personTitle", { name: escapeHtml(undo.name.trim()) })}</h3>
     <p class="sm">${t("settingsMore.undo.personHint", { places: term("consulta", { number: "p" }), date: formatShortDate(undo.from) })}</p>
-    <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" id="audsim">${t("settingsMore.undo.preview")}</button></div><div id="audres" class="sm"></div></div>`;
+    <div class="acts u-m-6-0-0"><button type="button" class="btn sec" id="audsim">${t("settingsMore.undo.preview")}</button></div><div id="audres" class="sm"></div></div>`;
     const button3 = document.getElementById("audsim");
     if (button3) button3.onclick = () => {
       void simulate(undo, button3);
@@ -7647,7 +7647,7 @@
     if (!list) return;
     list.classList.add("matlista2");
     list.innerHTML = values2.map((value10) => rowHtml2(value10, allowed.find((item) => item.valor === value10.valor), withPortal)).join("") || `<div class="sm">${t("settingsMore.material.none")}</div>`;
-    if (values2.length) list.insertAdjacentHTML("afterend", `<div class="acts mtacts" style="justify-content:space-between;align-items:center">
+    if (values2.length) list.insertAdjacentHTML("afterend", `<div class="acts mtacts u-between u-items-center">
       <span class="sm">${withPortal && !portal2?.material ? t("settingsMore.material.portalDefault") : ""}</span>
       <button class="btn" id="matguardar">${t("settingsMore.material.save")}</button></div>`);
     bind3({ list, withPortal, portal: portal2 });
@@ -10015,7 +10015,7 @@
     if (!use) return "";
     const band3 = use.estado === "excedido" ? `<div class="banda-aviso u-mt-8" id="limaviso" data-estado="excedido">${t("limits.exceeded")}${use.bloquear_archivos ? ` ${t("limits.filesBlocked")}` : ""}</div>` : use.estado === "aviso" ? `<div class="banda-aviso u-mt-8" id="limaviso" data-estado="aviso">${t("limits.warning")}</div>` : "";
     const fileMax = use.archivo_mb !== null && use.archivo_mb !== void 0 ? `<p class="sm">${t("limits.fileMax", { value: formatNumber(use.archivo_mb) })}</p>` : "";
-    return `<div class="card cfgpanel" id="limuso"><h2 style="padding:0 0 4px">${t("limits.title")}</h2>
+    return `<div class="card cfgpanel" id="limuso"><h2 class="u-p-0-0-4">${t("limits.title")}</h2>
     <p class="sm">${t("limits.intro")}</p>
     <div class="barrash">${meterRow(t("limits.records"), t("limits.recordsHint"), use.filas, (value10) => formatNumber(value10 ?? 0))}
       ${meterRow(t("limits.space"), t("limits.spaceHint"), use.almacenamiento_mb, megabytes)}</div>${fileMax}${band3}</div>`;
@@ -12605,7 +12605,7 @@
   function searchHtml(draft) {
     const source = draft.source, typed2 = source.id ? orFallback(source.nombre, orFallback(source.telefono, "")) : "";
     return `<input id="nvq" type="search" placeholder="${t("opportunities.editor.searchPlaceholder")}" autocomplete="off" value="${escapeHtml(typed2)}"><div class="lista" id="nvres1"></div>
-      <div class="acts" style="margin:6px 0 0;justify-content:flex-start"><button type="button" class="btn sec" id="nvalta">${t("opportunities.editor.newCard")}</button>
+      <div class="acts u-m-6-0-0 u-start"><button type="button" class="btn sec" id="nvalta">${t("opportunities.editor.newCard")}</button>
         ${source.id || draft.previous ? "" : `<button type="button" class="lnk" id="nvsin">${t("opportunities.editor.orderWithoutClient")}</button>`}</div>
       ${draft.recording ? `<div class="sm u-mt-4">${t("opportunities.editor.nameIsEnough")}</div>` : ""}`;
   }
@@ -12688,10 +12688,10 @@
         <div class="g2 u-mt-6"><div><input id="nvpf" type="date" value="${escapeHtml(orFallback(draft.source.proxima_fecha, ""))}" aria-label="${t("opportunities.callAgainOn")}"></div>
           <div><input id="nvpa" value="${escapeHtml(orFallback(draft.source.proxima_accion, ""))}" placeholder="${t("opportunities.whatToDoPlaceholder")}" aria-label="${t("opportunities.whatToDo")}"></div></div>
         <div id="nvperd" class="sm u-mt-6"></div>
-        <div class="acts" style="margin:8px 0 0;justify-content:flex-start"><button type="button" class="btn" id="nvnook">${t("opportunities.editor.saveWithoutOrder")}</button></div></div>`;
+        <div class="acts u-m-8-0-0 u-start"><button type="button" class="btn" id="nvnook">${t("opportunities.editor.saveWithoutOrder")}</button></div></div>`;
   }
   function endsHtml(draft) {
-    const ends = draft.closed ? `<div class="banda-ok">${t("opportunities.editor.closedWith", { order: escapeHtml(orFallback(draft.source.pedido, "")) })}</div>` : `<div class="acts nvfin" style="margin:6px 0 0;justify-content:flex-start">
+    const ends = draft.closed ? `<div class="banda-ok">${t("opportunities.editor.closedWith", { order: escapeHtml(orFallback(draft.source.pedido, "")) })}</div>` : `<div class="acts nvfin u-m-6-0-0 u-start">
           <button type="button" class="btn" id="nvped">${t("opportunities.editor.makeOrder")}</button>
           ${draft.recording ? `<button type="button" class="btn sec ${draft.noSale ? "on" : ""}" id="nvno2">${t("opportunities.editor.noSale")}</button>` : ""}</div>`;
     return `<div class="llpaso" id="nvp3"><span class="lln">${draft.recording ? 3 : 2}</span><b>${t("opportunities.editor.howEnds")}</b>
@@ -12991,7 +12991,7 @@
     const list = data ?? [], today2 = todayIso(), box3 = document.getElementById("llsegz");
     if (!box3) return;
     box3.innerHTML = !list.length ? "" : `<div class="card" id="llsegs"><h2>${t("opportunities.list.callAgainTitle")}<span class="n">${list.length}</span></h2>
-      <p class="sm" style="padding:0 16px">${t("opportunities.list.callAgainHint")}</p>
+      <p class="sm u-p-0-16">${t("opportunities.list.callAgainHint")}</p>
       <div class="lista">${list.slice(0, SHOWN2).map((call2) => rowHtml3(call2, today2)).join("")}</div></div>`;
     box3.querySelectorAll("[data-llseg]").forEach((button3) => {
       button3.onclick = () => {
@@ -14989,7 +14989,7 @@
     const { state, onChange, onColumn, heading } = options3;
     if (!container) return;
     const fields = componentsLegacy.sortedFields(scope);
-    const title2 = heading === "h3" ? `<h3 style="margin-top:18px">${t("components.classifiers.title")}</h3>` : `<h4>${t("components.classifiers.title")}</h4>`;
+    const title2 = heading === "h3" ? `<h3 class="u-mt-18">${t("components.classifiers.title")}</h3>` : `<h4>${t("components.classifiers.title")}</h4>`;
     if (!fields.length) {
       container.innerHTML = componentsLegacy.canEditCatalogs() ? `<div class="htbloque clasif">${title2}<p class="sm">${t("components.classifiers.none")}</p></div>` : "";
       return;
@@ -17684,7 +17684,7 @@
   }
   function askHtml(allowed) {
     const first = allowed[0];
-    if (!first) return `<p class="sm" style="padding:0 16px">${t("portal.material.nothingOffered")}</p>`;
+    if (!first) return `<p class="sm u-p-0-16">${t("portal.material.nothingOffered")}</p>`;
     return `<div class="g2"><div><label for="mdmatm">${t("portal.material.material")}</label><select id="mdmatm">${allowed.map((item) => `<option value="${escapeHtml(item.valor)}" data-max="${item.max}">${escapeHtml(item.valor)}</option>`).join("")}</select></div>
         <div><label for="mdmatn">${t("portal.material.quantity")}</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">${t("portal.material.max", { max: formatNumber(first.max) })}</span></div></div>
         <label for="mdmatt">${t("portal.material.note")}</label><input id="mdmatt" placeholder="${t("portal.material.optional")}">
@@ -18063,7 +18063,7 @@
   function materialHtml(catalog2, allowed, saved3) {
     if (!catalog2.length) return `<div class="vacio">${t("portal.settings.noCatalog")}</div>`;
     return `<div class="lista" id="cfpmat">${catalog2.map((item) => materialRow(item, allowed.find((other) => other.valor === item.valor))).join("")}</div>
-      ${saved3 ? "" : `<p class="sm" style="padding:0 16px">${t("portal.settings.everything")}</p>`}
+      ${saved3 ? "" : `<p class="sm u-p-0-16">${t("portal.settings.everything")}</p>`}
       <div class="acts u-end"><button class="btn" id="cfpok">${t("common.save")}</button></div>`;
   }
   async function saveMaterial(box3, setting) {
@@ -18193,8 +18193,8 @@
   var AMOUNT = "importe";
   function nextHtml(period, withAmount) {
     const next = period.siguiente;
-    if (!next) return `<p class="sm" style="padding:0 16px 14px">${t(period.sin_esquema ? "commissions.homeCard.noScheme" : "commissions.homeCard.topTier")}</p>`;
-    return `<p class="sm" style="padding:0 16px 14px">
+    if (!next) return `<p class="sm u-p-0-16-14">${t(period.sin_esquema ? "commissions.homeCard.noScheme" : "commissions.homeCard.topTier")}</p>`;
+    return `<p class="sm u-p-0-16-14">
       ${t("commissions.homeCard.nextTier", { missing: formatNumber(next.faltan) })}${withAmount ? t("commissions.homeCard.nextTierAmount", { amount: formatCurrency(next.valor) }) : ""}.</p>`;
   }
   function cardHtml3(period, withAmount) {
@@ -19729,7 +19729,7 @@
       <div class="fh"><div><h2>${t("products.stores.title")}</h2><div class="sm">${t("products.stores.subtitle")}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       <div class="lista">${list}</div>
-      <h3 style="margin-top:14px">${t("products.stores.newCase")}</h3>
+      <h3 class="u-mt-14">${t("products.stores.newCase")}</h3>
       <div class="g2"><div><label for="almu">${t("products.stores.salesperson")}</label><select id="almu">${members().map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select></div>
         <div><label>&nbsp;</label><button class="btn" id="almok">${t("products.stores.createCase")}</button></div></div>
       <p class="sm">${t("products.stores.caseHint", { theVisit: term("visita", { article: "el" }) })}</p>`;
@@ -22487,7 +22487,7 @@
       <option value="urgentes" ${selected(order === "urgentes")}>${t("legacyA.tools.urgentFirst")}</option>
       <option value="reciente" ${selected(order === "reciente")}>${t("legacyA.tools.recent", { Visit: term("visita", { capital: "C" }) })}</option></select>
     <div class="acts"><button class="btn sec" id="tlimpiar">${t("legacyA.tools.clear")}</button></div>
-    <h3 style="margin-top:18px">${t("legacyA.tools.columns")}</h3>
+    <h3 class="u-mt-18">${t("legacyA.tools.columns")}</h3>
     <p class="sm">${t("legacyA.tools.columnsHint")}</p>
     <div class="acts"><button class="btn sec" id="tcols">${t("legacyA.tools.chooseColumns")}</button></div>`;
   }
@@ -22926,7 +22926,7 @@
       <div><label for="aesp">${term("especialidad", { capital: "C" })}</label><select id="aesp">${optionsHtml2(options3.especialidades)}</select></div>
       <div><label for="aest">${t("legacyA.portfolio.state")}</label><select id="aest">${optionsHtml2(options3.estados)}</select></div></div>
     <label class="opt u-mt-10"><input type="checkbox" id="aurg"> ${t("legacyA.tools.onlyUrgent")}</label>
-    <div id="amsg" class="cuenta" style="padding:10px 0 0"></div>
+    <div id="amsg" class="cuenta u-p-10-0-0"></div>
     <div id="alista"></div>
     <div class="acts u-end">
       <button class="btn sec" id="aquitar">${t("legacyA.portfolio.removeSelected", { professionals })}</button>
@@ -24075,8 +24075,8 @@
     const today2 = todayIso(), due = (data ?? []).filter((call2) => call2.proxima_fecha <= today2);
     if (!due.length || document.getElementById("inillam")) return;
     document.getElementById("iniextra")?.insertAdjacentHTML("afterbegin", `<div class="card" id="inillam"><h2>${t("homeMore.calls.title")}<span class="n">${due.length}</span></h2>
-    <p class="sm" style="padding:0 16px">${t("homeMore.calls.hint", { late: due.some((call2) => call2.proxima_fecha < today2) ? t("homeMore.calls.late") : "" })}</p>
-    <div class="acts" style="padding:0 16px 14px"><button class="btn sec" id="inillamver">${t("homeMore.calls.seeOpportunities")}</button></div></div>`);
+    <p class="sm u-p-0-16">${t("homeMore.calls.hint", { late: due.some((call2) => call2.proxima_fecha < today2) ? t("homeMore.calls.late") : "" })}</p>
+    <div class="acts u-p-0-16-14"><button class="btn sec" id="inillamver">${t("homeMore.calls.seeOpportunities")}</button></div></div>`);
     const see = document.getElementById("inillamver");
     if (see) see.onclick = () => {
       goToOrders("llamadas");
@@ -24181,7 +24181,7 @@
       <div class="minis">${mini(formatNumber(visited), t("homeMore.week.visited"))}${mini(formatNumber(open2), t("homeMore.week.toDo"))}
         ${mini(compliance2 === null ? "—" : `${compliance2}%`, t("homeMore.week.compliance"), warn(compliance2 !== null && compliance2 < LOW_COMPLIANCE))}
         ${mini(formatNumber(data.due), t("homeMore.week.due", { visit: term("visita") }), warn(data.due > 0))}</div>
-      <div class="acts" style="padding:0 16px 14px"><button class="btn sec" data-inisem="semana">${t("homeMore.week.seeMyWeek")}</button>${data.due ? `<button class="btn sec" data-inisem="plan">${t("homeMore.week.planThem")}</button>` : ""}</div></div>`;
+      <div class="acts u-p-0-16-14"><button class="btn sec" data-inisem="semana">${t("homeMore.week.seeMyWeek")}</button>${data.due ? `<button class="btn sec" data-inisem="plan">${t("homeMore.week.planThem")}</button>` : ""}</div></div>`;
   }
   function salesHtml(data) {
     const units = Number(data.now.unidades ?? 0), unitsBefore = Number(data.before.unidades ?? 0), amount2 = Number(data.now.importe ?? 0);
@@ -24189,7 +24189,7 @@
       <div class="minis">${mini(formatNumber(units), `${t("homeMore.week.units")} ${delta(units, unitsBefore)}`)}
         ${permissions.canSeeAmounts() ? mini(portalLegacy.euros(amount2), `${t("homeMore.week.withoutVat")} ${delta(amount2, Number(data.before.importe ?? 0))}`) : ""}
         ${mini(formatNumber(data.now.medicos ?? 0), t("homeMore.week.withSales", { professionals: term("medico", { number: "p" }) }))}</div>
-      <p class="sm" style="padding:0 16px 14px">${t("homeMore.week.compared", { units: formatNumber(unitsBefore) })}</p></div>`;
+      <p class="sm u-p-0-16-14">${t("homeMore.week.compared", { units: formatNumber(unitsBefore) })}</p></div>`;
   }
   function teamHtml(team3) {
     const total = (key) => sum(team3.map((row3) => Number(row3[key]) || 0));
@@ -24201,7 +24201,7 @@
         ${mini(formatNumber(value10("visitadas")), t("homeMore.week.visited"))}
         ${mini(formatNumber(value10("sin_hacer")), t("homeMore.week.notDone"), warn(value10("sin_hacer") > 0))}
         ${mini(formatNumber(value10("atrasados")), t("homeMore.week.dueShort"), warn(value10("atrasados") > 0))}</div>
-      <div class="acts" style="padding:0 16px 14px"><button class="btn sec" id="iniequipo">${t("homeMore.week.seeTeam")}</button></div></div>`;
+      <div class="acts u-p-0-16-14"><button class="btn sec" id="iniequipo">${t("homeMore.week.seeTeam")}</button></div></div>`;
   }
   function bind14(box3) {
     const each = (attribute, action) => {
@@ -25410,7 +25410,7 @@
     const tab = legacyBState.tab(), box3 = sheet;
     box3.innerHTML = `<div class="bmasbox"><div class="bmasasa" aria-hidden="true"></div>
     <div class="bmasgrid">${otherModules().map(([module, name]) => `<button data-bm="${module}" class="${tab === module ? "on" : ""}"><span>${legacyBActions.moduleIcon(module) ?? "•"}</span>${escapeHtml(name)}</button>`).join("")}</div>
-    <div class="sm" style="text-align:center;margin-top:8px">${t("legacyB.mobile.moreHint")}</div></div>`;
+    <div class="sm u-center u-mt-8">${t("legacyB.mobile.moreHint")}</div></div>`;
     box3.classList.remove("hide");
     requestAnimationFrame(() => {
       box3.classList.add("abierto");
@@ -32440,7 +32440,7 @@
   function vocabularyCard(body3) {
     const vocabulary2 = body3.querySelector(".mkvoc"), label = body3.querySelector(".mketqbox");
     if (!vocabulary2 || byId19("mkvoccard")) return;
-    body3.insertAdjacentHTML("beforeend", `<div class="card cfgpanel" id="mkvoccard"><h2 style="padding:0 0 4px">${t("legacyD.polish.vocabularyTitle")}</h2>
+    body3.insertAdjacentHTML("beforeend", `<div class="card cfgpanel" id="mkvoccard"><h2 class="u-p-0-0-4">${t("legacyD.polish.vocabularyTitle")}</h2>
         <p class="sm">${t("legacyD.polish.vocabularyHint")}</p>
         <div id="mkvochueco"></div><div class="acts u-end"><button type="button" class="btn" id="mkvocok">${t("common.save")}</button></div></div>`);
     const place3 = byId19("mkvochueco");
@@ -33930,7 +33930,7 @@
     const container = tools?.classList.contains("abierto") ? tools : document.querySelector("dialog[open] .fh") ? openDialog2 : null;
     const save25 = byId("guardarFiltro");
     if (!container || container.querySelector("#hguardarf") || !save25 || navigationStore.screen !== "directorio") return;
-    container.insertAdjacentHTML("beforeend", `<div class="acts" style="margin:12px 0 0"><button class="btn sec" id="hguardarf">${svgIco(ICON_NOM.star ?? "")} ${t("legacyC.tools.saveFilter")}</button></div>`);
+    container.insertAdjacentHTML("beforeend", `<div class="acts u-m-12-0-0"><button class="btn sec" id="hguardarf">${svgIco(ICON_NOM.star ?? "")} ${t("legacyC.tools.saveFilter")}</button></div>`);
     const button3 = byId("hguardarf");
     if (button3) button3.onclick = () => {
       if (container instanceof HTMLDialogElement) container.close();
@@ -39267,7 +39267,7 @@
       <div class="fh"><h2>${escapeHtml(titulo ?? t("components.dialogs.confirm"))}</h2></div>
       ${msg ? `<p style="margin:0 0 10px;white-space:pre-line">${escapeHtml(msg)}</p>` : ""}
       ${fieldHtml2(campo)}
-      ${opciones?.length ? `<div class="chips" style="padding:10px 0 0">${opciones.map((option3) => `<button type="button" class="chip" data-mop="${escapeHtml(option3)}">${escapeHtml(option3)}</button>`).join("")}</div>` : ""}
+      ${opciones?.length ? `<div class="chips u-p-10-0-0">${opciones.map((option3) => `<button type="button" class="chip" data-mop="${escapeHtml(option3)}">${escapeHtml(option3)}</button>`).join("")}</div>` : ""}
       <div class="acts u-end">
         ${cancel3 === false ? "" : `<button class="btn sec" id="mno">${escapeHtml(cancel3 ?? t("components.dialogs.cancel"))}</button>`}
         <button class="btn ${peligro ? "dang" : ""}" id="mok">${escapeHtml(ok ?? t("components.dialogs.accept"))}</button></div></div>`;

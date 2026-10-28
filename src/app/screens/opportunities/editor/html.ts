@@ -45,12 +45,12 @@ function noSaleHtml(draft: Draft): string {
         <div class="g2 u-mt-6"><div><input id="nvpf" type="date" value="${escapeHtml(orFallback(draft.source.proxima_fecha, ''))}" aria-label="${t('opportunities.callAgainOn')}"></div>
           <div><input id="nvpa" value="${escapeHtml(orFallback(draft.source.proxima_accion, ''))}" placeholder="${t('opportunities.whatToDoPlaceholder')}" aria-label="${t('opportunities.whatToDo')}"></div></div>
         <div id="nvperd" class="sm u-mt-6"></div>
-        <div class="acts" style="margin:8px 0 0;justify-content:flex-start"><button type="button" class="btn" id="nvnook">${t('opportunities.editor.saveWithoutOrder')}</button></div></div>`;
+        <div class="acts u-m-8-0-0 u-start"><button type="button" class="btn" id="nvnook">${t('opportunities.editor.saveWithoutOrder')}</button></div></div>`;
 }
 
 function endsHtml(draft: Draft): string {
   const ends = draft.closed ? `<div class="banda-ok">${t('opportunities.editor.closedWith', { order: escapeHtml(orFallback(draft.source.pedido, '')) })}</div>`
-    : `<div class="acts nvfin" style="margin:6px 0 0;justify-content:flex-start">
+    : `<div class="acts nvfin u-m-6-0-0 u-start">
           <button type="button" class="btn" id="nvped">${t('opportunities.editor.makeOrder')}</button>
           ${draft.recording ? `<button type="button" class="btn sec ${draft.noSale ? 'on' : ''}" id="nvno2">${t('opportunities.editor.noSale')}</button>` : ''}</div>`;
   return `<div class="llpaso" id="nvp3"><span class="lln">${draft.recording ? 3 : 2}</span><b>${t('opportunities.editor.howEnds')}</b>

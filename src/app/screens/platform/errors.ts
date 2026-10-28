@@ -50,7 +50,7 @@ function listHtml(list: readonly MergedError[]): string {
 function platformHtml(list: readonly MergedError[], error: unknown): string {
   const filters = platformState.platformErrors;
   const states = [['abiertos', 'platform.errors.open'], ['resueltos', 'platform.errors.solved'], ['todos', 'platform.errors.all']] as const;
-  return `<div class="card cfgpanel errgrupos"><h2 style="padding:0 0 4px">${t('platform.errors.platformTitle')}</h2>
+  return `<div class="card cfgpanel errgrupos"><h2 class="u-p-0-0-4">${t('platform.errors.platformTitle')}</h2>
     <p class="sm">${t('platform.errors.platformText')}</p>
     ${error ? `<div class="banda-peligro">${t('platform.errors.couldNotRead', { error: escapeHtml(errorMessage(error)) })}</div>` : ''}
     <div class="usrbar"><select id="egest">${states.map(([key, label]) => `<option value="${key}" ${filters.estado === key ? 'selected' : ''}>${t(label)}</option>`).join('')}</select>

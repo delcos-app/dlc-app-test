@@ -467,13 +467,13 @@ function cardHtml() {
   const modules = settingsLegacy.modules().map((module) => `<span>${settingsLegacy.moduleIcon(module) ?? "•"} ${escapeHtml(moduleName(module))}</span>`).join("");
   return `<div class="card miperfil" id="miperfil">
     <div class="mpcab"><span class="mpav">${escapeHtml(initialsOf(user.nombre))}</span>
-      <div><h2 style="padding:0 0 4px;margin:0">${escapeHtml(user.nombre)}</h2><div class="sm">${escapeHtml(user.email ?? "")}</div>
+      <div><h2 class="u-p-0-0-4 u-m-0">${escapeHtml(user.nombre)}</h2><div class="sm">${escapeHtml(user.email ?? "")}</div>
         <div class="mpchips"><span class="pill p-est">${escapeHtml(user.rol)}</span></div></div></div>
     <div class="mpgrid">
       <div><b>${t("settings.profile.modules")}</b><div class="mpmods">${modules}</div></div>
       <div id="mpextra"><b>${t("settings.profile.activity")}</b><div class="sm">${t("settings.profile.loading")}</div></div>
     </div>
-    <p class="sm" style="margin:10px 0 0">${t("settings.profile.permissions")}</p></div>`;
+    <p class="sm u-m-10-0-0">${t("settings.profile.permissions")}</p></div>`;
 }
 var zoneName = (zone) => zone.charAt(0) + zone.slice(1).toLowerCase();
 function activityHtml(kpis, zones, scheme) {
@@ -589,7 +589,7 @@ function placePersonCard() {
 }
 function securityHtml() {
   const me = profileLegacy.me();
-  return `<div class="card cfgpanel perfseg"><h2 style="padding:0 0 4px">${icon("shield")} ${t("settingsRest.profile.security")}</h2>
+  return `<div class="card cfgpanel perfseg"><h2 class="u-p-0-0-4">${icon("shield")} ${t("settingsRest.profile.security")}</h2>
     <p class="sm">${t("settingsRest.profile.securityHint")}</p>
     <div class="perfsegf"><div><span class="sm">${t("settingsRest.profile.accessEmail")}</span><b>${escapeHtml(me.email ?? "")}</b></div><div><span class="sm">${t("settingsRest.profile.role")}</span><b>${escapeHtml(me.rol)}</b></div></div>
     <div class="acts u-start u-wrap"><button class="btn sec" id="perfclave">${icon("key-round")} ${t("settingsRest.profile.sendLink")}</button>
@@ -1328,13 +1328,13 @@ function pageHtml(environment, allowed) {
   const actions = allowed ? `<div class="acts u-start u-wrap">
         <button type="button" class="btn" id="prtraer">${t("settings.testEnvironment.bring")}</button>
         <button type="button" class="btn sec" id="prreset">${t("settings.testEnvironment.reset")}</button></div>
-      <p class="leer">${t("settings.testEnvironment.explain")}</p>` : `<p class="sm" style="padding:0 16px">${t("settings.testEnvironment.onlyResponsible")}</p>`;
+      <p class="leer">${t("settings.testEnvironment.explain")}</p>` : `<p class="sm u-p-0-16">${t("settings.testEnvironment.onlyResponsible")}</p>`;
   return `<div class="card" id="cfpruebas"><div class="fh"><div><h2>${t("settings.testEnvironment.title")}</h2>
       <div class="sm">${t("settings.testEnvironment.subtitle")}</div></div></div>
     <div class="minis">
       <div><b>${when3(environment?.maestro_guardado_en)}</b><span>${t("settings.testEnvironment.startData")}</span></div>
       <div><b>${when3(environment?.ultimo_reset)}</b><span>${t("settings.testEnvironment.lastReset")}</span></div></div>
-    <div class="sm" id="prrefresco" style="padding:0 16px"></div>
+    <div class="sm u-p-0-16" id="prrefresco"></div>
     ${actions}</div>`;
 }
 async function paintTestEnvironment() {

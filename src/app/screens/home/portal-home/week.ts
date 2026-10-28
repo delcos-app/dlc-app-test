@@ -62,7 +62,7 @@ function myWeekHtml(data: WeekData): string {
       <div class="minis">${mini(formatNumber(visited), t('homeMore.week.visited'))}${mini(formatNumber(open), t('homeMore.week.toDo'))}
         ${mini(compliance === null ? '—' : `${compliance}%`, t('homeMore.week.compliance'), warn(compliance !== null && compliance < LOW_COMPLIANCE))}
         ${mini(formatNumber(data.due), t('homeMore.week.due', { visit: term('visita') }), warn(data.due > 0))}</div>
-      <div class="acts" style="padding:0 16px 14px"><button class="btn sec" data-inisem="semana">${t('homeMore.week.seeMyWeek')}</button>${data.due ? `<button class="btn sec" data-inisem="plan">${t('homeMore.week.planThem')}</button>` : ''}</div></div>`;
+      <div class="acts u-p-0-16-14"><button class="btn sec" data-inisem="semana">${t('homeMore.week.seeMyWeek')}</button>${data.due ? `<button class="btn sec" data-inisem="plan">${t('homeMore.week.planThem')}</button>` : ''}</div></div>`;
 }
 
 function salesHtml(data: WeekData): string {
@@ -71,7 +71,7 @@ function salesHtml(data: WeekData): string {
       <div class="minis">${mini(formatNumber(units), `${t('homeMore.week.units')} ${delta(units, unitsBefore)}`)}
         ${permissions.canSeeAmounts() ? mini(portalLegacy.euros(amount), `${t('homeMore.week.withoutVat')} ${delta(amount, Number(data.before.importe ?? 0))}`) : ''}
         ${mini(formatNumber(data.now.medicos ?? 0), t('homeMore.week.withSales', { professionals: term('medico', { number: 'p' }) }))}</div>
-      <p class="sm" style="padding:0 16px 14px">${t('homeMore.week.compared', { units: formatNumber(unitsBefore) })}</p></div>`;
+      <p class="sm u-p-0-16-14">${t('homeMore.week.compared', { units: formatNumber(unitsBefore) })}</p></div>`;
 }
 
 function teamHtml(team: readonly TeamRow[]): string {
@@ -84,7 +84,7 @@ function teamHtml(team: readonly TeamRow[]): string {
         ${mini(formatNumber(value('visitadas')), t('homeMore.week.visited'))}
         ${mini(formatNumber(value('sin_hacer')), t('homeMore.week.notDone'), warn(value('sin_hacer') > 0))}
         ${mini(formatNumber(value('atrasados')), t('homeMore.week.dueShort'), warn(value('atrasados') > 0))}</div>
-      <div class="acts" style="padding:0 16px 14px"><button class="btn sec" id="iniequipo">${t('homeMore.week.seeTeam')}</button></div></div>`;
+      <div class="acts u-p-0-16-14"><button class="btn sec" id="iniequipo">${t('homeMore.week.seeTeam')}</button></div></div>`;
 }
 
 function bind(box: HTMLElement): void {

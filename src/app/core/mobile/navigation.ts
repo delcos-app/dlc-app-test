@@ -44,7 +44,7 @@ export function openMoreMenu(): void {
   const tab = legacyBState.tab(), box = sheet;
   box.innerHTML = `<div class="bmasbox"><div class="bmasasa" aria-hidden="true"></div>
     <div class="bmasgrid">${otherModules().map(([module, name]) => `<button data-bm="${module}" class="${tab === module ? 'on' : ''}"><span>${legacyBActions.moduleIcon(module) ?? '•'}</span>${escapeHtml(name)}</button>`).join('')}</div>
-    <div class="sm" style="text-align:center;margin-top:8px">${t('legacyB.mobile.moreHint')}</div></div>`;
+    <div class="sm u-center u-mt-8">${t('legacyB.mobile.moreHint')}</div></div>`;
   box.classList.remove('hide');
   requestAnimationFrame(() => { box.classList.add('abierto'); });
   const close = (): void => { box.classList.remove('abierto'); setTimeout(() => { box.classList.add('hide'); }, CLOSE_MS); };

@@ -34,7 +34,7 @@ function windowHtml(): string {
       <div class="fh"><div><h2>${t('products.stores.title')}</h2><div class="sm">${t('products.stores.subtitle')}</div></div>
         <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
       <div class="lista">${list}</div>
-      <h3 style="margin-top:14px">${t('products.stores.newCase')}</h3>
+      <h3 class="u-mt-14">${t('products.stores.newCase')}</h3>
       <div class="g2"><div><label for="almu">${t('products.stores.salesperson')}</label><select id="almu">${members().map(member => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join('')}</select></div>
         <div><label>&nbsp;</label><button class="btn" id="almok">${t('products.stores.createCase')}</button></div></div>
       <p class="sm">${t('products.stores.caseHint', { theVisit: term('visita', { article: 'el' }) })}</p>`;

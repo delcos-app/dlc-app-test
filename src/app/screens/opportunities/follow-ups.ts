@@ -40,7 +40,7 @@ export async function paintFollowUps(): Promise<void> {
   const list = data ?? [], today = todayIso(), box = document.getElementById('llsegz');
   if (!box) return;
   box.innerHTML = !list.length ? '' : `<div class="card" id="llsegs"><h2>${t('opportunities.list.callAgainTitle')}<span class="n">${list.length}</span></h2>
-      <p class="sm" style="padding:0 16px">${t('opportunities.list.callAgainHint')}</p>
+      <p class="sm u-p-0-16">${t('opportunities.list.callAgainHint')}</p>
       <div class="lista">${list.slice(0, SHOWN).map(call => rowHtml(call, today)).join('')}</div></div>`;
   box.querySelectorAll<HTMLElement>('[data-llseg]').forEach(button => {
     button.onclick = (): void => { const call = list.find(item => item.id === button.dataset.llseg); if (call) void registerFollowUp(call); };

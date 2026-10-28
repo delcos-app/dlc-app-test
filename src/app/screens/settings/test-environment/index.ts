@@ -78,13 +78,13 @@ function pageHtml(environment: TestEnvironment | null, allowed: boolean): string
         <button type="button" class="btn" id="prtraer">${t('settings.testEnvironment.bring')}</button>
         <button type="button" class="btn sec" id="prreset">${t('settings.testEnvironment.reset')}</button></div>
       <p class="leer">${t('settings.testEnvironment.explain')}</p>`
-    : `<p class="sm" style="padding:0 16px">${t('settings.testEnvironment.onlyResponsible')}</p>`;
+    : `<p class="sm u-p-0-16">${t('settings.testEnvironment.onlyResponsible')}</p>`;
   return `<div class="card" id="cfpruebas"><div class="fh"><div><h2>${t('settings.testEnvironment.title')}</h2>
       <div class="sm">${t('settings.testEnvironment.subtitle')}</div></div></div>
     <div class="minis">
       <div><b>${when(environment?.maestro_guardado_en)}</b><span>${t('settings.testEnvironment.startData')}</span></div>
       <div><b>${when(environment?.ultimo_reset)}</b><span>${t('settings.testEnvironment.lastReset')}</span></div></div>
-    <div class="sm" id="prrefresco" style="padding:0 16px"></div>
+    <div class="sm u-p-0-16" id="prrefresco"></div>
     ${actions}</div>`;
 }
 

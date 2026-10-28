@@ -36,7 +36,7 @@ function filtersHtml(filters: AccountFilters): string {
       <option value="urgentes" ${selected(order === 'urgentes')}>${t('legacyA.tools.urgentFirst')}</option>
       <option value="reciente" ${selected(order === 'reciente')}>${t('legacyA.tools.recent', { Visit: term('visita', { capital: 'C' }) })}</option></select>
     <div class="acts"><button class="btn sec" id="tlimpiar">${t('legacyA.tools.clear')}</button></div>
-    <h3 style="margin-top:18px">${t('legacyA.tools.columns')}</h3>
+    <h3 class="u-mt-18">${t('legacyA.tools.columns')}</h3>
     <p class="sm">${t('legacyA.tools.columnsHint')}</p>
     <div class="acts"><button class="btn sec" id="tcols">${t('legacyA.tools.chooseColumns')}</button></div>`;
 }

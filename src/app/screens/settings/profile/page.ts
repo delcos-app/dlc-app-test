@@ -69,7 +69,7 @@ function placePersonCard(): void {
 
 function securityHtml(): string {
   const me = profileLegacy.me();
-  return `<div class="card cfgpanel perfseg"><h2 style="padding:0 0 4px">${icon('shield')} ${t('settingsRest.profile.security')}</h2>
+  return `<div class="card cfgpanel perfseg"><h2 class="u-p-0-0-4">${icon('shield')} ${t('settingsRest.profile.security')}</h2>
     <p class="sm">${t('settingsRest.profile.securityHint')}</p>
     <div class="perfsegf"><div><span class="sm">${t('settingsRest.profile.accessEmail')}</span><b>${escapeHtml(me.email ?? '')}</b></div><div><span class="sm">${t('settingsRest.profile.role')}</span><b>${escapeHtml(me.rol)}</b></div></div>
     <div class="acts u-start u-wrap"><button class="btn sec" id="perfclave">${icon('key-round')} ${t('settingsRest.profile.sendLink')}</button>

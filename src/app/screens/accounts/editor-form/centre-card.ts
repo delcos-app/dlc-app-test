@@ -30,7 +30,7 @@ function centreCardHtml(centre: CentreData, linked: boolean): string {
     ${centre.telefono ? `<span class="sm">☎ <a href="tel:${escapeHtml(centre.telefono)}">${escapeHtml(centre.telefono)}</a></span>` : ''}
     ${hoursLine(centre, linked)}
     ${centre.lat ? '' : `<span class="sm u-warn">${t('accountsEditor.centre.noLocation')}</span>`}
-    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+    <div class="acts u-m-8-0-0 u-wrap">
       ${directionsButton(centre)}
       ${linked ? `<button type="button" class="btn sec" data-cpeditar>${t('accountsEditor.centre.edit')}</button>` : `<button type="button" class="btn" data-cpenlazar>${t('accountsEditor.centre.link')}</button>`}
       <button type="button" class="btn sec" data-cpcambiar>${t('accountsEditor.centre.change')}</button></div></div>`;
@@ -42,7 +42,7 @@ function privateCardHtml(centre: CentreData): string {
   return `<div class="cpcard cppriv"><div class="cpcab"><b>${privateConsultation()}</b><span class="pill p-est">${t('accountsEditor.private.noCentre')}</span></div>
     <span class="sm">${escapeHtml(place || t('accountsEditor.private.noAddressYet'))}</span>
     ${centre.lat ? '' : `<span class="sm u-warn">${warning}</span>`}
-    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+    <div class="acts u-m-8-0-0 u-wrap">
       ${directionsButton(centre)}
       <button type="button" class="btn ${place ? 'sec' : ''}" data-cpeditar>${place ? t('accountsEditor.private.edit', { theConsultation: term('consulta', { article: 'el' }) }) : t('accountsEditor.private.addAddress')}</button>
       <button type="button" class="btn sec" data-cpcambiar>${t('accountsEditor.centre.change')}</button></div></div>`;

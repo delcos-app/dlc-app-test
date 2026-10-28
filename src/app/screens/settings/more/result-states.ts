@@ -15,7 +15,7 @@ function boxHtml(value: ClassifierValue): string {
   const marked = new Set(value.en_estados ?? []);
   return `<div class="venbox"><span class="sm">${t('settingsMore.results.hint', { name: escapeHtml(value.valor), theVisit: term('visita', { article: 'el' }) })}</span>
         <div class="chips">${cardBaseLegacy.states().map(state => `<button type="button" class="chip ${marked.has(state) ? 'on' : ''}" data-vene="${escapeHtml(state)}" aria-pressed="${String(marked.has(state))}">${escapeHtml(state)}</button>`).join('')}</div>
-        <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>${t('common.cancel')}</button><button type="button" class="btn" data-venok>${t('common.save')}</button></div></div>`;
+        <div class="acts u-end u-m-6-0-0"><button type="button" class="btn sec" data-vencerrar>${t('common.cancel')}</button><button type="button" class="btn" data-venok>${t('common.save')}</button></div></div>`;
 }
 
 async function save(value: ClassifierValue, item: Element, box: Element, button: HTMLButtonElement): Promise<void> {

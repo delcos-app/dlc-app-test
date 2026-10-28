@@ -884,7 +884,7 @@ function proposalHtml(proposal, account, canEdit) {
     ${consultations}
     ${visitWay}
     ${data.notas ? `<div class="fpdif"><span class="sm">${t("accounts.proposal.notes")}</span><span>${escapeHtml(data.notas)}</span></div>` : ""}
-    <div class="acts" style="justify-content:flex-start;margin:8px 0 0">${canEdit ? `<button type="button" class="btn sec" id="fpropedit">${t("accounts.proposal.edit")}</button>` : ""}
+    <div class="acts u-start u-m-8-0-0">${canEdit ? `<button type="button" class="btn sec" id="fpropedit">${t("accounts.proposal.edit")}</button>` : ""}
       <button type="button" class="btn" id="fpropok">${t("accounts.proposal.reviewed")}</button></div></section>`;
 }
 async function markReviewed(proposal) {
@@ -963,7 +963,7 @@ function centreCardHtml(centre, linked) {
     ${centre.telefono ? `<span class="sm">☎ <a href="tel:${escapeHtml(centre.telefono)}">${escapeHtml(centre.telefono)}</a></span>` : ""}
     ${hoursLine(centre, linked)}
     ${centre.lat ? "" : `<span class="sm u-warn">${t("accountsEditor.centre.noLocation")}</span>`}
-    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+    <div class="acts u-m-8-0-0 u-wrap">
       ${directionsButton(centre)}
       ${linked ? `<button type="button" class="btn sec" data-cpeditar>${t("accountsEditor.centre.edit")}</button>` : `<button type="button" class="btn" data-cpenlazar>${t("accountsEditor.centre.link")}</button>`}
       <button type="button" class="btn sec" data-cpcambiar>${t("accountsEditor.centre.change")}</button></div></div>`;
@@ -974,7 +974,7 @@ function privateCardHtml(centre) {
   return `<div class="cpcard cppriv"><div class="cpcab"><b>${privateConsultation()}</b><span class="pill p-est">${t("accountsEditor.private.noCentre")}</span></div>
     <span class="sm">${escapeHtml(place || t("accountsEditor.private.noAddressYet"))}</span>
     ${centre.lat ? "" : `<span class="sm u-warn">${warning}</span>`}
-    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+    <div class="acts u-m-8-0-0 u-wrap">
       ${directionsButton(centre)}
       <button type="button" class="btn ${place ? "sec" : ""}" data-cpeditar>${place ? t("accountsEditor.private.edit", { theConsultation: term("consulta", { article: "el" }) }) : t("accountsEditor.private.addAddress")}</button>
       <button type="button" class="btn sec" data-cpcambiar>${t("accountsEditor.centre.change")}</button></div></div>`;
@@ -1008,7 +1008,7 @@ function formHtml(box, index, key, located) {
       <div><label for="${key}p">${t("accountsEditor.centreForm.province")}</label><input id="${key}p" value="${value4("provincia")}"></div></div>
     <div class="cpubi sm">${located ? `<b class="u-ok">${t("accountsEditor.private.located")}</b>` : t("accountsEditor.centreForm.notLocated")}
       <button type="button" class="lnk" data-pvgeo>${t("accountsEditor.centreForm.findOnMap")}</button> <button type="button" class="lnk" data-pvaqui>${t("accountsEditor.picker.imHere")}</button></div>
-    <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-pvcancel>${t("common.cancel")}</button><button type="button" class="btn" data-pvok>${t("common.save")}</button></div></div>`;
+    <div class="acts u-end u-m-10-0-0"><button type="button" class="btn sec" data-pvcancel>${t("common.cancel")}</button><button type="button" class="btn" data-pvok>${t("common.save")}</button></div></div>`;
 }
 function showLocated(context, extra = "") {
   context.place.querySelector(".cpubi")?.firstChild?.replaceWith(Object.assign(document.createElement("b"), { style: "color:var(--ok)", textContent: `${t("accountsEditor.private.located")} ${extra}` }));
@@ -1143,7 +1143,7 @@ function formHtml2(centre, key, notice) {
     <label>${t("accountsEditor.centreForm.opening")}</label>
     <div class="cphor">${days}</div>
     <button type="button" class="lnk" data-cpcopiar>${t("accountsEditor.centreForm.copyMonday")}</button>
-    <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-cpcancel>${t("common.cancel")}</button><button type="button" class="btn" data-cpguardar>${t(centre.id ? "accountsEditor.centreForm.save" : "accountsEditor.centreForm.create")}</button></div></div>`;
+    <div class="acts u-end u-m-10-0-0"><button type="button" class="btn sec" data-cpcancel>${t("common.cancel")}</button><button type="button" class="btn" data-cpguardar>${t(centre.id ? "accountsEditor.centreForm.save" : "accountsEditor.centreForm.create")}</button></div></div>`;
 }
 var valueOf2 = (context, suffix) => (document.getElementById(context.key + suffix)?.value ?? "").trim();
 async function locate(context, button) {
@@ -1358,7 +1358,7 @@ async function paintChosen(place, box, index) {
 function searchHtml() {
   return `<div class="cpbus"><input class="cpq" type="search" placeholder="${t("accountsEditor.picker.searchPlaceholder")}" autocomplete="off">
       <div class="cpres"></div>
-      <div class="acts" style="margin:8px 0 0;flex-wrap:wrap"><button type="button" class="btn sec" data-cpaqui>${t("accountsEditor.picker.imHere")}</button>
+      <div class="acts u-m-8-0-0 u-wrap"><button type="button" class="btn sec" data-cpaqui>${t("accountsEditor.picker.imHere")}</button>
         <button type="button" class="btn sec" data-cpnuevo>${t("accountsEditor.picker.newCentre")}</button><button type="button" class="btn sec" data-cpprivada>${t("accountsEditor.picker.private", { privateConsultation: privateConsultation() })}</button></div></div>`;
 }
 function bindSearch(place, box, index) {
@@ -2456,7 +2456,7 @@ function productsHtml(catalog, chosenRows) {
   return `<section class="blk" id="fprodc"><h3>${t("accounts.portal.productsTitle")} <span class="n">${formatNumber(chosenRows.length)}</span></h3>
     <p class="sm">${t("accounts.portal.productsNote")}</p>
     <div class="lista">${list.map((product) => productRow(product, chosen)).join("") || `<div class="sm">${t("accounts.portal.noProducts")}</div>`}</div>
-    <div class="acts" style="margin:8px 0 0;justify-content:flex-end"><button type="button" class="btn sec" id="fpcok">${t("accounts.portal.saveProducts")}</button></div></section>`;
+    <div class="acts u-m-8-0-0 u-end"><button type="button" class="btn sec" id="fpcok">${t("accounts.portal.saveProducts")}</button></div></section>`;
 }
 var isCentre = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico?.tipo === CENTRE6;
 async function centreProducts(id) {
@@ -2816,7 +2816,7 @@ function pendingRow(item) {
         <button class="btn sec" data-dver="${item.id}">${t("accountsMore.duplicates.card")}</button></span></div>`;
 }
 function similarRow(pair) {
-  return `<div class="item ${selectedPair() === `${pair.a_id}|${pair.b_id}` ? "sel" : ""}" style="cursor:default">
+  return `<div class="item ${selectedPair() === `${pair.a_id}|${pair.b_id}` ? "sel" : ""} u-cursor-default">
       <span class="ic">${pair.pct}%</span>
       <span class="tx"><b>${escapeHtml(pair.a_nombre)}</b><span class="sm">${escapeHtml(pair.b_nombre)} · ${t("accountsMore.duplicates.codes", { a: escapeHtml(pair.a_codigo), b: escapeHtml(pair.b_codigo) })}</span></span>
       <span class="acts u-m-0">

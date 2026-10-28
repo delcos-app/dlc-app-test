@@ -102,7 +102,7 @@ function chosenHtml(draft: Draft, client: Client): string {
 function searchHtml(draft: Draft): string {
   const source = draft.source, typed = source.id ? orFallback(source.nombre, orFallback(source.telefono, '')) : '';
   return `<input id="nvq" type="search" placeholder="${t('opportunities.editor.searchPlaceholder')}" autocomplete="off" value="${escapeHtml(typed)}"><div class="lista" id="nvres1"></div>
-      <div class="acts" style="margin:6px 0 0;justify-content:flex-start"><button type="button" class="btn sec" id="nvalta">${t('opportunities.editor.newCard')}</button>
+      <div class="acts u-m-6-0-0 u-start"><button type="button" class="btn sec" id="nvalta">${t('opportunities.editor.newCard')}</button>
         ${source.id || draft.previous ? '' : `<button type="button" class="lnk" id="nvsin">${t('opportunities.editor.orderWithoutClient')}</button>`}</div>
       ${draft.recording ? `<div class="sm u-mt-4">${t('opportunities.editor.nameIsEnough')}</div>` : ''}`;
 }

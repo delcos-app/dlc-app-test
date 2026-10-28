@@ -58,7 +58,7 @@ function summaryHtml(check: PersonCheck): string {
   const parts = Object.entries(check.por_entidad ?? {}).map(([entity, count]) => t('settingsMore.undo.inEntity', { count: formatNumber(count), entity: entityName(entity) })).join(', ');
   return `${t('settingsMore.undo.wouldUndo', { changes: formatNumber(check.cambios), fields: formatNumber(check.campos), parts })}
       ${check.sin_deshacer ? ` ${t('settingsMore.undo.notUndoable', { count: formatNumber(check.sin_deshacer) })}` : ''}
-      <div class="acts" style="margin:8px 0 0"><button type="button" class="btn" id="audok">${t('settingsMore.undo.undoCount', { count: formatNumber(check.cambios) })}</button></div>`;
+      <div class="acts u-m-8-0-0"><button type="button" class="btn" id="audok">${t('settingsMore.undo.undoCount', { count: formatNumber(check.cambios) })}</button></div>`;
 }
 
 const personParams = (undo: PersonUndo, simulate: boolean): Record<string, unknown> => ({ p_usuario: undo.user, p_desde: `${undo.from}T00:00:00`, p_simular: simulate });
@@ -89,7 +89,7 @@ export function paintPersonUndo(undo: PersonUndo): void {
   if (!undo.user || !undo.from) { undo.box.innerHTML = ''; return; }
   undo.box.innerHTML = `<div class="card" id="audpersona" style="margin:0 16px 10px"><h3>${t('settingsMore.undo.personTitle', { name: escapeHtml(undo.name.trim()) })}</h3>
     <p class="sm">${t('settingsMore.undo.personHint', { places: term('consulta', { number: 'p' }), date: formatShortDate(undo.from) })}</p>
-    <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" id="audsim">${t('settingsMore.undo.preview')}</button></div><div id="audres" class="sm"></div></div>`;
+    <div class="acts u-m-6-0-0"><button type="button" class="btn sec" id="audsim">${t('settingsMore.undo.preview')}</button></div><div id="audres" class="sm"></div></div>`;
   const button = document.getElementById('audsim') as HTMLButtonElement | null;
   if (button) button.onclick = (): void => { void simulate(undo, button); };
 }

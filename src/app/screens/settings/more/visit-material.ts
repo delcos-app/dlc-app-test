@@ -118,7 +118,7 @@ export async function improveMaterial(): Promise<void> {
   const list = document.querySelector<HTMLElement>('#cfgcuerpo .matlista'); if (!list) return;
   list.classList.add('matlista2');
   list.innerHTML = values.map(value => rowHtml(value, allowed.find(item => item.valor === value.valor), withPortal)).join('') || `<div class="sm">${t('settingsMore.material.none')}</div>`;
-  if (values.length) list.insertAdjacentHTML('afterend', `<div class="acts mtacts" style="justify-content:space-between;align-items:center">
+  if (values.length) list.insertAdjacentHTML('afterend', `<div class="acts mtacts u-between u-items-center">
       <span class="sm">${withPortal && !portal?.material ? t('settingsMore.material.portalDefault') : ''}</span>
       <button class="btn" id="matguardar">${t('settingsMore.material.save')}</button></div>`);
   bind({ list, withPortal, portal });

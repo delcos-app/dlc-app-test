@@ -33,7 +33,7 @@ async function start(rowCount: number): Promise<string | null> {
 function finishedHtml(result: BatchResult): string {
   const errors = result.errores, figure = (value: number, label: string, extraClass = ''): string => `<div class="${extraClass}"><b>${formatNumber(value)}</b><span>${label}</span></div>`;
   return `<div class="card cfgpanel impcaja"><div class="impfin">${icon('check')}</div>
-    <h2 style="padding:0 0 4px;text-align:center">${t('importing.run.finished')}</h2>
+    <h2 class="u-p-0-0-4 u-center">${t('importing.run.finished')}</h2>
     <div class="impres">${figure(result.creados, t('importing.run.created'), 'ok')}${figure(result.actualizados, t('importing.run.updated'))}
       ${figure(result.omitidos, t('importing.run.unchanged'))}${figure(errors.length, t('importing.run.withErrors'), errors.length ? 'mal' : '')}</div>
     ${errors.length ? `<details class="imperr"><summary>${t('importing.review.seeErrors')}</summary><div>${errorLines(errors)}</div></details>` : ''}
@@ -52,7 +52,7 @@ export async function runImport(rows: readonly Record<string, unknown>[], mode: 
   if (!importId) { notices.toast(t('importing.run.couldNotStart'), true); return; }
   const fields = customFields();
   if (fields.length) await callRpc('importar_campos', { p_entidad: wizard.entity, p_campos: fields });
-  paint(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 style="padding:0 0 4px">${t('importing.run.running')}</h2><p class="sm" id="impav">${t('importing.run.progress', { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+  paint(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 class="u-p-0-0-4">${t('importing.run.running')}</h2><p class="sm" id="impav">${t('importing.run.progress', { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
   let result: BatchResult;
   try {
     result = await sendInBatches(rows, { entity: wizard.entity, mode, simulate: false, importId }, showRunProgress);

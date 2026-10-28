@@ -35,7 +35,7 @@ function pageHtml(check: BatchResult, counts: Counts): string {
   const custom = wizard.mapping.map((value, index) => (value === 'extra' ? wizard.headers[index] ?? '' : '')).filter(Boolean);
   const errors = check.errores;
   return `<div class="card cfgpanel impcaja">${stepsHtml(4)}
-    <h2 style="padding:0 0 4px">${t('importing.review.title', { name: escapeHtml(wizard.fileName) })}</h2>
+    <h2 class="u-p-0-0-4">${t('importing.review.title', { name: escapeHtml(wizard.fileName) })}</h2>
     ${summaryHtml(counts, errors.length)}
     ${modeHtml(counts)}
     ${custom.length ? `<p class="sm">${t('importing.review.customFields', { fields: custom.map(escapeHtml).join(', ') })}</p>` : ''}
@@ -60,7 +60,7 @@ function bind(rows: readonly Record<string, unknown>[], counts: Counts): void {
 
 export async function paintReviewStep(): Promise<void> {
   const rows = rowsToImport();
-  paint(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 style="padding:0 0 4px">${t('importing.review.checking')}</h2><p class="sm">${t('importing.review.checkingText')}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+  paint(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 class="u-p-0-0-4">${t('importing.review.checking')}</h2><p class="sm">${t('importing.review.checkingText')}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
   let check: BatchResult;
   try {
     check = await sendInBatches(rows, { entity: wizard.entity, mode: 'actualizar', simulate: true, importId: null }, showProgress);

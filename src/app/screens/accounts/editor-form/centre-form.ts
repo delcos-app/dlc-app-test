@@ -31,7 +31,7 @@ function formHtml(centre: CentreData, key: string, notice?: string): string {
     <label>${t('accountsEditor.centreForm.opening')}</label>
     <div class="cphor">${days}</div>
     <button type="button" class="lnk" data-cpcopiar>${t('accountsEditor.centreForm.copyMonday')}</button>
-    <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-cpcancel>${t('common.cancel')}</button><button type="button" class="btn" data-cpguardar>${t(centre.id ? 'accountsEditor.centreForm.save' : 'accountsEditor.centreForm.create')}</button></div></div>`;
+    <div class="acts u-end u-m-10-0-0"><button type="button" class="btn sec" data-cpcancel>${t('common.cancel')}</button><button type="button" class="btn" data-cpguardar>${t(centre.id ? 'accountsEditor.centreForm.save' : 'accountsEditor.centreForm.create')}</button></div></div>`;
 }
 
 interface FormContext { place: HTMLElement; box: HTMLElement; index: string; centre: CentreData; key: string; point: { lat: number | null; lon: number | null } }

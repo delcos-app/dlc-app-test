@@ -34,7 +34,7 @@ function materialRow(item: { valor: string }, chosen: Allowed | undefined): stri
 function materialHtml(catalog: readonly { valor: string }[], allowed: readonly Allowed[], saved: boolean): string {
   if (!catalog.length) return `<div class="vacio">${t('portal.settings.noCatalog')}</div>`;
   return `<div class="lista" id="cfpmat">${catalog.map(item => materialRow(item, allowed.find(other => other.valor === item.valor))).join('')}</div>
-      ${saved ? '' : `<p class="sm" style="padding:0 16px">${t('portal.settings.everything')}</p>`}
+      ${saved ? '' : `<p class="sm u-p-0-16">${t('portal.settings.everything')}</p>`}
       <div class="acts u-end"><button class="btn" id="cfpok">${t('common.save')}</button></div>`;
 }
 

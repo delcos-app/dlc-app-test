@@ -31,7 +31,7 @@ function blockHtml(detail: OrderDetail, allowed: boolean): string {
     ${order.sin_cargo ? `<p class="sm">${t('orders.operations.freeDelivery')}</p>` : ''}${OPERATIONS.filter(([key]) => !(order.sin_cargo && key === 'pago')).map(([key, label]) => operationHtml(order, key, t(label), allowed)).join('')}
     <label class="opchk ${order.reportar_profesional ? 'on' : ''}"><input type="checkbox" data-reporte ${order.reportar_profesional ? 'checked' : ''} ${allowed ? '' : 'disabled'}>
       <span>${t('orders.operations.reported', { professional: escapeHtml(term('medico', { article: 'al' })) })}</span></label>
-    <div class="acts" style="margin:6px 0 0">
+    <div class="acts u-m-6-0-0">
       ${mailHtml(detail)}
     </div></div>`;
 }

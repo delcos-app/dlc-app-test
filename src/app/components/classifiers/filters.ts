@@ -117,7 +117,7 @@ export async function paintClassifiers(container: Element | null, scope: string,
   const { state, onChange, onColumn, heading } = options;
   if (!container) return;
   const fields = componentsLegacy.sortedFields(scope) as FieldDefinition[];
-  const title = heading === 'h3' ? `<h3 style="margin-top:18px">${t('components.classifiers.title')}</h3>` : `<h4>${t('components.classifiers.title')}</h4>`;
+  const title = heading === 'h3' ? `<h3 class="u-mt-18">${t('components.classifiers.title')}</h3>` : `<h4>${t('components.classifiers.title')}</h4>`;
   if (!fields.length) { container.innerHTML = componentsLegacy.canEditCatalogs() ? `<div class="htbloque clasif">${title}<p class="sm">${t('components.classifiers.none')}</p></div>` : ''; return; }
   const needsValues = fields.some(field => field.tipo === 'texto' || (field.tipo === 'lista' && (field.valores ?? []).length > MAX_DROPDOWN));
   const values = needsValues ? await loadValues(scope) : {};

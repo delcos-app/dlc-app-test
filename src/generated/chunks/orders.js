@@ -564,7 +564,7 @@ function ownHtml(mandatory, preferences) {
 function rolesHtml(fixed, roles) {
   return `<h3 style="margin:14px 0 4px">${t("orders.alerts.byRole")}</h3><p class="sm">${t("orders.alerts.byRoleHint")}</p>
       <div class="dgrid-wrap"><table class="tabla avrol"><thead><tr><th>${t("orders.alerts.role")}</th>${ALERTS.map(([, label]) => `<th>${t(label)}</th>`).join("")}</tr></thead>
-        <tbody>${roles.map((role) => `<tr><td>${escapeHtml(role)}</td>${ALERTS.map(([key]) => `<td style="text-align:center"><input type="checkbox" data-avr="${escapeHtml(role)}|${key}" ${(fixed[role] ?? []).includes(key) ? "checked" : ""} aria-label="${t("orders.alerts.mandatoryLabel", { role: escapeHtml(role) })}"></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+        <tbody>${roles.map((role) => `<tr><td>${escapeHtml(role)}</td>${ALERTS.map(([key]) => `<td class="u-center"><input type="checkbox" data-avr="${escapeHtml(role)}|${key}" ${(fixed[role] ?? []).includes(key) ? "checked" : ""} aria-label="${t("orders.alerts.mandatoryLabel", { role: escapeHtml(role) })}"></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 async function save(body, admin) {
   const own = {};
@@ -1763,7 +1763,7 @@ function blockHtml3(detail, allowed) {
     ${order.sin_cargo ? `<p class="sm">${t("orders.operations.freeDelivery")}</p>` : ""}${OPERATIONS.filter(([key]) => !(order.sin_cargo && key === "pago")).map(([key, label]) => operationHtml(order, key, t(label), allowed)).join("")}
     <label class="opchk ${order.reportar_profesional ? "on" : ""}"><input type="checkbox" data-reporte ${order.reportar_profesional ? "checked" : ""} ${allowed ? "" : "disabled"}>
       <span>${t("orders.operations.reported", { professional: escapeHtml(term("medico", { article: "al" })) })}</span></label>
-    <div class="acts" style="margin:6px 0 0">
+    <div class="acts u-m-6-0-0">
       ${mailHtml(detail)}
     </div></div>`;
 }

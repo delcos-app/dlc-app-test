@@ -48,7 +48,7 @@ function numberRows(body: HTMLElement): void {
 function vocabularyCard(body: HTMLElement): void {
   const vocabulary = body.querySelector('.mkvoc'), label = body.querySelector('.mketqbox');
   if (!vocabulary || byId('mkvoccard')) return;
-  body.insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="mkvoccard"><h2 style="padding:0 0 4px">${t('legacyD.polish.vocabularyTitle')}</h2>
+  body.insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="mkvoccard"><h2 class="u-p-0-0-4">${t('legacyD.polish.vocabularyTitle')}</h2>
         <p class="sm">${t('legacyD.polish.vocabularyHint')}</p>
         <div id="mkvochueco"></div><div class="acts u-end"><button type="button" class="btn" id="mkvocok">${t('common.save')}</button></div></div>`);
   const place = byId('mkvochueco'); if (!place) return;

@@ -38,7 +38,7 @@ function windowHtml(user: AdminUser, options: Options): string {
       <div><label for="aesp">${term('especialidad', { capital: 'C' })}</label><select id="aesp">${optionsHtml(options.especialidades)}</select></div>
       <div><label for="aest">${t('legacyA.portfolio.state')}</label><select id="aest">${optionsHtml(options.estados)}</select></div></div>
     <label class="opt u-mt-10"><input type="checkbox" id="aurg"> ${t('legacyA.tools.onlyUrgent')}</label>
-    <div id="amsg" class="cuenta" style="padding:10px 0 0"></div>
+    <div id="amsg" class="cuenta u-p-10-0-0"></div>
     <div id="alista"></div>
     <div class="acts u-end">
       <button class="btn sec" id="aquitar">${t('legacyA.portfolio.removeSelected', { professionals })}</button>

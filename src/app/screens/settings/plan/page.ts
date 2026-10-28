@@ -50,7 +50,7 @@ function billingRows(data: BillingData | null): string {
 function billingHtml(plan: CurrentPlan, data: BillingData | null | undefined): string {
   if (data === undefined) return '';
   const review = plan.en_prueba ? t('settingsRest.plan.billingReview', { date: formatShortDate(plan.periodo_fin ?? '') }) : '';
-  return `<div class="card cfgpanel" id="pgdatos"><h2 style="padding:0 0 4px">${t('settingsRest.plan.billingTitle')}</h2>
+  return `<div class="card cfgpanel" id="pgdatos"><h2 class="u-p-0-0-4">${t('settingsRest.plan.billingTitle')}</h2>
     <p class="sm">${t('settingsRest.plan.billingHint')}${review}</p>
     <div class="pgdlista">${billingRows(data)}</div>
     <div class="acts"><button type="button" class="btn sec" id="pgdcorr">${t('settingsRest.plan.fixData')}</button></div></div>`;

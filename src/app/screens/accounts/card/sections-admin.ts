@@ -65,7 +65,7 @@ function proposalHtml(proposal: Proposal, account: CardAccount & { telefono?: st
     ${consultations}
     ${visitWay}
     ${data.notas ? `<div class="fpdif"><span class="sm">${t('accounts.proposal.notes')}</span><span>${escapeHtml(data.notas)}</span></div>` : ''}
-    <div class="acts" style="justify-content:flex-start;margin:8px 0 0">${canEdit ? `<button type="button" class="btn sec" id="fpropedit">${t('accounts.proposal.edit')}</button>` : ''}
+    <div class="acts u-start u-m-8-0-0">${canEdit ? `<button type="button" class="btn sec" id="fpropedit">${t('accounts.proposal.edit')}</button>` : ''}
       <button type="button" class="btn" id="fpropok">${t('accounts.proposal.reviewed')}</button></div></section>`;
 }
 

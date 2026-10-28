@@ -36,10 +36,10 @@ function pageHtml(all: readonly Settlement[]): string {
     <h2>${t('commissions.page.schemes')}<span class="n">${list.length}</span></h2>
     <p class="sm">${t('commissions.page.schemesHint')}</p>
     <div class="lista">${list.map(schemeRow).join('') || `<div class="vacio">${t('commissions.page.noSchemes')}</div>`}</div>
-    <div class="acts" style="padding:0 16px 14px"><button class="btn" id="esqnuevo">${t('commissions.page.newScheme')}</button></div>
+    <div class="acts u-p-0-16-14"><button class="btn" id="esqnuevo">${t('commissions.page.newScheme')}</button></div>
 
     <h2>${t('commissions.page.settlements')}</h2>
-    <div class="acts" style="padding:0 16px">
+    <div class="acts u-p-0-16">
       <input id="liqper" type="month" value="${todayIso().slice(0, 7)}" style="max-width:190px">
       <button class="btn sec" id="liqcalc">${t('commissions.page.calculate')}</button></div>
     ${filtersHtml(all)}

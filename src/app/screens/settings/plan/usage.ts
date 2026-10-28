@@ -47,7 +47,7 @@ export function usageCardHtml(use: LimitsUse | null): string {
   const band = use.estado === 'excedido' ? `<div class="banda-aviso u-mt-8" id="limaviso" data-estado="excedido">${t('limits.exceeded')}${use.bloquear_archivos ? ` ${t('limits.filesBlocked')}` : ''}</div>`
     : use.estado === 'aviso' ? `<div class="banda-aviso u-mt-8" id="limaviso" data-estado="aviso">${t('limits.warning')}</div>` : '';
   const fileMax = use.archivo_mb !== null && use.archivo_mb !== undefined ? `<p class="sm">${t('limits.fileMax', { value: formatNumber(use.archivo_mb) })}</p>` : '';
-  return `<div class="card cfgpanel" id="limuso"><h2 style="padding:0 0 4px">${t('limits.title')}</h2>
+  return `<div class="card cfgpanel" id="limuso"><h2 class="u-p-0-0-4">${t('limits.title')}</h2>
     <p class="sm">${t('limits.intro')}</p>
     <div class="barrash">${meterRow(t('limits.records'), t('limits.recordsHint'), use.filas, value => formatNumber(value ?? 0))}
       ${meterRow(t('limits.space'), t('limits.spaceHint'), use.almacenamiento_mb, megabytes)}</div>${fileMax}${band}</div>`;

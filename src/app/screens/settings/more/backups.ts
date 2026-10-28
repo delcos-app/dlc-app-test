@@ -23,7 +23,7 @@ function pageHtml(last: Date | null): string {
   return `<div class="card cfgpanel"><h2>${t('settingsMore.backups.title')}</h2>
     <p class="sm">${t('settingsMore.backups.intro', { professionals: term('medico', { number: 'p' }), visits: term('visita', { number: 'p' }) })}</p>
     ${stateHtml(last)}
-    <div class="acts" style="margin:12px 0 0"><button class="btn" id="copok">${t('settingsMore.backups.download')}</button></div>
+    <div class="acts u-m-12-0-0"><button class="btn" id="copok">${t('settingsMore.backups.download')}</button></div>
     <h3 class="mansub">${t('settingsMore.backups.tips')}</h3><ul class="manlist">
       <li><span>📅</span><span>${t('settingsMore.backups.tipWeekly')}</span></li>
       <li><span>🔐</span><span>${t('settingsMore.backups.tipPrivate')}</span></li>

@@ -94,7 +94,7 @@ async function paintChosen(place: HTMLElement, box: HTMLElement, index: string):
 function searchHtml(): string {
   return `<div class="cpbus"><input class="cpq" type="search" placeholder="${t('accountsEditor.picker.searchPlaceholder')}" autocomplete="off">
       <div class="cpres"></div>
-      <div class="acts" style="margin:8px 0 0;flex-wrap:wrap"><button type="button" class="btn sec" data-cpaqui>${t('accountsEditor.picker.imHere')}</button>
+      <div class="acts u-m-8-0-0 u-wrap"><button type="button" class="btn sec" data-cpaqui>${t('accountsEditor.picker.imHere')}</button>
         <button type="button" class="btn sec" data-cpnuevo>${t('accountsEditor.picker.newCentre')}</button><button type="button" class="btn sec" data-cpprivada>${t('accountsEditor.picker.private', { privateConsultation: privateConsultation() })}</button></div></div>`;
 }
 

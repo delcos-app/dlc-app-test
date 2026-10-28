@@ -19,7 +19,7 @@ var we=globalThis.__delcosModules["i18n/index"],z=e=>we[e],Ee=z("registerMessage
             <pre>${l(JSON.stringify(e.detalle??{},null,1))}</pre>
             <button type="button" class="btn sec chico" data-egmap="${a}">${o("platform.errorCode.show")}</button><pre class="errcode" hidden></pre></details></div>
         <select class="chico" data-egh="${a}" aria-label="${o("platform.errors.groupState")}">${pe(e.estado)}</select></div>`}function ya(e){return j==="error"?e.map(me).join(""):ba(e).map(([a,t])=>`<h3 class="errver">${o("platform.errors.versionTitle",{version:l(a),count:m(t.length)})}</h3>
-      ${t.map(s=>me(s,e.indexOf(s))).join("")}`).join("")}function Ta(e,a){const t=T.platformErrors,s=[["abiertos","platform.errors.open"],["resueltos","platform.errors.solved"],["todos","platform.errors.all"]];return`<div class="card cfgpanel errgrupos"><h2 style="padding:0 0 4px">${o("platform.errors.platformTitle")}</h2>
+      ${t.map(s=>me(s,e.indexOf(s))).join("")}`).join("")}function Ta(e,a){const t=T.platformErrors,s=[["abiertos","platform.errors.open"],["resueltos","platform.errors.solved"],["todos","platform.errors.all"]];return`<div class="card cfgpanel errgrupos"><h2 class="u-p-0-0-4">${o("platform.errors.platformTitle")}</h2>
     <p class="sm">${o("platform.errors.platformText")}</p>
     ${a?`<div class="banda-peligro">${o("platform.errors.couldNotRead",{error:l(h(a))})}</div>`:""}
     <div class="usrbar"><select id="egest">${s.map(([r,n])=>`<option value="${r}" ${t.estado===r?"selected":""}>${o(n)}</option>`).join("")}</select>
@@ -47,7 +47,7 @@ var we=globalThis.__delcosModules["i18n/index"],z=e=>we[e],Ee=z("registerMessage
         <div><label for="ousu">${o("platform.newOrg.users")}</label><input id="ousu" type="number" min="3" value="3"></div>
         <div><label for="opago">${o("platform.newOrg.payment")}</label><select id="opago"><option value="mensual">${o("platform.newOrg.monthly")}</option><option value="anual">${o("platform.newOrg.yearly")}</option></select></div>
         <div><label class="chk"><input type="checkbox" id="oprueba" checked> ${o("platform.newOrg.trial")}</label></div></div>
-      <h3 style="margin-top:14px">${o("platform.newOrg.admin")}</h3>
+      <h3 class="u-mt-14">${o("platform.newOrg.admin")}</h3>
       <div class="g2"><div><label for="oanom">${o("platform.newOrg.adminName")}</label><input id="oanom"></div>
         <div><label for="oamail">${o("platform.newOrg.adminEmail")}</label><input id="oamail" type="email"></div>
         <div><label for="oapass">${o("platform.newOrg.password")}</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2,8)}"></div></div>

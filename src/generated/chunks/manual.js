@@ -123,7 +123,7 @@ function showSection(id) {
   const canSettings = canGoToSettings(settings), canOpen = canOpenScreen(destination2);
   openDialog(`<div class="fh"><div><h2>${sectionIcon(id)} ${escapeHtml(section.t)}</h2><div class="sm">${escapeHtml(section.para)}</div></div>${close}</div>
     ${listsHtml(section)}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn sec" data-cerrar>${t("common.close")}</button>
+    <div class="acts u-end u-wrap u-mt-14"><button class="btn sec" data-cerrar>${t("common.close")}</button>
       ${canSettings ? `<button class="btn sec" id="manircfg">${t("manual.portal.goToSettings")}</button>` : ""}
       ${canOpen ? `<button class="btn" id="manirmod">${t("manual.portal.open", { name: escapeHtml(section.t) })}</button>` : ""}</div>`);
   if (destination2) closeAndGo("manirmod", destination2);
