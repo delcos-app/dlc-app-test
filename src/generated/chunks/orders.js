@@ -76,7 +76,7 @@ var orders = {
   operations: {
     title: "Operativa",
     onDelivery: " (se cobra al entregar)",
-    freeDelivery: "Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.",
+    freeDelivery: "Entrega sin cargo: sin factura ni cobro.",
     reported: "Reportado {professional}",
     noEmail: "El cliente no tiene email en su ficha.",
     preparePaymentEmail: "✉️ Preparar email con los datos de pago",
@@ -315,8 +315,8 @@ var ordersMore = {
     discount: "% dto.",
     removeLine: "Quitar línea",
     addLine: "+ Añadir línea",
-    free: "Entrega sin cargo (muestra)",
-    freeHint: "Las unidades cuentan {toProfessional} de referencia y salen del stock, pero no es una venta: 0 €, sin factura, sin cobro y sin comisión.",
+    free: "Entrega/s de muestra/s",
+    freeHint: "Sin cargo/s.",
     paymentMethod: "Forma de pago",
     generalDiscount: "Descuento general",
     paymentReference: "Referencia del pago",
@@ -2353,6 +2353,7 @@ function lines2(state) {
   return state.lines.filter((line) => line.producto_id).map((line) => ({ producto_id: line.producto_id, unidades: nonZeroOr(line.unidades, 1), importe: line.importe, descuento: nonZeroOr(line.descuento, 0), iva: line.iva }));
 }
 function paymentFields() {
+  if (isFree()) return { forma_pago: null, pago_referencia: "", descuento: Number(value4("pdto")) || 0, descuento_tipo: value4("pdtot"), envio: false, envio_con_iva: 0, envio_iva: Number(value4("penvv")) || 0, servicio_id: null };
   const method = value4("ppago");
   return {
     forma_pago: nullIfEmpty(method),
@@ -2496,19 +2497,18 @@ function lineHtml2(line, index, count) {
         <div class="ldes" data-des="${index}"></div></div>`;
 }
 function linesHtml(state) {
-  const toProfessional = escapeHtml(term("medico", { article: "al" }));
   return `
       <label>${t("ordersMore.editor.lines")}</label>
       <div id="plineas">${state.lines.map((line, index) => lineHtml2(line, index, state.lines.length)).join("")}</div>
       <div class="acts u-mt-0"><button type="button" class="btn sec" id="plmas">${t("ordersMore.editor.addLine")}</button></div>
       <div class="pscbox"><label class="opt"><input type="checkbox" id="psincargo" ${state.form.sin_cargo ? "checked" : ""}> ${t("ordersMore.editor.free")}</label>
-        <span class="sm">${t("ordersMore.editor.freeHint", { toProfessional })}</span></div>`;
+        <span class="sm">${t("ordersMore.editor.freeHint")}</span></div>`;
 }
 function methodDiscountHtml(state) {
   const form = state.form, methods = orderEditorLegacy.paymentMethods().map((item) => `<option ${form.forma_pago === item.valor ? "selected" : ""}>${escapeHtml(item.valor)}</option>`).join("");
   return `
       <div class="g2 pscg2">
-        <div><label for="ppago">${t("ordersMore.editor.paymentMethod")}</label><select id="ppago"><option value=""></option>
+        <div><label for="ppago">${t("ordersMore.editor.paymentMethod")}</label><select id="ppago" ${form.sin_cargo ? "disabled" : ""}><option value=""></option>
           ${methods}</select></div>
         <div><label for="pdto">${t("ordersMore.editor.generalDiscount")}</label>
           <div style="display:flex;gap:6px"><input id="pdto" type="number" min="0" step="0.01" value="${escapeHtml(String(form.descuento))}">
@@ -2538,7 +2538,7 @@ function serviceHtml(state) {
   return `
       <div class="envbox">
         <label for="pserv" class="u-mt-0">${t("ordersMore.editor.service")}</label>
-        <select id="pserv"><option value="">${t("ordersMore.editor.noService")}</option>${options}</select>
+        <select id="pserv" ${form.sin_cargo ? "disabled" : ""}><option value="">${t("ordersMore.editor.noService")}</option>${options}</select>
         <input type="checkbox" id="penv" class="hide" ${form.envio ? "checked" : ""}>
         <div class="g2 ${form.envio ? "" : "hide"}" id="penvd">
           <div><label for="penvi">${t("ordersMore.editor.serviceAmount")}</label><input id="penvi" type="number" step="0.01" min="0" value="${escapeHtml(String(form.envio_con))}"></div>
@@ -2604,6 +2604,14 @@ function bindPickers(state) {
   } });
   mountAccount(state);
 }
+function clearPaymentAndService() {
+  for (const id of ["ppago", "pref", "pserv"]) {
+    const field3 = document.getElementById(id);
+    if (field3) field3.value = "";
+  }
+  const shipping = document.getElementById("penv");
+  if (shipping) shipping.checked = false;
+}
 function bindLines(state) {
   bindLineInputs(state);
   on("plmas", () => {
@@ -2624,6 +2632,7 @@ function bindLines(state) {
     state.lines.forEach((line) => {
       line.descuento = state.form.sin_cargo ? FULL_DISCOUNT2 : 0;
     });
+    if (state.form.sin_cargo) clearPaymentAndService();
     paint2(state);
   };
 }

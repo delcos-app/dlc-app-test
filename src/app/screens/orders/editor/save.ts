@@ -77,6 +77,8 @@ function lines(state: EditorState): Record<string, unknown>[] {
 }
 
 function paymentFields(): Record<string, unknown> {
+  // A sample delivery is saved without a payment method or a delivery service, whatever was chosen before ticking it
+  if (isFree()) return { forma_pago: null, pago_referencia: '', descuento: Number(value('pdto')) || 0, descuento_tipo: value('pdtot'), envio: false, envio_con_iva: 0, envio_iva: Number(value('penvv')) || 0, servicio_id: null };
   const method = value('ppago');
   return { forma_pago: nullIfEmpty(method), pago_referencia: method ? value('pref').trim() : '', descuento: Number(value('pdto')) || 0, descuento_tipo: value('pdtot'),
     envio: Boolean(field('penv')?.checked), envio_con_iva: Number(value('penvi')) || 0, envio_iva: Number(value('penvv')) || 0, servicio_id: nullIfEmpty(value('pserv')) };

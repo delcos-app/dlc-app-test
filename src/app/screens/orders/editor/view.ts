@@ -62,20 +62,19 @@ function lineHtml(line: EditorLine, index: number, count: number): string {
 }
 
 function linesHtml(state: EditorState): string {
-  const toProfessional = escapeHtml(term('medico', { article: 'al' }));
   return `
       <label>${t('ordersMore.editor.lines')}</label>
       <div id="plineas">${state.lines.map((line, index) => lineHtml(line, index, state.lines.length)).join('')}</div>
       <div class="acts u-mt-0"><button type="button" class="btn sec" id="plmas">${t('ordersMore.editor.addLine')}</button></div>
       <div class="pscbox"><label class="opt"><input type="checkbox" id="psincargo" ${state.form.sin_cargo ? 'checked' : ''}> ${t('ordersMore.editor.free')}</label>
-        <span class="sm">${t('ordersMore.editor.freeHint', { toProfessional })}</span></div>`;
+        <span class="sm">${t('ordersMore.editor.freeHint')}</span></div>`;
 }
 
 function methodDiscountHtml(state: EditorState): string {
   const form = state.form, methods = orderEditorLegacy.paymentMethods().map(item => `<option ${form.forma_pago === item.valor ? 'selected' : ''}>${escapeHtml(item.valor)}</option>`).join('');
   return `
       <div class="g2 pscg2">
-        <div><label for="ppago">${t('ordersMore.editor.paymentMethod')}</label><select id="ppago"><option value=""></option>
+        <div><label for="ppago">${t('ordersMore.editor.paymentMethod')}</label><select id="ppago" ${form.sin_cargo ? 'disabled' : ''}><option value=""></option>
           ${methods}</select></div>
         <div><label for="pdto">${t('ordersMore.editor.generalDiscount')}</label>
           <div style="display:flex;gap:6px"><input id="pdto" type="number" min="0" step="0.01" value="${escapeHtml(String(form.descuento))}">
@@ -112,7 +111,7 @@ function serviceHtml(state: EditorState): string {
   return `
       <div class="envbox">
         <label for="pserv" class="u-mt-0">${t('ordersMore.editor.service')}</label>
-        <select id="pserv"><option value="">${t('ordersMore.editor.noService')}</option>${options}</select>
+        <select id="pserv" ${form.sin_cargo ? 'disabled' : ''}><option value="">${t('ordersMore.editor.noService')}</option>${options}</select>
         <input type="checkbox" id="penv" class="hide" ${form.envio ? 'checked' : ''}>
         <div class="g2 ${form.envio ? '' : 'hide'}" id="penvd">
           <div><label for="penvi">${t('ordersMore.editor.serviceAmount')}</label><input id="penvi" type="number" step="0.01" min="0" value="${escapeHtml(String(form.envio_con))}"></div>

@@ -4546,7 +4546,6 @@ html body .toast[popover]{margin:0;border:0;overflow:visible}
 /* v2.317.0 · entrega sin cargo */
 .pscbox{display:flex;flex-direction:column;gap:4px;margin:8px 0}
 .prepbox{margin-top:10px}
-#dbody:has(#psincargo:checked) :is(.pscg2,#ptrfbox,#ptpvbox,#ppagox,.envbox){display:none}
 /* v2.314.0 · pago por transferencia */
 .pdtrfacts{justify-content:flex-start;margin:6px 0 0}
 /* v2.312: duplicados con pestañas y centros */

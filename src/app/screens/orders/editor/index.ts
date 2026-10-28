@@ -55,12 +55,23 @@ function bindPickers(state: EditorState): void {
   mountAccount(state);
 }
 
+function clearPaymentAndService(): void {
+  for (const id of ['ppago', 'pref', 'pserv']) { const field = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null; if (field) field.value = ''; }
+  const shipping = document.getElementById('penv') as HTMLInputElement | null; if (shipping) shipping.checked = false;
+}
+
 function bindLines(state: EditorState): void {
   bindLineInputs(state);
   on('plmas', () => { const line = newLine(); state.lines.push(line); autoAmount(line); paint(state); });
   document.getElementById('plineas')?.querySelectorAll<HTMLElement>('[data-lx]').forEach(button => { button.onclick = (): void => { state.lines.splice(Number(button.dataset.lx), 1); paint(state); }; });
   const free = element('psincargo');
-  if (free) free.onchange = (): void => { readForm(state); state.lines.forEach(line => { line.descuento = state.form.sin_cargo ? FULL_DISCOUNT : 0; }); paint(state); };
+  if (free) free.onchange = (): void => {
+    readForm(state); state.lines.forEach(line => { line.descuento = state.form.sin_cargo ? FULL_DISCOUNT : 0; });
+    // A sample delivery has no payment method and no delivery service (Eric, 28/10/2026)
+    // (on the fields themselves: paint reads the form back from them)
+    if (state.form.sin_cargo) clearPaymentAndService();
+    paint(state);
+  };
 }
 
 function bindPayment(state: EditorState): void {

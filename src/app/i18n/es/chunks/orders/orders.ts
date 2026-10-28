@@ -69,7 +69,7 @@ export const orders = {
   operations: {
     title: 'Operativa',
     onDelivery: ' (se cobra al entregar)',
-    freeDelivery: 'Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.',
+    freeDelivery: 'Entrega sin cargo: sin factura ni cobro.',
     reported: 'Reportado {professional}',
     noEmail: 'El cliente no tiene email en su ficha.',
     preparePaymentEmail: '✉️ Preparar email con los datos de pago',
