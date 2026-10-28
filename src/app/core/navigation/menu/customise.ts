@@ -9,6 +9,7 @@ import { MENU_GROUPS, menuGroups, menuPrefs } from './groups';
 import * as legacyFreeCoreServices from '../../services';
 import { sessionStore } from '../../session-store';
 import { navigationStore } from '../store';
+import { mountSideMenu } from '../../legacy-c/side-menu';
 import * as legacyFreeComponents from '../../../components';
 
 export interface Draft { orden: string[]; items: Record<string, string[]>; ocultos: string[] }
@@ -63,7 +64,7 @@ const menuWith = (session: Session, draft: Draft): Record<string, unknown> => {
 function preview(session: Session): void {
   const draft = session.draft;
   (sessionStore.profile as { preferencias?: unknown }).preferencias = menuWith(session, { orden: [...draft.orden], items: JSON.parse(JSON.stringify(draft.items)) as Record<string, string[]>, ocultos: [...draft.ocultos] });
-  navigationStore.menuSignature = ''; montarMenuLateral();
+  navigationStore.menuSignature = ''; mountSideMenu();
 }
 
 /** «Personalizar menú»: out-of-plan sections locked, switched off and not counted in «N de M». */
@@ -92,7 +93,7 @@ export const moveItem = (draft: Draft, group: string, key: string, target: { key
 function close(session: Session): void {
   if (!document.getElementById('mlpanel')) return;
   session.box.remove(); detach(session);
-  if (!session.saved) { (sessionStore.profile as { preferencias?: unknown }).preferencias = session.original; navigationStore.menuSignature = ''; montarMenuLateral(); }
+  if (!session.saved) { (sessionStore.profile as { preferencias?: unknown }).preferencias = session.original; navigationStore.menuSignature = ''; mountSideMenu(); }
   document.getElementById('mlpers')?.focus();
 }
 
@@ -104,7 +105,7 @@ async function save(session: Session, button: HTMLButtonElement): Promise<void> 
   const { data, error } = await db.rpc<unknown>('guardar_preferencias', { p: prefs });
   button.disabled = false;
   if (error) { legacyFreeComponents.toast(t('navigationCore.menu.couldNotSave'), true); return; }
-  (sessionStore.profile as { preferencias?: unknown }).preferencias = data ?? prefs; session.saved = true; close(session); navigationStore.menuSignature = ''; montarMenuLateral(); legacyFreeComponents.toast(t('navigationCore.menu.saved'), false);
+  (sessionStore.profile as { preferencias?: unknown }).preferencias = data ?? prefs; session.saved = true; close(session); navigationStore.menuSignature = ''; mountSideMenu(); legacyFreeComponents.toast(t('navigationCore.menu.saved'), false);
 }
 
 function onClick(session: Session, event: MouseEvent): void {

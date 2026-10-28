@@ -2,7 +2,7 @@
  * Maps outside the app: navigating to a stop (Google Maps with every stop, Waze or Apple Maps), finding an address in Spain (only valid
  * in its town), the address of a point, travel minutes between two points and «Estoy aquí» in the account editor. Migrated from the
  * legacy servicios/mapas.js (v2.425.0); enlaceNav, navegarA, geoInversa, enlaceNavApp, cambiarNavegador, rellenarDireccion, estoyAqui,
- * minutosEntre, navActual, navAttr, selectorNav, normGeo and geocodificar stay as adapters.
+ * minutosEntre, navActual, navAttr, selectorNav and normGeo stay as adapters; the tests replace the address search with overrideGeocoder.
  */
 import { coreLegacy } from '../legacy/core-bridge';
 import { t } from '../i18n';
@@ -122,7 +122,7 @@ export const geoText = (text: unknown): string =>
   String(text ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
 interface Found { address?: Address; fuera?: string; lat?: string; lon?: string }
-interface GeocodeHints { municipio?: string | null; direccion?: string | null; cp?: string | null }
+interface GeocodeHints { municipio?: string | null | undefined; direccion?: string | null | undefined; cp?: string | null | undefined }
 
 const placeOf = (found: Found | undefined): string => {
   const address = found?.address ?? {};
@@ -144,11 +144,21 @@ async function search(query: string): Promise<Found[]> {
 const byParts = (street: string, hints: GeocodeHints): string =>
   `street=${encodeURIComponent(street)}&city=${encodeURIComponent(hints.municipio ?? '')}${hints.cp ? `&postalcode=${encodeURIComponent(hints.cp)}` : ''}`;
 
+type Geocoder = (query: string, hints: GeocodeHints) => Promise<Found | null>;
+let replacementGeocoder: Geocoder | null = null;
+
+/** For the tests: every address search answers with `geocoder` (no request to the map service) until this is called with null. */
+export function overrideGeocoder(geocoder: Geocoder | null): void { replacementGeocoder = geocoder; }
+
 /**
  * Finds an address only in Spain and, with the town, only a result of that town (trying street, town and postcode apart if the free text
  * fails). Found only elsewhere, the result comes with `fuera` (where it is) and the caller does not save the point.
  */
-export async function geocode(query: string, hints: GeocodeHints = {}): Promise<Found | null> {
+export function geocode(query: string, hints: GeocodeHints = {}): Promise<Found | null> {
+  return replacementGeocoder ? replacementGeocoder(query, hints) : searchAddress(query, hints);
+}
+
+async function searchAddress(query: string, hints: GeocodeHints): Promise<Found | null> {
   const town = geoText(hints.municipio), fits = inTown(town);
   let list = await search(`q=${encodeURIComponent(query)}`);
   let found = list.find(fits);

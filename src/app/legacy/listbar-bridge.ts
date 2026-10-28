@@ -7,12 +7,10 @@ import * as legacyFreeScreensAccounts from '../screens/accounts';
 import * as legacyFreeScreensCustomers from '../screens/customers';
 /**
  * Legacy pieces the list bar still needs (v2.421.0): the icons, the open section of Ventas, Facturación and Productos, the
- * filters of Cuentas and Clientes and their searches, the tools panel and the cache epoch. The page size is read through the
- * global tamPagina each time (the tests replace it).
+ * filters of Cuentas and Clientes and their searches, the tools panel and the cache epoch.
  */
 
 export const listBarLegacy = {
-  pageSize: (): number => tamPagina(),
   userId: (): string => (sessionStore.profile as { id?: string } | null)?.id ?? '',
   /** First icon found among the names (line icons, then emoji ones). */
   icon: (names: readonly string[]): string => svgIco(names.map(name => ICON_NOM[name] ?? ICON_EMOJI[name]).find(Boolean) ?? ''),

@@ -1,6 +1,6 @@
 /**
  * Pages of a list: the page bar («1–20 de 57», ‹ 1 2 3 ›, «Mostrar 20/50/100»), the automatic paging of any list or table with
- * more than 20 rows. Migrated from the legacy pagHTML and paginarListas (v2.416.0); paginarRejilla had no callers and is gone. The page size stays in the legacy tamPagina/fijarTam (the tests replace tamPagina to page by 5).
+ * more than 20 rows. Migrated from the legacy pagHTML and paginarListas (v2.416.0); paginarRejilla had no callers and is gone. The page size is list-bar/page-size (the tests force it with overridePageSize to page by 5).
  */
 import { listsLegacy } from '../../legacy/lists-bridge';
 import { t } from '../../i18n';

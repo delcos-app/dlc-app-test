@@ -8,7 +8,6 @@ declare function respuestaConClavesAntiguas(url: string, response: Response): Pr
 declare function rcLS(key: string): string;
 declare function rcCopia<T>(answer: T): T;
 declare function puedeModuloV2400(screen: string): boolean;
-declare let pintarFranjaPruebas: () => unknown;
 declare const RPC_ESCRITURA: RegExp;
 declare let RECUPERANDO: boolean;
 declare const PERIODOS: readonly (readonly [string, string])[];

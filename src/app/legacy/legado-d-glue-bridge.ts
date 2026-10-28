@@ -32,14 +32,6 @@ import * as legacyFreeComponentsListBar from '../components/list-bar';
 /** The arguments of a function after the first (legacy passes them through as they come). */
 type Tail<T extends readonly unknown[]> = T extends readonly [unknown, ...infer R] ? R : never;
 
-type AnyFunction = (...args: unknown[]) => unknown;
-const globals = window as unknown as Record<string, unknown>;
-
-function wrapGlobal(name: string, wrapper: (original: AnyFunction) => AnyFunction): void {
-  const original = globals[name];
-  if (typeof original === 'function') globals[name] = wrapper(original as AnyFunction);
-}
-
 export const agendaGlueLegacy = {
   closeMonth: (): void => { void legacyFreeScreensAgenda.closeMonth(); },
   dayAppointments: (): AgendaAppointment[] => agendaStore.dayAppointments,
@@ -75,7 +67,6 @@ export const navigationGlueLegacy = {
   refillRoutes: (): void => { void legacyFreeScreensRoutes.refillRepeating(); },
   routeDraft: (): unknown => routesStore.wizard,
   forgetRouteDraft: (): void => { routesStore.wizard = null; },
-  wrapGlobal,
   applyMenuNames: (): void => { legacyFreeCoreNavigationApi.applyMenuNames(); },
   applyMenuNamesSoon: (): void => {
     if (!Object.keys(menuNombres()).length || settingsStore.textsObserverTimer) return;

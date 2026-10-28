@@ -16,7 +16,7 @@ window.delcos.legacyB.releaseDetachedMaps();
 /* ---------------- Configuración: todo se muestra en el panel de la derecha ---------------- */
 // La ventana dentro del panel está en src/app/components/embedded-window (v2.422.0); aquí, en su sitio de siempre, se protege la ventana
 // (va antes que los parches de legado 072)
-window.delcos.components.embeddedWindow.guardPanelDialog($('dlg'));
+window.delcos.components.embeddedWindow.guardPanelDialog(/** @type {HTMLDialogElement} */ (window.delcos.core.byId('dlg')));
 
 /* ---------------- Manual: se explica antes de llevarte a ningún sitio ---------------- */
 

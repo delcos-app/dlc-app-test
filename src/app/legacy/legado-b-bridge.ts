@@ -90,8 +90,6 @@ export const legacyBActions = {
   clearLocalData: (): void => { legacyFreeCoreServices.session.clearLocalData(); },
   showLoadingScreen: (text: string): void => { legacyFreeComponents.showFullLoading(text); },
   hideLoadingScreen: (): void => { legacyFreeComponents.hideFullLoading(); },
-  testStrip: (): (() => unknown) => pintarFranjaPruebas,
-  setTestStrip: (paint: () => unknown): void => { pintarFranjaPruebas = paint; },
   applyBrand: (): void => { legacyFreeCoreSettings.applyBrand(); },
   applyMenuPermissions: (): void => { legacyFreeCoreLayers.applyMenuPermissions([]); },
   refreshBell: (): void => { void legacyFreeCoreServices.live.refreshBell(); },

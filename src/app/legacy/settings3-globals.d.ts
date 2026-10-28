@@ -6,4 +6,3 @@ declare const NOTIF_DIARIOS: readonly string[];
 declare function menuNombres(): Record<string, string>;
 declare const MENU_FUERA: readonly string[];
 
-declare function montarMenuLateral(): void;

@@ -9,10 +9,9 @@ import * as legacyFreeScreensSettings from '../../screens/settings';
 import { navigate } from '../navigation';
 import * as legacyFreeComponents from '../../components';
 import * as legacyFreeCoreServices from '../services';
+import { currentStripPainter, setStripPainter } from '../legacy-a/test-strip';
 
 const STRIP_DELAY_MS = 120;
-type Painter = () => unknown;
-const globals = (): { pintarFranjaPruebas: Painter } => window as unknown as { pintarFranjaPruebas: Painter };
 
 interface RefreshAnswer { ok?: boolean; motivo?: string }
 
@@ -35,8 +34,8 @@ async function bringProduction(button: HTMLButtonElement): Promise<void> {
 
 /** The strip with «Traer los datos de producción» (it runs once if the strip is on screen; the marker replaces it right after). */
 function addBringButton(): void {
-  const previous = globals().pintarFranjaPruebas;
-  globals().pintarFranjaPruebas = async (): Promise<void> => {
+  const previous = currentStripPainter();
+  setStripPainter(async (): Promise<void> => {
     await previous();
     await new Promise(resolve => { setTimeout(resolve, STRIP_DELAY_MS); });
     const reset = byId('prreset'); if (!reset || byId('prtraer')) return;   // without «Volver…» (not responsible) it cannot bring data either
@@ -44,8 +43,8 @@ function addBringButton(): void {
     const point = byId('prpunto'); if (point && !byId('prrefresco')) point.insertAdjacentHTML('afterend', ' <span class="prpunto" id="prrefresco"></span>');
     void legacyFreeScreensSettings.refreshStatus();
     const bring = byId<HTMLButtonElement>('prtraer'); if (bring) bring.onclick = (): void => { void bringProduction(bring); };
-  };
-  if (byId('prreset')) void globals().pintarFranjaPruebas();
+  });
+  if (byId('prreset')) void currentStripPainter()();
 }
 
 /** The «Pruebas» marker next to the logo. */
@@ -64,6 +63,6 @@ export function stripWithBringButton(): void { if (EN_PRUEBAS) addBringButton();
 
 export function markerInsteadOfStrip(): void {
   if (!EN_PRUEBAS) return;
-  globals().pintarFranjaPruebas = paintMarker;
+  setStripPainter(paintMarker);
   paintMarker();
 }

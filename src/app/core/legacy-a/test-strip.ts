@@ -1,6 +1,6 @@
 /**
  * The strip of the test environment (legado 023, v2.424.0): «ENTORNO DE PRUEBAS», when the starting data was saved and, for
- * administration, «↺ Volver a los datos de partida». pintarFranjaPruebas stays as an adapter (legado 018, 035, 040… call it).
+ * administration, «↺ Volver a los datos de partida». The painter in use (the legacy global pintarFranjaPruebas) is the slot below.
  */
 import { notices, term } from '../../legacy/bridge';
 import { testStripLegacy } from '../../legacy/legado-a-bridge';
@@ -46,6 +46,19 @@ async function reset(): Promise<void> {
   try { Object.keys(localStorage).filter(key => key.startsWith('dlc-rc-') || key.startsWith('dlc-jornada-')).forEach(key => { localStorage.removeItem(key); }); } catch { /* no storage */ }
   notices.toast(t('legacyA.testStrip.done')); setTimeout(() => { location.reload(); }, RELOAD_MS);
 }
+
+/** What paints the test environment's strip or marker. */
+export type StripPainter = () => unknown;
+
+// The painter in use (the legacy pintarFranjaPruebas): this base strip, then wrapped in this order by core/boot/test-strip (the
+// reset button only for the person responsible), core/legacy-c/test-environment («Traer los datos de producción») and finally
+// replaced by the «Pruebas» marker next to the logo.
+let currentPainter: StripPainter = paintTestStrip;
+
+export const currentStripPainter = (): StripPainter => currentPainter;
+export function setStripPainter(painter: StripPainter): void { currentPainter = painter; }
+/** Paints the strip with the painter in use (Inicio, when the app is shown). */
+export function paintCurrentStrip(): unknown { return currentPainter(); }
 
 /** Paints the strip (only in the test environment). */
 export function paintTestStrip(): void {

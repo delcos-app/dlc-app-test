@@ -86,7 +86,7 @@ export function pager(element: HTMLElement | null, position: { total: number; pa
   if (!element) return;
   const { total, page } = position, { onPage, onSize } = handlers;
   if (element.id) document.querySelectorAll(`#${element.id}`).forEach(other => { if (other !== element) other.remove(); });
-  const size = tamPagina();
+  const size = legacyFreeComponentsListBar.storedPageSize();
   if (total <= (TAMANOS[0] ?? 0)) { element.innerHTML = ''; return; }
   element.innerHTML = legacyFreeComponentsList.pageHtml(total, page, size);
   element.querySelectorAll<HTMLElement>('[data-pg]').forEach(button => { button.onclick = (): void => { onPage(Number(button.dataset.pg)); }; });

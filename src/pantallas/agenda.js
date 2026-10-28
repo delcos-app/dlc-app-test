@@ -100,7 +100,7 @@ let AG_SEMANA = null;
    - En el móvil: cifras en 2 × 2, la cinta semana a semana (deslizando), «Registrar» a todo el ancho. */
 const citaAnulada = e => EST_COL[e] === 'var(--muted)';
 
-const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
+const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!window.delcos.core.byId('v-agenda');
 
  // v2.440.0: CINTA_INI → estado de src/app (plan 6.6), accesible en window
 
@@ -128,7 +128,7 @@ const citaHecha = e => EST_COL[e] === 'var(--ok)';
 // Estados de una cita sin escribir sus nombres (la prueba de literales los cuenta): por su color
 const citaAusente = e => EST_COL[e] === 'var(--warn)' && !CITA_ABIERTA.includes(e);   // «no estaba»
 
-const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
+const agN = () => agConCinta() && window.delcos.core.byId('v-agenda').classList.contains('agn');
 
 // Quién ya tiene cita ese día (no se le propone)
 

@@ -7801,6 +7801,163 @@
     steady: () => steady
   });
 
+  // src/app/core/legacy-c/side-menu.ts
+  var visible = (button3) => getComputedStyle(button3).display !== "none";
+  var shownSection = (button3) => !button3.classList.contains("hide") && !button3.classList.contains("mloculto") && button3.dataset.t !== "seguimiento" && visible(button3);
+  var isPortal = () => {
+    try {
+      return ES_MEDICO();
+    } catch {
+      return false;
+    }
+  };
+  var hiddenSections = () => menuPrefs().ocultos ?? [];
+  function wantsSideMenu(nav) {
+    const shown3 = [...nav.querySelectorAll("button[data-t]")].filter((button3) => !button3.classList.contains("hide") && button3.dataset.t !== "seguimiento" && button3.style.display !== "none" && (button3.classList.contains("mloculto") || visible(button3) || document.body.classList.contains("menulat")));
+    return menuEscritorio() && Boolean(sessionStore.profile) && !isPortal() && shown3.length > 1;
+  }
+  function paintBrand2(nav) {
+    if (!nav.querySelector(".mlmarca")) {
+      const logo = document.querySelector("header .logo")?.src ?? "./logo-app.png";
+      nav.insertAdjacentHTML("afterbegin", `<div class="mlmarca"><img src="${escapeHtml(logo)}" alt=""><b class="mllab"></b></div>`);
+    }
+    const brand = settingsStore.settings.marca || {};
+    const name = nav.querySelector(".mlmarca b");
+    if (name) name.textContent = brand.nombre ? brand.nombre : document.title;
+  }
+  function placeGroups(nav) {
+    const fixed = MENU_FIJO;
+    [...menuGroups(), fixed].forEach((group) => {
+      let box3 = nav.querySelector(`.mlgrupo[data-g="${group.id}"]`);
+      if (!box3) {
+        nav.insertAdjacentHTML("beforeend", `<div class="mlgrupo${group === fixed ? " fijo" : ""}" data-g="${group.id}"><div class="mltit">${escapeHtml(group.t)}</div><div class="mlbs"></div></div>`);
+        box3 = nav.querySelector(`.mlgrupo[data-g="${group.id}"]`);
+      }
+      if (!box3) return;
+      nav.appendChild(box3);
+      const buttons = box3.querySelector(".mlbs");
+      group.items.forEach((key) => {
+        const button3 = nav.querySelector(`button[data-t="${key}"]`);
+        if (button3) buttons?.appendChild(button3);
+      });
+    });
+  }
+  function labelButtons(buttons) {
+    const hidden = hiddenSections(), fixed = MENU_FIJO.items;
+    buttons.forEach((button3) => {
+      button3.classList.toggle("mloculto", hidden.includes(button3.dataset.t ?? "") && !fixed.includes(button3.dataset.t ?? "") && button3.dataset.t !== "inicio");
+      const texts2 = [...button3.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim());
+      if (texts2.length) {
+        const text = texts2.map((node) => node.textContent ?? "").join("").trim();
+        texts2.forEach((node) => {
+          node.remove();
+        });
+        const label = button3.querySelector(".mllab");
+        if (label) label.textContent = text;
+        else button3.insertAdjacentHTML("beforeend", `<span class="mllab">${escapeHtml(text)}</span>`);
+      }
+      button3.dataset.tip = (button3.querySelector(".mllab") ?? button3).textContent?.trim() ?? "";
+      button3.setAttribute("aria-label", button3.dataset.tip);
+    });
+  }
+  function paintFooter(nav) {
+    if (!nav.querySelector(".mlpie")) {
+      nav.insertAdjacentHTML("beforeend", `<div class="mlpie">
+      <button type="button" class="mlitem" id="mlcfg" data-tip="${t("legacyC.sideMenu.settings")}" aria-label="${t("legacyC.sideMenu.settings")}">${svgIco(ICON_NOM.settings ?? "")}<span class="mllab">${t("legacyC.sideMenu.settings")}</span></button>
+      <button type="button" class="mlitem" id="mlpers" data-tip="${t("legacyC.sideMenu.customise")}" aria-label="${t("legacyC.sideMenu.customise")}">${svgIco(ICON_NOM["sliders-horizontal"] ?? "")}<span class="mllab">${t("legacyC.sideMenu.customise")}</span></button>
+      <button type="button" class="mlplegar" id="mlplegar" aria-label="${t("legacyC.sideMenu.foldLabel")}">${svgIco(ICO_PLEGAR)}</button></div>`);
+      const settings2 = byId("mlcfg"), customise = byId("mlpers"), fold2 = byId("mlplegar");
+      if (settings2) settings2.onclick = () => {
+        navigate("config");
+      };
+      if (customise) customise.onclick = (event) => {
+        event.stopPropagation();
+        customiseDesktopMenu();
+      };
+      if (fold2) fold2.onclick = () => {
+        const folded = !document.body.classList.contains("menupleg");
+        try {
+          localStorage.setItem("dlc-menu-plegado", folded ? "1" : "0");
+        } catch {
+        }
+        document.body.classList.toggle("menupleg", folded);
+        menuTip(null);
+        navigationStore.menuSignature = "";
+        mountSideMenu();
+      };
+    }
+    const footer = nav.querySelector(".mlpie");
+    if (footer) nav.appendChild(footer);
+    const userSettings = document.querySelector('#umenu [data-u="cfg"]');
+    byId("mlcfg")?.classList.toggle("hide", !userSettings || userSettings.classList.contains("hide"));
+    const fold = byId("mlplegar");
+    if (fold) fold.dataset.tip = t(document.body.classList.contains("menupleg") ? "legacyC.sideMenu.unfold" : "legacyC.sideMenu.fold");
+  }
+  var markEmptyGroups = (nav) => {
+    nav.querySelectorAll(".mlgrupo").forEach((group) => {
+      group.classList.toggle("vacio", ![...group.querySelectorAll("button[data-t]")].some(shownSection));
+    });
+  };
+  function buildSideMenu(nav) {
+    document.body.classList.toggle("menupleg", menuPlegado());
+    const buttons = [...nav.querySelectorAll("button[data-t]")];
+    const signature = buttons.map((button3) => `${button3.dataset.t ?? ""}${button3.classList.contains("hide") ? "-" : "+"}${(button3.textContent ?? "").trim()}`).join("|") + JSON.stringify(menuPrefs()) + String(document.body.classList.contains("menupleg"));
+    if (signature === navigationStore.menuSignature && nav.querySelector(".mlmarca")) return;
+    navigationStore.menuSignature = signature;
+    paintBrand2(nav);
+    placeGroups(nav);
+    labelButtons(buttons);
+    markEmptyGroups(nav);
+    paintFooter(nav);
+  }
+  function markOutOfPlan(nav) {
+    const hidden = hiddenSections();
+    nav.querySelectorAll("button[data-t]").forEach((button3) => {
+      if (session_exports.outOfPlan(button3)) {
+        if (!button3.classList.contains("mlplan")) button3.classList.add("mlplan");
+        if (!button3.classList.contains("mloculto")) button3.classList.add("mloculto");
+      } else if (button3.classList.contains("mlplan")) {
+        button3.classList.remove("mlplan");
+        if (!hidden.includes(button3.dataset.t ?? "")) button3.classList.remove("mloculto");
+      }
+    });
+    markEmptyGroups(nav);
+  }
+  var afterMount = null;
+  function setAfterSideMenuMount(hook) {
+    afterMount = hook;
+  }
+  function mountSideMenu() {
+    buildMenu();
+    if (afterMount) {
+      try {
+        afterMount();
+      } catch {
+      }
+    }
+  }
+  function buildMenu() {
+    const nav = byId("nav");
+    if (nav) {
+      const side = wantsSideMenu(nav);
+      document.body.classList.toggle("menulat", side);
+      if (side) buildSideMenu(nav);
+    }
+    placeTestBadge();
+    if (!nav || !document.body.classList.contains("menulat")) return;
+    markOutOfPlan(nav);
+  }
+  function watchSideMenu() {
+    document.addEventListener("mouseover", (event) => {
+      const button3 = event.target instanceof Element ? event.target.closest("nav.main [data-tip]") : null;
+      menuTip(button3);
+    });
+    observe(byId("nav"), menuRehacer, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    addEventListener("resize", menuRehacer);
+    observe(byId("app"), menuRehacer, { attributes: true, attributeFilter: ["class"] });
+    menuRehacer();
+  }
+
   // src/app/core/navigation/menu/groups.ts
   var FOLD_BELOW = 1440;
   var DESKTOP_FROM = 900;
@@ -7831,7 +7988,7 @@
     if (redoFrame) return;
     redoFrame = requestAnimationFrame(() => {
       redoFrame = 0;
-      montarMenuLateral();
+      mountSideMenu();
     });
   }
   function orderedItems(group, prefs) {
@@ -8012,7 +8169,7 @@
     const draft = session2.draft;
     sessionStore.profile.preferencias = menuWith(session2, { orden: [...draft.orden], items: JSON.parse(JSON.stringify(draft.items)), ocultos: [...draft.ocultos] });
     navigationStore.menuSignature = "";
-    montarMenuLateral();
+    mountSideMenu();
   }
   function lockOutOfPlan(box3) {
     box3.querySelectorAll(".mlpi[data-k]").forEach((row3) => {
@@ -8051,7 +8208,7 @@
     if (!session2.saved) {
       sessionStore.profile.preferencias = session2.original;
       navigationStore.menuSignature = "";
-      montarMenuLateral();
+      mountSideMenu();
     }
     document.getElementById("mlpers")?.focus();
   }
@@ -8069,7 +8226,7 @@
     session2.saved = true;
     close(session2);
     navigationStore.menuSignature = "";
-    montarMenuLateral();
+    mountSideMenu();
     toast(t("navigationCore.menu.saved"), false);
   }
   function onClick(session2, event) {
@@ -8864,6 +9021,7 @@
     mountPeriod: () => mountPeriod2,
     openTools: () => openTools2,
     paintConnection: () => paintConnection2,
+    paintCurrentStrip: () => paintCurrentStrip,
     paintTestStrip: () => paintTestStrip,
     patchClassList: () => patchClassList,
     readLinkError: () => readLinkError,
@@ -9900,6 +10058,7 @@
     indicatorsHtml: () => indicatorsHtml2,
     loadIndicators: () => loadIndicators,
     observe: () => observe2,
+    overridePageSize: () => overridePageSize,
     savePageSize: () => savePageSize,
     sections: () => sections,
     startBlocks: () => startBlocks,
@@ -14183,7 +14342,6 @@
 
   // src/app/legacy/listbar-bridge.ts
   var listBarLegacy = {
-    pageSize: () => tamPagina(),
     userId: () => sessionStore.profile?.id ?? "",
     /** First icon found among the names (line icons, then emoji ones). */
     icon: (names) => svgIco(names.map((name) => ICON_NOM[name] ?? ICON_EMOJI[name]).find(Boolean) ?? ""),
@@ -16555,8 +16713,13 @@
   // src/app/components/list-bar/page-size.ts
   var PAGE_SIZES = [20, 50, 100];
   var DEFAULT_SIZE = 20;
+  var forcedSize = null;
   var storageKey2 = () => `dlc-tam-${listBarLegacy.userId()}`;
+  function overridePageSize(size) {
+    forcedSize = size;
+  }
   function storedPageSize() {
+    if (forcedSize !== null) return forcedSize;
     let size = 0;
     try {
       size = Number(localStorage.getItem(storageKey2()));
@@ -16588,7 +16751,7 @@
 
   // src/app/legacy/lists-bridge.ts
   var listsLegacy = {
-    pageSize: () => tamPagina(),
+    pageSize: () => storedPageSize(),
     setPageSize: (size) => {
       savePageSize(size);
     },
@@ -21058,7 +21221,7 @@
     },
     inTestEnvironment: () => EN_PRUEBAS,
     paintTestStrip: () => {
-      pintarFranjaPruebas();
+      void paintCurrentStrip();
     },
     paintImpersonationBar: () => {
       session_exports.paintImpersonationBar();
@@ -22163,6 +22326,14 @@
     setTimeout(() => {
       location.reload();
     }, RELOAD_MS2);
+  }
+  var currentPainter = paintTestStrip;
+  var currentStripPainter = () => currentPainter;
+  function setStripPainter(painter) {
+    currentPainter = painter;
+  }
+  function paintCurrentStrip() {
+    return currentPainter();
   }
   function paintTestStrip() {
     if (!testStripLegacy.inTests()) return;
@@ -24666,10 +24837,6 @@
     hideLoadingScreen: () => {
       hideFullLoading();
     },
-    testStrip: () => pintarFranjaPruebas,
-    setTestStrip: (paint9) => {
-      pintarFranjaPruebas = paint9;
-    },
     applyBrand: () => {
       applyBrand();
     },
@@ -25086,9 +25253,9 @@
   }
   function guardTestReset() {
     if (!legacyBState.inTests()) return;
-    const original = legacyBActions.testStrip();
-    legacyBActions.setTestStrip(() => paintStrip(original));
-    if (document.getElementById("prreset")) void legacyBActions.testStrip()();
+    const original = currentStripPainter();
+    setStripPainter(() => paintStrip(original));
+    if (document.getElementById("prreset")) void currentStripPainter()();
   }
 
   // src/app/core/boot/entry-points.ts
@@ -26104,7 +26271,7 @@
     paintBottomBar([]);
     navigationStore.menuSignature = "";
     try {
-      montarMenuLateral();
+      mountSideMenu();
     } catch {
     }
     toast(t("navigationCore.menu.saved"), false);
@@ -27314,7 +27481,7 @@
     if (element.id) document.querySelectorAll(`#${element.id}`).forEach((other) => {
       if (other !== element) other.remove();
     });
-    const size = tamPagina();
+    const size = storedPageSize();
     if (total <= (TAMANOS[0] ?? 0)) {
       element.innerHTML = "";
       return;
@@ -27681,7 +27848,7 @@
       applyMenuNames();
       navigationStore.menuSignature = "";
       try {
-        montarMenuLateral();
+        mountSideMenu();
         paintBottomBar([]);
       } catch {
       }
@@ -30883,11 +31050,6 @@
   var loadRoutesPage = fromChunk10("loadRoutesPage");
 
   // src/app/legacy/legado-d-glue-bridge.ts
-  var globals = window;
-  function wrapGlobal(name, wrapper) {
-    const original = globals[name];
-    if (typeof original === "function") globals[name] = wrapper(original);
-  }
   var agendaGlueLegacy = {
     closeMonth: () => {
       void closeMonth();
@@ -30950,7 +31112,6 @@
     forgetRouteDraft: () => {
       routesStore.wizard = null;
     },
-    wrapGlobal,
     applyMenuNames: () => {
       applyMenuNames();
     },
@@ -31458,13 +31619,8 @@
     }, true);
   }
   function installMenuNames() {
-    navigationGlueLegacy.wrapGlobal("montarMenuLateral", (original) => function(...args) {
-      const result = original.apply(this, args);
-      try {
-        navigationGlueLegacy.applyMenuNames();
-      } catch {
-      }
-      return result;
+    setAfterSideMenuMount(() => {
+      navigationGlueLegacy.applyMenuNames();
     });
     new MutationObserver(() => {
       navigationGlueLegacy.applyMenuNamesSoon();
@@ -35246,7 +35402,7 @@
     });
     quietly(() => {
       navigationStore.menuSignature = "";
-      montarMenuLateral();
+      mountSideMenu();
     });
     try {
       localStorage.setItem("dlc-modo", navigationStore.platformMode ? "plataforma" : "empresa");
@@ -35254,153 +35410,8 @@
     }
   }
 
-  // src/app/core/legacy-c/side-menu.ts
-  var visible = (button3) => getComputedStyle(button3).display !== "none";
-  var shownSection = (button3) => !button3.classList.contains("hide") && !button3.classList.contains("mloculto") && button3.dataset.t !== "seguimiento" && visible(button3);
-  var isPortal = () => {
-    try {
-      return ES_MEDICO();
-    } catch {
-      return false;
-    }
-  };
-  var hiddenSections = () => menuPrefs().ocultos ?? [];
-  function wantsSideMenu(nav) {
-    const shown3 = [...nav.querySelectorAll("button[data-t]")].filter((button3) => !button3.classList.contains("hide") && button3.dataset.t !== "seguimiento" && button3.style.display !== "none" && (button3.classList.contains("mloculto") || visible(button3) || document.body.classList.contains("menulat")));
-    return menuEscritorio() && Boolean(sessionStore.profile) && !isPortal() && shown3.length > 1;
-  }
-  function paintBrand2(nav) {
-    if (!nav.querySelector(".mlmarca")) {
-      const logo = document.querySelector("header .logo")?.src ?? "./logo-app.png";
-      nav.insertAdjacentHTML("afterbegin", `<div class="mlmarca"><img src="${escapeHtml(logo)}" alt=""><b class="mllab"></b></div>`);
-    }
-    const brand = settingsStore.settings.marca || {};
-    const name = nav.querySelector(".mlmarca b");
-    if (name) name.textContent = brand.nombre ? brand.nombre : document.title;
-  }
-  function placeGroups(nav) {
-    const fixed = MENU_FIJO;
-    [...menuGroups(), fixed].forEach((group) => {
-      let box3 = nav.querySelector(`.mlgrupo[data-g="${group.id}"]`);
-      if (!box3) {
-        nav.insertAdjacentHTML("beforeend", `<div class="mlgrupo${group === fixed ? " fijo" : ""}" data-g="${group.id}"><div class="mltit">${escapeHtml(group.t)}</div><div class="mlbs"></div></div>`);
-        box3 = nav.querySelector(`.mlgrupo[data-g="${group.id}"]`);
-      }
-      if (!box3) return;
-      nav.appendChild(box3);
-      const buttons = box3.querySelector(".mlbs");
-      group.items.forEach((key) => {
-        const button3 = nav.querySelector(`button[data-t="${key}"]`);
-        if (button3) buttons?.appendChild(button3);
-      });
-    });
-  }
-  function labelButtons(buttons) {
-    const hidden = hiddenSections(), fixed = MENU_FIJO.items;
-    buttons.forEach((button3) => {
-      button3.classList.toggle("mloculto", hidden.includes(button3.dataset.t ?? "") && !fixed.includes(button3.dataset.t ?? "") && button3.dataset.t !== "inicio");
-      const texts2 = [...button3.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim());
-      if (texts2.length) {
-        const text = texts2.map((node) => node.textContent ?? "").join("").trim();
-        texts2.forEach((node) => {
-          node.remove();
-        });
-        const label = button3.querySelector(".mllab");
-        if (label) label.textContent = text;
-        else button3.insertAdjacentHTML("beforeend", `<span class="mllab">${escapeHtml(text)}</span>`);
-      }
-      button3.dataset.tip = (button3.querySelector(".mllab") ?? button3).textContent?.trim() ?? "";
-      button3.setAttribute("aria-label", button3.dataset.tip);
-    });
-  }
-  function paintFooter(nav) {
-    if (!nav.querySelector(".mlpie")) {
-      nav.insertAdjacentHTML("beforeend", `<div class="mlpie">
-      <button type="button" class="mlitem" id="mlcfg" data-tip="${t("legacyC.sideMenu.settings")}" aria-label="${t("legacyC.sideMenu.settings")}">${svgIco(ICON_NOM.settings ?? "")}<span class="mllab">${t("legacyC.sideMenu.settings")}</span></button>
-      <button type="button" class="mlitem" id="mlpers" data-tip="${t("legacyC.sideMenu.customise")}" aria-label="${t("legacyC.sideMenu.customise")}">${svgIco(ICON_NOM["sliders-horizontal"] ?? "")}<span class="mllab">${t("legacyC.sideMenu.customise")}</span></button>
-      <button type="button" class="mlplegar" id="mlplegar" aria-label="${t("legacyC.sideMenu.foldLabel")}">${svgIco(ICO_PLEGAR)}</button></div>`);
-      const settings2 = byId("mlcfg"), customise = byId("mlpers"), fold2 = byId("mlplegar");
-      if (settings2) settings2.onclick = () => {
-        navigate("config");
-      };
-      if (customise) customise.onclick = (event) => {
-        event.stopPropagation();
-        customiseDesktopMenu();
-      };
-      if (fold2) fold2.onclick = () => {
-        const folded = !document.body.classList.contains("menupleg");
-        try {
-          localStorage.setItem("dlc-menu-plegado", folded ? "1" : "0");
-        } catch {
-        }
-        document.body.classList.toggle("menupleg", folded);
-        menuTip(null);
-        navigationStore.menuSignature = "";
-        montarMenuLateral();
-      };
-    }
-    const footer = nav.querySelector(".mlpie");
-    if (footer) nav.appendChild(footer);
-    const userSettings = document.querySelector('#umenu [data-u="cfg"]');
-    byId("mlcfg")?.classList.toggle("hide", !userSettings || userSettings.classList.contains("hide"));
-    const fold = byId("mlplegar");
-    if (fold) fold.dataset.tip = t(document.body.classList.contains("menupleg") ? "legacyC.sideMenu.unfold" : "legacyC.sideMenu.fold");
-  }
-  var markEmptyGroups = (nav) => {
-    nav.querySelectorAll(".mlgrupo").forEach((group) => {
-      group.classList.toggle("vacio", ![...group.querySelectorAll("button[data-t]")].some(shownSection));
-    });
-  };
-  function buildSideMenu(nav) {
-    document.body.classList.toggle("menupleg", menuPlegado());
-    const buttons = [...nav.querySelectorAll("button[data-t]")];
-    const signature = buttons.map((button3) => `${button3.dataset.t ?? ""}${button3.classList.contains("hide") ? "-" : "+"}${(button3.textContent ?? "").trim()}`).join("|") + JSON.stringify(menuPrefs()) + String(document.body.classList.contains("menupleg"));
-    if (signature === navigationStore.menuSignature && nav.querySelector(".mlmarca")) return;
-    navigationStore.menuSignature = signature;
-    paintBrand2(nav);
-    placeGroups(nav);
-    labelButtons(buttons);
-    markEmptyGroups(nav);
-    paintFooter(nav);
-  }
-  function markOutOfPlan(nav) {
-    const hidden = hiddenSections();
-    nav.querySelectorAll("button[data-t]").forEach((button3) => {
-      if (session_exports.outOfPlan(button3)) {
-        if (!button3.classList.contains("mlplan")) button3.classList.add("mlplan");
-        if (!button3.classList.contains("mloculto")) button3.classList.add("mloculto");
-      } else if (button3.classList.contains("mlplan")) {
-        button3.classList.remove("mlplan");
-        if (!hidden.includes(button3.dataset.t ?? "")) button3.classList.remove("mloculto");
-      }
-    });
-    markEmptyGroups(nav);
-  }
-  function mountSideMenu() {
-    const nav = byId("nav");
-    if (nav) {
-      const side = wantsSideMenu(nav);
-      document.body.classList.toggle("menulat", side);
-      if (side) buildSideMenu(nav);
-    }
-    placeTestBadge();
-    if (!nav || !document.body.classList.contains("menulat")) return;
-    markOutOfPlan(nav);
-  }
-  function watchSideMenu() {
-    document.addEventListener("mouseover", (event) => {
-      const button3 = event.target instanceof Element ? event.target.closest("nav.main [data-tip]") : null;
-      menuTip(button3);
-    });
-    observe(byId("nav"), menuRehacer, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
-    addEventListener("resize", menuRehacer);
-    observe(byId("app"), menuRehacer, { attributes: true, attributeFilter: ["class"] });
-    menuRehacer();
-  }
-
   // src/app/core/legacy-c/test-environment.ts
   var STRIP_DELAY_MS = 120;
-  var globals2 = () => window;
   function failureText11(answer, failed4) {
     const reason = answer ? MOTIVO_REFRESCO[answer.motivo ?? ""] : void 0;
     return reason ?? t("legacyC.testEnvironment.couldNotStart") + (failed4 && !answer ? t("legacyC.testEnvironment.missingFunction") : "");
@@ -35426,8 +35437,8 @@
     void refreshStatus();
   }
   function addBringButton() {
-    const previous = globals2().pintarFranjaPruebas;
-    globals2().pintarFranjaPruebas = async () => {
+    const previous = currentStripPainter();
+    setStripPainter(async () => {
       await previous();
       await new Promise((resolve) => {
         setTimeout(resolve, STRIP_DELAY_MS);
@@ -35442,8 +35453,8 @@
       if (bring) bring.onclick = () => {
         void bringProduction(bring);
       };
-    };
-    if (byId("prreset")) void globals2().pintarFranjaPruebas();
+    });
+    if (byId("prreset")) void currentStripPainter()();
   }
   function paintMarker() {
     byId("franjapruebas")?.remove();
@@ -35463,7 +35474,7 @@
   }
   function markerInsteadOfStrip() {
     if (!EN_PRUEBAS) return;
-    globals2().pintarFranjaPruebas = paintMarker;
+    setStripPainter(paintMarker);
     paintMarker();
   }
 
@@ -36575,6 +36586,7 @@
     navigateTo: () => navigateTo,
     navigationAttribute: () => navigationAttribute,
     openApp: () => openApp2,
+    overrideGeocoder: () => overrideGeocoder,
     reverseGeocode: () => reverseGeocode,
     webLink: () => webLink
   });
@@ -36699,7 +36711,14 @@
     }
   }
   var byParts = (street, hints) => `street=${encodeURIComponent(street)}&city=${encodeURIComponent(hints.municipio ?? "")}${hints.cp ? `&postalcode=${encodeURIComponent(hints.cp)}` : ""}`;
-  async function geocode(query, hints = {}) {
+  var replacementGeocoder = null;
+  function overrideGeocoder(geocoder) {
+    replacementGeocoder = geocoder;
+  }
+  function geocode(query, hints = {}) {
+    return replacementGeocoder ? replacementGeocoder(query, hints) : searchAddress(query, hints);
+  }
+  async function searchAddress(query, hints) {
     const town = geoText(hints.municipio), fits = inTown(town);
     let list = await search4(`q=${encodeURIComponent(query)}`);
     let found = list.find(fits);
@@ -38726,7 +38745,7 @@
     sortKey: (column) => ORD_DIR[column],
     fieldChips: (state) => filterChips("medico", state),
     contactsLabel: () => vocabulary_exports.contactsLabel(),
-    pageSize: () => tamPagina(),
+    pageSize: () => storedPageSize(),
     paginate: (options3) => {
       pager(options3.element, { total: options3.total, page: options3.page }, { onPage: options3.onPage, onSize: options3.onSize });
     }
@@ -38855,7 +38874,7 @@
     }
   };
   var qualityLegacy = {
-    geocode: (query, hints) => geocodificar(query, hints),
+    geocode: (query, hints) => maps_exports.geocode(query, hints),
     /** The «Descargar» entry of the tools menu calls window.__dlSeg (legado 014). */
     setExport: (exporter) => {
       Reflect.set(window, "__dlSeg", exporter);
@@ -40200,11 +40219,8 @@ const vistaIgual = (a, b) => window.delcos.nav.sameView(a, b);
 
 const ERRORES_SESION = window.delcos.core.session.SESSION_ERRORS;
 // @ts-check
-// nucleo/utilidades.js · está en src/app/core/utilities.ts y core/vocabulary.ts (v2.425.0). Estos nombres se quedan: todo el código viejo
-// los usa. Normas: docs/normas_codigo.md.
-
-/** Elemento por id. Devuelve any: cada id es un tipo distinto (dialog, input, select…) y se resuelve al ejecutar. @type {(id: string) => any} */
-function $(id) { return window.delcos.core.byId(id); }
+// nucleo/utilidades.js · está en src/app/core/utilities.ts y core/vocabulary.ts (v2.425.0). Queda temporizador, el reloj de la
+// búsqueda que comparte el puente legado-a. Normas: docs/normas_codigo.md.
 
 let temporizador;
 // @ts-check
@@ -40350,9 +40366,8 @@ const ES_IMPORTE = window.delcos.core.money.AMOUNT_FIELD;
 
 // «Estoy aquí»: primero los centros que ya tenemos a menos de 250 m; si no, centro nuevo con los datos del mapa
 // Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
-function geocodificar(q, o) { return window.delcos.core.maps.geocode(q, o); }
 
-async function rutasMapa(...a) { if (RN) return; const r = await window.delcos.screens.routes.loadDayMap(); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; }
+async function rutasMapa(...a) { if (RN) return; const r = await window.delcos.screens.routes.loadDayMap(); const m = window.delcos.core.byId('rmapa'), g = window.delcos.core.byId('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; }
 
 // El mapa de Cuentas está en src/app/screens/accounts/map (v2.414.0); el nombre se queda: lo llama «Ver mapa» (legado 006).
 // @ts-check
@@ -40557,8 +40572,8 @@ const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visita
 // data-pagina (Diseño del PDF) y cuenta como página.
 const PAG_GUARDA = [
   // toda la página del apartado (también la ventana encajada, p. ej. Diseño del PDF)
-  { tab: 'config', cab: () => document.querySelector('#v-config .cfucab'), cuerpo: () => document.querySelector('#v-config .cfupag') || $('cfgcuerpo-hub') },
-  { tab: 'facturacion', cab: () => document.querySelector('#v-facturacion .cfgsubs') && document.querySelector('#v-facturacion > .saludo'), cuerpo: () => $('fcuerpo') },
+  { tab: 'config', cab: () => document.querySelector('#v-config .cfucab'), cuerpo: () => document.querySelector('#v-config .cfupag') || window.delcos.core.byId('cfgcuerpo-hub') },
+  { tab: 'facturacion', cab: () => document.querySelector('#v-facturacion .cfgsubs') && document.querySelector('#v-facturacion > .saludo'), cuerpo: () => window.delcos.core.byId('fcuerpo') },
 ];
 
 // Lo que no cambia datos no activa «Guardar»: buscadores y filtros de la página
@@ -40653,8 +40668,6 @@ const PL = window.delcos.components.listBar.configs;
 const PL_SECC = window.delcos.components.listBar.sections;
 const BLQ = window.delcos.components.listBar.blocks;
 const TAMANOS = window.delcos.components.listBar.PAGE_SIZES;
-// Las pruebas cambian tamPagina para paginar de 5 en 5: las listas la leen siempre por este nombre
-function tamPagina() { return window.delcos.components.listBar.storedPageSize(); }
 
 // Las piezas comunes de las listas están en src/app/components/list (v2.416.0). Estos nombres se quedan: el motor de la barra
 // de listas (PL, plSync), el panel «Filtros y columnas», otras pantallas antiguas y las pruebas los usan.
@@ -40818,7 +40831,7 @@ let AG_SEMANA = null;
    - En el móvil: cifras en 2 × 2, la cinta semana a semana (deslizando), «Registrar» a todo el ancho. */
 const citaAnulada = e => EST_COL[e] === 'var(--muted)';
 
-const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
+const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!window.delcos.core.byId('v-agenda');
 
  // v2.440.0: CINTA_INI → estado de src/app (plan 6.6), accesible en window
 
@@ -40846,7 +40859,7 @@ const citaHecha = e => EST_COL[e] === 'var(--ok)';
 // Estados de una cita sin escribir sus nombres (la prueba de literales los cuenta): por su color
 const citaAusente = e => EST_COL[e] === 'var(--warn)' && !CITA_ABIERTA.includes(e);   // «no estaba»
 
-const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
+const agN = () => agConCinta() && window.delcos.core.byId('v-agenda').classList.contains('agn');
 
 // Quién ya tiene cita ese día (no se le propone)
 
@@ -41106,7 +41119,7 @@ const UDS_SERIES = [['semana', window.delcos.t('legacyTexts.billingSettings.week
 
  // v2.440.0: FSEC → estado de src/app (plan 6.6), accesible en window
 
-const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
+const fac = fn => () => { window.delcos.core.byId('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 
 const FAC_CONFIG = [['empresa', window.delcos.t('legacyTexts.billingSettings.companyData')], ['series', window.delcos.t('legacyTexts.billingSettings.series')], ['verifactu', 'VeriFactu'], ['registro', window.delcos.t('legacyTexts.billingSettings.log')]];
 
@@ -41118,7 +41131,7 @@ const FAC_CONFIG = [['empresa', window.delcos.t('legacyTexts.billingSettings.com
    se abren dentro del área de contenido, no por encima. */
 // Las pestañas de facturación usan #fcuerpo, como el módulo Facturación: su pantalla se vacía para no tener dos (se rehace al volver)
 
-const facOrg = fn => () => { const v = $('v-facturacion'); if (v) v.innerHTML = ''; fac(fn)(); };
+const facOrg = fn => () => { const v = window.delcos.core.byId('v-facturacion'); if (v) v.innerHTML = ''; fac(fn)(); };
 
 const facSinPlan = () => { try { return !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; } };
 
@@ -41735,13 +41748,12 @@ window.delcos.legacyA.listenToDayMenus();
 /* ============================================================
    DLC OS 2.0 · v2.24.1 · Entorno de pruebas
    v2.424.0: la franja del entorno de pruebas está en src/app/core/legacy-a/test-strip.ts y su ayuda, en legacy-a-help.ts.
-   pintarFranjaPruebas se queda: Inicio, legado 035, 040 y otros la llaman.
+   Quién la pinta en cada momento (la franja, con sus botones, y luego la marca «Pruebas») está en esa misma pieza.
    ============================================================ */
 
 const EN_PRUEBAS = CFG.entorno === 'pruebas';
-function pintarFranjaPruebas() { window.delcos.legacyA.paintTestStrip(); }
 if (EN_PRUEBAS) {
-  pintarFranjaPruebas();
+  window.delcos.legacyA.paintTestStrip();
 }
 // @ts-check
 /* ============================================================
@@ -42080,7 +42092,7 @@ window.delcos.legacyB.releaseDetachedMaps();
 /* ---------------- Configuración: todo se muestra en el panel de la derecha ---------------- */
 // La ventana dentro del panel está en src/app/components/embedded-window (v2.422.0); aquí, en su sitio de siempre, se protege la ventana
 // (va antes que los parches de legado 072)
-window.delcos.components.embeddedWindow.guardPanelDialog($('dlg'));
+window.delcos.components.embeddedWindow.guardPanelDialog(/** @type {HTMLDialogElement} */ (window.delcos.core.byId('dlg')));
 
 /* ---------------- Manual: se explica antes de llevarte a ningún sitio ---------------- */
 
@@ -42335,10 +42347,8 @@ window.delcos.legacyC.start073();
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start074();
 // @ts-check
-// legado 075 · v2.152.0 notificaciones, extras, errores y suscripción: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
-// y los nombres que siguen usando otros archivos o las pruebas.
+// legado 075 · v2.152.0 notificaciones, extras, errores y suscripción: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga.
 window.delcos.legacyC.start075();
-function montarMenuLateral() { return window.delcos.legacyC.mountSideMenu(); }
 // @ts-check
 // legado 076 · v2.166.0 baja, vuelta de Stripe, altas y Panel delcos: plegado en src/app/core/legacy-c (v2.425.0). Aquí queda su arranque, en el mismo sitio del orden de carga,
 // y los nombres que siguen usando otros archivos o las pruebas.
@@ -42386,7 +42396,7 @@ window.delcos.layers.installFloatingButton();
 // @ts-check
 // «Equipo», el orden de las tablas y el que viaja con la consulta: en src/app/core/layers (v2.424.0).
 window.delcos.layers.installTeamToggle();
-async function pintarSinAtribuir() { const c = $('cardsinatr'); if (c) c.remove(); }
+async function pintarSinAtribuir() { const c = window.delcos.core.byId('cardsinatr'); if (c) c.remove(); }
 window.delcos.layers.installTableSort();
 window.delcos.layers.installOrderParameter();
 document.addEventListener('change', e => { if (e.target && /** @type {HTMLElement} */ (e.target).id === 'popf') window.delcos.screens.orders.markChosenCard(); });

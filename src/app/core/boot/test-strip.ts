@@ -6,6 +6,7 @@
 import { notices } from '../../legacy/bridge';
 import { legacyBActions, legacyBState } from '../../legacy/legado-b-bridge';
 import { t } from '../../i18n';
+import { currentStripPainter, setStripPainter, type StripPainter } from '../legacy-a/test-strip';
 
 const SETTLE_MS = 50, CONFIRMATION = 'RESTABLECER';
 const missingFunction = /pruebas_resetear_responsable|PGRST202|not find/i;
@@ -29,7 +30,7 @@ function failed(result: ResetResult | null | undefined, error: { message?: strin
   notices.toast(result?.error === 'permiso' ? t('legacyB.testEnvironment.onlyResponsible') : t('legacyB.testEnvironment.couldNot', { error: error?.message ?? result?.error ?? '' }), true);
 }
 
-async function paintStrip(original: () => unknown): Promise<void> {
+async function paintStrip(original: StripPainter): Promise<void> {
   void original();
   const button = document.getElementById('prreset'); if (!button) return;
   const { data: allowed, error } = await legacyBActions.rpcOriginal<boolean>('pruebas_puede_restablecer', {});
@@ -40,10 +41,10 @@ async function paintStrip(original: () => unknown): Promise<void> {
   current.onclick = (): void => { void reset(); };
 }
 
-/** Wraps the legacy pintarFranjaPruebas (in the test environment only) and repaints the strip if it is already shown. */
+/** Wraps the strip painter in use (in the test environment only) and repaints the strip if it is already shown. */
 export function guardTestReset(): void {
   if (!legacyBState.inTests()) return;
-  const original = legacyBActions.testStrip();
-  legacyBActions.setTestStrip(() => paintStrip(original));
-  if (document.getElementById('prreset')) void legacyBActions.testStrip()();
+  const original = currentStripPainter();
+  setStripPainter(() => paintStrip(original));
+  if (document.getElementById('prreset')) void currentStripPainter()();
 }

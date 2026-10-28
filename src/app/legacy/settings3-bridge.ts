@@ -69,6 +69,6 @@ export const settingsExtraLegacy = {
   menuExcluded: (): readonly string[] => MENU_FUERA,
   moduleIcon: (module: string): string | undefined => ICO_MOD[module],
   menuText: (button: Element): { get: () => string } | null => legacyFreeCoreSettings.menuLabelText(button as HTMLElement),
-  applyMenuNames: (): void => { legacyFreeCoreNavigationApi.applyMenuNames(); navigationStore.menuSignature = ''; try { montarMenuLateral(); legacyFreeCoreLayers.paintBottomBar([]); } catch { /* the menu repaints later */ } },
+  applyMenuNames: (): void => { legacyFreeCoreNavigationApi.applyMenuNames(); navigationStore.menuSignature = ''; try { legacyFreeCoreLegacyC.mountSideMenu(); legacyFreeCoreLayers.paintBottomBar([]); } catch { /* the menu repaints later */ } },
   applyLabel: (): void => { legacyFreeCoreLayers.applyLabel([]); },
 };

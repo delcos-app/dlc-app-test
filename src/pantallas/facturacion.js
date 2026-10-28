@@ -10,7 +10,7 @@ const UDS_SERIES = [['semana', window.delcos.t('legacyTexts.billingSettings.week
 
  // v2.440.0: FSEC → estado de src/app (plan 6.6), accesible en window
 
-const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
+const fac = fn => () => { window.delcos.core.byId('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 
 const FAC_CONFIG = [['empresa', window.delcos.t('legacyTexts.billingSettings.companyData')], ['series', window.delcos.t('legacyTexts.billingSettings.series')], ['verifactu', 'VeriFactu'], ['registro', window.delcos.t('legacyTexts.billingSettings.log')]];
 
@@ -22,7 +22,7 @@ const FAC_CONFIG = [['empresa', window.delcos.t('legacyTexts.billingSettings.com
    se abren dentro del área de contenido, no por encima. */
 // Las pestañas de facturación usan #fcuerpo, como el módulo Facturación: su pantalla se vacía para no tener dos (se rehace al volver)
 
-const facOrg = fn => () => { const v = $('v-facturacion'); if (v) v.innerHTML = ''; fac(fn)(); };
+const facOrg = fn => () => { const v = window.delcos.core.byId('v-facturacion'); if (v) v.innerHTML = ''; fac(fn)(); };
 
 const facSinPlan = () => { try { return !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; } };
 

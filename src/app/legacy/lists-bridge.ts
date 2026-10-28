@@ -1,5 +1,5 @@
 /**
- * Legacy pieces the shared list components still need (v2.416.0): the page size (the tests replace tamPagina), text normalisation and the table order and filter state that the «Filtros y columnas» panel, api.js and
+ * Legacy pieces the shared list components still need (v2.416.0): the page size, text normalisation and the table order and filter state that the «Filtros y columnas» panel, api.js and
  * legado 082/107 share.
  */
 import * as legacyFreeComponentsListBar from '../components/list-bar';
@@ -15,7 +15,7 @@ export interface TableFilters {
 }
 
 export const listsLegacy = {
-  pageSize: (): number => tamPagina(),
+  pageSize: (): number => legacyFreeComponentsListBar.storedPageSize(),
   setPageSize: (size: number): void => { legacyFreeComponentsListBar.savePageSize(size); },
   pageSizes: (): readonly number[] => TAMANOS,
   normalise: (text: string | null): string => normalizar(text),

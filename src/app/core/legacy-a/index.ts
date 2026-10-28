@@ -13,7 +13,7 @@ export { startGlobalSearch } from './global-search';
 export { installRequestCache } from './request-cache';
 export { listenToHelpButtons, listenToOutsideClicks, watchListsAndHelp } from './outside-clicks';
 export { showApp } from './show-app';
-export { paintTestStrip } from './test-strip';
+export { paintCurrentStrip, paintTestStrip } from './test-strip';
 export { addHelpAnchors, appointmentStates, cacheMoreRequests, unitsLegend } from './load-time';
 export { listenToCardActions, toggleUrgent } from '../../screens/accounts/card-actions';
 export { openTools } from '../../screens/accounts/list/tools-panel';

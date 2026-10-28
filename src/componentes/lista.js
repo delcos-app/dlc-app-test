@@ -48,8 +48,6 @@ const PL = window.delcos.components.listBar.configs;
 const PL_SECC = window.delcos.components.listBar.sections;
 const BLQ = window.delcos.components.listBar.blocks;
 const TAMANOS = window.delcos.components.listBar.PAGE_SIZES;
-// Las pruebas cambian tamPagina para paginar de 5 en 5: las listas la leen siempre por este nombre
-function tamPagina() { return window.delcos.components.listBar.storedPageSize(); }
 
 // Las piezas comunes de las listas están en src/app/components/list (v2.416.0). Estos nombres se quedan: el motor de la barra
 // de listas (PL, plSync), el panel «Filtros y columnas», otras pantallas antiguas y las pruebas los usan.

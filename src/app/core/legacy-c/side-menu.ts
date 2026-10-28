@@ -81,7 +81,7 @@ function paintFooter(nav: HTMLElement): void {
     if (fold) fold.onclick = (): void => {
       const folded = !document.body.classList.contains('menupleg');
       try { localStorage.setItem('dlc-menu-plegado', folded ? '1' : '0'); } catch { /* private mode */ }
-      document.body.classList.toggle('menupleg', folded); legacyFreeCoreNavigationApi.menuTip(null); navigationStore.menuSignature = ''; montarMenuLateral();
+      document.body.classList.toggle('menupleg', folded); legacyFreeCoreNavigationApi.menuTip(null); navigationStore.menuSignature = ''; mountSideMenu();
     };
   }
   const footer = nav.querySelector('.mlpie'); if (footer) nav.appendChild(footer);
@@ -115,8 +115,18 @@ function markOutOfPlan(nav: HTMLElement): void {
   markEmptyGroups(nav);
 }
 
-/** Builds the side menu (the legacy montarMenuLateral). */
+let afterMount: (() => void) | null = null;
+
+/** What runs after every build of the side menu, once it is installed (core/layers/navigation-glue: the company's menu names). */
+export function setAfterSideMenuMount(hook: () => void): void { afterMount = hook; }
+
+/** Builds the side menu (the legacy montarMenuLateral), then runs the after-mount hook (its failure never breaks the build). */
 export function mountSideMenu(): void {
+  buildMenu();
+  if (afterMount) { try { afterMount(); } catch { /* the menu may be incomplete */ } }
+}
+
+function buildMenu(): void {
   const nav = byId('nav');
   if (nav) {
     const side = wantsSideMenu(nav);

@@ -8,6 +8,7 @@ import { navigationGlueLegacy as legacy } from '../../legacy/legado-d-glue-bridg
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { closestOf } from './events';
+import { setAfterSideMenuMount } from '../legacy-c/side-menu';
 
 const ROUTES_REFILL_MS = 8000;
 
@@ -29,9 +30,7 @@ export function installMenuDetails(): void {
 
 /** Legado 083: when the menu is built again (start, resize…) the company's names go back on it. */
 export function installMenuNames(): void {
-  legacy.wrapGlobal('montarMenuLateral', original => function (this: unknown, ...args: unknown[]): unknown {
-    const result = original.apply(this, args); try { legacy.applyMenuNames(); } catch { /* the menu may be incomplete */ } return result;
-  });
+  setAfterSideMenuMount(() => { legacy.applyMenuNames(); });
   new MutationObserver(() => { legacy.applyMenuNamesSoon(); }).observe(document.body, { childList: true, subtree: true });
 }
 

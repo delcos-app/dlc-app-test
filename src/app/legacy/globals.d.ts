@@ -164,7 +164,6 @@ interface ColumnSetting { k: string; on: boolean; w: number }
 declare const F: AccountFilters;
 
 declare const ORD_DIR: Readonly<Record<string, string>>;
-declare function tamPagina(): number;
 interface CustomField { clave: string; nombre: string; tipo?: string | null; en_tabla?: boolean | null }
 interface AccountListRow extends AccountRow { sin_reporting?: boolean | null; dias?: Record<string, string | null> | null; ultima_visita?: string | null; telefono?: string | null; consulta_telefono?: string | null; clasificadores?: Record<string, unknown> | null; comerciales?: { nombre: string }[] | null; [key: string]: unknown }
 declare const CAMPOS: Record<string, CustomField[] | undefined>;
@@ -231,7 +230,6 @@ interface GeocodeHints { direccion?: string | null | undefined; municipio?: stri
 
 interface GeocodeResult { lat: string | number; lon: string | number; fuera?: string }
 
-declare function geocodificar(query: string, hints: GeocodeHints): Promise<GeocodeResult | null>;
 
 
 declare function productoPorDefecto(): string;

@@ -10,6 +10,7 @@ import { menuPrefs } from './groups';
 import { availableScreens, BAR_DEFAULT, bottomBar, mobileName, moreOrder } from './mobile';
 import { sessionStore } from '../../session-store';
 import { navigationStore } from '../store';
+import { mountSideMenu } from '../../legacy-c/side-menu';
 import * as legacyFreeCoreLayers from '../../layers';
 import * as legacyFreeComponents from '../../../components';
 
@@ -82,7 +83,7 @@ async function save(state: State, button: HTMLButtonElement): Promise<void> {
   if (error) { legacyFreeComponents.toast(t('navigationCore.menu.couldNotSave'), true); return; }
   profile.preferencias = data ?? saved;
   (document.getElementById('dlg2') as HTMLDialogElement | null)?.close();
-  legacyFreeCoreLayers.paintBottomBar([]); navigationStore.menuSignature = ''; try { montarMenuLateral(); } catch { /* the side menu is optional on the phone */ }
+  legacyFreeCoreLayers.paintBottomBar([]); navigationStore.menuSignature = ''; try { mountSideMenu(); } catch { /* the side menu is optional on the phone */ }
   legacyFreeComponents.toast(t('navigationCore.menu.saved'), false);
 }
 

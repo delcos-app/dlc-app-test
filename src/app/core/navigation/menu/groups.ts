@@ -10,6 +10,7 @@ import { orFallback } from '../../../services/values';
 import { sessionStore } from '../../session-store';
 import { settingsStore } from '../../../screens/settings/store';
 import { navigationStore } from '../store';
+import { mountSideMenu } from '../../legacy-c/side-menu';
 import * as legacyFreeCoreServices from '../../services';
 import * as legacyFreeCoreSettings from '../../settings';
 import * as legacyFreeCoreLayers from '../../layers';
@@ -42,7 +43,7 @@ export function isMenuFolded(): boolean {
 /** The side menu is rebuilt in the next frame (once, however many changes). */
 export function redoMenu(): void {
   if (redoFrame) return;
-  redoFrame = requestAnimationFrame(() => { redoFrame = 0; montarMenuLateral(); });
+  redoFrame = requestAnimationFrame(() => { redoFrame = 0; mountSideMenu(); });
 }
 
 function orderedItems(group: MenuGroup, prefs: MenuPrefs): string[] {

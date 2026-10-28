@@ -2,7 +2,7 @@
  * The list bar (v2.421.0): the «Lista» page model on top of what each list screen paints (header with the main action and «⋯»,
  * indicators that filter, bar with search, quick filters, «Filtros», «Columnas» and the count, table and its pages, mobile cards),
  * the block pages as tables and the page size. The legacy globals PL, PL_SECC, BLQ and PLG are these same objects; plSync, plCfg,
- * plObservar, plVigilar, tamPagina and the rest stay as one-line adapters (navigation, other legacy code and the tests use them).
+ * plObservar, plVigilar and the rest stay as one-line adapters (navigation, other legacy code and the tests use them).
  */
 import { blocks, configs, FIRST_SCREENS, SECTION_SCREENS } from './configs';
 import { listenToBlocks, listenToScreens, listenToSections } from './events';
@@ -12,7 +12,7 @@ export { convertBlocks, filterBlocks } from './blocks-table';
 export { blocks, configOf, configs } from './configs';
 export { indicatorsHtml, loadIndicators } from './indicators';
 export { observe, watch } from './observer';
-export { PAGE_SIZES, savePageSize, storedPageSize } from './page-size';
+export { overridePageSize, PAGE_SIZES, savePageSize, storedPageSize } from './page-size';
 export { chosenGroups, sections } from './state';
 export { syncListBar } from './sync';
 export { icon } from './text';

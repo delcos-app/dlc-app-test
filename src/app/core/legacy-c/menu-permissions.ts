@@ -8,6 +8,7 @@ import * as legacyFreeCoreLeftovers from '../leftovers';
 import * as legacyFreeCoreNavigationApi from '../navigation/api';
 import * as legacyFreeCoreLegacyC from './';
 import { navigationStore } from '../navigation/store';
+import { mountSideMenu } from './side-menu';
 import * as legacyFreeScreensOrders from '../../screens/orders';
 import * as legacyFreeScreensPlatform from '../../screens/platform';
 import * as legacyFreeCoreLegacyA from '../legacy-a';
@@ -52,6 +53,6 @@ export function applyPlatformMode(): void {
     else if (panelSection) button.classList.add('hide');
   });
   if (navigationStore.platformMode) document.querySelectorAll('[data-u="organizacion"], [data-u="plan"], [data-u="empresa"]').forEach(button => { button.classList.add('hide'); });
-  quietly(() => { navigationStore.menuSignature = ''; montarMenuLateral(); });
+  quietly(() => { navigationStore.menuSignature = ''; mountSideMenu(); });
   try { localStorage.setItem('dlc-modo', navigationStore.platformMode ? 'plataforma' : 'empresa'); } catch { /* private mode */ }
 }

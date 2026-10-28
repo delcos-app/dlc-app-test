@@ -16,8 +16,8 @@
 // data-pagina (Diseño del PDF) y cuenta como página.
 const PAG_GUARDA = [
   // toda la página del apartado (también la ventana encajada, p. ej. Diseño del PDF)
-  { tab: 'config', cab: () => document.querySelector('#v-config .cfucab'), cuerpo: () => document.querySelector('#v-config .cfupag') || $('cfgcuerpo-hub') },
-  { tab: 'facturacion', cab: () => document.querySelector('#v-facturacion .cfgsubs') && document.querySelector('#v-facturacion > .saludo'), cuerpo: () => $('fcuerpo') },
+  { tab: 'config', cab: () => document.querySelector('#v-config .cfucab'), cuerpo: () => document.querySelector('#v-config .cfupag') || window.delcos.core.byId('cfgcuerpo-hub') },
+  { tab: 'facturacion', cab: () => document.querySelector('#v-facturacion .cfgsubs') && document.querySelector('#v-facturacion > .saludo'), cuerpo: () => window.delcos.core.byId('fcuerpo') },
 ];
 
 // Lo que no cambia datos no activa «Guardar»: buscadores y filtros de la página

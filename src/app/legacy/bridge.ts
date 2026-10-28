@@ -381,7 +381,7 @@ export const accountListLegacy = {
   sortKey: (column: string): string | undefined => ORD_DIR[column],
   fieldChips: (state: Record<string, unknown>): { k: string; t: string }[] => legacyFreeComponents.filterChips(('medico'), state),
   contactsLabel: (): string => legacyFreeCoreServices.vocabulary.contactsLabel(),
-  pageSize: (): number => tamPagina(),
+  pageSize: (): number => legacyFreeComponentsListBar.storedPageSize(),
   paginate: (options: { element: HTMLElement | null; total: number; page: number; onPage: (page: number) => void; onSize: () => void }): void => {
     legacyFreeCoreNavigationApi.pager(options.element, { total: options.total, page: options.page }, { onPage: options.onPage, onSize: options.onSize });
   },
@@ -495,7 +495,7 @@ interface DayAppointment { estado: string; hora?: string | null; medico?: string
 
 /** Calidad del dato: the address search, the export hook of the tools menu, module permission and the Cuentas header order. */
 export const qualityLegacy = {
-  geocode: (query: string, hints: GeocodeHints): Promise<GeocodeResult | null> => geocodificar(query, hints),
+  geocode: (query: string, hints: GeocodeHints): Promise<GeocodeResult | null> => legacyFreeCoreServices.maps.geocode(query, hints) as Promise<GeocodeResult | null>,
   /** The «Descargar» entry of the tools menu calls window.__dlSeg (legado 014). */
   setExport: (exporter: (format: string) => Promise<void> | void): void => { Reflect.set(window, '__dlSeg', exporter); },
   download: (): void => { legacyFreeCoreServices.files.download(); },
