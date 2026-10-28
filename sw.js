@@ -2,8 +2,8 @@
    y solo se usa la copia guardada si no hay conexión. Nunca guarda datos.
    v2.350.0: guarda también las dos librerías de fuera que la app necesita (Supabase, para arrancar sin conexión, y Leaflet) y, si
    la red no contesta en 6 s, usa la copia guardada. */
-const CACHE = 'dlc-os-2.455.0';
-const FILES = ['./', './index.html', './min/app.js?v=2.455.0', './config.js', './manifest.webmanifest',
+const CACHE = 'dlc-os-2.456.0';
+const FILES = ['./', './index.html', './min/app.js?v=2.456.0', './config.js', './manifest.webmanifest',
                './logo-app.png', './icon-192.png', './icon-512.png', './apple-touch-180.png', './favicon.svg'];
 // Plan 7.3: the screens loaded on first use (herramientas/construir.mjs writes this list). They are kept with the same ?v= as
 // min/app.js, which is the address the app asks for, so they open without network even if they were never opened before.

@@ -45,7 +45,7 @@ function syncCounts(section: HTMLElement, bar: HTMLElement, config: ListConfig):
 
 export function syncBar(section: HTMLElement, tab: string, config: ListConfig, place: { key: string; anchor: Element | null }): void {
   const bar = barOf(section, tab, place.key, place.anchor);
-  const search = bar.querySelector<HTMLInputElement>('.plqi'); if (search && document.activeElement !== search && search.value !== config.q()) search.value = config.q();
+  const search = bar.querySelector<HTMLInputElement>('.plqi'); if (search && document.activeElement !== search && !search.dataset.pending && search.value !== config.q()) search.value = config.q();
   bar.querySelectorAll<HTMLElement>('[data-plr]').forEach(syncChip);
   syncCounts(section, bar, config);
 }

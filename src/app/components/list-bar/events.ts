@@ -16,7 +16,7 @@ import { selectOf } from './text';
 import type { ListConfig } from './types';
 
 const SEARCH_WAIT_MS = 300, MAP_SYNC_MS = 50, CUSTOM_PERIOD_MS = 60;
-let searchTimer: ReturnType<typeof setTimeout> | undefined;
+let searchTimer: ReturnType<typeof setTimeout> | undefined, pendingInput: HTMLInputElement | undefined;
 
 const screenOf = (section: Element): string => section.id.slice(2);
 const listSection = (target: EventTarget | null): HTMLElement | null => (target as Element | null)?.closest<HTMLElement>('main > section.plantilla') ?? null;
@@ -76,6 +76,18 @@ function onSectionClick(event: MouseEvent): void {
   if (target.closest('.plcol')) { event.stopImmediatePropagation(); config.columnas(); }
 }
 
+/**
+ * The typed text is searched once typing stops. It is kept as typed: while it waits, the bar does not put the old search back
+ * in the box (a search that ends meanwhile repaints the bar, and on the phone the box has already lost the focus).
+ */
+function searchLater(input: HTMLInputElement, search: (text: string) => void): void {
+  const text = input.value.trim();
+  if (pendingInput && pendingInput !== input) delete pendingInput.dataset.pending;
+  pendingInput = input; input.dataset.pending = '1';
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { delete input.dataset.pending; pendingInput = undefined; search(text); }, SEARCH_WAIT_MS);
+}
+
 const searchInput = (event: Event): HTMLInputElement | null => (event.target as Element | null)?.closest<HTMLInputElement>('main > section.plantilla .plqi') ?? null;
 
 /** Listeners of the screens with one configuration (legado 084's place). */
@@ -86,7 +98,7 @@ export function listenToScreens(): void {
   document.addEventListener('input', event => {
     const input = searchInput(event); if (!input) return;
     const tab = input.closest('section')?.id.slice(2) ?? '';
-    clearTimeout(searchTimer); searchTimer = setTimeout(() => { (configs[tab] as ListConfig | undefined)?.buscarQ(input.value.trim()); }, SEARCH_WAIT_MS);
+    searchLater(input, text => { (configs[tab] as ListConfig | undefined)?.buscarQ(text); });
   });
 }
 
@@ -97,7 +109,7 @@ export function listenToSections(): void {
     const input = searchInput(event); if (!input) return;
     const tab = input.closest('section')?.id.slice(2) ?? ''; if (!sections[tab]) return;
     event.stopImmediatePropagation();
-    clearTimeout(searchTimer); searchTimer = setTimeout(() => { configOf(tab)?.buscarQ(input.value.trim()); }, SEARCH_WAIT_MS);
+    searchLater(input, text => { configOf(tab)?.buscarQ(text); });
   }, true);
 }
 

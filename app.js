@@ -16120,7 +16120,7 @@
   function syncBar(section, tab, config, place3) {
     const bar = barOf(section, tab, place3.key, place3.anchor);
     const search5 = bar.querySelector(".plqi");
-    if (search5 && document.activeElement !== search5 && search5.value !== config.q()) search5.value = config.q();
+    if (search5 && document.activeElement !== search5 && !search5.dataset.pending && search5.value !== config.q()) search5.value = config.q();
     bar.querySelectorAll("[data-plr]").forEach(syncChip);
     syncCounts(section, bar, config);
   }
@@ -16327,6 +16327,7 @@
   var MAP_SYNC_MS = 50;
   var CUSTOM_PERIOD_MS = 60;
   var searchTimer4;
+  var pendingInput;
   var screenOf2 = (section) => section.id.slice(2);
   var listSection = (target) => target?.closest("main > section.plantilla") ?? null;
   function openQuickFilter(section, chip, options3) {
@@ -16439,6 +16440,18 @@
       config.columnas();
     }
   }
+  function searchLater(input6, search5) {
+    const text = input6.value.trim();
+    if (pendingInput && pendingInput !== input6) delete pendingInput.dataset.pending;
+    pendingInput = input6;
+    input6.dataset.pending = "1";
+    clearTimeout(searchTimer4);
+    searchTimer4 = setTimeout(() => {
+      delete input6.dataset.pending;
+      pendingInput = void 0;
+      search5(text);
+    }, SEARCH_WAIT_MS6);
+  }
   var searchInput = (event) => event.target?.closest("main > section.plantilla .plqi") ?? null;
   function listenToScreens() {
     document.addEventListener("click", onScreenClick);
@@ -16452,10 +16465,9 @@
       const input6 = searchInput(event);
       if (!input6) return;
       const tab = input6.closest("section")?.id.slice(2) ?? "";
-      clearTimeout(searchTimer4);
-      searchTimer4 = setTimeout(() => {
-        configs[tab]?.buscarQ(input6.value.trim());
-      }, SEARCH_WAIT_MS6);
+      searchLater(input6, (text) => {
+        configs[tab]?.buscarQ(text);
+      });
     });
   }
   function listenToSections() {
@@ -16466,10 +16478,9 @@
       const tab = input6.closest("section")?.id.slice(2) ?? "";
       if (!sections[tab]) return;
       event.stopImmediatePropagation();
-      clearTimeout(searchTimer4);
-      searchTimer4 = setTimeout(() => {
-        configOf(tab)?.buscarQ(input6.value.trim());
-      }, SEARCH_WAIT_MS6);
+      searchLater(input6, (text) => {
+        configOf(tab)?.buscarQ(text);
+      });
     }, true);
   }
   function listenToBlocks() {
