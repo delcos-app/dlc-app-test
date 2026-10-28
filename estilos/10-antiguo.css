@@ -56,7 +56,6 @@ nav.main{border-bottom:1px solid var(--line);background:var(--panel)}
 nav.main .in{max-width:1280px;margin:0 auto;padding:0 18px;display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none}
 nav.main .in::-webkit-scrollbar{display:none}
 nav.main button{position:relative;border:0;background:none;padding:12px 14px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
-nav.main button[aria-current=page]{color:var(--navy)}
 nav.main button[aria-current=page]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--navy);border-radius:2px}
 nav.main button:disabled{opacity:.45;cursor:default}
 nav.main .pronto{font-size:10px;font-weight:700;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 6px;margin-left:6px;color:var(--muted)}
@@ -118,7 +117,6 @@ dialog{border:0;border-radius:16px;padding:0;max-width:660px;width:calc(100% - 2
 dialog::backdrop{background:rgba(14,47,82,.4)}
 .fbox{padding:22px}
 .fh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px}
-.fh h2{font-size:19px;color:var(--navy)}
 .x{border:0;background:none;cursor:pointer;line-height:1}
 .blk{border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:12px}
 .blk h3{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
@@ -508,7 +506,7 @@ body.conruta{padding-top:46px}
 .adjunto{margin-top:10px;padding:8px 12px;border:1px dashed var(--line);border-radius:10px;font-size:13px;color:var(--navy);background:var(--sky-soft)}
 .manhero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,1fr);gap:18px;align-items:end;padding:22px;border-radius:18px;margin-bottom:18px;
   background:var(--ink);color:#fff}
-.manhero h1{color:#fff;margin:0 0 4px}.manhero p{margin:0 0 12px;opacity:.9}
+.manhero h1{margin:0 0 4px}.manhero p{margin:0 0 12px;opacity:.9}
 .manchips{display:flex;gap:8px;flex-wrap:wrap}.manchips span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:4px 10px;font-size:12.5px}
 .manbusca input{background:#fff;border:0;min-height:50px;font-size:15px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .mantit{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 10px}
@@ -531,7 +529,6 @@ body.conruta{padding-top:46px}
 #franjapruebas{--banda:#B45309}
 
 
-#franjapruebas .ai{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7);color:#fff}
 #franjapruebas .prpunto{opacity:.92;margin-left:4px}
 #franjapruebas .prpunto.falta{font-weight:700;background:rgba(0,0,0,.18);padding:2px 8px;border-radius:999px}
 /* v2.24.0 */
@@ -587,7 +584,7 @@ body.conruta{padding-top:46px}
 .dgrid-wrap{overflow-x:auto}
 .dgrid{display:grid;min-width:100%}
 .dgrid .dh,.dgrid .dr{display:grid;grid-template-columns:var(--cols);gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);text-align:left}
-.dgrid .dh{text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg);padding-top:9px;padding-bottom:9px}
+.dgrid .dh{text-transform:uppercase;letter-spacing:.05em;padding-top:9px;padding-bottom:9px}
 .dgrid .dr{background:var(--panel);border-left:0;border-right:0;border-top:0;width:100%;color:var(--ink);cursor:pointer;}
 .dgrid .dr:hover{background:var(--sky-soft)}
 .dgrid .dr > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -732,7 +729,6 @@ dialog::backdrop{background:rgba(11,37,64,.42)}
 .calg button{border:0;background:transparent;border-radius:10px;height:34px;cursor:pointer;font:inherit;color:var(--ink)}
 .calg button:hover{background:var(--sky-soft)}
 .calg button.hoy{box-shadow:inset 0 0 0 1.5px var(--celeste)}
-.calg button.sel{background:var(--grad);color:#fff}
 .calg button:disabled{opacity:.3;cursor:default}
 .calp{display:flex;gap:8px;justify-content:space-between;margin-top:10px}
 .calp .okb{background:var(--grad);color:#fff;flex:1}
@@ -740,7 +736,7 @@ dialog::backdrop{background:rgba(11,37,64,.42)}
 .rjt{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 4px}
 .rjg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
 .rjg button{border:0;background:#F4F9FD;border-radius:9px;height:32px;cursor:pointer;font:inherit}
-.rjg button:hover{background:var(--sky-soft)}.rjg button.sel{background:var(--grad);color:#fff}
+.rjg button:hover{background:var(--sky-soft)}
 /* Espacio del médico */
 .medhero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:24px;border-radius:22px;margin-bottom:16px;color:#fff;
   background:var(--ink);box-shadow:none}
@@ -1231,7 +1227,7 @@ section.cargando-pend{}
 .htfuera{display:none!important}
 
 .planhero{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center;padding:28px 30px;border-radius:22px;background:var(--grad);color:#fff;margin-bottom:22px;box-shadow:0 18px 40px rgba(21,82,143,.25)}
-.planhero h1{color:#fff;margin:2px 0 6px;font-size:34px}.planhero p{margin:0;opacity:.9;max-width:520px}
+.planhero h1{margin:2px 0 6px}.planhero p{margin:0;opacity:.9;max-width:520px}
 .planeti{font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.8}
 .planheronum{min-width:260px;display:flex;flex-direction:column;gap:6px}.planheronum b{font-size:30px}.planheronum b span{font-size:18px;opacity:.75}
 .planheronum .barra{background:rgba(255,255,255,.25)}.planheronum .barra i{background:#fff}.planheronum .sm{color:#fff;opacity:.85}
@@ -1618,7 +1614,8 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
   font-family:var(--f-texto);
 }
 html,body{background:#F2F7FC;font-size:15.5px}
-h1,h2,h3,.lbox h1,.saludo h1,.kpi b,.fh h2,.card h2,dialog h2,dialog h3{font-family:var(--f-titulo);letter-spacing:-.015em}
+h1,h2,h3,.lbox h1,.saludo h1,.kpi b,.card h2,dialog h2,dialog h3{font-family:var(--f-titulo);letter-spacing:-.015em}
+.fh h2{letter-spacing:-.015em}
 h1,h2{font-weight:800}
 .sm{font-size:13px}
 .kpi b,.dgrid,.num,.importe,td{font-variant-numeric:tabular-nums}
@@ -2209,7 +2206,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 .nvlin{display:grid;grid-template-columns:minmax(0,1fr) 128px 90px 40px;gap:8px;align-items:center;margin-bottom:6px}
 .nvimp{text-align:right;font-variant-numeric:tabular-nums}
 .nvtot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
-.nvfin .btn.on{background:var(--warn-bg);border-color:var(--warn)}
 .dgrid.llam.opor{--cols:110px minmax(140px,1.1fr) minmax(150px,1.3fr) minmax(120px,1fr) 140px minmax(120px,1fr) 100px}
 @media (max-width:760px){.nvlin{grid-template-columns:minmax(0,1fr) 124px 40px}.nvlin .nvimp{display:none}}
 /* v2.126.0 · Portal del médico (maquetación básica; el diseño, de Branding) */
@@ -3229,7 +3225,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 .cfuidx [data-ck] .pill{margin-left:auto}
 .cfupt{width:8px;height:8px;border-radius:50%;background:#E08A00;flex:none;margin-left:auto}
 .cfusin{font-size:13.5px;color:var(--muted);padding:10px}
-.cfucab{margin:0 0 14px}.cfucab .miga{font-size:12.5px;color:var(--muted);font-weight:600}.cfucab h2{margin:2px 0;font-size:24px;color:var(--navy)}
+.cfucab{margin:0 0 14px}.cfucab .miga{font-size:12.5px;color:var(--muted);font-weight:600}.cfucab h2{margin:2px 0}
 .cfucab p{margin:0;color:var(--muted);font-size:14px}
 .cfupend{display:flex;align-items:center;gap:10px;background:#FFF4DC;color:#7A4E00;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:14px;font-weight:600}
 .cfupend .cfupt{margin:0}
@@ -3255,7 +3251,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 @media (max-width:899px){
   .cfu{grid-template-columns:minmax(0,1fr);gap:12px}.cfu.det .cfuidx{display:none}.cfu:not(.det) .cfupag{display:none}
   .cfuidx{position:static;max-height:none;overflow:visible}.cfuidx [data-ck]{padding:11px 10px;font-size:15px}.cfuidx [data-ck].sub{padding-left:36px}
-  .cfuvolver{display:inline-flex}.cfucab h2{font-size:22px}
+  .cfuvolver{display:inline-flex}
   .ntfrow{grid-template-columns:28px minmax(0,1fr)}.ntfrow .ntfseg{grid-column:1 / -1;justify-self:start}
   .ajfila{grid-template-columns:minmax(0,1fr)}.ajctl{justify-content:flex-start}
 }
