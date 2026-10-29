@@ -106,7 +106,7 @@ export const legacyC = {
     sales: { name: 'Pedidos y llamadas', brings: 'Ventas, compras, proveedores y televenta' },
     customers: { name: 'Clientes', brings: '{patientsCapital} y empresas con su historial' },
     products: { name: 'Productos y stock', brings: 'Catálogo, lotes, caducidades y almacenes' },
-    analytics: { name: 'Analítica', brings: 'Ventas, ranking de {professionals} y comisiones' },
+    analytics: { name: 'Analítica', brings: 'Ventas, cifras de {professionals} y comisiones' },
     billing: { name: 'Facturación', brings: 'Facturas con VeriFactu, cobros y rectificativas' },
   },
   pages: {

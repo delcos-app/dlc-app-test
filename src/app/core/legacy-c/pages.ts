@@ -49,7 +49,7 @@ export function defineOrganization(): void {
     get tabs(): Tab[] {
       const billing = legacyFreeCoreServices.plans.planIncludes(('facturacion'));
       return [['marca', t('legacyC.pages.organization.brand'), () => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('legacyC.pages.organization.email'), () => legacyFreeScreensSettingsExtra.paintEmail()],
-        ['zona', t('timeZone.title'), () => paintTimeZone()],
+        ['zona', t('timeZone.tabTitle'), () => paintTimeZone()],
         ['copias', t('legacyC.pages.organization.backups'), () => legacyFreeScreensSettingsMore.paintBackups()], ['plan', t('legacyC.pages.organization.plan'), () => legacyFreeCoreLegacyC.paintPlanPage([])],
         ...(billing ? [['fiscal', t('legacyC.pages.organization.fiscal'), facOrg(() => { void legacyFreeCoreLegacyC.paintCompany([]); })], ['series', t('legacyC.pages.organization.series'), facOrg(() => { void legacyFreeScreensBilling.paintSeries(); })],
           ...(usesVerifactu() ? [['vf', t('legacyC.pages.organization.verifactu'), facOrg(() => { void legacyFreeScreensBilling.paintVerifactu(); })]] as Tab[] : []), ['pdf', t('legacyC.pages.organization.pdf'), () => legacyFreeCoreServices.pdf.openDesigner()]] as Tab[] : []),

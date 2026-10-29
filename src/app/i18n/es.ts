@@ -241,7 +241,7 @@ export const es = {
     },
     portfolio: {
       title: 'Cartera',
-      soldThisMonth: 'Han vendido este mes',
+      soldThisMonth: 'Con pedidos atribuidos este mes',
       notContacted: 'Sin contactar',
       noVisitIn60Days: 'Sin {visit} en 60 días',
     },

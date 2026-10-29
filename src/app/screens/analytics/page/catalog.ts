@@ -7,6 +7,7 @@
 import { legacyDb, permissions, salesTeam, term } from '../../../legacy/bridge';
 import { panelsLegacy } from '../../../legacy/panels-bridge';
 import { t, type MessageKey } from '../../../i18n';
+import { termOf } from '../../../core/vocabulary';
 import { escapeHtml, formatCurrency, formatNumber } from '../../../services/format';
 import { titleCase } from '../../routes/title-case';
 import { round2 } from '../../../services/money';
@@ -73,10 +74,15 @@ export const catalogue = (): Kpi[] => CATALOGUE.map(([id, fam, fmt, sube, hoy, i
 /** «web_pct» → «webPct»: the key of its texts. */
 const textKey = (id: string): string => id.split('_').map((part, index) => (index ? part.charAt(0).toUpperCase() + part.slice(1) : part)).join('');
 
+const feminineProfessional = (): boolean => termOf('medico').g === 'f';
+
 const words = (): Record<string, string> => ({
   professionals: term('medico', { number: 'p' }), Professionals: term('medico', { number: 'p', capital: 'C' }),
   visit: term('visita'), visits: term('visita', { number: 'p' }), Visits: term('visita', { number: 'p', capital: 'C' }),
   VisitsRecorded: term('visita', { number: 'p', capital: 'C', adjective: 'registrado' }),
+  // v2.463.0 (INI-1): «los 10 primeros profesionales» / «las 10 primeras cuentas», agreeing with the company's word
+  theTen: t(feminineProfessional() ? 'panels.analytics.theTenFeminine' : 'panels.analytics.theTenMasculine'),
+  theTenFirst: t(feminineProfessional() ? 'panels.analytics.theTenFirstFeminine' : 'panels.analytics.theTenFirstMasculine'),
 });
 
 export const kpiTitle = (kpi: Kpi): string => t(`panels.kpiTitles.${textKey(kpi.id)}` as MessageKey, words());

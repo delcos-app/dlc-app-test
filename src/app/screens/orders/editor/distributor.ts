@@ -40,9 +40,13 @@ function choicesHtml(choice: DistributorChoice, list: readonly DistributorRow[],
         <label class="opt"><input type="checkbox" id="pdfac" ${choice.factura ? 'checked' : ''}> ${t('ordersMore.distributor.invoicedByDistributor')} <span class="sm">${t('ordersMore.distributor.noInvoiceOfOurs')}</span></label>`;
 }
 
-/** The block, painted right after the «Origen» row. */
+/**
+ * The block, painted right after the «Origen» row. v2.463.0 (VEN-4): only when the company has active distributors, or when the order is
+ * already served by one (so it is not lost); the first distributor is created in Configuración → Datos → Distribuidores.
+ */
 export function distributorHtml(choice: DistributorChoice): string {
   const list = orderEditorLegacy.distributors() ?? [], admin = cardSectionsLegacy.can('administrar');
+  if (!list.length && !choice.on) return '';
   if (choice.on && !choice.id && list[0]) choice.id = list[0].id;
   return `<div class="pdist" id="pdist"><label>${t('ordersMore.distributor.servedBy')}</label>
     <div class="segs" id="pdsirve" role="group" aria-label="${t('ordersMore.distributor.servedBy')}"><button type="button" data-ds="0" class="${choice.on ? '' : 'on'}" aria-pressed="${String(!choice.on)}">${t('ordersMore.distributor.us')}</button>

@@ -12,6 +12,7 @@ import * as componentsIndex from '../../components/index';
 import * as componentsLoading from '../../components/loading';
 import * as coreNavigationCurrent from '../../core/navigation/current';
 import * as coreOrganisation from '../../core/organisation';
+import * as coreVocabulary from '../../core/vocabulary';
 import * as i18nIndex from '../../i18n/index';
 import * as legacyAccounts2Bridge from '../../legacy/accounts2-bridge';
 import * as legacyBillingBridge from '../../legacy/billing-bridge';
@@ -95,6 +96,7 @@ export const sharedModules = (): Record<string, object> => ({
   'components/loading': componentsLoading,
   'core/navigation/current': coreNavigationCurrent,
   'core/organisation': coreOrganisation,
+  'core/vocabulary': coreVocabulary,
   'i18n/index': i18nIndex,
   'legacy/accounts2-bridge': legacyAccounts2Bridge,
   'legacy/billing-bridge': legacyBillingBridge,

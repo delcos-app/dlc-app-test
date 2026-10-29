@@ -28,7 +28,7 @@ export const tenders = {
     newTitle: 'Nuevo concurso',
     subtitle: 'Pliego, plazos e importe',
     title: 'Título',
-    titlePlaceholder: 'p. ej. Suministro de material de osteosíntesis',
+    titlePlaceholder: 'p. ej. Suministro anual de material',
     soldTo: 'A quién se vende',
     soldToPlaceholder: 'Busca el centro, la clínica o el organismo',
     file: 'Expediente',

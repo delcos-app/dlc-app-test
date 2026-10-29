@@ -5,7 +5,8 @@ import { todayIso } from '../../services/dates';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { nonZeroOr, orFallback, sum } from '../../services/values';
-import { CLOSED_STATES, DEFAULT_LEAD_DAYS, euros, OPEN_STATES, purchasePill, STATES, type Purchase, type PurchaseDetail, type PurchaseLine } from './model';
+import { usualLeadDays } from '../../core/organisation';
+import { CLOSED_STATES, euros, OPEN_STATES, purchasePill, STATES, type Purchase, type PurchaseDetail, type PurchaseLine } from './model';
 
 /** Everything the window shows: the order, its lines (edited in place) and whether it can be changed. */
 export interface PurchaseEditor { id: string | null; purchase: Purchase; lines: PurchaseLine[]; detail: PurchaseDetail | null; editable: boolean }
@@ -23,7 +24,7 @@ function headerHtml(editor: PurchaseEditor): string {
 function supplierHtml(editor: PurchaseEditor): string {
   const { purchase } = editor, off = disabled(editor);
   const suppliers = purchasesLegacy.suppliers().filter(supplier => supplier.activo === true || supplier.id === purchase.proveedor_id)
-    .map(supplier => `<option value="${supplier.id ?? ''}" data-plazo="${nonZeroOr(supplier.plazo_dias, DEFAULT_LEAD_DAYS)}" ${supplier.id === purchase.proveedor_id ? 'selected' : ''}>${escapeHtml(supplier.nombre)}</option>`).join('');
+    .map(supplier => `<option value="${supplier.id ?? ''}" data-plazo="${nonZeroOr(supplier.plazo_dias, usualLeadDays())}" ${supplier.id === purchase.proveedor_id ? 'selected' : ''}>${escapeHtml(supplier.nombre)}</option>`).join('');
   return `<div class="g2">
         <div><label for="cpprov">${t('purchases.editor.supplier')}</label><select id="cpprov" ${off}>
           ${suppliers}</select></div>

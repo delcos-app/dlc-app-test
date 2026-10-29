@@ -111,7 +111,12 @@ var panels = {
     reported: "Reportados",
     notReported: "Sin reportar",
     professionalPlaceholder: "Todos · busca {aProfessional} para ver sus ventas",
-    ranking: "Ranking",
+    /** v2.463.0 (INI-1): «Ranking» became «Por {professional}» (decision D6 A) */
+    ranking: "Por {professional}",
+    theTenMasculine: "los 10",
+    theTenFeminine: "las 10",
+    theTenFirstMasculine: "los 10 primeros",
+    theTenFirstFeminine: "las 10 primeras",
     monthlyTable: "Tabla por meses",
     summary: "Resumen",
     explore: "Explorar datos",
@@ -186,7 +191,7 @@ var panels = {
     byProduct: "Reparto por producto",
     byProductEmpty: "Verás qué parte de las unidades corresponde a cada producto.",
     byProductRead: "<b>Cómo leerlo:</b> el porcentaje de unidades de cada producto en el periodo. Sirve para ver de qué depende la facturación.",
-    topProfessionals: "{Professionals} con más ventas",
+    topProfessionals: "{Professionals} con más pedidos atribuidos",
     topEmpty: "Aparecerán los 10 {professionals} con más unidades atribuidas.",
     topRead: "<b>Cómo leerlo:</b> los diez {professionals} con más unidades atribuidas. Son los que conviene cuidar: {visits} frecuentes, material y seguimiento.",
     funnel: "Embudo comercial",
@@ -206,7 +211,7 @@ var panels = {
     webPct: "Ventas por la web",
     margen: "Margen bruto",
     margenPct: "Margen bruto (%)",
-    top10Pct: "Peso de los 10 primeros {professionals}",
+    top10Pct: "Peso de {theTenFirst} {professionals}",
     clientes: "Clientes que compran",
     clientesNuevos: "Clientes nuevos",
     repitenPct: "Clientes que repiten",
@@ -216,7 +221,7 @@ var panels = {
     visitasDia: "{Visits} por día",
     citasPct: "Citas cumplidas",
     coberturaPct: "Cobertura de la cartera",
-    activados: "{Professionals} activados",
+    activados: "{Professionals} con su primer pedido atribuido",
     opAbiertas: "Oportunidades abiertas",
     cierrePct: "Tasa de cierre",
     ganado: "Importe ganado",
@@ -239,7 +244,7 @@ var panels = {
     webPct: "Parte del importe que llega en pedidos marcados como «por la web».",
     margen: "Ventas menos el coste de los productos vendidos. Solo cuenta los productos con coste: ponlo en cada producto.",
     margenPct: "Margen bruto sobre las ventas de los productos con coste.",
-    top10Pct: "Qué parte de las ventas atribuidas hacen los 10 {professionals} que más venden. Cuanto más alto, más depende el negocio de pocos.",
+    top10Pct: "Qué parte de las ventas atribuidas suman {theTen} {professionals} con más pedidos atribuidos. Cuanto más alto, más depende el negocio de pocos.",
     clientes: "Clientes distintos con algún pedido confirmado en el periodo.",
     clientesNuevos: "Clientes cuyo primer pedido es de este periodo.",
     repitenPct: "De los que compran en el periodo, cuántos ya habían comprado antes.",
@@ -249,7 +254,7 @@ var panels = {
     visitasDia: "Media de {visits} de cada persona en los días que trabaja en la calle.",
     citasPct: "De las citas del periodo hasta hoy (sin contar las aplazadas), cuántas acabaron en {visit}.",
     coberturaPct: "Parte de la cartera con alguna {visit} en los 60 días anteriores al final del periodo.",
-    activados: "{Professionals} cuya primera venta atribuida es de este periodo.",
+    activados: "{Professionals} cuyo primer pedido atribuido es de este periodo.",
     opAbiertas: "Oportunidades del periodo que aún no se han cerrado.",
     cierrePct: "De las oportunidades cerradas, cuántas acabaron en pedido.",
     ganado: "Importe estimado de las oportunidades que acabaron en pedido.",
@@ -757,15 +762,20 @@ var shared11 = globalThis["__delcosModules"]["screens/orders/cards"];
 var pick11 = (name) => shared11[name];
 var countUp = /* @__PURE__ */ pick11("countUp");
 
-// delcos-shared:src/app/screens/routes/title-case.ts
-var shared12 = globalThis["__delcosModules"]["screens/routes/title-case"];
+// delcos-shared:src/app/core/vocabulary.ts
+var shared12 = globalThis["__delcosModules"]["core/vocabulary"];
 var pick12 = (name) => shared12[name];
-var titleCase = /* @__PURE__ */ pick12("titleCase");
+var termOf = /* @__PURE__ */ pick12("termOf");
+
+// delcos-shared:src/app/screens/routes/title-case.ts
+var shared13 = globalThis["__delcosModules"]["screens/routes/title-case"];
+var pick13 = (name) => shared13[name];
+var titleCase = /* @__PURE__ */ pick13("titleCase");
 
 // delcos-shared:src/app/services/money.ts
-var shared13 = globalThis["__delcosModules"]["services/money"];
-var pick13 = (name) => shared13[name];
-var round2 = /* @__PURE__ */ pick13("round2");
+var shared14 = globalThis["__delcosModules"]["services/money"];
+var pick14 = (name) => shared14[name];
+var round2 = /* @__PURE__ */ pick14("round2");
 
 // src/app/screens/analytics/page/catalog.ts
 var analyticsState = { config: null };
@@ -834,13 +844,17 @@ var CATALOGUE = [
 ];
 var catalogue = () => CATALOGUE.map(([id, fam, fmt, sube, hoy, imp, def]) => ({ id, fam, fmt, sube, hoy, imp, def }));
 var textKey = (id) => id.split("_").map((part, index) => index ? part.charAt(0).toUpperCase() + part.slice(1) : part).join("");
+var feminineProfessional = () => termOf("medico").g === "f";
 var words2 = () => ({
   professionals: term("medico", { number: "p" }),
   Professionals: term("medico", { number: "p", capital: "C" }),
   visit: term("visita"),
   visits: term("visita", { number: "p" }),
   Visits: term("visita", { number: "p", capital: "C" }),
-  VisitsRecorded: term("visita", { number: "p", capital: "C", adjective: "registrado" })
+  VisitsRecorded: term("visita", { number: "p", capital: "C", adjective: "registrado" }),
+  // v2.463.0 (INI-1): «los 10 primeros profesionales» / «las 10 primeras cuentas», agreeing with the company's word
+  theTen: t(feminineProfessional() ? "panels.analytics.theTenFeminine" : "panels.analytics.theTenMasculine"),
+  theTenFirst: t(feminineProfessional() ? "panels.analytics.theTenFirstFeminine" : "panels.analytics.theTenFirstMasculine")
 });
 var kpiTitle = (kpi) => t(`panels.kpiTitles.${textKey(kpi.id)}`, words2());
 var kpiHelp = (kpi) => t(`panels.kpiHelp.${textKey(kpi.id)}`, words2());
@@ -1238,24 +1252,24 @@ function customise(onSaved) {
 }
 
 // delcos-shared:src/app/components/filters-panel/counter.ts
-var shared14 = globalThis["__delcosModules"]["components/filters-panel/counter"];
-var pick14 = (name) => shared14[name];
-var counter = /* @__PURE__ */ pick14("counter");
+var shared15 = globalThis["__delcosModules"]["components/filters-panel/counter"];
+var pick15 = (name) => shared15[name];
+var counter = /* @__PURE__ */ pick15("counter");
 
 // delcos-shared:src/app/components/filters-panel/prepare.ts
-var shared15 = globalThis["__delcosModules"]["components/filters-panel/prepare"];
-var pick15 = (name) => shared15[name];
-var prepare = /* @__PURE__ */ pick15("prepare");
+var shared16 = globalThis["__delcosModules"]["components/filters-panel/prepare"];
+var pick16 = (name) => shared16[name];
+var prepare = /* @__PURE__ */ pick16("prepare");
 
 // delcos-shared:src/app/components/loading.ts
-var shared16 = globalThis["__delcosModules"]["components/loading"];
-var pick16 = (name) => shared16[name];
-var cardSkeleton = /* @__PURE__ */ pick16("cardSkeleton");
+var shared17 = globalThis["__delcosModules"]["components/loading"];
+var pick17 = (name) => shared17[name];
+var cardSkeleton = /* @__PURE__ */ pick17("cardSkeleton");
 
 // delcos-shared:src/app/components/charts/month-bars.ts
-var shared17 = globalThis["__delcosModules"]["components/charts/month-bars"];
-var pick17 = (name) => shared17[name];
-var monthBars = /* @__PURE__ */ pick17("monthBars");
+var shared18 = globalThis["__delcosModules"]["components/charts/month-bars"];
+var pick18 = (name) => shared18[name];
+var monthBars = /* @__PURE__ */ pick18("monthBars");
 
 // src/app/screens/analytics/page/charts.ts
 var SKELETONS2 = 4;
@@ -1444,7 +1458,7 @@ function pageHtml() {
       </div>
       <div class="kpis vtot" id="atot"></div>
       <div id="aprods"></div>
-      <div class="subnav"><button data-avista="rank" aria-pressed="true">${t("panels.analytics.ranking")}</button>
+      <div class="subnav"><button data-avista="rank" aria-pressed="true">${t("panels.analytics.ranking", { professional: term("medico") })}</button>
         <button data-avista="tabla" aria-pressed="false">${t("panels.analytics.monthlyTable")}</button></div>
       <div id="aserie" style="padding:14px"></div>
       <div id="atabla"></div>

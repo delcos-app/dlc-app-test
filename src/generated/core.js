@@ -473,6 +473,7 @@
     escapeText: () => escapeText,
     files: () => files_exports,
     hexToRgb: () => hexToRgb,
+    holidays: () => holidays_exports,
     language: () => language_exports,
     live: () => live_exports,
     maps: () => maps_exports,
@@ -788,7 +789,9 @@
   // src/app/i18n/es/time-zone.ts
   var timeZone = {
     title: "Zona horaria",
-    treeHint: "Qué día es «hoy» para toda la empresa",
+    /** v2.463.0 (PED-4): the tab and the index entry hold the holidays too */
+    tabTitle: "Zona horaria y festivos",
+    treeHint: "Qué día es «hoy» y qué días son festivos",
     intro: "La hora de la empresa: decide qué día es «hoy» en la agenda, en Inicio, en los avisos y en los periodos de la analítica, para todo el equipo.",
     label: "Zona horaria de la empresa",
     default: "España peninsular (la de siempre)",
@@ -808,6 +811,17 @@
       America_Santiago: "Chile (Santiago)",
       America_Argentina_Buenos_Aires: "Argentina (Buenos Aires)",
       America_New_York: "Estados Unidos, costa este (Nueva York)"
+    },
+    /** v2.463.0 (PED-4): the days the Pedidos cards skip */
+    holidays: {
+      title: "Festivos",
+      intro: "Los días que no se trabaja, además de sábados y domingos. Las tarjetas de avisos de Pedidos se los saltan al contar días laborables. De partida, los nacionales de España.",
+      label: "Un festivo por línea: «DD/MM» se repite cada año y «DD/MM/AAAA» es solo ese día",
+      placeholder: "p. ej. 11/09",
+      goodFriday: "Viernes Santo (cambia cada año)",
+      wrongDate: "No se entiende la fecha «{date}». Escríbela como 25/12 o 25/12/2027",
+      saved: "Festivos guardados",
+      couldNotSave: "No se han podido guardar los festivos"
     }
   };
 
@@ -1169,7 +1183,7 @@
       customerPostcode: "08018",
       customerEmail: "cliente@correo.es",
       product: "Producto de ejemplo",
-      productLine: "{product} · caja de 60 cápsulas",
+      productLine: "{product} · caja de 12 unidades",
       shipping: "Envío"
     },
     designer: {
@@ -1263,7 +1277,7 @@
       photo: "Foto",
       name: "Nombre",
       presentation: "Presentación",
-      presentationPlaceholder: "Caja de 30 sobres",
+      presentationPlaceholder: "p. ej. Caja de 12 unidades",
       priceWithoutVat: "Precio sin IVA (€)",
       vat: "IVA (%)",
       priceWithVat: "Precio con IVA (€)",
@@ -1423,7 +1437,7 @@
       surgery: "{surgeryThe} {surgery}",
       tender: "el concurso",
       equipment: "el equipo",
-      deposit: "el depósito",
+      deposit: "{depositThe} {deposit}",
       product: "el producto",
       previousWindow: "la ventana anterior",
       backTo: "Volver a {what}",
@@ -1540,6 +1554,9 @@
       segments: "segmentos",
       surgery: "intervención",
       surgeries: "intervenciones",
+      /** v2.463.0 (PRO-1): stock on consignment at a customer */
+      deposit: "depósito",
+      deposits: "depósitos",
       allMasculine: "Todos",
       allFeminine: "Todas",
       freeDelivery: "Entrega sin cargo",
@@ -1613,7 +1630,7 @@
       invoicingDetail: "Series, rectificativas y el registro de cada factura",
       purchases: "Compras, proveedores y trazabilidad",
       purchasesDetail: "Lo enviado, lo que está en camino y lo recibido",
-      deposit: "Material en depósito",
+      deposit: "Material en {deposit}",
       depositDetail: "Lo que tienes en cada centro, lo usado y su reposición",
       surgeries: "{Surgeries} con lote y número de serie",
       surgeriesDetail: "Programación, lo usado por unidad, pedido y reposición en 48 horas",
@@ -1854,7 +1871,7 @@
       sales: { name: "Pedidos y llamadas", brings: "Ventas, compras, proveedores y televenta" },
       customers: { name: "Clientes", brings: "{patientsCapital} y empresas con su historial" },
       products: { name: "Productos y stock", brings: "Catálogo, lotes, caducidades y almacenes" },
-      analytics: { name: "Analítica", brings: "Ventas, ranking de {professionals} y comisiones" },
+      analytics: { name: "Analítica", brings: "Ventas, cifras de {professionals} y comisiones" },
       billing: { name: "Facturación", brings: "Facturas con VeriFactu, cobros y rectificativas" }
     },
     pages: {
@@ -2079,7 +2096,7 @@
       searchPlaceholder: "Buscar {professional}, centro o municipio",
       replenishTitle: "Reposiciones de {surgery}",
       replenishHint: "Cuando pasan 48 horas de {surgeryOne} {surgery} sin reponer lo usado",
-      replenishWhat: "{SurgeryOne} {surgery} hech{surgeryEnd} lleva más de 48 horas sin reponer lo que se usó en su almacén (depósito del centro o el de quien asistió).",
+      replenishWhat: "{SurgeryOne} {surgery} hech{surgeryEnd} lleva más de 48 horas sin reponer lo que se usó en su almacén ({deposit} del centro o el de quien asistió).",
       replenishTodo: "Abre {surgeryThe} {surgery} y pulsa «Reponer ahora».",
       contractTitle: "Contratos que vencen",
       contractHint: "Antes de que venza un contrato de concurso, con los días que elige la empresa",
@@ -3613,7 +3630,7 @@
       transferOut: "Traspaso (sale)",
       transferIn: "Traspaso (entra)",
       returned: "Devolución",
-      depositUse: "Usado en un depósito",
+      depositUse: "Usado en {depositOne} {deposit}",
       surgeryUse: "Usado en {surgeryOne} {surgery}"
     },
     movement: {
@@ -3646,7 +3663,7 @@
       title: "Almacenes",
       subtitle: "El central y, si quieres, un «maletín» por comercial para sus muestras",
       central: "Almacén central",
-      deposit: "Depósito en un centro",
+      deposit: "{Deposit} en un centro",
       caseOf: "Maletín de {name}",
       unitsTail: " · {units} uds",
       inactive: " · inactivo",
@@ -3670,9 +3687,9 @@
       transferHint: "Para pasar unidades del central a un maletín: Productos → Stock → abre el producto → «Traspasar»."
     },
     deposit: {
-      noPermission: "No puedes ver el depósito de este centro",
-      couldNotOpen: "No se ha podido abrir el depósito",
-      title: "Depósito · {name}",
+      noPermission: "No puedes ver {depositThe} {deposit} de este centro",
+      couldNotOpen: "No se ha podido abrir {depositThe} {deposit}",
+      title: "{Deposit} · {name}",
       unitsOf: "{units} unidades de {products}",
       oneProduct: "1 producto",
       products: "{count} productos",
@@ -3687,14 +3704,14 @@
       units: "Uds",
       noBatch: "Sin lote",
       noBatchLower: "sin lote",
-      emptyDeposit: "El depósito está vacío: repón para dejar material.",
+      emptyDeposit: "{DepositThe} {deposit} está vací{depositEnd}: repón para dejar material.",
       used90: "Usado en los últimos 90 días: {list}",
       lastMovements: "Últimos movimientos",
       moveIn: "Repuesto",
       moveOut: "Sale",
       moveUsed: "Usado",
       moveAdjust: "Ajuste",
-      replenishTitle: "Reponer el depósito",
+      replenishTitle: "Reponer {depositThe} {deposit}",
       from: "De dónde sale",
       fromCase: "De mi maletín",
       fromCentral: "Del almacén central",
@@ -3712,11 +3729,11 @@
       saveCount: "Guardar recuento",
       writeReplenish: "Escribe cuántas unidades repones",
       writeUsed: "Escribe lo que se ha usado",
-      tooMany: "No se puede usar más de lo que hay en el depósito",
+      tooMany: "No se puede usar más de lo que hay en {depositThe} {deposit}",
       noSource: "No hay almacén del que sacar el material",
-      noMovePermission: "No puedes mover el depósito de este centro",
+      noMovePermission: "No puedes mover {depositThe} {deposit} de este centro",
       couldNotSave: "No se ha podido guardar",
-      replenished: "Depósito repuesto",
+      replenished: "{Deposit} repuest{depositEnd}",
       nothingMissing: "Recuento guardado: no falta nada",
       usedRecorded: "Apuntado lo usado",
       usedNotice: "Usado: {list}. Queda un pedido en borrador del centro para confirmarlo.",
@@ -4109,7 +4126,7 @@
       withData: "+ dato",
       showOneHidden: "Ver el resultado de otros estados",
       showHidden: "Ver los {count} resultados de otros estados",
-      nextActionPlaceholder: "p. ej. Llevar reporting",
+      nextActionPlaceholder: "p. ej. Llevar el presupuesto",
       nextActionDate: "Fecha de la próxima acción",
       save: "Guardar {visit}",
       missingTimetable: "⚠ Falta su horario de atención. Aprovecha {visit} para preguntarlo\n    y complétalo después en <b>Editar ficha</b>.",
@@ -4616,8 +4633,17 @@
       writeName: "Escribe el nombre",
       couldNotSave: "No se ha podido guardar",
       saved: "Proveedor guardado",
-      created: "Proveedor creado",
-      defaultCountry: "España"
+      created: "Proveedor creado"
+    },
+    /** v2.463.0 (PRO-3): Configuración → Stock y material → Compras */
+    settings: {
+      part: "Compras",
+      title: "Plazo de entrega habitual",
+      intro: "Con este plazo nace un proveedor nuevo y se propone la llegada de un pedido de compra cuyo proveedor no tiene plazo propio. De partida, {days} días.",
+      leadTime: "Plazo de entrega habitual (días)",
+      wrongDays: "Escribe un número de días entre 1 y 3650",
+      saved: "Plazo de entrega guardado",
+      couldNotSave: "No se ha podido guardar el plazo de entrega"
     }
   };
 
@@ -4651,7 +4677,7 @@
       newTitle: "Nuevo concurso",
       subtitle: "Pliego, plazos e importe",
       title: "Título",
-      titlePlaceholder: "p. ej. Suministro de material de osteosíntesis",
+      titlePlaceholder: "p. ej. Suministro anual de material",
       soldTo: "A quién se vende",
       soldToPlaceholder: "Busca el centro, la clínica o el organismo",
       file: "Expediente",
@@ -4930,7 +4956,7 @@
       cancelTitle: "¿Anular {surgeryThe} {surgery}?"
     },
     origins: {
-      deposito: "Depósito del centro",
+      deposito: "{Deposit} del centro",
       personal: "Material de quien asiste"
     },
     sheet: {
@@ -4959,7 +4985,7 @@
       replenished: "Repuesto lo usado"
     },
     use: {
-      noMaterialDeposit: "No hay material en el depósito del centro: repón antes de registrar lo usado.",
+      noMaterialDeposit: "No hay material en {depositThe} {deposit} del centro: repón antes de registrar lo usado.",
       noMaterialPersonal: "No hay material en el almacén de quien asiste: repón antes de registrar lo usado.",
       record: "Registrar lo usado",
       hint: "Escribe las unidades usadas de cada lote. Si llevan número de serie, apúntalo en cada unidad.",
@@ -4980,7 +5006,7 @@
       permission: "No puedes cambiar {surgeryThis} {surgery}",
       missing: "Faltan la fecha, el centro o el responsable",
       centre: "El centro tiene que ser una ficha de tipo centro",
-      noDeposit: "Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste",
+      noDeposit: "Este centro no tiene {deposit}: déjale material desde su ficha o elige el material de quien asiste",
       noStore: "Quien asiste no tiene almacén propio con material",
       done: "{SurgeryThe} {surgery} ya está hech{surgeryEnd}: no se puede cambiar",
       noStock: "No hay bastante en el almacén {surgeryOfThe} {surgery}",
@@ -5336,7 +5362,7 @@
       },
       portfolio: {
         title: "Cartera",
-        soldThisMonth: "Han vendido este mes",
+        soldThisMonth: "Con pedidos atribuidos este mes",
         notContacted: "Sin contactar",
         noVisitIn60Days: "Sin {visit} en 60 días"
       },
@@ -5555,7 +5581,8 @@
     especialidad: { s: t("core.terms.segment"), p: t("core.terms.segments"), g: "m" }
   };
   var EXTRA_TERMS = {
-    intervencion: { s: t("core.terms.surgery"), p: t("core.terms.surgeries"), g: "f" }
+    intervencion: { s: t("core.terms.surgery"), p: t("core.terms.surgeries"), g: "f" },
+    deposito: { s: t("core.terms.deposit"), p: t("core.terms.deposits"), g: "m" }
   };
   var DETERMINERS = {
     el: ["el", "los", "la", "las"],
@@ -5621,7 +5648,15 @@
     ["surgeryEnd", () => ending("intervencion", false)],
     ["surgeryEnds", () => ending("intervencion", true)]
   ]);
-  setVocabularyResolver((name) => SURGERY_WORDS.get(name)?.());
+  var DEPOSIT_WORDS = /* @__PURE__ */ new Map([
+    ["deposit", () => wordFor("deposito", "s")],
+    ["Deposit", () => wordFor("deposito", "s", { nounCase: "C" })],
+    ["depositThe", () => termOf("deposito").g === "f" ? "la" : "el"],
+    ["DepositThe", () => termOf("deposito").g === "f" ? "La" : "El"],
+    ["depositOne", () => termOf("deposito").g === "f" ? "una" : "un"],
+    ["depositEnd", () => ending("deposito", false)]
+  ]);
+  setVocabularyResolver((name) => (SURGERY_WORDS.get(name) ?? DEPOSIT_WORDS.get(name))?.());
 
   // src/app/api/client.ts
   function rpc(name, ...params) {
@@ -8488,6 +8523,7 @@
   __export(organisation_exports, {
     DEFAULT_COUNTRY: () => DEFAULT_COUNTRY,
     DEFAULT_GENERAL_VAT: () => DEFAULT_GENERAL_VAT,
+    DEFAULT_LEAD_DAYS: () => DEFAULT_LEAD_DAYS,
     TIME_ZONES: () => TIME_ZONES,
     addressQuery: () => addressQuery,
     countryCode: () => countryCode,
@@ -8497,6 +8533,7 @@
     organisationCountry: () => organisationCountry,
     organisationZone: () => organisationZone,
     usesVerifactu: () => usesVerifactu,
+    usualLeadDays: () => usualLeadDays,
     vatRates: () => vatRates
   });
 
@@ -8607,6 +8644,12 @@
     return typeof zone === "string" && zone && knownZone(zone) ? zone : "";
   }
   useDayZone(organisationZone);
+  var DEFAULT_LEAD_DAYS = 90;
+  var MAX_LEAD_DAYS = 3650;
+  function usualLeadDays() {
+    const days = Number(organisationLegacy.setting("compras")?.plazo_dias);
+    return Number.isInteger(days) && days > 0 && days <= MAX_LEAD_DAYS ? days : DEFAULT_LEAD_DAYS;
+  }
 
   // src/app/screens/access/password.ts
   var MIN_LENGTH = 8;
@@ -10436,9 +10479,9 @@
         paintSerials(box3, input6);
       };
     });
-    const save25 = document.getElementById("cirusok");
-    if (save25) save25.onclick = () => {
-      void saveUsed(surgery, stock, box3, save25);
+    const save27 = document.getElementById("cirusok");
+    if (save27) save27.onclick = () => {
+      void saveUsed(surgery, stock, box3, save27);
     };
   }
 
@@ -13403,12 +13446,95 @@
     markChosenCard: () => markChosenCard
   });
 
+  // src/app/core/holidays.ts
+  var holidays_exports = {};
+  __export(holidays_exports, {
+    HOLIDAYS_SETTING: () => HOLIDAYS_SETTING,
+    SPAIN_HOLIDAYS: () => SPAIN_HOLIDAYS,
+    isOrganisationHoliday: () => isOrganisationHoliday,
+    organisationHolidays: () => organisationHolidays,
+    validHoliday: () => validHoliday
+  });
+  var HOLIDAYS_SETTING = "festivos";
+  var SPAIN_HOLIDAYS = ["01-01", "01-06", "05-01", "08-15", "10-12", "11-01", "12-06", "12-08", "12-25"];
+  var GOOD_FRIDAY = -2;
+  var YEARLY = /^(\d{2})-(\d{2})$/;
+  var ONE_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+  var MONTH_DAYS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  function validHoliday(value10) {
+    const oneDay2 = ONE_DAY.exec(value10), yearly = YEARLY.exec(value10);
+    if (oneDay2) {
+      const [year, month2, day2] = oneDay2.slice(1).map(Number), date = new Date(year, month2 - 1, day2);
+      return date.getFullYear() === year && date.getMonth() === month2 - 1 && date.getDate() === day2;
+    }
+    if (!yearly) return false;
+    const month = Number(yearly[1]), day = Number(yearly[2]);
+    return day >= 1 && day <= (MONTH_DAYS[month - 1] ?? 0);
+  }
+  function organisationHolidays() {
+    const own = organisationLegacy.setting(HOLIDAYS_SETTING);
+    if (!own || !Array.isArray(own.fechas)) return { dates: SPAIN_HOLIDAYS, goodFriday: true };
+    return { dates: own.fechas.map(String).filter(validHoliday), goodFriday: own.viernes_santo !== false };
+  }
+  function isOrganisationHoliday(isoDate) {
+    const { dates, goodFriday } = organisationHolidays();
+    if (dates.includes(isoDate) || dates.includes(isoDate.slice(5))) return true;
+    return goodFriday && isoDate === addDays(easterSunday(Number(isoDate.slice(0, 4))), GOOD_FRIDAY);
+  }
+
+  // src/app/screens/orders/cards.ts
+  var DAY_LETTERS = "DLMXJVS";
+  var SUNDAY = 0;
+  var SATURDAY = 6;
+  var COUNT_MS = 900;
+  var EASING_POWER = 3;
+  function markChosenCard() {
+    const filter = document.getElementById("popf")?.value ?? "";
+    document.querySelectorAll("#operativa [data-pk]").forEach((card3) => {
+      card3.classList.toggle("on", card3.dataset.pk === filter);
+      card3.setAttribute("aria-pressed", String(card3.dataset.pk === filter));
+    });
+  }
+  var isHoliday = (isoDate) => isOrganisationHoliday(isoDate);
+  function isDayOff(isoDate) {
+    const weekday = (/* @__PURE__ */ new Date(`${isoDate}T12:00:00`)).getDay();
+    return weekday === SUNDAY || weekday === SATURDAY || isHoliday(isoDate);
+  }
+  function dayHtml(isoDate, count, isToday) {
+    const date = /* @__PURE__ */ new Date(`${isoDate}T12:00:00`);
+    const title2 = `${date.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "short" })}${isHoliday(isoDate) ? t("ordersMore.cards.holiday") : ""} · ${formatNumber(count)}`;
+    return `<span class="${isDayOff(isoDate) ? "fin" : ""} ${isToday ? "u" : ""}" title="${escapeHtml(title2)}"><b>${date.getDate()}</b>${DAY_LETTERS[date.getDay()] ?? ""}</span>`;
+  }
+  var prefersMotion = () => !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function animate(elements, format) {
+    const start3 = performance.now();
+    const step = (now) => {
+      const progress = Math.min(1, (now - start3) / COUNT_MS), eased = 1 - (1 - progress) ** EASING_POWER;
+      elements.forEach((element) => {
+        if (element.isConnected) element.textContent = format(Number(element.dataset.v) * eased, element);
+      });
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  function countUp(elements, format) {
+    const show2 = () => {
+      elements.forEach((element) => {
+        element.textContent = format(Number(element.dataset.v), element);
+      });
+    };
+    if (alreadyCounted(`pk${elements.length}`, elements.map((element) => element.dataset.v ?? "")) || !prefersMotion()) {
+      show2();
+      return;
+    }
+    animate(elements, format);
+  }
+
   // src/app/legacy/orders2-bridge.ts
   var orders2_bridge_exports = {};
   __export(orders2_bridge_exports, {
     amountFieldPattern: () => amountFieldPattern,
     indicatorSettingsLegacy: () => indicatorSettingsLegacy,
-    orderCardsLegacy: () => orderCardsLegacy,
     orderEditorLegacy: () => orderEditorLegacy,
     subscriptionLegacy: () => subscriptionLegacy,
     tpvLegacy: () => tpvLegacy
@@ -13484,10 +13610,6 @@
     },
     daysUntil: (isoDate) => diasHasta(isoDate)
   };
-  var orderCardsLegacy = {
-    isoPlus: (isoDate, days) => calendar_exports.plusDays(isoDate, days),
-    easter: (year) => calendar_exports.easterSunday(year)
-  };
   var indicatorSettingsLegacy = {
     defaults: () => KPI_DEF,
     save: (list) => saveIndicators(list).then((saved3) => saved3 === true),
@@ -13497,58 +13619,6 @@
     eye: (open2) => (open2 ? ICO.ojo : ICO.ojoNo) ?? ""
   };
   var amountFieldPattern = () => ES_IMPORTE;
-
-  // src/app/screens/orders/cards.ts
-  var HOLIDAYS = ["01-01", "01-06", "05-01", "08-15", "10-12", "11-01", "12-06", "12-08", "12-25"];
-  var DAY_LETTERS = "DLMXJVS";
-  var SUNDAY = 0;
-  var SATURDAY = 6;
-  var COUNT_MS = 900;
-  var EASING_POWER = 3;
-  var GOOD_FRIDAY = -2;
-  function markChosenCard() {
-    const filter = document.getElementById("popf")?.value ?? "";
-    document.querySelectorAll("#operativa [data-pk]").forEach((card3) => {
-      card3.classList.toggle("on", card3.dataset.pk === filter);
-      card3.setAttribute("aria-pressed", String(card3.dataset.pk === filter));
-    });
-  }
-  function isHoliday(isoDate) {
-    return HOLIDAYS.includes(isoDate.slice(5)) || isoDate === orderCardsLegacy.isoPlus(orderCardsLegacy.easter(Number(isoDate.slice(0, 4))), GOOD_FRIDAY);
-  }
-  function isDayOff(isoDate) {
-    const weekday = (/* @__PURE__ */ new Date(`${isoDate}T12:00:00`)).getDay();
-    return weekday === SUNDAY || weekday === SATURDAY || isHoliday(isoDate);
-  }
-  function dayHtml(isoDate, count, isToday) {
-    const date = /* @__PURE__ */ new Date(`${isoDate}T12:00:00`);
-    const title2 = `${date.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "short" })}${isHoliday(isoDate) ? t("ordersMore.cards.holiday") : ""} · ${formatNumber(count)}`;
-    return `<span class="${isDayOff(isoDate) ? "fin" : ""} ${isToday ? "u" : ""}" title="${escapeHtml(title2)}"><b>${date.getDate()}</b>${DAY_LETTERS[date.getDay()] ?? ""}</span>`;
-  }
-  var prefersMotion = () => !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function animate(elements, format) {
-    const start3 = performance.now();
-    const step = (now) => {
-      const progress = Math.min(1, (now - start3) / COUNT_MS), eased = 1 - (1 - progress) ** EASING_POWER;
-      elements.forEach((element) => {
-        if (element.isConnected) element.textContent = format(Number(element.dataset.v) * eased, element);
-      });
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
-  function countUp(elements, format) {
-    const show2 = () => {
-      elements.forEach((element) => {
-        element.textContent = format(Number(element.dataset.v), element);
-      });
-    };
-    if (alreadyCounted(`pk${elements.length}`, elements.map((element) => element.dataset.v ?? "")) || !prefersMotion()) {
-      show2();
-      return;
-    }
-    animate(elements, format);
-  }
 
   // src/app/screens/orders/editor/vat-field.ts
   var AMOUNT_LABEL = /importe|precio|total|base|coste/i;
@@ -18133,8 +18203,8 @@
       <div class="sm">${t("portal.settings.subtitle", { theProfessionals: term("medico", { number: "p", article: "el" }) })}</div></div></div>
     ${materialHtml(catalog2 ?? [], Array.isArray(allowed) ? allowed : [], Boolean(setting.material))}</div>
   ${prepaymentHtml(Boolean(setting.pago_anticipado))}`;
-    const save25 = document.getElementById("cfpok");
-    if (save25) save25.onclick = () => {
+    const save27 = document.getElementById("cfpok");
+    if (save27) save27.onclick = () => {
       void saveMaterial(box3, setting);
     };
     const savePay = document.getElementById("cfpantok");
@@ -19219,9 +19289,9 @@
     bindPhotos(draft);
     bindSamples(body3, data.samples, draft);
     applyDateRules(date);
-    const save25 = document.getElementById("vguardar");
-    if (save25) save25.onclick = () => {
-      void saveVisit(visit2, save25);
+    const save27 = document.getElementById("vguardar");
+    if (save27) save27.onclick = () => {
+      void saveVisit(visit2, save27);
     };
     box3.showModal();
     if (data.noReporting) hideReporting(box3);
@@ -19723,8 +19793,8 @@
     if (entry2) entry2.onclick = () => {
       void stockMovement(line2, "inicial");
     };
-    const save25 = document.getElementById("stgu");
-    if (save25) save25.onclick = () => {
+    const save27 = document.getElementById("stgu");
+    if (save27) save27.onclick = () => {
       void saveSettings(line2);
     };
   }
@@ -20131,7 +20201,7 @@
     });
   }
   function bindSamples2(productId) {
-    const save25 = async () => {
+    const save27 = async () => {
       const regulated = Boolean(input3("prmreg")?.checked), max = Math.min(MAX_SAMPLES2, Math.max(1, Number(input3("prmmax")?.value) || MAX_SAMPLES2));
       byId10("prmdat")?.classList.toggle("hide", !regulated);
       const { error } = await update(productId, { muestra_regulada: regulated, muestra_desde: orNull(input3("prmdesde")?.value), muestra_max: max });
@@ -20139,7 +20209,7 @@
     };
     ["prmreg", "prmdesde", "prmmax"].forEach((id) => {
       byId10(id)?.addEventListener("change", () => {
-        void save25();
+        void save27();
       });
     });
   }
@@ -20154,7 +20224,7 @@
     };
   }
   function bindEquipment(productId) {
-    const save25 = async () => {
+    const save27 = async () => {
       const equipment2 = Boolean(input3("preqc")?.checked);
       byId10("preqd")?.classList.toggle("hide", !equipment2);
       const months2 = Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(input3("preqr")?.value) || 0)));
@@ -20163,10 +20233,10 @@
     };
     const box3 = input3("preqc"), months = input3("preqr");
     if (box3) box3.onchange = () => {
-      void save25();
+      void save27();
     };
     if (months) months.onchange = () => {
-      void save25();
+      void save27();
     };
   }
 
@@ -20325,7 +20395,7 @@
     billing2Legacy.refreshProducts();
   }
   function addRemoveButton(product) {
-    const save25 = document.getElementById("prok"), row3 = save25?.closest(".acts");
+    const save27 = document.getElementById("prok"), row3 = save27?.closest(".acts");
     if (!row3 || document.getElementById("prelim")) return;
     row3.insertAdjacentHTML("afterbegin", `<button type="button" class="btn sec dang prelimb" id="prelim">${t("productsMore.remove.button")}</button>`);
     const button3 = document.getElementById("prelim");
@@ -23389,7 +23459,6 @@
   var OPEN_STATES = [STATES4.sent, STATES4.inTransit, STATES4.partlyReceived];
   var EDITABLE_STATES = [STATES4.draft, STATES4.sent, STATES4.inTransit];
   var CLOSED_STATES = [STATES4.received, STATES4.cancelled];
-  var DEFAULT_LEAD_DAYS = 90;
   var errorText4 = (error, result) => error?.message ?? result?.error ?? "";
   var euros6 = (value10) => formatCurrency(round2(value10));
   function purchasePill(state) {
@@ -23539,7 +23608,7 @@
     if (currentScreen() === "ventas" && purchasesLegacy.section() === "proveedores") void paintSuppliers();
   }
   function editSupplier(existing) {
-    const supplier = existing ?? { activo: true, plazo_dias: DEFAULT_LEAD_DAYS, pais: t("purchases.supplierEditor.defaultCountry") };
+    const supplier = existing ?? { activo: true, plazo_dias: usualLeadDays(), pais: organisationCountry() };
     const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
     if (!body3 || !box3) return;
     body3.innerHTML = editorHtml7(supplier, purchasesLegacy.canBuy());
@@ -23561,7 +23630,7 @@
   }
   function supplierHtml(editor) {
     const { purchase } = editor, off = disabled2(editor);
-    const suppliers = purchasesLegacy.suppliers().filter((supplier) => supplier.activo === true || supplier.id === purchase.proveedor_id).map((supplier) => `<option value="${supplier.id ?? ""}" data-plazo="${nonZeroOr(supplier.plazo_dias, DEFAULT_LEAD_DAYS)}" ${supplier.id === purchase.proveedor_id ? "selected" : ""}>${escapeHtml(supplier.nombre)}</option>`).join("");
+    const suppliers = purchasesLegacy.suppliers().filter((supplier) => supplier.activo === true || supplier.id === purchase.proveedor_id).map((supplier) => `<option value="${supplier.id ?? ""}" data-plazo="${nonZeroOr(supplier.plazo_dias, usualLeadDays())}" ${supplier.id === purchase.proveedor_id ? "selected" : ""}>${escapeHtml(supplier.nombre)}</option>`).join("");
     return `<div class="g2">
         <div><label for="cpprov">${t("purchases.editor.supplier")}</label><select id="cpprov" ${off}>
           ${suppliers}</select></div>
@@ -23731,7 +23800,7 @@
   function suggestExpected() {
     const supplier = document.getElementById("cpprov"), expected = input4("cpprev");
     if (!supplier || !expected || expected.value) return;
-    expected.value = addDays(value7("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
+    expected.value = addDays(value7("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), usualLeadDays()));
   }
   function bindLines(editor) {
     const lines2 = document.getElementById("cplin");
@@ -29409,9 +29478,9 @@
     actions.className = "acts cfuacts cfuguarda";
     actions.innerHTML = `<button type="button" class="btn sec" id="cfudescartar" disabled>${t("leftovers.pageSave.discard")}</button><button type="button" class="btn" id="cfuguardar" disabled>${t("common.save")}</button>`;
     header2.appendChild(actions);
-    const discardButton = document.getElementById("cfudescartar"), save25 = document.getElementById("cfuguardar");
+    const discardButton = document.getElementById("cfudescartar"), save27 = document.getElementById("cfuguardar");
     if (discardButton) discardButton.onclick = discard2;
-    if (save25) save25.onclick = () => {
+    if (save27) save27.onclick = () => {
       void saveAll();
     };
   }
@@ -29436,9 +29505,9 @@
     setTimeout(resolve, ms);
   });
   async function saveAll() {
-    const save25 = document.getElementById("cfuguardar"), page = currentPage();
-    if (!save25 || save25.disabled || !page) return;
-    save25.disabled = true;
+    const save27 = document.getElementById("cfuguardar"), page = currentPage();
+    if (!save27 || save27.disabled || !page) return;
+    save27.disabled = true;
     const changed = [...leftoversLegacy.changedBlocks()], all = saveButtons(page.cuerpo);
     const buttons = all.filter((button3) => changed.some((block3) => block3.contains(button3)));
     for (const button3 of buttons.length ? buttons : all) {
@@ -30270,11 +30339,11 @@
   }
   function actionsHtml4(state) {
     const call2 = state.withCall && Boolean(state.options.llamada);
-    const save25 = state.customer.id ? t("common.save") : t("leftovers.customer.create", words4());
+    const save27 = state.customer.id ? t("common.save") : t("leftovers.customer.create", words4());
     return `${state.withCall ? callRecordHtml(state.options.llamada) : ""}
     <div class="acts u-end u-wrap">
       <button class="btn sec" id="kocancel">${t("common.cancel")}</button>
-      <button class="btn ${call2 ? "sec" : ""}" id="kook">${save25}</button>
+      <button class="btn ${call2 ? "sec" : ""}" id="kook">${save27}</button>
       ${call2 ? `<button class="btn" id="kopedido">${t("leftovers.customer.createAndOrder")}</button>` : ""}</div>`;
   }
   var editorHtml11 = (state) => `${headerHtml6(state)}
@@ -30327,9 +30396,9 @@
     if (cancel3) cancel3.onclick = () => {
       document.getElementById("dlg2")?.close();
     };
-    const save25 = document.getElementById("kook");
-    if (save25) save25.onclick = () => {
-      void saveCustomer(state, save25, false);
+    const save27 = document.getElementById("kook");
+    if (save27) save27.onclick = () => {
+      void saveCustomer(state, save27, false);
     };
     const order = document.getElementById("kopedido");
     if (order) order.onclick = () => {
@@ -33960,14 +34029,14 @@
   function addSaveFilter() {
     const tools = byId("tools"), openDialog2 = document.querySelector("dialog[open]");
     const container = tools?.classList.contains("abierto") ? tools : document.querySelector("dialog[open] .fh") ? openDialog2 : null;
-    const save25 = byId("guardarFiltro");
-    if (!container || container.querySelector("#hguardarf") || !save25 || navigationStore.screen !== "directorio") return;
+    const save27 = byId("guardarFiltro");
+    if (!container || container.querySelector("#hguardarf") || !save27 || navigationStore.screen !== "directorio") return;
     container.insertAdjacentHTML("beforeend", `<div class="acts u-m-12-0-0"><button class="btn sec" id="hguardarf">${svgIco(ICON_NOM.star ?? "")} ${t("legacyC.tools.saveFilter")}</button></div>`);
     const button3 = byId("hguardarf");
     if (button3) button3.onclick = () => {
       if (container instanceof HTMLDialogElement) container.close();
       else container.classList.remove("abierto");
-      save25.click();
+      save27.click();
     };
   }
   var repaintFields = (zone) => {
@@ -34632,6 +34701,49 @@
     });
   }
 
+  // src/app/screens/settings/time-zone/holidays.ts
+  var TEXT_ROWS = 6;
+  var shownDate = (value10) => value10.split("-").reverse().join("/");
+  function storedDate(text) {
+    const parts = text.trim().split(/[/.-]/).map((part) => part.trim());
+    if (parts.length < 2 || parts.length > 3 || parts.some((part) => !/^\d+$/.test(part))) return "";
+    const [day = "", month = "", year] = parts, pad3 = (part) => part.padStart(2, "0");
+    const value10 = year ? `${year}-${pad3(month)}-${pad3(day)}` : `${pad3(month)}-${pad3(day)}`;
+    return (!year || year.length === 4) && validHoliday(value10) ? value10 : "";
+  }
+  function holidaysCardHtml() {
+    const { dates, goodFriday } = organisationHolidays();
+    return `<div class="card cfgpanel"><h2>${t("timeZone.holidays.title")}</h2>
+    <p class="sm">${t("timeZone.holidays.intro")}</p>
+    <label for="zhfest">${t("timeZone.holidays.label")}</label>
+    <textarea id="zhfest" rows="${TEXT_ROWS}" placeholder="${t("timeZone.holidays.placeholder")}">${escapeHtml(dates.map(shownDate).join("\n"))}</textarea>
+    <label class="opt u-mt-10"><input type="checkbox" id="zhvsanto" ${goodFriday ? "checked" : ""}> ${t("timeZone.holidays.goodFriday")}</label>
+    <div class="acts u-end"><button class="btn" id="zhfestok">${t("common.save")}</button></div></div>`;
+  }
+  async function save23() {
+    const lines2 = (document.getElementById("zhfest")?.value ?? "").split("\n").map((line2) => line2.trim()).filter(Boolean);
+    const dates = lines2.map(storedDate);
+    const wrong = lines2.find((line2, index) => line2 && !dates[index]);
+    if (wrong) {
+      notices.toast(t("timeZone.holidays.wrongDate", { date: wrong }), true);
+      return;
+    }
+    const value10 = { fechas: [...new Set(dates)].sort(), viernes_santo: document.getElementById("zhvsanto")?.checked ?? true };
+    const { data, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: HOLIDAYS_SETTING, p_valor: value10 });
+    if (error || data?.ok === false) {
+      notices.toast(t("timeZone.holidays.couldNotSave"), true);
+      return;
+    }
+    cycleLegacy.setSetting(HOLIDAYS_SETTING, value10);
+    notices.toast(t("timeZone.holidays.saved"));
+  }
+  function bindHolidaysCard() {
+    const ok = document.getElementById("zhfestok");
+    if (ok) ok.onclick = () => {
+      void save23();
+    };
+  }
+
   // src/app/screens/settings/time-zone/page.ts
   var zoneOption = (zone, current) => `<option value="${escapeHtml(zone)}" ${zone === current ? "selected" : ""}>${escapeHtml(t(`timeZone.zones.${zone.replace(/\//g, "_")}`))}</option>`;
   function cardHtml5(current) {
@@ -34641,7 +34753,7 @@
     <select id="zhzona"><option value="" ${current ? "" : "selected"}>${t("timeZone.default")}</option>${TIME_ZONES.map((zone) => zoneOption(zone, current)).join("")}</select>
     <div class="acts u-end"><button class="btn" id="zhok">${t("common.save")}</button></div></div>`;
   }
-  async function save23() {
+  async function save24() {
     const zone = document.getElementById("zhzona")?.value ?? "";
     const value10 = { zona: zone || null };
     const { data, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "zona_horaria", p_valor: value10 });
@@ -34656,11 +34768,12 @@
     await cycleLegacy.loadSettings();
     const box3 = document.getElementById("cfgcuerpo");
     if (!box3) return;
-    box3.innerHTML = cardHtml5(organisationZone());
+    box3.innerHTML = cardHtml5(organisationZone()) + holidaysCardHtml();
     const ok = document.getElementById("zhok");
     if (ok) ok.onclick = () => {
-      void save23();
+      void save24();
     };
+    bindHolidaysCard();
   }
 
   // src/app/screens/platform/index.ts
@@ -34867,7 +34980,7 @@
     <p class="sm">${t("cycle.editor.zeroHint", words9())}</p>
     <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
   }
-  async function save24(body3, box3) {
+  async function save25(body3, box3) {
     const value10 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
     body3.querySelectorAll("[data-cobj]").forEach((input6) => {
       value10[input6.dataset.cobj ?? ""] = visits(input6.value);
@@ -34891,7 +35004,7 @@
     if (!box3.open) box3.showModal();
     const ok = document.getElementById("cicok");
     if (ok) ok.onclick = () => {
-      void save24(body3, box3);
+      void save25(body3, box3);
     };
   }
 
@@ -35202,7 +35315,7 @@
         return [
           ["marca", t("legacyC.pages.organization.brand"), () => paintBrand()],
           ["correo", t("legacyC.pages.organization.email"), () => paintEmail()],
-          ["zona", t("timeZone.title"), () => paintTimeZone()],
+          ["zona", t("timeZone.tabTitle"), () => paintTimeZone()],
           ["copias", t("legacyC.pages.organization.backups"), () => paintBackups()],
           ["plan", t("legacyC.pages.organization.plan"), () => paintPlanPage2([])],
           ...billing ? [
@@ -36810,6 +36923,7 @@
     "components/loading": loading_exports,
     "core/navigation/current": current_exports,
     "core/organisation": organisation_exports,
+    "core/vocabulary": vocabulary_exports,
     "i18n/index": i18n_exports,
     "legacy/accounts2-bridge": accounts2_bridge_exports,
     "legacy/billing-bridge": billing_bridge_exports,
@@ -37306,6 +37420,39 @@
     return !statesError;
   }
 
+  // src/app/screens/purchases/settings.ts
+  var PURCHASES_SETTING = "compras";
+  var MAX_DAYS2 = 3650;
+  async function save26() {
+    const days = Number(document.getElementById("cmplazo")?.value);
+    if (!Number.isInteger(days) || days < 1 || days > MAX_DAYS2) {
+      notices.toast(t("purchases.settings.wrongDays"), true);
+      return;
+    }
+    const value10 = { plazo_dias: days };
+    const { data, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: PURCHASES_SETTING, p_valor: value10 });
+    if (error || data?.ok === false) {
+      notices.toast(t("purchases.settings.couldNotSave"), true);
+      return;
+    }
+    cycleLegacy.setSetting(PURCHASES_SETTING, value10);
+    notices.toast(t("purchases.settings.saved"));
+  }
+  async function paintPurchaseSettings() {
+    await cycleLegacy.loadSettings();
+    const box3 = document.getElementById("cfgcuerpo");
+    if (!box3) return;
+    box3.innerHTML = `<div class="card cfgpanel"><h2>${t("purchases.settings.title")}</h2>
+    <p class="sm">${t("purchases.settings.intro", { days: DEFAULT_LEAD_DAYS })}</p>
+    <label for="cmplazo">${t("purchases.settings.leadTime")}</label>
+    <input id="cmplazo" type="number" min="1" max="${MAX_DAYS2}" step="1" value="${usualLeadDays()}">
+    <div class="acts u-end"><button class="btn" id="cmplazook">${t("common.save")}</button></div></div>`;
+    const ok = document.getElementById("cmplazook");
+    if (ok) ok.onclick = () => {
+      void save26();
+    };
+  }
+
   // src/app/core/settings/tree.ts
   var GROUP = { account: "Tu cuenta", team: "Equipo", data: "Datos", hidden: "__oculto" };
   var SLOW_MS2 = 2e4;
@@ -37368,7 +37515,9 @@
     if (admin || permissions.levelOf("P") >= 3) {
       items.push({ k: "stock", ic: "warehouse", t: t("settingsCore.tree.stock"), d: t("settingsCore.tree.stockHint", words11()), mod: "productos", sub: [
         ["alm", t("settingsCore.tree.stores"), wrap2(treePainters.stores)],
-        ["mues", t("settingsCore.tree.visitMaterial", words11()), wrap2(treePainters.visitMaterial)]
+        ["mues", t("settingsCore.tree.visitMaterial", words11()), wrap2(treePainters.visitMaterial)],
+        // v2.463.0 (PRO-3): the usual delivery lead time, saved by an administrator
+        ...admin ? [["compras", t("purchases.settings.part"), wrap2(paintPurchaseSettings)]] : []
       ] });
     }
     return items;
@@ -39645,7 +39794,7 @@
       "directorio": ["Directorio", "Todos {theProfessionals} que puedes ver.", ["El buscador de arriba filtra por nombre, centro o municipio.", "El municipio y la provincia cuentan {allConsultations} {ofTheProfessional}, no solo la principal.", "Administración y televenta ven los comerciales de cada {professional} y pueden filtrar por comercial.", "«⋮» abre los filtros y las columnas.", "«★ Guardar filtro» convierte los filtros actuales en un indicador de Inicio.", "«Cerca de mí» usa la ubicación del dispositivo.", "En <b>Filtros y columnas → Clasificadores</b> filtras por los campos propios de esta pantalla y eliges cuáles ver como columna. Con pocos valores se eligen de una lista; con muchos, se escribe y se busca.", "El <b>buscador</b> no necesita el nombre exacto: busca palabra a palabra, sin acentos y en cualquier orden («ped lo» encuentra «López, Pedro») y perdona una letra equivocada. Primero salen los que coinciden en más palabras."]],
       "seguimiento": ["Calidad del dato", "Qué parte de la base está completa y qué falta, y el avance comercial de cada {professional}.", ["Arriba, el porcentaje de fichas completas y cuántas fichas no tienen ubicación, horario, {speciality}, contacto, provincia o comercial.", "Debajo, cada {professional} con su estado, {visits} y próxima acción, con filtros para localizar los atrasados."]],
       "ventas": ["Pedidos", "Ventas, compras y proveedores.", ["<b>Ventas</b>: pedidos de clientes. En borrador no cuentan; al confirmarlos cuentan en métricas y comisiones y <b>salen del stock</b>, primero del lote que caduca antes.", "<b>Compras</b>: pedidos a proveedores. Borrador → Enviado → En tránsito → Recibido. Al recibir se anota cada lote con su caducidad y entra en el stock.", "<b>Proveedores</b>: datos, plazo de entrega y cuenta contable. El plazo se usa para avisar de cuándo hay que pedir.", "La venta a {patient} se atribuye {toTheProfessionalIndicado} y a su comercial; la venta a centro, a la ficha del centro si la tiene.", "El listado va por páginas y se guarda en el dispositivo: si vuelves a él, aparece al momento mientras se actualiza. Filtra por operativa para ver los pendientes de cobro, paquetes por preparar o facturas por enviar.", "En <b>Filtros y columnas → Clasificadores</b> filtras por los campos propios de esta pantalla y eliges cuáles ver como columna. Con pocos valores se eligen de una lista; con muchos, se escribe y se busca."]],
-      "analitica": ["Analítica", "Unidades e importes de los pedidos completados.", ["<b>Resumen</b>: indicadores con la comparación frente al periodo anterior y gráficos explicados (evolución, productos, {professionals}, embudo y actividad). <b>Explorar datos</b>: ranking y tablas con filtros por {professional}, comercial y producto.", "Elige el <b>periodo</b> y la dimensión: {professional}, comercial, producto, municipio, mes o canal.", "Filtra por un <b>{professional}</b>, un <b>comercial</b> o un <b>producto</b> para ver sus totales y su reparto por producto.", "El importe es sin IVA y con el descuento de cada línea.", "Los datos no se pueden descargar: se consultan solo dentro de la plataforma."]],
+      "analitica": ["Analítica", "Unidades e importes de los pedidos completados.", ["<b>Resumen</b>: indicadores con la comparación frente al periodo anterior y gráficos explicados (evolución, productos, {professionals}, embudo y actividad). <b>Explorar datos</b>: cifras por {professional} y tablas con filtros por {professional}, comercial y producto.", "Elige el <b>periodo</b> y la dimensión: {professional}, comercial, producto, municipio, mes o canal.", "Filtra por un <b>{professional}</b>, un <b>comercial</b> o un <b>producto</b> para ver sus totales y su reparto por producto.", "El importe es sin IVA y con el descuento de cada línea.", "Los datos no se pueden descargar: se consultan solo dentro de la plataforma."]],
       "config": ["Configuración", "Ajustes de tu cuenta y de la plataforma.", ["Preferencias de salida y llegada: se usan para calcular las rutas.", "Al pulsar «Cómo llegar» o abrir una ruta, eliges en ese momento con qué app navegar (Google Maps, Waze o Apple Maps).", "Clasificadores: las opciones que aparecen al registrar {visits} y en las fichas.", "En <b>Clasificadores</b>, los de {visits} (resultados, material comercial…) pueden pedir un <b>dato</b> al marcarse: una cantidad, un texto o una opción de una lista. Usa «+ Dato» en cada valor."]],
       "admin": ["Administración", "Usuarios, permisos y control.", ["Permisos por área: <b>Ver</b>, <b>Editar</b> o <b>Completo</b>. Se aplican en la base de datos, no solo en la pantalla.", "La cartera decide qué {professionals} ve cada comercial.", "Las comisiones se configuran por esquema y se asignan por persona.", "Accesos y auditoría registran entradas y cambios."]],
       "duplicados": ["Duplicados", "Fichas que pueden ser la misma persona.", ["<b>Pendientes</b>: marcadas al darlas de alta. <b>Nombres parecidos</b>: coincidencia del 80% o más.", "Al comparar eliges qué ficha queda y qué dato conservar de cada campo.", "{consultationsCap}, {visits}, citas y cartera se juntan en la ficha que queda. No se puede deshacer desde la app.", "«No son duplicados» guarda la pareja como distinta y no vuelve a salir."]],
@@ -39667,9 +39816,9 @@
       "filtro": "Indicador creado con «Guardar filtro» en el Directorio. Cuenta ahora mismo {theProfessionals} que cumplen ese filtro. Pulsa para ver la lista.",
       "uds_mes": "Unidades de los pedidos completados desde el día 1 de este mes. En verde si va por delante de los mismos días del mes anterior. Pulsa para ir a Analítica.",
       "importe_mes": "Importe sin IVA de los pedidos completados este mes (con el descuento de cada línea).",
-      "prescriptores": "{professionalsCapDistinto} a los que se ha atribuido alguna venta este mes.",
-      "nuevos_presc": "{professionalsCap} cuya primera venta atribuida ha sido este mes: el mejor indicador de captación.",
-      "activos_90": "{professionalsCap} con alguna venta atribuida en los últimos 90 días: tu base activa.",
+      "prescriptores": "{professionalsCapDistinto} a los que se ha atribuido algún pedido este mes.",
+      "nuevos_presc": "{professionalsCap} cuyo primer pedido atribuido ha sido este mes: el mejor indicador de captación.",
+      "activos_90": "{professionalsCap} con algún pedido atribuido en los últimos 90 días: tu base activa.",
       "conversion": "{ofTheProfessionalsDetCap} que ya han avanzado en el embudo, qué parte ha llegado al estado final positivo. Mide cómo avanza el embudo.",
       "visitas_7d": "{visitsCapRegistrado} en los últimos siete días, contando hoy.",
       "citas_7d": "Tus citas abiertas de hoy a los próximos seis días. Pulsa para ver tu semana.",
@@ -39695,9 +39844,9 @@
       "dups": "pendientes de unificar",
       "uds_mes": "unidades vendidas este mes",
       "importe_mes": "ventas del mes sin IVA",
-      "prescriptores": "{professionals} que han vendido este mes",
-      "nuevos_presc": "{professionals} con su primera venta este mes",
-      "activos_90": "{professionals} con ventas en 90 días",
+      "prescriptores": "{professionals} con pedidos atribuidos este mes",
+      "nuevos_presc": "{professionals} con su primer pedido atribuido este mes",
+      "activos_90": "{professionals} con pedidos atribuidos en 90 días",
       "visitas_7d": "{visits} en los últimos 7 días",
       "citas_7d": "citas tuyas en los próximos 7 días",
       "muestras_mes": "muestras entregadas este mes",
@@ -39721,9 +39870,9 @@
       "cartera": "Asignados a ti",
       "dups": "Fichas por revisar",
       "uds_mes": "Unidades confirmadas en el mes",
-      "prescriptores": "Con algún pedido este mes",
-      "nuevos_presc": "Primer pedido este mes",
-      "activos_90": "Con ventas en 90 días",
+      "prescriptores": "Con algún pedido atribuido este mes",
+      "nuevos_presc": "Primer pedido atribuido este mes",
+      "activos_90": "Con pedidos atribuidos en 90 días",
       "conversion": "Visitados ya en «{statePositivo}»",
       "importe_mes": "Base sin IVA del mes",
       "borradores": "Pedidos sin confirmar",
@@ -39791,7 +39940,7 @@
       "L": "Clientes ({patients} y empresas)",
       "P": "Productos, servicios y stock",
       "F": "Facturación, cobros y rectificativas",
-      "A": "Analítica y rankings",
+      "A": "Analítica: indicadores y cifras",
       "E": "Importes en euros (si no, solo unidades)",
       "Q": "Calidad del dato y duplicados",
       "K": "Clasificadores y listas de valores",

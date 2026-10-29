@@ -8,7 +8,8 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 import { loadingHtml } from './list';
-import { DEFAULT_LEAD_DAYS, type Supplier } from './model';
+import { organisationCountry, usualLeadDays } from '../../core/organisation';
+import { type Supplier } from './model';
 
 const joined = (values: readonly (string | null | undefined)[]): string => values.filter(Boolean).join(' · ');
 
@@ -90,9 +91,9 @@ async function save(supplier: Supplier): Promise<void> {
   if (currentScreen() === 'ventas' && purchasesLegacy.section() === 'proveedores') void paintSuppliers();
 }
 
-/** Opens the window of `existing`, or of a new supplier (active, 90 days, Spain). */
+/** Opens the window of `existing`, or of a new supplier (active, the usual lead time and the organisation's country; PRO-3 v2.463.0). */
 export function editSupplier(existing: Supplier | null): void {
-  const supplier: Supplier = existing ?? { activo: true, plazo_dias: DEFAULT_LEAD_DAYS, pais: t('purchases.supplierEditor.defaultCountry') };
+  const supplier: Supplier = existing ?? { activo: true, plazo_dias: usualLeadDays(), pais: organisationCountry() };
   const body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;
   body.innerHTML = editorHtml(supplier, purchasesLegacy.canBuy());

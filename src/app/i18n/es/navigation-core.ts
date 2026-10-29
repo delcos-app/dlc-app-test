@@ -25,7 +25,7 @@ export const navigationCore = {
     surgery: '{surgeryThe} {surgery}',
     tender: 'el concurso',
     equipment: 'el equipo',
-    deposit: 'el depósito',
+    deposit: '{depositThe} {deposit}',
     product: 'el producto',
     previousWindow: 'la ventana anterior',
     backTo: 'Volver a {what}',

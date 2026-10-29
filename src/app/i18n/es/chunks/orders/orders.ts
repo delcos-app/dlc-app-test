@@ -232,7 +232,7 @@ export const orders = {
     editTitle: 'Editar distribuidor',
     subtitle: 'Mayorista o depósito que sirve pedidos a vuestros clientes',
     name: 'Nombre',
-    namePlaceholder: 'p. ej. Cofares',
+    namePlaceholder: 'p. ej. Distribuciones Norte',
     email: 'Correo para pedidos',
     phone: 'Teléfono',
     note: 'Nota',

@@ -115,7 +115,7 @@ export const ordersMore = {
     newTitle: 'Nuevo distribuidor',
     newSubtitle: 'Mayorista o depósito que sirve pedidos a vuestros clientes',
     name: 'Nombre',
-    namePlaceholder: 'p. ej. Cofares',
+    namePlaceholder: 'p. ej. Distribuciones Norte',
     email: 'Correo para pedidos',
     phone: 'Teléfono',
     cancel: 'Cancelar',

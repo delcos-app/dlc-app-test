@@ -57,7 +57,7 @@ export const legacyD = {
     searchPlaceholder: 'Buscar {professional}, centro o municipio',
     replenishTitle: 'Reposiciones de {surgery}',
     replenishHint: 'Cuando pasan 48 horas de {surgeryOne} {surgery} sin reponer lo usado',
-    replenishWhat: '{SurgeryOne} {surgery} hech{surgeryEnd} lleva más de 48 horas sin reponer lo que se usó en su almacén (depósito del centro o el de quien asistió).',
+    replenishWhat: '{SurgeryOne} {surgery} hech{surgeryEnd} lleva más de 48 horas sin reponer lo que se usó en su almacén ({deposit} del centro o el de quien asistió).',
     replenishTodo: 'Abre {surgeryThe} {surgery} y pulsa «Reponer ahora».',
     contractTitle: 'Contratos que vencen',
     contractHint: 'Antes de que venza un contrato de concurso, con los días que elige la empresa',

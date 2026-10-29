@@ -10,6 +10,7 @@ import { icon, permissions, term } from '../../legacy/bridge';
 import { settingsCoreLegacy, treePainters as paint } from '../../legacy/settings-core-bridge';
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
+import { paintPurchaseSettings } from '../../screens/purchases/settings';
 
 type Painter = () => unknown;
 type Sub = [string, string, Painter];
@@ -67,7 +68,9 @@ function dataItems(admin: boolean): TreeItem[] {
   }
   if (admin || permissions.levelOf('P') >= 3) {
     items.push({ k: 'stock', ic: 'warehouse', t: t('settingsCore.tree.stock'), d: t('settingsCore.tree.stockHint', words()), mod: 'productos', sub: [
-      ['alm', t('settingsCore.tree.stores'), wrap(paint.stores)], ['mues', t('settingsCore.tree.visitMaterial', words()), wrap(paint.visitMaterial)]] });
+      ['alm', t('settingsCore.tree.stores'), wrap(paint.stores)], ['mues', t('settingsCore.tree.visitMaterial', words()), wrap(paint.visitMaterial)],
+      // v2.463.0 (PRO-3): the usual delivery lead time, saved by an administrator
+      ...(admin ? [['compras', t('purchases.settings.part'), wrap(paintPurchaseSettings)] as Sub] : [])] });
   }
   return items;
 }

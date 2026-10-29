@@ -44,6 +44,9 @@ export const core = {
     segments: 'segmentos',
     surgery: 'intervención',
     surgeries: 'intervenciones',
+    /** v2.463.0 (PRO-1): stock on consignment at a customer */
+    deposit: 'depósito',
+    deposits: 'depósitos',
     allMasculine: 'Todos',
     allFeminine: 'Todas',
     freeDelivery: 'Entrega sin cargo',
@@ -117,7 +120,7 @@ export const core = {
     invoicingDetail: 'Series, rectificativas y el registro de cada factura',
     purchases: 'Compras, proveedores y trazabilidad',
     purchasesDetail: 'Lo enviado, lo que está en camino y lo recibido',
-    deposit: 'Material en depósito',
+    deposit: 'Material en {deposit}',
     depositDetail: 'Lo que tienes en cada centro, lo usado y su reposición',
     surgeries: '{Surgeries} con lote y número de serie',
     surgeriesDetail: 'Programación, lo usado por unidad, pedido y reposición en 48 horas',

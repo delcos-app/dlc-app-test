@@ -8,7 +8,7 @@ export const productsMore = {
     photo: 'Foto',
     name: 'Nombre',
     presentation: 'Presentación',
-    presentationPlaceholder: 'Caja de 30 sobres',
+    presentationPlaceholder: 'p. ej. Caja de 12 unidades',
     priceWithoutVat: 'Precio sin IVA (€)',
     vat: 'IVA (%)',
     priceWithVat: 'Precio con IVA (€)',

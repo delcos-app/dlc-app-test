@@ -25,6 +25,7 @@ export const DEFAULT_TERMS: Readonly<Record<string, Term>> = {
  */
 export const EXTRA_TERMS: Readonly<Record<string, Term>> = {
   intervencion: { s: t('core.terms.surgery'), p: t('core.terms.surgeries'), g: 'f' },
+  deposito: { s: t('core.terms.deposit'), p: t('core.terms.deposits'), g: 'm' },
 };
 
 /** Articles and determiners: [masculine singular, masculine plural, feminine singular, feminine plural]. */
@@ -120,4 +121,17 @@ const SURGERY_WORDS = new Map<string, () => string>([
   ['surgeryEnds', () => ending('intervencion', true)],
 ]);
 
-setVocabularyResolver(name => SURGERY_WORDS.get(name)?.());
+/**
+ * v2.463.0 (PRO-1): placeholders of the texts that take the word «depósito» (stock on consignment) from the vocabulary: {deposit}
+ * «depósito», {Deposit} «Depósito», {depositThe} «el», {DepositThe} «El», {depositOne} «un» and {depositEnd} «o» (for the words that agree).
+ */
+const DEPOSIT_WORDS = new Map<string, () => string>([
+  ['deposit', () => wordFor('deposito', 's')],
+  ['Deposit', () => wordFor('deposito', 's', { nounCase: 'C' })],
+  ['depositThe', () => (termOf('deposito').g === 'f' ? 'la' : 'el')],
+  ['DepositThe', () => (termOf('deposito').g === 'f' ? 'La' : 'El')],
+  ['depositOne', () => (termOf('deposito').g === 'f' ? 'una' : 'un')],
+  ['depositEnd', () => ending('deposito', false)],
+]);
+
+setVocabularyResolver(name => (SURGERY_WORDS.get(name) ?? DEPOSIT_WORDS.get(name))?.());

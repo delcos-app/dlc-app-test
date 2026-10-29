@@ -1,11 +1,13 @@
 /**
  * Organización → Zona horaria (plan 11.3, v2.447.0): the time zone of the organisation. The database uses it for «today» in every
  * request (SQL 188) and the screens for their «today». Without it, Spain's as before. Only who configures the organisation sees the tab.
+ * v2.463.0: and its holidays (card «Festivos», holidays.ts).
  */
 import { cycleLegacy, legacyDb, notices } from '../../../legacy/bridge';
 import { t, type MessageKey } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { TIME_ZONES, organisationZone } from '../../../core/organisation';
+import { bindHolidaysCard, holidaysCardHtml } from './holidays';
 
 const zoneOption = (zone: string, current: string): string =>
   `<option value="${escapeHtml(zone)}" ${zone === current ? 'selected' : ''}>${escapeHtml(t(`timeZone.zones.${zone.replace(/\//g, '_')}` as MessageKey))}</option>`;
@@ -30,6 +32,7 @@ async function save(): Promise<void> {
 export async function paintTimeZone(): Promise<void> {
   await cycleLegacy.loadSettings();
   const box = document.getElementById('cfgcuerpo'); if (!box) return;
-  box.innerHTML = cardHtml(organisationZone());
+  box.innerHTML = cardHtml(organisationZone()) + holidaysCardHtml();
   const ok = document.getElementById('zhok'); if (ok) ok.onclick = (): void => { void save(); };
+  bindHolidaysCard();
 }

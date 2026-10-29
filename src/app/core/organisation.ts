@@ -79,3 +79,13 @@ export function organisationZone(): string {
 
 // «Today» in the whole app follows the organisation's zone once its settings have loaded
 useDayZone(organisationZone);
+
+/** Days a supplier takes to deliver when it does not say (setting «compras», field «plazo_dias», PRO-3 v2.463.0). */
+export const DEFAULT_LEAD_DAYS = 90;
+const MAX_LEAD_DAYS = 3650;
+
+/** The organisation's usual delivery lead time in days (90 if it has none). */
+export function usualLeadDays(): number {
+  const days = Number((organisationLegacy.setting('compras') as { plazo_dias?: unknown } | undefined)?.plazo_dias);
+  return Number.isInteger(days) && days > 0 && days <= MAX_LEAD_DAYS ? days : DEFAULT_LEAD_DAYS;
+}

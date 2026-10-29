@@ -77,11 +77,6 @@ export const subscriptionLegacy = {
   daysUntil: (isoDate: unknown): number | null => diasHasta(isoDate),
 };
 
-export const orderCardsLegacy = {
-  isoPlus: (isoDate: string, days: number): string => legacyFreeCoreServices.calendar.plusDays(isoDate, days),
-  easter: (year: number): string => legacyFreeCoreServices.calendar.easterSunday(year),
-};
-
 export const indicatorSettingsLegacy = {
   defaults: (): readonly string[] => KPI_DEF,
   save: (list: readonly Record<string, unknown>[]): Promise<boolean> => legacyFreeScreensSettingsRest.saveIndicators(list).then(saved => saved === true),

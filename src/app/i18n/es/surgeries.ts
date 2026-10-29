@@ -50,7 +50,7 @@ export const surgeries = {
     cancelTitle: '¿Anular {surgeryThe} {surgery}?',
   },
   origins: {
-    deposito: 'Depósito del centro',
+    deposito: '{Deposit} del centro',
     personal: 'Material de quien asiste',
   },
   sheet: {
@@ -79,7 +79,7 @@ export const surgeries = {
     replenished: 'Repuesto lo usado',
   },
   use: {
-    noMaterialDeposit: 'No hay material en el depósito del centro: repón antes de registrar lo usado.',
+    noMaterialDeposit: 'No hay material en {depositThe} {deposit} del centro: repón antes de registrar lo usado.',
     noMaterialPersonal: 'No hay material en el almacén de quien asiste: repón antes de registrar lo usado.',
     record: 'Registrar lo usado',
     hint: 'Escribe las unidades usadas de cada lote. Si llevan número de serie, apúntalo en cada unidad.',
@@ -100,7 +100,7 @@ export const surgeries = {
     permission: 'No puedes cambiar {surgeryThis} {surgery}',
     missing: 'Faltan la fecha, el centro o el responsable',
     centre: 'El centro tiene que ser una ficha de tipo centro',
-    noDeposit: 'Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste',
+    noDeposit: 'Este centro no tiene {deposit}: déjale material desde su ficha o elige el material de quien asiste',
     noStore: 'Quien asiste no tiene almacén propio con material',
     done: '{SurgeryThe} {surgery} ya está hech{surgeryEnd}: no se puede cambiar',
     noStock: 'No hay bastante en el almacén {surgeryOfThe} {surgery}',

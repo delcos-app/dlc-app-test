@@ -239,7 +239,7 @@ var orders = {
     editTitle: "Editar distribuidor",
     subtitle: "Mayorista o depósito que sirve pedidos a vuestros clientes",
     name: "Nombre",
-    namePlaceholder: "p. ej. Cofares",
+    namePlaceholder: "p. ej. Distribuciones Norte",
     email: "Correo para pedidos",
     phone: "Teléfono",
     note: "Nota",
@@ -397,7 +397,7 @@ var ordersMore = {
     newTitle: "Nuevo distribuidor",
     newSubtitle: "Mayorista o depósito que sirve pedidos a vuestros clientes",
     name: "Nombre",
-    namePlaceholder: "p. ej. Cofares",
+    namePlaceholder: "p. ej. Distribuciones Norte",
     email: "Correo para pedidos",
     phone: "Teléfono",
     cancel: "Cancelar",
@@ -678,6 +678,7 @@ function choicesHtml(choice2, list, admin) {
 }
 function distributorHtml(choice2) {
   const list = orderEditorLegacy.distributors() ?? [], admin = cardSectionsLegacy.can("administrar");
+  if (!list.length && !choice2.on) return "";
   if (choice2.on && !choice2.id && list[0]) choice2.id = list[0].id;
   return `<div class="pdist" id="pdist"><label>${t("ordersMore.distributor.servedBy")}</label>
     <div class="segs" id="pdsirve" role="group" aria-label="${t("ordersMore.distributor.servedBy")}"><button type="button" data-ds="0" class="${choice2.on ? "" : "on"}" aria-pressed="${String(!choice2.on)}">${t("ordersMore.distributor.us")}</button>

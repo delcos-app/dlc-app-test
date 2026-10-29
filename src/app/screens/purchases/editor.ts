@@ -8,7 +8,8 @@ import { t } from '../../i18n';
 import { addDays, todayIso } from '../../services/dates';
 import { nonZeroOr } from '../../services/values';
 import { editorHtml, totalsHtml, type PurchaseEditor } from './editor-view';
-import { DEFAULT_LEAD_DAYS, EDITABLE_STATES, errorText, STATES, type Purchase, type PurchaseDetail, type PurchaseLine } from './model';
+import { usualLeadDays } from '../../core/organisation';
+import { EDITABLE_STATES, errorText, STATES, type Purchase, type PurchaseDetail, type PurchaseLine } from './model';
 import { receivePurchase } from './receive';
 
 const input = (id: string): HTMLInputElement | null => document.getElementById(id) as HTMLInputElement | null;
@@ -42,7 +43,7 @@ function onLineChange(editor: PurchaseEditor, target: HTMLInputElement): void {
 function suggestExpected(): void {
   const supplier = document.getElementById('cpprov') as HTMLSelectElement | null, expected = input('cpprev');
   if (!supplier || !expected || expected.value) return;
-  expected.value = addDays(value('cpfecha') || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
+  expected.value = addDays(value('cpfecha') || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), usualLeadDays()));
 }
 
 function bindLines(editor: PurchaseEditor): void {

@@ -80,7 +80,7 @@ export const visit = {
     withData: '+ dato',
     showOneHidden: 'Ver el resultado de otros estados',
     showHidden: 'Ver los {count} resultados de otros estados',
-    nextActionPlaceholder: 'p. ej. Llevar reporting',
+    nextActionPlaceholder: 'p. ej. Llevar el presupuesto',
     nextActionDate: 'Fecha de la próxima acción',
     save: 'Guardar {visit}',
     missingTimetable: '⚠ Falta su horario de atención. Aprovecha {visit} para preguntarlo\n    y complétalo después en <b>Editar ficha</b>.',

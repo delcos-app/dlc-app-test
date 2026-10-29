@@ -113,6 +113,15 @@ export const purchases = {
     couldNotSave: 'No se ha podido guardar',
     saved: 'Proveedor guardado',
     created: 'Proveedor creado',
-    defaultCountry: 'España',
+  },
+  /** v2.463.0 (PRO-3): Configuración → Stock y material → Compras */
+  settings: {
+    part: 'Compras',
+    title: 'Plazo de entrega habitual',
+    intro: 'Con este plazo nace un proveedor nuevo y se propone la llegada de un pedido de compra cuyo proveedor no tiene plazo propio. De partida, {days} días.',
+    leadTime: 'Plazo de entrega habitual (días)',
+    wrongDays: 'Escribe un número de días entre 1 y 3650',
+    saved: 'Plazo de entrega guardado',
+    couldNotSave: 'No se ha podido guardar el plazo de entrega',
   },
 };

@@ -111,7 +111,7 @@ export const billingMore = {
     customerPostcode: '08018',
     customerEmail: 'cliente@correo.es',
     product: 'Producto de ejemplo',
-    productLine: '{product} · caja de 60 cápsulas',
+    productLine: '{product} · caja de 12 unidades',
     shipping: 'Envío',
   },
   designer: {

@@ -136,7 +136,7 @@ var agenda = {
     atCentre: "En {centre}: ",
     notAttending: "Ese día no atiende",
     notes: "Notas de la cita",
-    notesPlaceholder: "p. ej. quedamos en el bar de enfrente, llevar el reporting…",
+    notesPlaceholder: "p. ej. quedamos en el bar de enfrente, llevar el catálogo…",
     seeCard: "Ver ficha",
     directions: "Cómo llegar",
     changeTime: "Cambiar hora",

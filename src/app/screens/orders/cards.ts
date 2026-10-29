@@ -1,16 +1,15 @@
 /**
  * The live cards of Pedidos (pending payments, parcels to pack, invoices to send; painted by legado 073): the pressed card follows the
- * «Operativa» filter, the last 10 days with weekends and national holidays, and the figures that count up once. Migrated from the
- * legacy pkMarcar, pkFestivo, pkLibre, pkDia, pkContar and pkContarBase (v2.417.0); PK_TARJ stays in legacy (legado 073 reads it).
+ * «Operativa» filter, the last 10 days with weekends and the organisation's holidays (core/holidays, v2.463.0), and the figures that
+ * count up once. Migrated from the legacy pkMarcar, pkFestivo, pkLibre, pkDia, pkContar and pkContarBase (v2.417.0); PK_TARJ stays in
+ * legacy (legado 073 reads it).
  */
-import { orderCardsLegacy } from '../../legacy/orders2-bridge';
+import { isOrganisationHoliday } from '../../core/holidays';
 import { t } from '../../i18n';
 import { alreadyCounted } from '../../components/list/counted';
 import { escapeHtml, formatNumber } from '../../services/format';
 
-/** National holidays (MM-DD); Good Friday is computed from Easter. */
-const HOLIDAYS = ['01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'];
-const DAY_LETTERS = 'DLMXJVS', SUNDAY = 0, SATURDAY = 6, COUNT_MS = 900, EASING_POWER = 3, GOOD_FRIDAY = -2;
+const DAY_LETTERS = 'DLMXJVS', SUNDAY = 0, SATURDAY = 6, COUNT_MS = 900, EASING_POWER = 3;
 
 /** Marks the card of the «Operativa» filter chosen in the table. */
 export function markChosenCard(): void {
@@ -20,9 +19,8 @@ export function markChosenCard(): void {
   });
 }
 
-export function isHoliday(isoDate: string): boolean {
-  return HOLIDAYS.includes(isoDate.slice(5)) || isoDate === orderCardsLegacy.isoPlus(orderCardsLegacy.easter(Number(isoDate.slice(0, 4))), GOOD_FRIDAY);
-}
+/** One of the organisation's holidays (Spain's national ones and Good Friday when it has no list of its own). */
+export const isHoliday = (isoDate: string): boolean => isOrganisationHoliday(isoDate);
 
 /** Weekend or holiday. */
 export function isDayOff(isoDate: string): boolean {

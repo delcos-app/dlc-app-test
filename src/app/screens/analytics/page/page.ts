@@ -51,7 +51,7 @@ function pageHtml(): string {
       </div>
       <div class="kpis vtot" id="atot"></div>
       <div id="aprods"></div>
-      <div class="subnav"><button data-avista="rank" aria-pressed="true">${t('panels.analytics.ranking')}</button>
+      <div class="subnav"><button data-avista="rank" aria-pressed="true">${t('panels.analytics.ranking', { professional: term('medico') })}</button>
         <button data-avista="tabla" aria-pressed="false">${t('panels.analytics.monthlyTable')}</button></div>
       <div id="aserie" style="padding:14px"></div>
       <div id="atabla"></div>

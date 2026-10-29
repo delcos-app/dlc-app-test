@@ -13,8 +13,6 @@ export const EDITABLE_STATES: readonly string[] = [STATES.draft, STATES.sent, ST
 /** The order is closed: it cannot be cancelled. */
 export const CLOSED_STATES: readonly string[] = [STATES.received, STATES.cancelled];
 
-/** Days a supplier takes to deliver when it does not say. */
-export const DEFAULT_LEAD_DAYS = 90;
 
 export interface Purchase {
   id?: string; numero?: string; estado: string; fecha: string; fecha_prevista?: string | null; proveedor_id?: string | null;
