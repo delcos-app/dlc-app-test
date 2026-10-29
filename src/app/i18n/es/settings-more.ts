@@ -164,6 +164,18 @@ export const settingsMore = {
     withoutPermission: 'Sin permiso',
     classifierDeleted: 'Clasificador eliminado',
   },
+  valueRoles: {
+    paymentHow: 'Cómo se cobra',
+    transfer: 'Transferencia',
+    onDelivery: 'A la entrega',
+    cardTerminal: 'Tarjeta o Bizum (TPV)',
+    other: 'Otra',
+    report: 'Es un informe para {theProfessional}',
+    followUp: 'Es el motivo de seguimiento',
+    ourCall: 'Es una llamada nuestra',
+    saved: 'Guardado',
+    notSaved: 'No se ha podido guardar',
+  },
   valueData: {
     title: 'Dato de «{name}»',
     subtitle: 'Al marcar este valor en {aVisit}, se pedirá además este dato',

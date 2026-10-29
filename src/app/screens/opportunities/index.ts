@@ -4,5 +4,7 @@
  * stay as adapters (Pedidos, Clientes and the tests use them); hayOportunidades and LLAMADA_PEND stay in legacy.
  */
 export { activateCallRecord, callRecordHtml, readCallRecord, saveCallRecord } from './call-record';
-export { editOpportunity } from './editor';
+export { editOpportunity, registerFollowUp } from './editor';
+/** v2.464.0 (PED-5): the call values by their role in the lists. */
+export { followUpReason, isOrderDone, orderDoneResult, orderDoneResults, ourCallOrigin } from './model';
 export { paintOpportunities } from './list';

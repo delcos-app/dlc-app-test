@@ -53,7 +53,7 @@ var quality = {
     hint: "El punto del mapa de {thesePlaces} está lejos de su municipio: «Cómo llegar», las rutas y la agenda las sitúan mal.",
     noAddress: "Sin dirección",
     farFrom: "El punto está a {km} km de {municipality}",
-    outOfSpain: "El punto está fuera de España",
+    outOfCountry: "El punto está fuera de {country}",
     card: "Ficha",
     relocate: "Volver a situar",
     searching: "Buscando…",
@@ -118,6 +118,7 @@ var orFallback = /* @__PURE__ */ pick4("orFallback");
 var shared5 = globalThis["__delcosModules"]["core/organisation"];
 var pick5 = (name) => shared5[name];
 var addressQuery = /* @__PURE__ */ pick5("addressQuery");
+var organisationCountry = /* @__PURE__ */ pick5("organisationCountry");
 
 // src/app/screens/quality/data-quality.ts
 var percentOf = (done, total) => total ? Math.round(done / total * 100) : 0;
@@ -158,7 +159,7 @@ async function paintSummary() {
 }
 function placeRow(place) {
   const address = [place.centro_nombre, place.direccion, [place.cp, place.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
-  const distance = place.km !== null && place.km !== void 0 ? t("quality.addresses.farFrom", { km: formatNumber(place.km), municipality: escapeHtml(orFallback(place.municipio, "")) }) : t("quality.addresses.outOfSpain");
+  const distance = place.km !== null && place.km !== void 0 ? t("quality.addresses.farFrom", { km: formatNumber(place.km), municipality: escapeHtml(orFallback(place.municipio, "")) }) : t("quality.addresses.outOfCountry", { country: escapeHtml(organisationCountry()) });
   return `<div class="item cdir u-cursor-default" data-cdir="${place.id}">
       <span class="tx"><b>${escapeHtml(place.nombre)}</b>
         <span class="sm">${escapeHtml(address || t("quality.addresses.noAddress"))}</span>

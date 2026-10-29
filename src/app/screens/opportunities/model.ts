@@ -9,14 +9,16 @@ import { toIsoDate } from '../../services/dates';
 import { escapeHtml } from '../../services/format';
 import { round2 } from '../../services/money';
 
-/** The result that closes an opportunity with an order (a database value). */
+/** The result that closes an opportunity with an order when the list has none marked «pos» (the value of the old calls). */
 export const ORDER_DONE = 'Pedido hecho';
 /** Call directions (database values). */
 export const INCOMING = 'Entrante', OUTGOING = 'Saliente';
-/** Catalog values of a follow-up call (origin and reason). */
-export const OUTGOING_CALL = 'Llamada saliente', FOLLOW_UP_REASON = 'Seguimiento de televenta';
+/** The names of the follow-up call values before they had a role (SQL 192 marks them): origin and reason. */
+const OUTGOING_CALL = 'Llamada saliente', FOLLOW_UP_REASON = 'Seguimiento de televenta';
+/** Roles of the values (PED-5, v2.464.0): the follow-up reason, our own call and the positive result. */
+const FOLLOW_UP_ROLE = 'seguimiento', OUR_CALL_ROLE = 'llamada_nuestra', POSITIVE = 'pos';
 
-export interface CatalogEntry { valor: string; extra?: string | null }
+export interface CatalogEntry { valor: string; extra?: string | null; papel?: string | null }
 export interface InterestLine { producto_id: string; unidades: number }
 export interface SaleProduct { id: string; nombre: string; tipo?: string | null; estado?: string | null; precio?: number | null; iva?: number | null }
 
@@ -42,6 +44,30 @@ async function loadCatalog(key: string): Promise<void> {
   const { data } = await legacyDb().rpc<CatalogEntry[]>('catalogo_papel', { p_papel: key });
   opportunitiesLegacy.setCatalog(key, data ?? []);
 }
+
+/** The value of a list with a role; without one marked, the value with its old name if the list has it, or none. */
+function valueWithRole(key: string, role: string, oldName: string): string {
+  const list = catalog(key);
+  return list.find(entry => entry.papel === role)?.valor ?? (list.some(entry => entry.valor === oldName) ? oldName : '');
+}
+
+/** The reason of a follow-up call: the one marked «Es el motivo de seguimiento» in «Motivos de llamada». */
+export const followUpReason = (): string => valueWithRole('motivo_llamada', FOLLOW_UP_ROLE, FOLLOW_UP_REASON);
+
+/** How a follow-up call arrives: the one marked «Es una llamada nuestra» in «Origen». */
+export const ourCallOrigin = (): string => valueWithRole('origen_oportunidad', OUR_CALL_ROLE, OUTGOING_CALL);
+
+/** The results that close with an order: the positive ones of «Resultados de llamada» («Pedido hecho» if none). */
+export function orderDoneResults(): string[] {
+  const positive = catalog('resultado_llamada').filter(entry => entry.extra === POSITIVE).map(entry => entry.valor);
+  return positive.length ? positive : [ORDER_DONE];
+}
+
+/** The result saved when an opportunity closes with an order. */
+export const orderDoneResult = (): string => orderDoneResults()[0] ?? ORDER_DONE;
+
+/** A result that closed with an order. */
+export const isOrderDone = (result: string | null | undefined): boolean => Boolean(result) && orderDoneResults().includes(result ?? '');
 
 /** Reasons and results of a call. */
 export async function loadCallCatalogs(): Promise<void> {

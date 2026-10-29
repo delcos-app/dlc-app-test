@@ -1,13 +1,15 @@
 /**
  * Everything «Registrar visita» needs, asked at once so the window is painted complete: the card and its results (from the offline
  * copy without connection), the account type and «sin reporting», the regulated samples left this year, the promoted products
- * and whether their timetable is missing.
+ * and whether their timetable is missing. v2.464.0 (VIS-2): for an account «sin reporting» the results that are a report for it are
+ * left out here, by their mark in the list (by the word «reporting» with a database without SQL 192).
  */
 import { accountCardLegacy, cachedRpc, legacyDb } from '../../../legacy/bridge';
 import { visitLegacy } from '../../../legacy/visit-bridge';
 import { missingTimetable as lacksTimetable } from '../../accounts/timetable';
+import { isReportResult } from '../../../core/catalog-roles';
 
-export interface ResultValue { valor: string; extra?: string | null; oculto?: boolean; dato_tipo?: string | null }
+export interface ResultValue { valor: string; extra?: string | null; papel?: string | null; informe?: boolean | null; oculto?: boolean; dato_tipo?: string | null }
 export interface ResultGroup { clave: string; papel?: string | null; nombre: string; descripcion?: string | null; valores: ResultValue[] }
 export interface SampleLeft { producto_id: string; nombre: string; en_plazo: boolean; quedan: number; max: number; hasta?: string | null }
 export type RecordAccount = CardAccount & { urgente_motivo?: string | null };
@@ -19,6 +21,8 @@ export interface VisitData {
   samples: SampleLeft[];
   products: readonly { id: string; nombre: string }[];
   noReporting: boolean;
+  /** Some results were left out because they are a report and the account does not receive them. */
+  reportsHidden: boolean;
   missingTimetable: boolean;
 }
 
@@ -46,6 +50,12 @@ async function samplesLeft(id: string, type: string | null | undefined): Promise
   return Array.isArray(data) ? data : [];
 }
 
+/** Without the results that are a report (for an account that does not receive them). */
+function withoutReports(groups: readonly ResultGroup[]): { groups: ResultGroup[]; hidden: boolean } {
+  const kept = groups.map(group => ({ ...group, valores: group.valores.filter(value => !isReportResult(value)) }));
+  return { groups: kept, hidden: kept.some((group, index) => group.valores.length !== groups[index]?.valores.length) };
+}
+
 /** The data of the window, or why the card cannot be read ('online' or 'offline'). */
 export async function loadVisitData(id: string): Promise<VisitData | string> {
   const coverage = accountCardLegacy.planIncludes('cobertura');
@@ -54,5 +64,6 @@ export async function loadVisitData(id: string): Promise<VisitData | string> {
   ]);
   if (!card?.medico) return navigator.onLine ? 'online' : 'offline';
   const samples = await samplesLeft(id, flags?.tipo).catch(() => []);
-  return { account: card.medico, consultations: card.consultas ?? [], groups, samples, products, noReporting: Boolean(flags?.sin_reporting), missingTimetable };
+  const noReporting = Boolean(flags?.sin_reporting), shown = noReporting ? withoutReports(groups) : { groups, hidden: false };
+  return { account: card.medico, consultations: card.consultas ?? [], groups: shown.groups, samples, products, noReporting, reportsHidden: shown.hidden, missingTimetable };
 }

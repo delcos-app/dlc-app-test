@@ -9,6 +9,7 @@ import { settingsMoreLegacy, type ClassifierData, type ClassifierValue } from '.
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
+import { newValueRole, valueRoleControl, valueRoleText } from './value-roles';
 
 const RESULT = 'resultado_visita', CAN_EDIT_LEVEL = 2, FULL_LEVEL = 3;
 
@@ -46,7 +47,7 @@ function valueActions(classifier: ClassifierData, value: ClassifierValue, rights
   const data = rights.asksData ? `<button class="btn sec" data-vdato="${value.id}">${t(value.dato_tipo ? 'settingsMore.classifier.changeData' : 'settingsMore.classifier.addData')}</button>` : '';
   const destination = classifier.papel === RESULT
     ? `<select data-vdest="${value.id}" title="${t('settingsMore.classifier.destinationTitle')}" style="max-width:170px"><option value="">${t('settingsMore.classifier.keepsState')}</option>${stateOptions(value.destino)}</select>` : '';
-  return `<span class="acts u-m-0">${data}
+  return `<span class="acts u-m-0">${data}${valueRoleControl(classifier, value)}
           <button class="btn sec" data-vren="${value.id}|${escapeHtml(value.valor)}">${t('settingsMore.classifier.rename')}</button>
           ${destination}
           <button class="btn sec" data-vtog="${value.id}|${value.activo ? 0 : 1}">${t(value.activo ? 'settingsMore.classifier.deactivate' : 'settingsMore.classifier.activate')}</button>
@@ -57,7 +58,7 @@ function valueHtml(classifier: ClassifierData, value: ClassifierValue, rights: R
   return `<div class="item ${value.padre ? 'vsub' : ''} u-cursor-default">
         <span class="ic">${value.activo ? '●' : '○'}</span>
         <span class="tx"><b style="${value.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${escapeHtml(value.valor)}</b>
-          ${resultText(value)}${rights.asksData ? dataText(value) : ''}</span>
+          ${resultText(value)}${rights.asksData ? dataText(value) : ''}${rights.canEdit ? '' : valueRoleText(classifier, value)}</span>
         ${valueActions(classifier, value, rights)}
       </div>`;
 }
@@ -68,7 +69,7 @@ function addHtml(classifier: ClassifierData): string {
           <select id="cvdest" style="max-width:190px" title="${t('settingsMore.classifier.destinationTitle')}"><option value="">${t('settingsMore.classifier.keepsState')}</option>${stateOptions(null)}</select>` : '';
   const parent = values.some(value => value.padre) ? `<select id="cvpadre" style="max-width:210px" title="${t('settingsMore.classifier.categoryTitle')}"><option value="">${t('settingsMore.classifier.noCategory')}</option>${values.filter(value => !value.padre).map(value => `<option value="${escapeHtml(value.valor)}">${t('settingsMore.classifier.inside', { name: escapeHtml(value.valor) })}</option>`).join('')}</select>` : '';
   return `<div class="acts"><input id="cvnew" placeholder="${t('settingsMore.classifier.newValue')}" style="flex:1;min-width:160px">
-        ${result}
+        ${result}${newValueRole(classifier)}
         ${parent}
         <button class="btn" id="cvadd">${t('settingsMore.classifier.add')}</button></div>`;
 }

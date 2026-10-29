@@ -15,9 +15,11 @@ import * as legacyFreeCoreLayers from '../core/layers';
 export interface ClassifierData {
   id: string; nombre: string; grupo?: string | null; ambito?: string | null; papel?: string | null; tipo_campo?: string | null; sistema?: boolean;
   valores?: ClassifierValue[] | null;
+  /** The roles its values can have (SQL 192, v2.464.0). */
+  papeles_valor?: string[] | null;
 }
 export interface ClassifierValue {
-  id: string; valor: string; activo?: boolean; padre?: string | null; extra?: string | null; destino?: string | null;
+  id: string; valor: string; activo?: boolean; padre?: string | null; extra?: string | null; destino?: string | null; papel?: string | null;
   dato_tipo?: string | null; dato_etiqueta?: string | null; dato_opciones?: string[] | null; en_estados?: string[] | null;
 }
 export interface BrandSettings { nombre: string; logo: string | null; logo_factura?: boolean; etiqueta?: string }

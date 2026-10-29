@@ -8,6 +8,7 @@ import { orderMailLegacy } from '../../../legacy/orders-bridge';
 import { tpvLegacy } from '../../../legacy/orders2-bridge';
 import { t, type MessageKey } from '../../../i18n';
 import { orFallback } from '../../../services/values';
+import { isCardTerminal } from '../../../core/catalog-roles';
 
 export interface TpvResult { ok?: boolean; error?: string; detalle?: string; movil?: string; url?: string; hay_clave?: boolean }
 
@@ -29,8 +30,8 @@ const ERRORS = new Map<string, MessageKey>([
 /** The card payment is on: visible in this environment, set up and with Ventas. */
 export const tpvActive = (): boolean => tpvLegacy.visible() && Boolean(tpvLegacy.settings().activo) && tpvLegacy.canUseSales();
 
-/** Payment methods paid through the link. */
-export const isTpvPayment = (method: string | null | undefined): boolean => /tarjeta|bizum/i.test(method ?? '');
+/** Payment methods paid through the link: «Tarjeta o Bizum (TPV)» in their list (by the name without it; PED-3, v2.464.0). */
+export const isTpvPayment = (method: string | null | undefined): boolean => isCardTerminal(method);
 
 /** A Spanish mobile (6xx or 7xx, without the 34 prefix), or ''. */
 export function spanishMobile(phone: unknown): string {

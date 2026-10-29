@@ -3,6 +3,7 @@ import { legacyDb, notices, term } from '../../../legacy/bridge';
 import { settingsMoreLegacy, type ClassifierData, type ClassifierValue } from '../../../legacy/settings2-bridge';
 import { t } from '../../../i18n';
 import { reloadClassifier } from './classifier';
+import { bindValueRoles, saveNewValueRole } from './value-roles';
 
 const FIELD_FLAGS = ['obligatorio', 'solo_lectura', 'en_ficha', 'en_tabla', 'en_filtro'];
 
@@ -28,8 +29,9 @@ function newValue(classifier: ClassifierData, text: string): Record<string, unkn
 
 async function addValue(view: ClassifierView): Promise<void> {
   const text = valueOf('cvnew').trim(); if (!text) return;
-  const { error } = await legacyDb().rpc('guardar_valor', { p: newValue(view.classifier, text) });
+  const { data, error } = await legacyDb().rpc<{ id?: string }>('guardar_valor', { p: newValue(view.classifier, text) });
   if (error) { notices.toast(t('settingsMore.classifier.couldNotAdd'), true); return; }
+  await saveNewValueRole(data?.id);
   notices.toast(t('settingsMore.classifier.added')); void view.refresh();
 }
 
@@ -87,4 +89,5 @@ export function bindClassifier(classifier: ClassifierData, repaint: () => void, 
   on('cvadd', () => addValue(view));
   on('cdel', () => removeClassifier(classifier));
   bindValues(view, onData);
+  bindValueRoles(body, view.refresh);
 }

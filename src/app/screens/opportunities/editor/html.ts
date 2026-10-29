@@ -3,7 +3,7 @@ import { term } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
-import { catalog, chipsHtml, followUpButtons, ORDER_DONE } from '../model';
+import { catalog, chipsHtml, followUpButtons, isOrderDone } from '../model';
 import type { Draft } from './draft';
 
 function title(draft: Draft): string {
@@ -37,7 +37,7 @@ function wantsHtml(draft: Draft): string {
 
 function noSaleHtml(draft: Draft): string {
   if (!draft.recording || draft.closed) return '';
-  const results = catalog('resultado_llamada').filter(entry => entry.extra !== 'pos' && entry.valor !== ORDER_DONE);
+  const results = catalog('resultado_llamada').filter(entry => entry.extra !== 'pos' && !isOrderDone(entry.valor));
   return `<div id="nvnoz" class="${draft.noSale ? '' : 'hide'}">
         <label>${t('opportunities.editor.whyNoSale')}</label><div class="chipsw" id="nvres">${chipsHtml(results, draft.result, 'data-nvr')}</div>
         <div class="sm" style="margin:8px 0 4px">${t('opportunities.callAgainWhen')}</div>

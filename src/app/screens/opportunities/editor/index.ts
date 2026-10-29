@@ -4,7 +4,7 @@
  */
 import { legacyDb, opportunitiesLegacy, permissions, term } from '../../../legacy/bridge';
 import { orFallback } from '../../../services/values';
-import { catalog, dateIn, FOLLOW_UP_REASON, loadOpportunityCatalogs, ORDER_DONE, OUTGOING_CALL, toggleChip } from '../model';
+import { catalog, dateIn, followUpReason, isOrderDone, loadOpportunityCatalogs, ourCallOrigin, toggleChip } from '../model';
 import { paintClient } from './client';
 import type { Client, Draft, Opportunity, Previous, Reference } from './draft';
 import { editorHtml } from './html';
@@ -31,12 +31,12 @@ function draftOf(start: Opportunity | null, previous: Previous | null): Draft {
   if (!source.fecha) source.fecha = now;
   const recording = permissions.hasOpportunities(), client = clientOf(source);
   const lines = (source.interes ?? []).map(line => ({ producto_id: line.producto_id, unidades: line.unidades }));
-  const defaultOrigin = previous ? OUTGOING_CALL : catalog('origen_oportunidad')[0]?.valor ?? '';
+  const defaultOrigin = previous ? ourCallOrigin() : catalog('origen_oportunidad')[0]?.valor ?? '';
   return {
     source, previous, recording, closed: Boolean(source.pedido_id), client, reference: referenceOf(source, client),
     lines: lines.length ? lines : [{ producto_id: opportunitiesLegacy.defaultProduct(), unidades: 1 }],
     origin: orFallback(source.origen, defaultOrigin), reason: orFallback(source.motivo, ''), result: orFallback(source.resultado, ''),
-    noSale: Boolean(source.id && source.resultado && source.resultado !== ORDER_DONE),
+    noSale: Boolean(source.id && source.resultado && !isOrderDone(source.resultado)),
   };
 }
 
@@ -88,9 +88,11 @@ export async function editOpportunity(start: Opportunity | null, previous: Previ
 
 /** «Registrar» on a pending call back: the window with what they wanted then. */
 export async function registerFollowUp(call: Opportunity & Previous): Promise<void> {
+  // The follow-up reason and our own call come from the lists (PED-5, v2.464.0)
+  if (permissions.hasOpportunities()) await loadOpportunityCatalogs();
   const { data: previous } = await legacyDb().from<{ interes?: Opportunity['interes'] } | null>('llamadas').select('interes').eq('id', call.id).maybeSingle();
   await editOpportunity({
     contacto_id: call.contacto_id ?? null, cliente: call.cliente ?? null, nombre: call.nombre ?? null, telefono: call.telefono ?? null, tel_cliente: call.tel_cliente ?? null,
-    cuenta_id: call.cuenta_id ?? null, medico: call.medico ?? null, motivo: FOLLOW_UP_REASON, origen: OUTGOING_CALL, interes: previous?.interes ?? [],
+    cuenta_id: call.cuenta_id ?? null, medico: call.medico ?? null, motivo: followUpReason(), origen: ourCallOrigin(), interes: previous?.interes ?? [],
   }, call);
 }

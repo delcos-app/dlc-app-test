@@ -50,7 +50,7 @@ export const quality = {
     hint: 'El punto del mapa de {thesePlaces} está lejos de su municipio: «Cómo llegar», las rutas y la agenda las sitúan mal.',
     noAddress: 'Sin dirección',
     farFrom: 'El punto está a {km} km de {municipality}',
-    outOfSpain: 'El punto está fuera de España',
+    outOfCountry: 'El punto está fuera de {country}',
     card: 'Ficha',
     relocate: 'Volver a situar',
     searching: 'Buscando…',

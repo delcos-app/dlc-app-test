@@ -372,7 +372,7 @@
     highlightSearch: () => highlightSearch,
     isSaveButton: () => isSaveButton,
     isSearchBox: () => isSearchBox,
-    kindOf: () => kindOf,
+    kindOf: () => kindOf2,
     listItems: () => listItems,
     matchesFilters: () => matchesFilters,
     mediumDate: () => mediumDate,
@@ -469,6 +469,7 @@
     appName: () => appName,
     byId: () => byId4,
     calendar: () => calendar_exports,
+    catalogRoles: () => catalog_roles_exports,
     errors: () => errors_exports,
     escapeText: () => escapeText,
     files: () => files_exports,
@@ -3291,6 +3292,18 @@
       withoutPermission: "Sin permiso",
       classifierDeleted: "Clasificador eliminado"
     },
+    valueRoles: {
+      paymentHow: "Cómo se cobra",
+      transfer: "Transferencia",
+      onDelivery: "A la entrega",
+      cardTerminal: "Tarjeta o Bizum (TPV)",
+      other: "Otra",
+      report: "Es un informe para {theProfessional}",
+      followUp: "Es el motivo de seguimiento",
+      ourCall: "Es una llamada nuestra",
+      saved: "Guardado",
+      notSaved: "No se ha podido guardar"
+    },
     valueData: {
       title: "Dato de «{name}»",
       subtitle: "Al marcar este valor en {aVisit}, se pedirá además este dato",
@@ -4133,7 +4146,7 @@
       offlineTitle: "Sin conexión.",
       offline: "{visit} se guarda en este móvil y se envía sola al recuperar la conexión. Las muestras necesitan conexión.",
       sameDay: "La visita se registra el mismo día",
-      noReporting: "{professional} no quiere reporting: solo {visit} presencial.",
+      noReports: "{professional} no recibe informes.",
       chooseResult: "Elige al menos un resultado",
       couldNotSave: "No se ha podido guardar: {error}",
       saved: "{visit}",
@@ -6839,6 +6852,114 @@
     bindPreview();
   }
 
+  // src/app/core/catalog-roles.ts
+  var catalog_roles_exports = {};
+  __export(catalog_roles_exports, {
+    PAYMENT_KINDS: () => PAYMENT_KINDS,
+    REPORT_ROLE: () => REPORT_ROLE,
+    isBankTransfer: () => isBankTransfer,
+    isCardTerminal: () => isCardTerminal,
+    isOnDelivery: () => isOnDelivery,
+    isReportResult: () => isReportResult,
+    paymentKind: () => paymentKind,
+    paymentKindByName: () => paymentKindByName
+  });
+
+  // src/app/legacy/catalog-bridge.ts
+  var catalogLegacy = {
+    values: (key) => CAT[key] ?? []
+  };
+
+  // src/app/core/catalog-roles.ts
+  var PAYMENT_KINDS = ["transferencia", "entrega", "tpv", "otra"];
+  var REPORT_ROLE = "informe";
+  var PAYMENT_CATALOG = "forma_pago";
+  var isPaymentKind = (role) => PAYMENT_KINDS.some((kind) => kind === role);
+  function paymentKindByName(name) {
+    const text = name ?? "";
+    if (/reembolso/i.test(text)) return "entrega";
+    if (/transfer/i.test(text)) return "transferencia";
+    return /tarjeta|bizum/i.test(text) ? "tpv" : "otra";
+  }
+  function paymentKind(method) {
+    const role = catalogLegacy.values(PAYMENT_CATALOG).find((value10) => value10.valor === method)?.papel;
+    return isPaymentKind(role) ? role : paymentKindByName(method);
+  }
+  var isBankTransfer = (method) => paymentKind(method) === "transferencia";
+  var isOnDelivery = (method) => paymentKind(method) === "entrega";
+  var isCardTerminal = (method) => paymentKind(method) === "tpv";
+  function isReportResult(value10) {
+    if (typeof value10.informe === "boolean") return value10.informe;
+    return value10.papel === REPORT_ROLE || /reporting/i.test(value10.valor);
+  }
+
+  // src/app/screens/settings/more/value-roles.ts
+  var KIND_TEXT = {
+    transferencia: "settingsMore.valueRoles.transfer",
+    entrega: "settingsMore.valueRoles.onDelivery",
+    tpv: "settingsMore.valueRoles.cardTerminal",
+    otra: "settingsMore.valueRoles.other"
+  };
+  var FLAG_TEXT = {
+    informe: "settingsMore.valueRoles.report",
+    seguimiento: "settingsMore.valueRoles.followUp",
+    llamada_nuestra: "settingsMore.valueRoles.ourCall"
+  };
+  var rolesOf = (classifier) => classifier.papeles_valor ?? [];
+  var isPaymentList = (classifier) => rolesOf(classifier).includes("transferencia");
+  var flagOf = (classifier) => rolesOf(classifier).find((role) => role in FLAG_TEXT);
+  var isKind = (role) => PAYMENT_KINDS.some((kind) => kind === role);
+  var kindOf = (value10) => isKind(value10.papel) ? value10.papel : paymentKindByName(value10.valor);
+  var flagText = (role) => {
+    const key = FLAG_TEXT[role];
+    return key ? t(key, { theProfessional: term("medico", { article: "el" }) }) : "";
+  };
+  var kindOptions = (selected2) => PAYMENT_KINDS.map((kind) => `<option value="${kind}" ${kind === selected2 ? "selected" : ""}>${t(KIND_TEXT[kind])}</option>`).join("");
+  function valueRoleText(classifier, value10) {
+    if (isPaymentList(classifier)) return `<span class="sm">${t("settingsMore.valueRoles.paymentHow")}: ${t(KIND_TEXT[kindOf(value10)])}</span>`;
+    const flag = flagOf(classifier);
+    return flag && value10.papel === flag ? `<span class="sm">${flagText(flag)}</span>` : "";
+  }
+  function valueRoleControl(classifier, value10) {
+    const how = t("settingsMore.valueRoles.paymentHow");
+    if (isPaymentList(classifier)) return `<select data-vpapel="${value10.id}" title="${how}" aria-label="${how} · ${escapeHtml(value10.valor)}">${kindOptions(kindOf(value10))}</select>`;
+    const flag = flagOf(classifier);
+    if (!flag) return "";
+    const on3 = value10.papel === flag, taken = Boolean(value10.papel) && !on3;
+    return `<label class="chk"><input type="checkbox" data-vpapel="${value10.id}" data-papel="${flag}" ${on3 ? "checked" : ""} ${taken ? "disabled" : ""}><span>${flagText(flag)}</span></label>`;
+  }
+  function newValueRole(classifier) {
+    if (!isPaymentList(classifier)) return "";
+    const how = t("settingsMore.valueRoles.paymentHow");
+    return `<select id="cvpapel" title="${how}" aria-label="${how}">${kindOptions("otra")}</select>`;
+  }
+  async function saveRole(id, role) {
+    const { data, error } = await legacyDb().rpc("guardar_papel_valor", { p_id: id, p_papel: role });
+    return !error && data?.ok === true;
+  }
+  async function saveNewValueRole(id) {
+    const select = document.getElementById("cvpapel");
+    if (id && select && !await saveRole(id, select.value)) notices.toast(t("settingsMore.valueRoles.notSaved"), true);
+  }
+  function bindValueRoles(body3, refresh3) {
+    body3.querySelectorAll("[data-vpapel]").forEach((control2) => {
+      control2.onchange = async () => {
+        const role = control2 instanceof HTMLInputElement ? control2.checked ? control2.dataset.papel ?? null : null : control2.value;
+        const saved3 = await saveRole(control2.dataset.vpapel ?? "", role);
+        notices.toast(t(saved3 ? "settingsMore.valueRoles.saved" : "settingsMore.valueRoles.notSaved"), !saved3);
+        await refresh3();
+      };
+    });
+    const name = document.getElementById("cvnew"), kind = document.getElementById("cvpapel");
+    if (!name || !kind) return;
+    kind.onchange = () => {
+      kind.dataset.elegido = "1";
+    };
+    name.addEventListener("input", () => {
+      if (!kind.dataset.elegido) kind.value = paymentKindByName(name.value);
+    });
+  }
+
   // src/app/screens/settings/more/classifier.ts
   var RESULT = "resultado_visita";
   var CAN_EDIT_LEVEL = 2;
@@ -6868,7 +6989,7 @@
     if (!rights.canEdit) return "";
     const data = rights.asksData ? `<button class="btn sec" data-vdato="${value10.id}">${t(value10.dato_tipo ? "settingsMore.classifier.changeData" : "settingsMore.classifier.addData")}</button>` : "";
     const destination = classifier.papel === RESULT ? `<select data-vdest="${value10.id}" title="${t("settingsMore.classifier.destinationTitle")}" style="max-width:170px"><option value="">${t("settingsMore.classifier.keepsState")}</option>${stateOptions(value10.destino)}</select>` : "";
-    return `<span class="acts u-m-0">${data}
+    return `<span class="acts u-m-0">${data}${valueRoleControl(classifier, value10)}
           <button class="btn sec" data-vren="${value10.id}|${escapeHtml(value10.valor)}">${t("settingsMore.classifier.rename")}</button>
           ${destination}
           <button class="btn sec" data-vtog="${value10.id}|${value10.activo ? 0 : 1}">${t(value10.activo ? "settingsMore.classifier.deactivate" : "settingsMore.classifier.activate")}</button>
@@ -6878,7 +6999,7 @@
     return `<div class="item ${value10.padre ? "vsub" : ""} u-cursor-default">
         <span class="ic">${value10.activo ? "●" : "○"}</span>
         <span class="tx"><b style="${value10.activo ? "" : "opacity:.5;text-decoration:line-through"}">${escapeHtml(value10.valor)}</b>
-          ${resultText(value10)}${rights.asksData ? dataText(value10) : ""}</span>
+          ${resultText(value10)}${rights.asksData ? dataText(value10) : ""}${rights.canEdit ? "" : valueRoleText(classifier, value10)}</span>
         ${valueActions(classifier, value10, rights)}
       </div>`;
   }
@@ -6888,7 +7009,7 @@
           <select id="cvdest" style="max-width:190px" title="${t("settingsMore.classifier.destinationTitle")}"><option value="">${t("settingsMore.classifier.keepsState")}</option>${stateOptions(null)}</select>` : "";
     const parent = values2.some((value10) => value10.padre) ? `<select id="cvpadre" style="max-width:210px" title="${t("settingsMore.classifier.categoryTitle")}"><option value="">${t("settingsMore.classifier.noCategory")}</option>${values2.filter((value10) => !value10.padre).map((value10) => `<option value="${escapeHtml(value10.valor)}">${t("settingsMore.classifier.inside", { name: escapeHtml(value10.valor) })}</option>`).join("")}</select>` : "";
     return `<div class="acts"><input id="cvnew" placeholder="${t("settingsMore.classifier.newValue")}" style="flex:1;min-width:160px">
-        ${result}
+        ${result}${newValueRole(classifier)}
         ${parent}
         <button class="btn" id="cvadd">${t("settingsMore.classifier.add")}</button></div>`;
   }
@@ -6949,11 +7070,12 @@
   async function addValue(view) {
     const text = valueOf("cvnew").trim();
     if (!text) return;
-    const { error } = await legacyDb().rpc("guardar_valor", { p: newValue(view.classifier, text) });
+    const { data, error } = await legacyDb().rpc("guardar_valor", { p: newValue(view.classifier, text) });
     if (error) {
       notices.toast(t("settingsMore.classifier.couldNotAdd"), true);
       return;
     }
+    await saveNewValueRole(data?.id);
     notices.toast(t("settingsMore.classifier.added"));
     void view.refresh();
   }
@@ -7039,6 +7161,7 @@
     on("cvadd", () => addValue(view));
     on("cdel", () => removeClassifier(classifier));
     bindValues(view, onData);
+    bindValueRoles(body3, view.refresh);
   }
 
   // src/app/screens/settings/more/value-data.ts
@@ -11764,7 +11887,7 @@
   function drawPayment(drawing, invoice2, y) {
     const { doc, design, company } = drawing;
     if (!design.formaPago || !invoice2.forma_pago) return;
-    const label = t("billingMore.pdf.paymentMethod"), iban = design.iban && /transfer/i.test(invoice2.forma_pago) && company.iban ? t("billingMore.pdf.iban", { iban: company.iban }) : "";
+    const label = t("billingMore.pdf.paymentMethod"), iban = design.iban && isBankTransfer(invoice2.forma_pago) && company.iban ? t("billingMore.pdf.iban", { iban: company.iban }) : "";
     doc.setTextColor(...GREY);
     doc.text(label, LEFT2, y);
     doc.setTextColor(...BLACK);
@@ -12363,8 +12486,14 @@
     activateCallRecord: () => activateCallRecord,
     callRecordHtml: () => callRecordHtml,
     editOpportunity: () => editOpportunity,
+    followUpReason: () => followUpReason,
+    isOrderDone: () => isOrderDone,
+    orderDoneResult: () => orderDoneResult,
+    orderDoneResults: () => orderDoneResults,
+    ourCallOrigin: () => ourCallOrigin,
     paintOpportunities: () => paintOpportunities,
     readCallRecord: () => readCallRecord,
+    registerFollowUp: () => registerFollowUp,
     saveCallRecord: () => saveCallRecord
   });
 
@@ -12374,6 +12503,9 @@
   var OUTGOING = "Saliente";
   var OUTGOING_CALL = "Llamada saliente";
   var FOLLOW_UP_REASON = "Seguimiento de televenta";
+  var FOLLOW_UP_ROLE = "seguimiento";
+  var OUR_CALL_ROLE = "llamada_nuestra";
+  var POSITIVE = "pos";
   var FOLLOW_UP_DAYS = [
     ["opportunities.followUpDays.tomorrow", 1],
     ["opportunities.followUpDays.threeDays", 3],
@@ -12392,6 +12524,18 @@
     const { data } = await legacyDb().rpc("catalogo_papel", { p_papel: key });
     opportunitiesLegacy.setCatalog(key, data ?? []);
   }
+  function valueWithRole(key, role, oldName) {
+    const list = catalog(key);
+    return list.find((entry2) => entry2.papel === role)?.valor ?? (list.some((entry2) => entry2.valor === oldName) ? oldName : "");
+  }
+  var followUpReason = () => valueWithRole("motivo_llamada", FOLLOW_UP_ROLE, FOLLOW_UP_REASON);
+  var ourCallOrigin = () => valueWithRole("origen_oportunidad", OUR_CALL_ROLE, OUTGOING_CALL);
+  function orderDoneResults() {
+    const positive = catalog("resultado_llamada").filter((entry2) => entry2.extra === POSITIVE).map((entry2) => entry2.valor);
+    return positive.length ? positive : [ORDER_DONE];
+  }
+  var orderDoneResult = () => orderDoneResults()[0] ?? ORDER_DONE;
+  var isOrderDone = (result) => Boolean(result) && orderDoneResults().includes(result ?? "");
   async function loadCallCatalogs() {
     for (const key of ["motivo_llamada", "resultado_llamada"]) await loadCatalog(key);
   }
@@ -12422,7 +12566,7 @@
   // src/app/screens/opportunities/call-record.ts
   var chosen = { motivo: "", resultado: "" };
   var value2 = (id) => document.getElementById(id)?.value ?? "";
-  var needsFollowUp = (result) => Boolean(result) && result !== ORDER_DONE;
+  var needsFollowUp = (result) => Boolean(result) && !isOrderDone(result);
   function callRecordHtml(state) {
     const call2 = state ?? {}, outgoing = call2.direccion === OUTGOING;
     return `<details class="blk kollam" id="kollam" ${call2.motivo !== void 0 ? "open" : ""}><summary>${t("opportunities.callRecord.title")}</summary>
@@ -12741,7 +12885,7 @@
   }
   function noSaleHtml(draft) {
     if (!draft.recording || draft.closed) return "";
-    const results = catalog("resultado_llamada").filter((entry2) => entry2.extra !== "pos" && entry2.valor !== ORDER_DONE);
+    const results = catalog("resultado_llamada").filter((entry2) => entry2.extra !== "pos" && !isOrderDone(entry2.valor));
     return `<div id="nvnoz" class="${draft.noSale ? "" : "hide"}">
         <label>${t("opportunities.editor.whyNoSale")}</label><div class="chipsw" id="nvres">${chipsHtml(results, draft.result, "data-nvr")}</div>
         <div class="sm" style="margin:8px 0 4px">${t("opportunities.callAgainWhen")}</div>
@@ -12791,7 +12935,7 @@
     return { cuenta_id: draft.reference ? draft.reference.id : null, cuenta_texto: draft.reference ? "" : freeText.trim() };
   }
   function nextStep(result) {
-    const followUp = Boolean(result) && result !== ORDER_DONE;
+    const followUp = Boolean(result) && !isOrderDone(result);
     return { proxima_fecha: followUp ? fieldValue2("nvpf") ?? "" : "", proxima_accion: followUp ? (fieldValue2("nvpa") ?? "").trim() : "" };
   }
   function payload3(draft, result) {
@@ -12870,7 +13014,7 @@
     refreshList();
   }
   async function saveChanges(draft) {
-    const result = draft.closed ? orFallback(draft.source.resultado, ORDER_DONE) : draft.noSale ? draft.result : "";
+    const result = draft.closed ? orFallback(draft.source.resultado, orderDoneResult()) : draft.noSale ? draft.result : "";
     if (!await save9(draft, result)) return;
     closeWindow();
     notices.toast(t("opportunities.editor.saved"));
@@ -12908,7 +13052,7 @@
     if (!source.fecha) source.fecha = now;
     const recording = permissions.hasOpportunities(), client2 = clientOf(source);
     const lines2 = (source.interes ?? []).map((line2) => ({ producto_id: line2.producto_id, unidades: line2.unidades }));
-    const defaultOrigin = previous ? OUTGOING_CALL : catalog("origen_oportunidad")[0]?.valor ?? "";
+    const defaultOrigin = previous ? ourCallOrigin() : catalog("origen_oportunidad")[0]?.valor ?? "";
     return {
       source,
       previous,
@@ -12920,7 +13064,7 @@
       origin: orFallback(source.origen, defaultOrigin),
       reason: orFallback(source.motivo, ""),
       result: orFallback(source.resultado, ""),
-      noSale: Boolean(source.id && source.resultado && source.resultado !== ORDER_DONE)
+      noSale: Boolean(source.id && source.resultado && !isOrderDone(source.resultado))
     };
   }
   function onChip(group, handler) {
@@ -12976,6 +13120,7 @@
     bindOutcome(draft);
   }
   async function registerFollowUp(call2) {
+    if (permissions.hasOpportunities()) await loadOpportunityCatalogs();
     const { data: previous } = await legacyDb().from("llamadas").select("interes").eq("id", call2.id).maybeSingle();
     await editOpportunity({
       contacto_id: call2.contacto_id ?? null,
@@ -12985,8 +13130,8 @@
       tel_cliente: call2.tel_cliente ?? null,
       cuenta_id: call2.cuenta_id ?? null,
       medico: call2.medico ?? null,
-      motivo: FOLLOW_UP_REASON,
-      origen: OUTGOING_CALL,
+      motivo: followUpReason(),
+      origen: ourCallOrigin(),
       interes: previous?.interes ?? []
     }, call2);
   }
@@ -13084,7 +13229,7 @@
   }
   var interestText = (item) => (item.interes ?? []).map((line2) => `${orFallback(line2.producto, "")} × ${formatNumber(line2.unidades)}`).join(", ");
   function endsHtml2(item) {
-    const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, ORDER_DONE)) : `<span class="pill p-warn">${t("opportunities.list.notClosed")}</span>`;
+    const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, orderDoneResult())) : `<span class="pill p-warn">${t("opportunities.list.notClosed")}</span>`;
     return `${ends}${item.pedido ? `<span class="sm">${t("opportunities.list.order", { number: escapeHtml(item.pedido) })}</span>` : ""}`;
   }
   function rowHtml4(item) {
@@ -13299,7 +13444,6 @@
     if (total === null || total === void 0 || Math.abs(Number(total)) >= 5e-3) return false;
     return order.unidades === null || order.unidades === void 0 || Number(order.unidades) > 0;
   }
-  var isBankTransfer = (paymentMethod) => /transfer/i.test(paymentMethod ?? "");
   var paymentOf = (order) => ordersLegacy.paymentState(order);
   function paymentPill(order) {
     if (order.estado !== STATES2.confirmed) return "";
@@ -13318,7 +13462,7 @@
   var isStepCode = (code) => ORDER_STEPS.some(([step]) => step === code);
   var storedStateOf = (code) => code === "anulado" ? STATES2.voided : code === "borrador" || code === "esperando_pago" ? STATES2.draft : STATES2.confirmed;
   function confirmedStep(order) {
-    const onDelivery = /reembolso/i.test(order.forma_pago ?? ""), toCollect = paymentOf(order) === PENDING_PAYMENT;
+    const onDelivery = isOnDelivery(order.forma_pago), toCollect = paymentOf(order) === PENDING_PAYMENT;
     if (toCollect && !onDelivery) return "por_cobrar";
     if (!order.paquete_en) return "por_preparar";
     if (toCollect) return "por_cobrar";
@@ -18984,6 +19128,10 @@
     const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
     return Array.isArray(data) ? data : [];
   }
+  function withoutReports(groups2) {
+    const kept = groups2.map((group) => ({ ...group, valores: group.valores.filter((value10) => !isReportResult(value10)) }));
+    return { groups: kept, hidden: kept.some((group, index) => group.valores.length !== groups2[index]?.valores.length) };
+  }
   async function loadVisitData(id) {
     const coverage = accountCardLegacy.planIncludes("cobertura");
     const [{ card: card3, groups: groups2 }, flags, products3, missingTimetable2] = await Promise.all([
@@ -18994,7 +19142,8 @@
     ]);
     if (!card3?.medico) return navigator.onLine ? "online" : "offline";
     const samples = await samplesLeft(id, flags?.tipo).catch(() => []);
-    return { account: card3.medico, consultations: card3.consultas ?? [], groups: groups2, samples, products: products3, noReporting: Boolean(flags?.sin_reporting), missingTimetable: missingTimetable2 };
+    const noReporting = Boolean(flags?.sin_reporting), shown3 = noReporting ? withoutReports(groups2) : { groups: groups2, hidden: false };
+    return { account: card3.medico, consultations: card3.consultas ?? [], groups: shown3.groups, samples, products: products3, noReporting, reportsHidden: shown3.hidden, missingTimetable: missingTimetable2 };
   }
 
   // src/app/screens/visit/record/form.ts
@@ -19016,11 +19165,13 @@
     if (!hidden) return "";
     return `<button type="button" class="lnk" id="vtodos">${hidden === 1 ? t("visit.record.showOneHidden") : t("visit.record.showHidden", { count: hidden })}</button>`;
   }
-  function resultsHtml(index, results, others) {
+  var noReportsNote = () => `<p class="sm srnota">${t("visit.record.noReports", { professional: term("medico", { article: "este", articleCapital: "C" }) })}</p>`;
+  function resultsHtml(index, groups2, reportsHidden) {
+    const { results, others } = groups2;
     const positive = results.valores.filter((value10) => value10.extra !== NEGATIVE), negative = results.valores.filter((value10) => value10.extra === NEGATIVE);
     const more2 = hiddenButton([results, ...others]);
     return `<label>${t("visit.record.resultLabel")} <span class="sm">${t("visit.record.severalResults", { done: term("visita", { adjective: "realizado" }) })}</span></label>
-    <div class="opciones">${positive.map((value10) => button2(index, results, value10, true)).join("")}</div>${negative.length ? "" : more2}
+    <div class="opciones">${positive.map((value10) => button2(index, results, value10, true)).join("")}</div>${reportsHidden ? noReportsNote() : ""}${negative.length ? "" : more2}
     <div class="opciones u-mt-8">${negative.map((value10) => button2(index, results, value10, true)).join("")}</div>${negative.length ? more2 : ""}
     ${others.map((group) => `<label>${escapeHtml(group.nombre)}${group.descripcion ? ` <span class="sm">· ${escapeHtml(group.descripcion)}</span>` : ""}</label>
       <div class="opciones">${group.valores.map((value10) => button2(index, group, value10, false)).join("")}</div>`).join("")}`;
@@ -19055,7 +19206,7 @@
     return consultations.map((item) => `<option value="${item.id ?? ""}">${escapeHtml(orFallback(item.centro_nombre, privateConsultation()))}${item.municipio ? ` · ${escapeHtml(item.municipio)}` : ""}</option>`).join("");
   }
   function visitHtml(data, index) {
-    const { results, others } = splitGroups(data.groups), visit2 = term("visita");
+    const groups2 = splitGroups(data.groups), visit2 = term("visita");
     return `
     <div class="fh"><div><h2>${t("visit.record.title", { visit: visit2 })}</h2><div class="sm">${escapeHtml(data.account.nombre)}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>${noticesHtml(data)}
@@ -19066,7 +19217,7 @@
       </select></div>
     </div><label>${t("visit.record.howItWas")}</label>
     <div class="segs" id="vmodo" role="group" aria-label="${t("visit.record.howItWas")}">${modeButtons("vmodo", "presencial")}</div>${productsHtml(data.products)}
-    ${resultsHtml(index, results, others)}
+    ${resultsHtml(index, groups2, data.reportsHidden)}
     <div class="g2 u-mt-6">
       <div><label for="vpa">${t("visit.edit.nextAction")}</label><input id="vpa" placeholder="${t("visit.record.nextActionPlaceholder")}"></div>
       <div><label for="vpf">${t("visit.record.nextActionDate")}</label><input id="vpf" type="date"></div>
@@ -19146,7 +19297,6 @@
   }
 
   // src/app/screens/visit/record/index.ts
-  var REPORTING = /reporting/i;
   function bindResults(body3, visit2) {
     body3.querySelectorAll("[data-vk]").forEach((button3) => {
       button3.onclick = () => {
@@ -19263,18 +19413,6 @@
       field10.title = t("visit.record.sameDay");
     } else if (date && date <= today2) field10.value = date;
   }
-  function hideReporting(box3) {
-    let hidden = 0;
-    box3.querySelectorAll(".chips button, [data-res], .chip").forEach((button3) => {
-      if (REPORTING.test(button3.textContent ?? "")) {
-        button3.style.display = "none";
-        hidden++;
-      }
-    });
-    if (!hidden || box3.querySelector(".srnota")) return;
-    const first = box3.querySelector(".chips, [data-res]"), container = first?.classList.contains("chips") ? first : first?.parentElement;
-    container?.insertAdjacentHTML("afterend", `<p class="sm srnota">${t("visit.record.noReporting", { professional: term("medico", { article: "este", articleCapital: "C" }), visit: term("visita") })}</p>`);
-  }
   function paint4(id, data, date) {
     const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
     if (!body3 || !box3) return;
@@ -19294,7 +19432,6 @@
       void saveVisit(visit2, save27);
     };
     box3.showModal();
-    if (data.noReporting) hideReporting(box3);
   }
   async function openVisit(id) {
     const date = visitLegacy.takeDate();
@@ -30201,7 +30338,7 @@
       nombre: customer.nombre,
       telefono: orFallback(customer.movil, customer.telefono ?? ""),
       medico: state.account,
-      resultado: withOrder ? orFallback(call2.resultado, ORDER_DONE) : call2.resultado
+      resultado: withOrder ? orFallback(call2.resultado, orderDoneResult()) : call2.resultado
     }, state.options.llamada);
   }
   async function afterSave2(state, customer, callId, withOrder) {
@@ -34420,7 +34557,7 @@
     });
   };
   function visibleValue(input6) {
-    const kind = kindOf(input6);
+    const kind = kindOf2(input6);
     if (kind !== "mes" && kind !== "fechahora") {
       showVisibleValue(input6);
       return;
@@ -36921,6 +37058,7 @@
     "components/filters/memory": memory_exports,
     "components/index": components_exports,
     "components/loading": loading_exports,
+    "core/catalog-roles": catalog_roles_exports,
     "core/navigation/current": current_exports,
     "core/organisation": organisation_exports,
     "core/vocabulary": vocabulary_exports,
@@ -39155,7 +39293,7 @@
 
   // src/app/components/date-picker/shared.ts
   var twoDigits = (value10) => String(value10).padStart(2, "0");
-  var kindOf = (input6) => {
+  var kindOf2 = (input6) => {
     if (input6.type === "month") return "mes";
     if (input6.type === "datetime-local") return "fechahora";
     return input6.type === "time" ? "hora" : "fecha";
@@ -39330,7 +39468,7 @@
     return value10.slice(0, 10);
   }
   function openCalendar(input6, options3 = {}) {
-    const kind = kindOf(input6), value10 = input6.value || "", start3 = startOf(input6, kind, options3), size = kind === "mes" ? 7 : 10;
+    const kind = kindOf2(input6), value10 = input6.value || "", start3 = startOf(input6, kind, options3), size = kind === "mes" ? 7 : 10;
     const popup = newPopup("selpop cal", t(kind === "mes" ? "components.datePicker.chooseMonth" : "components.datePicker.chooseDate"), options3.mismo);
     const calendar = {
       input: input6,
@@ -39410,7 +39548,7 @@
     return [isNaN(hour) ? DEFAULT_HOUR : hour, isNaN(minute) ? 0 : minute];
   }
   function openClock(input6, options3 = {}) {
-    const kind = kindOf(input6);
+    const kind = kindOf2(input6);
     if (!options3.desdeCal && (kind === "mes" || kind === "fechahora")) {
       openCalendar(input6);
       return;

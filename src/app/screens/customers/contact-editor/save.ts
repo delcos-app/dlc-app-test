@@ -9,7 +9,7 @@ import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
 import { checkDocument } from '../../../components/fields';
 import { readCallRecord, saveCallRecord, type CallRecord } from '../../opportunities/call-record';
-import { ORDER_DONE } from '../../opportunities/model';
+import { orderDoneResult } from '../../opportunities/model';
 import { readCustomFields, saveCustomFields, type ReadFields } from '../../settings/custom-fields/form';
 import { listCustomers } from '../list';
 import { field, fieldValue, freeAccount, isCompany, type EditorState, type SavedCustomer } from './state';
@@ -63,7 +63,7 @@ async function saveCall(state: EditorState, call: CallRecord | null, customer: S
   if (!call || !(withOrder || call.motivo || call.resultado || call.nota || state.options.llamada)) return null;
   return saveCallRecord(call, {
     contacto_id: customer.id, nombre: customer.nombre, telefono: orFallback(customer.movil, customer.telefono ?? ''), medico: state.account,
-    resultado: withOrder ? orFallback(call.resultado, ORDER_DONE) : call.resultado,
+    resultado: withOrder ? orFallback(call.resultado, orderDoneResult()) : call.resultado,
   }, state.options.llamada);
 }
 
