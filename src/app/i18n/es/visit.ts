@@ -87,7 +87,7 @@ export const visit = {
     offlineTitle: 'Sin conexión.',
     offline: '{visit} se guarda en este móvil y se envía sola al recuperar la conexión. Las muestras necesitan conexión.',
     sameDay: 'La visita se registra el mismo día',
-    noReporting: '{professional} no quiere reporting: solo {visit} presencial.',
+    noReports: '{professional} no recibe informes.',
     chooseResult: 'Elige al menos un resultado',
     couldNotSave: 'No se ha podido guardar: {error}',
     saved: '{visit}',

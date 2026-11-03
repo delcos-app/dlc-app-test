@@ -1,16 +1,23 @@
 /**
- * Configuración → Clasificadores → one classifier: its values (rename, activate, delete, the state a visit result moves the card to,
- * the data a visit value asks for) and its custom field options. Migrated from the legacy abrirClasificadorBase and
- * abrirClasificador (v2.415.0): the «+ Dato» buttons are painted with the list instead of being added by a MutationObserver.
- * This file paints it; classifier-actions.ts binds its buttons and classifier-window.ts opens it.
+ * Configuración → Clasificadores → one classifier: its values and its custom field options. Migrated from the legacy
+ * abrirClasificadorBase and abrirClasificador (v2.415.0).
+ * v2.464.0: each value is one compact row (D-044): its name and, under it, what it does in plain words («Pasa a: Presentado ·
+ * Pide: Cuántas», «Cómo se cobra: A la entrega») and «Desactivado» when it is off. The whole row opens its editor (value-editor.ts),
+ * where everything a value has is changed, also «Activo» and «Eliminar valor»: one single way in, with a chevron as its sign; «+ Nuevo valor» and «Eliminar clasificador» are in
+ * the bar at the bottom of the window. The «i» of the title says what the list is for.
+ * This file paints the list; classifier-actions.ts binds it and classifier-window.ts opens it.
  */
-import { cardBaseLegacy, cardSectionsLegacy, legacyDb, term } from '../../../legacy/bridge';
+import { cardSectionsLegacy, legacyDb, term } from '../../../legacy/bridge';
 import { settingsMoreLegacy, type ClassifierData, type ClassifierValue } from '../../../legacy/settings2-bridge';
-import { t } from '../../../i18n';
+import { t, type MessageKey } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
+import { dataText } from './value-data';
+import { onlyInText, resultParts } from './result-states';
+import { fixedRole, flagOf, isPaymentList, valueRoleKey, valueRoleText } from './value-roles';
 
-const RESULT = 'resultado_visita', CAN_EDIT_LEVEL = 2, FULL_LEVEL = 3;
+export const RESULT = 'resultado_visita';
+const CAN_EDIT_LEVEL = 2, FULL_LEVEL = 3, SEPARATOR = ' · ';
 
 export interface Rights { canEdit: boolean; complete: boolean; asksData: boolean }
 
@@ -20,57 +27,60 @@ export function rightsOf(classifier: ClassifierData): Rights {
   return { canEdit, complete: admin || level >= FULL_LEVEL, asksData: canEdit && (classifier.ambito === 'visita' || classifier.papel === RESULT) };
 }
 
+type UsedIn = 'orders' | 'visits' | 'calls' | 'customers' | 'products';
+/** Where a list is really used: by its role first (the stored scope of some lists says «medico»: «Forma de pago» is used in orders). */
+const USED_BY_ROLE: Readonly<Record<string, UsedIn>> = {
+  forma_pago: 'orders', resultado_visita: 'visits', material_visita: 'visits', motivo_llamada: 'calls', origen_oportunidad: 'calls', resultado_llamada: 'calls',
+};
+const USED_BY_SCOPE: Readonly<Record<string, UsedIn>> = { pedido: 'orders', visita: 'visits', llamada: 'calls', cliente: 'customers', producto: 'products' };
+const USED_TEXT: Readonly<Record<UsedIn, MessageKey>> = {
+  orders: 'settingsMore.classifier.inOrders', visits: 'settingsMore.classifier.inVisits', calls: 'settingsMore.classifier.inCalls',
+  customers: 'settingsMore.classifier.inCustomers', products: 'settingsMore.classifier.inProducts',
+};
+
 function usedIn(classifier: ClassifierData): string {
-  if (classifier.ambito === 'pedido') return t('settingsMore.classifier.inOrders');
-  if (classifier.ambito === 'visita') return t('settingsMore.classifier.inVisits');
-  return t('settingsMore.classifier.inCards', { professional: term('medico') });
+  const where = USED_BY_ROLE[classifier.papel ?? ''] ?? USED_BY_SCOPE[classifier.ambito ?? ''];
+  return where ? t(USED_TEXT[where]) : t('settingsMore.classifier.inCards', { professional: term('medico') });
 }
 
-const stateOptions = (selected: string | null | undefined): string =>
-  cardBaseLegacy.states().map(state => `<option value="${escapeHtml(state)}" ${selected === state ? 'selected' : ''}>${t('settingsMore.classifier.movesTo', { state: escapeHtml(state) })}</option>`).join('');
-
-function resultText(value: ClassifierValue): string {
-  if (!value.extra) return '';
-  const kind = value.extra === 'neg' ? t('settingsMore.classifier.withoutVisit', { visit: term('visita') }) : term('visita', { adjective: 'realizado' });
-  return `<span class="sm">${kind}${value.destino ? t('settingsMore.classifier.movesToShort', { state: escapeHtml(value.destino) }) : ''}</span>`;
+/** What the list is for, where it is used and what its special values mean: the text of the «i» of the title. */
+function helpText(classifier: ClassifierData, rights: Rights): string {
+  const visit = { theVisit: term('visita', { article: 'el' }), aVisit: term('visita', { article: 'un' }) };
+  const flag = flagOf(classifier), values = classifier.valores ?? [];
+  const parts = [t('settingsMore.valueList.help', { used: usedIn(classifier) })];
+  if (classifier.papel === RESULT) parts.push(t('settingsMore.valueList.helpResults', visit));
+  else if (rights.asksData) parts.push(t('settingsMore.valueList.helpData', visit));
+  if (isPaymentList(classifier)) parts.push(t('settingsMore.valueList.helpPayments'));
+  if (flag === 'seguimiento') parts.push(t('settingsMore.valueList.helpFollowUp'));
+  if (flag === 'llamada_nuestra') parts.push(t('settingsMore.valueList.helpOurCall'));
+  if (values.some(value => fixedRole(classifier, value))) parts.push(t('settingsMore.valueList.helpFixed'));
+  if (classifier.sistema) parts.push(t('settingsMore.valueList.helpSystem'));
+  return parts.join('');
 }
 
-function dataText(value: ClassifierValue): string {
-  if (!value.dato_tipo) return '';
-  const options = value.dato_tipo === 'lista' ? t('settingsMore.classifier.options', { count: (value.dato_opciones ?? []).length }) : '';
-  return `<span class="sm">${t('settingsMore.classifier.asks', { data: escapeHtml(orFallback(value.dato_etiqueta, value.dato_tipo)) })}${options}</span>`;
+/** The line under the name: what the value does, in plain words. */
+function summary(classifier: ClassifierData, value: ClassifierValue, rights: Rights): string {
+  const parts = classifier.papel === RESULT ? resultParts(value) : [];
+  if (classifier.papel === RESULT) parts.push(onlyInText(value));
+  if (rights.asksData || classifier.papel === RESULT) parts.push(dataText(value));
+  parts.push(valueRoleText(classifier, value));
+  return parts.filter(Boolean).join(SEPARATOR);
 }
 
-function valueActions(classifier: ClassifierData, value: ClassifierValue, rights: Rights): string {
-  if (!rights.canEdit) return '';
-  const data = rights.asksData ? `<button class="btn sec" data-vdato="${value.id}">${t(value.dato_tipo ? 'settingsMore.classifier.changeData' : 'settingsMore.classifier.addData')}</button>` : '';
-  const destination = classifier.papel === RESULT
-    ? `<select data-vdest="${value.id}" title="${t('settingsMore.classifier.destinationTitle')}" style="max-width:170px"><option value="">${t('settingsMore.classifier.keepsState')}</option>${stateOptions(value.destino)}</select>` : '';
-  return `<span class="acts u-m-0">${data}
-          <button class="btn sec" data-vren="${value.id}|${escapeHtml(value.valor)}">${t('settingsMore.classifier.rename')}</button>
-          ${destination}
-          <button class="btn sec" data-vtog="${value.id}|${value.activo ? 0 : 1}">${t(value.activo ? 'settingsMore.classifier.deactivate' : 'settingsMore.classifier.activate')}</button>
-          ${rights.complete ? `<button class="btn sec dang" data-vdel="${value.id}">${t('settingsMore.classifier.delete')}</button>` : ''}</span>`;
-}
-
+/** One single way in: the whole row opens the editor (a button for the keyboard), with a chevron as its only sign. */
 function valueHtml(classifier: ClassifierData, value: ClassifierValue, rights: Rights): string {
-  return `<div class="item ${value.padre ? 'vsub' : ''} u-cursor-default">
-        <span class="ic">${value.activo ? '●' : '○'}</span>
-        <span class="tx"><b style="${value.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${escapeHtml(value.valor)}</b>
-          ${resultText(value)}${rights.asksData ? dataText(value) : ''}</span>
-        ${valueActions(classifier, value, rights)}
+  const line = summary(classifier, value, rights), name = escapeHtml(value.valor);
+  const off = value.activo ? '' : `<span class="pill p-anu">${t('settingsMore.valueList.inactive')}</span>`;
+  const open = rights.canEdit ? ` role="button" tabindex="0" aria-label="${t('settingsMore.valueList.openOf', { name })}"` : '';
+  const chevron = rights.canEdit ? `<span class="vchev" aria-hidden="true">${t('settingsMore.valueList.open')}</span>` : '';
+  return `<div class="item vrow ${value.padre ? 'vsub' : ''} ${value.activo ? '' : 'off'} ${rights.canEdit ? '' : 'u-cursor-default'}" data-vval="${value.id}" data-role="${escapeHtml(valueRoleKey(classifier, value))}"${open}>
+        <span class="tx"><b>${name}</b>${line ? `<span class="sm">${escapeHtml(line)}</span>` : ''}</span>${off}${chevron}
       </div>`;
 }
 
-function addHtml(classifier: ClassifierData): string {
-  const values = classifier.valores ?? [];
-  const result = classifier.papel === RESULT ? `<select id="cvextra" style="max-width:170px"><option value="pos">${term('visita', { capital: 'C', adjective: 'realizado' })}</option><option value="neg">${t('settingsMore.classifier.withoutVisitCap', { visit: term('visita') })}</option></select>
-          <select id="cvdest" style="max-width:190px" title="${t('settingsMore.classifier.destinationTitle')}"><option value="">${t('settingsMore.classifier.keepsState')}</option>${stateOptions(null)}</select>` : '';
-  const parent = values.some(value => value.padre) ? `<select id="cvpadre" style="max-width:210px" title="${t('settingsMore.classifier.categoryTitle')}"><option value="">${t('settingsMore.classifier.noCategory')}</option>${values.filter(value => !value.padre).map(value => `<option value="${escapeHtml(value.valor)}">${t('settingsMore.classifier.inside', { name: escapeHtml(value.valor) })}</option>`).join('')}</select>` : '';
-  return `<div class="acts"><input id="cvnew" placeholder="${t('settingsMore.classifier.newValue')}" style="flex:1;min-width:160px">
-        ${result}
-        ${parent}
-        <button class="btn" id="cvadd">${t('settingsMore.classifier.add')}</button></div>`;
+function footHtml(classifier: ClassifierData, rights: Rights): string {
+  const remove = rights.complete && !classifier.sistema ? `<button type="button" class="btn sec dang" id="cdel">${t('settingsMore.classifier.deleteClassifier')}</button>` : '';
+  return `<div class="acts ${remove ? 'u-between' : 'u-end'}">${remove}<button type="button" class="btn" data-vnew>${t('settingsMore.valueList.newValue')}</button></div>`;
 }
 
 function listHidden(classifier: ClassifierData): boolean {
@@ -78,17 +88,15 @@ function listHidden(classifier: ClassifierData): boolean {
 }
 
 export function classifierHtml(classifier: ClassifierData, rights: Rights): string {
-  const values = classifier.valores ?? [];
+  const values = classifier.valores ?? [], title = escapeHtml(classifier.nombre);
   return `
-      <div class="fh"><div><h2>${escapeHtml(classifier.nombre)}</h2>
+      <div class="fh"><div><h2>${title} <button type="button" class="ai" data-ayuda-tit="${t('settingsMore.valueList.helpTitle')}" data-ayuda-txt="${escapeHtml(helpText(classifier, rights))}" aria-label="${t('settingsMore.valueList.helpTitle')}">i</button></h2>
         <div class="sm">${t('settingsMore.classifier.group', { group: escapeHtml(orFallback(classifier.grupo, t('settingsMore.classifier.general'))), used: escapeHtml(usedIn(classifier)) })}
         ${rights.canEdit ? '' : t('settingsMore.classifier.readOnly')}</div></div>
-        <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>${rights.asksData ? `<p class="sm datoinfo">${t('settingsMore.classifier.dataHint', { aVisit: term('visita', { article: 'un' }) })}</p>` : ''}
+        <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
       ${settingsMoreLegacy.fieldBox(classifier, rights.complete)}
-      <div class="lista ${listHidden(classifier) ? 'hide' : ''}">${values.map(value => valueHtml(classifier, value, rights)).join('') || `<div class="vacio">${t('settingsMore.classifier.noValues')}</div>`}</div>
-      ${rights.canEdit ? addHtml(classifier) : ''}
-      ${rights.complete && !classifier.sistema ? `<div class="acts" style="justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
-        <button class="btn sec dang" id="cdel">${t('settingsMore.classifier.deleteClassifier')}</button></div>` : ''}`;
+      <div class="lista vlist ${listHidden(classifier) ? 'hide' : ''}">${values.map(value => valueHtml(classifier, value, rights)).join('') || `<div class="vacio">${t('settingsMore.classifier.noValues')}</div>`}</div>
+      ${rights.canEdit ? footHtml(classifier, rights) : ''}`;
 }
 
 /** Reads every catalog again and refreshes this classifier from it (the list keeps the legacy CATS). */

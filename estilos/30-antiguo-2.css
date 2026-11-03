@@ -119,4 +119,24 @@ html body :is(.fvdonde,.pill,.chip):empty{display:none}
 #dlg.pdprep #dbody{visibility:hidden}
 #dlg.pdprep::after{content:"";position:absolute;inset:0;margin:auto;width:44px;height:44px;background:var(--orbita);animation:gira .9s linear infinite}
 
+/* v2.464.0 (D-044) · Fila de lista con resumen: cada valor de un clasificador es una fila compacta (nombre y, debajo, lo que hace)
+   que entera abre su editor, con «›» como única señal; el editor va en la misma ventana, cada campo con su etiqueta y una línea de ayuda */
+.vlist{display:flex;flex-direction:column;gap:6px;padding:4px 0}
+.vrow{position:relative;gap:8px;padding:10px 12px;border:1px solid var(--line);background:#FFFFFF}
+.vrow:hover{background:var(--hielo)}
+.vrow > .tx > .sm{white-space:normal;margin-top:2px}
+.vrow.off > .tx{opacity:.6}
+.vrow.vsub{margin-left:24px}
+.vrow[role=button]{cursor:pointer}
+.vrow[role=button]:focus-visible{outline:none;box-shadow:var(--foco)}
+.vrow > .pill{flex:none}
+.vchev{flex:none;color:var(--muted);font-size:20px;line-height:1}
+.vform{display:flex;flex-direction:column;padding:0 0 8px}
+.vfield{padding:2px 0 14px}
+.vfield + .vfield{border-top:1px solid var(--line)}
+.vhelp{display:block;margin-top:6px}
+.vlabel{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 6px}
+.vchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.vcheck{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+
 }

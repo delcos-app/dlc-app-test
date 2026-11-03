@@ -1,9 +1,9 @@
 /**
  * Agenda and mobile details: «Añadir a mi agenda» opens the appointment window (v2.176.0; the day-only question of v2.174.0 never ran
  * after it and is gone), pressing «⋯» again closes its menu (v2.175.0), the popups close when pressing outside, pulling down at the top
- * reloads (v2.176.0), a centre in the top search opens its card, the visit result buttons are decorated, the samples are checked before
+ * reloads (v2.176.0), a centre in the top search opens its card, the samples are checked before
  * saving a visit (v2.18x), and the plan shows apart the professionals already booked (v2.64.0). Folded from legado 061, 074, 077 and 078
- * (v2.425.0).
+ * (v2.425.0). The decoration of the visit results of Clasificadores went with v2.464.0 (the editor of a value has those fields).
  */
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
@@ -12,7 +12,6 @@ import * as legacyFreeCoreServices from '../services';
 import { navigationStore } from '../navigation/store';
 import { accountsStore } from '../../screens/accounts/store';
 import { routesStore } from '../../screens/routes/store';
-import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
 import * as legacyFreeCoreSettings from '../settings';
 import { navigate } from '../navigation';
 import * as legacyFreeScreensAgenda from '../../screens/agenda';
@@ -101,13 +100,6 @@ export function openCentreFromSearch(): void {
   }, true);
 }
 
-/** The visit result buttons in a window are decorated once they appear. */
-export function decorateVisitResults(): void {
-  const body = byId('dbody'); if (!body) return;
-  observe(body, () => {
-    if (body.querySelector('[data-vdest]:not([data-vend])')) { body.querySelectorAll<HTMLElement>('[data-vdest]').forEach(item => { item.dataset.vend = '1'; }); legacyFreeScreensSettingsMore.decorateResults(); }
-  }, { childList: true, subtree: true });
-}
 
 /** Before saving a visit, the samples are checked (if something fails, nothing is saved). */
 export function checkSamplesBeforeSaving(): void {

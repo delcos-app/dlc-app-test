@@ -356,7 +356,6 @@ body.conruta{padding-top:46px}
 .tcols .item{padding:8px 6px;gap:8px}
 .tcols input[type=checkbox]{width:18px;height:18px;min-height:0;flex:0 0 auto}
 .tcols .kmv{width:26px;height:24px}
-.datoinfo{margin:8px 0 0}
 /* v2.28.0 */
 #barrasup{position:relative;z-index:96;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#5B2A86;color:#fff;padding:8px 16px;font-size:13px}
 #barrasup{--banda:#5B2A86}
@@ -3014,14 +3013,8 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .vcfin .lnk{justify-self:start;font-size:14px}
 .vcfin .lnk.peligro{color:var(--dang,#B42318)}
 /* v2.179.0 · Resultados según el estado */
-#dbody .lista .item:has(> .acts [data-vren]){flex-wrap:wrap;align-items:center;row-gap:8px}
-#dbody .lista .item:has(> .acts [data-vren]) > .tx{flex:1 1 220px;min-width:180px}
-#dbody .lista .item:has(> .acts [data-vren]) > .acts{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;gap:6px;padding-left:44px}
 #dbody:not(.vertodos) .optw[data-oculto]{display:none}
 #vtodos{margin:8px 0 0;font-size:13.5px}
-.venbox{border:1px solid var(--line);border-radius:12px;background:var(--hielo);padding:10px 12px;margin:0 0 8px}
-.venbox .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
-.venbox .chip.on{background:var(--navy,#17457A);color:#fff;border-color:transparent}
 /* v2.180.0 · Direcciones que no cuadran */
 #caldirs{margin-top:14px}#caldirs .cdirkm{color:var(--warn)}#caldirs .item{align-items:center}
 /* v2.187.0 · Los avisos de la esquina se van desvaneciéndose */

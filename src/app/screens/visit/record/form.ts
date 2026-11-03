@@ -41,12 +41,16 @@ function hiddenButton(groups: readonly ResultGroup[]): string {
   return `<button type="button" class="lnk" id="vtodos">${hidden === 1 ? t('visit.record.showOneHidden') : t('visit.record.showHidden', { count: hidden })}</button>`;
 }
 
-function resultsHtml(index: ButtonIndex, results: ResultGroup, others: readonly ResultGroup[]): string {
+/** v2.464.0 (VIS-2): why the reports are not offered to this account. */
+const noReportsNote = (): string => `<p class="sm srnota">${t('visit.record.noReports', { professional: term('medico', { article: 'este', articleCapital: 'C' }) })}</p>`;
+
+function resultsHtml(index: ButtonIndex, groups: { results: ResultGroup; others: readonly ResultGroup[] }, reportsHidden: boolean): string {
+  const { results, others } = groups;
   const positive = results.valores.filter(value => value.extra !== NEGATIVE), negative = results.valores.filter(value => value.extra === NEGATIVE);
   // «Ver…» goes after the last list with results (the negative one, unless it is empty)
   const more = hiddenButton([results, ...others]);
   return `<label>${t('visit.record.resultLabel')} <span class="sm">${t('visit.record.severalResults', { done: term('visita', { adjective: 'realizado' }) })}</span></label>
-    <div class="opciones">${positive.map(value => button(index, results, value, true)).join('')}</div>${negative.length ? '' : more}
+    <div class="opciones">${positive.map(value => button(index, results, value, true)).join('')}</div>${reportsHidden ? noReportsNote() : ''}${negative.length ? '' : more}
     <div class="opciones u-mt-8">${negative.map(value => button(index, results, value, true)).join('')}</div>${negative.length ? more : ''}
     ${others.map(group => `<label>${escapeHtml(group.nombre)}${group.descripcion ? ` <span class="sm">· ${escapeHtml(group.descripcion)}</span>` : ''}</label>
       <div class="opciones">${group.valores.map(value => button(index, group, value, false)).join('')}</div>`).join('')}`;
@@ -90,7 +94,7 @@ function centreOptions(consultations: readonly CardConsultation[]): string {
 
 /** The whole window; `index` is filled with the result buttons. */
 export function visitHtml(data: VisitData, index: ButtonIndex): string {
-  const { results, others } = splitGroups(data.groups), visit = term('visita');
+  const groups = splitGroups(data.groups), visit = term('visita');
   return `
     <div class="fh"><div><h2>${t('visit.record.title', { visit })}</h2><div class="sm">${escapeHtml(data.account.nombre)}</div></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>${noticesHtml(data)}
@@ -101,7 +105,7 @@ export function visitHtml(data: VisitData, index: ButtonIndex): string {
       </select></div>
     </div><label>${t('visit.record.howItWas')}</label>
     <div class="segs" id="vmodo" role="group" aria-label="${t('visit.record.howItWas')}">${modeButtons('vmodo', 'presencial')}</div>${productsHtml(data.products)}
-    ${resultsHtml(index, results, others)}
+    ${resultsHtml(index, groups, data.reportsHidden)}
     <div class="g2 u-mt-6">
       <div><label for="vpa">${t('visit.edit.nextAction')}</label><input id="vpa" placeholder="${t('visit.record.nextActionPlaceholder')}"></div>
       <div><label for="vpf">${t('visit.record.nextActionDate')}</label><input id="vpf" type="date"></div>

@@ -5,7 +5,7 @@
 import { currentScreen, legacyDb, notices, opportunitiesLegacy } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { orFallback } from '../../../services/values';
-import { isPhone, ORDER_DONE, orderLineAmount } from '../model';
+import { isOrderDone, isPhone, orderDoneResult, orderLineAmount } from '../model';
 import { fieldValue, typedQuery, type Draft } from './draft';
 
 interface SaveResult { ok?: boolean; id?: string; motivo?: string }
@@ -32,7 +32,7 @@ function reference(draft: Draft): Record<string, unknown> {
 
 /** When to call again, only for an opportunity that ends without order. */
 function nextStep(result: string): Record<string, unknown> {
-  const followUp = Boolean(result) && result !== ORDER_DONE;
+  const followUp = Boolean(result) && !isOrderDone(result);
   return { proxima_fecha: followUp ? fieldValue('nvpf') ?? '' : '', proxima_accion: followUp ? (fieldValue('nvpa') ?? '').trim() : '' };
 }
 
@@ -86,7 +86,7 @@ async function saveWithoutOrder(draft: Draft, button: HTMLButtonElement): Promis
 }
 
 async function saveChanges(draft: Draft): Promise<void> {
-  const result = draft.closed ? orFallback(draft.source.resultado, ORDER_DONE) : draft.noSale ? draft.result : '';
+  const result = draft.closed ? orFallback(draft.source.resultado, orderDoneResult()) : draft.noSale ? draft.result : '';
   if (!await save(draft, result)) return;
   closeWindow(); notices.toast(t('opportunities.editor.saved')); refreshList();
 }

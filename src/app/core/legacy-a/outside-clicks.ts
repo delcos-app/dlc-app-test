@@ -82,7 +82,8 @@ export function listenToHelpButtons(): void {
     const popover = document.createElement('div') as HTMLDivElement & { __de?: Element };
     popover.className = 'aipop'; popover.__de = button;
     popover.innerHTML = popoverContent(button);
-    document.body.appendChild(popover);
+    // v2.464.0: inside a window that covers the screen (the phone), the explanation goes in it: on <body> it would stay behind
+    (button.closest('dialog[open]:not(.encajada)') ?? document.body).appendChild(popover);
     place(popover, button);
   }, true);
 }

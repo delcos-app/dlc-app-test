@@ -8,7 +8,7 @@ import { legacyDb, notices } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { orFallback } from '../../services/values';
-import { catalog, chipsHtml, dateIn, followUpButtons, loadCallCatalogs, INCOMING, ORDER_DONE, OUTGOING, toggleChip } from './model';
+import { catalog, chipsHtml, dateIn, followUpButtons, isOrderDone, loadCallCatalogs, INCOMING, OUTGOING, toggleChip } from './model';
 
 export interface CallState {
   id?: string | null; fecha?: string | null; motivo?: string; resultado?: string; direccion?: string; nota?: string;
@@ -23,7 +23,7 @@ export interface CallSubject {
 const chosen = { motivo: '', resultado: '' };
 
 const value = (id: string): string => (document.getElementById(id) as HTMLInputElement | null)?.value ?? '';
-const needsFollowUp = (result: string | undefined): boolean => Boolean(result) && result !== ORDER_DONE;
+const needsFollowUp = (result: string | undefined): boolean => Boolean(result) && !isOrderDone(result);
 
 export function callRecordHtml(state: CallState | null | undefined): string {
   const call = state ?? {}, outgoing = call.direccion === OUTGOING;

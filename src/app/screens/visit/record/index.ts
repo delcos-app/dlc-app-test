@@ -14,8 +14,6 @@ import { loadVisitData, type SampleLeft, type VisitData } from './data';
 import { splitGroups, visitHtml, type ButtonIndex } from './form';
 import { forgetOperation, saveVisit, type OpenVisit } from './save';
 
-const REPORTING = /reporting/i;
-
 function bindResults(body: HTMLElement, visit: OpenVisit): void {
   body.querySelectorAll<HTMLElement>('[data-vk]').forEach(button => {
     button.onclick = (): void => {
@@ -92,15 +90,6 @@ function applyDateRules(date: string): void {
   else if (date && date <= today) field.value = date;
 }
 
-/** An account «sin reporting»: the reporting results are hidden, with a note. */
-function hideReporting(box: HTMLElement): void {
-  let hidden = 0;
-  box.querySelectorAll<HTMLElement>('.chips button, [data-res], .chip').forEach(button => { if (REPORTING.test(button.textContent ?? '')) { button.style.display = 'none'; hidden++; } });
-  if (!hidden || box.querySelector('.srnota')) return;
-  const first = box.querySelector('.chips, [data-res]'), container = first?.classList.contains('chips') ? first : first?.parentElement;
-  container?.insertAdjacentHTML('afterend', `<p class="sm srnota">${t('visit.record.noReporting', { professional: term('medico', { article: 'este', articleCapital: 'C' }), visit: term('visita') })}</p>`);
-}
-
 function paint(id: string, data: VisitData, date: string): void {
   const body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;
@@ -117,7 +106,6 @@ function paint(id: string, data: VisitData, date: string): void {
   applyDateRules(date);
   const save = document.getElementById('vguardar') as HTMLButtonElement | null; if (save) save.onclick = (): void => { void saveVisit(visit, save); };
   box.showModal();
-  if (data.noReporting) hideReporting(box);
 }
 
 /** Opens «Registrar visita» for account `id` (the day chosen in the Agenda, if any). */

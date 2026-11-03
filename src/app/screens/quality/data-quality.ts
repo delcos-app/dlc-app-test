@@ -7,7 +7,7 @@ import { agendaActions, callRpc, legacyDb, notices, qualityLegacy, term } from '
 import { t, type MessageKey } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
-import { addressQuery } from '../../core/organisation';
+import { addressQuery, organisationCountry } from '../../core/organisation';
 
 interface DataQuality {
   total: number; completas: number; sin_ubicacion: number; sin_horario: number; sin_especialidad: number; sin_contacto: number;
@@ -57,7 +57,7 @@ interface DoubtfulPlace { id: string; cuenta_id: string; nombre: string; centro_
 
 function placeRow(place: DoubtfulPlace): string {
   const address = [place.centro_nombre, place.direccion, [place.cp, place.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
-  const distance = place.km !== null && place.km !== undefined ? t('quality.addresses.farFrom', { km: formatNumber(place.km), municipality: escapeHtml(orFallback(place.municipio, '')) }) : t('quality.addresses.outOfSpain');
+  const distance = place.km !== null && place.km !== undefined ? t('quality.addresses.farFrom', { km: formatNumber(place.km), municipality: escapeHtml(orFallback(place.municipio, '')) }) : t('quality.addresses.outOfCountry', { country: escapeHtml(organisationCountry()) });
   return `<div class="item cdir u-cursor-default" data-cdir="${place.id}">
       <span class="tx"><b>${escapeHtml(place.nombre)}</b>
         <span class="sm">${escapeHtml(address || t('quality.addresses.noAddress'))}</span>

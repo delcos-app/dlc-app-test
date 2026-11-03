@@ -11,7 +11,7 @@ import { orFallback } from '../../services/values';
 import { chartsHtml, indicatorsHtml, type Summary } from './charts';
 import { editOpportunity, type Opportunity } from './editor';
 import { paintFollowUps } from './follow-ups';
-import { catalog, loadOpportunityCatalogs, ORDER_DONE } from './model';
+import { catalog, loadOpportunityCatalogs, orderDoneResult } from './model';
 
 const SEARCH_WAIT_MS = 300;
 
@@ -35,7 +35,7 @@ function pageHtml(): string {
 const interestText = (item: Listed): string => (item.interes ?? []).map(line => `${orFallback(line.producto, '')} × ${formatNumber(line.unidades)}`).join(', ');
 
 function endsHtml(item: Listed): string {
-  const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, ORDER_DONE)) : `<span class="pill p-warn">${t('opportunities.list.notClosed')}</span>`;
+  const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, orderDoneResult())) : `<span class="pill p-warn">${t('opportunities.list.notClosed')}</span>`;
   return `${ends}${item.pedido ? `<span class="sm">${t('opportunities.list.order', { number: escapeHtml(item.pedido) })}</span>` : ''}`;
 }
 

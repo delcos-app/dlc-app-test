@@ -8,6 +8,7 @@ import { t } from '../../i18n';
 import { imageData, loadQr } from '../files';
 import { orFallback, range } from '../values';
 import { hexToRgb } from '../../core/utilities';
+import { isBankTransfer } from '../../core/catalog-roles';
 import { currentDesign, designOfTemplate, templateList, type InvoiceDesign } from './design';
 import { loadJsPdf, type PdfDocument } from './document';
 import {
@@ -82,7 +83,7 @@ function drawTotals(drawing: Drawing, invoice: PdfInvoice, start: number): numbe
 function drawPayment(drawing: Drawing, invoice: PdfInvoice, y: number): void {
   const { doc, design, company } = drawing;
   if (!design.formaPago || !invoice.forma_pago) return;
-  const label = t('billingMore.pdf.paymentMethod'), iban = design.iban && /transfer/i.test(invoice.forma_pago) && company.iban ? t('billingMore.pdf.iban', { iban: company.iban }) : '';
+  const label = t('billingMore.pdf.paymentMethod'), iban = design.iban && isBankTransfer(invoice.forma_pago) && company.iban ? t('billingMore.pdf.iban', { iban: company.iban }) : '';
   doc.setTextColor(...GREY); doc.text(label, LEFT, y); doc.setTextColor(...BLACK);
   doc.text(invoice.forma_pago + iban, LEFT + doc.getTextWidth(label) + 1, y);
 }

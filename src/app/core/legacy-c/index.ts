@@ -22,7 +22,7 @@ import { markerInsteadOfStrip, stripWithBringButton } from './test-environment';
 import { markPortalOrderRows } from './order-alerts';
 import { coverWhenLeavingOrganization, extrasAreExceptions, finishOrganizationChange } from './platform';
 import { cancellationOnStart, forgetPlanReturnLater, paymentOnStart, reportVersionInUse, signUpNotices } from './plan-page';
-import { addToAgendaFromCard, checkSamplesBeforeSaving, closePopupOutside, decorateVisitResults, openCentreFromSearch, pullToReload, toggleDayMenu } from './agenda-extras';
+import { addToAgendaFromCard, checkSamplesBeforeSaving, closePopupOutside, openCentreFromSearch, pullToReload, toggleDayMenu } from './agenda-extras';
 import * as legacyFreeCoreNavigationApi from '../navigation/api';
 import * as legacyFreeCoreSettings from '../settings';
 import * as legacyFreeComponents from '../../components';
@@ -79,7 +79,7 @@ export function start076(): void {
   coverWhenLeavingOrganization(); finishOrganizationChange(); readNextReceipt();
 }
 export function start077(): void {
-  addToAgendaFromCard(); toggleDayMenu(); noSystemPickers(); closePopupOutside('.agmpop', '#agmtit'); pullToReload(); openCentreFromSearch(); decorateVisitResults();
+  addToAgendaFromCard(); toggleDayMenu(); noSystemPickers(); closePopupOutside('.agmpop', '#agmtit'); pullToReload(); openCentreFromSearch();
 }
 export function start078(): void { checkVersionPeriodically(); sinSelectorDelSistema(document); trackDialogEpoch(); forgetVisitOnClose(); checkSamplesBeforeSaving(); }
 export function start079(): void {

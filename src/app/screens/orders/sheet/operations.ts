@@ -8,12 +8,13 @@ import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { operationDone, OPERATIONS, STATES, type Order, type OrderDetail } from '../model';
 import { askPaymentEmailSent, mailtoLink, paymentSubject, paymentText } from '../payment-email';
+import { isOnDelivery } from '../../../core/catalog-roles';
 
 const MAIL_QUESTION_DELAY_MS = 800, SALES_LEVEL = 2;
 
 function operationHtml(order: Order, key: string, label: string, allowed: boolean): string {
   const done = operationDone(order, key), method = order.forma_pago;
-  const how = key === 'pago' && method ? ` <span class="sm">· ${escapeHtml(method)}${/reembolso/i.test(method) ? t('orders.operations.onDelivery') : ''}</span>` : '';
+  const how = key === 'pago' && method ? ` <span class="sm">· ${escapeHtml(method)}${isOnDelivery(method) ? t('orders.operations.onDelivery') : ''}</span>` : '';
   return `<label class="opchk ${done ? 'on' : ''}"><input type="checkbox" data-op="${key}" ${done ? 'checked' : ''} ${allowed ? '' : 'disabled'}>
       <span>${escapeHtml(label)}${how}</span></label>`;
 }

@@ -127,7 +127,7 @@ interface SheetAppointment extends DayAppointmentFull {
 interface ChoiceButton { k: string; t: string; cls?: string }
 declare let VISITA_FECHA: string;
 
-declare const CAT: Record<string, { valor: string; extra?: string | null }[]>;
+declare const CAT: Record<string, { valor: string; extra?: string | null; papel?: string | null }[]>;
 declare function agUnida(): boolean;
 declare const RC: Map<string, unknown>;
 declare const RC_VUELO: Map<string, unknown>;

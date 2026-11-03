@@ -4,6 +4,7 @@
  * totalesPedido, lineaDesglose, bloqueTotales, pillEstado, pasoPedido, pillPaso, sinCargoP, OPS and TRF_EST (v2.414.0).
  */
 import { ordersLegacy } from '../../legacy/orders-bridge';
+import { isBankTransfer, isOnDelivery } from '../../core/catalog-roles';
 import { t, type MessageKey } from '../../i18n';
 import { escapeHtml, formatCurrency, formatNumber } from '../../services/format';
 import { sum } from '../../services/values';
@@ -102,7 +103,8 @@ export function isFree(order: Partial<Order> | null | undefined, total?: number 
   return order.unidades === null || order.unidades === undefined || Number(order.unidades) > 0;
 }
 
-export const isBankTransfer = (paymentMethod: string | null | undefined): boolean => /transfer/i.test(paymentMethod ?? '');
+/** v2.464.0 (PED-3): by the role of the payment method in its list (by its name only without one). */
+export { isBankTransfer };
 
 const paymentOf = (order: Partial<Order>): string => ordersLegacy.paymentState(order);
 
@@ -131,7 +133,7 @@ export const storedStateOf = (code: StepCode): string =>
   (code === 'anulado' ? STATES.voided : code === 'borrador' || code === 'esperando_pago' ? STATES.draft : STATES.confirmed);
 
 function confirmedStep(order: Partial<Order>): StepCode {
-  const onDelivery = /reembolso/i.test(order.forma_pago ?? ''), toCollect = paymentOf(order) === PENDING_PAYMENT;
+  const onDelivery = isOnDelivery(order.forma_pago), toCollect = paymentOf(order) === PENDING_PAYMENT;
   if (toCollect && !onDelivery) return 'por_cobrar';
   if (!order.paquete_en) return 'por_preparar';
   if (toCollect) return 'por_cobrar';
