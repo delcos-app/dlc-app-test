@@ -38,9 +38,12 @@
 @media (max-width:760px){#kpis.kvivo .kvwaf{grid-template-columns:repeat(16,minmax(0,1fr));gap:2px}}
 /* D-024 · Ventanas completas en el móvil: toda la pantalla menos el menú de abajo, desde que se abren */
 @media (max-width:760px){
-  dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{inset:0 0 auto 0;height:calc(100dvh - var(--bnavh,0px));max-height:calc(100dvh - var(--bnavh,0px));box-shadow:none;animation:uiFunde var(--t-medio) linear}
+  dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{inset:0 0 auto 0;height:calc(100dvh - var(--bnav-h));max-height:calc(100dvh - var(--bnav-h));box-shadow:none;animation:uiFunde var(--t-medio) linear}
   dialog#dlg[open]:not(.encajada)::backdrop,dialog#dlg2[open]:not(.encajada)::backdrop,dialog#ficha[open]::backdrop{background:transparent}
-  dialog#dlg[open]:not(.encajada) > #dbody,dialog#dlg2[open]:not(.encajada) > #dlg2body{min-height:100%;box-sizing:border-box}
+  dialog#dlg[open]:not(.encajada) > #dbody,dialog#dlg2[open]:not(.encajada) > #dlg2body{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column}
+  /* v2.465.0 (D-045): lo que sobra de alto va antes de la Barra de acciones (16 como mínimo): la barra queda siempre sobre el menú
+     (mientras la ventana se prepara, este ::after es el cargador y todo lo de dentro está oculto) */
+  dialog#dlg[open]:not(.encajada) > #dbody:has(> .acts:last-child)::after,dialog#dlg2[open]:not(.encajada) > #dlg2body:has(> .acts:last-child)::after{content:"";flex:1 0 16px;order:1}
 }
 /* v2.339.0 · Cabecera del pedido en una fila */
 .pdcabt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0}
@@ -49,7 +52,7 @@
 /* v2.339.0 · Vista previa de la factura */
 .facprev iframe{width:100%;height:min(70vh,820px);border:1px solid var(--line);border-radius:12px;background:#FFFFFF;display:block}
 .facpaviso{margin:0 0 10px}
-@media (max-width:760px){.facprev iframe{height:calc(100dvh - var(--bnavh,0px) - 230px)}}
+@media (max-width:760px){.facprev iframe{height:calc(100dvh - var(--bnav-h) - 230px)}}
 /* v2.339.0 · Reparto por producto en barras */
 .reptot{padding:2px 16px 8px;font-size:13px;color:var(--muted)}
 .reptot b{font:800 18px var(--f-titulo);color:var(--navy);margin-right:2px}
@@ -114,7 +117,7 @@ html body :is(.fvdonde,.pill,.chip):empty{display:none}
 #v-informe .pmact .btn{margin-left:auto}
 /* v2.352.0: la vista previa de la factura, con su cargador mientras llega */
 #dlg2 .facprev.facpcarga{display:grid;place-items:center;min-height:min(70vh,820px)}
-@media (max-width:760px){#dlg2 .facprev.facpcarga{min-height:calc(100dvh - var(--bnavh,0px) - 230px)}}
+@media (max-width:760px){#dlg2 .facprev.facpcarga{min-height:calc(100dvh - var(--bnav-h) - 230px)}}
 /* v2.350.0: el pedido se enseña cuando están todas sus partes */
 #dlg.pdprep #dbody{visibility:hidden}
 #dlg.pdprep::after{content:"";position:absolute;inset:0;margin:auto;width:44px;height:44px;background:var(--orbita);animation:gira .9s linear infinite}

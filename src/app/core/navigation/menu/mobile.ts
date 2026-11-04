@@ -129,12 +129,6 @@ export function mobileHeader(section: HTMLElement | null): void {
   actions.classList.add('chips'); [...actions.children].forEach(child => { child.classList.add('chip'); });
 }
 
-/** --bnavh is the height of the bottom bar, measured (v2.338.0: windows fill the phone screen above it). */
-export function measureBottomBar(): void {
-  const bar = document.getElementById('bnav'), height = bar && getComputedStyle(bar).display !== 'none' ? Math.round(bar.getBoundingClientRect().height) : 0;
-  document.documentElement.style.setProperty('--bnavh', `${height}px`);
-}
-
 /** v2.343.0: the floating «+» goes back to the header when the window becomes desktop-wide. */
 export function fabToDesktop(): void {
   if (ES_MOVIL()) return;

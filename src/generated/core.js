@@ -6272,7 +6272,6 @@
     installAccountTypeFilter: () => installAccountTypeFilter,
     installAgendaListeners: () => installAgendaListeners,
     installBack: () => installBack,
-    installBottomBarMeasure: () => installBottomBarMeasure,
     installCentreLinks: () => installCentreLinks,
     installCentrePaymentState: () => installCentrePaymentState,
     installClosedWhileLoading: () => installClosedWhileLoading,
@@ -8110,7 +8109,6 @@
     loadPage: () => loadPage,
     lockModules: () => lockModules,
     lockSections: () => lockSections,
-    measureBottomBar: () => measureBottomBar,
     menuGroups: () => menuGroups,
     menuNames: () => menuNames,
     menuPrefs: () => menuPrefs2,
@@ -26571,10 +26569,6 @@
       child.classList.add("chip");
     });
   }
-  function measureBottomBar() {
-    const bar = document.getElementById("bnav"), height = bar && getComputedStyle(bar).display !== "none" ? Math.round(bar.getBoundingClientRect().height) : 0;
-    document.documentElement.style.setProperty("--bnavh", `${height}px`);
-  }
   function fabToDesktop() {
     if (ES_MOVIL()) return;
     document.querySelectorAll("main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]").forEach((button3) => {
@@ -31287,7 +31281,7 @@
     check: '<path d="M20 6 9 17l-5-5"/>'
   };
   var routeIcon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name] ?? ""}</svg>`;
-  var stepFooter = (left, right) => `<div class="rnpie"><span>${left}</span><span class="rnpieb">${right}</span></div>`;
+  var stepFooter = (left, right) => `<div class="rnpie action-bar"><span>${left}</span><span class="rnpieb">${right}</span></div>`;
 
   // src/app/screens/routes/day-bar.ts
   var day_bar_exports = {};
@@ -31562,9 +31556,6 @@
     },
     openMoreMenu: () => {
       openMoreMenu();
-    },
-    measureBottomBar: () => {
-      measureBottomBar();
     },
     baseSummariseHelp: (popup) => {
       summariseHelp(popup);
@@ -32058,11 +32049,6 @@
     navigationGlueLegacy.renameUsersPage(t("legacyD.navigation.users"), t("legacyD.navigation.usersHint"));
   }
   function paintBottomBar(args) {
-    const result = paintBar(args);
-    navigationGlueLegacy.measureBottomBar();
-    return result;
-  }
-  function paintBar(args) {
     const bar = document.getElementById("bnav");
     if (navigationGlueLegacy.isProfessionalPortal() || !bar) return navigationGlueLegacy.baseBottomBar(args);
     const modules = navigationGlueLegacy.mobileModules(), screen3 = navigationGlueLegacy.currentScreen();
@@ -32078,14 +32064,6 @@
       navigationGlueLegacy.openMoreMenu();
     };
     return void 0;
-  }
-  function installBottomBarMeasure() {
-    addEventListener("resize", () => {
-      navigationGlueLegacy.measureBottomBar();
-    });
-    setTimeout(() => {
-      navigationGlueLegacy.measureBottomBar();
-    }, 0);
   }
   function summariseHelp2(popup) {
     navigationGlueLegacy.baseSummariseHelp(popup);

@@ -108,5 +108,5 @@ const ICON_PATHS: Readonly<Record<string, string>> = {
 export const routeIcon = (name: string): string =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name] ?? ''}</svg>`;
 
-/** The bottom bar of a step: a text on the left and its buttons on the right. */
-export const stepFooter = (left: string, right: string): string => `<div class="rnpie"><span>${left}</span><span class="rnpieb">${right}</span></div>`;
+/** The bottom bar of a step: a text on the left and its buttons on the right; the contract «Barra de acciones» (D-045). */
+export const stepFooter = (left: string, right: string): string => `<div class="rnpie action-bar"><span>${left}</span><span class="rnpieb">${right}</span></div>`;

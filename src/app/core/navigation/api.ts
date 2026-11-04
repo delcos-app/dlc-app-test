@@ -13,7 +13,7 @@ export {
   applyMenuNames, isDesktopMenu, isMenuFolded, lockModules, lockSections, MENU_FIXED, MENU_GROUPS, menuGroups, menuNames, menuPrefs, menuTip,
   orderAfterPermissions, orderMenu, pageButtons, redoMenu, showAllowedModules,
 } from './menu/groups';
-export { BAR_DEFAULT, bottomBar, fabToDesktop, measureBottomBar, MENU_OUT, mobileHeader, mobileName, openMoreMenu } from './menu/mobile';
+export { BAR_DEFAULT, bottomBar, fabToDesktop, MENU_OUT, mobileHeader, mobileName, openMoreMenu } from './menu/mobile';
 export { loadPage, PAGES } from './pages';
 export { arrive, comet, raisePageAction, refreshBelow, reveal, steady } from './reveal';
 export { BACK_STACK, backButton, freeze, openView, sameView, VIEW_TITLES } from './views';

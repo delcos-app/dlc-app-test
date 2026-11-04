@@ -478,7 +478,7 @@ body.conruta{padding-top:46px}
   
   dialog .acts{flex-wrap:wrap}
   dialog .acts .btn{flex:1 1 auto}
-  .tools{bottom:calc(62px + env(safe-area-inset-bottom,0px));width:100%;border-left:0;border-top:1px solid var(--line)}
+  .tools{bottom:var(--bnav-h);width:100%;border-left:0;border-top:1px solid var(--line)}
   .tools .tbox{padding:14px 16px 24px}
   .cercaest{display:none!important}
 }
@@ -1370,7 +1370,7 @@ main > section.cargando::after{opacity:0;animation:cargaAparece .15s ease 120ms 
 /* Campos de formulario */
 .numw{min-width:124px}.numw input{min-width:48px;text-align:center}
 textarea{min-height:96px;resize:vertical}
-#mini.ancha{width:min(620px,94vw)!important;max-width:none}
+@media (min-width:761px){#mini.ancha{width:min(620px,94vw)!important;max-width:none}}
 #mini.ancha textarea{min-height:150px;width:100%}
 .filepick{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px dashed #BFD6EA;border-radius:14px;background:var(--sky-soft)}
 .fpmini{width:52px;height:52px;border-radius:12px;background:#fff;display:grid;place-items:center;color:var(--sky);overflow:hidden;border:1px solid var(--line)}
@@ -1973,12 +1973,10 @@ header,.bnav{background:#FFFFFF;-webkit-backdrop-filter:none;backdrop-filter:non
 dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child{position:sticky;top:0;z-index:5;background:#FFFFFF;
   margin:-22px -22px 6px;padding:18px 22px 12px;box-shadow:0 1px 0 transparent;transition:box-shadow var(--t-rapido) var(--ease-sal)}
 dialog.desplazada > .fbox > .fh:first-child{box-shadow:0 1px 0 var(--line)}
-dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{position:sticky;bottom:0;z-index:5;background:var(--hielo);
-  margin:18px -22px -22px;padding:12px 22px 14px;border-top:1px solid var(--line)}
+/* v2.465.0 (D-045): la botonera de abajo es la «Barra de acciones» del contrato (capa del sistema) */
 @media (max-width:760px){
   #dbody,#dlg2body{overflow-x:clip}
   dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child{margin:-16px -16px 6px;padding:12px 16px 10px}
-  dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{margin:16px -16px -16px;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px))}
 }
 @media (prefers-reduced-motion: reduce){dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child{transition:none}}
 /* Fila activa de las tablas (flechas del teclado, v2.111.0): igual que al pasar el ratón, con el anillo de foco */
@@ -2018,8 +2016,7 @@ dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{positio
    ============================================================ */
 /* Una regla antigua del móvil («dialog *{max-width:100%}») recortaba la cabecera y la botonera fijas de la v2.112.0
    (sus márgenes negativos las llevan de borde a borde): quedaba un hueco blanco a la derecha */
-@media (max-width:760px){dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child,
-  dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{max-width:none}}
+@media (max-width:760px){dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child{max-width:none}}
 /* ============================================================
    v2.118.0 · Ficha: «Ventas y pacientes» con el sistema de diseño
    ============================================================ */
@@ -2182,7 +2179,6 @@ dialog.encajada{position:static;inset:auto;display:block;max-width:none;max-heig
   background:#FFFFFF;border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);animation:uiFunde var(--t-medio) linear}
 dialog.encajada > .fbox{overflow:visible;max-height:none}
 dialog.encajada > #dbody > .fh:first-child,dialog.encajada > #dlg2body > .fh:first-child{top:var(--alto-cab,0px);border-radius:16px 16px 0 0}
-dialog.encajada > #dbody > .acts:last-child,dialog.encajada > #dlg2body > .acts:last-child{border-radius:0 0 16px 16px}
 .con-ventana{display:none}
 /* Diseño del PDF dentro de su pestaña: la vista previa acompaña al recorrer las opciones */
 dialog.encajada .pdfprev{top:calc(var(--alto-cab,0px) + 76px)}
@@ -3902,17 +3898,19 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
 .rnrtx{margin:10px 0 0}
 @media (max-width:899px){
   .rnb1,.rnb2,.rnb3{grid-template-columns:minmax(0,1fr)}
-  .rnsel{margin-bottom:96px}.rnb2,.rnb3{margin-bottom:84px}
   .rnmini{min-height:320px}.rnb3 .rnmini{min-height:340px;position:relative;top:0}
   .rnb1 .rnmini{order:-1}
   .rnsel{max-height:none}.rnres{max-height:none;overflow:visible}
   .rnresum{position:static;flex-direction:row;flex-wrap:wrap}
   .rnpasos button span{display:none}.rnpasos button{justify-content:center}
-  
-  .rnroot{padding-bottom:12px}
-  .rnpie{position:sticky;bottom:calc(var(--bnav-h, 64px) + 8px);z-index:4;box-shadow:0 6px 20px rgba(11,37,64,.12)}
   .rnpieb{width:100%}.rnpieb .btn{flex:1}
   .rnpar .der{flex-direction:column;align-items:flex-end;gap:4px}
+}
+/* v2.465.0 (D-045): en la tablet el pie del asistente flota pegado abajo (sin menú inferior); en el móvil es la Barra de acciones */
+@media (min-width:761px) and (max-width:899px){
+  .rnsel{margin-bottom:96px}.rnb2,.rnb3{margin-bottom:84px}
+  .rnroot{padding-bottom:12px}
+  .rnpie{position:sticky;bottom:calc(var(--bnav-h) + 8px);z-index:4;box-shadow:0 6px 20px rgba(11,37,64,.12)}
 }
 
 /* v2.235.0 · Textos personalizados */
@@ -4326,8 +4324,6 @@ body.modo-medico #v-config #cfgcuerpo{grid-template-columns:repeat(2,minmax(0,1f
 #agsemlat .agsl{margin-bottom:16px}
 @media (min-width:761px){#agcuerpo .tdhead .acts{flex-basis:100%;width:100%}}
 
-/* v2.275.0 · Ventanas metidas en la página: la fila de botones queda fija abajo, siempre a la vista */
-dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last-child{position:sticky;bottom:0;z-index:2;background:var(--panel,#fff);margin:12px -22px -22px;padding:12px 22px;border-top:1px solid var(--line);box-shadow:0 -6px 14px -10px rgba(11,37,64,.25)}
 
 /* v2.277.0 · Pedir material: aviso del máximo */
 #mdmatmax{display:block;margin-top:4px}

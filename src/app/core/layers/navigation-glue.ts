@@ -65,14 +65,8 @@ export function installStartDetails(): void {
   legacy.renameUsersPage(t('legacyD.navigation.users'), t('legacyD.navigation.usersHint'));
 }
 
-/** pintarBnav: the phone's bottom bar with the modules chosen for it and «Más»; then its height is measured. */
+/** pintarBnav: the phone's bottom bar with the modules chosen for it and «Más». Its height is the CSS token --bnav-h (D-045), not measured. */
 export function paintBottomBar(args: unknown[]): unknown {
-  const result = paintBar(args);
-  legacy.measureBottomBar();
-  return result;
-}
-
-function paintBar(args: unknown[]): unknown {
   const bar = document.getElementById('bnav');
   if (legacy.isProfessionalPortal() || !bar) return legacy.baseBottomBar(args);
   const modules = legacy.mobileModules(), screen = legacy.currentScreen();
@@ -82,12 +76,6 @@ function paintBar(args: unknown[]): unknown {
   bar.querySelectorAll<HTMLElement>('[data-t]').forEach(button => { button.onclick = (): void => { legacy.goTo(button.dataset.t ?? ''); }; });
   const more = document.getElementById('bmasbtn'); if (more) more.onclick = (): void => { legacy.openMoreMenu(); };
   return undefined;
-}
-
-/** Legado 152: the bar's height on resize. */
-export function installBottomBarMeasure(): void {
-  addEventListener('resize', () => { legacy.measureBottomBar(); });
-  setTimeout(() => { legacy.measureBottomBar(); }, 0);
 }
 
 /** resumirAyuda: «Ver en el manual de uso» opens this screen's section; the professional's portal has no manual. */

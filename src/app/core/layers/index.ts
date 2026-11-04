@@ -7,7 +7,7 @@ export { estimateDay, installAgendaListeners, installTeamToggle, toggleUrgent } 
 export { installDesktopAddButton, installFloatingButton, installPasswordEyes, installRefusedChanges, installRoundAddButton, installScanner, paintConnection } from './device-glue';
 export { installBack, installCentreLinks, installClosedWhileLoading, installSheetLook } from './dialogs';
 export { installAccountTypeFilter, installCustomerDoctorFilter, installFilterMemory, installListIndicators, installListListeners, installOrderCards, mountPeriod } from './list-glue';
-export { applyLabel, installBottomBarMeasure, installFirstReveal, installMenuDetails, installMenuNames, installStartDetails, paintBottomBar, summariseHelp } from './navigation-glue';
+export { applyLabel, installFirstReveal, installMenuDetails, installMenuNames, installStartDetails, paintBottomBar, summariseHelp } from './navigation-glue';
 export { installFrozenChanges, installFrozenTabs, installPageSave, installSettingsParts } from './page-glue';
 export { installRemovedAccounts, installRemovedCustomers, installRemovedProducts } from './removed-records';
 export { installOrderParameter, installPdfTemplates, installPreloadedAnswers, installRefreshAfterAccountWrites, installRememberedSorts, installReportedFilter, installSlowReadRetry } from './rpc-hooks';

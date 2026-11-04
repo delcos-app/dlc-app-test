@@ -89,7 +89,6 @@ export const navigationGlueLegacy = {
   mobileName: (module: string): string => legacyFreeCoreNavigationApi.mobileName(module),
   goTo: (screen: string): void => { navigate(screen); },
   openMoreMenu: (): void => { legacyFreeCoreNavigationApi.openMoreMenu(); },
-  measureBottomBar: (): void => { legacyFreeCoreNavigationApi.measureBottomBar(); },
   baseSummariseHelp: (popup: HTMLElement): void => { legacyFreeCoreLegacyC.summariseHelp(popup); },
   helpAnchor: (button: HTMLElement): string => legacyFreeComponents.helpAnchor(button),
   manualAnchor: (screen: string): string | undefined => MANUAL_ANCLA[screen],
