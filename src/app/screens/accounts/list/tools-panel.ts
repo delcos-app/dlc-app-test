@@ -5,11 +5,20 @@
 import { term } from '../../../legacy/bridge';
 import { toolsPanelLegacy } from '../../../legacy/legado-a-bridge';
 import { t } from '../../../i18n';
+import { escapeHtml } from '../../../services/format';
+import { noReportsFilter } from '../../../core/no-reports';
 
 const DIRECTORY = 'directorio';
 const DOWNLOADERS: Readonly<Record<string, string>> = { directorio: '__dlDir', seguimiento: '__dlSeg', analitica: '__dlAn' };
 const selected = (on: boolean): string => (on ? 'selected' : '');
 const checked = (on: boolean): string => (on ? 'checked' : '');
+
+/** v2.466.0 (PPR-1): the accounts that receive reports or not, by the field «No recibe informes» (none without the field). */
+function reportsHtml(filters: AccountFilters): string {
+  const texts = noReportsFilter({ label: t('legacyA.tools.reporting'), withReports: t('legacyA.tools.withReporting'), withoutReports: t('legacyA.tools.withoutReporting') });
+  if (!texts) return '';
+  return `<label>${escapeHtml(texts.label)}</label><select data-tf="rep"><option value="">${t('legacyA.tools.everyone')}</option><option value="con" ${selected(filters.rep === 'con')}>${escapeHtml(texts.withReports)}</option><option value="sin" ${selected(filters.rep === 'sin')}>${escapeHtml(texts.withoutReports)}</option></select>`;
+}
 
 function selectsHtml(filters: AccountFilters): string {
   const options = toolsPanelLegacy.options();
@@ -19,7 +28,7 @@ function selectsHtml(filters: AccountFilters): string {
     <label>${t('legacyA.tools.municipality')}</label><select data-tf="muni">${toolsPanelLegacy.option(options.municipios, filters.muni, t('legacyA.tools.allMunicipalities'))}</select>
     <label>${term('especialidad', { capital: 'C' })}</label><select data-tf="esp">${toolsPanelLegacy.option(options.especialidades, filters.esp, toolsPanelLegacy.allOf('especialidad'))}</select>
     <label>${t('legacyA.tools.commercialState')}</label><select data-tf="est">${toolsPanelLegacy.option(options.estados, filters.est, t('legacyA.tools.allStates'))}</select>
-    <label>${t('legacyA.tools.reporting')}</label><select data-tf="rep"><option value="">${t('legacyA.tools.everyone')}</option><option value="con" ${selected(filters.rep === 'con')}>${t('legacyA.tools.withReporting')}</option><option value="sin" ${selected(filters.rep === 'sin')}>${t('legacyA.tools.withoutReporting')}</option></select>
+    ${reportsHtml(filters)}
     ${toolsPanelLegacy.seesEverything() && document.getElementById('fcom') ? `<label>${t('legacyA.tools.salesperson')}</label><select data-tf="com">${document.getElementById('fcom')?.innerHTML ?? ''}</select>` : ''}`;
 }
 

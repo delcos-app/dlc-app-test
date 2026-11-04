@@ -8,12 +8,12 @@
   var __publicField = (obj, key, value10) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value10);
 
   // src/app/state/legacy-names.ts
-  function exposeLegacyNames(state, names) {
+  function exposeLegacyNames(state2, names) {
     for (const [name, key] of names) {
       Object.defineProperty(window, name, {
-        get: () => state[key],
+        get: () => state2[key],
         set: (value10) => {
-          state[key] = value10;
+          state2[key] = value10;
         },
         configurable: true,
         enumerable: true
@@ -479,6 +479,7 @@
     live: () => live_exports,
     maps: () => maps_exports,
     money: () => money_exports,
+    noReports: () => no_reports_exports,
     organisation: () => organisation_exports,
     pdf: () => pdf_exports,
     permissions: () => permissions_exports,
@@ -953,6 +954,10 @@
       tableColumn: "Columna en la tabla",
       filter: "Filtro (listas y sí/no)",
       saveField: "Guardar campo",
+      use: "Uso",
+      useNone: "Ninguno",
+      useNoReports: "No recibe informes",
+      useHelp: "Con «No recibe informes», las fichas con este campo en «Sí» llevan su pastilla, tienen su filtro y no ven los resultados de visita que son un informe.",
       cifFormat: "El CIF son una letra, 7 números y un dígito o letra de control (p. ej. B24920548).",
       cifControl: "El dígito de control del CIF no es correcto.",
       dniFormat: "El DNI son 8 números y una letra; el NIE, X, Y o Z seguida de 7 números y una letra.",
@@ -3560,6 +3565,15 @@
       shippingHelp: "El del envío de un pedido cuando no se dice otro.",
       wrongRate: "No se entiende la línea «{line}»: escribe el porcentaje (de 0 a 100) y el nombre",
       noRates: "Escribe al menos un tipo"
+    },
+    portalReports: {
+      title: "Informes",
+      info: "Qué {orders} cuentan en el portal de {theProfessional}: sus cifras, productos, formatos y continuidad. Con «Solo los que se marquen», cada {order} lleva la casilla «Reportar» y Pedidos y Analítica tienen el filtro «Reporte». Con «Todos los completados», la casilla y el filtro no salen.",
+      intro: "Qué {orders} ve {theProfessional} en su portal.",
+      orders: "{Orders} que ve {theProfessional}",
+      ordersHelp: "De partida, solo los que se marquen.",
+      all: "Todos los completados",
+      marked: "Solo los que se marquen"
     },
     portalFormats: {
       title: "Formatos",
@@ -6986,8 +7000,8 @@
     return canvas.toDataURL("image/png");
   }
   var input = (id) => document.getElementById(id);
-  async function saveBrand(state) {
-    const brand = { nombre: orFallback(input("mknom")?.value.trim(), t("settingsMore.brand.defaultName")), logo: state.logo, logo_factura: Boolean(input("mkfac")?.checked) };
+  async function saveBrand(state2) {
+    const brand = { nombre: orFallback(input("mknom")?.value.trim(), t("settingsMore.brand.defaultName")), logo: state2.logo, logo_factura: Boolean(input("mkfac")?.checked) };
     const { error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "marca", p_valor: brand });
     if (error) {
       notices.toast(t("settingsMore.couldNotSave"), true);
@@ -6997,14 +7011,14 @@
     settingsMoreLegacy.setBrand({ nombre: brand.nombre, logo: brand.logo });
     notices.toast(t("settingsMore.brand.saved"));
   }
-  async function save(state) {
+  async function save(state2) {
     const select = document.getElementById("mketq");
     const label = select?.value === OTHER ? orFallback(input("mketqo")?.value.trim(), term("medico", { number: "p", capital: "C" })) : select?.value ?? "";
-    await saveBrand(state);
+    await saveBrand(state2);
     await saveLabel(label);
     await saveVocabulary();
   }
-  function bind(state) {
+  function bind(state2) {
     const name = input("mknom"), file = input("mkfile");
     if (name) name.oninput = () => {
       const shown3 = document.getElementById("mknomp");
@@ -7013,13 +7027,13 @@
     if (file) file.onchange = async () => {
       const chosen4 = file.files?.[0];
       if (!chosen4) return;
-      state.logo = await squareLogo(chosen4);
+      state2.logo = await squareLogo(chosen4);
       const logo = document.getElementById("mklogo");
-      if (logo) logo.src = state.logo;
+      if (logo) logo.src = state2.logo;
     };
     const remove6 = document.getElementById("mkquitar");
     if (remove6) remove6.onclick = () => {
-      state.logo = null;
+      state2.logo = null;
       const logo = document.getElementById("mklogo");
       if (logo) logo.src = LOGO;
     };
@@ -7029,7 +7043,7 @@
     };
     const ok = document.getElementById("mkok");
     if (ok) ok.onclick = () => {
-      void save(state);
+      void save(state2);
     };
   }
   function bindPreview() {
@@ -7114,7 +7128,7 @@
   }
   var onlyInText = (value10) => value10.en_estados?.length ? statesText(value10.en_estados) : "";
   var help = (text) => `<span class="sm vhelp">${text}</span>`;
-  var stateOptions = (selected2) => cardBaseLegacy.states().map((state) => `<option value="${escapeHtml(state)}" ${selected2 === state ? "selected" : ""}>${t("settingsMore.classifier.movesTo", { state: escapeHtml(state) })}</option>`).join("");
+  var stateOptions = (selected2) => cardBaseLegacy.states().map((state2) => `<option value="${escapeHtml(state2)}" ${selected2 === state2 ? "selected" : ""}>${t("settingsMore.classifier.movesTo", { state: escapeHtml(state2) })}</option>`).join("");
   function destinationFieldHtml(id, selected2) {
     return `<div class="vfield"><label for="${id}">${t("settingsMore.valueEditor.destination")}</label>
     <select id="${id}"><option value="">${t("settingsMore.classifier.keepsState")}</option>${stateOptions(selected2)}</select>
@@ -7123,7 +7137,7 @@
   function statesFieldHtml(value10) {
     const marked = new Set(value10.en_estados ?? []);
     return `<div class="vfield"><span class="vlabel">${t("settingsMore.valueEditor.states")}</span>
-    <div class="vchips">${cardBaseLegacy.states().map((state) => `<button type="button" class="chipsel ${marked.has(state) ? "on" : ""}" data-vene="${escapeHtml(state)}" aria-pressed="${String(marked.has(state))}">${escapeHtml(state)}</button>`).join("")}</div>
+    <div class="vchips">${cardBaseLegacy.states().map((state2) => `<button type="button" class="chipsel ${marked.has(state2) ? "on" : ""}" data-vene="${escapeHtml(state2)}" aria-pressed="${String(marked.has(state2))}">${escapeHtml(state2)}</button>`).join("")}</div>
     <span class="sm" data-ven>${escapeHtml(statesText(value10.en_estados))}</span>
     ${help(t("settingsMore.valueEditor.statesHelp", { theVisit: term("visita", { article: "el" }) }))}</div>`;
   }
@@ -7144,7 +7158,7 @@
     if (!document.querySelector("#dbody [data-vene]")) return null;
     const chosen4 = chosenStates(), list = chosen4.length === cardBaseLegacy.states().length ? [] : chosen4;
     const before = value10.en_estados ?? [];
-    return list.length === before.length && list.every((state) => before.includes(state)) ? null : list;
+    return list.length === before.length && list.every((state2) => before.includes(state2)) ? null : list;
   }
 
   // src/app/core/catalog-roles.ts
@@ -7459,6 +7473,73 @@
     return true;
   }
 
+  // src/app/core/no-reports.ts
+  var no_reports_exports = {};
+  __export(no_reports_exports, {
+    NO_REPORTS_ROLE: () => NO_REPORTS_ROLE,
+    hasNoReports: () => hasNoReports,
+    loadNoReportsField: () => loadNoReportsField,
+    noReportsFilter: () => noReportsFilter,
+    noReportsName: () => noReportsName,
+    paintAccountsFilter: () => paintAccountsFilter,
+    reportsFilterValue: () => reportsFilterValue,
+    usesOldColumn: () => usesOldColumn
+  });
+  var NO_REPORTS_ROLE = "sin_informes";
+  var ACCOUNTS_SCOPE = "medico";
+  var YES_NO = "si_no";
+  var STORED_KEY = "dlc-sinf";
+  function stored() {
+    try {
+      const value10 = JSON.parse(localStorage.getItem(STORED_KEY) ?? "null");
+      return value10 && typeof value10.known === "boolean" ? value10 : { known: false, field: null };
+    } catch {
+      return { known: false, field: null };
+    }
+  }
+  var state = stored();
+  var isYes = (value10) => value10 === true || value10 === "true";
+  function hasNoReports(account) {
+    if (!account) return false;
+    if (typeof account.sin_informes === "boolean") return account.sin_informes;
+    if (!state.known) return Boolean(account.sin_reporting);
+    return Boolean(state.field && isYes(account.clasificadores?.[state.field.clave]));
+  }
+  var noReportsName = () => state.known ? state.field?.nombre ?? null : null;
+  var usesOldColumn = () => !state.known;
+  function noReportsFilter(today2) {
+    if (!state.known) return today2;
+    if (!state.field) return null;
+    return { label: state.field.nombre, withReports: t("leftovers.fields.no"), withoutReports: t("leftovers.fields.yes") };
+  }
+  var reportsFilterValue = (value10) => !value10 || state.known && !state.field ? null : value10;
+  function paintAccountsFilter() {
+    const select = document.getElementById("frep");
+    if (!select || !state.known) return;
+    const box3 = select.closest("div"), texts3 = noReportsFilter({ label: "", withReports: "", withoutReports: "" });
+    box3?.classList.toggle("hide", !texts3);
+    if (!texts3) return;
+    const label = document.querySelector('label[for="frep"]');
+    if (label) label.textContent = texts3.label;
+    const withReports = select.querySelector('option[value="con"]'), withoutReports2 = select.querySelector('option[value="sin"]');
+    if (withReports) withReports.textContent = texts3.withReports;
+    if (withoutReports2) withoutReports2.textContent = texts3.withoutReports;
+  }
+  async function loadNoReportsField() {
+    const { data, error } = await legacyDb().from("clasificadores").select("*").eq("ambito", ACCOUNTS_SCOPE).eq("activo", true);
+    if (error || !data?.length) {
+      paintAccountsFilter();
+      return;
+    }
+    const field10 = data.find((row3) => row3.papel_campo === NO_REPORTS_ROLE && row3.tipo_campo === YES_NO && !row3.papel);
+    state = { known: data.some((row3) => "papel_campo" in row3), field: field10 ? { clave: field10.clave, nombre: field10.nombre } : null };
+    try {
+      localStorage.setItem(STORED_KEY, JSON.stringify(state));
+    } catch {
+    }
+    paintAccountsFilter();
+  }
+
   // src/app/screens/settings/more/classifier-actions.ts
   var FIELD_FLAGS = ["obligatorio", "solo_lectura", "en_ficha", "en_tabla", "en_filtro"];
   var valueOf3 = (id) => document.getElementById(id)?.value ?? "";
@@ -7473,6 +7554,7 @@
     FIELD_FLAGS.forEach((flag) => {
       value10[flag] = Boolean(document.getElementById(`cfc_${flag}`)?.checked);
     });
+    if (document.getElementById("cfcpapel")) value10.papel = value10.tipo === "si_no" ? valueOf3("cfcpapel") : "";
     const { data: result, error } = await legacyDb().rpc("configurar_campo", { p_id: view.classifier.id, p: value10 });
     if (error || !result?.ok) {
       notices.toast(t("settingsMore.classifier.fieldNotSaved"), true);
@@ -7481,6 +7563,7 @@
     notices.toast(t("settingsMore.classifier.fieldSaved"));
     void view.refresh({ kind: "list" });
     settingsMoreLegacy.loadCustomFields().catch(() => void 0);
+    loadNoReportsField().catch(() => void 0);
   }
   async function removeValue(view, id) {
     const text = t("settingsMore.classifier.deleteValueText", { visits: term("visita", { number: "p" }) });
@@ -7649,7 +7732,7 @@
     return { states: data ?? [], error };
   }
   async function confirmInitial(states, value10) {
-    const previous = states.find((state) => state.papel === INITIAL && state.id !== value10.id);
+    const previous = states.find((state2) => state2.papel === INITIAL && state2.id !== value10.id);
     if (!previous) return true;
     return notices.confirm(t("settingsMore.states.confirmInitial", { name: value10.valor, previous: previous.valor }), { titulo: t("settingsMore.states.confirmInitialTitle"), ok: t("settingsMore.states.change") });
   }
@@ -7671,7 +7754,7 @@
     return t("settingsMore.states.couldNotChange") + (error ? `: ${error.message ?? ""}` : "");
   }
   async function changeRole(states, select) {
-    const value10 = states.find((state) => state.id === select.dataset.estpapel), chosen4 = select.value;
+    const value10 = states.find((state2) => state2.id === select.dataset.estpapel), chosen4 = select.value;
     if (!value10 || !chosen4 || chosen4 === value10.papel || !await canChange(states, value10, select)) return;
     select.disabled = true;
     const { data: result, error } = await legacyDb().rpc("guardar_papel_estado", { p_id: value10.id, p_papel: chosen4 });
@@ -7699,7 +7782,7 @@
       box3.innerHTML = `<div class="card"><p class="sm">${t("settingsMore.states.couldNotRead", { error: escapeHtml(error.message ?? "") })}</p></div>`;
       return;
     }
-    const active = states.filter((state) => state.activo !== false);
+    const active = states.filter((state2) => state2.activo !== false);
     box3.innerHTML = pageHtml2(active);
     box3.querySelectorAll("[data-estpapel]").forEach((select) => {
       select.onchange = () => {
@@ -8972,7 +9055,8 @@
   // src/app/legacy/organisation-bridge.ts
   var organisationLegacy = {
     setting: (key) => settingsStore.settings[key],
-    name: () => appName()
+    name: () => appName(),
+    hasPortal: () => hasExtra("portal")
   };
 
   // src/app/services/money.ts
@@ -9440,6 +9524,7 @@
     SETTING_DELIVERIES: () => SETTING_DELIVERIES,
     SETTING_EVENTS: () => SETTING_EVENTS,
     SETTING_NO_VISIT: () => SETTING_NO_VISIT,
+    SETTING_PORTAL: () => SETTING_PORTAL,
     SETTING_SERVICES: () => SETTING_SERVICES,
     SETTING_TAXES: () => SETTING_TAXES,
     completeFields: () => completeFields,
@@ -9448,8 +9533,10 @@
     eventRules: () => eventRules,
     generalNoVisitDays: () => generalNoVisitDays,
     highestVat: () => highestVat,
+    marksReportedOrders: () => marksReportedOrders,
     noVisitByState: () => noVisitByState,
     noVisitWording: () => noVisitWording,
+    portalOrders: () => portalOrders,
     replenishHours: () => replenishHours
   });
   var setting = (key) => organisationLegacy.setting(key);
@@ -9477,6 +9564,9 @@
   var DEFAULT_GROUP_FROM = 4;
   var DEFAULT_RECURRENCE = { meses: 12, dias: 60, minimo: 5 };
   var MIN_RECURRENCE = 3;
+  var SETTING_PORTAL = "portal";
+  var portalOrders = () => setting(SETTING_PORTAL)?.pedidos === "todos" ? "todos" : "marcados";
+  var marksReportedOrders = () => organisationLegacy.hasPortal() && portalOrders() === "marcados";
   var SETTING_COMPLETE = "ficha_completa";
   var COMPLETE_FIELDS = ["ubicacion", "horario", "especialidad", "contacto", "provincia", "obligatorios"];
   var DEFAULT_COMPLETE = ["ubicacion", "horario", "especialidad", "contacto"];
@@ -9636,7 +9726,7 @@
   // src/app/screens/home/indicators/charts-portfolio.ts
   function stateCounts(charts) {
     const counts = new Map((charts.estados ?? []).map((row3) => [row3.valor, row3.n]));
-    return commercialStates.all().filter((state) => state.papel !== "negativo").map((state) => ({ state, accounts: counts.get(state.valor) ?? 0 }));
+    return commercialStates.all().filter((state2) => state2.papel !== "negativo").map((state2) => ({ state: state2, accounts: counts.get(state2.valor) ?? 0 }));
   }
   function portfolioTotal(charts) {
     return sum((charts.estados ?? []).map((row3) => row3.n));
@@ -9652,8 +9742,8 @@
       return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on3 ? "var(--navy)" : "#DCE6F1"}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on3 ? "on" : ""}">${count.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on3 ? "on" : ""}">${escapeHtml(name)}</text>`;
     }).join("");
     const positive = counts.find((count) => count.state.papel === "positivo");
-    const state = positive ? escapeHtml(positive.state.valor) : "";
-    const summary4 = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state }) : t("home.indicators.nextStep", { state }) : "";
+    const state2 = positive ? escapeHtml(positive.state.valor) : "";
+    const summary4 = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state: state2 }) : t("home.indicators.nextStep", { state: state2 }) : "";
     return { summary: summary4, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
   }
   function portfolioChart(charts) {
@@ -10564,7 +10654,7 @@
     paymentState: () => ordersStore.paymentState ?? {},
     needs: () => PRESU_NECESITA,
     whenOptions: () => PRESU_CUANDO,
-    requestState: (state) => PRESU_ESTADO[state] ?? state,
+    requestState: (state2) => PRESU_ESTADO[state2] ?? state2,
     setupFee: () => PUESTA_EN_MARCHA,
     sections: () => PLAN_SECCIONES,
     extras: () => PLAN_EXTRAS,
@@ -10949,7 +11039,7 @@
     <div class="acts u-end">${existing ? `<button type="button" class="btn sec peligro" id="ciranular">${t("surgeries.editor.cancelSurgery")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("surgeries.editor.cancel")}</button><button type="button" class="btn" id="cirok">${t(existing ? "surgeries.editor.save" : "surgeries.editor.schedule")}</button></div>`;
   }
-  function payload(existing, centre, responsible, state) {
+  function payload(existing, centre, responsible, state2) {
     return {
       id: existing?.id ?? null,
       fecha: value("cirf"),
@@ -10962,25 +11052,25 @@
       origen: document.querySelector("#cirori .on")?.dataset.o,
       referencia_caso: value("cirref"),
       nota: value("cirn"),
-      estado: state
+      estado: state2
     };
   }
   var failureText2 = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
-  async function save5(existing, choice, state, button3) {
+  async function save5(existing, choice, state2, button3) {
     if (!value("cirf") || !choice.hos || !choice.cir) {
       notices.toast(t("surgeries.editor.missing"), true);
       return;
     }
     button3.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("cirugia_guardar", { p: payload(existing, choice.hos, choice.cir, state) });
+    const { data: result, error } = await legacyDb().rpc("cirugia_guardar", { p: payload(existing, choice.hos, choice.cir, state2) });
     button3.disabled = false;
     if (error || !result || result.ok === false) {
       notices.toast(failureText2(error, result), true);
       return;
     }
-    notices.toast(t(state === STATES.cancelled ? "surgeries.editor.cancelled" : existing ? "surgeries.editor.saved" : "surgeries.editor.scheduled"));
+    notices.toast(t(state2 === STATES.cancelled ? "surgeries.editor.cancelled" : existing ? "surgeries.editor.saved" : "surgeries.editor.scheduled"));
     appLegacy.forgetCache();
-    if (state === STATES.cancelled) document.getElementById("dlg")?.close();
+    if (state2 === STATES.cancelled) document.getElementById("dlg")?.close();
     else relatedLegacy.openSurgery(result.id ?? "");
   }
   function bind4(existing, choice) {
@@ -13102,8 +13192,8 @@
   var chosen = { motivo: "", resultado: "" };
   var value2 = (id) => document.getElementById(id)?.value ?? "";
   var needsFollowUp = (result) => Boolean(result) && !isOrderDone(result);
-  function callRecordHtml(state) {
-    const call2 = state ?? {}, outgoing = call2.direccion === OUTGOING;
+  function callRecordHtml(state2) {
+    const call2 = state2 ?? {}, outgoing = call2.direccion === OUTGOING;
     return `<details class="blk kollam" id="kollam" ${call2.motivo !== void 0 ? "open" : ""}><summary>${t("opportunities.callRecord.title")}</summary>
     <div class="sm">${t("opportunities.callRecord.hint")}</div>
     <label>${t("opportunities.callRecord.reason")}</label><div class="chipsw" id="kolmot"></div>
@@ -13135,9 +13225,9 @@
       });
     }
   }
-  function activateCallRecord(state) {
-    chosen.motivo = orFallback(state?.motivo, "");
-    chosen.resultado = orFallback(state?.resultado, "");
+  function activateCallRecord(state2) {
+    chosen.motivo = orFallback(state2?.motivo, "");
+    chosen.resultado = orFallback(state2?.resultado, "");
     void loadCallCatalogs().then(() => {
       const reasons = document.getElementById("kolmot"), results = document.getElementById("kolres");
       if (!reasons || !results) return;
@@ -13151,35 +13241,35 @@
     if (!document.getElementById("kollam")) return null;
     return { motivo: chosen.motivo, resultado: chosen.resultado, direccion: value2("kold"), nota: value2("kolno").trim(), proxima_fecha: value2("kolpf"), proxima_accion: value2("kolpa").trim() };
   }
-  function caller(subject, state) {
+  function caller(subject, state2) {
     return {
       nombre: subject.nombre ?? "",
       telefono: subject.telefono ?? "",
       contacto_id: subject.contacto_id ?? null,
       cliente_nuevo: null,
       cuenta_id: subject.medico ? subject.medico.id : null,
-      cuenta_texto: subject.medico ? "" : orFallback(state.cuenta_texto, ""),
+      cuenta_texto: subject.medico ? "" : orFallback(state2.cuenta_texto, ""),
       ...subject.datos && Object.keys(subject.datos).length ? { datos: subject.datos } : {}
     };
   }
-  function payload2(record2, subject, state) {
+  function payload2(record2, subject, state2) {
     const followUp = needsFollowUp(subject.resultado);
     return {
-      id: state.id ?? null,
-      fecha: state.fecha ?? null,
+      id: state2.id ?? null,
+      fecha: state2.fecha ?? null,
       direccion: record2.direccion,
-      ...caller(subject, state),
+      ...caller(subject, state2),
       motivo: record2.motivo,
       resultado: orFallback(subject.resultado, ""),
       proxima_accion: followUp ? record2.proxima_accion : "",
       proxima_fecha: followUp ? record2.proxima_fecha : "",
       nota: record2.nota,
       pedido_id: null,
-      llamada_origen: state.previa ?? null
+      llamada_origen: state2.previa ?? null
     };
   }
-  async function saveCallRecord(record2, subject, state) {
-    const { data: result, error } = await legacyDb().rpc("guardar_llamada", { p: payload2(record2, subject, state ?? {}) });
+  async function saveCallRecord(record2, subject, state2) {
+    const { data: result, error } = await legacyDb().rpc("guardar_llamada", { p: payload2(record2, subject, state2 ?? {}) });
     if (error || result?.ok === false) {
       notices.toast(error ? t("opportunities.callRecord.couldNotSaveError", { error: error.message ?? "" }) : t("opportunities.callRecord.couldNotSave"), true);
       return null;
@@ -13972,7 +14062,7 @@
       { on: Boolean(order.envio), con: round2(Number(order.envio_base) * (1 + rate / 100)), iva: rate, nombre: service?.nombre ?? t("orders.totals.shipping") }
     );
   }
-  var statePill2 = (state) => `<span class="pill ${state === STATES2.draft ? "p-bor" : state === STATES2.voided ? "p-anu" : "p-est"}">${escapeHtml(state)}</span>`;
+  var statePill2 = (state2) => `<span class="pill ${state2 === STATES2.draft ? "p-bor" : state2 === STATES2.voided ? "p-anu" : "p-est"}">${escapeHtml(state2)}</span>`;
   function isFree(order, total) {
     if (!order) return false;
     if (order.sin_cargo) return true;
@@ -14034,7 +14124,7 @@
   var TRANSFER_STATES = ["Enviado", "Aceptado", "Servido", "Incidencia"];
   var TRANSFER_SERVED = "Servido";
   var TRANSFER_ISSUE = "Incidencia";
-  var transferPill = (state) => state ? `<span class="pill ${state === TRANSFER_SERVED ? "p-trfok" : state === TRANSFER_ISSUE ? "p-urg" : "p-per"}">${escapeHtml(state)}</span>` : `<span class="pill">${t("orders.transfer.notSent")}</span>`;
+  var transferPill = (state2) => state2 ? `<span class="pill ${state2 === TRANSFER_SERVED ? "p-trfok" : state2 === TRANSFER_ISSUE ? "p-urg" : "p-per"}">${escapeHtml(state2)}</span>` : `<span class="pill">${t("orders.transfer.notSent")}</span>`;
 
   // src/app/screens/orders/payment-email.ts
   var payment_email_exports = {};
@@ -14402,9 +14492,9 @@
     return document.getElementById(id);
   }
   function paymentText2() {
-    const state = subscriptionLegacy.state() ?? {};
-    if (state.solo_lectura) return t("ordersMore.subscription.readOnly");
-    return state.plan?.estado === "impago" ? t("ordersMore.subscription.unpaid") : "";
+    const state2 = subscriptionLegacy.state() ?? {};
+    if (state2.solo_lectura) return t("ordersMore.subscription.readOnly");
+    return state2.plan?.estado === "impago" ? t("ordersMore.subscription.unpaid") : "";
   }
   function paintPaymentBand() {
     const text = paymentText2();
@@ -14564,7 +14654,7 @@
         onSave(saved3);
       }, null);
     },
-    orderPill: (state) => statePill2(state),
+    orderPill: (state2) => statePill2(state2),
     newSale: (preset) => {
       void editOpportunity(preset, null);
     },
@@ -14580,9 +14670,9 @@
     widenGrid: (grid, count) => {
       widenGrid(grid, count);
     },
-    fieldFilters: (state) => camposFiltros("cliente", state, "pfcp"),
-    bindFieldFilters: (zone, state, onChange) => {
-      bindCustomFieldFilters(zone, state, onChange);
+    fieldFilters: (state2) => camposFiltros("cliente", state2, "pfcp"),
+    bindFieldFilters: (zone, state2, onChange) => {
+      bindCustomFieldFilters(zone, state2, onChange);
     },
     showLoading: (element, text) => {
       showLoading(element, text);
@@ -15560,9 +15650,9 @@
     }
     return `${field10.nombre}: ${fieldText(field10, filter)}`;
   }
-  var filterChips = (scope, state) => Object.keys(state ?? {}).map((key) => {
+  var filterChips = (scope, state2) => Object.keys(state2 ?? {}).map((key) => {
     const field10 = componentsLegacy.customFields(scope).find((item) => item.clave === key) ?? { clave: key, nombre: key };
-    return { k: key, t: filterText2(field10, state?.[key]) };
+    return { k: key, t: filterText2(field10, state2?.[key]) };
   });
   var columnHeaders = (fields) => fields.map((field10) => `<span class="cpcol">${escapeHtml(field10.nombre)}</span>`).join("");
   var columnCells = (fields, values2) => fields.map((field10) => {
@@ -15725,15 +15815,15 @@
     }
     return Object.keys(range2).length ? range2 : null;
   }
-  function bindSelect(block3, { field: field10, state, onChange }) {
+  function bindSelect(block3, { field: field10, state: state2, onChange }) {
     const select = block3.querySelector("select[data-clv]");
     if (select) select.onchange = () => {
-      if (!select.value) Reflect.deleteProperty(state, field10.clave);
-      else state[field10.clave] = field10.tipo === "si_no" ? select.value === "true" : select.value;
+      if (!select.value) Reflect.deleteProperty(state2, field10.clave);
+      else state2[field10.clave] = field10.tipo === "si_no" ? select.value === "true" : select.value;
       onChange();
     };
   }
-  function bindSearch2(block3, { field: field10, state, onChange }) {
+  function bindSearch2(block3, { field: field10, state: state2, onChange }) {
     const search5 = block3.querySelector("input[data-clbus]");
     if (!search5) return;
     let timer3;
@@ -15741,33 +15831,33 @@
       clearTimeout(timer3);
       timer3 = setTimeout(() => {
         const text = search5.value.trim();
-        if (text) state[field10.clave] = { contiene: text };
-        else Reflect.deleteProperty(state, field10.clave);
+        if (text) state2[field10.clave] = { contiene: text };
+        else Reflect.deleteProperty(state2, field10.clave);
         onChange();
       }, SEARCH_WAIT_MS5);
     };
   }
-  function bindRange(block3, { field: field10, state, onChange }) {
+  function bindRange(block3, { field: field10, state: state2, onChange }) {
     const inputs = [...block3.querySelectorAll("input[data-clr]")];
     inputs.forEach((input6) => {
       input6.onchange = () => {
         const range2 = readRange(field10, inputs);
         if (range2 === false) return;
-        if (range2) state[field10.clave] = range2;
-        else Reflect.deleteProperty(state, field10.clave);
+        if (range2) state2[field10.clave] = range2;
+        else Reflect.deleteProperty(state2, field10.clave);
         onChange();
       };
     });
   }
-  function blockHtml2(scope, fields, state, values2) {
+  function blockHtml2(scope, fields, state2, values2) {
     const prefix = `clas_${scope}_`;
     return fields.map((field10, index) => `<div class="clascampo" data-clk="${escapeHtml(field10.clave)}">
       <div class="clascab"><label for="${prefix}${index}">${escapeHtml(field10.nombre)}</label>
         <label class="clascol" title="${t("components.classifiers.asColumn", { name: escapeHtml(field10.nombre) })}"><input type="checkbox" data-clcol ${showsColumn(scope, field10.clave) ? "checked" : ""}> ${t("components.classifiers.column")}</label></div>
-      ${control(field10, state[field10.clave], values2, prefix + String(index))}</div>`).join("");
+      ${control(field10, state2[field10.clave], values2, prefix + String(index))}</div>`).join("");
   }
   async function paintClassifiers2(container, scope, options3) {
-    const { state, onChange, onColumn, heading } = options3;
+    const { state: state2, onChange, onColumn, heading } = options3;
     if (!container) return;
     const fields = componentsLegacy.sortedFields(scope);
     const title2 = heading === "h3" ? `<h3 class="u-mt-18">${t("components.classifiers.title")}</h3>` : `<h4>${t("components.classifiers.title")}</h4>`;
@@ -15778,11 +15868,11 @@
     const needsValues = fields.some((field10) => field10.tipo === "texto" || field10.tipo === "lista" && (field10.valores ?? []).length > MAX_DROPDOWN);
     const values2 = needsValues ? await loadValues(scope) : {};
     if (!container.isConnected) return;
-    container.innerHTML = `<div class="htbloque clasif">${title2}${blockHtml2(scope, fields, state, values2)}</div>`;
+    container.innerHTML = `<div class="htbloque clasif">${title2}${blockHtml2(scope, fields, state2, values2)}</div>`;
     container.querySelectorAll("[data-clk]").forEach((block3) => {
       const field10 = fields.find((item) => item.clave === block3.dataset.clk);
       if (!field10) return;
-      const binding = { field: field10, state, onChange };
+      const binding = { field: field10, state: state2, onChange };
       bindSelect(block3, binding);
       bindSearch2(block3, binding);
       bindRange(block3, binding);
@@ -15820,20 +15910,20 @@
   var gridOf = (section) => section.querySelector(".dgrid");
   function filtersOf(grid) {
     const all = panelsLegacy.tableFilters(), kind = tableKind(grid);
-    const state = all[kind] ?? { texto: "", facetas: {} };
-    state.facetas = state.facetas ?? {};
-    all[kind] = state;
-    return state;
+    const state2 = all[kind] ?? { texto: "", facetas: {} };
+    state2.facetas = state2.facetas ?? {};
+    all[kind] = state2;
+    return state2;
   }
   var chosen3 = (selects) => [...selects].filter((select) => select.selectedIndex > 0).length;
   function activeCount(section) {
-    const grid = gridOf(section), state = grid ? panelsLegacy.tableFilters()[tableKind(grid)] ?? {} : {};
-    let count = Object.values(state.facetas ?? {}).filter(Boolean).length + (state.texto ? 1 : 0);
+    const grid = gridOf(section), state2 = grid ? panelsLegacy.tableFilters()[tableKind(grid)] ?? {} : {};
+    let count = Object.values(state2.facetas ?? {}).filter(Boolean).length + (state2.texto ? 1 : 0);
     count += chosen3(section.querySelectorAll(".htpanel .htpropios select"));
     if (sideOpenFor(section)) count += chosen3(toolsBox()?.querySelectorAll(".htpropios.lat select") ?? []);
     const classifiers = screenOf(section);
     if (classifiers) count += Object.keys(classifiers.estado()).length;
-    return count + Object.values(state.rangos ?? {}).filter((range2) => [range2.d, range2.h].some(Boolean)).length;
+    return count + Object.values(state2.rangos ?? {}).filter((range2) => [range2.d, range2.h].some(Boolean)).length;
   }
   function paintNumber(section) {
     const button3 = section.querySelector(".htbtn");
@@ -15853,18 +15943,18 @@
     });
   }
   function tableChips(section) {
-    const grid = gridOf(section), state = grid ? panelsLegacy.tableFilters()[tableKind(grid)] : null;
-    if (!grid || !state) return [];
+    const grid = gridOf(section), state2 = grid ? panelsLegacy.tableFilters()[tableKind(grid)] : null;
+    if (!grid || !state2) return [];
     const heads = [...grid.querySelector(":scope > .dh")?.children ?? []].map((head) => head.textContent?.trim() ?? "");
-    const chips2 = Object.entries(state.facetas ?? {}).filter(([, value10]) => value10).map(([index, value10]) => ({
+    const chips2 = Object.entries(state2.facetas ?? {}).filter(([, value10]) => value10).map(([index, value10]) => ({
       t: `${heads[Number(index)] ?? t("panels.filters.column")}: ${value10}`,
       remove: () => {
-        if (state.facetas) state.facetas[index] = "";
+        if (state2.facetas) state2.facetas[index] = "";
         applyColumnFilters(grid);
       }
     }));
-    if (state.texto) chips2.push({ t: t("panels.filters.contains", { text: state.texto }), remove: () => {
-      state.texto = "";
+    if (state2.texto) chips2.push({ t: t("panels.filters.contains", { text: state2.texto }), remove: () => {
+      state2.texto = "";
       applyColumnFilters(grid);
     } });
     return chips2;
@@ -15905,13 +15995,13 @@
       second = section.querySelector(".htchips2");
     }
     if (!second) return;
-    const state = classifiers ? classifiers.estado() : {}, chips2 = classifiers ? filterChips(classifiers.amb, state) : [];
+    const state2 = classifiers ? classifiers.estado() : {}, chips2 = classifiers ? filterChips(classifiers.amb, state2) : [];
     const html = chips2.map((chip) => `<button class="htchip" type="button" data-hcp="${escapeHtml(chip.k)}">${escapeHtml(chip.t)} <span aria-hidden="true">✕</span></button>`).join("");
     if (second.innerHTML === html) return;
     second.innerHTML = html;
     second.querySelectorAll("[data-hcp]").forEach((button3) => {
       button3.onclick = () => {
-        Reflect.deleteProperty(state, button3.dataset.hcp ?? "");
+        Reflect.deleteProperty(state2, button3.dataset.hcp ?? "");
         classifiers?.recargar();
         paintSidePanelClassifiers(section);
         counter(section);
@@ -16059,27 +16149,27 @@
       return vals.length > 1 && vals.length <= 15 && nombre ? { i, nombre, vals: vals.sort() } : null;
     }).filter((facet) => facet !== null);
   }
-  function autoHtml(grid, state) {
+  function autoHtml(grid, state2) {
     const heads = headsOf(grid), facets = facetsOf(grid), hidden = hiddenOf(tableKind(grid));
-    const facetHtml = facets.map((facet) => `<label><span>${escapeHtml(facet.nombre)}</span><select data-htf="${facet.i}"><option value="">${t("panels.filters.all")}</option>${facet.vals.map((value10) => `<option ${state.facetas[facet.i] === value10 ? "selected" : ""}>${escapeHtml(value10)}</option>`).join("")}</select></label>`).join("");
+    const facetHtml = facets.map((facet) => `<label><span>${escapeHtml(facet.nombre)}</span><select data-htf="${facet.i}"><option value="">${t("panels.filters.all")}</option>${facet.vals.map((value10) => `<option ${state2.facetas[facet.i] === value10 ? "selected" : ""}>${escapeHtml(value10)}</option>`).join("")}</select></label>`).join("");
     const columnHtml = heads.map((name, i) => name ? `<label class="opt"><input type="checkbox" data-htc="${i}" ${hidden.includes(i) ? "" : "checked"} ${i === 0 ? "disabled" : ""}> ${escapeHtml(name)}</label>` : "").join("");
     return `
-      <div class="htbloque"><h4>${t("panels.filters.searchTable")}</h4><input type="search" class="httexto" value="${escapeHtml(state.texto ?? "")}" placeholder="${t("panels.filters.searchPlaceholder")}"></div>
+      <div class="htbloque"><h4>${t("panels.filters.searchTable")}</h4><input type="search" class="httexto" value="${escapeHtml(state2.texto ?? "")}" placeholder="${t("panels.filters.searchPlaceholder")}"></div>
       ${facets.length ? `<div class="htbloque"><h4>${t("panels.filters.byColumn")}</h4><div class="htfacetas">${facetHtml}</div></div>` : ""}
       ${heads.filter(Boolean).length > 2 ? `<div class="htbloque"><h4>${t("panels.filters.columns")}</h4><div class="htcols">${columnHtml}</div></div>` : ""}
       <div class="acts u-m-0 u-end"><button class="btn sec dang" type="button" data-htlimpiar>${icon("x")} ${t("panels.filters.clear")}</button></div>`;
   }
   function bindAuto(section, panel, grid, zone) {
-    const kind = tableKind(grid), state = filtersOf(grid);
+    const kind = tableKind(grid), state2 = filtersOf(grid);
     const search5 = zone.querySelector(".httexto");
     if (search5) search5.oninput = () => {
-      state.texto = search5.value;
+      state2.texto = search5.value;
       applyColumnFilters(grid);
       counter(section);
     };
     zone.querySelectorAll("[data-htf]").forEach((select) => {
       select.onchange = () => {
-        state.facetas[select.dataset.htf ?? ""] = select.value;
+        state2.facetas[select.dataset.htf ?? ""] = select.value;
         applyColumnFilters(grid);
         counter(section);
       };
@@ -16153,9 +16243,9 @@
       return kind === "fecha" && hasPeriod ? null : { i, nombre, t: kind };
     }).filter((column) => column !== null);
   }
-  function rangeHtml(column, state) {
-    if (column.t === "texto") return `<label><span>${escapeHtml(column.nombre)}</span><input type="search" class="chico" data-htt="${column.i}" value="${escapeHtml(state.facetas[column.i] ?? "")}" placeholder="${t("panels.filters.containsPlaceholder")}"></label>`;
-    const type = column.t === "fecha" ? "date" : "number", range2 = state.rangos?.[column.i] ?? {};
+  function rangeHtml(column, state2) {
+    if (column.t === "texto") return `<label><span>${escapeHtml(column.nombre)}</span><input type="search" class="chico" data-htt="${column.i}" value="${escapeHtml(state2.facetas[column.i] ?? "")}" placeholder="${t("panels.filters.containsPlaceholder")}"></label>`;
+    const type = column.t === "fecha" ? "date" : "number", range2 = state2.rangos?.[column.i] ?? {};
     return `<div class="htrango"><span>${escapeHtml(column.nombre)}</span><div><input type="${type}" class="chico" data-htd="${column.i}" data-htk="${column.t}" value="${escapeHtml(range2.d ?? "")}" aria-label="${escapeHtml(t("panels.filters.fromLabel", { name: column.nombre }))}" placeholder="${t("panels.filters.from")}">
           <input type="${type}" class="chico" data-hth="${column.i}" data-htk="${column.t}" value="${escapeHtml(range2.h ?? "")}" aria-label="${escapeHtml(t("panels.filters.toLabel", { name: column.nombre }))}" placeholder="${t("panels.filters.to")}"></div></div>`;
   }
@@ -16168,22 +16258,22 @@
       else zone.insertAdjacentHTML("beforeend", html);
     }
   }
-  function bindRanges(section, grid, zone, state) {
+  function bindRanges(section, grid, zone, state2) {
     zone.querySelectorAll("[data-htt]").forEach((input6) => {
       input6.oninput = () => {
-        state.facetas[input6.dataset.htt ?? ""] = input6.value;
+        state2.facetas[input6.dataset.htt ?? ""] = input6.value;
         applyColumnFilters(grid);
         counter(section);
       };
     });
     zone.querySelectorAll("[data-htd], [data-hth]").forEach((input6) => {
       input6.oninput = input6.onchange = () => {
-        const ranges = state.rangos ?? {}, index = input6.dataset.htd ?? input6.dataset.hth ?? "", range2 = ranges[index] ?? {};
+        const ranges = state2.rangos ?? {}, index = input6.dataset.htd ?? input6.dataset.hth ?? "", range2 = ranges[index] ?? {};
         if (input6.dataset.htk !== void 0) range2.k = input6.dataset.htk;
         if (input6.dataset.htd) range2.d = input6.value;
         else range2.h = input6.value;
         ranges[index] = range2;
-        state.rangos = ranges;
+        state2.rangos = ranges;
         applyColumnFilters(grid);
         counter(section);
       };
@@ -16192,15 +16282,15 @@
   function paintRanges(section) {
     const panel = sideOpen() ? toolsBox() : section.querySelector(".htpanel"), grid = gridOf(section), zone = panel?.querySelector(".htauto");
     if (!panel || !grid || !zone) return;
-    const state = filtersOf(grid);
-    state.rangos = state.rangos ?? {};
+    const state2 = filtersOf(grid);
+    state2.rangos = state2.rangos ?? {};
     const columns = rangeColumns(panel, grid);
-    const html = columns.length ? `<div class="htbloque htcolf"><h4>${t("panels.filters.byColumn")}</h4><div class="htfacetas">${columns.map((column) => rangeHtml(column, state)).join("")}</div></div>` : "";
+    const html = columns.length ? `<div class="htbloque htcolf"><h4>${t("panels.filters.byColumn")}</h4><div class="htfacetas">${columns.map((column) => rangeHtml(column, state2)).join("")}</div></div>` : "";
     placeRanges(zone, html);
-    Object.keys(state.facetas).forEach((index) => {
-      if (!columns.some((column) => column.i === Number(index) && column.t === "texto")) Reflect.deleteProperty(state.facetas, index);
+    Object.keys(state2.facetas).forEach((index) => {
+      if (!columns.some((column) => column.i === Number(index) && column.t === "texto")) Reflect.deleteProperty(state2.facetas, index);
     });
-    bindRanges(section, grid, zone, state);
+    bindRanges(section, grid, zone, state2);
     try {
       enhanceFields(zone);
     } catch {
@@ -16369,9 +16459,9 @@
     }
     const grid = gridOf2(options3.tab);
     if (!grid) return;
-    const state = listBarLegacy.tableFilters(), kind = tableKind(grid);
-    const filters3 = state[kind] ?? { texto: "", facetas: {} };
-    state[kind] = filters3;
+    const state2 = listBarLegacy.tableFilters(), kind = tableKind(grid);
+    const filters3 = state2[kind] ?? { texto: "", facetas: {} };
+    state2[kind] = filters3;
     filters3.texto = value10;
     applyColumnFilters(grid);
     const section = document.getElementById(`v-${options3.tab}`);
@@ -16394,9 +16484,9 @@
   }
   function gridCard(row3) {
     const cells = [...row3.children].filter((cell2) => !cell2.classList.contains("plcard"));
-    const state = cells.find((cell2) => cell2.querySelector('.pill, .est, .cirest, [class*="estado"]'));
-    const rest = cells.slice(1).filter((cell2) => cell2 !== state).map(textOf2).filter((text) => text && text !== "—").slice(0, 2);
-    return { a: textOf2(cells[0]), b: rest.join(" · "), c: state ? state.innerHTML : "" };
+    const state2 = cells.find((cell2) => cell2.querySelector('.pill, .est, .cirest, [class*="estado"]'));
+    const rest = cells.slice(1).filter((cell2) => cell2 !== state2).map(textOf2).filter((text) => text && text !== "—").slice(0, 2);
+    return { a: textOf2(cells[0]), b: rest.join(" · "), c: state2 ? state2.innerHTML : "" };
   }
   var gridConfig = (options3) => Object.assign({
     rejilla: true,
@@ -17574,12 +17664,12 @@
   var barList = /* @__PURE__ */ new WeakMap();
   var rememberedPage = /* @__PURE__ */ new Map();
   function stateOf(list) {
-    let state = paging.get(list);
-    if (!state) {
-      state = { page: null, rows: 0, first: null, shown: null, bar: null };
-      paging.set(list, state);
+    let state2 = paging.get(list);
+    if (!state2) {
+      state2 = { page: null, rows: 0, first: null, shown: null, bar: null };
+      paging.set(list, state2);
     }
-    return state;
+    return state2;
   }
   function listsOnScreen() {
     const groups2 = /* @__PURE__ */ new Map();
@@ -17592,21 +17682,21 @@
     });
     return groups2;
   }
-  function choosePage(list, state, rows2) {
+  function choosePage(list, state2, rows2) {
     const remembered = list.id ? rememberedPage.get(list.id) : void 0;
-    if (remembered !== void 0 && state.page === null) state.page = remembered;
-    else if ((state.rows !== rows2.length || state.first !== rows2[0]) && remembered === void 0) state.page = 0;
-    state.rows = rows2.length;
-    state.first = rows2[0] ?? null;
+    if (remembered !== void 0 && state2.page === null) state2.page = remembered;
+    else if ((state2.rows !== rows2.length || state2.first !== rows2[0]) && remembered === void 0) state2.page = 0;
+    state2.rows = rows2.length;
+    state2.first = rows2[0] ?? null;
   }
-  function barOf2(list, state) {
-    if (state.bar?.isConnected) return state.bar;
+  function barOf2(list, state2) {
+    if (state2.bar?.isConnected) return state2.bar;
     const bar = document.createElement("div");
     bar.setAttribute("data-auto", "");
     bar.className = "pag";
     barList.set(bar, list);
     list.insertAdjacentElement("afterend", bar);
-    state.bar = bar;
+    state2.bar = bar;
     return bar;
   }
   function forgetShown() {
@@ -17615,11 +17705,11 @@
       if (list) stateOf(list).shown = null;
     });
   }
-  function bindBar(list, state, bar) {
+  function bindBar(list, state2, bar) {
     bar.querySelectorAll("[data-pg]").forEach((button3) => {
       button3.onclick = () => {
-        state.page = Number(button3.dataset.pg);
-        state.shown = null;
+        state2.page = Number(button3.dataset.pg);
+        state2.shown = null;
         paginateLists();
         if (list.getBoundingClientRect().top < 0) list.scrollIntoView({ block: "start", behavior: "smooth" });
       };
@@ -17632,32 +17722,32 @@
     };
   }
   function paginateList(list, rows2) {
-    const state = stateOf(list), size = listsLegacy.pageSize();
+    const state2 = stateOf(list), size = listsLegacy.pageSize();
     if (rows2.length <= (listsLegacy.pageSizes()[0] ?? 0)) {
-      if (state.bar) {
-        state.bar.remove();
-        state.bar = null;
+      if (state2.bar) {
+        state2.bar.remove();
+        state2.bar = null;
         rows2.forEach((row3) => {
           row3.style.display = "";
         });
       }
       return;
     }
-    choosePage(list, state, rows2);
+    choosePage(list, state2, rows2);
     const pages4 = Math.ceil(rows2.length / size);
-    const page = Math.min(state.page ?? 0, pages4 - 1);
-    state.page = page;
+    const page = Math.min(state2.page ?? 0, pages4 - 1);
+    state2.page = page;
     if (list.id) rememberedPage.set(list.id, page);
     const shown3 = [rows2.length, page, size].join("|");
-    if (state.bar?.isConnected && state.shown === shown3) return;
-    state.shown = shown3;
+    if (state2.bar?.isConnected && state2.shown === shown3) return;
+    state2.shown = shown3;
     rows2.forEach((row3, index) => {
       row3.style.display = Math.floor(index / size) === page ? "" : "none";
     });
-    const bar = barOf2(list, state), holder = document.createElement("div");
+    const bar = barOf2(list, state2), holder = document.createElement("div");
     holder.innerHTML = pageHtml4(rows2.length, page, size);
     bar.innerHTML = holder.firstElementChild?.innerHTML ?? "";
-    bindBar(list, state, bar);
+    bindBar(list, state2, bar);
   }
   function paginateLists() {
     document.querySelectorAll(".pag[data-auto]").forEach((bar) => {
@@ -17806,7 +17896,7 @@
     reportError: (message, error) => {
       errors_exports.registerError("app", message, { e: String(error) });
     },
-    centreStateClass: (state) => NOMBRE_ESTADO_CENTRO[state] ?? ""
+    centreStateClass: (state2) => NOMBRE_ESTADO_CENTRO[state2] ?? ""
   };
 
   // src/app/screens/portal/model.ts
@@ -18880,20 +18970,39 @@
   }
 
   // src/app/screens/settings/rules/portal.ts
+  var REPORTS = "rginf";
   var FORMATS = "rgfmt";
   var RECURRENCE = "rgrec";
+  var ALL = "todos";
+  var MARKED = "marcados";
   var repaint = () => void 0;
   var LIMITS = { group: [2, 99], meses: [1, 36], dias: [7, 365], minimo: [MIN_RECURRENCE, 100] };
   var words7 = () => ({
     order: term("pauta"),
     orders: term("pauta", { number: "p" }),
-    Orders: term("pauta", { number: "p", capital: "C" })
+    Orders: term("pauta", { number: "p", capital: "C" }),
+    theProfessional: term("medico", { article: "el" })
   });
   async function portalSetting() {
     const { data } = await legacyDb().from("ajustes").select("valor").eq("clave", "portal").maybeSingle();
     return data?.valor ?? {};
   }
   var numberOr = (value10, fallback) => typeof value10 === "number" ? value10 : fallback;
+  function reportsHtml(setting2) {
+    return ruleCardHtml({
+      id: REPORTS,
+      title: t("settingsRules.portalReports.title"),
+      info: t("settingsRules.portalReports.info", words7()),
+      intro: t("settingsRules.portalReports.intro", words7()),
+      rows: [selectRowHtml({
+        id: `${REPORTS}p`,
+        label: t("settingsRules.portalReports.orders", words7()),
+        help: t("settingsRules.portalReports.ordersHelp"),
+        value: setting2.pedidos === ALL ? ALL : MARKED,
+        options: [{ value: ALL, text: t("settingsRules.portalReports.all") }, { value: MARKED, text: t("settingsRules.portalReports.marked") }]
+      })]
+    });
+  }
   function formatsHtml(setting2) {
     return ruleCardHtml({
       id: FORMATS,
@@ -18935,6 +19044,10 @@
   function wrong(label, [min, max]) {
     notices.toast(t("settingsRules.wrongNumber", { field: t(label, words7()), min, max }), true);
   }
+  async function saveReports() {
+    const value10 = inputValue(`${REPORTS}p`) === ALL ? ALL : MARKED;
+    if (await saveRule("portal", { ...await portalSetting(), pedidos: value10 })) repaint();
+  }
   async function saveFormats() {
     const value10 = wholeNumber(`${FORMATS}n`, LIMITS.group[0], LIMITS.group[1]);
     if (typeof value10 !== "number") {
@@ -18956,9 +19069,10 @@
     }
     if (await saveRule("portal", { ...await portalSetting(), recurrencia: value10 })) repaint();
   }
-  var portalRulesHtml = (setting2) => formatsHtml(setting2) + recurrenceHtml(setting2);
+  var portalRulesHtml = (setting2) => reportsHtml(setting2) + formatsHtml(setting2) + recurrenceHtml(setting2);
   function bindPortalRules(repaintPage) {
     repaint = repaintPage;
+    bindSave(REPORTS, saveReports);
     bindSave(FORMATS, saveFormats);
     bindSave(RECURRENCE, saveRecurrence);
   }
@@ -19207,10 +19321,10 @@
     notices.toast(t("ordersMore.indicators.saved"));
     indicatorSettingsLegacy.reloadHome();
   }
-  function bind8(body3, state) {
+  function bind8(body3, state2) {
     const readNames = () => {
       body3.querySelectorAll("[data-kt]").forEach((input6) => {
-        const item = state.list[Number(input6.dataset.kt)];
+        const item = state2.list[Number(input6.dataset.kt)];
         if (item) item.t = input6.value.trim();
       });
     };
@@ -19218,12 +19332,12 @@
       readNames();
       work();
       markChanged();
-      paint3(state);
+      paint3(state2);
     };
     body3.querySelectorAll("[data-kon]").forEach((button3) => {
       button3.onclick = () => {
         change(() => {
-          const item = state.list[Number(button3.dataset.kon)];
+          const item = state2.list[Number(button3.dataset.kon)];
           if (item) item.on = !item.on;
         });
       };
@@ -19232,38 +19346,38 @@
       button3.onclick = () => {
         readNames();
         const [from = 0, direction = 0] = (button3.dataset.kmv ?? "").split("|").map(Number), to = from + direction;
-        const first = state.list[from], second = state.list[to];
+        const first = state2.list[from], second = state2.list[to];
         if (!first || !second) return;
-        state.list[from] = second;
-        state.list[to] = first;
+        state2.list[from] = second;
+        state2.list[to] = first;
         markChanged();
-        paint3(state);
+        paint3(state2);
       };
     });
     body3.querySelectorAll("[data-kdel]").forEach((button3) => {
       button3.onclick = () => {
         change(() => {
-          state.list.splice(Number(button3.dataset.kdel), 1);
+          state2.list.splice(Number(button3.dataset.kdel), 1);
         });
       };
     });
     const restore = document.getElementById("kres");
     if (restore) restore.onclick = () => {
-      state.list = indicatorCatalog.definitions().map((definition) => ({ id: definition.id, on: indicatorSettingsLegacy.defaults().includes(definition.id), t: "" }));
+      state2.list = indicatorCatalog.definitions().map((definition) => ({ id: definition.id, on: indicatorSettingsLegacy.defaults().includes(definition.id), t: "" }));
       markChanged();
-      paint3(state);
+      paint3(state2);
     };
     const ok = document.getElementById("kok");
     if (ok) ok.onclick = () => {
       readNames();
-      void save8(state.list, ok);
+      void save8(state2.list, ok);
     };
   }
-  function paint3(state) {
+  function paint3(state2) {
     const body3 = document.getElementById("dbody");
     if (!body3) return;
-    body3.innerHTML = windowHtml(state.list);
-    bind8(body3, state);
+    body3.innerHTML = windowHtml(state2.list);
+    bind8(body3, state2);
   }
   function openIndicatorSettings() {
     paint3({ list: startingList() });
@@ -19798,7 +19912,7 @@
   }
   async function accountFlags(id) {
     try {
-      return (await legacyDb().from("cuentas").select("tipo,sin_reporting").eq("id", id).maybeSingle()).data;
+      return (await legacyDb().from("cuentas").select("tipo,sin_reporting,clasificadores").eq("id", id).maybeSingle()).data;
     } catch {
       return null;
     }
@@ -19822,7 +19936,7 @@
     ]);
     if (!card3?.medico) return navigator.onLine ? "online" : "offline";
     const samples = await samplesLeft(id, flags?.tipo).catch(() => []);
-    const noReporting = Boolean(flags?.sin_reporting), shown3 = noReporting ? withoutReports(groups2) : { groups: groups2, hidden: false };
+    const noReporting = hasNoReports(flags ?? card3.medico), shown3 = noReporting ? withoutReports(groups2) : { groups: groups2, hidden: false };
     return { account: card3.medico, consultations: card3.consultas ?? [], groups: shown3.groups, samples, products: products3, noReporting, reportsHidden: shown3.hidden, missingTimetable: missingTimetable2 };
   }
 
@@ -20893,12 +21007,12 @@
     if (!keys.length || container.querySelector(".campospers")) return;
     container.insertAdjacentHTML("beforeend", definitions2.length ? knownHtml(definitions2, values2, keys) : blockHtml3(keys.map((key) => `<div><span class="sm">${escapeHtml(keyName(key))}</span><b>${escapeHtml(rawText(values2[key]))}</b></div>`).join("")));
   }
-  function bindCustomFieldFilters(zone, state, onChange) {
+  function bindCustomFieldFilters(zone, state2, onChange) {
     zone.querySelectorAll("[data-fcp]").forEach((select) => {
       select.onchange = () => {
         const key = select.dataset.fcp ?? "";
-        if (!select.value) Reflect.deleteProperty(state, key);
-        else state[key] = select.dataset.fcpt === "si_no" ? select.value === "true" : select.value;
+        if (!select.value) Reflect.deleteProperty(state2, key);
+        else state2[key] = select.dataset.fcpt === "si_no" ? select.value === "true" : select.value;
         onChange();
       };
     });
@@ -20966,7 +21080,7 @@
 
   // src/app/screens/products/editor/blocks.ts
   var PRODUCT_STATES = ["Activo", "En pausa", "Descatalogado"];
-  var stateHtml2 = (state) => `<div class="blk" id="prestado"><h3>${t("productsMore.state.title")}</h3><div class="segs">${PRODUCT_STATES.map((item) => `<button type="button" data-pest="${item}" class="${item === state ? "on" : ""}">${item}</button>`).join("")}</div>
+  var stateHtml2 = (state2) => `<div class="blk" id="prestado"><h3>${t("productsMore.state.title")}</h3><div class="segs">${PRODUCT_STATES.map((item) => `<button type="button" data-pest="${item}" class="${item === state2 ? "on" : ""}">${item}</button>`).join("")}</div>
       <div class="sm u-mt-6">${t("productsMore.state.hint")}</div></div>`;
   var PERIOD_WORDS = { anio: "productsMore.samples.periodYear", trimestre: "productsMore.samples.periodQuarter", mes: "productsMore.samples.periodMonth" };
   var periodWord = (period) => t(PERIOD_WORDS[period]);
@@ -21014,19 +21128,19 @@
   function bindState(body3, product) {
     body3.querySelectorAll("[data-pest]").forEach((button3) => {
       button3.onclick = async () => {
-        const state = button3.dataset.pest ?? "";
-        const { data, error } = await billing2Legacy.rawRpc("estado_producto", { p_id: product.id, p_estado: state });
+        const state2 = button3.dataset.pest ?? "";
+        const { data, error } = await billing2Legacy.rawRpc("estado_producto", { p_id: product.id, p_estado: state2 });
         if (error || !data?.ok) {
           notices.toast(t("productsMore.state.couldNotChange"), true);
           return;
         }
-        billing2Legacy.productStates()[product.id] = state;
+        billing2Legacy.productStates()[product.id] = state2;
         const listed = billing2Legacy.products().find((item) => item.id === product.id);
-        if (listed) listed.estado = state;
+        if (listed) listed.estado = state2;
         body3.querySelectorAll("[data-pest]").forEach((other) => {
           other.classList.toggle("on", other === button3);
         });
-        notices.toast(t("productsMore.state.changed", { state }));
+        notices.toast(t("productsMore.state.changed", { state: state2 }));
       };
     });
   }
@@ -21369,10 +21483,10 @@
       ${admin ? `<button class="btn" id="prok">${t(product.id ? "productsMore.editor.save" : "productsMore.editor.create")}</button>` : ""}</div>`;
   function blocksHtml(product, loaded) {
     if (!product.id) return loaded.admin ? samplesForNewHtml() : "";
-    const state = billing2Legacy.productStates()[product.id] ?? product.estado ?? "Activo";
-    if (!loaded.admin) return stateHtml2(state);
+    const state2 = billing2Legacy.productStates()[product.id] ?? product.estado ?? "Activo";
+    if (!loaded.admin) return stateHtml2(state2);
     return [
-      stateHtml2(state),
+      stateHtml2(state2),
       samplesHtml3(loaded.extras),
       loaded.promotion ? promotionHtml(loaded.extras) : "",
       loaded.equipment ? equipmentHtml(loaded.extras) : "",
@@ -22054,9 +22168,9 @@
     option: (list, value10, all) => filterOptionsHtml(list, value10, all),
     allOf: (word) => vocabulary_exports.allOf(word),
     seesEverything: () => permissions_exports.seesEverything(),
-    fieldFilters: (state) => camposFiltros("medico", state, "tfcp"),
-    bindFieldFilters: (zone, state) => {
-      bindCustomFieldFilters(zone, state, () => {
+    fieldFilters: (state2) => camposFiltros("medico", state2, "tfcp"),
+    bindFieldFilters: (zone, state2) => {
+      bindCustomFieldFilters(zone, state2, () => {
         void searchAccounts(true);
       });
     },
@@ -22229,7 +22343,7 @@
     // the settings always have their hours
     minutesOrNull: (time) => calendar_exports.timeToMinutes(time),
     pointOf: (appointment) => xyCita(appointment) ?? null,
-    isOpen: (state) => CITA_ABIERTA.includes(state),
+    isOpen: (state2) => CITA_ABIERTA.includes(state2),
     windowsOf: (days, isoDate) => attendanceWindows(days, isoDate),
     travelMinutes: (from, to) => legMinutes(from, to),
     possibleStart: (item, arrival, duration2) => earliestStart(item, arrival, duration2) ?? null,
@@ -22453,9 +22567,9 @@
     }
     if (key === "interesados") filters3.est = shellLegacy2.stateFor("interes");
     if (key === "sin_contactar") filters3.est = shellLegacy2.stateFor("inicial");
-    const search5 = byId13("q"), state = byId13("fest");
+    const search5 = byId13("q"), state2 = byId13("fest");
     if (search5) search5.value = "";
-    if (state) state.value = filters3.est;
+    if (state2) state2.value = filters3.est;
     shellLegacy2.goTo("directorio");
     shellLegacy2.search();
   }
@@ -22875,7 +22989,7 @@
   // src/app/core/legacy-a/request-cache.ts
   var DEVICE_TTL_S = 300;
   var WRITES = ["insert", "update", "upsert", "delete"];
-  function stored(key) {
+  function stored2(key) {
     try {
       return JSON.parse(localStorage.getItem(cacheLegacy.storageKey(key)) ?? "null");
     } catch {
@@ -22915,7 +23029,7 @@
     const key = `${name}|${JSON.stringify(params ?? {})}`, cache = cacheLegacy.cache();
     let entry2 = cache.get(key);
     if (!entry2 && ttl >= DEVICE_TTL_S) {
-      entry2 = stored(key);
+      entry2 = stored2(key);
       if (entry2) cache.set(key, entry2);
     }
     if (entry2 && Date.now() - entry2.t < ttl * 1e3) return Promise.resolve(cacheLegacy.copy(entry2.r));
@@ -23395,6 +23509,11 @@
   var DOWNLOADERS2 = { directorio: "__dlDir", seguimiento: "__dlSeg", analitica: "__dlAn" };
   var selected = (on3) => on3 ? "selected" : "";
   var checked2 = (on3) => on3 ? "checked" : "";
+  function reportsHtml2(filters3) {
+    const texts3 = noReportsFilter({ label: t("legacyA.tools.reporting"), withReports: t("legacyA.tools.withReporting"), withoutReports: t("legacyA.tools.withoutReporting") });
+    if (!texts3) return "";
+    return `<label>${escapeHtml(texts3.label)}</label><select data-tf="rep"><option value="">${t("legacyA.tools.everyone")}</option><option value="con" ${selected(filters3.rep === "con")}>${escapeHtml(texts3.withReports)}</option><option value="sin" ${selected(filters3.rep === "sin")}>${escapeHtml(texts3.withoutReports)}</option></select>`;
+  }
   function selectsHtml(filters3) {
     const options3 = toolsPanelLegacy.options();
     return `
@@ -23403,7 +23522,7 @@
     <label>${t("legacyA.tools.municipality")}</label><select data-tf="muni">${toolsPanelLegacy.option(options3.municipios, filters3.muni, t("legacyA.tools.allMunicipalities"))}</select>
     <label>${term("especialidad", { capital: "C" })}</label><select data-tf="esp">${toolsPanelLegacy.option(options3.especialidades, filters3.esp, toolsPanelLegacy.allOf("especialidad"))}</select>
     <label>${t("legacyA.tools.commercialState")}</label><select data-tf="est">${toolsPanelLegacy.option(options3.estados, filters3.est, t("legacyA.tools.allStates"))}</select>
-    <label>${t("legacyA.tools.reporting")}</label><select data-tf="rep"><option value="">${t("legacyA.tools.everyone")}</option><option value="con" ${selected(filters3.rep === "con")}>${t("legacyA.tools.withReporting")}</option><option value="sin" ${selected(filters3.rep === "sin")}>${t("legacyA.tools.withoutReporting")}</option></select>
+    ${reportsHtml2(filters3)}
     ${toolsPanelLegacy.seesEverything() && document.getElementById("fcom") ? `<label>${t("legacyA.tools.salesperson")}</label><select data-tf="com">${document.getElementById("fcom")?.innerHTML ?? ""}</select>` : ""}`;
   }
   function filtersHtml2(filters3) {
@@ -23864,52 +23983,52 @@
       <button class="btn sec" id="aquitar">${t("legacyA.portfolio.removeSelected", { professionals })}</button>
       <button class="btn" id="aasignar">${t("legacyA.portfolio.assignSelected", { professionals })}</button></div></div>`;
   }
-  function rowHtml11(item, state) {
+  function rowHtml11(item, state2) {
     const chips2 = (item.comerciales ?? []).map((person) => `<span>${escapeHtml(portfolioLegacy.firstName(person.nombre))}</span>`).join("") || `<span class="sin">${t("legacyA.portfolio.unassigned")}</span>`;
     return `<label class="item" style="cursor:pointer;margin:0">
-        <input type="checkbox" data-am="${item.id}" ${state.left.has(item.id) ? "" : "checked"}>
+        <input type="checkbox" data-am="${item.id}" ${state2.left.has(item.id) ? "" : "checked"}>
         <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml([item.especialidad, item.centro_nombre, item.municipio].filter(Boolean).join(" · "))}</span></span>
         <span class="comchips">${chips2}</span>
       </label>`;
   }
-  function paintCount(state, repaint2) {
+  function paintCount(state2, repaint2) {
     const message = byId17("amsg");
     if (!message) return;
-    message.innerHTML = `${t("legacyA.portfolio.selected", { count: formatNumber(state.total - state.left.size), total: formatNumber(state.total) })}
-      ${state.left.size ? ` · <button class="kcfg" id="atodos">${t("legacyA.portfolio.tickAll")}</button>` : ""}`;
+    message.innerHTML = `${t("legacyA.portfolio.selected", { count: formatNumber(state2.total - state2.left.size), total: formatNumber(state2.total) })}
+      ${state2.left.size ? ` · <button class="kcfg" id="atodos">${t("legacyA.portfolio.tickAll")}</button>` : ""}`;
     const all = byId17("atodos");
     if (all) all.onclick = () => {
-      state.left.clear();
+      state2.left.clear();
       repaint2();
     };
   }
-  async function paintList2(state) {
+  async function paintList2(state2) {
     const list = byId17("alista");
     if (!list) return;
     const repaint2 = () => {
-      void paintList2(state);
+      void paintList2(state2);
     };
     portfolioLegacy.loading(list, t("legacyA.portfolio.searching", { professionals: term("medico", { number: "p" }) }));
-    const { data } = await legacyDb().rpc("buscar_cuentas", { q: null, f_area: null, f_mios: false, f_sin_visitar: false, orden: "nombre", lim: PAGE, desplaz: state.page * PAGE, ...filters() });
-    state.total = data ? data.total : 0;
+    const { data } = await legacyDb().rpc("buscar_cuentas", { q: null, f_area: null, f_mios: false, f_sin_visitar: false, orden: "nombre", lim: PAGE, desplaz: state2.page * PAGE, ...filters() });
+    state2.total = data ? data.total : 0;
     const rows2 = data?.filas ?? [];
-    list.innerHTML = `<div class="carsel">${rows2.map((row3) => rowHtml11(row3, state)).join("") || `<div class="vacio">${t("legacyA.portfolio.none", { noProfessional: term("medico", { article: "ningun", articleCapital: "C" }) })}</div>`}</div><div id="apag"></div>`;
+    list.innerHTML = `<div class="carsel">${rows2.map((row3) => rowHtml11(row3, state2)).join("") || `<div class="vacio">${t("legacyA.portfolio.none", { noProfessional: term("medico", { article: "ningun", articleCapital: "C" }) })}</div>`}</div><div id="apag"></div>`;
     list.querySelectorAll("[data-am]").forEach((box3) => {
       box3.onchange = () => {
-        if (box3.checked) state.left.delete(box3.dataset.am ?? "");
-        else state.left.add(box3.dataset.am ?? "");
-        paintCount(state, repaint2);
+        if (box3.checked) state2.left.delete(box3.dataset.am ?? "");
+        else state2.left.add(box3.dataset.am ?? "");
+        paintCount(state2, repaint2);
       };
     });
     const pages4 = byId17("apag");
-    if (pages4) pages4.innerHTML = state.total > PAGE ? portfolioLegacy.pages(state.total, state.page, PAGE).replace(/<span class="ptam">[\s\S]*?<\/span><\/div>$/, "</div>") : "";
+    if (pages4) pages4.innerHTML = state2.total > PAGE ? portfolioLegacy.pages(state2.total, state2.page, PAGE).replace(/<span class="ptam">[\s\S]*?<\/span><\/div>$/, "</div>") : "";
     pages4?.querySelectorAll("[data-pg]").forEach((button3) => {
       button3.onclick = () => {
-        state.page = Number(button3.dataset.pg);
+        state2.page = Number(button3.dataset.pg);
         repaint2();
       };
     });
-    paintCount(state, repaint2);
+    paintCount(state2, repaint2);
   }
   function confirmChange(user, count, remove6) {
     const text = t(remove6 ? "legacyA.portfolio.confirmRemove" : "legacyA.portfolio.confirmAssign", { count: formatNumber(count), professionals: term("medico", { number: "p" }), name: user.nombre });
@@ -23920,8 +24039,8 @@
     const movedText = moved ? t("legacyA.portfolio.moved", { count: formatNumber(moved) }) : "";
     return t(remove6 ? "legacyA.portfolio.removed" : "legacyA.portfolio.assigned", { count: formatNumber(rows2), professionals: term("medico", { number: "p" }), moved: movedText });
   }
-  async function apply(user, state, remove6, button3) {
-    const ids = ((await legacyDb().rpc("ids_filtrados", filters())).data ?? []).filter((id) => !state.left.has(id));
+  async function apply(user, state2, remove6, button3) {
+    const ids = ((await legacyDb().rpc("ids_filtrados", filters())).data ?? []).filter((id) => !state2.left.has(id));
     if (!ids.length) {
       notices.toast(t("legacyA.portfolio.noneSelected", { noProfessional: term("medico", { article: "ningun", adjective: "seleccionado" }) }), true);
       return;
@@ -23949,29 +24068,29 @@
     const body3 = byId17("dbody");
     if (!body3) return;
     body3.innerHTML = windowHtml3(user, options3 ?? {});
-    const state = { total: 0, page: 0, left: /* @__PURE__ */ new Set() };
+    const state2 = { total: 0, page: 0, left: /* @__PURE__ */ new Set() };
     FILTER_IDS.forEach((key) => {
       const field10 = byId17(key);
       if (field10) field10.onchange = () => {
-        state.page = 0;
-        state.left.clear();
-        void paintList2(state);
+        state2.page = 0;
+        state2.left.clear();
+        void paintList2(state2);
       };
     });
     const assign2 = byId17("aasignar"), remove6 = byId17("aquitar");
     if (assign2) assign2.onclick = () => {
-      void apply(user, state, false, assign2);
+      void apply(user, state2, false, assign2);
     };
     if (remove6) remove6.onclick = () => {
-      void apply(user, state, true, remove6);
+      void apply(user, state2, true, remove6);
     };
     byId17("dlg")?.showModal();
-    void paintList2(state);
+    void paintList2(state2);
   }
 
   // src/app/components/period-picker.ts
   var CUSTOM = "pers";
-  var ALL = "todo";
+  var ALL2 = "todo";
   var DEFAULT = "mes";
   function storedChoice(key, fallback) {
     try {
@@ -23998,7 +24117,7 @@
     const text = () => {
       const current = range2(), label = element.querySelector(".perrango");
       if (!label) return;
-      label.textContent = chosen4 === CUSTOM || chosen4 === ALL ? "" : current.desde === current.hasta ? periodLegacy.shortDate(current.desde) : `${periodLegacy.shortDate(current.desde)} – ${periodLegacy.shortDate(current.hasta)}`;
+      label.textContent = chosen4 === CUSTOM || chosen4 === ALL2 ? "" : current.desde === current.hasta ? periodLegacy.shortDate(current.desde) : `${periodLegacy.shortDate(current.desde)} – ${periodLegacy.shortDate(current.hasta)}`;
     };
     if (select) select.onchange = () => {
       chosen4 = select.value;
@@ -24291,9 +24410,9 @@
   var CLOSED_STATES = [STATES4.received, STATES4.cancelled];
   var errorText4 = (error, result) => error?.message ?? result?.error ?? "";
   var euros6 = (value10) => formatCurrency(round2(value10));
-  function purchasePill(state) {
-    const kind = state === STATES4.received ? "p-est" : state === STATES4.cancelled ? "p-anu" : state === STATES4.draft ? "p-bor" : "p-per";
-    return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
+  function purchasePill(state2) {
+    const kind = state2 === STATES4.received ? "p-est" : state2 === STATES4.cancelled ? "p-anu" : state2 === STATES4.draft ? "p-bor" : "p-per";
+    return `<span class="pill ${kind}">${escapeHtml(state2)}</span>`;
   }
 
   // src/app/screens/purchases/list.ts
@@ -24487,19 +24606,19 @@
     return `<div class="blk"><h3>${t("purchases.editor.batchesReceived")}</h3>${batches.map((batch) => `<div class="sm">${t("purchases.editor.batchLine", { product: escapeHtml(batch.producto), batch: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}${batch.caducidad ? t("purchases.editor.expires", { date: formatShortDate(batch.caducidad) }) : ""}</div>`).join("")}</div>`;
   }
   function stepButtons(editor) {
-    const state = editor.purchase.estado;
+    const state2 = editor.purchase.estado;
     if (!purchasesLegacy.canBuy()) return [];
     return [
-      state === STATES4.draft ? `<button class="btn sec" id="cpenviar">${t("purchases.editor.markSent")}</button>` : "",
-      state === STATES4.sent ? `<button class="btn sec" id="cptransito">${t("purchases.editor.inTransit")}</button>` : "",
-      editor.id && OPEN_STATES.includes(state) ? `<button class="btn" id="cprecibir">${t("purchases.editor.receive")}</button>` : ""
+      state2 === STATES4.draft ? `<button class="btn sec" id="cpenviar">${t("purchases.editor.markSent")}</button>` : "",
+      state2 === STATES4.sent ? `<button class="btn sec" id="cptransito">${t("purchases.editor.inTransit")}</button>` : "",
+      editor.id && OPEN_STATES.includes(state2) ? `<button class="btn" id="cprecibir">${t("purchases.editor.receive")}</button>` : ""
     ];
   }
   function buttonsHtml(editor) {
-    const { id, purchase, editable } = editor, state = purchase.estado;
+    const { id, purchase, editable } = editor, state2 = purchase.estado;
     const buttons = [
-      purchasesLegacy.canBuy() && id && !CLOSED_STATES.includes(state) ? `<button class="btn sec dang" id="cpcancel">${t("purchases.editor.cancelOrder")}</button>` : "",
-      editable ? `<button class="btn sec" id="cpguardar">${t(state === STATES4.draft ? "purchases.editor.saveDraft" : "purchases.editor.saveChanges")}</button>` : "",
+      purchasesLegacy.canBuy() && id && !CLOSED_STATES.includes(state2) ? `<button class="btn sec dang" id="cpcancel">${t("purchases.editor.cancelOrder")}</button>` : "",
+      editable ? `<button class="btn sec" id="cpguardar">${t(state2 === STATES4.draft ? "purchases.editor.saveDraft" : "purchases.editor.saveChanges")}</button>` : "",
       ...stepButtons(editor)
     ];
     return `<div class="acts u-end u-wrap">
@@ -24656,25 +24775,25 @@
     if (supplier) supplier.onchange = suggestExpected;
     if (!value7("cpprev") && supplier?.value) suggestExpected();
   }
-  function payload8(editor, state) {
+  function payload8(editor, state2) {
     const lines2 = editor.lines.filter((line2) => line2.producto_id && Number(line2.unidades) > 0).map((line2) => ({ producto_id: line2.producto_id, unidades: Number(line2.unidades), coste_unitario: line2.coste_unitario }));
     return {
       id: editor.id ?? null,
       proveedor_id: value7("cpprov"),
       fecha: value7("cpfecha"),
       fecha_prevista: value7("cpprev"),
-      estado: state ?? editor.purchase.estado,
+      estado: state2 ?? editor.purchase.estado,
       portes: value7("cpport"),
       nota: value7("cpnota").trim(),
       lineas: lines2
     };
   }
-  async function save14(editor, state) {
+  async function save14(editor, state2) {
     if (!value7("cpprov")) {
       notices.toast(t("purchases.editor.chooseSupplier"), true);
       return;
     }
-    const { data: result, error } = await legacyDb().rpc("guardar_compra", { p: payload8(editor, state) });
+    const { data: result, error } = await legacyDb().rpc("guardar_compra", { p: payload8(editor, state2) });
     if (error || !result || result.ok === false) {
       notices.toast(t("purchases.editor.couldNotSave", { error: errorText4(error, result) }), true);
       return;
@@ -24683,12 +24802,12 @@
     closeWindow2();
     if (currentScreen() === "ventas") purchasesLegacy.reloadSales();
   }
-  var changeState2 = (purchase, state) => legacyDb().rpc("guardar_compra", { p: {
+  var changeState2 = (purchase, state2) => legacyDb().rpc("guardar_compra", { p: {
     id: purchase.id,
     proveedor_id: purchase.proveedor_id,
     fecha: purchase.fecha,
     fecha_prevista: purchase.fecha_prevista,
-    estado: state,
+    estado: state2,
     portes: purchase.portes,
     nota: purchase.nota
   } });
@@ -25525,7 +25644,7 @@
       void loadRoutesPage();
     },
     askText: (message, value10, options3) => askText(message, value10, options3),
-    stateColour: (state) => commercial_states_exports.stateColour(state),
+    stateColour: (state2) => commercial_states_exports.stateColour(state2),
     leaflet: () => window.L ?? null
   };
 
@@ -27032,12 +27151,12 @@
   var SCROLL_STEP = 12;
   var BAR_MAX = 4;
   var body = () => document.getElementById("dlg2body");
-  var maxBar = (state) => state.fixed ? BAR_MAX - 1 : BAR_MAX;
-  var zoneOf = (state, key) => ZONES.find((zone) => state.groups[zone].includes(key)) ?? "mas";
-  var fit = (state) => {
-    while (state.groups.barra.length > maxBar(state)) {
-      const last = state.groups.barra.pop();
-      if (last) state.groups.mas.unshift(last);
+  var maxBar = (state2) => state2.fixed ? BAR_MAX - 1 : BAR_MAX;
+  var zoneOf = (state2, key) => ZONES.find((zone) => state2.groups[zone].includes(key)) ?? "mas";
+  var fit = (state2) => {
+    while (state2.groups.barra.length > maxBar(state2)) {
+      const last = state2.groups.barra.pop();
+      if (last) state2.groups.mas.unshift(last);
     }
   };
   function rowHtml14(key, zone, index, count) {
@@ -27048,50 +27167,50 @@
       <span class="movpico">${ICO_MOD[key] ?? "•"}</span><span class="movpn">${escapeHtml(mobileName(key))}</span>
       <div class="segs" role="group" aria-label="${t("navigationCore.mobileMenu.where")}">${zones}</div></div>`;
   }
-  function groupHtml(state, zone) {
-    const [title2, note] = GROUP_TEXTS[zone], list = state.groups[zone], count = list.length + (zone === "barra" && state.fixed ? 1 : 0);
-    const fixed = zone === "barra" && state.fixed ? `<div class="movp movp-barra movpfijo"><span class="movpico">${ICO_MOD[state.fixed] ?? "•"}</span><span class="movpn">${escapeHtml(mobileName(state.fixed))}</span><span class="sm">${t("navigationCore.mobileMenu.alwaysFirst")}</span></div>` : "";
+  function groupHtml(state2, zone) {
+    const [title2, note] = GROUP_TEXTS[zone], list = state2.groups[zone], count = list.length + (zone === "barra" && state2.fixed ? 1 : 0);
+    const fixed = zone === "barra" && state2.fixed ? `<div class="movp movp-barra movpfijo"><span class="movpico">${ICO_MOD[state2.fixed] ?? "•"}</span><span class="movpn">${escapeHtml(mobileName(state2.fixed))}</span><span class="sm">${t("navigationCore.mobileMenu.alwaysFirst")}</span></div>` : "";
     return `<div class="movpg"><h3>${t(title2)} <span class="sm">· ${count}${note ? ` · ${t(note)}` : ""}</span></h3>
         ${fixed}
         <div class="movpl" data-mpg="${zone}">${list.map((key, index) => rowHtml14(key, zone, index, list.length)).join("") || `<div class="movpvac sm">${t("navigationCore.mobileMenu.dropHere")}</div>`}</div></div>`;
   }
-  function paint7(state) {
+  function paint7(state2) {
     const box3 = body();
     if (!box3) return;
     box3.innerHTML = `<div class="fh"><div><h2>${t("navigationCore.menu.customise")}</h2></div><button class="x" data-cerrar2 aria-label="${t("navigationCore.menu.close")}">✕</button></div>
       <p class="sm">${t("navigationCore.mobileMenu.hint")}</p>
-      ${ZONES.map((zone) => groupHtml(state, zone)).join("")}
+      ${ZONES.map((zone) => groupHtml(state2, zone)).join("")}
       <div class="acts"><button type="button" class="btn sec" id="movpdef">${t("navigationCore.menu.reset")}</button><button type="button" class="btn" id="movpok">${t("navigationCore.menu.save")}</button></div>`;
   }
-  function move2(state, data) {
-    const [direction = "0", key = ""] = data.split("|"), list = state.groups[zoneOf(state, key)], index = list.indexOf(key), other = index + Number(direction);
+  function move2(state2, data) {
+    const [direction = "0", key = ""] = data.split("|"), list = state2.groups[zoneOf(state2, key)], index = list.indexOf(key), other = index + Number(direction);
     if (other < 0 || other >= list.length) return;
     const swapped = list[other];
     if (swapped === void 0) return;
     list[other] = key;
     list[index] = swapped;
-    paint7(state);
+    paint7(state2);
   }
-  function changeZone(state, data) {
-    const [zone, key = ""] = data.split("|"), from = zoneOf(state, key);
+  function changeZone(state2, data) {
+    const [zone, key = ""] = data.split("|"), from = zoneOf(state2, key);
     if (zone === from) return;
-    if (from === "barra" && !state.fixed && state.groups.barra.length <= 1) {
+    if (from === "barra" && !state2.fixed && state2.groups.barra.length <= 1) {
       toast(t("navigationCore.mobileMenu.barNeedsOne"), true);
       return;
     }
-    state.groups[from] = state.groups[from].filter((other) => other !== key);
-    if (zone === "barra" && state.groups.barra.length >= maxBar(state)) {
-      const last = state.groups.barra.pop();
-      if (last) state.groups.mas.unshift(last);
+    state2.groups[from] = state2.groups[from].filter((other) => other !== key);
+    if (zone === "barra" && state2.groups.barra.length >= maxBar(state2)) {
+      const last = state2.groups.barra.pop();
+      if (last) state2.groups.mas.unshift(last);
     }
-    state.groups[zone].push(key);
-    paint7(state);
+    state2.groups[zone].push(key);
+    paint7(state2);
   }
-  async function save17(state, button3) {
-    const prefs = menuPrefs2(), hidden = [.../* @__PURE__ */ new Set([...(prefs.ocultos ?? []).filter((key) => !state.available.includes(key)), ...state.groups.oculta])];
-    const bar = state.fixed ? [state.fixed, ...state.groups.barra] : [...state.groups.barra];
+  async function save17(state2, button3) {
+    const prefs = menuPrefs2(), hidden = [.../* @__PURE__ */ new Set([...(prefs.ocultos ?? []).filter((key) => !state2.available.includes(key)), ...state2.groups.oculta])];
+    const bar = state2.fixed ? [state2.fixed, ...state2.groups.barra] : [...state2.groups.barra];
     const profile6 = sessionStore.profile;
-    const saved3 = { ...profile6.preferencias ?? {}, menu: { ...prefs, barra: bar, mas: [...state.groups.mas, ...state.groups.oculta], ocultos: hidden } };
+    const saved3 = { ...profile6.preferencias ?? {}, menu: { ...prefs, barra: bar, mas: [...state2.groups.mas, ...state2.groups.oculta], ocultos: hidden } };
     button3.disabled = true;
     const { data, error } = await db.rpc("guardar_preferencias", { p: saved3 });
     button3.disabled = false;
@@ -27109,25 +27228,25 @@
     }
     toast(t("navigationCore.menu.saved"), false);
   }
-  function onClick4(state, event) {
+  function onClick4(state2, event) {
     const target = event.target, arrow = target.closest("[data-mpm]"), zone = target.closest("[data-mpz]");
     if (arrow) {
-      move2(state, arrow.dataset.mpm ?? "");
+      move2(state2, arrow.dataset.mpm ?? "");
       return;
     }
     if (zone) {
-      changeZone(state, zone.dataset.mpz ?? "");
+      changeZone(state2, zone.dataset.mpz ?? "");
       return;
     }
     if (target.closest("#movpdef")) {
-      state.groups.barra = BAR_DEFAULT.filter((key) => state.available.includes(key) && key !== state.fixed);
-      state.groups.mas = state.available.filter((key) => !state.groups.barra.includes(key) && key !== state.fixed);
-      state.groups.oculta = [];
-      paint7(state);
+      state2.groups.barra = BAR_DEFAULT.filter((key) => state2.available.includes(key) && key !== state2.fixed);
+      state2.groups.mas = state2.available.filter((key) => !state2.groups.barra.includes(key) && key !== state2.fixed);
+      state2.groups.oculta = [];
+      paint7(state2);
       return;
     }
     const ok = target.closest("#movpok");
-    if (ok) void save17(state, ok);
+    if (ok) void save17(state2, ok);
   }
   function startDrag(event) {
     const grip = event.target.closest("[data-mpd]"), row3 = grip?.closest(".movp");
@@ -27165,30 +27284,30 @@
     if (event.clientY < rect.top + EDGE) dialog7.scrollTop -= SCROLL_STEP;
     else if (event.clientY > rect.bottom - EDGE) dialog7.scrollTop += SCROLL_STEP;
   }
-  function dragEnd(state, box3, dragged) {
+  function dragEnd(state2, box3, dragged) {
     const { row: row3, gap } = dragged;
     gap.replaceWith(row3);
     row3.classList.remove("movparr");
     row3.style.width = row3.style.top = row3.style.left = "";
     const key = row3.dataset.mpt ?? "";
     box3.querySelectorAll(".movpl").forEach((list) => {
-      state.groups[list.dataset.mpg] = [...list.querySelectorAll(":scope > .movp")].map((item) => item.dataset.mpt ?? "");
+      state2.groups[list.dataset.mpg] = [...list.querySelectorAll(":scope > .movp")].map((item) => item.dataset.mpt ?? "");
     });
-    if (!state.fixed && !state.groups.barra.length) {
+    if (!state2.fixed && !state2.groups.barra.length) {
       ZONES.forEach((zone) => {
-        state.groups[zone] = state.groups[zone].filter((other) => other !== key);
+        state2.groups[zone] = state2.groups[zone].filter((other) => other !== key);
       });
-      state.groups.barra = [key];
+      state2.groups.barra = [key];
       toast(t("navigationCore.mobileMenu.barNeedsOne"), true);
     }
-    fit(state);
-    paint7(state);
+    fit(state2);
+    paint7(state2);
   }
-  function wire(state, box3, dialog7) {
+  function wire(state2, box3, dialog7) {
     let dragged = null;
     const handlers = [
       ["click", (event) => {
-        onClick4(state, event);
+        onClick4(state2, event);
       }],
       ["pointerdown", (event) => {
         dragged = startDrag(event) ?? dragged;
@@ -27201,7 +27320,7 @@
       if (!dragged || event.pointerId !== dragged.pointer) return;
       const done = dragged;
       dragged = null;
-      dragEnd(state, box3, done);
+      dragEnd(state2, box3, done);
     };
     handlers.push(["pointerup", end], ["pointercancel", end]);
     handlers.forEach(([name, handler]) => {
@@ -27216,11 +27335,11 @@
   function customiseMobileMenu() {
     const available2 = availableScreens(), prefs = menuPrefs2(), fixed = available2.includes("inicio") ? "inicio" : null;
     const bar = bottomBar().filter((key) => key !== fixed), rest = moreOrder(available2.filter((key) => !bar.includes(key) && key !== fixed)), hidden = prefs.ocultos ?? [];
-    const state = { fixed, available: available2, groups: { barra: [...bar], mas: rest.filter((key) => !hidden.includes(key)), oculta: rest.filter((key) => hidden.includes(key)) } };
-    paint7(state);
+    const state2 = { fixed, available: available2, groups: { barra: [...bar], mas: rest.filter((key) => !hidden.includes(key)), oculta: rest.filter((key) => hidden.includes(key)) } };
+    paint7(state2);
     const dialog7 = document.getElementById("dlg2"), box3 = body();
     if (!dialog7 || !box3) return;
-    wire(state, box3, dialog7);
+    wire(state2, box3, dialog7);
     dialog7.showModal();
   }
 
@@ -27451,10 +27570,10 @@
   var LOT_STATES = { pending: "Pendiente", won: "Ganado", lost: "Perdido" };
   var LOT_STATE_LIST = [LOT_STATES.pending, LOT_STATES.won, LOT_STATES.lost];
   var DAY_MS4 = 864e5;
-  var isClosed = (state) => state === STATES5.lost || state === STATES5.void;
-  function statePill4(state) {
-    const kind = state === STATES5.awarded ? "p-est" : isClosed(state) ? "p-anu" : state === STATES5.offerSent ? "p-per" : "p-warn";
-    return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
+  var isClosed = (state2) => state2 === STATES5.lost || state2 === STATES5.void;
+  function statePill4(state2) {
+    const kind = state2 === STATES5.awarded ? "p-est" : isClosed(state2) ? "p-anu" : state2 === STATES5.offerSent ? "p-per" : "p-warn";
+    return `<span class="pill ${kind}">${escapeHtml(state2)}</span>`;
   }
   var contractEnd = (tender) => [tender.prorroga_hasta, tender.fin].find(Boolean) ?? null;
   function daysLeft(tender) {
@@ -27676,7 +27795,7 @@
     return `<div class="conpadd"><select data-cpnuevo aria-label="${t("tenders.lot.addProduct")}"><option value="">${t("tenders.lot.addProductOption")}</option>${options3}</select></div>`;
   }
   function lotHtml(lot, products3) {
-    const states = LOT_STATE_LIST.map((state) => `<option ${state === lot.estado ? "selected" : ""}>${state}</option>`).join("");
+    const states = LOT_STATE_LIST.map((state2) => `<option ${state2 === lot.estado ? "selected" : ""}>${state2}</option>`).join("");
     return `<div class="conlote" data-lote="${lot.id}">
       <div class="conlcab"><input data-lf="numero" value="${escapeHtml(lot.numero ?? "")}" placeholder="${t("tenders.lot.number")}" aria-label="${t("tenders.lot.numberLabel")}" class="conln">
         <input data-lf="descripcion" value="${escapeHtml(lot.descripcion ?? "")}" placeholder="${t("tenders.lot.description")}" aria-label="${t("tenders.lot.description")}">
@@ -27777,7 +27896,7 @@
   var CONTRACT_DATES = [["conini", "inicio"], ["confin", "fin"], ["conpro", "prorroga_hasta"]];
   var sortedLots = (tender) => [...tender.concurso_lotes ?? []].sort((first, second) => String(first.numero ?? "").localeCompare(String(second.numero ?? ""), "es", { numeric: true }) || String(first.creado_en).localeCompare(String(second.creado_en)));
   function dataHtml2(tender) {
-    const states = TENDER_STATES.map((state) => `<option ${state === tender.estado ? "selected" : ""}>${state}</option>`).join("");
+    const states = TENDER_STATES.map((state2) => `<option ${state2 === tender.estado ? "selected" : ""}>${state2}</option>`).join("");
     return `<div class="cirdat"><span>${t("tenders.sheet.state")}</span><b><select id="conest" aria-label="${t("tenders.sheet.stateLabel")}">${states}</select></b>
       ${tender.limite ? `<span>${t("tenders.sheet.submitBy")}</span><b>${escapeHtml(formatLongDate(tender.limite))}</b>` : ""}
       ${tender.importe_licitacion ? `<span>${t("tenders.sheet.amount")}</span><b>${t("tenders.sheet.withoutVat", { amount: formatCurrency(tender.importe_licitacion) })}</b>` : ""}</div>
@@ -27829,12 +27948,12 @@
     if (change) change.onclick = () => {
       void editTender(tender);
     };
-    const state = document.getElementById("conest");
-    if (state) state.onchange = async () => {
-      const { error } = await legacyDb().from("concursos").update({ estado: state.value }).eq("id", id);
+    const state2 = document.getElementById("conest");
+    if (state2) state2.onchange = async () => {
+      const { error } = await legacyDb().from("concursos").update({ estado: state2.value }).eq("id", id);
       if (error) {
         fail(error);
-        state.value = tender.estado;
+        state2.value = tender.estado;
         return;
       }
       context.reopen();
@@ -29593,14 +29712,14 @@
     pointOf: () => pointOf,
     statePill: () => statePill5
   });
-  var colorOf = (state) => commercialStates.color(state) ?? "var(--muted)";
-  var isOpen = (state) => appointments.isOpen(state);
-  var isCancelled = (state) => appointments.isCancelled(state);
-  var isDone = (state) => commercialStates.color(state) === "var(--ok)";
-  var isAbsent = (state) => commercialStates.color(state) === "var(--warn)" && !isOpen(state);
-  function statePill5(state) {
-    const color2 = colorOf(state);
-    return `<span class="pill cest" style="background:color-mix(in srgb, ${color2} 12%, transparent);color:${color2}">${escapeHtml(state)}</span>`;
+  var colorOf = (state2) => commercialStates.color(state2) ?? "var(--muted)";
+  var isOpen = (state2) => appointments.isOpen(state2);
+  var isCancelled = (state2) => appointments.isCancelled(state2);
+  var isDone = (state2) => commercialStates.color(state2) === "var(--ok)";
+  var isAbsent = (state2) => commercialStates.color(state2) === "var(--warn)" && !isOpen(state2);
+  function statePill5(state2) {
+    const color2 = colorOf(state2);
+    return `<span class="pill cest" style="background:color-mix(in srgb, ${color2} 12%, transparent);color:${color2}">${escapeHtml(state2)}</span>`;
   }
   function pointOf(item) {
     return item.lat !== null && item.lat !== void 0 && item.lon !== null && item.lon !== void 0 ? [Number(item.lat), Number(item.lon)] : null;
@@ -29634,16 +29753,16 @@
     activeWorkingDay: () => activeWorkingDay
   });
   function activeWorkingDay() {
-    let stored2 = null;
+    let stored3 = null;
     try {
-      stored2 = JSON.parse(localStorage.getItem(restLegacy.workingDayKey()) ?? "null");
+      stored3 = JSON.parse(localStorage.getItem(restLegacy.workingDayKey()) ?? "null");
     } catch {
     }
-    if (stored2 && stored2.fecha !== todayIso()) {
+    if (stored3 && stored3.fecha !== todayIso()) {
       localStorage.removeItem(restLegacy.workingDayKey());
       return null;
     }
-    return stored2;
+    return stored3;
   }
 
   // src/app/screens/agenda/appointment-origin.ts
@@ -29660,7 +29779,7 @@
   }
   function movedTo(item) {
     if (item.estado !== POSTPONED || !item.aplazada_a_fecha) return null;
-    const state = item.aplazada_a_estado, closed = state && !isOpen(state) && state !== POSTPONED ? ` (${state.toLowerCase()})` : "";
+    const state2 = item.aplazada_a_estado, closed = state2 && !isOpen(state2) && state2 !== POSTPONED ? ` (${state2.toLowerCase()})` : "";
     return t("agendaMore.origin.movedTo", { day: appointmentDay(item.aplazada_a_fecha) }) + closed;
   }
   function comesFrom(item) {
@@ -29987,6 +30106,17 @@
     wrapper.appendChild(button3);
   }
   var FIELD_FLAGS2 = [["obligatorio", "required"], ["solo_lectura", "readOnly"], ["en_ficha", "onCard"], ["en_tabla", "tableColumn"], ["en_filtro", "filter"]];
+  var NO_REPORTS_ROLE2 = "sin_informes";
+  var ACCOUNTS_SCOPE2 = "medico";
+  var YES_NO2 = "si_no";
+  function useHtml2(classifier, off) {
+    if (!("papel_campo" in classifier) || classifier.ambito !== ACCOUNTS_SCOPE2 || classifier.tipo_campo !== YES_NO2) return "";
+    const role = classifier.papel_campo === NO_REPORTS_ROLE2 ? NO_REPORTS_ROLE2 : "";
+    return `<div class="g2"><div><label for="cfcpapel">${t("leftovers.fields.use")}</label><select id="cfcpapel" ${off}>
+      <option value="" ${role ? "" : "selected"}>${t("leftovers.fields.useNone")}</option>
+      <option value="${NO_REPORTS_ROLE2}" ${role ? "selected" : ""}>${t("leftovers.fields.useNoReports")}</option></select></div>
+      <p class="sm">${t("leftovers.fields.useHelp")}</p></div>`;
+  }
   function customFieldBox(classifier, complete) {
     if (classifier.papel || !leftoversLegacy.fieldTable(classifier.ambito)) return "";
     const type = classifier.tipo_campo ?? "lista", off = complete ? "" : "disabled";
@@ -29995,6 +30125,7 @@
     return `<div class="cfcampo"><h3>${t("leftovers.fields.customField")}</h3>
     <div class="g2"><div><label for="cfctipo">${t("leftovers.fields.type")}</label><select id="cfctipo" ${off}>${types}</select></div>
       <div class="cfchks">${checks}</div></div>
+    ${useHtml2(classifier, off)}
     ${complete ? `<div class="acts u-end"><button class="btn sec" id="cfcok">${t("leftovers.fields.saveField")}</button></div>` : ""}</div>`;
   }
   var DNI_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE";
@@ -30793,7 +30924,7 @@
   }
 
   // src/app/screens/customers/contact-editor/state.ts
-  var isCompany = (state) => state.type === TYPES.company;
+  var isCompany = (state2) => state2.type === TYPES.company;
   var field9 = (id) => document.getElementById(id);
   var fieldValue5 = (id) => field9(id)?.value.trim() ?? "";
   var freeAccount = () => Boolean(field9("komlibre")?.checked);
@@ -30805,9 +30936,9 @@
   var FIELDS5 = ["konif", "komail", "komov", "kotel"];
   var digits = (value10) => value10.replace(/\D/g, "").length;
   var hasData = (written) => written.nif.replace(/[^A-Za-z0-9]/g, "").length >= MIN_TAX_ID || /.@.+\../.test(written.email) || [written.movil, written.telefono].some((value10) => digits(value10) >= MIN_PHONE);
-  function read2(state) {
+  function read2(state2) {
     const raw = (id) => field9(id)?.value ?? "";
-    return { nif: raw("konif"), email: raw("komail"), movil: raw("komov"), telefono: raw("kotel"), excluir: state.customer.id ?? null };
+    return { nif: raw("konif"), email: raw("komail"), movil: raw("komov"), telefono: raw("kotel"), excluir: state2.customer.id ?? null };
   }
   function markFields(match) {
     const marked = match.campo === "NIF" ? ["konif"] : match.campo === "correo" ? ["komail"] : ["komov", "kotel"].filter((id) => digits(fieldValue5(id)) >= MIN_PHONE);
@@ -30823,7 +30954,7 @@
          <div class="kodupc"><b>${escapeHtml(match.nombre)}</b><span class="sm">${escapeHtml(details2)}</span></div>
          <button type="button" class="btn" id="kodupusar">${use ? t("leftovers.customer.useThis", { thisPatient: term("paciente", { article: "este" }) }) : t("leftovers.customer.seeCard")}</button>`;
   }
-  function paint8(state, match, use) {
+  function paint8(state2, match, use) {
     const notice2 = document.getElementById("kodup");
     if (!notice2) return;
     FIELDS5.forEach((id) => field9(id)?.classList.remove("campodup"));
@@ -30842,46 +30973,46 @@
     if (useButton) useButton.onclick = () => {
       document.getElementById("dlg2")?.close();
       const chosen4 = { ...match, ...match.cuenta_id ? { medico: match.cuenta ?? "", medico_codigo: match.cuenta_codigo ?? null } : {} };
-      if (use && state.onSave) state.onSave(chosen4);
+      if (use && state2.onSave) state2.onSave(chosen4);
       else void showCustomer(match.id);
     };
   }
-  function watchDuplicates(state, screen3) {
+  function watchDuplicates(state2, screen3) {
     if (!field9("konif") || !document.getElementById("kook")) return;
     const actions = document.getElementById("kook")?.closest(".acts");
     if (actions && !document.getElementById("kodup")) actions.insertAdjacentHTML("beforebegin", '<div id="kodup" class="kodup hide" role="alert" aria-live="polite"></div>');
-    const use = !state.customer.id && Boolean(state.onSave) && screen3 !== "pacientes";
+    const use = !state2.customer.id && Boolean(state2.onSave) && screen3 !== "pacientes";
     let timer3, turn = 0;
     const check2 = () => {
       clearTimeout(timer3);
       timer3 = setTimeout(async () => {
-        const written = read2(state), mine = ++turn;
+        const written = read2(state2), mine = ++turn;
         if (!hasData(written)) {
-          paint8(state, null, use);
+          paint8(state2, null, use);
           return;
         }
         const { data } = await legacyDb().rpc("clientes_coincidencias", { p: written });
         if (mine !== turn || !document.getElementById("kodup")) return;
-        paint8(state, Array.isArray(data) && data.length ? data[0] ?? null : null, use);
+        paint8(state2, Array.isArray(data) && data.length ? data[0] ?? null : null, use);
       }, CHECK_WAIT_MS);
     };
     FIELDS5.forEach((id) => field9(id)?.addEventListener("input", check2));
-    if (!state.customer.id && hasData(read2(state))) check2();
+    if (!state2.customer.id && hasData(read2(state2))) check2();
   }
 
   // src/app/screens/customers/contact-editor/save.ts
   var DUPLICATE_HINT = "cliente_duplicado";
-  function reviewDocument(state) {
-    const result = checkDocument(field9("konif")?.value, state.type), message = document.getElementById("konifm");
+  function reviewDocument(state2) {
+    const result = checkDocument(field9("konif")?.value, state2.type), message = document.getElementById("konifm");
     if (message) message.innerHTML = result.ok ? "" : `<span style="color:var(--danger)">${escapeHtml(result.msg ?? "")}</span>`;
     return result;
   }
-  function payload9(state, taxId) {
+  function payload9(state2, taxId) {
     return {
-      id: state.customer.id ?? null,
+      id: state2.customer.id ?? null,
       nombre: fieldValue5("konom"),
       nif: taxId,
-      tipo: state.type,
+      tipo: state2.type,
       direccion: fieldValue5("kodir"),
       cp: fieldValue5("kocp"),
       municipio: fieldValue5("komun"),
@@ -30889,12 +31020,12 @@
       telefono: fieldValue5("kotel"),
       movil: fieldValue5("komov"),
       email: fieldValue5("komail"),
-      empresa: isCompany(state) ? "" : fieldValue5("koemp"),
+      empresa: isCompany(state2) ? "" : fieldValue5("koemp"),
       nota: fieldValue5("konota"),
-      cuenta_id: state.account && !freeAccount() ? state.account.id : null
+      cuenta_id: state2.account && !freeAccount() ? state2.account.id : null
     };
   }
-  function checked4(state) {
+  function checked4(state2) {
     if (!fieldValue5("konom")) {
       notices.toast(t("leftovers.customer.writeName"), true);
       return false;
@@ -30904,16 +31035,16 @@
       notices.toast(t("leftovers.customer.fillIn", { field: fields.falta[0] ?? "" }), true);
       return false;
     }
-    const taxIdCheck = reviewDocument(state);
+    const taxIdCheck = reviewDocument(state2);
     if (!taxIdCheck.ok) {
-      notices.toast(t(isCompany(state) ? "leftovers.customer.checkCif" : "leftovers.customer.checkDni"), true);
+      notices.toast(t(isCompany(state2) ? "leftovers.customer.checkCif" : "leftovers.customer.checkDni"), true);
       return false;
     }
     return { fields, taxId: taxIdCheck.v };
   }
-  async function saveFreeAccount(state, id, saved3) {
+  async function saveFreeAccount(state2, id, saved3) {
     const free = freeAccount();
-    if (!field9("komlibre") || free === state.freeBefore) return true;
+    if (!field9("komlibre") || free === state2.freeBefore) return true;
     const { data, error } = await legacyDb().rpc("guardar_cuenta_por_pedido", { p_id: id, p_valor: free });
     if (error || data?.ok === false) {
       notices.toast(t("leftovers.customer.couldNotSaveFree"), true);
@@ -30922,36 +31053,36 @@
     if (free && saved3) saved3.cuenta_id = null;
     return true;
   }
-  function buttonText(state, withOrder) {
-    if (state.customer.id) return t("common.save");
+  function buttonText(state2, withOrder) {
+    if (state2.customer.id) return t("common.save");
     return withOrder ? t("leftovers.customer.createAndOrder") : t("leftovers.customer.create", { patient: term("paciente") });
   }
-  async function saveCall(state, call2, customer, withOrder) {
-    if (!call2 || !(withOrder || call2.motivo || call2.resultado || call2.nota || state.options.llamada)) return null;
+  async function saveCall(state2, call2, customer, withOrder) {
+    if (!call2 || !(withOrder || call2.motivo || call2.resultado || call2.nota || state2.options.llamada)) return null;
     return saveCallRecord(call2, {
       contacto_id: customer.id,
       nombre: customer.nombre,
       telefono: orFallback(customer.movil, customer.telefono ?? ""),
-      medico: state.account,
+      medico: state2.account,
       resultado: withOrder ? orFallback(call2.resultado, orderDoneResult()) : call2.resultado
-    }, state.options.llamada);
+    }, state2.options.llamada);
   }
-  async function afterSave2(state, customer, callId, withOrder) {
+  async function afterSave2(state2, customer, callId, withOrder) {
     if (withOrder) {
       if (callId) leftoversLegacy.setPendingCall(callId);
-      await leftoversLegacy.editOrder({ contacto: customer, medico: state.account ? { id: state.account.id, nombre: state.account.nombre } : null });
+      await leftoversLegacy.editOrder({ contacto: customer, medico: state2.account ? { id: state2.account.id, nombre: state2.account.nombre } : null });
       return;
     }
-    state.onSave?.(customer);
+    state2.onSave?.(customer);
     if (leftoversLegacy.screen() === "pacientes") void listCustomers();
     if (callId && leftoversLegacy.screen() === "ventas" && leftoversLegacy.ordersSection() === "llamadas") leftoversLegacy.repaintCalls();
   }
-  async function send4(state, button3, taxId, withOrder) {
+  async function send4(state2, button3, taxId, withOrder) {
     button3.disabled = true;
     button3.textContent = t("leftovers.customer.saving");
-    const answer = await legacyDb().rpc("guardar_contacto", { p: payload9(state, taxId) });
+    const answer = await legacyDb().rpc("guardar_contacto", { p: payload9(state2, taxId) });
     button3.disabled = false;
-    button3.textContent = buttonText(state, withOrder);
+    button3.textContent = buttonText(state2, withOrder);
     return { data: answer.data, error: answer.error };
   }
   function failed3(error, result) {
@@ -30966,27 +31097,27 @@
     }
     return false;
   }
-  async function store3(state, button3, ready2, withOrder) {
-    const { data: result, error } = await send4(state, button3, ready2.taxId, withOrder);
+  async function store3(state2, button3, ready2, withOrder) {
+    const { data: result, error } = await send4(state2, button3, ready2.taxId, withOrder);
     if (failed3(error, result)) return null;
-    const saved3 = { ...result?.contacto ?? {} }, id = result?.contacto?.id ?? state.customer.id;
+    const saved3 = { ...result?.contacto ?? {} }, id = result?.contacto?.id ?? state2.customer.id;
     if (ready2.fields && !await saveCustomFields(ready2.fields, id)) return null;
-    if (!await saveFreeAccount(state, id, saved3)) return null;
+    if (!await saveFreeAccount(state2, id, saved3)) return null;
     return saved3;
   }
-  async function saveCustomer(state, button3, withOrder) {
-    const call2 = state.withCall ? readCallRecord() : null, ready2 = checked4(state);
+  async function saveCustomer(state2, button3, withOrder) {
+    const call2 = state2.withCall ? readCallRecord() : null, ready2 = checked4(state2);
     if (!ready2) return;
-    const saved3 = await store3(state, button3, ready2, withOrder);
+    const saved3 = await store3(state2, button3, ready2, withOrder);
     if (!saved3) return;
-    if (freeAccount()) state.account = null;
+    if (freeAccount()) state2.account = null;
     document.getElementById("dlg2")?.close();
-    notices.toast(term("paciente", { capital: "C", adjective: state.customer.id ? "guardado" : "creado" }));
-    const customer = { ...saved3, ...state.account ? { medico: state.account.nombre, medico_codigo: state.account.codigo ?? null } : {} };
-    const callId = await saveCall(state, call2, customer, withOrder);
-    await afterSave2(state, customer, callId, withOrder);
+    notices.toast(term("paciente", { capital: "C", adjective: state2.customer.id ? "guardado" : "creado" }));
+    const customer = { ...saved3, ...state2.account ? { medico: state2.account.nombre, medico_codigo: state2.account.codigo ?? null } : {} };
+    const callId = await saveCall(state2, call2, customer, withOrder);
+    await afterSave2(state2, customer, callId, withOrder);
   }
-  async function saveCallOnly(state, button3) {
+  async function saveCallOnly(state2, button3) {
     const call2 = readCallRecord();
     const name = fieldValue5("konom"), phone = orFallback(fieldValue5("komov"), fieldValue5("kotel"));
     if (!name && !phone) {
@@ -30996,7 +31127,7 @@
     if (!call2) return;
     button3.disabled = true;
     const noted = {
-      tipo: state.type,
+      tipo: state2.type,
       nif: fieldValue5("konif"),
       email: fieldValue5("komail"),
       direccion: fieldValue5("kodir"),
@@ -31007,7 +31138,7 @@
       nota: fieldValue5("konota")
     };
     const data = Object.fromEntries(Object.entries(noted).filter(([, value10]) => value10));
-    const callId = await saveCallRecord(call2, { contacto_id: null, nombre: name, telefono: phone, medico: state.account, resultado: call2.resultado, datos: data }, state.options.llamada);
+    const callId = await saveCallRecord(call2, { contacto_id: null, nombre: name, telefono: phone, medico: state2.account, resultado: call2.resultado, datos: data }, state2.options.llamada);
     button3.disabled = false;
     if (!callId) return;
     document.getElementById("dlg2")?.close();
@@ -31026,9 +31157,9 @@
     taxId: t(company ? "leftovers.customer.cif" : "leftovers.customer.dni"),
     placeholder: company ? "B12345678" : "12345678Z"
   });
-  function headerHtml6(state) {
-    const customer = state.customer, company = isCompany(state), texts3 = typeTexts(company);
-    const types = [TYPES.person, TYPES.company].map((type) => `<button type="button" data-ktipo="${type}" aria-pressed="${String(state.type === type)}">${t(type === TYPES.company ? "leftovers.customer.company" : "leftovers.customer.person")}</button>`);
+  function headerHtml6(state2) {
+    const customer = state2.customer, company = isCompany(state2), texts3 = typeTexts(company);
+    const types = [TYPES.person, TYPES.company].map((type) => `<button type="button" data-ktipo="${type}" aria-pressed="${String(state2.type === type)}">${t(type === TYPES.company ? "leftovers.customer.company" : "leftovers.customer.person")}</button>`);
     return `
     <div class="fh"><div><h2>${t(customer.id ? "leftovers.customer.editTitle" : "leftovers.customer.newTitle", { ...words5(), newPatient: term("paciente", { article: "nuevo", articleCapital: "C" }) })}</h2>
       <div class="sm">${t("leftovers.customer.subtitle")}</div></div>
@@ -31048,8 +31179,8 @@
     <div class="sm u-mt-4" id="komsm">${t("leftovers.customer.attribution", { thisProfessional: term("medico", { article: "este" }) })}</div>
     ${free}`;
   }
-  function contactHtml2(state) {
-    const customer = state.customer;
+  function contactHtml2(state2) {
+    const customer = state2.customer;
     const companyHelp = leftoversLegacy.helpButton(t("leftovers.customer.company"), t("leftovers.customer.companyHelp"));
     return `${pair(
       `<div><label for="kodir">${t("leftovers.customer.address")}</label>${input5("kodir", customer.direccion)}</div>`,
@@ -31065,23 +31196,23 @@
     )}
     ${pair(
       `<div><label for="komail">${t("leftovers.customer.email")}</label><input id="komail" type="email" value="${escapeHtml(customer.email ?? "")}"></div>`,
-      `<div id="koempw" class="${isCompany(state) ? "koinv" : ""}"><label for="koemp">${t("leftovers.customer.company")} ${companyHelp}</label>${input5("koemp", customer.empresa)}</div>`
+      `<div id="koempw" class="${isCompany(state2) ? "koinv" : ""}"><label for="koemp">${t("leftovers.customer.company")} ${companyHelp}</label>${input5("koemp", customer.empresa)}</div>`
     )}
     <label for="konota">${t("leftovers.customer.note")}</label>${input5("konota", customer.nota)}`;
   }
-  function actionsHtml4(state) {
-    const call2 = state.withCall && Boolean(state.options.llamada);
-    const save26 = state.customer.id ? t("common.save") : t("leftovers.customer.create", words5());
-    return `${state.withCall ? callRecordHtml(state.options.llamada) : ""}
+  function actionsHtml4(state2) {
+    const call2 = state2.withCall && Boolean(state2.options.llamada);
+    const save26 = state2.customer.id ? t("common.save") : t("leftovers.customer.create", words5());
+    return `${state2.withCall ? callRecordHtml(state2.options.llamada) : ""}
     <div class="acts u-end u-wrap">
       <button class="btn sec" id="kocancel">${t("common.cancel")}</button>
       <button class="btn ${call2 ? "sec" : ""}" id="kook">${save26}</button>
       ${call2 ? `<button class="btn" id="kopedido">${t("leftovers.customer.createAndOrder")}</button>` : ""}</div>`;
   }
-  var editorHtml11 = (state) => `${headerHtml6(state)}
+  var editorHtml11 = (state2) => `${headerHtml6(state2)}
     ${accountHtml()}
-    ${contactHtml2(state)}
-    ${actionsHtml4(state)}`;
+    ${contactHtml2(state2)}
+    ${actionsHtml4(state2)}`;
 
   // src/app/screens/customers/contact-editor/index.ts
   var body2 = () => document.getElementById("dlg2body");
@@ -31091,54 +31222,54 @@
     document.getElementById("komsm")?.classList.toggle("hide", free);
     picker?.previousElementSibling?.classList.toggle("hide", free);
   }
-  function bindFreeAccount(state) {
+  function bindFreeAccount(state2) {
     const free = field9("komlibre");
     if (!free) return;
     free.onchange = showAccountField;
-    if (!state.customer.id) return;
-    void legacyDb().from("contactos").select("cuenta_por_pedido").eq("id", state.customer.id).maybeSingle().then(({ data }) => {
-      state.freeBefore = Boolean(data?.cuenta_por_pedido);
+    if (!state2.customer.id) return;
+    void legacyDb().from("contactos").select("cuenta_por_pedido").eq("id", state2.customer.id).maybeSingle().then(({ data }) => {
+      state2.freeBefore = Boolean(data?.cuenta_por_pedido);
       const checkbox2 = field9("komlibre");
       if (checkbox2) {
-        checkbox2.checked = state.freeBefore;
+        checkbox2.checked = state2.freeBefore;
         showAccountField();
       }
     });
   }
-  function bindType(state, root) {
+  function bindType(state2, root) {
     const buttons = root.querySelectorAll("[data-ktipo]");
     buttons.forEach((button3) => {
       button3.onclick = () => {
-        state.type = button3.dataset.ktipo ?? TYPES.person;
+        state2.type = button3.dataset.ktipo ?? TYPES.person;
         buttons.forEach((other) => {
           other.setAttribute("aria-pressed", String(other === button3));
         });
-        const texts3 = typeTexts(isCompany(state)), taxId = field9("konif");
+        const texts3 = typeTexts(isCompany(state2)), taxId = field9("konif");
         const taxLabel = document.getElementById("konifl"), nameLabel = document.getElementById("konoml");
         if (taxLabel) taxLabel.textContent = texts3.taxId;
         if (nameLabel) nameLabel.textContent = texts3.name;
         if (taxId) taxId.placeholder = texts3.placeholder;
-        document.getElementById("koempw")?.classList.toggle("koinv", isCompany(state));
-        if (taxId?.value) reviewDocument(state);
+        document.getElementById("koempw")?.classList.toggle("koinv", isCompany(state2));
+        if (taxId?.value) reviewDocument(state2);
       };
     });
   }
-  function bindButtons3(state) {
+  function bindButtons3(state2) {
     const cancel3 = document.getElementById("kocancel");
     if (cancel3) cancel3.onclick = () => {
       document.getElementById("dlg2")?.close();
     };
     const save26 = document.getElementById("kook");
     if (save26) save26.onclick = () => {
-      void saveCustomer(state, save26, false);
+      void saveCustomer(state2, save26, false);
     };
     const order = document.getElementById("kopedido");
     if (order) order.onclick = () => {
-      void saveCustomer(state, order, true);
+      void saveCustomer(state2, order, true);
     };
     const callOnly = document.getElementById("kosolo");
     if (callOnly) callOnly.onclick = () => {
-      void saveCallOnly(state, callOnly);
+      void saveCallOnly(state2, callOnly);
     };
   }
   function initialState(customer, onSave, options3) {
@@ -31148,23 +31279,23 @@
   function editContact(customer, onSave, options3) {
     const root = body2();
     if (!root) return;
-    const state = initialState(customer ?? {}, onSave ?? null, options3 ?? {});
-    root.innerHTML = editorHtml11(state);
+    const state2 = initialState(customer ?? {}, onSave ?? null, options3 ?? {});
+    root.innerHTML = editorHtml11(state2);
     const picker = document.getElementById("kosel");
-    if (picker) pickAccount(picker, { valor: state.account, alElegir: (account) => {
-      state.account = account;
+    if (picker) pickAccount(picker, { valor: state2.account, alElegir: (account) => {
+      state2.account = account;
     } });
-    bindFreeAccount(state);
+    bindFreeAccount(state2);
     const taxId = field9("konif");
     if (taxId) taxId.oninput = () => {
-      reviewDocument(state);
+      reviewDocument(state2);
     };
-    bindType(state, root);
-    void insertCustomFields(root, "cliente", state.customer.id ?? null, document.getElementById("kook")?.closest(".acts") ?? null);
-    if (state.withCall) activateCallRecord(state.options.llamada);
-    bindButtons3(state);
+    bindType(state2, root);
+    void insertCustomFields(root, "cliente", state2.customer.id ?? null, document.getElementById("kook")?.closest(".acts") ?? null);
+    if (state2.withCall) activateCallRecord(state2.options.llamada);
+    bindButtons3(state2);
     document.getElementById("dlg2")?.showModal();
-    watchDuplicates(state, leftoversLegacy.screen());
+    watchDuplicates(state2, leftoversLegacy.screen());
   }
 
   // src/app/screens/home/alert-key.ts
@@ -31331,7 +31462,7 @@
     shortDate: (isoDate) => calendar_exports.shortDate(isoDate),
     weekdayName: (isoDate) => DIAN[calendar_exports.dayLetter(isoDate)] ?? "",
     weekdayOf: (letter) => DIAN[letter] ?? "",
-    isDone: (state) => citaHecha(state),
+    isDone: (state2) => citaHecha(state2),
     myPlannedAppointments: () => myPlannedAppointments(),
     recentContacts: (ids, isoDate) => recentContacts(ids, isoDate),
     recentText: (list) => calendar_exports.recentText(list),
@@ -32118,8 +32249,8 @@
     liveNotices: () => {
       live_exports.listenLive();
     },
-    setCentreStateClass: (state, pill) => {
-      NOMBRE_ESTADO_CENTRO[state] = pill;
+    setCentreStateClass: (state2, pill) => {
+      NOMBRE_ESTADO_CENTRO[state2] = pill;
     },
     setMaterialForPortal: (id, offered) => db.from("producto_materiales").update({ para_portal: offered }).eq("id", id),
     toast: (message, isError = false) => {
@@ -32373,7 +32504,7 @@
       f_especialidad: orNull3(filters3().esp),
       f_area: null,
       f_comercial: orNull3(filters3().com),
-      f_reporting: orNull3(filters3().rep),
+      f_reporting: reportsFilterValue(filters3().rep),
       ...keysOf(filters3().campos) ? { f_campos: filters3().campos } : {}
     });
     const flags = () => {
@@ -33297,12 +33428,12 @@
     };
   }
   function backupRow(body3) {
-    const state = body3.querySelector(".copiaest"), button3 = byId19("copok");
-    if (!state || !button3 || state.contains(button3)) return;
+    const state2 = body3.querySelector(".copiaest"), button3 = byId19("copok");
+    if (!state2 || !button3 || state2.contains(button3)) return;
     const actions = button3.closest(".acts"), text = document.createElement("div");
-    state.classList.add("copiafila");
-    [...state.children].forEach((child) => text.appendChild(child));
-    state.append(text, button3);
+    state2.classList.add("copiafila");
+    [...state2.children].forEach((child) => text.appendChild(child));
+    state2.append(text, button3);
     if (actions && !actions.children.length) actions.remove();
   }
   function polishBase(key) {
@@ -37789,6 +37920,7 @@
     "components/loading": loading_exports,
     "core/catalog-roles": catalog_roles_exports,
     "core/navigation/current": current_exports,
+    "core/no-reports": no_reports_exports,
     "core/organisation": organisation_exports,
     "core/rules": rules_exports,
     "core/vocabulary": vocabulary_exports,
@@ -38158,9 +38290,9 @@
         localStorage.setItem(CATALOGS_KEY, JSON.stringify(catalogs2));
         return;
       }
-      const stored2 = JSON.parse(localStorage.getItem(CATALOGS_KEY) ?? "null");
-      if (stored2) Object.keys(catalogs2).forEach((key) => {
-        const list = stored2[key];
+      const stored3 = JSON.parse(localStorage.getItem(CATALOGS_KEY) ?? "null");
+      if (stored3) Object.keys(catalogs2).forEach((key) => {
+        const list = stored3[key];
         if (list?.length) catalogs2[key] = list;
       });
     } catch {
@@ -38168,7 +38300,7 @@
   }
   async function loadCatalogs() {
     const catalogs2 = settingsCoreLegacy.catalogs(), keys = Object.keys(catalogs2);
-    const answers = await Promise.all(keys.map((key) => legacyDb().rpc("catalogo_papel", { p_papel: key })));
+    const [answers] = await Promise.all([Promise.all(keys.map((key) => legacyDb().rpc("catalogo_papel", { p_papel: key }))), loadNoReportsField().catch(() => void 0)]);
     keys.forEach((key, index) => {
       catalogs2[key] = answers[index]?.data ?? [];
     });
@@ -38219,9 +38351,9 @@
     ["positivo", t("core.states.positive"), t("core.states.positiveHint")],
     ["negativo", t("core.states.negative"), t("core.states.negativeHint")]
   ];
-  var stateNames = () => coreLegacy.commercialStates().map((state) => state.valor);
-  var stateOfRole = (role) => coreLegacy.commercialStates().find((state) => state.papel === role)?.valor ?? "";
-  var roleOfState = (value10) => coreLegacy.commercialStates().find((state) => state.valor === value10)?.papel ?? "";
+  var stateNames = () => coreLegacy.commercialStates().map((state2) => state2.valor);
+  var stateOfRole = (role) => coreLegacy.commercialStates().find((state2) => state2.papel === role)?.valor ?? "";
+  var roleOfState = (value10) => coreLegacy.commercialStates().find((state2) => state2.valor === value10)?.papel ?? "";
   var stateColour = (value10) => ROLE_COLOURS[roleOfState(value10)] ?? "";
 
   // src/app/core/settings/roles.ts
@@ -38271,7 +38403,7 @@
     ]);
     if (!words16.error && reloadForNewWords(words16.data?.valor)) return false;
     if (!statesError && Array.isArray(states)) {
-      const list2 = states.map((state) => ({ valor: state.valor, papel: state.papel ?? "" }));
+      const list2 = states.map((state2) => ({ valor: state2.valor, papel: state2.papel ?? "" }));
       settingsCoreLegacy.setCommercialStates(list2);
       remember(STATES_KEY, JSON.stringify(list2));
     }
@@ -39496,8 +39628,8 @@
   };
   var appointments = {
     ofDay: (date) => appointmentsOfDay(date),
-    isOpen: (state) => CITA_ABIERTA.includes(state),
-    isCancelled: (state) => citaAnulada(state)
+    isOpen: (state2) => CITA_ABIERTA.includes(state2),
+    isCancelled: (state2) => citaAnulada(state2)
   };
   var icon = (name) => svgIco(ICON_NOM[name] ?? ICON_NOM.info ?? "");
   var indicatorCatalog = {
@@ -39510,7 +39642,7 @@
   };
   var commercialStates = {
     all: () => sessionStore.commercialStates,
-    color: (state) => EST_COL[state]
+    color: (state2) => EST_COL[state2]
   };
   function cachedRpc(name, params, key) {
     return read_cache_exports.readCached(name, params, key);
@@ -39814,7 +39946,7 @@
   };
   var portalLegacy = {
     hasPortal: () => hasExtra("portal"),
-    materialPill: (state) => pillMaterial(state),
+    materialPill: (state2) => pillMaterial(state2),
     products: async () => {
       if (!productsStore.products.length) await cargarProductos();
       return productsStore.products;
@@ -39845,7 +39977,7 @@
     mapMode: () => accountsStore.mapMode,
     /** The database order key of a column (only the sortable ones). */
     sortKey: (column) => ORD_DIR[column],
-    fieldChips: (state) => filterChips("medico", state),
+    fieldChips: (state2) => filterChips("medico", state2),
     contactsLabel: () => vocabulary_exports.contactsLabel(),
     pageSize: () => storedPageSize(),
     paginate: (options3) => {

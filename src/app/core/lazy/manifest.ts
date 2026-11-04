@@ -12,6 +12,7 @@ import * as componentsIndex from '../../components/index';
 import * as componentsLoading from '../../components/loading';
 import * as coreCatalogRoles from '../../core/catalog-roles';
 import * as coreNavigationCurrent from '../../core/navigation/current';
+import * as coreNoReports from '../../core/no-reports';
 import * as coreOrganisation from '../../core/organisation';
 import * as coreRules from '../../core/rules';
 import * as coreVocabulary from '../../core/vocabulary';
@@ -99,6 +100,7 @@ export const sharedModules = (): Record<string, object> => ({
   'components/loading': componentsLoading,
   'core/catalog-roles': coreCatalogRoles,
   'core/navigation/current': coreNavigationCurrent,
+  'core/no-reports': coreNoReports,
   'core/organisation': coreOrganisation,
   'core/rules': coreRules,
   'core/vocabulary': coreVocabulary,

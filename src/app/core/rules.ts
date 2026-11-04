@@ -45,6 +45,16 @@ export const highestVat = (): number => Math.max(...vatRates().map(([rate]) => r
 // PPR-2 and PPR-3 · Portal → Formatos y Recurrencia (setting «portal»)
 export const DEFAULT_GROUP_FROM = 4, DEFAULT_RECURRENCE = { meses: 12, dias: 60, minimo: 5 } as const, MIN_RECURRENCE = 3;
 
+// PPR-1 · Portal → Informes: «Pedidos que ve la cuenta» («portal».pedidos)
+export const SETTING_PORTAL = 'portal';
+export type PortalOrders = 'todos' | 'marcados';
+
+/** Which orders the account sees in its portal: all the completed ones, or only the ones marked «Reportar» (without the setting). */
+export const portalOrders = (): PortalOrders => (setting(SETTING_PORTAL)?.pedidos === 'todos' ? 'todos' : 'marcados');
+
+/** The checkbox «Reportar» of the orders and the filters «Reporte»: only with the portal and when it shows only the marked orders. */
+export const marksReportedOrders = (): boolean => organisationLegacy.hasPortal() && portalOrders() === 'marcados';
+
 // CAL-1 · Cartera y visitas → Ficha completa
 export const SETTING_COMPLETE = 'ficha_completa';
 export const COMPLETE_FIELDS = ['ubicacion', 'horario', 'especialidad', 'contacto', 'provincia', 'obligatorios'] as const;

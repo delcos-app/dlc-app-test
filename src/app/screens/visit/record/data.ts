@@ -2,12 +2,14 @@
  * Everything «Registrar visita» needs, asked at once so the window is painted complete: the card and its results (from the offline
  * copy without connection), the account type and «sin reporting», the regulated samples left this year, the promoted products
  * and whether their timetable is missing. v2.464.0 (VIS-2): for an account «sin reporting» the results that are a report for it are
- * left out here, by their mark in the list (by the word «reporting» with a database without SQL 192).
+ * left out here, by their mark in the list (by the word «reporting» with a database without SQL 192). v2.466.0 (PPR-1): «sin reporting»
+ * is the account's field «No recibe informes» (core/no-reports.ts; the old column without SQL 193).
  */
 import { accountCardLegacy, cachedRpc, legacyDb } from '../../../legacy/bridge';
 import { visitLegacy } from '../../../legacy/visit-bridge';
 import { missingTimetable as lacksTimetable } from '../../accounts/timetable';
 import { isReportResult } from '../../../core/catalog-roles';
+import { hasNoReports, type AccountMarks } from '../../../core/no-reports';
 
 export interface ResultValue { valor: string; extra?: string | null; papel?: string | null; informe?: boolean | null; oculto?: boolean; dato_tipo?: string | null }
 export interface ResultGroup { clave: string; papel?: string | null; nombre: string; descripcion?: string | null; valores: ResultValue[] }
@@ -39,8 +41,10 @@ async function cardAndResults(id: string): Promise<{ card: CardData | null; grou
   return { card: card.data, groups: groups ?? [] };
 }
 
-async function accountFlags(id: string): Promise<{ tipo?: string | null; sin_reporting?: boolean | null } | null> {
-  try { return (await legacyDb().from<{ tipo?: string | null; sin_reporting?: boolean | null }>('cuentas').select('tipo,sin_reporting').eq('id', id).maybeSingle()).data; } catch { return null; }
+type AccountFlags = AccountMarks & { tipo?: string | null };
+
+async function accountFlags(id: string): Promise<AccountFlags | null> {
+  try { return (await legacyDb().from<AccountFlags>('cuentas').select('tipo,sin_reporting,clasificadores').eq('id', id).maybeSingle()).data; } catch { return null; }
 }
 
 /** Samples need connection (the legal limit is checked in the server) and are only given to professionals. */
@@ -64,6 +68,7 @@ export async function loadVisitData(id: string): Promise<VisitData | string> {
   ]);
   if (!card?.medico) return navigator.onLine ? 'online' : 'offline';
   const samples = await samplesLeft(id, flags?.tipo).catch(() => []);
-  const noReporting = Boolean(flags?.sin_reporting), shown = noReporting ? withoutReports(groups) : { groups, hidden: false };
+  // Without connection, the card kept on the device says it
+  const noReporting = hasNoReports(flags ?? card.medico), shown = noReporting ? withoutReports(groups) : { groups, hidden: false };
   return { account: card.medico, consultations: card.consultas ?? [], groups: shown.groups, samples, products, noReporting, reportsHidden: shown.hidden, missingTimetable };
 }

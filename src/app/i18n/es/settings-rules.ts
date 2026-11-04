@@ -37,6 +37,15 @@ export const settingsRules = {
     wrongRate: 'No se entiende la línea «{line}»: escribe el porcentaje (de 0 a 100) y el nombre',
     noRates: 'Escribe al menos un tipo',
   },
+  portalReports: {
+    title: 'Informes',
+    info: 'Qué {orders} cuentan en el portal de {theProfessional}: sus cifras, productos, formatos y continuidad. Con «Solo los que se marquen», cada {order} lleva la casilla «Reportar» y Pedidos y Analítica tienen el filtro «Reporte». Con «Todos los completados», la casilla y el filtro no salen.',
+    intro: 'Qué {orders} ve {theProfessional} en su portal.',
+    orders: '{Orders} que ve {theProfessional}',
+    ordersHelp: 'De partida, solo los que se marquen.',
+    all: 'Todos los completados',
+    marked: 'Solo los que se marquen',
+  },
   portalFormats: {
     title: 'Formatos',
     info: 'En el portal, «{Orders} más utilizadas» agrupa cada {order} por las unidades: 1 unidad, 2 unidades, 2 + 1 de regalo… y, a partir de este número, «N o más unidades».',

@@ -7,6 +7,8 @@ import { permissions, salesTeam, term } from '../../../legacy/bridge';
 import { panelsLegacy } from '../../../legacy/panels-bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
+import { noReportsFilter } from '../../../core/no-reports';
+import { marksReportedOrders } from '../../../core/rules';
 import { paintRanking, refreshExplore } from '../explore';
 import { paintMonthlyTable } from '../monthly-table';
 import { analyticsState, loadConfig } from './catalog';
@@ -18,6 +20,14 @@ const SELECTS = ['adim', 'acanal', 'amedida', 'aprod', 'acom', 'arep', 'areprt']
 const element = (id: string): HTMLElement | null => document.getElementById(id);
 
 const option = (value: string, text: string): string => `<option value="${value}">${text}</option>`;
+
+/** v2.466.0 (PPR-1): the accounts that receive reports or not, by the field «No recibe informes» (none without the field). */
+function reportsHtml(): string {
+  const texts = noReportsFilter({ label: t('panels.analytics.reporting'), withReports: t('panels.analytics.withReporting'), withoutReports: t('panels.analytics.withoutReporting') });
+  if (!texts) return '';
+  return `<div><label for="arep">${escapeHtml(texts.label)}</label><select id="arep">${option('', t('panels.analytics.allProfessionals', { theProfessionals: term('medico', { number: 'p', article: 'el' }) }))}
+          ${option('con', escapeHtml(texts.withReports))}${option('sin', escapeHtml(texts.withoutReports))}</select></div>`;
+}
 
 function filtersHtml(): string {
   const all = permissions.seesEverything();
@@ -33,9 +43,8 @@ function filtersHtml(): string {
           ${option('centro', t('panels.analytics.toCentre'))}</select></div>
         <div><label for="aprod">${t('panels.analytics.product')}</label><select id="aprod">${option('', t('panels.analytics.all'))}
           ${panelsLegacy.products().map(product => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join('')}</select></div>
-        <div><label for="arep">${t('panels.analytics.reporting')}</label><select id="arep">${option('', t('panels.analytics.allProfessionals', { theProfessionals: term('medico', { number: 'p', article: 'el' }) }))}
-          ${option('con', t('panels.analytics.withReporting'))}${option('sin', t('panels.analytics.withoutReporting'))}</select></div>
-        ${all ? `<div><label for="areprt">${t('panels.analytics.report')}</label><select id="areprt">${option('', t('panels.analytics.all'))}${option('si', t('panels.analytics.reported'))}${option('no', t('panels.analytics.notReported'))}</select></div>` : ''}
+        ${reportsHtml()}
+        ${all && marksReportedOrders() ? `<div><label for="areprt">${t('panels.analytics.report')}</label><select id="areprt">${option('', t('panels.analytics.all'))}${option('si', t('panels.analytics.reported'))}${option('no', t('panels.analytics.notReported'))}</select></div>` : ''}
         ${all ? `<div><label for="acom">${t('panels.analytics.commercial')}</label><select id="acom">${option('', t('panels.analytics.all'))}
           ${salesTeam.members().map(member => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join('')}</select></div>` : ''}
         <div style="grid-column:span 2"><label>${term('medico', { capital: 'C' })}</label><div id="amed"></div></div>

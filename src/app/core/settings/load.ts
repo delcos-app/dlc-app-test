@@ -7,6 +7,7 @@
 import { legacyDb } from '../../legacy/bridge';
 import { settingsCoreLegacy } from '../../legacy/settings-core-bridge';
 import { t } from '../../i18n';
+import { loadNoReportsField } from '../no-reports';
 
 const CATALOGS_KEY = 'dlc-cat', NEUTRAL_LOGO = 'logo-app.png';
 const LOGO_PLACES = 'header .logo, .lbox img, #bootsplash img';
@@ -30,10 +31,13 @@ function keepOrRestoreCatalogs(catalogs: Record<string, unknown[]>): void {
   } catch { /* without the device copy */ }
 }
 
-/** Reads every classifier catalog (and, without waiting, the custom fields); offline, the copy kept on the device is used. */
+/**
+ * Reads every classifier catalog (and, without waiting, the custom fields); offline, the copy kept on the device is used. v2.466.0
+ * (PPR-1): with them, the field «No recibe informes», so the lists paint their pills at once.
+ */
 export async function loadCatalogs(): Promise<void> {
   const catalogs = settingsCoreLegacy.catalogs(), keys = Object.keys(catalogs);
-  const answers = await Promise.all(keys.map(key => legacyDb().rpc<unknown[]>('catalogo_papel', { p_papel: key })));
+  const [answers] = await Promise.all([Promise.all(keys.map(key => legacyDb().rpc<unknown[]>('catalogo_papel', { p_papel: key }))), loadNoReportsField().catch(() => undefined)]);
   keys.forEach((key, index) => { catalogs[key] = answers[index]?.data ?? []; });
   settingsCoreLegacy.loadCustomFields().catch(() => undefined);
   keepOrRestoreCatalogs(catalogs);

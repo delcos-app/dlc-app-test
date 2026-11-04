@@ -9,6 +9,7 @@ import { escapeHtml } from '../../../services/format';
 import { operationDone, OPERATIONS, STATES, type Order, type OrderDetail } from '../model';
 import { askPaymentEmailSent, mailtoLink, paymentSubject, paymentText } from '../payment-email';
 import { isOnDelivery } from '../../../core/catalog-roles';
+import { marksReportedOrders } from '../../../core/rules';
 
 const MAIL_QUESTION_DELAY_MS = 800, SALES_LEVEL = 2;
 
@@ -26,12 +27,15 @@ function mailHtml(detail: OrderDetail): string {
   return `<a class="btn sec" id="pdmailpago" data-ped="${order.id}" href="${mailtoLink(escapeHtml(customer.email), paymentSubject(order, total, customer.nombre), paymentText(order, total, customer.nombre))}">${t('orders.operations.preparePaymentEmail')}</a>`;
 }
 
+/** v2.466.0 (PPR-1): only when the portal shows just the marked orders (Configuración → Portal → Informes). */
+const reportedHtml = (order: Order, allowed: boolean): string => `<label class="opchk ${order.reportar_profesional ? 'on' : ''}"><input type="checkbox" data-reporte ${order.reportar_profesional ? 'checked' : ''} ${allowed ? '' : 'disabled'}>
+      <span>${t('orders.operations.reported', { professional: escapeHtml(term('medico', { article: 'al' })) })}</span></label>`;
+
 function blockHtml(detail: OrderDetail, allowed: boolean): string {
   const order = detail.pedido;
   return `<div class="blk" id="pdops" data-nosucio><h3>${t('orders.operations.title')}</h3>
     ${order.sin_cargo ? `<p class="sm">${t('orders.operations.freeDelivery')}</p>` : ''}${OPERATIONS.filter(([key]) => !(order.sin_cargo && key === 'pago')).map(([key, label]) => operationHtml(order, key, t(label), allowed)).join('')}
-    <label class="opchk ${order.reportar_profesional ? 'on' : ''}"><input type="checkbox" data-reporte ${order.reportar_profesional ? 'checked' : ''} ${allowed ? '' : 'disabled'}>
-      <span>${t('orders.operations.reported', { professional: escapeHtml(term('medico', { article: 'al' })) })}</span></label>
+    ${marksReportedOrders() ? reportedHtml(order, allowed) : ''}
     <div class="acts u-m-6-0-0">
       ${mailHtml(detail)}
     </div></div>`;

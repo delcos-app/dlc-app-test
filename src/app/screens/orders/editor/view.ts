@@ -7,6 +7,7 @@ import { term } from '../../../legacy/bridge';
 import { orderEditorLegacy } from '../../../legacy/orders2-bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
+import { marksReportedOrders } from '../../../core/rules';
 import { euros, isBankTransfer, round2, STATES, type Order } from '../model';
 import { isTpvPayment, tpvActive } from '../tpv/model';
 import { distributorHtml } from './distributor';
@@ -45,7 +46,7 @@ function customerZoneHtml(state: EditorState): string {
         <label class="solopac">${term('paciente', { capital: 'C' })}</label><div id="pselpac" class="solopac"></div>
         <label><span class="solopac">${t('ordersMore.editor.reference', { Professional: term('medico', { capital: 'C' }) })}</span><span class="solocen">${t('ordersMore.editor.buyingCentre')}</span></label><div id="pselmed"></div>
         <div class="sm u-mt-4"><span class="solopac">${t('ordersMore.editor.leaveName')}</span><span class="solocen">${t('ordersMore.editor.pickCentre')}</span></div>
-        <label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${state.form.reportar ? 'checked' : ''}> ${t('ordersMore.editor.report', { toProfessional })}</label>
+        ${marksReportedOrders() ? `<label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${state.form.reportar ? 'checked' : ''}> ${t('ordersMore.editor.report', { toProfessional })}</label>` : ''}
       </div>`;
 }
 

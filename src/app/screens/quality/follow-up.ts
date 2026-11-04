@@ -4,6 +4,7 @@
  */
 import { accountListLegacy, agendaActions, legacyDb, notices, term } from '../../legacy/bridge';
 import { t } from '../../i18n';
+import { hasNoReports, noReportsName } from '../../core/no-reports';
 import { formatShortDate } from '../../services/date-format';
 import { addDays, todayIso } from '../../services/dates';
 import { escapeHtml, formatNumber } from '../../services/format';
@@ -29,7 +30,7 @@ const loadingHtml = (text: string): string => `<div class="cargador"><span class
 
 function nameHtml(row: FollowUpRow): string {
   const urgent = row.urgente ? `<span class="pill p-urg">${t('quality.followUp.urgent')}</span> ` : '';
-  const reporting = row.sin_reporting ? `<span class="pill p-sr" title="${t('quality.followUp.noReportingHelp', { visit: term('visita') })}">${t('quality.followUp.noReporting')}</span> ` : '';
+  const reporting = hasNoReports(row) ? `<span class="pill p-sr" title="${t('quality.followUp.noReportingHelp', { visit: term('visita') })}">${escapeHtml(noReportsName() ?? t('quality.followUp.noReporting'))}</span> ` : '';
   return `<span class="nm">${urgent}${reporting}${escapeHtml(row.nombre)}</span>`;
 }
 

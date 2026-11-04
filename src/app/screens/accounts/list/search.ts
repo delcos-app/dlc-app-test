@@ -8,6 +8,7 @@ import { t } from '../../../i18n';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { paintChips, paintHeader, rowHtml } from './table';
 import { paintMap } from '../map';
+import { reportsFilterValue } from '../../../core/no-reports';
 
 interface SearchResult { total: number; filas?: AccountListRow[] }
 
@@ -23,7 +24,7 @@ function searchParams(): Record<string, unknown> {
   return {
     q: filters.q || null, f_provincia: filters.prov || null, f_municipio: filters.muni || null,
     f_estado: filters.est || null, f_especialidad: filters.esp || null, f_area: null,
-    f_urgentes: filters.urg, f_mios: Boolean(filters.mios), f_sin_visitar: Boolean(filters.sin), f_comercial: orNull(filters.com), f_reporting: orNull(filters.rep),
+    f_urgentes: filters.urg, f_mios: Boolean(filters.mios), f_sin_visitar: Boolean(filters.sin), f_comercial: orNull(filters.com), f_reporting: reportsFilterValue(filters.rep),
     ...(filters.tipo ? { f_tipo: filters.tipo } : {}),
     orden: filters.orden, lim: size, desplaz: filters.pagina * size,
     ...(Object.keys(filters.campos).length ? { f_campos: filters.campos } : {}),

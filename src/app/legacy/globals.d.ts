@@ -139,7 +139,7 @@ interface RecentContact { tipo: string; fecha: string; usuario?: string | null }
 declare function avisoRevisita(): { on: boolean; dias: number };
 
 declare function depCaducaPronto(isoDate: string | null | undefined): boolean;
-interface CardAccount { id: string; nombre: string; tipo?: string | null; codigo?: string | null; especialidad?: string | null; area?: string | null; urgente?: boolean | null; sin_reporting?: boolean | null; estado_comercial?: string | null; email?: string | null }
+interface CardAccount { id: string; nombre: string; tipo?: string | null; codigo?: string | null; especialidad?: string | null; area?: string | null; urgente?: boolean | null; sin_reporting?: boolean | null; clasificadores?: Record<string, unknown> | null; estado_comercial?: string | null; email?: string | null }
 interface CardConsultation extends Consultation { direccion?: string | null; cp?: string | null; planta?: string | null; sala?: string | null; indicaciones?: string | null; telefono?: string | null; dias?: Record<string, string | null> | null; lat?: number | null; lon?: number | null }
 interface CardVisit { id: string; fecha: string; modo?: string | null; resultados?: string[] | null; muestras?: number | null; nota?: string | null; proxima_fecha?: string | null; proxima_accion?: string | null }
 interface CardData { medico?: CardAccount; consultas?: CardConsultation[]; visitas?: CardVisit[]; comerciales?: string[] }
@@ -165,7 +165,7 @@ declare const F: AccountFilters;
 
 declare const ORD_DIR: Readonly<Record<string, string>>;
 interface CustomField { clave: string; nombre: string; tipo?: string | null; en_tabla?: boolean | null }
-interface AccountListRow extends AccountRow { sin_reporting?: boolean | null; dias?: Record<string, string | null> | null; ultima_visita?: string | null; telefono?: string | null; consulta_telefono?: string | null; clasificadores?: Record<string, unknown> | null; comerciales?: { nombre: string }[] | null; [key: string]: unknown }
+interface AccountListRow extends AccountRow { sin_reporting?: boolean | null; sin_informes?: boolean | null; dias?: Record<string, string | null> | null; ultima_visita?: string | null; telefono?: string | null; consulta_telefono?: string | null; clasificadores?: Record<string, unknown> | null; comerciales?: { nombre: string }[] | null; [key: string]: unknown }
 declare const CAMPOS: Record<string, CustomField[] | undefined>;
 
 // ---- Parque instalado (src/app/screens/equipment): contract warnings and kinds live in Concursos (not migrated yet)

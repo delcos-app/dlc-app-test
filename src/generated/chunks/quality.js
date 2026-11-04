@@ -242,21 +242,27 @@ async function paintDoubtfulAddresses() {
   });
 }
 
-// delcos-shared:src/app/services/date-format.ts
-var shared8 = globalThis["__delcosModules"]["services/date-format"];
+// delcos-shared:src/app/core/no-reports.ts
+var shared8 = globalThis["__delcosModules"]["core/no-reports"];
 var pick8 = (name) => shared8[name];
-var formatShortDate = /* @__PURE__ */ pick8("formatShortDate");
+var hasNoReports = /* @__PURE__ */ pick8("hasNoReports");
+var noReportsName = /* @__PURE__ */ pick8("noReportsName");
+
+// delcos-shared:src/app/services/date-format.ts
+var shared9 = globalThis["__delcosModules"]["services/date-format"];
+var pick9 = (name) => shared9[name];
+var formatShortDate = /* @__PURE__ */ pick9("formatShortDate");
 
 // delcos-shared:src/app/services/dates.ts
-var shared9 = globalThis["__delcosModules"]["services/dates"];
-var pick9 = (name) => shared9[name];
-var addDays = /* @__PURE__ */ pick9("addDays");
-var todayIso = /* @__PURE__ */ pick9("todayIso");
+var shared10 = globalThis["__delcosModules"]["services/dates"];
+var pick10 = (name) => shared10[name];
+var addDays = /* @__PURE__ */ pick10("addDays");
+var todayIso = /* @__PURE__ */ pick10("todayIso");
 
 // delcos-shared:src/app/screens/home/index.ts
-var shared10 = globalThis["__delcosModules"]["screens/home/index"];
-var pick10 = (name) => shared10[name];
-var load = /* @__PURE__ */ pick10("load");
+var shared11 = globalThis["__delcosModules"]["screens/home/index"];
+var pick11 = (name) => shared11[name];
+var load = /* @__PURE__ */ pick11("load");
 
 // src/app/screens/quality/follow-up.ts
 var POSTPONE_DAYS = 7;
@@ -270,7 +276,7 @@ var filterParams = () => ({
 var loadingHtml = (text) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text)}</span></div>`;
 function nameHtml(row) {
   const urgent = row.urgente ? `<span class="pill p-urg">${t("quality.followUp.urgent")}</span> ` : "";
-  const reporting = row.sin_reporting ? `<span class="pill p-sr" title="${t("quality.followUp.noReportingHelp", { visit: term("visita") })}">${t("quality.followUp.noReporting")}</span> ` : "";
+  const reporting = hasNoReports(row) ? `<span class="pill p-sr" title="${t("quality.followUp.noReportingHelp", { visit: term("visita") })}">${escapeHtml(noReportsName() ?? t("quality.followUp.noReporting"))}</span> ` : "";
   return `<span class="nm">${urgent}${reporting}${escapeHtml(row.nombre)}</span>`;
 }
 function nextActionHtml(row) {
@@ -358,9 +364,9 @@ async function paintFollowUp(restart) {
 }
 
 // delcos-shared:src/app/core/navigation/current.ts
-var shared11 = globalThis["__delcosModules"]["core/navigation/current"];
-var pick11 = (name) => shared11[name];
-var markCurrent = /* @__PURE__ */ pick11("markCurrent");
+var shared12 = globalThis["__delcosModules"]["core/navigation/current"];
+var pick12 = (name) => shared12[name];
+var markCurrent = /* @__PURE__ */ pick12("markCurrent");
 
 // src/app/screens/quality/page.ts
 var MODES = [["todos", "quality.page.showAll"], ["visitados", "quality.page.showVisited"], ["sin_visitar", "quality.page.showNotVisited"], ["con_accion", "quality.page.showWithAction"], ["atrasados", "quality.page.showLate"]];

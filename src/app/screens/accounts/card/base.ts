@@ -5,6 +5,7 @@
  */
 import { accountCardLegacy, cachedRpc, cardBaseLegacy, term } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
+import { hasNoReports, noReportsName } from '../../../core/no-reports';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
@@ -18,7 +19,8 @@ const body = (): HTMLElement | null => document.getElementById('fbody');
 
 function headerHtml(account: CardAccount): string {
   const urgent = account.urgente ? `<span class="pill p-urg">${t('accounts.base.urgent')}</span> ` : '';
-  const noReporting = account.sin_reporting ? `<span class="pill p-sr" title="${t('accounts.base.noReportingTitle', { visit: term('visita') })}">${t('accounts.base.noReporting')}</span> ` : '';
+  // v2.466.0 (PPR-1): from the field «No recibe informes» (its name: DLC «Sin reporting»)
+  const noReporting = hasNoReports(account) ? `<span class="pill p-sr" title="${t('accounts.base.noReportingTitle', { visit: term('visita') })}">${escapeHtml(noReportsName() ?? t('accounts.base.noReporting'))}</span> ` : '';
   return `<div class="fh">
       <div><h2>${urgent}${noReporting}${escapeHtml(account.nombre)}</h2>
         <div class="sm">${escapeHtml(account.especialidad ?? '')}${account.area ? ` · ${escapeHtml(account.area)}` : ''}${t('accounts.base.code', { code: escapeHtml(account.codigo) })}</div></div>
