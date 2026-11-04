@@ -5,6 +5,7 @@
  */
 import { agendaActions, appLegacy, callRpc, currentScreen, editorLegacy, legacyDb, notices, permissions, portalLegacy, term } from '../../legacy/bridge';
 import { customersLegacy } from '../../legacy/customers-bridge';
+import { customerDataHtml } from '../../components/customer-data';
 import { t } from '../../i18n';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
@@ -36,12 +37,13 @@ function professionalHtml(professional: Professional | null | undefined, canSell
     </div>`;
 }
 
+/** The customer data block (D-046) and, under it, the note if there is one. */
 function contactHtml(customer: Customer): string {
-  const lines: [string, string | null | undefined][] = [[t('customers.sheet.phone'), customer.telefono], [t('customers.sheet.mobile'), customer.movil], [t('customers.sheet.email'), customer.email],
-    [t('customers.sheet.address'), [customer.direccion, customer.cp, customer.municipio, customer.provincia].filter(Boolean).join(', ')], [t('customers.sheet.note'), customer.nota]];
+  const data = customerDataHtml(customer, 'bloque');
+  if (!data && !customer.nota) return '';
   return `<div class="blk"><h3>${t('customers.sheet.contact')}</h3>
-      ${lines.filter(line => line[1]).map(([label, value]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value)}</div>`).join('')
-        || `<div class="sm">${t('customers.sheet.noContact')}</div>`}</div>`;
+      ${data}
+      ${customer.nota ? `<div class="sm u-mt-6">${t('customers.sheet.note')}: ${escapeHtml(customer.nota)}</div>` : ''}</div>`;
 }
 
 const orderHtml = (order: CustomerOrder): string => `<button class="item" data-fpped="${order.id}" style="padding:8px 4px">

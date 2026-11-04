@@ -5,6 +5,7 @@
 import { appLegacy, callRpc, currentScreen, legacyDb, notices, term } from '../../../legacy/bridge';
 import { customersLegacy } from '../../../legacy/customers-bridge';
 import { orderSheetLegacy, ordersLegacy } from '../../../legacy/orders-bridge';
+import { customerDataHtml } from '../../../components/customer-data';
 import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml, formatNumber } from '../../../services/format';
@@ -29,7 +30,7 @@ function lineHtml(line: OrderLine): string {
 function peopleHtml(detail: OrderDetail): string {
   const contact = detail.contacto, professional = detail.medico, firstLine = (detail.lineas ?? [])[0];
   return `${contact ? `<div class="blk"><h3>${term('paciente', { capital: 'C' })}</h3><div><b>${escapeHtml(contact.nombre)}</b></div>
-      <div class="sm">${escapeHtml(orFallback(contact.telefono, contact.movil ?? ''))} ${escapeHtml(contact.email ?? '')}</div>
+      ${customerDataHtml(contact, 'bloque')}
       <div class="acts"><button class="btn sec" data-vpac="${contact.id}">${t('orders.sheet.seeCustomer', { customer: term('paciente', { article: 'del' }) })}</button></div></div>` : ''}
     ${professional ? `<div class="blk"><h3>${term('medico', { capital: 'C' })}</h3><div><b>${escapeHtml(professional.nombre)}</b> <span class="sm">${t('orders.sheet.code', { code: escapeHtml(professional.codigo) })}</span></div>
       ${firstLine?.comercial ? `<div class="sm">${t('orders.sheet.salesperson', { name: escapeHtml(firstLine.comercial) })}</div>` : ''}</div>` : ''}`;

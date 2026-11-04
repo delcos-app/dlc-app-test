@@ -5,6 +5,7 @@
  */
 import * as componentsChartsMonthBars from '../../components/charts/month-bars';
 import * as componentsChartsSmallCharts from '../../components/charts/small-charts';
+import * as componentsCustomerData from '../../components/customer-data';
 import * as componentsFiltersPanelCounter from '../../components/filters-panel/counter';
 import * as componentsFiltersPanelPrepare from '../../components/filters-panel/prepare';
 import * as componentsFiltersMemory from '../../components/filters/memory';
@@ -93,6 +94,7 @@ import * as servicesValues from '../../services/values';
 export const sharedModules = (): Record<string, object> => ({
   'components/charts/month-bars': componentsChartsMonthBars,
   'components/charts/small-charts': componentsChartsSmallCharts,
+  'components/customer-data': componentsCustomerData,
   'components/filters-panel/counter': componentsFiltersPanelCounter,
   'components/filters-panel/prepare': componentsFiltersPanelPrepare,
   'components/filters/memory': componentsFiltersMemory,

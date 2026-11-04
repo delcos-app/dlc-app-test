@@ -1,7 +1,8 @@
 /** What the opportunity window is editing: the opportunity (or its starting data) and what the user chooses in it. */
+import type { CustomerDataSource } from '../../../components/customer-data';
 import type { InterestLine } from '../model';
 
-export interface Client { id: string; nombre?: string | null; movil?: string | null; telefono?: string | null; tel?: string | null; nif?: string | null; cuenta_id?: string | null; medico?: string | null }
+export interface Client extends CustomerDataSource { id: string; nombre?: string | null; movil?: string | null; telefono?: string | null; tel?: string | null; nif?: string | null; cuenta_id?: string | null; medico?: string | null }
 export interface Reference { id: string; nombre?: string }
 
 /** An opportunity as listed, or the data to start one ({ contacto, medico, interes, origen… }). */

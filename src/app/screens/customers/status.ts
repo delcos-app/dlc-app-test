@@ -23,13 +23,16 @@ export async function setCustomerOff(id: string, off: boolean): Promise<boolean>
   return true;
 }
 
-export interface FoundCustomer { id: string; nombre: string; telefono?: string | null; movil?: string | null; email?: string | null; nif?: string | null; cuenta_id?: string | null }
+export interface FoundCustomer {
+  id: string; nombre: string; telefono?: string | null; movil?: string | null; email?: string | null; nif?: string | null; cuenta_id?: string | null;
+  direccion?: string | null; cp?: string | null; municipio?: string | null; provincia?: string | null;
+}
 
 /** Customers whose name, phone, mobile or tax id contains `text` (at most 8). */
 export async function searchCustomers(text: string): Promise<FoundCustomer[]> {
   const clean = text.trim().replace(/[,()]/g, ' ');
   if (clean.length < MIN_LETTERS) return [];
-  const { data } = await legacyDb().from<FoundCustomer[]>('contactos').select('id,nombre,telefono,movil,email,nif,cuenta_id')
+  const { data } = await legacyDb().from<FoundCustomer[]>('contactos').select('id,nombre,telefono,movil,email,nif,cuenta_id,direccion,cp,municipio,provincia')
     .or(`nombre.ilike.%${clean}%,telefono.ilike.%${clean}%,movil.ilike.%${clean}%,nif.ilike.%${clean}%`).limit(SHOWN);
   return data ?? [];
 }

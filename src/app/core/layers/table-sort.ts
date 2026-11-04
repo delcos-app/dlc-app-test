@@ -15,7 +15,7 @@ const headerCell = (target: EventTarget | null): Element | null => {
 /** Lists sorted by the database: their first page again, with the new order. */
 function reloadServerSorted(kind: string, grid: Element): void {
   if (kind === 'peds2') { sortLegacy.setOrdersPage(0); sortLegacy.listOrders(); }
-  if (kind === 'pacs') { sortLegacy.setCustomersPage(0); sortLegacy.listCustomers(); }
+  if (kind === 'pacs2') { sortLegacy.setCustomersPage(0); sortLegacy.listCustomers(); }
   sortLegacy.markHeader(grid);
 }
 

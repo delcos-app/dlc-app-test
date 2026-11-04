@@ -358,6 +358,10 @@
     columnCells: () => columnCells,
     columnHeaders: () => columnHeaders,
     confirmAction: () => confirmAction,
+    customerDataCell: () => customerDataCell,
+    customerDataFields: () => customerDataFields,
+    customerDataHtml: () => customerDataHtml,
+    customerDataLines: () => customerDataLines,
     donut: () => donut,
     emptyChart: () => emptyChart,
     enhanceFields: () => enhanceFields,
@@ -3071,6 +3075,12 @@
     help: {
       label: "Ayuda"
     },
+    customerData: {
+      address: "Dirección",
+      place: "CP y población",
+      phone: "Teléfono",
+      email: "Email"
+    },
     loading: {
       default: "Cargando…",
       everything: "Un momento: se está cargando todo de nuevo"
@@ -4437,12 +4447,13 @@
       subtitle: "{Patients} y empresas que compran: con qué {professional} y su historial",
       newCustomer: "+ Nuevo cliente",
       searching: "Buscando clientes…",
-      couldNotLoad: "No se ha podido cargar: {error}",
+      couldNotLoad: "No se ha podido cargar la lista. {error}",
+      retry: "Volver a intentarlo",
       oneCustomer: "cliente",
       customers: "clientes",
       loading: "Cargando…",
       search: "Buscar",
-      searchPlaceholder: "Nombre, teléfono, email, DNI o CIF",
+      searchPlaceholder: "Busca por nombre, DNI/CIF, teléfono, email, población o {professional}",
       type: "Tipo",
       all: "Todos",
       persons: "Personas ({patients})",
@@ -4454,13 +4465,12 @@
       allTowns: "Todas",
       customer: "Cliente",
       taxId: "DNI / CIF",
-      phone: "Teléfono",
-      email: "Email",
       salesRep: "Comercial",
       units: "Uds.",
       lastOrder: "Último pedido",
       unassigned: "Sin asignar",
-      none: "Ningún cliente con estos filtros."
+      none: "Ningún cliente con estos filtros.",
+      noMatches: "{none} coincide con «{text}»."
     },
     picker: {
       placeholder: "Nombre, teléfono o DNI",
@@ -4469,10 +4479,6 @@
       noMatches: "Sin coincidencias. Créalo con «+ Nuevo»."
     },
     card: {
-      noAddress: "Sin dirección de entrega",
-      taxIdCompany: "CIF {taxId}",
-      taxIdPerson: "DNI {taxId}",
-      noTaxId: "Sin DNI",
       remove: "Quitar"
     },
     sheet: {
@@ -4492,12 +4498,7 @@
       assign: "Asignar {professional}",
       removeProfessional: "Quitar {professional}",
       contact: "Contacto",
-      phone: "Teléfono",
-      mobile: "Móvil",
-      email: "Email",
-      address: "Dirección",
       note: "Nota",
-      noContact: "Sin datos de contacto.",
       ordersTitle: "Pedidos",
       noProducts: "Sin productos",
       orderLine: "{units} uds. · {total} con IVA",
@@ -7890,17 +7891,17 @@
     const table = document.getElementById("rolperm");
     if (!table) return;
     button3.disabled = true;
-    let failed4 = false;
+    let failed5 = false;
     for (const role of roles2) {
       const list = [...table.querySelectorAll(`[data-prol="${CSS.escape(role)}"]:checked`)].map((input6) => input6.dataset.pcap ?? "");
       const { data, error } = await legacyDb().rpc("guardar_permisos_rol", { p_rol: role, p_permisos: list });
-      if (error || data?.ok === false) failed4 = true;
+      if (error || data?.ok === false) failed5 = true;
     }
     button3.disabled = false;
     await settingsMoreLegacy.reloadRoles();
     const { data: me } = await legacyDb().from("perfiles").select("capacidades").eq("id", settingsMoreLegacy.profileId()).single();
     if (Array.isArray(me?.capacidades)) settingsMoreLegacy.setCapabilities(me.capacidades);
-    notices.toast(t(failed4 ? "settingsMore.roles.someNotSaved" : "settingsMore.roles.permissionsSaved"), failed4);
+    notices.toast(t(failed5 ? "settingsMore.roles.someNotSaved" : "settingsMore.roles.permissionsSaved"), failed5);
   }
   function bind2(box3, roles2) {
     const colour = () => {
@@ -9272,9 +9273,9 @@
         ok: (sent2) => {
           message.textContent = sent2;
         },
-        err: (failed4) => {
+        err: (failed5) => {
           const line2 = message.querySelector("span");
-          if (line2) line2.textContent = failed4;
+          if (line2) line2.textContent = failed5;
           button3.disabled = false;
         }
       });
@@ -13277,6 +13278,59 @@
     return result?.id ?? null;
   }
 
+  // src/app/components/customer-data.ts
+  var customer_data_exports = {};
+  __export(customer_data_exports, {
+    customerDataCell: () => customerDataCell,
+    customerDataFields: () => customerDataFields,
+    customerDataHtml: () => customerDataHtml,
+    customerDataLines: () => customerDataLines
+  });
+  var clean = (value10) => (value10 ?? "").trim();
+  function placeOf(customer) {
+    const town = clean(customer.municipio), province = clean(customer.provincia);
+    const place3 = [clean(customer.cp), town].filter(Boolean).join(" ");
+    return province && province.toLowerCase() !== town.toLowerCase() ? [place3, province].filter(Boolean).join(", ") : place3;
+  }
+  function phonesOf(customer) {
+    const digits2 = (value10) => value10.replace(/\D/g, "");
+    const phones = [];
+    [customer.movil, customer.telefono, customer.tel].map(clean).filter(Boolean).forEach((phone) => {
+      if (!phones.some((known) => digits2(known) === digits2(phone))) phones.push(phone);
+    });
+    return phones.join(" / ");
+  }
+  function customerDataFields(customer) {
+    return [
+      { key: "direccion", label: t("components.customerData.address"), value: clean(customer.direccion) },
+      { key: "poblacion", label: t("components.customerData.place"), value: placeOf(customer) },
+      { key: "telefono", label: t("components.customerData.phone"), value: phonesOf(customer) },
+      { key: "email", label: t("components.customerData.email"), value: clean(customer.email) }
+    ];
+  }
+  function breakable(field10) {
+    const text = escapeHtml(field10.value);
+    if (field10.key === "telefono") return text.split(" / ").map((phone) => phone.replace(/ /g, "&nbsp;")).join(" / ");
+    if (field10.key === "email") return text.replace(/@/g, "@<wbr>").replace(/\./g, "<wbr>.");
+    return text;
+  }
+  var valueHtml2 = (field10) => `<span data-cd="${field10.key}">${breakable(field10)}</span>`;
+  var customerDataCell = (field10) => field10.value ? valueHtml2(field10) : "";
+  var joined = (fields, render2) => fields.filter((field10) => field10.value).map(render2).join(" · ");
+  function customerDataLines(customer) {
+    const fields = customerDataFields(customer), text = (field10) => field10.value;
+    return [joined(fields.slice(0, 2), text), joined(fields.slice(2), text)];
+  }
+  function customerDataHtml(customer, form = "compacto") {
+    const fields = customerDataFields(customer);
+    if (!fields.some((field10) => field10.value)) return "";
+    if (form === "bloque") {
+      return `<span class="cdatos bloque" data-cdatos>${fields.filter((field10) => field10.value).map((field10) => `<span class="sm">${field10.label}</span>${valueHtml2(field10)}`).join("")}</span>`;
+    }
+    const lines2 = [joined(fields.slice(0, 2), valueHtml2), joined(fields.slice(2), valueHtml2)].filter(Boolean);
+    return `<span class="cdatos" data-cdatos>${lines2.map((line2) => `<span>${line2}</span>`).join("")}</span>`;
+  }
+
   // src/app/screens/opportunities/editor/draft.ts
   var typedQuery = () => document.getElementById("nvq")?.value.trim() ?? "";
   var fieldValue2 = (id) => {
@@ -13355,7 +13409,6 @@
   var SEARCH_WAIT_MS2 = 250;
   var ORDERS_SHOWN = 20;
   var CALLS_SHOWN = 5;
-  var phoneOf = (client2) => orFallback(client2.movil, orFallback(client2.telefono, orFallback(client2.tel, "")));
   var orderTotal = (order) => sum(order.lineas_pedido.map((line2) => (Number(line2.importe) || 0) * (1 + (Number(line2.iva) || 0) / 100)));
   var productName = (id) => opportunitiesLegacy.products().find((product) => product.id === id)?.nombre ?? t("opportunities.editor.defaultProduct");
   async function pastOrders(clientId) {
@@ -13416,7 +13469,7 @@
     }
     paintClient(draft);
   }
-  var resultHtml = (client2) => `<button type="button" class="item" data-nvc="${client2.id}"><span class="tx"><b>${escapeHtml(orFallback(client2.nombre, ""))}</b><span class="sm">${escapeHtml([orFallback(client2.movil, orFallback(client2.telefono, "")), client2.nif].filter(Boolean).join(" · "))}</span></span></button>`;
+  var resultHtml = (client2) => `<button type="button" class="item" data-nvc="${client2.id}"><span class="tx"><b>${escapeHtml(orFallback(client2.nombre, ""))}</b>${customerDataHtml(client2)}</span></button>`;
   var searchTimer;
   async function search(draft) {
     const found = await opportunitiesLegacy.searchClients(typedQuery()), box3 = document.getElementById("nvres1");
@@ -13429,7 +13482,7 @@
     });
   }
   function chosenHtml(draft, client2) {
-    return `<div class="clisel"><span><b>${escapeHtml(orFallback(client2.nombre, ""))}</b><span class="sm">${escapeHtml([phoneOf(client2), client2.nif].filter(Boolean).join(" · "))}</span></span>
+    return `<div class="clisel"><span><b>${escapeHtml(orFallback(client2.nombre, ""))}</b>${customerDataHtml(client2, "bloque")}</span>
         ${draft.closed ? "" : `<button type="button" class="btn sec" id="nvcamb">${t("opportunities.editor.change")}</button>`}</div>`;
   }
   function searchHtml(draft) {
@@ -13462,6 +13515,13 @@
       document.getElementById("dlg")?.close();
       opportunitiesLegacy.editOrder();
     };
+  }
+  var DATA_COLUMNS = "direccion,cp,municipio,provincia,telefono,movil,email";
+  async function completeClient(draft) {
+    const client2 = draft.client;
+    if (!client2?.id || client2.direccion !== void 0) return;
+    const { data } = await legacyDb().from("contactos").select(DATA_COLUMNS).eq("id", client2.id).maybeSingle();
+    if (data && draft.client === client2) draft.client = { ...client2, ...data, movil: orFallback(data.movil, client2.movil ?? "") };
   }
   function paintClient(draft) {
     const box3 = document.getElementById("nvcli");
@@ -13732,6 +13792,7 @@
     await opportunitiesLegacy.loadProducts();
     if (permissions.hasOpportunities()) await loadOpportunityCatalogs();
     const draft = draftOf(start3, previous);
+    await completeClient(draft);
     const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
     if (!body3 || !box3) return;
     body3.innerHTML = editorHtml4(draft);
@@ -14700,21 +14761,11 @@
     professional: term("medico"),
     Professional: term("medico", { capital: "C" })
   });
-  var phoneOf2 = (customer) => orFallback(customer.telefono, customer.movil ?? "");
   var textOrNull = (value10) => orFallback(value10, "") || null;
-  var deliveryAddress = (customer) => [customer.direccion, [customer.cp, customer.municipio].filter(Boolean).join(" "), customer.provincia].filter(Boolean).join(", ");
-  function taxIdText(customer) {
-    if (!customer.nif) return t("customers.card.noTaxId");
-    return t(customer.tipo === TYPES.company ? "customers.card.taxIdCompany" : "customers.card.taxIdPerson", { taxId: customer.nif });
-  }
   function customerCard(customer) {
-    const address = deliveryAddress(customer);
-    const contact = [taxIdText(customer), customer.email, phoneOf2(customer)].filter(Boolean).join(" · ");
     return `<div class="selcard"><span class="ic">🧑</span>
   <span class="tx"><b>${escapeHtml(customer.nombre)}</b>
-    ${address ? `<span class="sm">📦 ${escapeHtml(address)}</span>` : `<span class="sm u-warn">${t("customers.card.noAddress")}</span>`}
-    <span class="sm">${escapeHtml(contact)}</span>
-    ${customer.medico ? `<span class="sm">${term("medico", { capital: "C" })}: ${escapeHtml(customer.medico)}</span>` : ""}</span>
+    ${customerDataHtml(customer, "bloque")}</span>
   <button type="button" class="sx" aria-label="${t("customers.card.remove")}">✕</button></div>`;
   }
   function listParams() {
@@ -14791,9 +14842,9 @@
       return;
     }
     if (!await confirmAction(confirmText(simulation), { titulo: t("privacy.confirmTitle"), ok: t("privacy.confirmOk"), peligro: true })) return;
-    const { error: failed4 } = await callRpc("rgpd_anonimizar", { p_tipo: kind, p_id: id, p_simular: false });
-    if (failed4) {
-      notices.toast(errorText2(failed4, "privacy.couldNotAnonymise"), true);
+    const { error: failed5 } = await callRpc("rgpd_anonimizar", { p_tipo: kind, p_id: id, p_simular: false });
+    if (failed5) {
+      notices.toast(errorText2(failed5, "privacy.couldNotAnonymise"), true);
       return;
     }
     notices.toast(t("privacy.done"));
@@ -14832,15 +14883,11 @@
     </div>`;
   }
   function contactHtml(customer) {
-    const lines2 = [
-      [t("customers.sheet.phone"), customer.telefono],
-      [t("customers.sheet.mobile"), customer.movil],
-      [t("customers.sheet.email"), customer.email],
-      [t("customers.sheet.address"), [customer.direccion, customer.cp, customer.municipio, customer.provincia].filter(Boolean).join(", ")],
-      [t("customers.sheet.note"), customer.nota]
-    ];
+    const data = customerDataHtml(customer, "bloque");
+    if (!data && !customer.nota) return "";
     return `<div class="blk"><h3>${t("customers.sheet.contact")}</h3>
-      ${lines2.filter((line2) => line2[1]).map(([label, value10]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value10)}</div>`).join("") || `<div class="sm">${t("customers.sheet.noContact")}</div>`}</div>`;
+      ${data}
+      ${customer.nota ? `<div class="sm u-mt-6">${t("customers.sheet.note")}: ${escapeHtml(customer.nota)}</div>` : ""}</div>`;
   }
   var orderHtml = (order) => `<button class="item" data-fpped="${order.id}" style="padding:8px 4px">
         <span class="tx"><b>${formatShortDate(order.fecha)} · ${escapeHtml(orFallback(order.productos, t("customers.sheet.noProducts")))}</b>
@@ -14955,7 +15002,7 @@
   var empty = '<span class="vac">—</span>';
   var shown = (value10) => value10 ? escapeHtml(value10) : empty;
   function headerHtml(fields) {
-    const titles = [t("customers.list.customer"), t("customers.list.type"), t("customers.list.taxId"), t("customers.list.phone"), t("customers.list.email"), t("customers.list.town")];
+    const titles = [t("customers.list.customer"), t("customers.list.type"), t("customers.list.taxId"), ...customerDataFields({}).map((field10) => field10.label)];
     return `<div class="dh">${titles.map((title2) => `<span>${title2}</span>`).join("")}
       <span>${words5().Professional}</span><span>${t("customers.list.salesRep")}</span><span class="num">${t("customers.list.orders")}</span><span class="num">${t("customers.list.units")}</span><span>${t("customers.list.lastOrder")}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
   }
@@ -14964,21 +15011,26 @@
     return `<button class="dr" data-pac="${row3.id}">
       <span><b>${escapeHtml(row3.nombre)}</b></span>
       <span><span class="pill ${company ? "p-emp" : "p-per"}">${company ? t("customers.company") : words5().Patient}</span></span>
-      <span>${shown(row3.nif)}</span><span>${shown(phoneOf2(row3))}</span><span class="corta">${shown(row3.email)}</span><span>${shown(row3.municipio)}</span>
+      <span>${shown(row3.nif)}</span>${customerDataFields(row3).map((field10) => `<span class="corta">${customerDataCell(field10)}</span>`).join("")}
       <span class="corta">${row3.medico ? escapeHtml(row3.medico) : `<span class="vac">${t("customers.list.unassigned")}</span>`}</span><span>${shown(row3.comercial)}</span>
       <span class="num">${formatNumber(row3.pedidos)}</span><span class="num"><b>${formatNumber(row3.unidades)}</b></span>
       <span>${row3.ultimo_pedido ? formatShortDate(row3.ultimo_pedido) : empty}</span>${fields.map((field10) => `<span>${shown(accountColumnsLegacy.fieldText(field10, values2[field10.clave]))}</span>`).join("")}
     </button>`;
+  }
+  function emptyHtml() {
+    const text = customersLegacy.filters().q.trim();
+    const message = text ? t("customers.list.noMatches", { none: term("paciente", { article: "ningun", articleCapital: "C" }), text: escapeHtml(text) }) : t("customers.list.none");
+    return `<div class="vacio">${message}</div>`;
   }
   function paintRows(page) {
     const count = document.getElementById("paccuenta"), list = document.getElementById("paclista");
     if (!count || !list) return;
     count.innerHTML = `<b>${formatNumber(page.total)}</b> ${page.total === 1 ? t("customers.list.oneCustomer") : t("customers.list.customers")}`;
     const rows2 = page.filas ?? [], fields = customersLegacy.visibleFieldColumns();
-    list.innerHTML = rows2.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
+    list.innerHTML = rows2.length ? `<div class="dgrid-wrap"><div class="dgrid pacs2">
     ${headerHtml(fields)}
-    ${rows2.map((row3) => rowHtml5(row3, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
-    customersLegacy.widenGrid(list.querySelector(".dgrid.pacs"), fields.length);
+    ${rows2.map((row3) => rowHtml5(row3, fields)).join("")}</div></div>` : emptyHtml();
+    customersLegacy.widenGrid(list.querySelector(".dgrid.pacs2"), fields.length);
     list.querySelectorAll("[data-pac]").forEach((button3) => {
       button3.onclick = () => {
         void showCustomer(button3.dataset.pac ?? "");
@@ -14999,23 +15051,52 @@
       }
     });
   }
+  async function withAddresses(page) {
+    const rows2 = page.filas ?? [];
+    if (!rows2.length || rows2.every((row3) => row3.direccion !== void 0)) return page;
+    const { data } = await legacyDb().from("contactos").select("id,direccion,cp,provincia").in("id", rows2.map((row3) => row3.id));
+    const byId22 = new Map((data ?? []).map((item) => [item.id, item]));
+    return { ...page, filas: rows2.map((row3) => ({ ...row3, ...byId22.get(row3.id) })) };
+  }
+  function paintFailure(error) {
+    const count = document.getElementById("paccuenta"), list = document.getElementById("paclista"), pages4 = document.getElementById("pacpag");
+    if (count) count.textContent = "";
+    if (pages4) pages4.innerHTML = "";
+    if (!list) return;
+    const detail = error?.message ?? "";
+    list.innerHTML = `<div class="vacio" data-fallo>${escapeHtml(t("customers.list.couldNotLoad", { error: detail }))}<br><button class="btn sec u-mt-10" type="button" id="pacreint">${t("customers.list.retry")}</button></div>`;
+    const retry = document.getElementById("pacreint");
+    if (retry) retry.onclick = () => {
+      void listCustomers();
+    };
+  }
+  var latestRequest = 0;
+  async function answerOf2(answer) {
+    try {
+      return await (answer ?? legacyDb().rpc("clientes_lista", listParams()));
+    } catch (error) {
+      return { data: null, error };
+    }
+  }
   async function listCustomers(answer) {
+    const request2 = ++latestRequest;
     customersLegacy.showLoading(document.getElementById("paclista"), t("customers.list.searching"));
-    const { data, error } = await (answer ?? legacyDb().rpc("clientes_lista", listParams()));
+    const { data, error } = await answerOf2(answer);
+    if (request2 !== latestRequest) return;
     if (error || !data) {
-      const count = document.getElementById("paccuenta"), list = document.getElementById("paclista");
-      if (count) count.textContent = t("customers.list.couldNotLoad", { error: error?.message ?? "" });
-      if (list) list.innerHTML = "";
+      paintFailure(error);
       return;
     }
-    paintRows(data);
+    const withRows = await withAddresses(data).catch(() => data);
+    if (request2 !== latestRequest) return;
+    paintRows(withRows);
   }
   var option = (value10, label, chosen4) => `<option value="${escapeHtml(value10)}" ${chosen4 === value10 ? "selected" : ""}>${label}</option>`;
   function filtersHtml(towns) {
     const filters3 = customersLegacy.filters();
     filters3.campos ?? (filters3.campos = {});
     return `<div class="filtros">
-        <div><label for="pacq">${t("customers.list.search")}</label><input id="pacq" type="search" value="${escapeHtml(filters3.q)}" placeholder="${t("customers.list.searchPlaceholder")}"></div>
+        <div><label for="pacq">${t("customers.list.search")}</label><input id="pacq" type="search" value="${escapeHtml(filters3.q)}" placeholder="${escapeHtml(t("customers.list.searchPlaceholder", words5()))}"></div>
         <div><label for="pactipo">${t("customers.list.type")}</label><select id="pactipo">
           <option value="">${t("customers.list.all")}</option>${option(TYPES.person, t("customers.list.persons", words5()), filters3.tipo)}
           ${option(TYPES.company, t("customers.list.companies"), filters3.tipo)}</select></div>
@@ -15107,7 +15188,7 @@
   var WAIT_MS = 250;
   var SHOWN3 = 8;
   var foundRow = (item, index) => `<button type="button" data-pc="${index}"><span class="gic">🧑</span>
-          <span><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml([phoneOf2(item), item.nif, item.municipio, item.medico].filter(Boolean).join(" · "))}</span></span></button>`;
+          <span><b>${escapeHtml(item.nombre)}</b>${customerDataHtml(item)}</span></button>`;
   var CustomerPicker = class {
     constructor(element, options3) {
       this.element = element;
@@ -15199,9 +15280,9 @@
     return true;
   }
   async function searchCustomers(text) {
-    const clean = text.trim().replace(/[,()]/g, " ");
-    if (clean.length < MIN_LETTERS2) return [];
-    const { data } = await legacyDb().from("contactos").select("id,nombre,telefono,movil,email,nif,cuenta_id").or(`nombre.ilike.%${clean}%,telefono.ilike.%${clean}%,movil.ilike.%${clean}%,nif.ilike.%${clean}%`).limit(SHOWN4);
+    const clean2 = text.trim().replace(/[,()]/g, " ");
+    if (clean2.length < MIN_LETTERS2) return [];
+    const { data } = await legacyDb().from("contactos").select("id,nombre,telefono,movil,email,nif,cuenta_id,direccion,cp,municipio,provincia").or(`nombre.ilike.%${clean2}%,telefono.ilike.%${clean2}%,movil.ilike.%${clean2}%,nif.ilike.%${clean2}%`).limit(SHOWN4);
     return data ?? [];
   }
 
@@ -15333,13 +15414,13 @@
     return Number.isNaN(value10) ? null : value10;
   }
   function cellValue2(text) {
-    const clean = (text ? String(text) : "").replace(/\s+/g, " ").trim();
-    if (!clean || clean === "—" || clean === "-") return {};
-    const date = dateOf(clean);
+    const clean2 = (text ? String(text) : "").replace(/\s+/g, " ").trim();
+    if (!clean2 || clean2 === "—" || clean2 === "-") return {};
+    const date = dateOf(clean2);
     if (date) return { f: date };
-    const value10 = numberOf2(clean);
+    const value10 = numberOf2(clean2);
     if (value10 !== null) return { n: value10 };
-    return { t: clean.toLowerCase() };
+    return { t: clean2.toLowerCase() };
   }
   var isEmpty = (value10) => value10.n === void 0 && value10.f === void 0 && value10.t === void 0;
   var asText = (value10) => String(value10.t ?? value10.n ?? value10.f);
@@ -16645,10 +16726,14 @@
   }
   function card2(row3) {
     const cells = row3.children, text = (index) => (cells[index]?.textContent ?? "").trim();
-    return { a: text(0), b: [text(5), text(3)].filter((value10) => value10 && value10 !== "—").join(" · "), c: cells[1]?.innerHTML ?? "" };
+    const value10 = (key) => (row3.querySelector(`[data-cd="${key}"]`)?.textContent ?? "").trim();
+    const line2 = (keys) => keys.map(value10).filter(Boolean).join(" · ");
+    return { a: text(0), b: line2(["direccion", "poblacion"]), c: cells[1]?.innerHTML ?? "", d: line2(["telefono", "email"]) };
   }
   var customersConfig = () => ({
     que: () => t("listBar.customers.what"),
+    // v2.467.0: the search says where it looks
+    buscaTxt: () => t("customers.list.searchPlaceholder", { professional: term("medico") }),
     nuevo: () => byId8("pacnuevo"),
     cuerpo: () => byId8("paclista"),
     tabla: () => byId8("paclista"),
@@ -17078,6 +17163,7 @@
     const pages4 = section.querySelector(".pltab .pag > span, .pag > span");
     return pages4 ? /de\s+([\d.]+)/.exec(pages4.textContent ?? "") : null;
   }
+  var failed2 = (config) => Boolean(config.cuerpo()?.querySelector(":scope > .vacio[data-fallo]"));
   function screenCount(section, config) {
     const own = config.cuenta();
     if (own && /\d/.test(own.textContent ?? "")) return own.innerHTML.replace(/<span class="sm">[\s\S]*?<\/span>/, "").trim();
@@ -17091,7 +17177,7 @@
     return counted(formatNumber(grid.querySelectorAll(":scope > .dr:not(.htfuera):not(.plgfuera)").length), config);
   }
   function countHtml(section, config) {
-    const html = config.bloques ? blockCount(section, config) : screenCount(section, config);
+    const html = config.bloques ? blockCount(section, config) : failed2(config) ? counted("—", config) : screenCount(section, config);
     return html.replace(/\sid="cercacerrar"/g, " data-cercavolver");
   }
 
@@ -18272,7 +18358,7 @@
     });
     return days;
   }
-  var placeOf = (known) => ({ centro_id: known.centro_id, ubicacion_id: known.id, nombre: known.nombre, direccion: known.direccion, municipio: known.municipio, dias: {} });
+  var placeOf2 = (known) => ({ centro_id: known.centro_id, ubicacion_id: known.id, nombre: known.nombre, direccion: known.direccion, municipio: known.municipio, dias: {} });
   var contactOf = (sent2, account) => ({ telefono: sent2.telefono ?? account.telefono ?? "", email: sent2.email ?? account.email ?? "" });
   function loadForm(saved3) {
     const answer = saved3;
@@ -18280,7 +18366,7 @@
     portalState.proposal = answer.propuesta ?? null;
     portalState.places = answer.ubicaciones ?? [];
     const sent2 = portalState.proposal?.datos ?? {};
-    const places = sent2.consultas ?? portalState.places.map((known) => ({ ...placeOf(known), dias: known.dias }));
+    const places = sent2.consultas ?? portalState.places.map((known) => ({ ...placeOf2(known), dias: known.dias }));
     portalState.form = {
       ...contactOf(sent2, answer.cuenta ?? {}),
       consultas: places.map((place3) => ({ ...place3, dias: daysOf(place3.dias) })),
@@ -21302,10 +21388,10 @@
       }
       if (problem) return;
       ok.disabled = true;
-      const { error: failed4 } = await legacyDb().from("productos").update({ packs: list.length ? list.sort((first, second) => first.compra - second.compra) : null, pvp_recomendado: price }).eq("id", productId);
+      const { error: failed5 } = await legacyDb().from("productos").update({ packs: list.length ? list.sort((first, second) => first.compra - second.compra) : null, pvp_recomendado: price }).eq("id", productId);
       ok.disabled = false;
-      if (failed4) {
-        notices.toast(t("productsMore.packs.couldNotSave", { error: errorMessage(failed4) }), true);
+      if (failed5) {
+        notices.toast(t("productsMore.packs.couldNotSave", { error: errorMessage(failed5) }), true);
         return;
       }
       packs = list;
@@ -24470,11 +24556,11 @@
   }
 
   // src/app/screens/purchases/suppliers.ts
-  var joined = (values2) => values2.filter(Boolean).join(" · ");
+  var joined2 = (values2) => values2.filter(Boolean).join(" · ");
   function rowHtml13(supplier) {
     return `<button class="dr" data-prov="${supplier.id ?? ""}" style="${supplier.activo ? "" : "opacity:.55"}">
-      <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined([supplier.municipio, supplier.pais]))}</span></span>
-      <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
+      <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined2([supplier.municipio, supplier.pais]))}</span></span>
+      <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined2([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
       <span class="num">${t("purchases.suppliers.days", { count: formatNumber(supplier.plazo_dias ?? 0) })}</span><span class="num">${formatNumber(supplier.compras)}</span>
       <span>${supplier.ultima_compra ? formatShortDate(supplier.ultima_compra) : "—"}</span>
       <span><span class="pill ${supplier.activo ? "p-est" : "p-anu"}">${t(supplier.activo ? "purchases.suppliers.active" : "purchases.suppliers.inactive")}</span></span></button>`;
@@ -25780,6 +25866,7 @@
     },
     orderTurn: (name) => read_cache_exports.takeTurn(name),
     isMyTurn: (name, turn) => read_cache_exports.isMyTurn(name, turn),
+    holdUnlessValid: (answer, stillValid) => read_cache_exports.holdUnlessValid(answer, stillValid),
     withCatch: (promise) => withCatch(promise),
     rpcOriginal: (name, params) => RPC_ORIG(name, params),
     canInvoice: () => Boolean(permissions_exports.canInvoice()),
@@ -26015,11 +26102,13 @@
     const target = rawDb(), previous = target.rpc.bind(target);
     target.rpc = (name, params, options3) => wrap3(previous(name, params, options3), name, params);
   }
-  var onlyIf = (answer, stillValid) => legacyBActions.withCatch(new Promise((resolve) => {
+  var onlyIf = (answer, stillValid) => legacyBActions.holdUnlessValid(legacyBActions.withCatch(new Promise((resolve) => {
     Promise.resolve(answer).then((value10) => {
       if (stillValid()) resolve(value10);
-    }, () => void 0);
-  }));
+    }, (error) => {
+      if (stillValid()) resolve({ data: null, error });
+    });
+  })), stillValid);
   function keepLatestAnswers() {
     wrapRpc((answer, name) => {
       if (LATEST_ONLY.has(name)) {
@@ -26179,13 +26268,13 @@
     let { data: result, error } = await legacyBActions.rpcOriginal("pruebas_resetear_responsable", { p_confirmacion: CONFIRMATION });
     if (error && missingFunction.test(error.message ?? "")) ({ data: result, error } = await legacyBActions.rpcOriginal("pruebas_resetear", { p_confirmacion: CONFIRMATION }));
     if (error || !result?.ok) {
-      failed2(result, error);
+      failed3(result, error);
       return;
     }
     legacyBActions.clearLocalData();
     location.reload();
   }
-  function failed2(result, error) {
+  function failed3(result, error) {
     legacyBActions.hideLoadingScreen();
     notices.toast(result?.error === "permiso" ? t("legacyB.testEnvironment.onlyResponsible") : t("legacyB.testEnvironment.couldNot", { error: error?.message ?? result?.error ?? "" }), true);
   }
@@ -30949,9 +31038,8 @@
       return `<div class="kodupt"><b>${t("leftovers.customer.dupHidden", { aPatient: term("paciente", { article: "un" }), field: escapeHtml(match.campo) })}</b></div>
          <div class="sm">${t("leftovers.customer.dupOtherPerson")}</div>`;
     }
-    const details2 = [match.nif, orFallback(match.movil, match.telefono ?? ""), match.email, match.municipio].filter(Boolean).join(" · ");
     return `<div class="kodupt"><b>${t("leftovers.customer.dupExists", { ThisPatient: term("paciente", { article: "este", articleCapital: "C" }) })}</b><span>${t("leftovers.customer.dupSame", { field: escapeHtml(match.campo) })}</span></div>
-         <div class="kodupc"><b>${escapeHtml(match.nombre)}</b><span class="sm">${escapeHtml(details2)}</span></div>
+         <div class="kodupc"><b>${escapeHtml(match.nombre)}</b>${customerDataHtml(match)}</div>
          <button type="button" class="btn" id="kodupusar">${use ? t("leftovers.customer.useThis", { thisPatient: term("paciente", { article: "este" }) }) : t("leftovers.customer.seeCard")}</button>`;
   }
   function paint8(state2, match, use) {
@@ -31085,7 +31173,7 @@
     button3.textContent = buttonText(state2, withOrder);
     return { data: answer.data, error: answer.error };
   }
-  function failed3(error, result) {
+  function failed4(error, result) {
     if (error && (error.hint ?? "").includes(DUPLICATE_HINT)) {
       notices.toast(error.message ?? "", true);
       field9("konif")?.dispatchEvent(new Event("input"));
@@ -31099,7 +31187,7 @@
   }
   async function store3(state2, button3, ready2, withOrder) {
     const { data: result, error } = await send4(state2, button3, ready2.taxId, withOrder);
-    if (failed3(error, result)) return null;
+    if (failed4(error, result)) return null;
     const saved3 = { ...result?.contacto ?? {} }, id = result?.contacto?.id ?? state2.customer.id;
     if (ready2.fields && !await saveCustomFields(ready2.fields, id)) return null;
     if (!await saveFreeAccount(state2, id, saved3)) return null;
@@ -32898,7 +32986,7 @@
   // src/app/core/layers/rpc-hooks.ts
   function installOrderParameter() {
     rpcLegacy.wrap((original) => (name, args, ...rest) => {
-      const order = name === "pedidos_pagina" ? rpcLegacy.tableOrder("peds2") : name === "clientes_lista" ? rpcLegacy.tableOrder("pacs") : null;
+      const order = name === "pedidos_pagina" ? rpcLegacy.tableOrder("peds2") : name === "clientes_lista" ? rpcLegacy.tableOrder("pacs2") : null;
       const limit = Number(args?.lim);
       if (order?.k && args && !("p_orden" in args) && (name !== "clientes_lista" || limit > 5)) return original(name, { ...args, p_orden: order.k + (order.dir === -1 ? ":desc" : ":asc") }, ...rest);
       return original(name, args, ...rest);
@@ -33750,7 +33838,7 @@
       sortLegacy.setOrdersPage(0);
       sortLegacy.listOrders();
     }
-    if (kind === "pacs") {
+    if (kind === "pacs2") {
       sortLegacy.setCustomersPage(0);
       sortLegacy.listCustomers();
     }
@@ -34767,7 +34855,7 @@
       let done = false;
       const limit = new Promise((resolve) => {
         setTimeout(() => {
-          if (!done) resolve({ data: null, error: { message: t("legacyTexts.timeout", { name }), code: "TIEMPO" } });
+          if (!done && !read_cache_exports.isReplaced(result)) resolve({ data: null, error: { message: t("legacyTexts.timeout", { name }), code: "TIEMPO" } });
         }, TIMEOUT_MS);
       });
       const answer = Promise.resolve(result).then((value10) => {
@@ -36483,9 +36571,9 @@
 
   // src/app/core/legacy-c/test-environment.ts
   var STRIP_DELAY_MS = 120;
-  function failureText11(answer, failed4) {
+  function failureText11(answer, failed5) {
     const reason = answer ? MOTIVO_REFRESCO[answer.motivo ?? ""] : void 0;
-    return reason ?? t("legacyC.testEnvironment.couldNotStart") + (failed4 && !answer ? t("legacyC.testEnvironment.missingFunction") : "");
+    return reason ?? t("legacyC.testEnvironment.couldNotStart") + (failed5 && !answer ? t("legacyC.testEnvironment.missingFunction") : "");
   }
   async function bringProduction(button3) {
     if (!await confirmAction(t("legacyC.testEnvironment.bringText"), { titulo: t("legacyC.testEnvironment.bringTitle"), ok: t("legacyC.testEnvironment.bringOk"), peligro: true })) return;
@@ -37736,16 +37824,16 @@
   var APP_WAIT_MS = 1500;
   var NOMINATIM = "https://nominatim.openstreetmap.org";
   var NAVIGATORS = [["google", "Google Maps"], ["apple", "Apple Maps"], ["waze", "Waze"]];
-  var joined2 = (point) => Array.isArray(point) ? point.join(",") : String(point);
+  var joined3 = (point) => Array.isArray(point) ? point.join(",") : String(point);
   function webLink(destination, stops, app = "google") {
-    const target = joined2(destination);
+    const target = joined3(destination);
     if (app === "waze") return `https://waze.com/ul?ll=${encodeURIComponent(target)}&navigate=yes`;
     if (app === "apple") return `https://maps.apple.com/?daddr=${encodeURIComponent(target)}&dirflg=d`;
     const waypoints = stops?.length ? `&waypoints=${encodeURIComponent(stops.map((stop) => stop.join(",")).join("|"))}` : "";
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(target)}&travelmode=driving${waypoints}`;
   }
   function appLink(destination, stops, app) {
-    const target = joined2(destination), ios = coreLegacy.isIos(), android = coreLegacy.isAndroid();
+    const target = joined3(destination), ios = coreLegacy.isIos(), android = coreLegacy.isAndroid();
     if (app === "waze") return `waze://?ll=${encodeURIComponent(target)}&navigate=yes`;
     if (app === "apple") return ios ? `maps://?daddr=${encodeURIComponent(target)}&dirflg=d` : null;
     if (ios) return `comgooglemaps://?daddr=${[...(stops ?? []).map((stop) => stop.join(",")), target].map(encodeURIComponent).join("+to:")}&directionsmode=driving`;
@@ -37826,7 +37914,7 @@
     set("provincia", (address.province ?? address.state_district ?? address.county ?? address.state ?? "").toUpperCase());
   }
   var geoText = (text) => String(text ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
-  var placeOf2 = (found) => {
+  var placeOf3 = (found) => {
     const address = found?.address ?? {};
     return address.city ?? address.town ?? address.village ?? address.municipality ?? address.suburb ?? address.county ?? "";
   };
@@ -37865,7 +37953,7 @@
     }
     if (found) return found;
     const first = list[0];
-    if (town && first) return { ...first, fuera: placeOf2(first) || t("core.maps.elsewhere") };
+    if (town && first) return { ...first, fuera: placeOf3(first) || t("core.maps.elsewhere") };
     return first ?? null;
   }
   async function nearbyCentres(box3, index, lat, lon) {
@@ -37913,6 +38001,7 @@
   var sharedModules = () => ({
     "components/charts/month-bars": month_bars_exports,
     "components/charts/small-charts": small_charts_exports,
+    "components/customer-data": customer_data_exports,
     "components/filters-panel/counter": counter_exports,
     "components/filters-panel/prepare": prepare_exports,
     "components/filters/memory": memory_exports,
@@ -39452,7 +39541,9 @@
   var read_cache_exports = {};
   __export(read_cache_exports, {
     canReuseScreen: () => canReuseScreen,
+    holdUnlessValid: () => holdUnlessValid,
     isMyTurn: () => isMyTurn,
+    isReplaced: () => isReplaced,
     localLoading: () => localLoading,
     readCached: () => readCached,
     readCopy: () => readCopy,
@@ -39573,6 +39664,15 @@
   var turns = {};
   var takeTurn = (key) => turns[key] = (turns[key] ?? 0) + 1;
   var isMyTurn = (key, turn) => turns[key] === turn;
+  var heldAnswers = /* @__PURE__ */ new WeakMap();
+  function holdUnlessValid(answer, stillValid) {
+    heldAnswers.set(answer, stillValid);
+    return answer;
+  }
+  function isReplaced(answer) {
+    const stillValid = typeof answer === "object" && answer !== null ? heldAnswers.get(answer) : void 0;
+    return stillValid ? !stillValid() : false;
+  }
   function localLoading(element) {
     if (!element) return;
     element.classList.add("cargandolocal");
@@ -41867,7 +41967,9 @@ const colsGuardar = c => window.delcos.screens.accounts.saveColumns(c);
 // Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
 const ORD_SRV = {
   peds2: (i, n) => i === 2 ? 'profesional' : ({ Fecha: 'fecha', Cliente: 'cliente', Comercial: 'comercial', 'Uds.': 'unidades', Base: 'base', Total: 'total', Estado: 'estado' })[n] || null,
-  pacs: (i, n) => i === 6 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'Población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
+  // v2.468.0 (D-046): Clientes with the customer data columns (Dirección, CP y población, Teléfono, Email); a new name, so the
+  // columns hidden or widened by position before do not fall on other columns
+  pacs2: (i, n) => i === 7 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'CP y población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
 };
 
 const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };

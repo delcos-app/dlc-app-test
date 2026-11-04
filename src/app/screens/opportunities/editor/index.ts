@@ -5,7 +5,7 @@
 import { legacyDb, opportunitiesLegacy, permissions, term } from '../../../legacy/bridge';
 import { orFallback } from '../../../services/values';
 import { catalog, dateIn, followUpReason, isOrderDone, loadOpportunityCatalogs, ourCallOrigin, toggleChip } from '../model';
-import { paintClient } from './client';
+import { completeClient, paintClient } from './client';
 import type { Client, Draft, Opportunity, Previous, Reference } from './draft';
 import { editorHtml } from './html';
 import { paintInterest, paintReference } from './interest';
@@ -76,6 +76,7 @@ export async function editOpportunity(start: Opportunity | null, previous: Previ
   await opportunitiesLegacy.loadProducts();
   if (permissions.hasOpportunities()) await loadOpportunityCatalogs();
   const draft = draftOf(start, previous);
+  await completeClient(draft);
   const body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;
   body.innerHTML = editorHtml(draft);

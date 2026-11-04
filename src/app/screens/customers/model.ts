@@ -5,6 +5,7 @@
  */
 import { accountListLegacy, term } from '../../legacy/bridge';
 import { customersLegacy } from '../../legacy/customers-bridge';
+import { customerDataHtml } from '../../components/customer-data';
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { orFallback } from '../../services/values';
@@ -24,29 +25,14 @@ export const words = (): Record<string, string> => ({
   Patients: term('paciente', { number: 'p', capital: 'C' }), professional: term('medico'), Professional: term('medico', { capital: 'C' }),
 });
 
-/** The landline, else the mobile (the legacy `telefono || movil`). */
-export const phoneOf = (customer: { telefono?: string | null; movil?: string | null }): string => orFallback(customer.telefono, customer.movil ?? '');
-
 /** A filter value for the database: empty means no filter. */
 export const textOrNull = (value: string | null | undefined): string | null => orFallback(value, '') || null;
 
-const deliveryAddress = (customer: Customer): string =>
-  [customer.direccion, [customer.cp, customer.municipio].filter(Boolean).join(' '), customer.provincia].filter(Boolean).join(', ');
-
-function taxIdText(customer: Customer): string {
-  if (!customer.nif) return t('customers.card.noTaxId');
-  return t(customer.tipo === TYPES.company ? 'customers.card.taxIdCompany' : 'customers.card.taxIdPerson', { taxId: customer.nif });
-}
-
-/** The chosen customer: delivery address, tax id, email, phone and professional, with «✕» to remove it. */
+/** The chosen customer: its name and the customer data block (D-046), the same as everywhere else, with «✕» to remove it. */
 export function customerCard(customer: Customer): string {
-  const address = deliveryAddress(customer);
-  const contact = [taxIdText(customer), customer.email, phoneOf(customer)].filter(Boolean).join(' · ');
   return `<div class="selcard"><span class="ic">🧑</span>
   <span class="tx"><b>${escapeHtml(customer.nombre)}</b>
-    ${address ? `<span class="sm">📦 ${escapeHtml(address)}</span>` : `<span class="sm u-warn">${t('customers.card.noAddress')}</span>`}
-    <span class="sm">${escapeHtml(contact)}</span>
-    ${customer.medico ? `<span class="sm">${term('medico', { capital: 'C' })}: ${escapeHtml(customer.medico)}</span>` : ''}</span>
+    ${customerDataHtml(customer, 'bloque')}</span>
   <button type="button" class="sx" aria-label="${t('customers.card.remove')}">✕</button></div>`;
 }
 

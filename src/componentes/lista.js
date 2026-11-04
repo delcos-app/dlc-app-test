@@ -8,7 +8,9 @@ const colsGuardar = c => window.delcos.screens.accounts.saveColumns(c);
 // Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
 const ORD_SRV = {
   peds2: (i, n) => i === 2 ? 'profesional' : ({ Fecha: 'fecha', Cliente: 'cliente', Comercial: 'comercial', 'Uds.': 'unidades', Base: 'base', Total: 'total', Estado: 'estado' })[n] || null,
-  pacs: (i, n) => i === 6 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'Población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
+  // v2.468.0 (D-046): Clientes with the customer data columns (Dirección, CP y población, Teléfono, Email); a new name, so the
+  // columns hidden or widened by position before do not fall on other columns
+  pacs2: (i, n) => i === 7 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'CP y población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
 };
 
 const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };

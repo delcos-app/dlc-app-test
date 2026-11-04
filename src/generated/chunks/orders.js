@@ -1059,7 +1059,9 @@ async function paintOrderList() {
   if (!list || !document.getElementById("pestado")) return;
   if (!result.data) {
     const error = result.error;
-    list.innerHTML = `<div class="vacio">${t("orders.list.couldNotLoad", { error: error ? `: ${escapeHtml(error.message)}` : "" })}</div>`;
+    const pages = document.getElementById("pedpag");
+    if (pages) pages.innerHTML = "";
+    list.innerHTML = `<div class="vacio" data-fallo>${t("orders.list.couldNotLoad", { error: error ? `: ${escapeHtml(error.message)}` : "" })}</div>`;
     return;
   }
   paint(list, result.data);
@@ -1268,6 +1270,11 @@ function paintBankTransfer(detail) {
   };
 }
 
+// delcos-shared:src/app/components/customer-data.ts
+var shared15 = globalThis["__delcosModules"]["components/customer-data"];
+var pick15 = (name) => shared15[name];
+var customerDataHtml = /* @__PURE__ */ pick15("customerDataHtml");
+
 // src/app/screens/orders/sheet/non-fiscal.ts
 var value2 = (id) => document.getElementById(id)?.value.trim() ?? "";
 function formHtml(detail) {
@@ -1336,7 +1343,7 @@ function lineHtml(line) {
 function peopleHtml(detail) {
   const contact = detail.contacto, professional = detail.medico, firstLine = (detail.lineas ?? [])[0];
   return `${contact ? `<div class="blk"><h3>${term("paciente", { capital: "C" })}</h3><div><b>${escapeHtml(contact.nombre)}</b></div>
-      <div class="sm">${escapeHtml(orFallback(contact.telefono, contact.movil ?? ""))} ${escapeHtml(contact.email ?? "")}</div>
+      ${customerDataHtml(contact, "bloque")}
       <div class="acts"><button class="btn sec" data-vpac="${contact.id}">${t("orders.sheet.seeCustomer", { customer: term("paciente", { article: "del" }) })}</button></div></div>` : ""}
     ${professional ? `<div class="blk"><h3>${term("medico", { capital: "C" })}</h3><div><b>${escapeHtml(professional.nombre)}</b> <span class="sm">${t("orders.sheet.code", { code: escapeHtml(professional.codigo) })}</span></div>
       ${firstLine?.comercial ? `<div class="sm">${t("orders.sheet.salesperson", { name: escapeHtml(firstLine.comercial) })}</div>` : ""}</div>` : ""}`;
@@ -1471,9 +1478,9 @@ async function paintBase2(id) {
 }
 
 // delcos-shared:src/app/services/dates.ts
-var shared15 = globalThis["__delcosModules"]["services/dates"];
-var pick15 = (name) => shared15[name];
-var todayIso = /* @__PURE__ */ pick15("todayIso");
+var shared16 = globalThis["__delcosModules"]["services/dates"];
+var pick16 = (name) => shared16[name];
+var todayIso = /* @__PURE__ */ pick16("todayIso");
 
 // src/app/screens/orders/sheet/transfer-pdf.ts
 var LEFT = 15;
@@ -1757,10 +1764,10 @@ async function paintEquipment(orderId) {
 }
 
 // delcos-shared:src/app/core/catalog-roles.ts
-var shared16 = globalThis["__delcosModules"]["core/catalog-roles"];
-var pick16 = (name) => shared16[name];
-var isCardTerminal = /* @__PURE__ */ pick16("isCardTerminal");
-var isOnDelivery = /* @__PURE__ */ pick16("isOnDelivery");
+var shared17 = globalThis["__delcosModules"]["core/catalog-roles"];
+var pick17 = (name) => shared17[name];
+var isCardTerminal = /* @__PURE__ */ pick17("isCardTerminal");
+var isOnDelivery = /* @__PURE__ */ pick17("isOnDelivery");
 
 // src/app/screens/orders/sheet/operations.ts
 var MAIL_QUESTION_DELAY_MS = 800;
@@ -2100,9 +2107,9 @@ async function showOrder(id) {
 }
 
 // delcos-shared:src/app/screens/customers/picker.ts
-var shared17 = globalThis["__delcosModules"]["screens/customers/picker"];
-var pick17 = (name) => shared17[name];
-var pickCustomer = /* @__PURE__ */ pick17("pickCustomer");
+var shared18 = globalThis["__delcosModules"]["screens/customers/picker"];
+var pick18 = (name) => shared18[name];
+var pickCustomer = /* @__PURE__ */ pick18("pickCustomer");
 
 // src/app/screens/orders/tpv/after-save.ts
 var CENT = 5e-3;
@@ -2576,9 +2583,9 @@ function editorHtml2(state) {
 }
 
 // delcos-shared:src/app/core/organisation.ts
-var shared18 = globalThis["__delcosModules"]["core/organisation"];
-var pick18 = (name) => shared18[name];
-var generalVat = /* @__PURE__ */ pick18("generalVat");
+var shared19 = globalThis["__delcosModules"]["core/organisation"];
+var pick19 = (name) => shared19[name];
+var generalVat = /* @__PURE__ */ pick19("generalVat");
 
 // src/app/screens/orders/editor/index.ts
 var FULL_DISCOUNT2 = 100;
@@ -2814,12 +2821,12 @@ async function editOrder(preset) {
 }
 
 // delcos-shared:src/app/screens/orders/subscription/payments.ts
-var shared19 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
-var pick19 = (name) => shared19[name];
-var callPayments = /* @__PURE__ */ pick19("callPayments");
-var loadPaymentState = /* @__PURE__ */ pick19("loadPaymentState");
-var repaintPlanScreen = /* @__PURE__ */ pick19("repaintPlanScreen");
-var waitUntilActive = /* @__PURE__ */ pick19("waitUntilActive");
+var shared20 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
+var pick20 = (name) => shared20[name];
+var callPayments = /* @__PURE__ */ pick20("callPayments");
+var loadPaymentState = /* @__PURE__ */ pick20("loadPaymentState");
+var repaintPlanScreen = /* @__PURE__ */ pick20("repaintPlanScreen");
+var waitUntilActive = /* @__PURE__ */ pick20("waitUntilActive");
 
 // src/app/screens/orders/subscription/choose-plan.ts
 var MIN_USERS = 3;

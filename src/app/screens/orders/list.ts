@@ -163,7 +163,8 @@ export async function paintOrderList(): Promise<void> {
   if (!list || !document.getElementById('pestado')) return;
   if (!result.data) {
     const error = (result as { error?: { message?: string } | null }).error;
-    list.innerHTML = `<div class="vacio">${t('orders.list.couldNotLoad', { error: error ? `: ${escapeHtml(error.message)}` : '' })}</div>`;
+    const pages = document.getElementById('pedpag'); if (pages) pages.innerHTML = '';
+    list.innerHTML = `<div class="vacio" data-fallo>${t('orders.list.couldNotLoad', { error: error ? `: ${escapeHtml(error.message)}` : '' })}</div>`;
     return;
   }
   paint(list, result.data);

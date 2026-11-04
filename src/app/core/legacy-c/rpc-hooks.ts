@@ -19,14 +19,19 @@ const isThenable = (value: unknown): value is PromiseLike<RpcAnswer> => typeof (
 
 const TIMEOUT_MS = 20000, TRACE_CHARS = 1500, STALE_MS = 3000;
 
-/** v2.46.1: a call that never answers ends as an error after 20 s (before, the screen waited forever). */
+/**
+ * v2.46.1: a call that never answers ends as an error after 20 s (before, the screen waited forever). v2.467.0: not one a newer
+ * request has replaced, which must never end (its screen would paint the error over the newer answer).
+ */
 export function limitCallTime(): void {
   const original = client().rpc;
   client().rpc = (name, params, options) => {
     const result = original.call(db, name, params, options);
     if (!isThenable(result)) return result;
     let done = false;
-    const limit = new Promise<RpcAnswer>(resolve => { setTimeout(() => { if (!done) resolve({ data: null, error: { message: t('legacyTexts.timeout', { name }), code: 'TIEMPO' } }); }, TIMEOUT_MS); });
+    const limit = new Promise<RpcAnswer>(resolve => {
+      setTimeout(() => { if (!done && !legacyFreeCoreServices.reads.isReplaced(result)) resolve({ data: null, error: { message: t('legacyTexts.timeout', { name }), code: 'TIEMPO' } }); }, TIMEOUT_MS);
+    });
     const answer = Promise.resolve(result).then(value => { done = true; return value; }, (error: unknown) => { done = true; return { data: null, error } as RpcAnswer; });
     return legacyFreeCoreServices.withCatch((Promise.race([answer, limit])));
   };

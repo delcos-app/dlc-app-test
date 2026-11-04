@@ -4,9 +4,10 @@
  */
 import { legacyDb } from '../../legacy/bridge';
 import { customersLegacy } from '../../legacy/customers-bridge';
+import { customerDataHtml } from '../../components/customer-data';
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
-import { customerCard, phoneOf, words, type Customer } from './model';
+import { customerCard, words, type Customer } from './model';
 
 const MIN_LETTERS = 2, WAIT_MS = 250, SHOWN = 8;
 
@@ -15,7 +16,7 @@ interface Found extends Customer { medico?: string | null }
 export interface PickerOptions { valor?: Customer | null; alElegir?: (customer: Customer | null) => void }
 
 const foundRow = (item: Found, index: number): string => `<button type="button" data-pc="${index}"><span class="gic">🧑</span>
-          <span><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml([phoneOf(item), item.nif, item.municipio, item.medico].filter(Boolean).join(' · '))}</span></span></button>`;
+          <span><b>${escapeHtml(item.nombre)}</b>${customerDataHtml(item)}</span></button>`;
 
 class CustomerPicker {
   private value: Customer | null;

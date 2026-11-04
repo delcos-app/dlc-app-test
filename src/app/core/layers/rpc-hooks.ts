@@ -12,7 +12,7 @@ type Args = Record<string, unknown> | undefined;
 /** v2.224.0: Pedidos and Clientes are sorted by the database: their order goes with the query. */
 export function installOrderParameter(): void {
   rpcLegacy.wrap(original => (name, args, ...rest) => {
-    const order = name === 'pedidos_pagina' ? rpcLegacy.tableOrder('peds2') : name === 'clientes_lista' ? rpcLegacy.tableOrder('pacs') : null;
+    const order = name === 'pedidos_pagina' ? rpcLegacy.tableOrder('peds2') : name === 'clientes_lista' ? rpcLegacy.tableOrder('pacs2') : null;
     const limit = Number(args?.lim);
     if (order?.k && args && !('p_orden' in args) && (name !== 'clientes_lista' || limit > 5)) return original(name, { ...args, p_orden: order.k + (order.dir === -1 ? ':desc' : ':asc') }, ...rest);
     return original(name, args, ...rest);

@@ -25,7 +25,7 @@ export interface Order {
   /** The step computed by the database (SQL 191, pedidos_pasos), when the order comes from the list. */
   paso?: string | null;
 }
-export interface OrderContact { id: string; nombre: string; telefono?: string | null; movil?: string | null; email?: string | null; direccion?: string | null; cp?: string | null; municipio?: string | null; nif?: string | null }
+export interface OrderContact { id: string; nombre: string; telefono?: string | null; movil?: string | null; email?: string | null; direccion?: string | null; cp?: string | null; municipio?: string | null; provincia?: string | null; nif?: string | null }
 export interface OrderDetail { pedido: Order; lineas?: OrderLine[] | null; contacto?: OrderContact | null; medico?: { id: string; nombre: string; codigo?: string | null } | null; totales?: { total?: number | null } | null }
 
 /** Rounded to cents, like the legacy r2. */

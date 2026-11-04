@@ -3,19 +3,20 @@
  * from the legacy cargarPacientes, pintarPacientes and listaPacientes (v2.411.0); those names stay as adapters (the menu, the list
  * bar, the custom field filters, Pedidos and «‹ Volver» use them).
  */
-import { accountColumnsLegacy, accountListLegacy, legacyDb } from '../../legacy/bridge';
+import { accountColumnsLegacy, accountListLegacy, legacyDb, term } from '../../legacy/bridge';
 import { customersLegacy, type CustomersPage } from '../../legacy/customers-bridge';
+import { customerDataCell, customerDataFields } from '../../components/customer-data';
 import { t } from '../../i18n';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
-import { listParams, phoneOf, TYPES, words } from './model';
+import { listParams, TYPES, words } from './model';
 import { showCustomer } from './sheet';
 
 const SEARCH_WAIT_MS = 300;
 
 interface Row {
   id: string; nombre: string; tipo?: string | null; nif?: string | null; telefono?: string | null; movil?: string | null; email?: string | null;
-  municipio?: string | null; medico?: string | null; comercial?: string | null; pedidos: number; unidades: number; ultimo_pedido?: string | null;
+  direccion?: string | null; cp?: string | null; municipio?: string | null; provincia?: string | null; medico?: string | null; comercial?: string | null; pedidos: number; unidades: number; ultimo_pedido?: string | null;
   clasificadores?: Record<string, unknown> | null;
 }
 interface Town { v: string; n: number }
@@ -24,7 +25,8 @@ const empty = '<span class="vac">—</span>';
 const shown = (value: string | null | undefined): string => (value ? escapeHtml(value) : empty);
 
 function headerHtml(fields: readonly CustomField[]): string {
-  const titles = [t('customers.list.customer'), t('customers.list.type'), t('customers.list.taxId'), t('customers.list.phone'), t('customers.list.email'), t('customers.list.town')];
+  // The customer data columns (D-046): the same fields, in the same order, as everywhere else
+  const titles = [t('customers.list.customer'), t('customers.list.type'), t('customers.list.taxId'), ...customerDataFields({}).map(field => field.label)];
   return `<div class="dh">${titles.map(title => `<span>${title}</span>`).join('')}
       <span>${words().Professional}</span><span>${t('customers.list.salesRep')}</span><span class="num">${t('customers.list.orders')}</span><span class="num">${t('customers.list.units')}</span><span>${t('customers.list.lastOrder')}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
 }
@@ -34,11 +36,18 @@ function rowHtml(row: Row, fields: readonly CustomField[]): string {
   return `<button class="dr" data-pac="${row.id}">
       <span><b>${escapeHtml(row.nombre)}</b></span>
       <span><span class="pill ${company ? 'p-emp' : 'p-per'}">${company ? t('customers.company') : words().Patient}</span></span>
-      <span>${shown(row.nif)}</span><span>${shown(phoneOf(row))}</span><span class="corta">${shown(row.email)}</span><span>${shown(row.municipio)}</span>
+      <span>${shown(row.nif)}</span>${customerDataFields(row).map(field => `<span class="corta">${customerDataCell(field)}</span>`).join('')}
       <span class="corta">${row.medico ? escapeHtml(row.medico) : `<span class="vac">${t('customers.list.unassigned')}</span>`}</span><span>${shown(row.comercial)}</span>
       <span class="num">${formatNumber(row.pedidos)}</span><span class="num"><b>${formatNumber(row.unidades)}</b></span>
       <span>${row.ultimo_pedido ? formatShortDate(row.ultimo_pedido) : empty}</span>${fields.map(field => `<span>${shown(accountColumnsLegacy.fieldText(field, values[field.clave]))}</span>`).join('')}
     </button>`;
+}
+
+/** Nothing found: with a search, «Ningún cliente coincide con «…»» (in the company's word); without one, the filters say why. */
+function emptyHtml(): string {
+  const text = customersLegacy.filters().q.trim();
+  const message = text ? t('customers.list.noMatches', { none: term('paciente', { article: 'ningun', articleCapital: 'C' }), text: escapeHtml(text) }) : t('customers.list.none');
+  return `<div class="vacio">${message}</div>`;
 }
 
 function paintRows(page: CustomersPage): void {
@@ -46,11 +55,11 @@ function paintRows(page: CustomersPage): void {
   if (!count || !list) return;
   count.innerHTML = `<b>${formatNumber(page.total)}</b> ${page.total === 1 ? t('customers.list.oneCustomer') : t('customers.list.customers')}`;
   const rows = (page.filas ?? []) as Row[], fields = customersLegacy.visibleFieldColumns();
-  list.innerHTML = rows.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
+  list.innerHTML = rows.length ? `<div class="dgrid-wrap"><div class="dgrid pacs2">
     ${headerHtml(fields)}
-    ${rows.map(row => rowHtml(row, fields)).join('')}</div></div>` : `<div class="vacio">${t('customers.list.none')}</div>`;
+    ${rows.map(row => rowHtml(row, fields)).join('')}</div></div>` : emptyHtml();
   // Custom field columns are added to the grid
-  customersLegacy.widenGrid(list.querySelector('.dgrid.pacs'), fields.length);
+  customersLegacy.widenGrid(list.querySelector('.dgrid.pacs2'), fields.length);
   list.querySelectorAll<HTMLElement>('[data-pac]').forEach(button => { button.onclick = (): void => { void showCustomer(button.dataset.pac ?? ''); }; });
   const filters = customersLegacy.filters();
   accountListLegacy.paginate({
@@ -59,17 +68,46 @@ function paintRows(page: CustomersPage): void {
   });
 }
 
+/** The street and postal code of the rows (clientes_lista does not bring them yet), read before painting. */
+async function withAddresses(page: CustomersPage): Promise<CustomersPage> {
+  const rows = (page.filas ?? []) as Row[];
+  if (!rows.length || rows.every(row => row.direccion !== undefined)) return page;
+  const { data } = await legacyDb().from<Pick<Row, 'id' | 'direccion' | 'cp' | 'provincia'>[]>('contactos').select('id,direccion,cp,provincia').in('id', rows.map(row => row.id));
+  const byId = new Map((data ?? []).map(item => [item.id, item]));
+  return { ...page, filas: rows.map(row => ({ ...row, ...byId.get(row.id) })) };
+}
+
+/** The list could not be read: the standard message with «Volver a intentarlo», no count and no pages (those of before were wrong). */
+function paintFailure(error: unknown): void {
+  const count = document.getElementById('paccuenta'), list = document.getElementById('paclista'), pages = document.getElementById('pacpag');
+  if (count) count.textContent = '';
+  if (pages) pages.innerHTML = '';
+  if (!list) return;
+  const detail = (error as { message?: string } | null)?.message ?? '';
+  list.innerHTML = `<div class="vacio" data-fallo>${escapeHtml(t('customers.list.couldNotLoad', { error: detail }))}<br><button class="btn sec u-mt-10" type="button" id="pacreint">${t('customers.list.retry')}</button></div>`;
+  const retry = document.getElementById('pacreint'); if (retry) retry.onclick = (): void => { void listCustomers(); };
+}
+
+interface CustomersAnswer { data: CustomersPage | null; error: unknown }
+
+/** The last list asked for: an earlier one that answers later (or fails later) is not painted. */
+let latestRequest = 0;
+
+async function answerOf(answer: PromiseLike<CustomersAnswer> | undefined): Promise<CustomersAnswer> {
+  try { return await (answer ?? legacyDb().rpc<CustomersPage>('clientes_lista', listParams())); } catch (error) { return { data: null, error }; }
+}
+
 /** Asks for the list with the current filters and paints it (`answer` when the page already asked for it). */
-export async function listCustomers(answer?: PromiseLike<{ data: CustomersPage | null; error: unknown }>): Promise<void> {
+export async function listCustomers(answer?: PromiseLike<CustomersAnswer>): Promise<void> {
+  const request = ++latestRequest;
   customersLegacy.showLoading(document.getElementById('paclista'), t('customers.list.searching'));
-  const { data, error } = await (answer ?? legacyDb().rpc<CustomersPage>('clientes_lista', listParams()));
-  if (error || !data) {
-    const count = document.getElementById('paccuenta'), list = document.getElementById('paclista');
-    if (count) count.textContent = t('customers.list.couldNotLoad', { error: (error as { message?: string } | null)?.message ?? '' });
-    if (list) list.innerHTML = '';
-    return;
-  }
-  paintRows(data);
+  const { data, error } = await answerOf(answer);
+  if (request !== latestRequest) return;
+  if (error || !data) { paintFailure(error); return; }
+  // Without the addresses the list is still painted: a failing second read must not leave the loader on
+  const withRows = await withAddresses(data).catch(() => data);
+  if (request !== latestRequest) return;
+  paintRows(withRows);
 }
 
 const option = (value: string, label: string, chosen: string | undefined): string => `<option value="${escapeHtml(value)}" ${chosen === value ? 'selected' : ''}>${label}</option>`;
@@ -78,7 +116,7 @@ function filtersHtml(towns: readonly Town[]): string {
   const filters = customersLegacy.filters();
   filters.campos ??= {};
   return `<div class="filtros">
-        <div><label for="pacq">${t('customers.list.search')}</label><input id="pacq" type="search" value="${escapeHtml(filters.q)}" placeholder="${t('customers.list.searchPlaceholder')}"></div>
+        <div><label for="pacq">${t('customers.list.search')}</label><input id="pacq" type="search" value="${escapeHtml(filters.q)}" placeholder="${escapeHtml(t('customers.list.searchPlaceholder', words()))}"></div>
         <div><label for="pactipo">${t('customers.list.type')}</label><select id="pactipo">
           <option value="">${t('customers.list.all')}</option>${option(TYPES.person, t('customers.list.persons', words()), filters.tipo)}
           ${option(TYPES.company, t('customers.list.companies'), filters.tipo)}</select></div>

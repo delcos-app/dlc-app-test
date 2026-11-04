@@ -4,16 +4,16 @@
  * order or a sale) or «Ver su ficha»; if another person carries it and it cannot be seen, only that it exists. Create stays off.
  */
 import { legacyDb, term } from '../../../legacy/bridge';
+import { customerDataHtml, type CustomerDataSource } from '../../../components/customer-data';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
-import { orFallback } from '../../../services/values';
 import { showCustomer } from '../sheet';
 import { field, fieldValue, type EditorState, type SavedCustomer } from './state';
 
 const CHECK_WAIT_MS = 350, MIN_TAX_ID = 8, MIN_PHONE = 9;
 const FIELDS = ['konif', 'komail', 'komov', 'kotel'];
 
-interface Match extends SavedCustomer { campo: string; visible?: boolean; nif?: string | null; email?: string | null; municipio?: string | null; cuenta?: string | null; cuenta_codigo?: string | null }
+interface Match extends SavedCustomer, CustomerDataSource { campo: string; visible?: boolean; nif?: string | null; email?: string | null; municipio?: string | null; cuenta?: string | null; cuenta_codigo?: string | null }
 interface Written { nif: string; email: string; movil: string; telefono: string; excluir: string | null }
 
 const digits = (value: string): number => value.replace(/\D/g, '').length;
@@ -35,9 +35,8 @@ function noticeHtml(match: Match, use: boolean): string {
     return `<div class="kodupt"><b>${t('leftovers.customer.dupHidden', { aPatient: term('paciente', { article: 'un' }), field: escapeHtml(match.campo) })}</b></div>
          <div class="sm">${t('leftovers.customer.dupOtherPerson')}</div>`;
   }
-  const details = [match.nif, orFallback(match.movil, match.telefono ?? ''), match.email, match.municipio].filter(Boolean).join(' · ');
   return `<div class="kodupt"><b>${t('leftovers.customer.dupExists', { ThisPatient: term('paciente', { article: 'este', articleCapital: 'C' }) })}</b><span>${t('leftovers.customer.dupSame', { field: escapeHtml(match.campo) })}</span></div>
-         <div class="kodupc"><b>${escapeHtml(match.nombre)}</b><span class="sm">${escapeHtml(details)}</span></div>
+         <div class="kodupc"><b>${escapeHtml(match.nombre)}</b>${customerDataHtml(match)}</div>
          <button type="button" class="btn" id="kodupusar">${use ? t('leftovers.customer.useThis', { thisPatient: term('paciente', { article: 'este' }) }) : t('leftovers.customer.seeCard')}</button>`;
 }
 

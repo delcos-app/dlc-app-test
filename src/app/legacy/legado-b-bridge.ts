@@ -83,6 +83,7 @@ export const legacyBActions = {
   impersonate: (id: string): void => { void legacyFreeCoreServices.session.impersonate(id); },
   orderTurn: (name: string): unknown => legacyFreeCoreServices.reads.takeTurn(name),
   isMyTurn: (name: string, turn: unknown): boolean => legacyFreeCoreServices.reads.isMyTurn(name, turn as number),
+  holdUnlessValid: <T extends object>(answer: T, stillValid: () => boolean): T => legacyFreeCoreServices.reads.holdUnlessValid(answer, stillValid),
   withCatch: <T>(promise: Promise<T>): Promise<T> => legacyFreeCoreServices.withCatch(promise),
   rpcOriginal: <T>(name: string, params: Record<string, unknown>): PromiseLike<RpcAnswer<T>> => RPC_ORIG<T>(name, params) as PromiseLike<RpcAnswer<T>>,
   canInvoice: (): boolean => Boolean(legacyFreeCoreServices.permissions.canInvoice()),

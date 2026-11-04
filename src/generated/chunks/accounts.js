@@ -1881,8 +1881,10 @@ function syncTypeFilter() {
 }
 function showFailure(list, count, error) {
   count.textContent = "";
+  const pages = document.getElementById("dirpag");
+  if (pages) pages.innerHTML = "";
   const aborted = /abort/i.test(error?.message ?? "");
-  list.innerHTML = `<div class="vacio">${t("accounts.list.couldNotLoad")}${aborted ? t("accounts.list.notResponding") : ""}.<br><button class="btn sec u-mt-10" type="button" id="dirreint">${t("accounts.list.retry")}</button></div>`;
+  list.innerHTML = `<div class="vacio" data-fallo>${t("accounts.list.couldNotLoad")}${aborted ? t("accounts.list.notResponding") : ""}.<br><button class="btn sec u-mt-10" type="button" id="dirreint">${t("accounts.list.retry")}</button></div>`;
   const retry = document.getElementById("dirreint");
   if (retry) retry.onclick = () => {
     void searchAccounts(true);

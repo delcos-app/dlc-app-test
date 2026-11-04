@@ -17,9 +17,13 @@ function wrapRpc(wrap: (answer: unknown, name: string, params: Record<string, un
   target.rpc = (name, params, options): unknown => wrap(previous(name, params, options), name, params);
 }
 
-/** Resolves with the answer only when `stillValid` says so (a newer request or screen leaves it pending). */
-const onlyIf = (answer: unknown, stillValid: () => boolean): Promise<unknown> =>
-  legacyBActions.withCatch(new Promise(resolve => { Promise.resolve(answer).then(value => { if (stillValid()) resolve(value); }, () => undefined); }));
+/**
+ * Resolves with the answer only when `stillValid` says so (a newer request or screen leaves it pending, and the 20 s limit knows it:
+ * see isReplaced). A failed call ends as an error answer, so whoever waits for it can say so.
+ */
+const onlyIf = (answer: unknown, stillValid: () => boolean): Promise<unknown> => legacyBActions.holdUnlessValid(legacyBActions.withCatch(new Promise(resolve => {
+  Promise.resolve(answer).then(value => { if (stillValid()) resolve(value); }, (error: unknown) => { if (stillValid()) resolve({ data: null, error }); });
+})), stillValid);
 
 /** v2.37.0: in lists only the latest request counts; any cached read is dropped when the user changes screen. */
 export function keepLatestAnswers(): void {

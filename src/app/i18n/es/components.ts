@@ -20,6 +20,12 @@ export const components = {
   help: {
     label: 'Ayuda',
   },
+  customerData: {
+    address: 'Dirección',
+    place: 'CP y población',
+    phone: 'Teléfono',
+    email: 'Email',
+  },
   loading: {
     default: 'Cargando…',
     everything: 'Un momento: se está cargando todo de nuevo',

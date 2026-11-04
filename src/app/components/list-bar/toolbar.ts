@@ -31,6 +31,9 @@ function pagesTotal(section: Element): RegExpExecArray | null {
   return pages ? /de\s+([\d.]+)/.exec(pages.textContent ?? '') : null;
 }
 
+/** v2.467.0: a list that could not be read has no count (before, the bar kept the one of before). */
+const failed = (config: ListConfig): boolean => Boolean(config.cuerpo()?.querySelector(':scope > .vacio[data-fallo]'));
+
 /** The screen's own count; without one, the pages («1–20 de N») or the rows shown. */
 function screenCount(section: Element, config: ListConfig): string {
   const own = config.cuenta();
@@ -49,6 +52,6 @@ function blockCount(section: Element, config: ListConfig): string {
 
 /** The count of the bar («Cerca de mí»: its «Volver a la búsqueda» works from the bar). */
 export function countHtml(section: Element, config: ListConfig): string {
-  const html = config.bloques ? blockCount(section, config) : screenCount(section, config);
+  const html = config.bloques ? blockCount(section, config) : failed(config) ? counted('—', config) : screenCount(section, config);
   return html.replace(/\sid="cercacerrar"/g, ' data-cercavolver');
 }

@@ -6,6 +6,7 @@
 export * from './charts';
 export * from './classifiers';
 export { attendanceWindows } from './consultation-hours';
+export { customerDataCell, customerDataFields, customerDataHtml, customerDataLines } from './customer-data';
 export * from './date-picker';
 export { askField, askText, chooseOption, confirmAction, hasSaveButton, isSaveButton, showDialog, tryClose } from './dialogs';
 export { addHelpButtons, glueHelp, helpAnchor } from './help';

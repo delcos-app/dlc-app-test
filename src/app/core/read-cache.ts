@@ -119,6 +119,21 @@ const turns: Record<string, number> = {};
 export const takeTurn = (key: string): number => (turns[key] = (turns[key] ?? 0) + 1);
 export const isMyTurn = (key: string, turn: number): boolean => turns[key] === turn;
 
+/** Answers held back while a newer request (or screen) may replace them, with what says whether they still count. */
+const heldAnswers = new WeakMap<object, () => boolean>();
+
+/** Marks an answer that ends only while `stillValid` says so (a replaced one never ends). */
+export function holdUnlessValid<T extends object>(answer: T, stillValid: () => boolean): T { heldAnswers.set(answer, stillValid); return answer; }
+
+/**
+ * v2.467.0: true for an answer a newer request has replaced. The 20 s limit leaves it alone: before, it ended it as «ha tardado
+ * demasiado» and the old search painted that error over the newer list (Clientes went blank with the pages of before).
+ */
+export function isReplaced(answer: unknown): boolean {
+  const stillValid = typeof answer === 'object' && answer !== null ? heldAnswers.get(answer) : undefined;
+  return stillValid ? !stillValid() : false;
+}
+
 /** Loading inside a card (pages, page changes): the mark goes when the network is quiet (at most 4 seconds). */
 export function localLoading(element: Element | null): void {
   if (!element) return;

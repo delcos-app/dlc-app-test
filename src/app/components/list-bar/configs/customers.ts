@@ -2,6 +2,7 @@
  * Clientes (pacientes) in the list bar: quick filters, search, the four indicators that filter and the mobile card. Migrated from
  * PL.pacientes (v2.236.0) with its later versions of buscarQ (legado 096, v2.249.0) and columnas (legado 102, v2.257.0) (v2.421.0).
  */
+import { term } from '../../../legacy/bridge';
 import { listBarLegacy } from '../../../legacy/listbar-bridge';
 import { t } from '../../../i18n';
 import type { Indicator, ListConfig, RowCard } from '../types';
@@ -49,14 +50,21 @@ function openColumns(): void {
   button.click(); setTimeout(open, COLUMNS_DELAY_MS);
 }
 
-/** Mobile card from the table row: name, town and phone, and the type on the right. */
+/**
+ * Mobile card from the table row: the name and the type on the right, and the customer data (D-046) in its two lines, as in every
+ * other place: «street · postal code and town» and «phone · email», only with the values present (a line without any is left out).
+ */
 function card(row: HTMLElement): RowCard {
   const cells = row.children, text = (index: number): string => (cells[index]?.textContent ?? '').trim();
-  return { a: text(0), b: [text(5), text(3)].filter(value => value && value !== '—').join(' · '), c: cells[1]?.innerHTML ?? '' };
+  const value = (key: string): string => (row.querySelector(`[data-cd="${key}"]`)?.textContent ?? '').trim();
+  const line = (keys: readonly string[]): string => keys.map(value).filter(Boolean).join(' · ');
+  return { a: text(0), b: line(['direccion', 'poblacion']), c: cells[1]?.innerHTML ?? '', d: line(['telefono', 'email']) };
 }
 
 export const customersConfig = (): ListConfig => ({
   que: () => t('listBar.customers.what'),
+  // v2.467.0: the search says where it looks
+  buscaTxt: () => t('customers.list.searchPlaceholder', { professional: term('medico') }),
   nuevo: () => byId('pacnuevo'),
   cuerpo: () => byId('paclista'), tabla: () => byId('paclista'), pie: () => byId('pacpag'), cuenta: () => byId('paccuenta'),
   conDatos: element => Boolean(element.querySelector('.dgrid, .vacio')),

@@ -352,7 +352,6 @@ body.conruta{padding-top:46px}
 .vdet{color:var(--navy)!important}
 .p-emp{background:#F1E9FB;color:#6B3FA0}
 .p-per{background:var(--sky-soft);color:var(--navy)}
-.dgrid.pacs{--cols:minmax(140px,1.5fr) 82px 96px 100px minmax(120px,1.2fr) 100px minmax(120px,1.2fr) 96px 60px 50px 90px;min-width:1160px}
 .tcols .item{padding:8px 6px;gap:8px}
 .tcols input[type=checkbox]{width:18px;height:18px;min-height:0;flex:0 0 auto}
 .tcols .kmv{width:26px;height:24px}
@@ -591,8 +590,8 @@ body.conruta{padding-top:46px}
 .dgrid .num{text-align:right;font-variant-numeric:tabular-nums}
 .dgrid .vac{color:var(--muted)}
 .dgrid.prods{--cols:52px minmax(200px,2fr) minmax(90px,1fr) 100px 60px 110px 90px;min-width:760px}
-.dgrid.pacs{--cols:minmax(140px,1.5fr) 96px 100px minmax(120px,1.2fr) 100px minmax(120px,1.2fr) 96px 60px 50px 90px;min-width:1080px}
-.dgrid.pacs .dh,.dgrid.pacs .dr{gap:10px}
+.dgrid.pacs2{--cols:minmax(140px,1.5fr) 82px 96px minmax(120px,1.2fr) minmax(120px,1.2fr) 100px minmax(120px,1.2fr) minmax(120px,1.2fr) 96px 60px 50px 90px;min-width:1300px}
+.dgrid.pacs2 .dh,.dgrid.pacs2 .dr{gap:10px}
 .envbox{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:12px;background:var(--panel)}
 .envbox .g2{margin-top:6px}
 /* v2.20.0 */

@@ -41,8 +41,10 @@ function syncTypeFilter(): void {
 
 function showFailure(list: HTMLElement, count: HTMLElement, error: unknown): void {
   count.textContent = '';
+  // v2.467.0: without the list there are no pages either (before, those of the last list stayed)
+  const pages = document.getElementById('dirpag'); if (pages) pages.innerHTML = '';
   const aborted = /abort/i.test((error as { message?: string } | null)?.message ?? '');
-  list.innerHTML = `<div class="vacio">${t('accounts.list.couldNotLoad')}${aborted ? t('accounts.list.notResponding') : ''}.<br><button class="btn sec u-mt-10" type="button" id="dirreint">${t('accounts.list.retry')}</button></div>`;
+  list.innerHTML = `<div class="vacio" data-fallo>${t('accounts.list.couldNotLoad')}${aborted ? t('accounts.list.notResponding') : ''}.<br><button class="btn sec u-mt-10" type="button" id="dirreint">${t('accounts.list.retry')}</button></div>`;
   const retry = document.getElementById('dirreint'); if (retry) retry.onclick = (): void => { void searchAccounts(true); };
 }
 

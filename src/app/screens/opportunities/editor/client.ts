@@ -3,6 +3,7 @@
  * orders, and whether we promised to call them back).
  */
 import { legacyDb, notices, opportunitiesLegacy, portalLegacy } from '../../../legacy/bridge';
+import { customerDataHtml } from '../../../components/customer-data';
 import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml, formatNumber } from '../../../services/format';
@@ -17,7 +18,6 @@ interface OrderLine { pedido_id: string; producto_id: string; unidades: number; 
 interface PastOrder { id: string; numero?: string; fecha: string; estado: string; lineas_pedido: OrderLine[] }
 interface PastCall { id: string; fecha: string; resultado?: string | null; proxima_fecha?: string | null; proxima_accion?: string | null; seguimiento_hecho_en?: string | null; pedido_id?: string | null }
 
-const phoneOf = (client: Client): string => orFallback(client.movil, orFallback(client.telefono, orFallback(client.tel, '')));
 const orderTotal = (order: PastOrder): number => sum(order.lineas_pedido.map(line => (Number(line.importe) || 0) * (1 + (Number(line.iva) || 0) / 100)));
 const productName = (id: string): string => opportunitiesLegacy.products().find(product => product.id === id)?.nombre ?? t('opportunities.editor.defaultProduct');
 
@@ -83,7 +83,7 @@ async function choose(draft: Draft, client: Client | undefined): Promise<void> {
 }
 
 const resultHtml = (client: Client): string =>
-  `<button type="button" class="item" data-nvc="${client.id}"><span class="tx"><b>${escapeHtml(orFallback(client.nombre, ''))}</b><span class="sm">${escapeHtml([orFallback(client.movil, orFallback(client.telefono, '')), client.nif].filter(Boolean).join(' · '))}</span></span></button>`;
+  `<button type="button" class="item" data-nvc="${client.id}"><span class="tx"><b>${escapeHtml(orFallback(client.nombre, ''))}</b>${customerDataHtml(client)}</span></button>`;
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -95,7 +95,7 @@ async function search(draft: Draft): Promise<void> {
 }
 
 function chosenHtml(draft: Draft, client: Client): string {
-  return `<div class="clisel"><span><b>${escapeHtml(orFallback(client.nombre, ''))}</b><span class="sm">${escapeHtml([phoneOf(client), client.nif].filter(Boolean).join(' · '))}</span></span>
+  return `<div class="clisel"><span><b>${escapeHtml(orFallback(client.nombre, ''))}</b>${customerDataHtml(client, 'bloque')}</span>
         ${draft.closed ? '' : `<button type="button" class="btn sec" id="nvcamb">${t('opportunities.editor.change')}</button>`}</div>`;
 }
 
@@ -118,6 +118,16 @@ function bindSearch(draft: Draft): void {
   };
   const withoutClient = document.getElementById('nvsin');
   if (withoutClient) withoutClient.onclick = (): void => { (document.getElementById('dlg') as HTMLDialogElement | null)?.close(); opportunitiesLegacy.editOrder(); };
+}
+
+const DATA_COLUMNS = 'direccion,cp,municipio,provincia,telefono,movil,email';
+
+/** A client that comes from an opportunity carries only its name and phone: its data is read before painting the window. */
+export async function completeClient(draft: Draft): Promise<void> {
+  const client = draft.client;
+  if (!client?.id || client.direccion !== undefined) return;
+  const { data } = await legacyDb().from<Partial<Client> | null>('contactos').select(DATA_COLUMNS).eq('id', client.id).maybeSingle();
+  if (data && draft.client === client) draft.client = { ...client, ...data, movil: orFallback(data.movil, client.movil ?? '') };
 }
 
 /** Paints step 1: the chosen client or the search. */
