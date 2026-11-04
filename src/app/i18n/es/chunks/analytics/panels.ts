@@ -169,7 +169,7 @@ export const panels = {
     visitas: '{VisitsRecorded} en el periodo.',
     visitasDia: 'Media de {visits} de cada persona en los días que trabaja en la calle.',
     citasPct: 'De las citas del periodo hasta hoy (sin contar las aplazadas), cuántas acabaron en {visit}.',
-    coberturaPct: 'Parte de la cartera con alguna {visit} en los 60 días anteriores al final del periodo.',
+    coberturaPct: 'Parte de la cartera con alguna {visit} dentro de su plazo antes del final del periodo: la frecuencia de su estado comercial o, si no tiene, el plazo general (60 días de partida).',
     activados: '{Professionals} cuyo primer pedido atribuido es de este periodo.',
     opAbiertas: 'Oportunidades del periodo que aún no se han cerrado.',
     cierrePct: 'De las oportunidades cerradas, cuántas acabaron en pedido.',

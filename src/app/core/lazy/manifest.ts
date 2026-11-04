@@ -13,6 +13,7 @@ import * as componentsLoading from '../../components/loading';
 import * as coreCatalogRoles from '../../core/catalog-roles';
 import * as coreNavigationCurrent from '../../core/navigation/current';
 import * as coreOrganisation from '../../core/organisation';
+import * as coreRules from '../../core/rules';
 import * as coreVocabulary from '../../core/vocabulary';
 import * as i18nIndex from '../../i18n/index';
 import * as legacyAccounts2Bridge from '../../legacy/accounts2-bridge';
@@ -73,6 +74,7 @@ import * as screensSettingsCustomFieldsIndex from '../../screens/settings/custom
 import * as screensSettingsEmailTemplates from '../../screens/settings/email/templates';
 import * as screensSettingsMoreAccessLog from '../../screens/settings/more/access-log';
 import * as screensSettingsPlanUsage from '../../screens/settings/plan/usage';
+import * as screensSettingsRulesPortfolio from '../../screens/settings/rules/portfolio';
 import * as screensSettingsUsersModel from '../../screens/settings/users/model';
 import * as screensSurgeriesModel from '../../screens/surgeries/model';
 import * as screensTendersModel from '../../screens/tenders/model';
@@ -98,6 +100,7 @@ export const sharedModules = (): Record<string, object> => ({
   'core/catalog-roles': coreCatalogRoles,
   'core/navigation/current': coreNavigationCurrent,
   'core/organisation': coreOrganisation,
+  'core/rules': coreRules,
   'core/vocabulary': coreVocabulary,
   'i18n/index': i18nIndex,
   'legacy/accounts2-bridge': legacyAccounts2Bridge,
@@ -158,6 +161,7 @@ export const sharedModules = (): Record<string, object> => ({
   'screens/settings/email/templates': screensSettingsEmailTemplates,
   'screens/settings/more/access-log': screensSettingsMoreAccessLog,
   'screens/settings/plan/usage': screensSettingsPlanUsage,
+  'screens/settings/rules/portfolio': screensSettingsRulesPortfolio,
   'screens/settings/users/model': screensSettingsUsersModel,
   'screens/surgeries/model': screensSurgeriesModel,
   'screens/tenders/model': screensTendersModel,

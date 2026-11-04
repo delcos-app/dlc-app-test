@@ -2115,10 +2115,10 @@ async function warnIfAmountChanged(id) {
     notices.toast(t("ordersMore.tpv.amountChanged", { sent: euros(Number(sent.importe)), now: euros(total) }), true);
 }
 
-// delcos-shared:src/app/core/organisation.ts
-var shared17 = globalThis["__delcosModules"]["core/organisation"];
+// delcos-shared:src/app/core/rules.ts
+var shared17 = globalThis["__delcosModules"]["core/rules"];
 var pick17 = (name) => shared17[name];
-var generalVat = /* @__PURE__ */ pick17("generalVat");
+var defaultVat = /* @__PURE__ */ pick17("defaultVat");
 
 // src/app/screens/orders/editor/state.ts
 var CHANNELS = { patient: "paciente", centre: "centro" };
@@ -2164,7 +2164,7 @@ function serviceOfOrder(order) {
 }
 function serviceFields(order) {
   if (order?.envio) return serviceOfOrder(order);
-  const service = defaultService(), fallback = { envio_iva: Number(service?.iva ?? generalVat()), envio_con: nonZeroOr(service?.pvp, 0) };
+  const service = defaultService(), fallback = { envio_iva: Number(service?.iva ?? defaultVat("envios")), envio_con: nonZeroOr(service?.pvp, 0) };
   return order ? { servicio_id: "", envio: false, ...fallback } : { servicio_id: service?.id ?? "", envio: Boolean(service), ...fallback };
 }
 var newForm = (preset) => ({
@@ -2573,6 +2573,11 @@ function editorHtml2(state) {
   return headerHtml(state.order) + dateChannelOriginHtml(state) + customerZoneHtml(state) + linesHtml(state) + methodDiscountHtml(state) + paymentHtml(state) + serviceHtml(state) + footerHtml(state);
 }
 
+// delcos-shared:src/app/core/organisation.ts
+var shared18 = globalThis["__delcosModules"]["core/organisation"];
+var pick18 = (name) => shared18[name];
+var generalVat = /* @__PURE__ */ pick18("generalVat");
+
 // src/app/screens/orders/editor/index.ts
 var FULL_DISCOUNT2 = 100;
 var SALES_SCREEN4 = "ventas";
@@ -2807,12 +2812,12 @@ async function editOrder(preset) {
 }
 
 // delcos-shared:src/app/screens/orders/subscription/payments.ts
-var shared18 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
-var pick18 = (name) => shared18[name];
-var callPayments = /* @__PURE__ */ pick18("callPayments");
-var loadPaymentState = /* @__PURE__ */ pick18("loadPaymentState");
-var repaintPlanScreen = /* @__PURE__ */ pick18("repaintPlanScreen");
-var waitUntilActive = /* @__PURE__ */ pick18("waitUntilActive");
+var shared19 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
+var pick19 = (name) => shared19[name];
+var callPayments = /* @__PURE__ */ pick19("callPayments");
+var loadPaymentState = /* @__PURE__ */ pick19("loadPaymentState");
+var repaintPlanScreen = /* @__PURE__ */ pick19("repaintPlanScreen");
+var waitUntilActive = /* @__PURE__ */ pick19("waitUntilActive");
 
 // src/app/screens/orders/subscription/choose-plan.ts
 var MIN_USERS = 3;

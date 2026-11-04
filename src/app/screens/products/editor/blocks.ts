@@ -6,10 +6,10 @@
 import { term } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
+import { deliveryRule, type DeliveryPeriod } from '../../../core/rules';
 
 /** Product states, as stored in the database (and shown as they are). */
 export const PRODUCT_STATES = ['Activo', 'En pausa', 'Descatalogado'] as const;
-const MAX_SAMPLES = 10;
 
 export interface Pack { compra: number | string; regalo: number | string }
 export interface ProductExtras {
@@ -20,14 +20,31 @@ export interface ProductExtras {
 export const stateHtml = (state: string): string => `<div class="blk" id="prestado"><h3>${t('productsMore.state.title')}</h3><div class="segs">${PRODUCT_STATES.map(item => `<button type="button" data-pest="${item}" class="${item === state ? 'on' : ''}">${item}</button>`).join('')}</div>
       <div class="sm u-mt-6">${t('productsMore.state.hint')}</div></div>`;
 
-export const samplesForNewHtml = (): string => `<div class="blk" id="prmuestra"><h3>${t('productsMore.samples.title')}</h3><p class="sm">${t('productsMore.samples.saveFirst')}</p></div>`;
+const PERIOD_WORDS = { anio: 'productsMore.samples.periodYear', trimestre: 'productsMore.samples.periodQuarter', mes: 'productsMore.samples.periodMonth' } as const;
+const periodWord = (period: DeliveryPeriod): string => t(PERIOD_WORDS[period]);
 
-export const samplesHtml = (extras: ProductExtras): string => `<div class="blk" id="prmuestra"><h3>${t('productsMore.samples.title')}</h3>
-      <label class="opt"><input type="checkbox" id="prmreg" ${extras.muestra_regulada ? 'checked' : ''}> ${t('productsMore.samples.regulated')}</label>
+/** v2.466.0 (VIS-1): the block follows the company's rule (Configuración → Stock y material → Entregas controladas); off, no block. */
+const samplesTitle = (): string => deliveryRule().name ?? t('productsMore.samples.title');
+
+export const samplesForNewHtml = (): string => (deliveryRule().active ? `<div class="blk" id="prmuestra"><h3>${escapeHtml(samplesTitle())}</h3><p class="sm">${t('productsMore.samples.saveFirst')}</p></div>` : '');
+
+function samplesTexts(): { regulated: string; max: string; legal: string } {
+  const rule = deliveryRule(), professional = term('medico');
+  if (rule.name === null) return { regulated: t('productsMore.samples.regulated'), max: t('productsMore.samples.maxPerYear'), legal: t('productsMore.samples.law') };
+  return { regulated: t('productsMore.samples.regulatedOwn', { name: rule.name, professional }), max: t('productsMore.samples.maxPer', { professional, period: periodWord(rule.period) }), legal: rule.legal ?? '' };
+}
+
+
+export function samplesHtml(extras: ProductExtras): string {
+  const rule = deliveryRule(), texts = samplesTexts(), cap = rule.cap;
+  if (!rule.active) return '';
+  return `<div class="blk" id="prmuestra"><h3>${escapeHtml(samplesTitle())}</h3>
+      <label class="opt"><input type="checkbox" id="prmreg" ${extras.muestra_regulada ? 'checked' : ''}> ${escapeHtml(texts.regulated)}</label>
       <div class="g2 ${extras.muestra_regulada ? '' : 'hide'}" id="prmdat">
         <div><label for="prmdesde">${t('productsMore.samples.authorised')}</label><input id="prmdesde" type="date" value="${escapeHtml(extras.muestra_desde ?? '')}"></div>
-        <div><label for="prmmax">${t('productsMore.samples.maxPerYear')}</label><input id="prmmax" type="number" min="1" max="${MAX_SAMPLES}" step="1" value="${Number(extras.muestra_max) || MAX_SAMPLES}"></div></div>
-      <p class="sm">${t('productsMore.samples.law')}</p></div>`;
+        <div><label for="prmmax">${escapeHtml(texts.max)}</label><input id="prmmax" type="number" min="1" max="${cap}" step="1" value="${Math.min(Number(extras.muestra_max) || cap, cap)}"></div></div>
+      ${texts.legal ? `<p class="sm">${escapeHtml(texts.legal)}</p>` : ''}</div>`;
+}
 
 export const promotionHtml = (extras: ProductExtras): string => `<div class="blk" id="prpromo"><h3>${t('productsMore.promotion.title')}</h3>
       <label class="opt"><input type="checkbox" id="prpromoc" ${extras.promocionado ? 'checked' : ''}> ${t('productsMore.promotion.promoted', { visits: term('visita', { number: 'p' }) })}</label>

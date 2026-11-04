@@ -6,6 +6,7 @@ import { contentLegacy } from '../legacy/content-bridge';
 import { contentLists } from '../i18n/es/content-lists';
 import { nonZeroOr, orFallback } from '../services/values';
 import { fill } from './fill';
+import { deliveryRule } from '../core/rules';
 
 type Kpis = Record<string, number>;
 interface Indicator { id: string; t: string; v: (kpis: Kpis) => unknown; cls?: (kpis: Kpis) => string; h?: string; admin?: boolean }
@@ -47,7 +48,8 @@ export const DEFAULT_INDICATORS: readonly string[] = ['citas', 'urgentes', 'visi
 /** KPI_CAT. «conversion» keeps a getter: it names the positive state, which the company may rename after loading. */
 export function indicatorCatalog(words: Readonly<Record<string, string>>): Indicator[] {
   const labels: Readonly<Record<string, string | undefined>> = contentLists.indicatorLabels;
-  return RULES.map(rule => {
+  // v2.466.0 (VIS-1): without controlled deliveries, no «muestras entregadas»
+  return RULES.filter(rule => rule.id !== 'muestras_mes' || deliveryRule().active).map(rule => {
     if (rule.id !== 'conversion') return { ...rule, t: fill(labels[rule.id] ?? '', words) };
     const indicator = { ...rule, t: '' };
     Object.defineProperty(indicator, 't', { enumerable: true, get: () => fill(contentLists.conversionLabel.text, { state: orFallback(contentLegacy.stateOf('positivo'), 'positivo') }) });

@@ -3,6 +3,7 @@
  * year, events, material in deposit, surgeries, tenders and installed equipment. Migrated from the legacy abrirFichaBase8–15.
  */
 import { accountCardLegacy, legacyDb, permissions, relatedLegacy } from '../../../legacy/bridge';
+import { deliveryRule, type DeliveryPeriod } from '../../../core/rules';
 import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml, formatNumber } from '../../../services/format';
@@ -22,16 +23,20 @@ const canAdd = (blockId: string, section?: string): boolean =>
 
 interface Sample { nombre: string; entregadas: number; max: number; en_plazo: boolean; quedan: boolean }
 
+const PERIOD_NAMES = { anio: 'productsMore.samples.periodYear', trimestre: 'productsMore.samples.periodQuarter', mes: 'productsMore.samples.periodMonth' } as const;
+const periodName = (period: DeliveryPeriod): string => t(PERIOD_NAMES[period]);
+
 /** What was given this year of each regulated product. */
 export async function samples(id: string): Promise<void> {
-  if (!canAdd('fmuestras')) return;
+  const rule = deliveryRule();
+  if (!canAdd('fmuestras') || !rule.active) return;
   const { data } = await legacyDb().rpc<Sample[]>('muestras_de_cuenta', { p_cuenta: id });
   if (!Array.isArray(data) || !data.length) return;
   const pill = (sample: Sample): string => {
     if (!sample.en_plazo) return `<span class="pill p-anu">${t('accounts.card.samplesOutOfTime')}</span>`;
     return sample.quedan ? '' : `<span class="pill p-warn">${t('accounts.card.samplesNoneLeft')}</span>`;
   };
-  addBeforeFields(id, 'fmuestras', `<div class="blk" id="fmuestras"><h3>${t('accounts.card.samplesTitle')}</h3>
+  addBeforeFields(id, 'fmuestras', `<div class="blk" id="fmuestras"><h3>${rule.name === null ? t('accounts.card.samplesTitle') : escapeHtml(t('accounts.card.deliveriesTitle', { name: rule.name, period: periodName(rule.period) }))}</h3>
       ${data.map(sample => `<div class="fmrow"><span>${escapeHtml(sample.nombre)}</span><b>${t('accounts.card.samplesGiven', { given: sample.entregadas, max: sample.max })}</b>${pill(sample)}</div>`).join('')}</div>`);
 }
 

@@ -29,6 +29,8 @@ export function replenishmentPill(surgery: Pick<Surgery, 'reposicion' | 'reposic
   if (surgery.reposicion === 'vencida') return `<span class="pill p-urg">${t('surgeries.pills.overdue')}</span>`;
   if (surgery.reposicion === 'repuesta') return `<span class="pill p-est">${t('surgeries.pills.replenished')}</span>`;
   if (surgery.reposicion !== 'pendiente') return '';
+  // v2.466.0 (VEN-3): a company without a term has no deadline
+  if (!surgery.reposicion_limite) return `<span class="pill p-warn">${t('surgeries.pills.replenishPending')}</span>`;
   const deadline = new Date(surgery.reposicion_limite ?? '').toLocaleString(t('dates.locale'), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   return `<span class="pill p-warn">${t('surgeries.pills.replenishBefore', { date: escapeHtml(deadline) })}</span>`;
 }

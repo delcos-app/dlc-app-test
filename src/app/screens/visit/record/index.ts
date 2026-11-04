@@ -5,6 +5,7 @@
  */
 import { cardSectionsLegacy, notices, term } from '../../../legacy/bridge';
 import { visitLegacy } from '../../../legacy/visit-bridge';
+import { deliveryRule } from '../../../core/rules';
 import { t } from '../../../i18n';
 import { todayIso } from '../../../services/dates';
 import { pressed, togglePressed } from '../model';
@@ -59,7 +60,8 @@ function bindPhotos(draft: VisitDraft): void {
 
 /** The samples given, checked before saving (the legacy listener of legado 078 stops the save if something fails). */
 function bindSamples(body: HTMLElement, samples: readonly SampleLeft[], draft: VisitDraft): void {
-  if (!samples.length) return;
+  if (!samples.length || !deliveryRule().active) return;
+  const signature = deliveryRule().signature;
   let pad: SignaturePad | null = null;
   const items = (): SampleItem[] => [...body.querySelectorAll<HTMLInputElement>('[data-vmprod]')]
     .map(input => ({ producto_id: input.dataset.vmprod ?? '', unidades: Math.max(0, Math.floor(Number(input.value) || 0)), max: Number(input.max) })).filter(item => item.unidades > 0);
@@ -76,7 +78,7 @@ function bindSamples(body: HTMLElement, samples: readonly SampleLeft[], draft: V
       const chosen = items();
       if (!chosen.length) return null;
       if (chosen.some(item => item.unidades > item.max)) return t('visit.samples.overLimit');
-      return !pad || pad.vacia() ? t('visit.samples.missingSignature') : null;
+      return signature && (!pad || pad.vacia()) ? t('visit.samples.missingSignature') : null;
     },
   };
 }

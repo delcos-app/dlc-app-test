@@ -9,7 +9,7 @@ import { todayIso } from '../../../services/dates';
 import { nonZeroOr, orFallback } from '../../../services/values';
 import { round2, STATES, type Order } from '../model';
 import type { DistributorChoice } from './distributor';
-import { generalVat } from '../../../core/organisation';
+import { defaultVat } from '../../../core/rules';
 
 export const CHANNELS = { patient: 'paciente', centre: 'centro' } as const;
 const WEB_ORIGINS = ['web', 'portal'], MANUAL = 'manual', PERCENT = 'porcentaje';
@@ -74,7 +74,7 @@ function serviceOfOrder(order: Order): Pick<EditorForm, 'servicio_id' | 'envio' 
 
 function serviceFields(order: Order | null): Pick<EditorForm, 'servicio_id' | 'envio' | 'envio_iva' | 'envio_con'> {
   if (order?.envio) return serviceOfOrder(order);
-  const service = defaultService(), fallback = { envio_iva: Number(service?.iva ?? generalVat()), envio_con: nonZeroOr(service?.pvp, 0) };
+  const service = defaultService(), fallback = { envio_iva: Number(service?.iva ?? defaultVat('envios')), envio_con: nonZeroOr(service?.pvp, 0) };
   return order ? { servicio_id: '', envio: false, ...fallback } : { servicio_id: service?.id ?? '', envio: Boolean(service), ...fallback };
 }
 

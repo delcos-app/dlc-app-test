@@ -5,6 +5,7 @@
  */
 import { icon, term } from '../../../legacy/bridge';
 import { visitLegacy } from '../../../legacy/visit-bridge';
+import { deliveryRule } from '../../../core/rules';
 import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { todayIso } from '../../../services/dates';
@@ -56,21 +57,25 @@ function resultsHtml(index: ButtonIndex, groups: { results: ResultGroup; others:
       <div class="opciones">${group.valores.map(value => button(index, group, value, false)).join('')}</div>`).join('')}`;
 }
 
+/** «Quedan 7 de 10 este año» in the period of the company's rule (v2.466.0, VIS-1). */
+const LEFT_TEXTS = { anio: 'visit.samples.left', trimestre: 'visit.samples.leftQuarter', mes: 'visit.samples.leftMonth' } as const;
+
 function sampleRow(sample: SampleLeft): string {
   const available = sample.en_plazo && sample.quedan;
   const text = !sample.en_plazo ? t('visit.samples.expired', { date: formatShortDate(sample.hasta ?? '') })
-    : t('visit.samples.left', { left: sample.quedan, max: sample.max }) + (sample.hasta ? t('visit.samples.until', { date: formatShortDate(sample.hasta) }) : '');
+    : t(LEFT_TEXTS[deliveryRule().period], { left: sample.quedan, max: sample.max }) + (sample.hasta ? t('visit.samples.until', { date: formatShortDate(sample.hasta) }) : '');
   return `<div class="vmrow ${available ? '' : 'agotada'}"><span><b>${escapeHtml(sample.nombre)}</b><span class="sm">${text}</span></span>
       <input type="number" min="0" max="${sample.en_plazo ? sample.quedan : 0}" step="1" value="0" data-vmprod="${sample.producto_id}" aria-label="${t('visit.samples.of', { name: escapeHtml(sample.nombre) })}" ${available ? '' : 'disabled'}></div>`;
 }
 
 function samplesHtml(samples: readonly SampleLeft[], name: string): string {
-  if (!samples.length) return '';
-  return `<div class="vmuestras" id="vmuestras"><label>${t('visit.samples.title')}</label>
+  const rule = deliveryRule();
+  if (!samples.length || !rule.active) return '';
+  return `<div class="vmuestras" id="vmuestras"><label>${escapeHtml(rule.name ?? t('visit.samples.title'))}</label>
     ${samples.map(sampleRow).join('')}
-    <div class="vmfirma hide" id="vmfirma"><label>${t('visit.samples.signature')} <span class="sm">${t('visit.samples.signatureHint')}</span></label>
+    ${rule.signature ? `<div class="vmfirma hide" id="vmfirma"><label>${t('visit.samples.signature')} <span class="sm">${t('visit.samples.signatureHint')}</span></label>
       <canvas id="vmcanvas" aria-label="${t('visit.samples.signatureArea')}"></canvas>
-      <div class="vmfpie"><input id="vmfirmante" value="${escapeHtml(name)}" aria-label="${t('visit.samples.signer')}" placeholder="${t('visit.samples.signer')}"><button type="button" class="lnk" id="vmborrar">${t('visit.samples.clear')}</button></div></div></div>`;
+      <div class="vmfpie"><input id="vmfirmante" value="${escapeHtml(name)}" aria-label="${t('visit.samples.signer')}" placeholder="${t('visit.samples.signer')}"><button type="button" class="lnk" id="vmborrar">${t('visit.samples.clear')}</button></div></div>` : ''}</div>`;
 }
 
 /** Products presented, and «Presentar» for the ones with material. */

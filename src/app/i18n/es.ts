@@ -35,6 +35,7 @@ import { settingsMore } from './es/settings-more';
 import { settings } from './es/settings';
 import { access } from './es/access';
 import { agendaMore } from './es/agenda-more';
+import { settingsRules } from './es/settings-rules';
 import { routes } from './es/routes';
 import { orders } from './es/orders';
 import { products } from './es/products';
@@ -74,6 +75,7 @@ import type { texts as settingsPlanTexts } from './es/chunks/settings-plan';
 import type { texts as settingsUsersTexts } from './es/chunks/settings-users';
 
 export const es = {
+  settingsRules,
   equipment,
   tenders,
   purchases,
@@ -174,7 +176,7 @@ export const es = {
       alreadyIn: '<b>{count}</b> ya en «{state}»',
       nextStep: 'Siguiente paso: «{state}»',
       shareOfPortfolio: '{percent} % de tu cartera',
-      noVisitIn60Days: 'Sin {visit} en 60 días',
+      noVisitIn60Days: 'Sin {visit} {term}',
       theRest: 'El resto',
       today: 'hoy',
     },
@@ -189,7 +191,8 @@ export const es = {
       urgentUnvisited: '{professionals} sin visitar',
       urgentUnvisitedDetail: 'Marcados como urgentes en su ficha',
       surgeryRestock: 'Material de {surgeries} por reponer',
-      surgeryRestockDetail: 'Reposición en 48 horas',
+      surgeryRestockDetail: 'Reposición en {hours} horas',
+      surgeryRestockNoTerm: 'Reposición pendiente',
       packagesToPrepare: 'Paquetes por preparar',
       packagesToPrepareDetail: 'Pedidos confirmados sin enviar',
       callBackToday: 'Volver a llamar hoy',
@@ -243,7 +246,7 @@ export const es = {
       title: 'Cartera',
       soldThisMonth: 'Con pedidos atribuidos este mes',
       notContacted: 'Sin contactar',
-      noVisitIn60Days: 'Sin {visit} en 60 días',
+      noVisitIn60Days: 'Sin {visit} {term}',
     },
     upcoming: {
       title: 'Lo que viene',

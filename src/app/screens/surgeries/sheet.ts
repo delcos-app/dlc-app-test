@@ -5,6 +5,7 @@
  */
 import { agendaActions, appLegacy, legacyDb, notices, relatedLegacy, term } from '../../legacy/bridge';
 import { t } from '../../i18n';
+import { replenishHours } from '../../core/rules';
 import { formatLongDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
@@ -65,11 +66,17 @@ async function createOrder(id: string, button: HTMLButtonElement): Promise<void>
   notices.toast(t('surgeries.sheet.orderCreated')); relatedLegacy.openSurgery(id);
 }
 
+/** «Repuesto (fuera del plazo de 48 horas)» with the company's term (VEN-3, v2.466.0). */
+function lateText(): string {
+  const hours = replenishHours();
+  return hours === null ? t('surgeries.sheet.replenishedLateNoTerm') : t('surgeries.sheet.replenishedLate', { hours });
+}
+
 async function replenish(id: string, button: HTMLButtonElement): Promise<void> {
   button.disabled = true;
   const { data: result } = await legacyDb().rpc<{ ok?: boolean; error?: string; a_tiempo?: boolean }>('cirugia_reponer', { p_id: id });
   if (!result || result.ok === false) { button.disabled = false; notices.toast(result?.error === 'sin_stock' ? t('surgeries.sheet.notEnoughStock') : errorText(result), true); return; }
-  notices.toast(t(result.a_tiempo === false ? 'surgeries.sheet.replenishedLate' : 'surgeries.sheet.replenished')); relatedLegacy.openSurgery(id);
+  notices.toast(result.a_tiempo === false ? lateText() : t('surgeries.sheet.replenished')); relatedLegacy.openSurgery(id);
 }
 
 function bind(id: string, detail: SurgeryDetail): void {

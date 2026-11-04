@@ -5,7 +5,7 @@
  */
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
-import { EVENT_TYPES } from '../../../screens/events/model';
+import { eventTypes } from '../../../screens/events/model';
 import { chosenGroups } from '../state';
 import { smallText, textOf } from '../text';
 import type { BlockConfig, ListConfig } from '../types';
@@ -19,7 +19,7 @@ const statePill = (row: Element): string => row.querySelector('.cirest')?.innerH
 
 function eventCells(row: HTMLElement): string[] {
   const parts = smallText(row).split(' · '), time = parts.find(part => TIME.test(part));
-  const type = parts.find(part => (EVENT_TYPES as readonly string[]).includes(part));
+  const type = parts.find(part => eventTypes().includes(part));
   const attendees = parts.find(part => part.includes('asistente')) ?? '';
   const place = parts.filter((part, index) => index > 0 && part !== time && part !== type && part !== attendees).join(' · ');
   return [bold(row), escapeHtml((parts[0] ?? '') + (time ? ` · ${time}` : '')), escapeHtml(type ?? '—'), escapeHtml(place || '—'),

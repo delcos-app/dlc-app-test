@@ -16,6 +16,7 @@ export const surgeries = {
   pills: {
     overdue: 'Reposición vencida',
     replenishBefore: 'Reponer antes del {date}',
+    replenishPending: 'Reposición pendiente',
     replenished: 'Repuesta',
   },
   editor: {
@@ -75,7 +76,8 @@ export const surgeries = {
     noOrderPermission: 'No tienes permiso para crear pedidos: pídeselo a quien lleve los pedidos',
     orderCreated: 'Pedido en borrador creado',
     notEnoughStock: 'No hay bastante en el almacén central para reponerlo todo',
-    replenishedLate: 'Repuesto (fuera del plazo de 48 horas)',
+    replenishedLate: 'Repuesto (fuera del plazo de {hours} horas)',
+    replenishedLateNoTerm: 'Repuesto (fuera de plazo)',
     replenished: 'Repuesto lo usado',
   },
   use: {
@@ -93,8 +95,10 @@ export const surgeries = {
     writeUsed: 'Escribe lo que se ha usado',
     tooMany: 'No se puede usar más de lo que hay',
     saved: 'Guardado lo usado',
-    savedWithOrder: 'Queda un pedido en borrador al centro para confirmarlo y la reposición pendiente: hay 48 horas para reponer lo usado.',
-    savedWithoutOrder: 'Guardado lo usado. Queda la reposición pendiente: hay 48 horas para reponer lo usado.',
+    savedWithOrder: 'Queda un pedido en borrador al centro para confirmarlo y la reposición pendiente: hay {hours} horas para reponer lo usado.',
+    savedWithOrderNoTerm: 'Queda un pedido en borrador al centro para confirmarlo y la reposición pendiente.',
+    savedWithoutOrder: 'Guardado lo usado. Queda la reposición pendiente: hay {hours} horas para reponer lo usado.',
+    savedWithoutOrderNoTerm: 'Guardado lo usado. Queda la reposición pendiente.',
   },
   errors: {
     permission: 'No puedes cambiar {surgeryThis} {surgery}',

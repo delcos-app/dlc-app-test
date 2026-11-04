@@ -8,6 +8,7 @@ import { t, type MessageKey } from '../../i18n';
 import { capitalise, formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { sum } from '../../services/values';
+import { DEFAULT_RECURRENCE } from '../../core/rules';
 import { helpButton, missingText, portalState, words } from './model';
 
 interface MonthFigures { mes: string; unidades?: number; pautas?: number }
@@ -15,7 +16,7 @@ export interface ReportData {
   ok?: boolean; desde: string; hasta: string; unidades?: number; pautas?: number; ultima_pauta?: string | null; serie?: MonthFigures[];
   productos?: { nombre: string; unidades: number }[]; formatos?: { formato: string; n?: number }[]; medico: { nombre: string; especialidad?: string | null };
 }
-export interface Continuity { ok?: boolean; pocos?: boolean; meses?: number; minimo?: number; empezaron?: number; repiten?: number; dias_entre?: number; sin_pedir?: number }
+export interface Continuity { ok?: boolean; pocos?: boolean; meses?: number; dias?: number; minimo?: number; empezaron?: number; repiten?: number; dias_entre?: number; sin_pedir?: number }
 
 const PERIODS = new Map<string, MessageKey>([
   ['hoy', 'portal.periods.today'], ['ayer', 'portal.periods.yesterday'], ['semana', 'portal.periods.week'], ['7d', 'portal.periods.last7'],
@@ -23,12 +24,13 @@ const PERIODS = new Map<string, MessageKey>([
   ['anio', 'portal.periods.year'], ['anioant', 'portal.periods.lastYear'], ['todo', 'portal.periods.all'], ['pers', 'portal.periods.custom'],
 ]);
 
-/** «2+1» → «2 + 1 de regalo»; «4+» → «4 o más unidades». */
+/** «2+1» → «2 + 1 de regalo»; «4+» → «4 o más unidades» (v2.466.0, PPR-2: from the number of the company, «6+»). */
 export function formatText(format: string): string {
   // v2.423.0: the expression had lost its backslashes, so «2+1» read «2+1 unidades»
   const pack = /^(\d+)\+(\d+)$/.exec(format);
   if (pack) return t('portal.summary.packFormat', { bought: pack[1] ?? '', free: pack[2] ?? '' });
-  if (format === '4+') return t('portal.summary.fourOrMore');
+  const orMore = /^(\d+)\+$/.exec(format);
+  if (orMore) return t('portal.summary.orMore', { count: orMore[1] ?? '' });
   return format === '1' ? t('portal.summary.oneUnit') : t('portal.summary.units', { count: format });
 }
 
@@ -79,10 +81,10 @@ function evolution(data: ReportData): string {
 
 function continuity(figures: Continuity): string {
   if (!figures.ok) return `<p class="sm">${t('portal.summary.notAvailable')}</p>`;
-  if (figures.pocos) return `<p class="sm">${t('portal.summary.fewStarted', { ...words(), months: formatNumber(figures.meses ?? 12), started: formatNumber(figures.empezaron), minimum: formatNumber(figures.minimo ?? 5) })}</p>`;
+  if (figures.pocos) return `<p class="sm">${t('portal.summary.fewStarted', { ...words(), months: formatNumber(figures.meses ?? DEFAULT_RECURRENCE.meses), started: formatNumber(figures.empezaron), minimum: formatNumber(figures.minimo ?? DEFAULT_RECURRENCE.minimo) })}</p>`;
   const started = figures.empezaron ?? 0;
   return `<div class="minis cons"><div><b>${formatNumber(started)}</b><span>${t('portal.summary.started')}</span></div><div><b>${started ? `${Math.round((figures.repiten ?? 0) / started * 100)}%` : '—'}</b><span>${t('portal.summary.repeated')}</span></div>
-        <div><b>${figures.dias_entre ? t('portal.summary.days', { count: formatNumber(figures.dias_entre) }) : '—'}</b><span>${t('portal.summary.between')}</span></div><div><b>${formatNumber(figures.sin_pedir)}</b><span>${t('portal.summary.over60')}</span></div></div>`;
+        <div><b>${figures.dias_entre ? t('portal.summary.days', { count: formatNumber(figures.dias_entre) }) : '—'}</b><span>${t('portal.summary.between')}</span></div><div><b>${formatNumber(figures.sin_pedir)}</b><span>${t('portal.summary.overDays', { days: formatNumber(figures.dias ?? DEFAULT_RECURRENCE.dias) })}</span></div></div>`;
 }
 
 function missingBanner(): string {
@@ -113,6 +115,6 @@ export function summaryHtml(data: ReportData, figures: Continuity): string {
       ${productsCard(data)}</div>
     <div class="pmfila">
       ${formatsCard(data)}
-      <div class="card ancard" id="pmconst"><h2>${title} ${helpButton(title, t('portal.summary.continuityHelp', words()))}</h2>${continuity(figures)}</div></div>`;
+      <div class="card ancard" id="pmconst"><h2>${title} ${helpButton(title, t('portal.summary.continuityHelp', { ...words(), months: formatNumber(figures.meses ?? DEFAULT_RECURRENCE.meses), days: formatNumber(figures.dias ?? DEFAULT_RECURRENCE.dias) }))}</h2>${continuity(figures)}</div></div>`;
 }
 

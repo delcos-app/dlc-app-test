@@ -11,6 +11,8 @@ import { settingsCoreLegacy, treePainters as paint } from '../../legacy/settings
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { paintPurchaseSettings } from '../../screens/purchases/settings';
+import { paintCompleteSettings, paintEventSettings } from '../../screens/settings/rules/portfolio';
+import { paintDeliverySettings } from '../../screens/settings/rules/deliveries';
 
 type Painter = () => unknown;
 type Sub = [string, string, Painter];
@@ -54,7 +56,9 @@ function teamItems(): TreeItem[] {
     { k: 'cartera', ic: 'compass', t: t('settingsCore.tree.portfolio', words()), d: t('settingsCore.tree.portfolioHint', words()), sub: [
       ['reglas', t('settingsCore.tree.portfolioRules'), wrap(() => paint.window(paint.portfolioRules))],
       ['frec', t('settingsCore.tree.visitFrequency', words()), wrap(() => paint.window(paint.visitFrequency))],
-      ['ciclo', t('settingsCore.tree.cycle'), wrap(() => paint.window(paint.cycle))]] },
+      ['ciclo', t('settingsCore.tree.cycle'), wrap(() => paint.window(paint.cycle))],
+      // v2.466.0 (CAL-1, EVE-1): what a complete account needs, and the event types, limits and report note
+      ['completa', t('settingsRules.complete.entry'), wrap(paintCompleteSettings)], ['eventos', t('settingsRules.events.entry'), wrap(paintEventSettings)]] },
     { k: 'comis', ic: 'euro', t: t('settingsCore.tree.commissions'), d: t('settingsCore.tree.commissionsHint'), mod: 'ventas', r: wrap(() => paint.module('comisiones')) }];
 }
 
@@ -70,7 +74,9 @@ function dataItems(admin: boolean): TreeItem[] {
     items.push({ k: 'stock', ic: 'warehouse', t: t('settingsCore.tree.stock'), d: t('settingsCore.tree.stockHint', words()), mod: 'productos', sub: [
       ['alm', t('settingsCore.tree.stores'), wrap(paint.stores)], ['mues', t('settingsCore.tree.visitMaterial', words()), wrap(paint.visitMaterial)],
       // v2.463.0 (PRO-3): the usual delivery lead time, saved by an administrator
-      ...(admin ? [['compras', t('purchases.settings.part'), wrap(paintPurchaseSettings)] as Sub] : [])] });
+      ...(admin ? [['compras', t('purchases.settings.part'), wrap(paintPurchaseSettings)] as Sub] : []),
+      // v2.466.0 (VIS-1): controlled deliveries (today, medicine samples)
+      ...(admin ? [['entregas', t('settingsRules.deliveries.entry'), wrap(paintDeliverySettings)] as Sub] : [])] });
   }
   return items;
 }

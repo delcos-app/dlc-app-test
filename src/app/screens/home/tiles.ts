@@ -1,5 +1,6 @@
 /** The tiles of the home mosaic. Each function returns the HTML of one tile, or '' when it does not apply. */
 import { appointments, icon, permissions, term } from '../../legacy/bridge';
+import { noVisitWording } from '../../core/rules';
 import { t } from '../../i18n';
 import { addDays, fromIsoDate } from '../../services/dates';
 import { escapeHtml, formatEuros, formatNumber } from '../../services/format';
@@ -90,13 +91,19 @@ export function stockTile(data: HomeData): string {
       <div class="mmini">${rows || `<div><span>${t('home.stock.allGood')}</span></div>`}</div></div>`;
 }
 
+/** «en 60 días» or «en su plazo» as the database counted it (v2.466.0, INI-2). */
+export function noVisitIn(kpis: Readonly<Record<string, unknown>>): string {
+  const wording = noVisitWording(kpis);
+  return wording.byState ? t('settingsRules.noVisit.inTerm') : t('settingsRules.noVisit.inDays', { days: wording.days });
+}
+
 export function portfolioTile(data: HomeData): string {
   if (!permissions.canSeeArea('directorio')) return '';
   const kpi = (key: string): number => data.kpis[key] ?? 0;
   const sold = permissions.canSeeArea('ventas') ? `<div><span>${t('home.portfolio.soldThisMonth')}</span><b>${formatNumber(kpi('prescriptores_mes'))}</b></div>` : '';
   return `<div class="mt mtcar"><div class="mtt">${icon('users')} ${t('home.portfolio.title')}</div>
     <div class="mn1"><span data-mcnt="${kpi('cuentas')}">${formatNumber(kpi('cuentas'))}</span><small>${term('medico', { number: 'p' })}</small></div>
-    <div class="mmini">${sold}<div><span>${t('home.portfolio.notContacted')}</span><b>${formatNumber(kpi('sin_contactar'))}</b></div><div><span>${t('home.portfolio.noVisitIn60Days', { visit: term('visita') })}</span><b>${formatNumber(kpi('sin_visita_60'))}</b></div></div></div>`;
+    <div class="mmini">${sold}<div><span>${t('home.portfolio.notContacted')}</span><b>${formatNumber(kpi('sin_contactar'))}</b></div><div><span>${t('home.portfolio.noVisitIn60Days', { visit: term('visita'), term: noVisitIn(data.kpis) })}</span><b>${formatNumber(kpi('sin_visita_60'))}</b></div></div></div>`;
 }
 
 const AREA_OF_UPCOMING: Readonly<Record<string, string>> = { evento: 'eventos', concurso: 'concursos', cirugia: 'cirugias', equipo: 'parque' };

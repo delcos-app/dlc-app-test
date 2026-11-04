@@ -3,16 +3,24 @@ import { cardSectionsLegacy, currentScreen, eventsLegacy, legacyDb, notices, rel
 import { t } from '../../i18n';
 import { todayIso } from '../../services/dates';
 import { escapeHtml } from '../../services/format';
-import { EVENT_TYPES, type EventRow } from './model';
+import { eventTypes, type EventRow } from './model';
 
 const value = (id: string): string => (document.getElementById(id) as HTMLInputElement | null)?.value ?? '';
 
+const SUBTITLE_TYPES = 4;
+
+/** The company's types, and the event's own if it is no longer in the list (it is kept). */
+function typeOptions(current: string | null | undefined): string {
+  const types = eventTypes(), list = current && !types.includes(current) ? [...types, current] : types;
+  return list.map(type => `<option ${type === current ? 'selected' : ''}>${escapeHtml(type)}</option>`).join('');
+}
+
 function editorHtml(event: Partial<EventRow>, existing: EventRow | null): string {
   const canDelete = existing && (existing.creado_por === salesTeam.currentUserId() || cardSectionsLegacy.can('administrar'));
-  return `<div class="fh"><div><h2>${t(existing ? 'events.editor.editTitle' : 'events.editor.newTitle')}</h2><div class="sm">${t('events.editor.subtitle')}</div></div>
+  return `<div class="fh"><div><h2>${t(existing ? 'events.editor.editTitle' : 'events.editor.newTitle')}</h2><div class="sm">${t('events.editor.subtitle', { types: escapeHtml(eventTypes().slice(0, SUBTITLE_TYPES).join(', ')) })}</div></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
     <label for="evt">${t('events.editor.title')}</label><input id="evt" value="${escapeHtml(event.titulo ?? '')}" placeholder="${t('events.editor.titlePlaceholder')}">
-    <div class="g2"><div><label for="evtipo">${t('events.editor.type')}</label><select id="evtipo">${EVENT_TYPES.map(type => `<option ${type === event.tipo ? 'selected' : ''}>${type}</option>`).join('')}</select></div>
+    <div class="g2"><div><label for="evtipo">${t('events.editor.type')}</label><select id="evtipo">${typeOptions(event.tipo)}</select></div>
       <div><label for="evf">${t('events.editor.date')}</label><input id="evf" type="date" value="${escapeHtml(event.fecha ?? '')}"></div></div>
     <div class="g2"><div><label for="evh">${t('events.editor.time')}</label><input id="evh" type="time" value="${escapeHtml(event.hora ? String(event.hora).slice(0, 5) : '')}"></div>
       <div><label for="evl">${t('events.editor.place')}</label><input id="evl" value="${escapeHtml(event.lugar ?? '')}" placeholder="${t('events.editor.placePlaceholder')}"></div></div>

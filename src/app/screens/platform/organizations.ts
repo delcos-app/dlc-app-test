@@ -1,6 +1,6 @@
 /**
  * Panel delcos → Clientes (Organizaciones): each company with its plan, state, users and domains, and its buttons: Dominios,
- * Extras, Entrar, Plan, Descargar datos, Desactivar and Borrar. Migrated from the legacy pintarOrganizaciones, orgExtras and
+ * Extras, Cifras (v2.466.0, PED-1), Entrar, Plan, Descargar datos, Desactivar and Borrar. Migrated from the legacy pintarOrganizaciones, orgExtras and
  * orgAcciones (v2.413.0); pintarOrganizaciones stays as an adapter (the page tabs and the tests use it).
  */
 import { legacyDb, notices } from '../../legacy/bridge';
@@ -12,6 +12,7 @@ import { orFallback } from '../../services/values';
 import { errorMessage, extraName, type Organization, planOf, planText, platformState, statePills } from './model';
 import { deleteOrganization, downloadData, enterOrganization, toggleActive } from './org-actions';
 import { editExtras } from './org-extras';
+import { openFigures } from './org-figures';
 import { openNewOrganization } from './org-new';
 import { editPlan } from './org-plan';
 import { loadOrganisationLimits, organisationLimitsHtml, type OrganisationLimits } from '../settings/plan/usage';
@@ -30,6 +31,7 @@ function buttonsHtml(organization: Organization): string {
   return `<span class="acts u-m-0"><span class="sm">${organization.creado_en ? formatShortDate(String(organization.creado_en).slice(0, 10)) : ''}</span>
         <button class="btn sec chico" type="button" data-orgdom="${organization.id}">${t('platform.orgs.domains')}</button>
         <button class="btn sec chico" type="button" data-orgext="${organization.id}">${t('platform.orgs.extras')}</button>
+        <button class="btn sec chico" type="button" data-orgcif="${organization.id}">${t('platform.figures.button')}</button>
         <button class="btn chico ${inside ? 'sec' : ''}" type="button" data-orgver="${organization.id}">${t(inside ? 'platform.orgs.inside' : 'platform.orgs.enter')}</button>
         <button class="btn sec chico" type="button" data-orgplan="${organization.id}">${t('platform.orgs.plan')}</button>
         <button class="btn sec chico" type="button" data-orgexp="${organization.id}">${t('platform.orgs.download')}</button>
@@ -68,6 +70,7 @@ const ACTIONS: readonly (readonly [string, Action])[] = [
   ['orgver', organization => { if (organization.id !== platformState.viewed?.id) void enterOrganization(organization); }],
   ['orgdom', organization => { void editDomains(organization); }],
   ['orgext', organization => { editExtras(organization, paintOrganizations); }],
+  ['orgcif', organization => { void openFigures(organization); }],
   ['orgplan', organization => { editPlan(organization, paintOrganizations); }],
   ['orgexp', (organization, button) => { void downloadData(organization, button); }],
   ['orgdel', organization => { void deleteOrganization(organization, paintOrganizations); }],

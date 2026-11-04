@@ -26,7 +26,7 @@ function notLinked(): void {
 async function paintReport(): Promise<void> {
   const range = portalPageLegacy.periodOf(document.getElementById('mdper'));
   const [{ data }, { data: figures }, { data: card }] = await Promise.all([
-    callRpc<ReportData>('informe_cuenta', { p_desde: range.desde, p_hasta: range.hasta }), callRpc<Continuity>('constancia_pacientes', { p_meses: 12 }),
+    callRpc<ReportData>('informe_cuenta', { p_desde: range.desde, p_hasta: range.hasta }), callRpc<Continuity>('constancia_pacientes', {}),
     portalState.form ? Promise.resolve({ data: null }) : callRpc<{ ok?: boolean }>('portal_mi_ficha', {}),
   ]);
   if (card?.ok) loadForm(card);

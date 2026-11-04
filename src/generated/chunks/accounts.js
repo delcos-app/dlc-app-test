@@ -163,6 +163,7 @@ var accounts = {
     addPhotos: "Añadir fotos",
     presented: "Presentado: {list}",
     samplesTitle: "Muestras este año",
+    deliveriesTitle: "{name} · este {period}",
     samplesGiven: "{given} de {max}",
     samplesOutOfTime: "Fuera de plazo",
     samplesNoneLeft: "Sin muestras este año",
@@ -2206,22 +2207,27 @@ function visitMaterial(id) {
   return Promise.resolve();
 }
 
-// delcos-shared:src/app/screens/equipment/model.ts
-var shared18 = globalThis["__delcosModules"]["screens/equipment/model"];
+// delcos-shared:src/app/core/rules.ts
+var shared18 = globalThis["__delcosModules"]["core/rules"];
 var pick18 = (name) => shared18[name];
-var reviewPill = /* @__PURE__ */ pick18("reviewPill");
+var deliveryRule = /* @__PURE__ */ pick18("deliveryRule");
+
+// delcos-shared:src/app/screens/equipment/model.ts
+var shared19 = globalThis["__delcosModules"]["screens/equipment/model"];
+var pick19 = (name) => shared19[name];
+var reviewPill = /* @__PURE__ */ pick19("reviewPill");
 
 // delcos-shared:src/app/screens/surgeries/model.ts
-var shared19 = globalThis["__delcosModules"]["screens/surgeries/model"];
-var pick19 = (name) => shared19[name];
-var statePill = /* @__PURE__ */ pick19("statePill");
+var shared20 = globalThis["__delcosModules"]["screens/surgeries/model"];
+var pick20 = (name) => shared20[name];
+var statePill = /* @__PURE__ */ pick20("statePill");
 
 // delcos-shared:src/app/screens/tenders/model.ts
-var shared20 = globalThis["__delcosModules"]["screens/tenders/model"];
-var pick20 = (name) => shared20[name];
-var contractEnd = /* @__PURE__ */ pick20("contractEnd");
-var daysLeft = /* @__PURE__ */ pick20("daysLeft");
-var statePill2 = /* @__PURE__ */ pick20("statePill");
+var shared21 = globalThis["__delcosModules"]["screens/tenders/model"];
+var pick21 = (name) => shared21[name];
+var contractEnd = /* @__PURE__ */ pick21("contractEnd");
+var daysLeft = /* @__PURE__ */ pick21("daysLeft");
+var statePill2 = /* @__PURE__ */ pick21("statePill");
 
 // src/app/screens/accounts/card/sections-related.ts
 var ATTENDED = "Asistió";
@@ -2232,15 +2238,18 @@ var CENTRE5 = "Centro";
 var OPEN_TENDERS = ["En estudio", "Oferta enviada", AWARDED];
 var SHOWN_EVENTS = 5;
 var canAdd = (blockId, section) => Boolean(fieldsPlace()) && !document.getElementById(blockId) && (!section || accountCardLegacy.planIncludes(section));
+var PERIOD_NAMES = { anio: "productsMore.samples.periodYear", trimestre: "productsMore.samples.periodQuarter", mes: "productsMore.samples.periodMonth" };
+var periodName = (period) => t(PERIOD_NAMES[period]);
 async function samples(id) {
-  if (!canAdd("fmuestras")) return;
+  const rule = deliveryRule();
+  if (!canAdd("fmuestras") || !rule.active) return;
   const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
   if (!Array.isArray(data) || !data.length) return;
   const pill = (sample) => {
     if (!sample.en_plazo) return `<span class="pill p-anu">${t("accounts.card.samplesOutOfTime")}</span>`;
     return sample.quedan ? "" : `<span class="pill p-warn">${t("accounts.card.samplesNoneLeft")}</span>`;
   };
-  addBeforeFields(id, "fmuestras", `<div class="blk" id="fmuestras"><h3>${t("accounts.card.samplesTitle")}</h3>
+  addBeforeFields(id, "fmuestras", `<div class="blk" id="fmuestras"><h3>${rule.name === null ? t("accounts.card.samplesTitle") : escapeHtml(t("accounts.card.deliveriesTitle", { name: rule.name, period: periodName(rule.period) }))}</h3>
       ${data.map((sample) => `<div class="fmrow"><span>${escapeHtml(sample.nombre)}</span><b>${t("accounts.card.samplesGiven", { given: sample.entregadas, max: sample.max })}</b>${pill(sample)}</div>`).join("")}</div>`);
 }
 async function events(id) {
@@ -2343,10 +2352,10 @@ function bindEquipment(block, id, name) {
 }
 
 // delcos-shared:src/app/screens/portal/model.ts
-var shared21 = globalThis["__delcosModules"]["screens/portal/model"];
-var pick21 = (name) => shared21[name];
-var failureText = /* @__PURE__ */ pick21("failureText");
-var messageThread = /* @__PURE__ */ pick21("messageThread");
+var shared22 = globalThis["__delcosModules"]["screens/portal/model"];
+var pick22 = (name) => shared22[name];
+var failureText = /* @__PURE__ */ pick22("failureText");
+var messageThread = /* @__PURE__ */ pick22("messageThread");
 
 // src/app/screens/accounts/card/sections-portal.ts
 var PENDING = "Pendiente";
@@ -2700,9 +2709,9 @@ function openColumnsPanel(onChange) {
 }
 
 // delcos-shared:src/app/components/index.ts
-var shared22 = globalThis["__delcosModules"]["components/index"];
-var pick22 = (name) => shared22[name];
-var showLoading = /* @__PURE__ */ pick22("showLoading");
+var shared23 = globalThis["__delcosModules"]["components/index"];
+var pick23 = (name) => shared23[name];
+var showLoading = /* @__PURE__ */ pick23("showLoading");
 
 // src/app/screens/accounts/duplicates/centres.ts
 var placeText = (item) => [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · ") || t("accountsMore.compare.noAddress");

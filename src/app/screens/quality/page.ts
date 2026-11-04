@@ -5,6 +5,7 @@
  * starts as «Seguimiento» and changes after the first answers.
  */
 import { accountListLegacy, cardSectionsLegacy, goTo, icon, legacyDb, permissions, qualityLegacy, term } from '../../legacy/bridge';
+import { deliveryRule } from '../../core/rules';
 import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { paintDoubtfulAddresses, paintSummary } from './data-quality';
@@ -69,7 +70,7 @@ function paintIndicators(summary: FollowUpSummary | null): void {
   const funnel = (summary.embudo ?? []).map(step => `<div class="kpi"><b>${formatNumber(step.n)}</b><span>${escapeHtml(step.estado)}</span></div>`).join('');
   box.innerHTML = `${funnel}<div class="kpi ok"><b>${formatNumber(summary.visitados)}</b><span>${term('medico', { number: 'p', adjective: 'visitado' })}</span></div>
        <div class="kpi"><b>${formatNumber(summary.visitas_total)}</b><span>${term('visita', { number: 'p', adjective: 'registrado' })}</span></div>
-       <div class="kpi"><b>${formatNumber(summary.muestras_total)}</b><span>${t('quality.page.samplesGiven')}</span></div>
+       ${deliveryRule().active ? `<div class="kpi"><b>${formatNumber(summary.muestras_total)}</b><span>${t('quality.page.samplesGiven')}</span></div>` : ''}
        <div class="kpi"><b>${percentText(summary.con_direccion, summary.total)}</b><span>${t('quality.page.withAddress')}</span></div>
        <div class="kpi"><b>${percentText(summary.con_dias, summary.total)}</b><span>${t('quality.page.withDays')}</span></div>`;
 }

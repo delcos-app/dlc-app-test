@@ -22,3 +22,4 @@ export * as live from './live';
 export * as queue from './write-queue';
 export * as reads from './read-cache';
 export { byId, escapeText, withCatch, appName, hexToRgb } from './utilities';
+export * as rules from './rules';

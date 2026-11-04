@@ -69,6 +69,26 @@ var platform = {
     couldNotSave: "No se han podido guardar los extras",
     saved: "Extras guardados"
   },
+  figures: {
+    button: "Cifras",
+    title: "Pedidos que cuentan en las cifras · {name}",
+    subtitle: "Cuentan en Inicio y Analítica aunque les falte el cobro, el paquete o la factura. Solo se ven y se cambian aquí; cada cambio queda en la auditoría.",
+    none: "Ningún pedido marcado.",
+    number: "Nº de pedido",
+    numberPlaceholder: "p. ej. P-2026-0123",
+    reason: "Motivo",
+    reasonPlaceholder: "p. ej. Cobrado fuera de la plataforma",
+    mark: "Marcar",
+    remove: "Quitar",
+    writeNumber: "Escribe el número del pedido",
+    writeReason: "Escribe el motivo",
+    notFound: "No hay ningún pedido con ese número en esta empresa",
+    noPermission: "Solo quien gestiona la plataforma puede hacerlo",
+    couldNotLoad: "No se han podido cargar los pedidos",
+    couldNotSave: "No se ha podido guardar",
+    marked: "El pedido {number} cuenta en las cifras",
+    removed: "El pedido {number} ya no cuenta en las cifras"
+  },
   newOrg: {
     title: "Nueva organización",
     subtitle: "Nace con los roles, catálogos, series y ajustes de partida de la plataforma",
@@ -851,6 +871,60 @@ function editExtras(organization, repaint) {
   };
 }
 
+// src/app/screens/platform/org-figures.ts
+var ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.figures.noPermission"], ["motivo", "platform.figures.writeReason"], ["no_existe", "platform.figures.notFound"]]);
+var rowHtml2 = (order) => `<div class="ajfila"><div><b>${escapeHtml(order.numero ?? "—")} · ${escapeHtml(order.cliente ?? "")}</b>
+    <span class="sm">${formatShortDate(order.fecha)} · ${escapeHtml(order.estado)}${order.motivo ? ` · ${escapeHtml(order.motivo)}` : ""}</span></div>
+    <button type="button" class="btn sec chico" data-cifq="${escapeHtml(order.numero ?? "")}">${t("platform.figures.remove")}</button></div>`;
+function windowHtml(organization, orders) {
+  return `<div class="fh"><div><h2>${t("platform.figures.title", { name: escapeHtml(organization.nombre) })}</h2><div class="sm">${t("platform.figures.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <div class="ajlista" id="cifl">${orders.length ? orders.map(rowHtml2).join("") : `<div class="vacio vlinea">${t("platform.figures.none")}</div>`}</div>
+    <div class="g2 u-mt-12"><div><label for="cifnum">${t("platform.figures.number")}</label><input id="cifnum" placeholder="${t("platform.figures.numberPlaceholder")}"></div>
+      <div><label for="cifmot">${t("platform.figures.reason")}</label><input id="cifmot" maxlength="200" placeholder="${t("platform.figures.reasonPlaceholder")}"></div></div>
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.close")}</button><button class="btn" id="cifok">${t("platform.figures.mark")}</button></div>`;
+}
+async function mark(organization, number, count, reason) {
+  const { data, error } = await legacyDb().rpc("marcar_cuenta_en_cifras", { p_org: organization.id, p_numero: number, p_contar: count, p_motivo: reason || null });
+  if (error || !data?.ok) {
+    const key = ERRORS.get(data?.error ?? "");
+    notices.toast(key ? t(key) : t("platform.figures.couldNotSave"), true);
+    return;
+  }
+  notices.toast(t(count ? "platform.figures.marked" : "platform.figures.removed", { number }));
+  await openFigures(organization);
+}
+async function openFigures(organization) {
+  const body = document.getElementById("dbody"), box = document.getElementById("dlg");
+  if (!body || !box) return;
+  const { data, error } = await legacyDb().rpc("cifras_pedidos", { p_org: organization.id });
+  if (error || !data?.ok) {
+    notices.toast(t(data?.error === "permiso" ? "platform.figures.noPermission" : "platform.figures.couldNotLoad"), true);
+    return;
+  }
+  body.innerHTML = windowHtml(organization, data.pedidos ?? []);
+  if (!box.open) box.showModal();
+  const ok = document.getElementById("cifok");
+  if (ok) ok.onclick = () => {
+    const number = document.getElementById("cifnum")?.value.trim() ?? "";
+    const reason = document.getElementById("cifmot")?.value.trim() ?? "";
+    if (!number) {
+      notices.toast(t("platform.figures.writeNumber"), true);
+      return;
+    }
+    if (!reason) {
+      notices.toast(t("platform.figures.writeReason"), true);
+      return;
+    }
+    void mark(organization, number, true, reason);
+  };
+  body.querySelectorAll("[data-cifq]").forEach((button) => {
+    button.onclick = () => {
+      void mark(organization, button.dataset.cifq ?? "", false, "");
+    };
+  });
+}
+
 // src/app/screens/platform/org-new.ts
 var MIN_USERS = 3;
 var TRIAL_DAYS = 30;
@@ -1017,12 +1091,13 @@ function buttonsHtml(organization) {
   return `<span class="acts u-m-0"><span class="sm">${organization.creado_en ? formatShortDate(String(organization.creado_en).slice(0, 10)) : ""}</span>
         <button class="btn sec chico" type="button" data-orgdom="${organization.id}">${t("platform.orgs.domains")}</button>
         <button class="btn sec chico" type="button" data-orgext="${organization.id}">${t("platform.orgs.extras")}</button>
+        <button class="btn sec chico" type="button" data-orgcif="${organization.id}">${t("platform.figures.button")}</button>
         <button class="btn chico ${inside ? "sec" : ""}" type="button" data-orgver="${organization.id}">${t(inside ? "platform.orgs.inside" : "platform.orgs.enter")}</button>
         <button class="btn sec chico" type="button" data-orgplan="${organization.id}">${t("platform.orgs.plan")}</button>
         <button class="btn sec chico" type="button" data-orgexp="${organization.id}">${t("platform.orgs.download")}</button>
         ${toggle}${remove}</span>`;
 }
-function rowHtml2(organization, limits) {
+function rowHtml3(organization, limits) {
   const domains = organization.dominios ?? [];
   return `<div class="item u-cursor-default">
       <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
@@ -1055,6 +1130,9 @@ var ACTIONS = [
   }],
   ["orgext", (organization) => {
     editExtras(organization, paintOrganizations);
+  }],
+  ["orgcif", (organization) => {
+    void openFigures(organization);
   }],
   ["orgplan", (organization) => {
     editPlan(organization, paintOrganizations);
@@ -1093,7 +1171,7 @@ async function paintOrganizations() {
   box.innerHTML = `<div class="card"><div class="fh"><div><h2>${t("platform.orgs.title")}</h2>
       <div class="sm">${t("platform.orgs.subtitle")}</div></div>
       <button class="btn" id="orgnueva">${t("platform.orgs.new")}</button></div>
-    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage(error)) })}</div>` : `<div class="lista">${list.map((organization) => rowHtml2(organization, limits.get(organization.id))).join("")}</div>`}</div>`;
+    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage(error)) })}</div>` : `<div class="lista">${list.map((organization) => rowHtml3(organization, limits.get(organization.id))).join("")}</div>`}</div>`;
   bind(box, list);
 }
 
@@ -1109,7 +1187,7 @@ function contactText(request, data) {
   return escapeHtml(orFallback(data.nombre, request.persona ?? "")) + (data.correo ? ` · <a href="mailto:${escapeHtml(data.correo)}">${escapeHtml(data.correo)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + `
           · ${how ? t(how) : ""}${data.horario ? ` (${escapeHtml(data.horario)})` : ""}`;
 }
-function rowHtml3(request, index) {
+function rowHtml4(request, index) {
   const data = request.datos ?? {}, needs = data.necesita_txt ?? [];
   return `<div class="presufila${request.estado === "Cerrada" ? " cerrada" : ""}">
         <div class="presucab"><b>${escapeHtml(request.organizacion)}</b> <span class="pill p-est">${escapeHtml(platformLegacy.planName(request.plan))}</span>
@@ -1142,7 +1220,7 @@ async function paintRequests() {
   box.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.requests.title")}</h2>
     <p class="sm">${t("platform.requests.subtitle")}</p>
     ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage(error)) })}</div>` : ""}
-    <div class="presulista">${list.map(rowHtml3).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
+    <div class="presulista">${list.map(rowHtml4).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
   box.querySelectorAll("[data-psok]").forEach((button) => {
     button.onclick = () => {
       const index = button.dataset.psok ?? "", request = list[Number(index)];
@@ -1163,7 +1241,7 @@ function stateOf(signup) {
 function contactHtml(data) {
   return escapeHtml(data.nombre ?? "") + (data.email ? ` · <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + (data.nif ? ` · ${escapeHtml(data.nif)}` : "");
 }
-function rowHtml4(signup) {
+function rowHtml5(signup) {
   const data = signup.datos ?? {}, [label, pill, text] = stateOf(signup);
   const plan = t("platform.signups.plan", { plan: platformLegacy.planName(data.plan), users: nonZeroOr(data.usuarios, DEFAULT_USERS), payment: t(data.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly") });
   return `<div class="pdalta"><div class="pdaltacab"><b>${escapeHtml(orFallback(orFallback(signup.organizacion, data.empresa ?? ""), t("platform.signups.noName")))}</b> <span class="pill ${pill}">${label}</span>
@@ -1183,8 +1261,8 @@ function pageHtml2(list, error) {
   return `<div class="card cfgpanel">
     ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage(error)) })}</div>` : ""}
     ${platformLegacy.kpis(figures)}
-    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml4).join("")}` : ""}
-    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done.map(rowHtml4).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
+    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml5).join("")}` : ""}
+    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done.map(rowHtml5).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
 }
 async function paintSignups() {
   const start = panelBox();
