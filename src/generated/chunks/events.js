@@ -21,9 +21,9 @@ var events = {
   editor: {
     editTitle: "Editar evento",
     newTitle: "Nuevo evento",
-    subtitle: "Taller, curso, congreso, webinar…",
+    subtitle: "{types}…",
     title: "Título",
-    titlePlaceholder: "p. ej. Taller de manejo del dolor articular",
+    titlePlaceholder: "p. ej. Presentación del catálogo de otoño",
     type: "Tipo",
     date: "Fecha",
     time: "Hora",
@@ -53,7 +53,9 @@ var events = {
     remove: "Quitar",
     noAttendees: "Todavía no hay asistentes: añade los invitados.",
     total: "Gastos de este evento",
-    note: "Las inscripciones y gastos de cada asistente (inscripción, viaje y alojamiento, comidas y honorarios) salen en el informe anual de gastos. Las comidas no deberían pasar de {max} € por persona.",
+    note: "Las inscripciones y gastos de cada asistente (inscripción, viaje y alojamiento, comidas y honorarios) salen en el informe anual de gastos.",
+    mealNote: " Las comidas no deberían pasar de {max} € por persona.",
+    limitNote: " {concept}: como mucho {max} € por persona.",
     edit: "Editar evento",
     done: "Hecho",
     alreadyIn: "{name} ya está en este evento",
@@ -61,6 +63,7 @@ var events = {
     added: "{name} añadido",
     couldNotSave: "No se ha podido guardar",
     mealOver: "La comida pasa de {max} € por persona: revisa que cumpla el código de buenas prácticas",
+    costOver: "{concept}: pasa del límite de {max} € por persona",
     removeText: "{name} deja de estar en este evento, con lo apuntado.",
     removeTitle: "¿Quitar de la lista?",
     couldNotRemove: "No se ha podido quitar"
@@ -68,7 +71,6 @@ var events = {
   report: {
     year: "Año",
     download: "Descargar (CSV)",
-    note: "Los gastos de eventos de cada {professional} durante el año, por concepto (las asistencias marcadas «No asistió» no cuentan). Es la base del informe anual de gastos de los códigos de Farmaindustria y Fenin: revísalo con vuestro responsable de cumplimiento antes de publicarlo.",
     events: "Eventos",
     total: "Total",
     code: "Código",
@@ -112,19 +114,25 @@ var shared5 = globalThis["__delcosModules"]["screens/events/model"];
 var pick5 = (name) => shared5[name];
 var ATTENDANCE_STATES = /* @__PURE__ */ pick5("ATTENDANCE_STATES");
 var CONCEPTS = /* @__PURE__ */ pick5("CONCEPTS");
-var EVENT_TYPES = /* @__PURE__ */ pick5("EVENT_TYPES");
-var MEAL_MAX = /* @__PURE__ */ pick5("MEAL_MAX");
 var attendeeTotal = /* @__PURE__ */ pick5("attendeeTotal");
 var conceptLabel = /* @__PURE__ */ pick5("conceptLabel");
+var eventTypes = /* @__PURE__ */ pick5("eventTypes");
+var isOverLimit = /* @__PURE__ */ pick5("isOverLimit");
+var limitOf = /* @__PURE__ */ pick5("limitOf");
 
 // src/app/screens/events/editor.ts
 var value = (id) => document.getElementById(id)?.value ?? "";
+var SUBTITLE_TYPES = 4;
+function typeOptions(current) {
+  const types = eventTypes(), list = current && !types.includes(current) ? [...types, current] : types;
+  return list.map((type) => `<option ${type === current ? "selected" : ""}>${escapeHtml(type)}</option>`).join("");
+}
 function editorHtml(event, existing) {
   const canDelete = existing && (existing.creado_por === salesTeam.currentUserId() || cardSectionsLegacy.can("administrar"));
-  return `<div class="fh"><div><h2>${t(existing ? "events.editor.editTitle" : "events.editor.newTitle")}</h2><div class="sm">${t("events.editor.subtitle")}</div></div>
+  return `<div class="fh"><div><h2>${t(existing ? "events.editor.editTitle" : "events.editor.newTitle")}</h2><div class="sm">${t("events.editor.subtitle", { types: escapeHtml(eventTypes().slice(0, SUBTITLE_TYPES).join(", ")) })}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <label for="evt">${t("events.editor.title")}</label><input id="evt" value="${escapeHtml(event.titulo ?? "")}" placeholder="${t("events.editor.titlePlaceholder")}">
-    <div class="g2"><div><label for="evtipo">${t("events.editor.type")}</label><select id="evtipo">${EVENT_TYPES.map((type) => `<option ${type === event.tipo ? "selected" : ""}>${type}</option>`).join("")}</select></div>
+    <div class="g2"><div><label for="evtipo">${t("events.editor.type")}</label><select id="evtipo">${typeOptions(event.tipo)}</select></div>
       <div><label for="evf">${t("events.editor.date")}</label><input id="evf" type="date" value="${escapeHtml(event.fecha ?? "")}"></div></div>
     <div class="g2"><div><label for="evh">${t("events.editor.time")}</label><input id="evh" type="time" value="${escapeHtml(event.hora ? String(event.hora).slice(0, 5) : "")}"></div>
       <div><label for="evl">${t("events.editor.place")}</label><input id="evl" value="${escapeHtml(event.lugar ?? "")}" placeholder="${t("events.editor.placePlaceholder")}"></div></div>
@@ -247,10 +255,19 @@ async function paintEvents() {
   });
 }
 
+// delcos-shared:src/app/core/rules.ts
+var shared8 = globalThis["__delcosModules"]["core/rules"];
+var pick8 = (name) => shared8[name];
+var eventRules = /* @__PURE__ */ pick8("eventRules");
+
 // src/app/screens/events/report.ts
 var YEARS_SHOWN = 4;
 var BOM = String.fromCharCode(65279);
 var amount = (row, key) => Number(row[key]) || 0;
+function reportNote() {
+  const own = eventRules().note, note = own ?? t("events.reportNote", { professional: term("medico") });
+  return note ? `<p class="sm">${escapeHtml(note)}</p>` : "";
+}
 function tableHtml(rows) {
   const total = (key) => formatCurrency(sum(rows.map((row) => amount(row, key))));
   return `<div class="dgrid-wrap"><table class="trtabla"><thead><tr><th>${term("medico", { capital: "C" })}</th><th>${t("events.report.events")}</th>${CONCEPTS.map((concept) => `<th>${conceptLabel(concept)}</th>`).join("")}<th>${t("events.report.total")}</th></tr></thead>
@@ -280,7 +297,7 @@ async function paintExpenseReport(year) {
   const rows = data?.filas ?? [];
   box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option) => `<option ${option === shown ? "selected" : ""}>${option}</option>`).join("")}</select>
       ${rows.length ? `<button type="button" class="btn sec" id="trcsv">${t("events.report.download")}</button>` : ""}</div>
-    <p class="sm">${t("events.report.note", { professional: term("medico") })}</p>
+    ${reportNote()}
     ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown })}</div>`}</div>`;
   const select = box.querySelector("#trano");
   if (select) select.onchange = () => {
@@ -293,18 +310,29 @@ async function paintExpenseReport(year) {
 }
 
 // delcos-shared:src/app/services/money.ts
-var shared8 = globalThis["__delcosModules"]["services/money"];
-var pick8 = (name) => shared8[name];
-var round2 = /* @__PURE__ */ pick8("round2");
+var shared9 = globalThis["__delcosModules"]["services/money"];
+var pick9 = (name) => shared9[name];
+var round2 = /* @__PURE__ */ pick9("round2");
 
 // src/app/screens/events/sheet.ts
 var reopen = (id) => {
   relatedLegacy.openEvent(id);
 };
+function noteText() {
+  const limits = CONCEPTS.flatMap((concept) => {
+    const max = limitOf(concept);
+    return max === void 0 ? [] : [[concept, max]];
+  });
+  return t("events.sheet.note") + limits.map(([concept, max]) => concept === "comida" ? t("events.sheet.mealNote", { max }) : t("events.sheet.limitNote", { concept: conceptLabel(concept), max })).join("");
+}
+var overText = (concept) => {
+  const max = limitOf(concept) ?? 0;
+  return concept === "comida" ? t("events.sheet.mealOver", { max }) : t("events.sheet.costOver", { concept: conceptLabel(concept), max });
+};
 function attendeeHtml(attendee) {
   const costs = CONCEPTS.map((concept) => {
     const amount2 = Number(attendee[concept]) || 0;
-    return `<label class="${concept === "comida" && amount2 > MEAL_MAX ? "evaviso" : ""}"><span>${conceptLabel(concept)}</span><input type="number" min="0" step="0.01" data-asimp="${concept}" value="${amount2 || ""}" placeholder="0"></label>`;
+    return `<label class="${isOverLimit(concept, amount2) ? "evaviso" : ""}"><span>${conceptLabel(concept)}</span><input type="number" min="0" step="0.01" data-asimp="${concept}" value="${amount2 || ""}" placeholder="0"></label>`;
   }).join("");
   return `<div class="evasf" data-as="${attendee.id}">
         <div class="evasn"><b>${escapeHtml(attendee.cuentas?.nombre ?? "")}</b><span class="sm">${escapeHtml(attendee.cuentas?.especialidad ?? "")}</span></div>
@@ -320,7 +348,7 @@ function sheetHtml(event, attendees, canEdit) {
     <div id="evsel"></div>
     <div class="evas" id="evas">${attendees.length ? attendees.map(attendeeHtml).join("") : `<div class="vacio vlinea">${t("events.sheet.noAttendees")}</div>`}</div>
     <div class="evpie"><span>${t("events.sheet.total")}</span><b id="evtotal">${formatCurrency(sum(attendees.map(attendeeTotal)))}</b></div>
-    <p class="sm">${t("events.sheet.note", { max: MEAL_MAX })}</p>
+    <p class="sm">${noteText()}</p>
     <div class="acts u-end">${canEdit ? `<button type="button" class="btn sec" id="eveditar">${t("events.sheet.edit")}</button>` : ""}<button type="button" class="btn" data-cerrar>${t("events.sheet.done")}</button></div>`;
 }
 function startAdding(id) {
@@ -346,9 +374,9 @@ async function saveCost(attendee, input, attendees) {
   attendee[concept] = amount2;
   const total = document.getElementById("evtotal");
   if (total) total.textContent = formatCurrency(sum(attendees.map(attendeeTotal)));
-  const overMeal = concept === "comida" && amount2 > MEAL_MAX;
-  input.closest("label")?.classList.toggle("evaviso", overMeal);
-  if (overMeal) notices.toast(t("events.sheet.mealOver", { max: MEAL_MAX }), true);
+  const over = isOverLimit(concept, amount2);
+  input.closest("label")?.classList.toggle("evaviso", over);
+  if (over) notices.toast(overText(concept), true);
 }
 function bindAttendee(row, attendee, attendees, id) {
   const state = row.querySelector("[data-asest]");

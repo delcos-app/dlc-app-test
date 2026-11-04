@@ -14,6 +14,8 @@ const REFILL_DAYS = 28;
 
 interface DayAppointment { id: string; cuenta_id: string; estado: string }
 export interface CopyResult { n: number; saltados: string[]; error?: boolean }
+/** Names shown in the «not passed» warning before it becomes «and N more». */
+const MAX_NAMED = 5;
 
 /** The accounts of a route, in the order it was saved (a route by criteria keeps the order of the database). */
 export async function routeMembers(route: SavedRoute): Promise<RouteMember[]> {
@@ -92,30 +94,38 @@ function confirmCopy(count: number, dates: readonly string[]): Promise<boolean> 
   return notices.confirm(text, { titulo: t('routes.agenda.confirmTitle'), ok: t('routes.agenda.add') });
 }
 
-function addedText(result: CopyResult): string {
+/** « · 2 profesionales sin dirección no se han pasado: A, B» (v2.466.0): the stops without a location are not passed, and now it says so. */
+export function unlocatedText(unlocated: readonly Pick<RouteMember, 'nombre'>[]): string {
+  if (!unlocated.length) return '';
+  const names = unlocated.slice(0, MAX_NAMED).map(member => member.nombre).join(', ');
+  const more = unlocated.length > MAX_NAMED ? t('routes.agenda.andMore', { count: unlocated.length - MAX_NAMED }) : '';
+  return t('routes.agenda.unlocated', { count: unlocated.length, professionals: term('medico', { number: unlocated.length === 1 ? 's' : 'p' }), names: names + more });
+}
+
+export function addedText(result: CopyResult, unlocated: readonly Pick<RouteMember, 'nombre'>[] = []): string {
   const added = t('routes.agenda.addedText', { count: result.n, added: t(result.n === 1 ? 'routes.agenda.oneAdded' : 'routes.agenda.added') });
   const skipped = result.saltados.length ? t('routes.agenda.skipped', { count: result.saltados.length, blocked: t(result.saltados.length === 1 ? 'routes.agenda.oneBlocked' : 'routes.agenda.blocked') }) : '';
-  return added + skipped;
+  return added + skipped + unlocatedText(unlocated);
 }
 
 /** Copies to the agenda and opens it on the first day added. */
-async function copyAndOpen(route: SavedRoute, members: readonly RouteMember[], dates: readonly string[]): Promise<void> {
+async function copyAndOpen(route: SavedRoute, members: readonly RouteMember[], dates: readonly string[], unlocated: readonly RouteMember[]): Promise<void> {
   const result = await appointmentsOn(route, members, dates);
   if (result.error) return;
   const repeat = route.repeticion ?? null;
   if (repeat && repeat.tipo !== 'fecha') await rememberUntil(route, repeat, dates[dates.length - 1] ?? '');
-  notices.toast(addedText(result));
+  notices.toast(addedText(result, unlocated));
   agendaState.setMode('dia'); agendaState.setSelectedDate(dates.find(day => !result.saltados.includes(day)) ?? dates[0] ?? todayIso()); goTo('agenda');
 }
 
 /** «Pasar a mi agenda»: the days it repeats on (or the day asked), then the agenda on the first day added. */
 export async function copyToAgenda(card: RouteCard, button?: HTMLButtonElement): Promise<void> {
-  const route = card.r, members = card.ms.filter(hasLocation);
+  const route = card.r, members = card.ms.filter(hasLocation), unlocated = card.ms.filter(member => !hasLocation(member));
   if (!members.length) { notices.toast(t('routes.agenda.noLocated', { professionals: term('medico', { number: 'p' }) }), true); return; }
   const dates = await datesToCopy(route.repeticion ?? null);
   if (!dates) return;
   if (!dates.length) { notices.toast(t('routes.agenda.noNextDay'), true); return; }
   if (dates.length > 1 && !await confirmCopy(members.length, dates)) return;
   if (button) button.disabled = true;
-  try { await copyAndOpen(route, members, dates); } finally { if (button) button.disabled = false; }
+  try { await copyAndOpen(route, members, dates, unlocated); } finally { if (button) button.disabled = false; }
 }

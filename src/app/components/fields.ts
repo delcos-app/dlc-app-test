@@ -39,6 +39,21 @@ export function passwordEye(input: HTMLInputElement | null): void {
 interface ClassifierField { papel?: string | null; ambito: string; tipo_campo?: string | null; [flag: string]: unknown }
 const FIELD_FLAGS = [['obligatorio', 'required'], ['solo_lectura', 'readOnly'], ['en_ficha', 'onCard'], ['en_tabla', 'tableColumn'], ['en_filtro', 'filter']] as const;
 
+const NO_REPORTS_ROLE = 'sin_informes', ACCOUNTS_SCOPE = 'medico', YES_NO = 'si_no';
+
+/**
+ * v2.466.0 (PPR-1): a yes/no field of the accounts can have the use «No recibe informes» (one per company). Only with SQL 193 (the
+ * classifier brings «papel_campo»).
+ */
+function useHtml(classifier: ClassifierField, off: string): string {
+  if (!('papel_campo' in classifier) || classifier.ambito !== ACCOUNTS_SCOPE || classifier.tipo_campo !== YES_NO) return '';
+  const role = classifier.papel_campo === NO_REPORTS_ROLE ? NO_REPORTS_ROLE : '';
+  return `<div class="g2"><div><label for="cfcpapel">${t('leftovers.fields.use')}</label><select id="cfcpapel" ${off}>
+      <option value="" ${role ? '' : 'selected'}>${t('leftovers.fields.useNone')}</option>
+      <option value="${NO_REPORTS_ROLE}" ${role ? 'selected' : ''}>${t('leftovers.fields.useNoReports')}</option></select></div>
+      <p class="sm">${t('leftovers.fields.useHelp')}</p></div>`;
+}
+
 /** v2.72.0: a classifier of an account, customer or product without a role is a custom field: its type and where it shows. */
 export function customFieldBox(classifier: ClassifierField, complete: boolean): string {
   if (classifier.papel || !leftoversLegacy.fieldTable(classifier.ambito)) return '';
@@ -48,6 +63,7 @@ export function customFieldBox(classifier: ClassifierField, complete: boolean): 
   return `<div class="cfcampo"><h3>${t('leftovers.fields.customField')}</h3>
     <div class="g2"><div><label for="cfctipo">${t('leftovers.fields.type')}</label><select id="cfctipo" ${off}>${types}</select></div>
       <div class="cfchks">${checks}</div></div>
+    ${useHtml(classifier, off)}
     ${complete ? `<div class="acts u-end"><button class="btn sec" id="cfcok">${t('leftovers.fields.saveField')}</button></div>` : ''}</div>`;
 }
 

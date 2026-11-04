@@ -6,6 +6,7 @@
 import { accountListLegacy, legacyDb, notices, term } from '../../legacy/bridge';
 import { miscLegacy, type NearbyAccount } from '../../legacy/misc-bridge';
 import { t } from '../../i18n';
+import { hasNoReports, noReportsName } from '../../core/no-reports';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 import { searchAccounts } from './list/search';
@@ -14,7 +15,7 @@ const RADIUS_KM = 10, LIMIT = 100, TIMEOUT_MS = 15000;
 
 function rowHtml(item: NearbyAccount): string {
   const urgent = item.urgente ? `<span class="pill p-urg">${t('accountsMore.nearby.urgent')}</span> ` : '';
-  const noReporting = item.sin_reporting ? `<span class="pill p-sr" title="${t('accountsMore.nearby.noReportingTitle', { visit: term('visita') })}">${t('accountsMore.nearby.noReporting')}</span> ` : '';
+  const noReporting = hasNoReports(item) ? `<span class="pill p-sr" title="${t('accountsMore.nearby.noReportingTitle', { visit: term('visita') })}">${escapeHtml(noReportsName() ?? t('accountsMore.nearby.noReporting'))}</span> ` : '';
   return `<button class="trow" data-id="${item.id}" style="padding:10px 14px;gap:12px">
       <span class="tcell cercakm"><b style="color:var(--navy)">${String(item.km).replace('.', ',')} km</b></span>
       <span class="tcell" style="flex:1;width:auto">

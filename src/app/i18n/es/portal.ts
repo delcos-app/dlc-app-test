@@ -32,7 +32,7 @@ export const portal = {
   },
   summary: {
     packFormat: '{bought} + {free} de regalo',
-    fourOrMore: '4 o más unidades',
+    orMore: '{count} o más unidades',
     oneUnit: '1 unidad',
     units: '{count} unidades',
     formatsTitle: '{Orders} más utilizadas',
@@ -56,7 +56,7 @@ export const portal = {
     repeated: 'se repiten',
     days: '{count} días',
     between: 'entre una y otra',
-    over60: 'más de 60 días sin repetirse',
+    overDays: 'más de {days} días sin repetirse',
     completeCard: 'Completa tu ficha',
     completeCardText: 'Falta {missing}. Así tu comercial pasa a verte cuando mejor te va.',
     completeCardButton: 'Completar mi ficha',
@@ -67,7 +67,7 @@ export const portal = {
     byProductHelp: 'Qué productos aparecen en las {orders} registradas en el periodo y qué parte de las unidades es cada uno.',
     byProductEmpty: 'Aparecerá el reparto por producto.',
     continuityTitle: 'Continuidad de las {orders}',
-    continuityHelp: 'En los últimos 12 meses: cuántas {orders} han empezado, qué parte se ha repetido al menos una vez, cuántos días pasan de media entre una vez y la siguiente, y cuántas llevan más de 60 días sin repetirse.',
+    continuityHelp: 'En los últimos {months} meses: cuántas {orders} han empezado, qué parte se ha repetido al menos una vez, cuántos días pasan de media entre una vez y la siguiente, y cuántas llevan más de {days} días sin repetirse.',
   },
   form: {
     contactTitle: 'Contacto y {visits}',

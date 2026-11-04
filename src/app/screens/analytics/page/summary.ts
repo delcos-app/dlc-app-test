@@ -7,6 +7,7 @@
 import { permissions, salesTeam } from '../../../legacy/bridge';
 import { panelsLegacy } from '../../../legacy/panels-bridge';
 import { t } from '../../../i18n';
+import { marksReportedOrders } from '../../../core/rules';
 import { counter } from '../../../components/filters-panel/counter';
 import { prepare } from '../../../components/filters-panel/prepare';
 import { analyticsState, loadConfig, saveConfig } from './catalog';
@@ -51,7 +52,7 @@ function summaryHtml(comparison: string): string {
       <div data-anp="resumen"><label for="ancomp">${t('panels.analytics.compareWith')}</label><select id="ancomp">
         ${option('anterior', t('panels.analytics.previousPeriod'), comparison === 'anterior')}
         ${option('anio', t('panels.analytics.lastYear'), comparison === 'anio')}</select></div>
-      ${permissions.seesEverything() ? `<div data-anp="resumen"><label for="anrep">${t('panels.analytics.report')}</label><select id="anrep">${option('', t('panels.analytics.all'), false)}${option('si', t('panels.analytics.reported'), report === 'si')}${option('no', t('panels.analytics.notReported'), report === 'no')}</select></div>` : ''}</div>
+      ${permissions.seesEverything() && marksReportedOrders() ? `<div data-anp="resumen"><label for="anrep">${t('panels.analytics.report')}</label><select id="anrep">${option('', t('panels.analytics.all'), false)}${option('si', t('panels.analytics.reported'), report === 'si')}${option('no', t('panels.analytics.notReported'), report === 'no')}</select></div>` : ''}</div>
     <p class="sm anresumen" id="anresumen"></p>
     <div id="ankpis" hidden></div>
     <div id="anareas"><div class="ankgrid">${Array.from({ length: SKELETON_CARDS }, () => '<div class="ankpi"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:24px"></div></div>').join('')}</div></div>

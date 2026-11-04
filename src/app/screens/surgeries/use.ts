@@ -5,6 +5,7 @@
  */
 import { appLegacy, legacyDb, notices, relatedLegacy, term } from '../../legacy/bridge';
 import { t } from '../../i18n';
+import { replenishHours } from '../../core/rules';
 import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { range } from '../../services/values';
@@ -28,6 +29,13 @@ function paintSerials(box: HTMLElement, input: HTMLInputElement): void {
   place.innerHTML = range(Math.min(units, MAX_SERIALS)).map(index => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? '')}" placeholder="${t('surgeries.use.serialOf', { index: index + 1 })}" aria-label="${t('surgeries.use.serialLabel', { index: index + 1 })}">`).join('');
 }
 
+/** What is left after recording the material, with the company's term to replenish it (VEN-3, v2.466.0). */
+function savedText(withOrder: boolean): string {
+  const hours = replenishHours();
+  if (hours === null) return t(withOrder ? 'surgeries.use.savedWithOrderNoTerm' : 'surgeries.use.savedWithoutOrderNoTerm');
+  return t(withOrder ? 'surgeries.use.savedWithOrder' : 'surgeries.use.savedWithoutOrder', { hours });
+}
+
 async function saveUsed(surgery: Surgery, stock: readonly StockLine[], box: HTMLElement, button: HTMLButtonElement): Promise<void> {
   const items = stock.map((line, index) => ({
     producto_id: line.producto_id, lote_id: line.lote_id, max: line.unidades,
@@ -44,7 +52,7 @@ async function saveUsed(surgery: Surgery, stock: readonly StockLine[], box: HTML
   button.disabled = false;
   if (error || !result || result.ok === false) { notices.toast(error ? t('surgeries.editor.couldNotSave', { error: (error as { message?: string }).message ?? '' }) : errorText(result), true); return; }
   notices.toast(t('surgeries.use.saved')); appLegacy.forgetCache();
-  relatedLegacy.openSurgery(surgery.id, `<div class="banda-ok depaviso">${t(result.pedido_id ? 'surgeries.use.savedWithOrder' : 'surgeries.use.savedWithoutOrder')}</div>`);
+  relatedLegacy.openSurgery(surgery.id, `<div class="banda-ok depaviso">${savedText(Boolean(result.pedido_id))}</div>`);
 }
 
 /** Paints «Registrar lo usado» (or the notice that there is no material to use). */

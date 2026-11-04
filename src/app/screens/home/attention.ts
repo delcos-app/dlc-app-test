@@ -2,6 +2,7 @@
 import { goTo, goToOrders, permissions, term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { formatEuros } from '../../services/format';
+import { replenishHours } from '../../core/rules';
 import type { AttentionItem, HomeData } from './types';
 
 /** An item is only added when there is something pending (count > 0). */
@@ -18,6 +19,12 @@ function collectionItems(data: HomeData, add: Add): void {
   });
 }
 
+/** «Reposición en 48 horas», with the company's term (VEN-3, v2.466.0). */
+function restockDetail(): string {
+  const hours = replenishHours();
+  return hours === null ? t('home.attention.surgeryRestockNoTerm') : t('home.attention.surgeryRestockDetail', { hours });
+}
+
 function urgentItems(data: HomeData, add: Add, pending: Pending): void {
   add({ count: pending('pago'), priority: 'alta', icon: 'credit-card', title: t('home.attention.pendingPayment'),
     detail: t('home.attention.pendingPaymentDetail'), open: () => { goToOrders('ventas'); } });
@@ -26,7 +33,7 @@ function urgentItems(data: HomeData, add: Add, pending: Pending): void {
     detail: t('home.attention.urgentUnvisitedDetail'), open: () => { goTo('directorio'); } });
   if (permissions.canSeeArea('cirugias')) {
     add({ count: data.areas.cirugias_reponer, priority: 'alta', icon: 'scissors', title: t('home.attention.surgeryRestock'),
-      detail: t('home.attention.surgeryRestockDetail'), open: () => { goTo('cirugias'); } });
+      detail: restockDetail(), open: () => { goTo('cirugias'); } });
   }
 }
 

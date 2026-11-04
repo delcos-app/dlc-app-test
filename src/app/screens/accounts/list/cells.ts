@@ -1,6 +1,7 @@
 /** The content of each cell of the Cuentas table. Migrated from the legacy celdaBase / celda (v2.406.0). */
 import { accountColumnsLegacy, currentScreen, term } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
+import { hasNoReports, noReportsName } from '../../../core/no-reports';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml } from '../../../services/format';
 import { orFallback } from '../../../services/values';
@@ -9,7 +10,7 @@ const WORKDAYS = ['L', 'M', 'X', 'J', 'V'], CUSTOM_PREFIX = 'cp:';
 
 function nameCell(row: AccountListRow): string {
   const urgent = row.urgente ? `<span class="pill p-urg">${t('accounts.list.urgent')}</span> ` : '';
-  const noReporting = row.sin_reporting ? `<span class="pill p-sr" title="${t('accounts.columns.noReportingTitle', { visit: term('visita') })}">${t('accounts.columns.noReporting')}</span> ` : '';
+  const noReporting = hasNoReports(row) ? `<span class="pill p-sr" title="${t('accounts.columns.noReportingTitle', { visit: term('visita') })}">${escapeHtml(noReportsName() ?? t('accounts.columns.noReporting'))}</span> ` : '';
   return `<span class="nm">${urgent}${noReporting}${escapeHtml(row.nombre)}</span>`;
 }
 

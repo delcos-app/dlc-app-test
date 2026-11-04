@@ -9,7 +9,7 @@ import { backOpener, sheetOpener } from '../../core/layers/dialogs';
 import { lazyChunk } from '../../core/lazy/load';
 import type * as Chunk from './chunk';
 
-export { EVENT_TYPES } from './model';
+export { eventTypes } from './model';
 
 const fromChunk = lazyChunk<typeof Chunk>('events');
 

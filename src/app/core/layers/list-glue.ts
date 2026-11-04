@@ -7,6 +7,7 @@
 import { listGlueLegacy as legacy, type CountItem, type LegacyOrderRow } from '../../legacy/legado-d-glue-bridge';
 import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
+import { reportsFilterValue } from '../no-reports';
 
 /** Legado 096, 102 and 128: list listeners. */
 export function installListListeners(): void {
@@ -73,7 +74,7 @@ function orderCard(order: LegacyOrderRow): { a: string; b: string; c: string; d:
 function accountIndicators(): void {
   const filters = legacy.accountFilters();
   const base = (): Record<string, unknown> => ({ q: orNull(filters().q), f_provincia: orNull(filters().prov), f_municipio: orNull(filters().muni), f_estado: orNull(filters().est),
-    f_especialidad: orNull(filters().esp), f_area: null, f_comercial: orNull(filters().com), f_reporting: orNull(filters().rep),
+    f_especialidad: orNull(filters().esp), f_area: null, f_comercial: orNull(filters().com), f_reporting: reportsFilterValue(filters().rep),
     ...(keysOf(filters().campos) ? { f_campos: filters().campos } : {}) });
   const flags = (): unknown[] => { const now = filters(); return [now.q, now.prov, now.muni, now.est, now.esp, now.com, now.rep, now.tipo, Boolean(now.urg), Boolean(now.mios), Boolean(now.sin), keysOf(now.campos) ? now.campos : {}]; };
   const filtered = (): boolean => { const now = filters(); return [now.q, now.prov, now.muni, now.est, now.esp, now.com, now.rep, now.tipo, now.urg, now.mios, now.sin, keysOf(now.campos)].some(Boolean); };

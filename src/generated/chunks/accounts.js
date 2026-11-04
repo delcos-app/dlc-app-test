@@ -163,6 +163,7 @@ var accounts = {
     addPhotos: "Añadir fotos",
     presented: "Presentado: {list}",
     samplesTitle: "Muestras este año",
+    deliveriesTitle: "{name} · este {period}",
     samplesGiven: "{given} de {max}",
     samplesOutOfTime: "Fuera de plazo",
     samplesNoneLeft: "Sin muestras este año",
@@ -558,34 +559,42 @@ var shared3 = globalThis["__delcosModules"]["screens/privacy/person-data"];
 var pick3 = (name) => shared3[name];
 var addPrivacySection = /* @__PURE__ */ pick3("addPrivacySection");
 
-// delcos-shared:src/app/services/date-format.ts
-var shared4 = globalThis["__delcosModules"]["services/date-format"];
+// delcos-shared:src/app/core/no-reports.ts
+var shared4 = globalThis["__delcosModules"]["core/no-reports"];
 var pick4 = (name) => shared4[name];
-var capitalise = /* @__PURE__ */ pick4("capitalise");
-var formatShortDate = /* @__PURE__ */ pick4("formatShortDate");
+var hasNoReports = /* @__PURE__ */ pick4("hasNoReports");
+var noReportsName = /* @__PURE__ */ pick4("noReportsName");
+var reportsFilterValue = /* @__PURE__ */ pick4("reportsFilterValue");
+var usesOldColumn = /* @__PURE__ */ pick4("usesOldColumn");
+
+// delcos-shared:src/app/services/date-format.ts
+var shared5 = globalThis["__delcosModules"]["services/date-format"];
+var pick5 = (name) => shared5[name];
+var capitalise = /* @__PURE__ */ pick5("capitalise");
+var formatShortDate = /* @__PURE__ */ pick5("formatShortDate");
 
 // delcos-shared:src/app/services/format.ts
-var shared5 = globalThis["__delcosModules"]["services/format"];
-var pick5 = (name) => shared5[name];
-var escapeHtml = /* @__PURE__ */ pick5("escapeHtml");
-var formatNumber = /* @__PURE__ */ pick5("formatNumber");
+var shared6 = globalThis["__delcosModules"]["services/format"];
+var pick6 = (name) => shared6[name];
+var escapeHtml = /* @__PURE__ */ pick6("escapeHtml");
+var formatNumber = /* @__PURE__ */ pick6("formatNumber");
 
 // delcos-shared:src/app/services/values.ts
-var shared6 = globalThis["__delcosModules"]["services/values"];
-var pick6 = (name) => shared6[name];
-var orFallback = /* @__PURE__ */ pick6("orFallback");
-var sum = /* @__PURE__ */ pick6("sum");
+var shared7 = globalThis["__delcosModules"]["services/values"];
+var pick7 = (name) => shared7[name];
+var orFallback = /* @__PURE__ */ pick7("orFallback");
+var sum = /* @__PURE__ */ pick7("sum");
 
 // delcos-shared:src/app/screens/visit/card-block.ts
-var shared7 = globalThis["__delcosModules"]["screens/visit/card-block"];
-var pick7 = (name) => shared7[name];
-var visitBlock = /* @__PURE__ */ pick7("visitBlock");
-var visitConsultation = /* @__PURE__ */ pick7("visitConsultation");
+var shared8 = globalThis["__delcosModules"]["screens/visit/card-block"];
+var pick8 = (name) => shared8[name];
+var visitBlock = /* @__PURE__ */ pick8("visitBlock");
+var visitConsultation = /* @__PURE__ */ pick8("visitConsultation");
 
 // delcos-shared:src/app/screens/visit/edit.ts
-var shared8 = globalThis["__delcosModules"]["screens/visit/edit"];
-var pick8 = (name) => shared8[name];
-var editVisit = /* @__PURE__ */ pick8("editVisit");
+var shared9 = globalThis["__delcosModules"]["screens/visit/edit"];
+var pick9 = (name) => shared9[name];
+var editVisit = /* @__PURE__ */ pick9("editVisit");
 
 // src/app/screens/accounts/card/base.ts
 var WORKDAYS = ["L", "M", "X", "J", "V"];
@@ -594,7 +603,7 @@ var SKELETON = '<div class="skel" style="width:50%"></div><div class="skel"></di
 var body = () => document.getElementById("fbody");
 function headerHtml(account) {
   const urgent = account.urgente ? `<span class="pill p-urg">${t("accounts.base.urgent")}</span> ` : "";
-  const noReporting = account.sin_reporting ? `<span class="pill p-sr" title="${t("accounts.base.noReportingTitle", { visit: term("visita") })}">${t("accounts.base.noReporting")}</span> ` : "";
+  const noReporting = hasNoReports(account) ? `<span class="pill p-sr" title="${t("accounts.base.noReportingTitle", { visit: term("visita") })}">${escapeHtml(noReportsName() ?? t("accounts.base.noReporting"))}</span> ` : "";
   return `<div class="fh">
       <div><h2>${urgent}${noReporting}${escapeHtml(account.nombre)}</h2>
         <div class="sm">${escapeHtml(account.especialidad ?? "")}${account.area ? ` · ${escapeHtml(account.area)}` : ""}${t("accounts.base.code", { code: escapeHtml(account.codigo) })}</div></div>
@@ -713,9 +722,9 @@ async function accountKind(id) {
 var historyRows = () => [...document.querySelectorAll("#fbody [data-vrow]")];
 
 // delcos-shared:src/app/screens/cycle/card.ts
-var shared9 = globalThis["__delcosModules"]["screens/cycle/card"];
-var pick9 = (name) => shared9[name];
-var paintCardCycle = /* @__PURE__ */ pick9("paintCardCycle");
+var shared10 = globalThis["__delcosModules"]["screens/cycle/card"];
+var pick10 = (name) => shared10[name];
+var paintCardCycle = /* @__PURE__ */ pick10("paintCardCycle");
 
 // src/app/screens/accounts/card/sections-account.ts
 var CENTRE = "Centro";
@@ -922,29 +931,29 @@ function bindProposal(body2, proposal) {
 }
 
 // delcos-shared:src/app/legacy/accounts2-bridge.ts
-var shared10 = globalThis["__delcosModules"]["legacy/accounts2-bridge"];
-var pick10 = (name) => shared10[name];
-var accountsEditorLegacy = /* @__PURE__ */ pick10("accountsEditorLegacy");
+var shared11 = globalThis["__delcosModules"]["legacy/accounts2-bridge"];
+var pick11 = (name) => shared11[name];
+var accountsEditorLegacy = /* @__PURE__ */ pick11("accountsEditorLegacy");
 
 // delcos-shared:src/app/screens/settings/custom-fields/index.ts
-var shared11 = globalThis["__delcosModules"]["screens/settings/custom-fields/index"];
-var pick11 = (name) => shared11[name];
-var customFieldsHtml = /* @__PURE__ */ pick11("customFieldsHtml");
-var readCustomFields = /* @__PURE__ */ pick11("readCustomFields");
-var saveCustomFields = /* @__PURE__ */ pick11("saveCustomFields");
+var shared12 = globalThis["__delcosModules"]["screens/settings/custom-fields/index"];
+var pick12 = (name) => shared12[name];
+var customFieldsHtml = /* @__PURE__ */ pick12("customFieldsHtml");
+var readCustomFields = /* @__PURE__ */ pick12("readCustomFields");
+var saveCustomFields = /* @__PURE__ */ pick12("saveCustomFields");
 
 // delcos-shared:src/app/screens/accounts/editor-form/model.ts
-var shared12 = globalThis["__delcosModules"]["screens/accounts/editor-form/model"];
-var pick12 = (name) => shared12[name];
-var PRIVATE_SAVED_NAME = /* @__PURE__ */ pick12("PRIVATE_SAVED_NAME");
-var catalogOptions = /* @__PURE__ */ pick12("catalogOptions");
-var consultationField = /* @__PURE__ */ pick12("consultationField");
-var fieldValue = /* @__PURE__ */ pick12("fieldValue");
-var hoursText = /* @__PURE__ */ pick12("hoursText");
-var isPrivateConsultation = /* @__PURE__ */ pick12("isPrivateConsultation");
-var markDirty = /* @__PURE__ */ pick12("markDirty");
-var newAccountNames = /* @__PURE__ */ pick12("newAccountNames");
-var privateConsultation = /* @__PURE__ */ pick12("privateConsultation");
+var shared13 = globalThis["__delcosModules"]["screens/accounts/editor-form/model"];
+var pick13 = (name) => shared13[name];
+var PRIVATE_SAVED_NAME = /* @__PURE__ */ pick13("PRIVATE_SAVED_NAME");
+var catalogOptions = /* @__PURE__ */ pick13("catalogOptions");
+var consultationField = /* @__PURE__ */ pick13("consultationField");
+var fieldValue = /* @__PURE__ */ pick13("fieldValue");
+var hoursText = /* @__PURE__ */ pick13("hoursText");
+var isPrivateConsultation = /* @__PURE__ */ pick13("isPrivateConsultation");
+var markDirty = /* @__PURE__ */ pick13("markDirty");
+var newAccountNames = /* @__PURE__ */ pick13("newAccountNames");
+var privateConsultation = /* @__PURE__ */ pick13("privateConsultation");
 
 // src/app/screens/accounts/editor-form/centre-card.ts
 var placeOf = (centre) => [centre.direccion, [centre.cp, centre.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
@@ -982,14 +991,14 @@ function privateCardHtml(centre) {
 var centreCard = (centre, linked) => linked || !isPrivateConsultation(centre) ? centreCardHtml(centre, linked) : privateCardHtml(centre);
 
 // delcos-shared:src/app/legacy/misc-bridge.ts
-var shared13 = globalThis["__delcosModules"]["legacy/misc-bridge"];
-var pick13 = (name) => shared13[name];
-var miscLegacy = /* @__PURE__ */ pick13("miscLegacy");
+var shared14 = globalThis["__delcosModules"]["legacy/misc-bridge"];
+var pick14 = (name) => shared14[name];
+var miscLegacy = /* @__PURE__ */ pick14("miscLegacy");
 
 // delcos-shared:src/app/core/organisation.ts
-var shared14 = globalThis["__delcosModules"]["core/organisation"];
-var pick14 = (name) => shared14[name];
-var addressQuery = /* @__PURE__ */ pick14("addressQuery");
+var shared15 = globalThis["__delcosModules"]["core/organisation"];
+var pick15 = (name) => shared15[name];
+var addressQuery = /* @__PURE__ */ pick15("addressQuery");
 
 // src/app/screens/accounts/editor-form/private-form.ts
 var LOCATION_TIMEOUT_MS = 12e3;
@@ -1675,7 +1684,7 @@ var WORKDAYS2 = ["L", "M", "X", "J", "V"];
 var CUSTOM_PREFIX = "cp:";
 function nameCell(row) {
   const urgent = row.urgente ? `<span class="pill p-urg">${t("accounts.list.urgent")}</span> ` : "";
-  const noReporting = row.sin_reporting ? `<span class="pill p-sr" title="${t("accounts.columns.noReportingTitle", { visit: term("visita") })}">${t("accounts.columns.noReporting")}</span> ` : "";
+  const noReporting = hasNoReports(row) ? `<span class="pill p-sr" title="${t("accounts.columns.noReportingTitle", { visit: term("visita") })}">${escapeHtml(noReportsName() ?? t("accounts.columns.noReporting"))}</span> ` : "";
   return `<span class="nm">${urgent}${noReporting}${escapeHtml(row.nombre)}</span>`;
 }
 var daysCell = (row) => `<span class="dias">${WORKDAYS2.map((day) => `<span class="${row.dias?.[day] ? "on" : ""}" title="${escapeHtml(row.dias?.[day] ?? "")}">${day}</span>`).join("")}</span>`;
@@ -1717,14 +1726,14 @@ function cell(row, key, onAccessLoaded) {
 }
 
 // delcos-shared:src/app/screens/accounts/list/columns.ts
-var shared15 = globalThis["__delcosModules"]["screens/accounts/list/columns"];
-var pick15 = (name) => shared15[name];
-var columnDefinitions = /* @__PURE__ */ pick15("columnDefinitions");
-var columnSettings = /* @__PURE__ */ pick15("columnSettings");
-var columnTitle = /* @__PURE__ */ pick15("columnTitle");
-var resetColumns = /* @__PURE__ */ pick15("resetColumns");
-var saveColumns = /* @__PURE__ */ pick15("saveColumns");
-var visibleColumns = /* @__PURE__ */ pick15("visibleColumns");
+var shared16 = globalThis["__delcosModules"]["screens/accounts/list/columns"];
+var pick16 = (name) => shared16[name];
+var columnDefinitions = /* @__PURE__ */ pick16("columnDefinitions");
+var columnSettings = /* @__PURE__ */ pick16("columnSettings");
+var columnTitle = /* @__PURE__ */ pick16("columnTitle");
+var resetColumns = /* @__PURE__ */ pick16("resetColumns");
+var saveColumns = /* @__PURE__ */ pick16("saveColumns");
+var visibleColumns = /* @__PURE__ */ pick16("visibleColumns");
 
 // src/app/screens/accounts/list/table.ts
 function paintHeader() {
@@ -1771,9 +1780,9 @@ function paintChips() {
 }
 
 // delcos-shared:src/app/legacy/rest-bridge.ts
-var shared16 = globalThis["__delcosModules"]["legacy/rest-bridge"];
-var pick16 = (name) => shared16[name];
-var restLegacy = /* @__PURE__ */ pick16("restLegacy");
+var shared17 = globalThis["__delcosModules"]["legacy/rest-bridge"];
+var pick17 = (name) => shared17[name];
+var restLegacy = /* @__PURE__ */ pick17("restLegacy");
 
 // src/app/screens/accounts/map/index.ts
 var URGENT = "#B42318";
@@ -1854,7 +1863,7 @@ function searchParams() {
     f_mios: Boolean(filters.mios),
     f_sin_visitar: Boolean(filters.sin),
     f_comercial: orNull2(filters.com),
-    f_reporting: orNull2(filters.rep),
+    f_reporting: reportsFilterValue(filters.rep),
     ...filters.tipo ? { f_tipo: filters.tipo } : {},
     orden: filters.orden,
     lim: size,
@@ -2057,7 +2066,7 @@ function formHtml3(account, consultations, id) {
       <div><label for="em">${t("accountsEditor.editor.email")}</label><input id="em" type="email" value="${value4(account.email)}"></div>
     </div>
     <label for="ect">${t("accountsEditor.editor.contact")}</label><input id="ect" value="${value4(account.contacto)}">
-    ${isCentre2 ? "" : `<label class="chksr"><input type="checkbox" id="esr" ${account.sin_reporting ? "checked" : ""}><span><b>${t("accountsEditor.editor.noReporting")}</b><span class="sm">${t("accountsEditor.editor.noReportingHint", { visit: term("visita") })}</span></span></label>`}
+    ${isCentre2 || !usesOldColumn() ? "" : `<label class="chksr"><input type="checkbox" id="esr" ${account.sin_reporting ? "checked" : ""}><span><b>${t("accountsEditor.editor.noReporting")}</b><span class="sm">${t("accountsEditor.editor.noReportingHint", { visit: term("visita") })}</span></span></label>`}
     <label for="eno">${t("accountsEditor.editor.note")}</label><textarea id="eno" rows="3">${value4(account.nota)}</textarea>
     ${customFieldsHtml("medico", account.clasificadores)}
     <div id="econs">${consultations.map((item, index) => consultationHtml2(item, String(index))).join("")}</div>
@@ -2098,9 +2107,9 @@ async function openEditor(id, type) {
 }
 
 // delcos-shared:src/app/screens/accounts/timetable.ts
-var shared17 = globalThis["__delcosModules"]["screens/accounts/timetable"];
-var pick17 = (name) => shared17[name];
-var missingTimetable = /* @__PURE__ */ pick17("missingTimetable");
+var shared18 = globalThis["__delcosModules"]["screens/accounts/timetable"];
+var pick18 = (name) => shared18[name];
+var missingTimetable = /* @__PURE__ */ pick18("missingTimetable");
 
 // src/app/screens/accounts/card/sections-base.ts
 async function timetableNotice(id) {
@@ -2206,22 +2215,27 @@ function visitMaterial(id) {
   return Promise.resolve();
 }
 
+// delcos-shared:src/app/core/rules.ts
+var shared19 = globalThis["__delcosModules"]["core/rules"];
+var pick19 = (name) => shared19[name];
+var deliveryRule = /* @__PURE__ */ pick19("deliveryRule");
+
 // delcos-shared:src/app/screens/equipment/model.ts
-var shared18 = globalThis["__delcosModules"]["screens/equipment/model"];
-var pick18 = (name) => shared18[name];
-var reviewPill = /* @__PURE__ */ pick18("reviewPill");
+var shared20 = globalThis["__delcosModules"]["screens/equipment/model"];
+var pick20 = (name) => shared20[name];
+var reviewPill = /* @__PURE__ */ pick20("reviewPill");
 
 // delcos-shared:src/app/screens/surgeries/model.ts
-var shared19 = globalThis["__delcosModules"]["screens/surgeries/model"];
-var pick19 = (name) => shared19[name];
-var statePill = /* @__PURE__ */ pick19("statePill");
+var shared21 = globalThis["__delcosModules"]["screens/surgeries/model"];
+var pick21 = (name) => shared21[name];
+var statePill = /* @__PURE__ */ pick21("statePill");
 
 // delcos-shared:src/app/screens/tenders/model.ts
-var shared20 = globalThis["__delcosModules"]["screens/tenders/model"];
-var pick20 = (name) => shared20[name];
-var contractEnd = /* @__PURE__ */ pick20("contractEnd");
-var daysLeft = /* @__PURE__ */ pick20("daysLeft");
-var statePill2 = /* @__PURE__ */ pick20("statePill");
+var shared22 = globalThis["__delcosModules"]["screens/tenders/model"];
+var pick22 = (name) => shared22[name];
+var contractEnd = /* @__PURE__ */ pick22("contractEnd");
+var daysLeft = /* @__PURE__ */ pick22("daysLeft");
+var statePill2 = /* @__PURE__ */ pick22("statePill");
 
 // src/app/screens/accounts/card/sections-related.ts
 var ATTENDED = "Asistió";
@@ -2232,15 +2246,18 @@ var CENTRE5 = "Centro";
 var OPEN_TENDERS = ["En estudio", "Oferta enviada", AWARDED];
 var SHOWN_EVENTS = 5;
 var canAdd = (blockId, section) => Boolean(fieldsPlace()) && !document.getElementById(blockId) && (!section || accountCardLegacy.planIncludes(section));
+var PERIOD_NAMES = { anio: "productsMore.samples.periodYear", trimestre: "productsMore.samples.periodQuarter", mes: "productsMore.samples.periodMonth" };
+var periodName = (period) => t(PERIOD_NAMES[period]);
 async function samples(id) {
-  if (!canAdd("fmuestras")) return;
+  const rule = deliveryRule();
+  if (!canAdd("fmuestras") || !rule.active) return;
   const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
   if (!Array.isArray(data) || !data.length) return;
   const pill = (sample) => {
     if (!sample.en_plazo) return `<span class="pill p-anu">${t("accounts.card.samplesOutOfTime")}</span>`;
     return sample.quedan ? "" : `<span class="pill p-warn">${t("accounts.card.samplesNoneLeft")}</span>`;
   };
-  addBeforeFields(id, "fmuestras", `<div class="blk" id="fmuestras"><h3>${t("accounts.card.samplesTitle")}</h3>
+  addBeforeFields(id, "fmuestras", `<div class="blk" id="fmuestras"><h3>${rule.name === null ? t("accounts.card.samplesTitle") : escapeHtml(t("accounts.card.deliveriesTitle", { name: rule.name, period: periodName(rule.period) }))}</h3>
       ${data.map((sample) => `<div class="fmrow"><span>${escapeHtml(sample.nombre)}</span><b>${t("accounts.card.samplesGiven", { given: sample.entregadas, max: sample.max })}</b>${pill(sample)}</div>`).join("")}</div>`);
 }
 async function events(id) {
@@ -2343,10 +2360,10 @@ function bindEquipment(block, id, name) {
 }
 
 // delcos-shared:src/app/screens/portal/model.ts
-var shared21 = globalThis["__delcosModules"]["screens/portal/model"];
-var pick21 = (name) => shared21[name];
-var failureText = /* @__PURE__ */ pick21("failureText");
-var messageThread = /* @__PURE__ */ pick21("messageThread");
+var shared23 = globalThis["__delcosModules"]["screens/portal/model"];
+var pick23 = (name) => shared23[name];
+var failureText = /* @__PURE__ */ pick23("failureText");
+var messageThread = /* @__PURE__ */ pick23("messageThread");
 
 // src/app/screens/accounts/card/sections-portal.ts
 var PENDING = "Pendiente";
@@ -2700,9 +2717,9 @@ function openColumnsPanel(onChange) {
 }
 
 // delcos-shared:src/app/components/index.ts
-var shared22 = globalThis["__delcosModules"]["components/index"];
-var pick22 = (name) => shared22[name];
-var showLoading = /* @__PURE__ */ pick22("showLoading");
+var shared24 = globalThis["__delcosModules"]["components/index"];
+var pick24 = (name) => shared24[name];
+var showLoading = /* @__PURE__ */ pick24("showLoading");
 
 // src/app/screens/accounts/duplicates/centres.ts
 var placeText = (item) => [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · ") || t("accountsMore.compare.noAddress");
@@ -3284,7 +3301,7 @@ var LIMIT = 100;
 var TIMEOUT_MS = 15e3;
 function rowHtml2(item) {
   const urgent = item.urgente ? `<span class="pill p-urg">${t("accountsMore.nearby.urgent")}</span> ` : "";
-  const noReporting = item.sin_reporting ? `<span class="pill p-sr" title="${t("accountsMore.nearby.noReportingTitle", { visit: term("visita") })}">${t("accountsMore.nearby.noReporting")}</span> ` : "";
+  const noReporting = hasNoReports(item) ? `<span class="pill p-sr" title="${t("accountsMore.nearby.noReportingTitle", { visit: term("visita") })}">${escapeHtml(noReportsName() ?? t("accountsMore.nearby.noReporting"))}</span> ` : "";
   return `<button class="trow" data-id="${item.id}" style="padding:10px 14px;gap:12px">
       <span class="tcell cercakm"><b style="color:var(--navy)">${String(item.km).replace(".", ",")} km</b></span>
       <span class="tcell" style="flex:1;width:auto">

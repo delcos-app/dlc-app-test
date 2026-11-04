@@ -9,15 +9,26 @@ import { escapeHtml, formatCurrency } from '../../services/format';
 import { sum } from '../../services/values';
 import { editEvent } from './editor';
 import { eventSummary } from './list';
-import { ATTENDANCE_STATES, attendeeTotal, CONCEPTS, conceptLabel, MEAL_MAX, type Attendee, type Concept, type EventRow } from './model';
+import { ATTENDANCE_STATES, attendeeTotal, CONCEPTS, conceptLabel, isOverLimit, limitOf, type Attendee, type Concept, type EventRow } from './model';
 import { round2 } from '../../services/money';
 
 const reopen = (id: string): void => { relatedLegacy.openEvent(id); };
 
+/** The note under the costs, with the company's limits (v2.466.0, EVE-1; DLC: «Las comidas no deberían pasar de 60 €…»). */
+function noteText(): string {
+  const limits = CONCEPTS.flatMap(concept => { const max = limitOf(concept); return max === undefined ? [] : [[concept, max] as const]; });
+  return t('events.sheet.note') + limits.map(([concept, max]) => (concept === 'comida' ? t('events.sheet.mealNote', { max }) : t('events.sheet.limitNote', { concept: conceptLabel(concept), max }))).join('');
+}
+
+const overText = (concept: Concept): string => {
+  const max = limitOf(concept) ?? 0;
+  return concept === 'comida' ? t('events.sheet.mealOver', { max }) : t('events.sheet.costOver', { concept: conceptLabel(concept), max });
+};
+
 function attendeeHtml(attendee: Attendee): string {
   const costs = CONCEPTS.map(concept => {
     const amount = Number(attendee[concept]) || 0;
-    return `<label class="${concept === 'comida' && amount > MEAL_MAX ? 'evaviso' : ''}"><span>${conceptLabel(concept)}</span><input type="number" min="0" step="0.01" data-asimp="${concept}" value="${amount || ''}" placeholder="0"></label>`;
+    return `<label class="${isOverLimit(concept, amount) ? 'evaviso' : ''}"><span>${conceptLabel(concept)}</span><input type="number" min="0" step="0.01" data-asimp="${concept}" value="${amount || ''}" placeholder="0"></label>`;
   }).join('');
   return `<div class="evasf" data-as="${attendee.id}">
         <div class="evasn"><b>${escapeHtml(attendee.cuentas?.nombre ?? '')}</b><span class="sm">${escapeHtml(attendee.cuentas?.especialidad ?? '')}</span></div>
@@ -34,7 +45,7 @@ function sheetHtml(event: EventRow, attendees: readonly Attendee[], canEdit: boo
     <div id="evsel"></div>
     <div class="evas" id="evas">${attendees.length ? attendees.map(attendeeHtml).join('') : `<div class="vacio vlinea">${t('events.sheet.noAttendees')}</div>`}</div>
     <div class="evpie"><span>${t('events.sheet.total')}</span><b id="evtotal">${formatCurrency(sum(attendees.map(attendeeTotal)))}</b></div>
-    <p class="sm">${t('events.sheet.note', { max: MEAL_MAX })}</p>
+    <p class="sm">${noteText()}</p>
     <div class="acts u-end">${canEdit ? `<button type="button" class="btn sec" id="eveditar">${t('events.sheet.edit')}</button>` : ''}<button type="button" class="btn" data-cerrar>${t('events.sheet.done')}</button></div>`;
 }
 
@@ -56,9 +67,9 @@ async function saveCost(attendee: Attendee, input: HTMLInputElement, attendees: 
   if (error) { notices.toast(t('events.sheet.couldNotSave'), true); input.value = String(Number(attendee[concept]) || ''); return; }
   attendee[concept] = amount;
   const total = document.getElementById('evtotal'); if (total) total.textContent = formatCurrency(sum(attendees.map(attendeeTotal)));
-  const overMeal = concept === 'comida' && amount > MEAL_MAX;
-  input.closest('label')?.classList.toggle('evaviso', overMeal);
-  if (overMeal) notices.toast(t('events.sheet.mealOver', { max: MEAL_MAX }), true);
+  const over = isOverLimit(concept, amount);
+  input.closest('label')?.classList.toggle('evaviso', over);
+  if (over) notices.toast(overText(concept), true);
 }
 
 function bindAttendee(row: HTMLElement, attendee: Attendee, attendees: readonly Attendee[], id: string): void {

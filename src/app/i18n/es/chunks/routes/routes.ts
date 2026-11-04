@@ -146,6 +146,8 @@ export const routes = {
     blocked: 'días bloqueados',
     addedText: '{count} {added}',
     skipped: ' · {count} {blocked} sin tocar',
+    unlocated: ' · {count} {professionals} sin dirección no se han pasado: {names}',
+    andMore: ' y {count} más',
     couldNotSave: 'No se ha podido guardar alguna cita',
   },
 };

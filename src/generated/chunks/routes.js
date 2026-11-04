@@ -149,6 +149,8 @@ var routes = {
     blocked: "días bloqueados",
     addedText: "{count} {added}",
     skipped: " · {count} {blocked} sin tocar",
+    unlocated: " · {count} {professionals} sin dirección no se han pasado: {names}",
+    andMore: " y {count} más",
     couldNotSave: "No se ha podido guardar alguna cita"
   }
 };
@@ -518,6 +520,7 @@ function routeSketch(members) {
 
 // src/app/screens/routes/to-agenda.ts
 var REFILL_DAYS = 28;
+var MAX_NAMED = 5;
 async function routeMembers(route) {
   const { data } = await legacyDb().rpc("cuentas_de_ruta", { p_id: route.id });
   const members = data ?? [], codes = route.codigos ?? [];
@@ -608,23 +611,29 @@ function confirmCopy(count, dates) {
   const text = t("routes.agenda.confirmText", { count, appointments: t(count === 1 ? "routes.agenda.oneAppointment" : "routes.agenda.appointments"), days: dates.length, dates: dates.map(formatShortDate).join(", ") });
   return notices.confirm(text, { titulo: t("routes.agenda.confirmTitle"), ok: t("routes.agenda.add") });
 }
-function addedText(result) {
+function unlocatedText(unlocated) {
+  if (!unlocated.length) return "";
+  const names = unlocated.slice(0, MAX_NAMED).map((member) => member.nombre).join(", ");
+  const more = unlocated.length > MAX_NAMED ? t("routes.agenda.andMore", { count: unlocated.length - MAX_NAMED }) : "";
+  return t("routes.agenda.unlocated", { count: unlocated.length, professionals: term("medico", { number: unlocated.length === 1 ? "s" : "p" }), names: names + more });
+}
+function addedText(result, unlocated = []) {
   const added = t("routes.agenda.addedText", { count: result.n, added: t(result.n === 1 ? "routes.agenda.oneAdded" : "routes.agenda.added") });
   const skipped = result.saltados.length ? t("routes.agenda.skipped", { count: result.saltados.length, blocked: t(result.saltados.length === 1 ? "routes.agenda.oneBlocked" : "routes.agenda.blocked") }) : "";
-  return added + skipped;
+  return added + skipped + unlocatedText(unlocated);
 }
-async function copyAndOpen(route, members, dates) {
+async function copyAndOpen(route, members, dates, unlocated) {
   const result = await appointmentsOn(route, members, dates);
   if (result.error) return;
   const repeat = route.repeticion ?? null;
   if (repeat && repeat.tipo !== "fecha") await rememberUntil(route, repeat, dates[dates.length - 1] ?? "");
-  notices.toast(addedText(result));
+  notices.toast(addedText(result, unlocated));
   agendaState.setMode("dia");
   agendaState.setSelectedDate(dates.find((day) => !result.saltados.includes(day)) ?? dates[0] ?? todayIso());
   goTo("agenda");
 }
 async function copyToAgenda(card, button) {
-  const route = card.r, members = card.ms.filter(hasLocation);
+  const route = card.r, members = card.ms.filter(hasLocation), unlocated = card.ms.filter((member) => !hasLocation(member));
   if (!members.length) {
     notices.toast(t("routes.agenda.noLocated", { professionals: term("medico", { number: "p" }) }), true);
     return;
@@ -638,7 +647,7 @@ async function copyToAgenda(card, button) {
   if (dates.length > 1 && !await confirmCopy(members.length, dates)) return;
   if (button) button.disabled = true;
   try {
-    await copyAndOpen(route, members, dates);
+    await copyAndOpen(route, members, dates, unlocated);
   } finally {
     if (button) button.disabled = false;
   }
@@ -925,10 +934,10 @@ function paintMarkers(map, library, layers) {
     marker.style.setProperty("--c", ROUTE_COLOUR);
     marker.innerHTML = `<span>${group.numbers.length > 2 ? `${group.numbers[0] ?? ""}–${group.numbers[group.numbers.length - 1] ?? ""}` : group.numbers.join("·")}</span>`;
     marker.title = group.member.nombre;
-    const pick22 = layers.onPick;
-    if (pick22) marker.onclick = (event) => {
+    const pick23 = layers.onPick;
+    if (pick23) marker.onclick = (event) => {
       event.stopPropagation();
-      pick22(group.member);
+      pick23(group.member);
     };
     map.__mk.push(new library.Marker({ element: marker, anchor: "bottom" }).setLngLat([group.lon, group.lat]).addTo(map));
   });
@@ -2605,8 +2614,16 @@ async function saveWeekDraft(button) {
   restLegacy.reloadHome();
 }
 
+// delcos-shared:src/app/core/rules.ts
+var shared20 = globalThis["__delcosModules"]["core/rules"];
+var pick20 = (name) => shared20[name];
+var DEFAULT_NO_VISIT_DAYS = /* @__PURE__ */ pick20("DEFAULT_NO_VISIT_DAYS");
+var SETTING_NO_VISIT = /* @__PURE__ */ pick20("SETTING_NO_VISIT");
+var generalNoVisitDays = /* @__PURE__ */ pick20("generalNoVisitDays");
+
 // src/app/screens/routes/frequency.ts
 var MAX_DAYS = 365;
+var MAX_GENERAL_DAYS = 3650;
 var SUGGESTED = /* @__PURE__ */ new Map([["inicial", 60], ["avance", 30], ["interes", 15], ["positivo", 30], ["negativo", 0]]);
 function formHtml2(days) {
   return `
@@ -2616,19 +2633,38 @@ function formHtml2(days) {
     ${Object.keys(days).map((state) => `<div class="g2 u-items-center"><div><b>${escapeHtml(state)}</b></div>
       <div><input type="number" min="0" max="${MAX_DAYS}" data-frec="${escapeHtml(state)}" value="${Number(days[state]) || 0}" aria-label="${t("routesMore.frequency.daysFor", { state: escapeHtml(state) })}"></div></div>`).join("")}
     <p class="sm">${t("routesMore.frequency.hint", { visit: term("visita") })}</p>
+    <div class="g2 u-items-center"><div><b><label for="frgen">${t("settingsRules.noVisit.general", { visit: term("visita") })}</label></b>
+      <div class="sm">${t("settingsRules.noVisit.generalHelp", { visit: term("visita"), days: DEFAULT_NO_VISIT_DAYS })}</div></div>
+      <div><input type="number" id="frgen" min="1" max="${MAX_GENERAL_DAYS}" value="${generalNoVisitDays()}"></div></div>
     <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="frok">${t("common.save")}</button></div>`;
+}
+async function saveGeneralTerm(days) {
+  if (days === generalNoVisitDays()) return true;
+  const { data, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: SETTING_NO_VISIT, p_valor: { dias: days } });
+  if (error || data?.ok === false) return false;
+  cycleLegacy.setSetting(SETTING_NO_VISIT, { dias: days });
+  return true;
 }
 async function save3(body) {
   const value2 = {};
   body.querySelectorAll("[data-frec]").forEach((input) => {
     value2[input.dataset.frec ?? ""] = Math.max(0, Number(input.value) || 0);
   });
+  const general = Number(document.getElementById("frgen")?.value);
+  if (!Number.isInteger(general) || general < 1 || general > MAX_GENERAL_DAYS) {
+    notices.toast(t("settingsRules.noVisit.wrong"), true);
+    return;
+  }
   const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "frecuencia", p_valor: value2 });
   if (error || result?.ok === false) {
     notices.toast(t("routesMore.frequency.couldNotSave"), true);
     return;
   }
   cycleLegacy.setSetting("frecuencia", value2);
+  if (!await saveGeneralTerm(general)) {
+    notices.toast(t("routesMore.frequency.couldNotSave"), true);
+    return;
+  }
   document.getElementById("dlg")?.close();
   notices.toast(t("routesMore.frequency.saved"));
   appLegacy.forgetCache();
@@ -2651,16 +2687,16 @@ async function editFrequency() {
 }
 
 // delcos-shared:src/app/screens/routes/today/service.ts
-var shared20 = globalThis["__delcosModules"]["screens/routes/today/service"];
-var pick20 = (name) => shared20[name];
-var CAR_ICON = /* @__PURE__ */ pick20("CAR_ICON");
-var PALETTE = /* @__PURE__ */ pick20("PALETTE");
-var durationText = /* @__PURE__ */ pick20("durationText");
-var flatKm = /* @__PURE__ */ pick20("flatKm");
-var lineIcon = /* @__PURE__ */ pick20("lineIcon");
-var mapLibrary = /* @__PURE__ */ pick20("mapLibrary");
-var reasonText = /* @__PURE__ */ pick20("reasonText");
-var streetRoute = /* @__PURE__ */ pick20("streetRoute");
+var shared21 = globalThis["__delcosModules"]["screens/routes/today/service"];
+var pick21 = (name) => shared21[name];
+var CAR_ICON = /* @__PURE__ */ pick21("CAR_ICON");
+var PALETTE = /* @__PURE__ */ pick21("PALETTE");
+var durationText = /* @__PURE__ */ pick21("durationText");
+var flatKm = /* @__PURE__ */ pick21("flatKm");
+var lineIcon = /* @__PURE__ */ pick21("lineIcon");
+var mapLibrary = /* @__PURE__ */ pick21("mapLibrary");
+var reasonText = /* @__PURE__ */ pick21("reasonText");
+var streetRoute = /* @__PURE__ */ pick21("streetRoute");
 
 // src/app/screens/routes/today/map-style.ts
 var HALO_WIDTH = 1.4;
@@ -3018,9 +3054,9 @@ function paintDayMap(library, plan, legs, texts2) {
 }
 
 // delcos-shared:src/app/screens/routes/today/day-plan.ts
-var shared21 = globalThis["__delcosModules"]["screens/routes/today/day-plan"];
-var pick21 = (name) => shared21[name];
-var dayMapPlan = /* @__PURE__ */ pick21("dayMapPlan");
+var shared22 = globalThis["__delcosModules"]["screens/routes/today/day-plan"];
+var pick22 = (name) => shared22[name];
+var dayMapPlan = /* @__PURE__ */ pick22("dayMapPlan");
 
 // src/app/screens/routes/today/index.ts
 var MAX_POINTS = 30;
@@ -3126,6 +3162,7 @@ async function loadRoutesPage() {
   void routes2Legacy.paintDayMapAround();
 }
 export {
+  addedText,
   appointmentsOn,
   buildPlan,
   copyToAgenda,

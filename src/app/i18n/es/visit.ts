@@ -106,6 +106,8 @@ export const visit = {
     title: 'Muestras de medicamento',
     expired: 'Ya no se puede dar: el plazo acabó el {date}',
     left: 'Quedan {left} de {max} este año',
+    leftQuarter: 'Quedan {left} de {max} este trimestre',
+    leftMonth: 'Quedan {left} de {max} este mes',
     until: ' · hasta el {date}',
     of: 'Muestras de {name}',
     signature: 'Firma de quien las recibe',

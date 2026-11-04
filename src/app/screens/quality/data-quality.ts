@@ -8,10 +8,18 @@ import { t, type MessageKey } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 import { addressQuery, organisationCountry } from '../../core/organisation';
+import { COMPLETE_FIELDS, completeFields, type CompleteField } from '../../core/rules';
+import { completeFieldName } from '../settings/rules/portfolio';
 
 interface DataQuality {
   total: number; completas: number; sin_ubicacion: number; sin_horario: number; sin_especialidad: number; sin_contacto: number;
-  sin_provincia: number; sin_comercial: number; duplicados: number;
+  sin_provincia: number; sin_comercial: number; duplicados: number; campos?: CompleteField[];
+}
+
+/** «ubicación, horario, especialidad y teléfono o correo»: what the company asks for (v2.466.0, CAL-1). */
+function fieldsText(quality: DataQuality): string {
+  const names = (quality.campos ?? completeFields()).filter(field => (COMPLETE_FIELDS as readonly string[]).includes(field)).map(completeFieldName);
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')}${t('quality.summary.and')}${names[names.length - 1] ?? ''}` : names.join('');
 }
 
 const percentOf = (done: number, total: number): number => (total ? Math.round(done / total * 100) : 0);
@@ -25,7 +33,7 @@ function indicator(count: number, title: string, help: string): string {
   return `<div class="kpi ${count ? 'warn' : 'ok'}"><button class="ai" data-ayuda-txt="${escapeHtml(help)}" data-ayuda-tit="${escapeHtml(title)}" aria-label="${t('quality.summary.whatIs')}">i</button><b>${formatNumber(count)}</b><span>${escapeHtml(title)}</span></div>`;
 }
 
-const INDICATORS: readonly (readonly [keyof DataQuality, MessageKey, MessageKey])[] = [
+const INDICATORS: readonly (readonly [keyof Omit<DataQuality, 'campos'>, MessageKey, MessageKey])[] = [
   ['sin_ubicacion', 'quality.summary.noLocation', 'quality.summary.noLocationHelp'],
   ['sin_horario', 'quality.summary.noTimetable', 'quality.summary.noTimetableHelp'],
   ['sin_especialidad', 'quality.summary.noSpeciality', 'quality.summary.noSpecialityHelp'],
@@ -43,7 +51,7 @@ function summaryHtml(quality: DataQuality): string {
     <div class="kpis u-p-0-16-10">
       ${INDICATORS.map(([key, title, help]) => indicator(quality[key], t(title, words()), t(help, words()))).join('')}
     </div>
-    <p class="sm u-p-0-16-10">${t('quality.summary.completeHint', words())}</p></div>`;
+    <p class="sm u-p-0-16-10">${escapeHtml(t('quality.summary.completeHint', { ...words(), fields: fieldsText(quality) }))}</p></div>`;
 }
 
 /** Adds the «Fichas completas» card under the page header. */

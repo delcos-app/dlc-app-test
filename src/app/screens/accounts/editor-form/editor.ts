@@ -1,7 +1,8 @@
 /**
- * «Editar ficha» and the new account or centre: name, speciality, area, phone, email, contact, «Sin reporting», note, custom
- * fields and the consultations; for who administers, the assigned salesperson; a centre has its own address form. Before
- * creating, it warns of possible duplicates. Migrated from the legacy abrirEditorBase (legado 002), abrirEditorBase2 (legado
+ * «Editar ficha» and the new account or centre: name, speciality, area, phone, email, contact, «Sin reporting» (v2.466.0, PPR-1: only
+ * without SQL 193; with it, the field «No recibe informes» is one of the custom fields), note, custom fields and the
+ * consultations; for who administers, the assigned salesperson; a centre has its own address form. Before creating, it warns of
+ * possible duplicates. Migrated from the legacy abrirEditorBase (legado 002), abrirEditorBase2 (legado
  * 019) and abrirEditor (legado 128) (v2.419.0); abrirEditor stays as an adapter (the card, «‹ Volver» and the tests open it).
  */
 import { legacyDb, notices, term } from '../../../legacy/bridge';
@@ -9,6 +10,7 @@ import { accountsEditorLegacy } from '../../../legacy/accounts2-bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { customFieldsHtml } from '../../settings/custom-fields';
+import { usesOldColumn } from '../../../core/no-reports';
 import { paintNewPickers } from './centre-picker';
 import { adaptForCentre } from './centre-account';
 import { bindConsultationList, consultationHtml, nextIndex, type ConsultationData } from './consultation';
@@ -44,7 +46,7 @@ function formHtml(account: EditedAccount, consultations: readonly ConsultationDa
       <div><label for="em">${t('accountsEditor.editor.email')}</label><input id="em" type="email" value="${value(account.email)}"></div>
     </div>
     <label for="ect">${t('accountsEditor.editor.contact')}</label><input id="ect" value="${value(account.contacto)}">
-    ${isCentre ? '' : `<label class="chksr"><input type="checkbox" id="esr" ${account.sin_reporting ? 'checked' : ''}><span><b>${t('accountsEditor.editor.noReporting')}</b><span class="sm">${t('accountsEditor.editor.noReportingHint', { visit: term('visita') })}</span></span></label>`}
+    ${isCentre || !usesOldColumn() ? '' : `<label class="chksr"><input type="checkbox" id="esr" ${account.sin_reporting ? 'checked' : ''}><span><b>${t('accountsEditor.editor.noReporting')}</b><span class="sm">${t('accountsEditor.editor.noReportingHint', { visit: term('visita') })}</span></span></label>`}
     <label for="eno">${t('accountsEditor.editor.note')}</label><textarea id="eno" rows="3">${value(account.nota)}</textarea>
     ${customFieldsHtml('medico', account.clasificadores)}
     <div id="econs">${consultations.map((item, index) => consultationHtml(item, String(index))).join('')}</div>

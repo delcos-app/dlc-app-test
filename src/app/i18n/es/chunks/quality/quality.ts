@@ -43,7 +43,8 @@ export const quality = {
     noSalespersonHelp: '{Professionals} que no están en ninguna cartera.',
     duplicates: 'pendientes de unificar',
     duplicatesHelp: 'Fichas marcadas como posibles duplicados.',
-    completeHint: 'Una ficha completa tiene ubicación, horario, {speciality} y teléfono o email. Debajo, el avance de cada {professional}.',
+    completeHint: 'Una ficha completa tiene {fields}. Debajo, el avance de cada {professional}.',
+    and: ' y ',
   },
   addresses: {
     title: 'Direcciones que no cuadran · {count}',

@@ -253,7 +253,7 @@ var panels = {
     visitas: "{VisitsRecorded} en el periodo.",
     visitasDia: "Media de {visits} de cada persona en los días que trabaja en la calle.",
     citasPct: "De las citas del periodo hasta hoy (sin contar las aplazadas), cuántas acabaron en {visit}.",
-    coberturaPct: "Parte de la cartera con alguna {visit} en los 60 días anteriores al final del periodo.",
+    coberturaPct: "Parte de la cartera con alguna {visit} dentro de su plazo antes del final del periodo: la frecuencia de su estado comercial o, si no tiene, el plazo general (60 días de partida).",
     activados: "{Professionals} cuyo primer pedido atribuido es de este periodo.",
     opAbiertas: "Oportunidades del periodo que aún no se han cerrado.",
     cierrePct: "De las oportunidades cerradas, cuántas acabaron en pedido.",
@@ -1180,6 +1180,16 @@ async function loadKpis() {
   if (currentScreen() === "analitica") showVisitOrders(data);
 }
 
+// delcos-shared:src/app/core/no-reports.ts
+var shared15 = globalThis["__delcosModules"]["core/no-reports"];
+var pick15 = (name) => shared15[name];
+var noReportsFilter = /* @__PURE__ */ pick15("noReportsFilter");
+
+// delcos-shared:src/app/core/rules.ts
+var shared16 = globalThis["__delcosModules"]["core/rules"];
+var pick16 = (name) => shared16[name];
+var marksReportedOrders = /* @__PURE__ */ pick16("marksReportedOrders");
+
 // src/app/screens/analytics/page/customise.ts
 var dialog = () => document.getElementById("dlg");
 var markChanged = () => {
@@ -1252,24 +1262,24 @@ function customise(onSaved) {
 }
 
 // delcos-shared:src/app/components/filters-panel/counter.ts
-var shared15 = globalThis["__delcosModules"]["components/filters-panel/counter"];
-var pick15 = (name) => shared15[name];
-var counter = /* @__PURE__ */ pick15("counter");
+var shared17 = globalThis["__delcosModules"]["components/filters-panel/counter"];
+var pick17 = (name) => shared17[name];
+var counter = /* @__PURE__ */ pick17("counter");
 
 // delcos-shared:src/app/components/filters-panel/prepare.ts
-var shared16 = globalThis["__delcosModules"]["components/filters-panel/prepare"];
-var pick16 = (name) => shared16[name];
-var prepare = /* @__PURE__ */ pick16("prepare");
+var shared18 = globalThis["__delcosModules"]["components/filters-panel/prepare"];
+var pick18 = (name) => shared18[name];
+var prepare = /* @__PURE__ */ pick18("prepare");
 
 // delcos-shared:src/app/components/loading.ts
-var shared17 = globalThis["__delcosModules"]["components/loading"];
-var pick17 = (name) => shared17[name];
-var cardSkeleton = /* @__PURE__ */ pick17("cardSkeleton");
+var shared19 = globalThis["__delcosModules"]["components/loading"];
+var pick19 = (name) => shared19[name];
+var cardSkeleton = /* @__PURE__ */ pick19("cardSkeleton");
 
 // delcos-shared:src/app/components/charts/month-bars.ts
-var shared18 = globalThis["__delcosModules"]["components/charts/month-bars"];
-var pick18 = (name) => shared18[name];
-var monthBars = /* @__PURE__ */ pick18("monthBars");
+var shared20 = globalThis["__delcosModules"]["components/charts/month-bars"];
+var pick20 = (name) => shared20[name];
+var monthBars = /* @__PURE__ */ pick20("monthBars");
 
 // src/app/screens/analytics/page/charts.ts
 var SKELETONS2 = 4;
@@ -1382,7 +1392,7 @@ function summaryHtml(comparison) {
       <div data-anp="resumen"><label for="ancomp">${t("panels.analytics.compareWith")}</label><select id="ancomp">
         ${option2("anterior", t("panels.analytics.previousPeriod"), comparison === "anterior")}
         ${option2("anio", t("panels.analytics.lastYear"), comparison === "anio")}</select></div>
-      ${permissions.seesEverything() ? `<div data-anp="resumen"><label for="anrep">${t("panels.analytics.report")}</label><select id="anrep">${option2("", t("panels.analytics.all"), false)}${option2("si", t("panels.analytics.reported"), report === "si")}${option2("no", t("panels.analytics.notReported"), report === "no")}</select></div>` : ""}</div>
+      ${permissions.seesEverything() && marksReportedOrders() ? `<div data-anp="resumen"><label for="anrep">${t("panels.analytics.report")}</label><select id="anrep">${option2("", t("panels.analytics.all"), false)}${option2("si", t("panels.analytics.reported"), report === "si")}${option2("no", t("panels.analytics.notReported"), report === "no")}</select></div>` : ""}</div>
     <p class="sm anresumen" id="anresumen"></p>
     <div id="ankpis" hidden></div>
     <div id="anareas"><div class="ankgrid">${Array.from({ length: SKELETON_CARDS }, () => '<div class="ankpi"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:24px"></div></div>').join("")}</div></div>
@@ -1427,6 +1437,12 @@ async function paintSummary() {
 var SELECTS = ["adim", "acanal", "amedida", "aprod", "acom", "arep", "areprt"];
 var element2 = (id) => document.getElementById(id);
 var option3 = (value, text) => `<option value="${value}">${text}</option>`;
+function reportsHtml() {
+  const texts2 = noReportsFilter({ label: t("panels.analytics.reporting"), withReports: t("panels.analytics.withReporting"), withoutReports: t("panels.analytics.withoutReporting") });
+  if (!texts2) return "";
+  return `<div><label for="arep">${escapeHtml(texts2.label)}</label><select id="arep">${option3("", t("panels.analytics.allProfessionals", { theProfessionals: term("medico", { number: "p", article: "el" }) }))}
+          ${option3("con", escapeHtml(texts2.withReports))}${option3("sin", escapeHtml(texts2.withoutReports))}</select></div>`;
+}
 function filtersHtml() {
   const all = permissions.seesEverything();
   return `<div id="aper"></div>
@@ -1441,9 +1457,8 @@ function filtersHtml() {
           ${option3("centro", t("panels.analytics.toCentre"))}</select></div>
         <div><label for="aprod">${t("panels.analytics.product")}</label><select id="aprod">${option3("", t("panels.analytics.all"))}
           ${panelsLegacy.products().map((product) => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join("")}</select></div>
-        <div><label for="arep">${t("panels.analytics.reporting")}</label><select id="arep">${option3("", t("panels.analytics.allProfessionals", { theProfessionals: term("medico", { number: "p", article: "el" }) }))}
-          ${option3("con", t("panels.analytics.withReporting"))}${option3("sin", t("panels.analytics.withoutReporting"))}</select></div>
-        ${all ? `<div><label for="areprt">${t("panels.analytics.report")}</label><select id="areprt">${option3("", t("panels.analytics.all"))}${option3("si", t("panels.analytics.reported"))}${option3("no", t("panels.analytics.notReported"))}</select></div>` : ""}
+        ${reportsHtml()}
+        ${all && marksReportedOrders() ? `<div><label for="areprt">${t("panels.analytics.report")}</label><select id="areprt">${option3("", t("panels.analytics.all"))}${option3("si", t("panels.analytics.reported"))}${option3("no", t("panels.analytics.notReported"))}</select></div>` : ""}
         ${all ? `<div><label for="acom">${t("panels.analytics.commercial")}</label><select id="acom">${option3("", t("panels.analytics.all"))}
           ${salesTeam.members().map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select></div>` : ""}
         <div style="grid-column:span 2"><label>${term("medico", { capital: "C" })}</label><div id="amed"></div></div>

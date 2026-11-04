@@ -6,6 +6,7 @@
  */
 import { currentScreen, legacyDb, term } from '../../legacy/bridge';
 import { t } from '../../i18n';
+import { eventRules } from '../../core/rules';
 import { todayIso } from '../../services/dates';
 import { escapeHtml, formatCurrency } from '../../services/format';
 import { range, sum } from '../../services/values';
@@ -18,6 +19,12 @@ const BOM = String.fromCharCode(0xfeff);
 type ReportRow = Partial<Record<Concept | 'total', number | string | null>> & { nombre: string; codigo?: string | null; especialidad?: string | null; eventos: number };
 
 const amount = (row: ReportRow, key: Concept | 'total'): number => Number(row[key]) || 0;
+
+/** The note over the report: the company's (v2.466.0, EVE-1) or today's; empty, none. */
+function reportNote(): string {
+  const own = eventRules().note, note = own ?? t('events.reportNote', { professional: term('medico') });
+  return note ? `<p class="sm">${escapeHtml(note)}</p>` : '';
+}
 
 function tableHtml(rows: readonly ReportRow[]): string {
   const total = (key: Concept | 'total'): string => formatCurrency(sum(rows.map(row => amount(row, key))));
@@ -48,7 +55,7 @@ export async function paintExpenseReport(year?: number): Promise<void> {
   const rows = data?.filas ?? [];
   box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t('events.report.year')}</label><select id="trano">${range(YEARS_SHOWN).map(back => current - back).map(option => `<option ${option === shown ? 'selected' : ''}>${option}</option>`).join('')}</select>
       ${rows.length ? `<button type="button" class="btn sec" id="trcsv">${t('events.report.download')}</button>` : ''}</div>
-    <p class="sm">${t('events.report.note', { professional: term('medico') })}</p>
+    ${reportNote()}
     ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t('events.report.empty', { year: shown })}</div>`}</div>`;
   const select = box.querySelector<HTMLSelectElement>('#trano'); if (select) select.onchange = (): void => { void paintExpenseReport(Number(select.value)); };
   const csv = box.querySelector<HTMLElement>('#trcsv'); if (csv) csv.onclick = (): void => { download(rows, shown); };

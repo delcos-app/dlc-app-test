@@ -7,6 +7,7 @@
  */
 import { currentScreen, legacyDb } from '../../../legacy/bridge';
 import { billing2Legacy } from '../../../legacy/billing2-bridge';
+import { defaultVat, highestVat } from '../../../core/rules';
 import { t } from '../../../i18n';
 import { can, canDeleteProduct } from '../../../core/permissions';
 import { planIncludesSection } from '../../../core/plans';
@@ -39,13 +40,13 @@ function headerHtml(product: Product, admin: boolean): string {
       ${admin ? `<div class="u-flex-1"><label for="prfoto" class="u-mt-0">${t('productsMore.editor.photo')}</label><input id="prfoto" type="file" accept="image/*"></div>` : ''}</div>`;
 }
 
-/** Price without VAT (4 decimals), VAT (10 by default) and price with VAT, kept in step by bindForm. */
+/** Price without VAT (4 decimals), VAT (the company's default for products, v2.466.0 FAC-1) and price with VAT, kept in step by bindForm. */
 function pricesHtml(product: Product, off: string): string {
-  const price = product.precio ?? null, vat = product.iva ?? 10;
+  const price = product.precio ?? null, vat = product.iva ?? defaultVat('productos');
   const net = price === null ? '' : String(Number(Number(price).toFixed(4))), gross = price === null ? '' : String(round2(Number(price) * (1 + (Number(product.iva) || 0) / 100)));
   return `<div class="pvp">
       <div><label for="prpr">${t('productsMore.editor.priceWithoutVat')}</label><input id="prpr" type="number" step="0.01" min="0" value="${net}" ${off}></div>
-      <div><label for="priva">${t('productsMore.editor.vat')}</label><input id="priva" type="number" step="1" min="0" max="21" value="${vat}" ${off}></div>
+      <div><label for="priva">${t('productsMore.editor.vat')}</label><input id="priva" type="number" step="1" min="0" max="${highestVat()}" value="${vat}" ${off}></div>
       <div><label for="prpvp">${t('productsMore.editor.priceWithVat')}</label><input id="prpvp" type="number" step="0.01" min="0" value="${gross}" ${off}></div></div>`;
 }
 
@@ -98,7 +99,7 @@ function bindBlocks(body: HTMLElement, product: Product & { id: string }, loaded
 
 /** Opens the editor of a product, or of a new one. */
 export async function editProduct(given: Product | null): Promise<void> {
-  const product: Product = given ?? { iva: 10, activo: true, unidades_envase: 1 };
+  const product: Product = given ?? { iva: defaultVat('productos'), activo: true, unidades_envase: 1 };
   const loaded = await load(product), body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;
   body.innerHTML = formHtml(product, loaded.admin) + blocksHtml(product, loaded) + actionsHtml(product, loaded.admin);

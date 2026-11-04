@@ -918,6 +918,12 @@ var shared10 = globalThis["__delcosModules"]["components/filters/memory"];
 var pick10 = (name) => shared10[name];
 var restoreFilters = /* @__PURE__ */ pick10("restoreFilters");
 
+// delcos-shared:src/app/core/rules.ts
+var shared11 = globalThis["__delcosModules"]["core/rules"];
+var pick11 = (name) => shared11[name];
+var defaultVat = /* @__PURE__ */ pick11("defaultVat");
+var marksReportedOrders = /* @__PURE__ */ pick11("marksReportedOrders");
+
 // src/app/screens/orders/list.ts
 var PAID = "Cobrado";
 var EXTRA_FILTERS = [
@@ -927,14 +933,14 @@ var EXTRA_FILTERS = [
   // v2.115.0: the order's origin (web or the rest)
   { id: "porigf", after: "popf", html: () => `<div><label for="porigf">${t("orders.list.origin")}</label><select id="porigf">
       <option value="">${t("orders.page.all")}</option><option value="web">${t("orders.list.web")}</option><option value="portal">${t("orders.list.portal")}</option><option value="otros">${t("orders.list.others")}</option></select></div>` },
-  // v2.329.0: reported or not to the professional (internal: only who sees everything)
-  { id: "prepf", after: "porigf", onlyTeam: true, html: () => `<div><label for="prepf">${t("orders.list.report")}</label><select id="prepf">
+  // v2.329.0: reported or not to the professional (internal: only who sees everything); v2.466.0 (PPR-1): only if the portal shows the marked ones
+  { id: "prepf", after: "porigf", onlyTeam: true, shown: marksReportedOrders, html: () => `<div><label for="prepf">${t("orders.list.report")}</label><select id="prepf">
       <option value="">${t("orders.page.all")}</option><option value="si">${t("orders.list.reported")}</option><option value="no">${t("orders.list.notReported")}</option></select></div>` }
 ];
 function addExtraFilters() {
   for (const filter of EXTRA_FILTERS) {
     const previous = document.getElementById(filter.after);
-    if (document.getElementById(filter.id) || !previous || filter.onlyTeam && !permissions.seesEverything()) continue;
+    if (document.getElementById(filter.id) || !previous || filter.onlyTeam && !permissions.seesEverything() || filter.shown && !filter.shown()) continue;
     previous.closest("div")?.insertAdjacentHTML("afterend", filter.html());
     const select = document.getElementById(filter.id);
     if (select) select.onchange = () => {
@@ -1061,16 +1067,16 @@ async function paintOrderList() {
 }
 
 // delcos-shared:src/app/components/index.ts
-var shared11 = globalThis["__delcosModules"]["components/index"];
-var pick11 = (name) => shared11[name];
-var glueHelp = /* @__PURE__ */ pick11("glueHelp");
+var shared12 = globalThis["__delcosModules"]["components/index"];
+var pick12 = (name) => shared12[name];
+var glueHelp = /* @__PURE__ */ pick12("glueHelp");
 
 // delcos-shared:src/app/screens/purchases/index.ts
-var shared12 = globalThis["__delcosModules"]["screens/purchases/index"];
-var pick12 = (name) => shared12[name];
-var editSupplier = /* @__PURE__ */ pick12("editSupplier");
-var paintPurchases = /* @__PURE__ */ pick12("paintPurchases");
-var paintSuppliers = /* @__PURE__ */ pick12("paintSuppliers");
+var shared13 = globalThis["__delcosModules"]["screens/purchases/index"];
+var pick13 = (name) => shared13[name];
+var editSupplier = /* @__PURE__ */ pick13("editSupplier");
+var paintPurchases = /* @__PURE__ */ pick13("paintPurchases");
+var paintSuppliers = /* @__PURE__ */ pick13("paintSuppliers");
 
 // src/app/screens/orders/page.ts
 var SEARCH_WAIT_MS = 350;
@@ -1221,13 +1227,13 @@ async function loadSales() {
 }
 
 // delcos-shared:src/app/screens/orders/payment-email.ts
-var shared13 = globalThis["__delcosModules"]["screens/orders/payment-email"];
-var pick13 = (name) => shared13[name];
-var askPaymentEmailSent = /* @__PURE__ */ pick13("askPaymentEmailSent");
-var mailtoLink = /* @__PURE__ */ pick13("mailtoLink");
-var paymentSubject = /* @__PURE__ */ pick13("paymentSubject");
-var paymentText = /* @__PURE__ */ pick13("paymentText");
-var sendPaymentDetails = /* @__PURE__ */ pick13("sendPaymentDetails");
+var shared14 = globalThis["__delcosModules"]["screens/orders/payment-email"];
+var pick14 = (name) => shared14[name];
+var askPaymentEmailSent = /* @__PURE__ */ pick14("askPaymentEmailSent");
+var mailtoLink = /* @__PURE__ */ pick14("mailtoLink");
+var paymentSubject = /* @__PURE__ */ pick14("paymentSubject");
+var paymentText = /* @__PURE__ */ pick14("paymentText");
+var sendPaymentDetails = /* @__PURE__ */ pick14("sendPaymentDetails");
 
 // src/app/screens/orders/sheet/bank-transfer.ts
 var PAID_FLAG_MS = 6e4;
@@ -1465,9 +1471,9 @@ async function paintBase2(id) {
 }
 
 // delcos-shared:src/app/services/dates.ts
-var shared14 = globalThis["__delcosModules"]["services/dates"];
-var pick14 = (name) => shared14[name];
-var todayIso = /* @__PURE__ */ pick14("todayIso");
+var shared15 = globalThis["__delcosModules"]["services/dates"];
+var pick15 = (name) => shared15[name];
+var todayIso = /* @__PURE__ */ pick15("todayIso");
 
 // src/app/screens/orders/sheet/transfer-pdf.ts
 var LEFT = 15;
@@ -1751,10 +1757,10 @@ async function paintEquipment(orderId) {
 }
 
 // delcos-shared:src/app/core/catalog-roles.ts
-var shared15 = globalThis["__delcosModules"]["core/catalog-roles"];
-var pick15 = (name) => shared15[name];
-var isCardTerminal = /* @__PURE__ */ pick15("isCardTerminal");
-var isOnDelivery = /* @__PURE__ */ pick15("isOnDelivery");
+var shared16 = globalThis["__delcosModules"]["core/catalog-roles"];
+var pick16 = (name) => shared16[name];
+var isCardTerminal = /* @__PURE__ */ pick16("isCardTerminal");
+var isOnDelivery = /* @__PURE__ */ pick16("isOnDelivery");
 
 // src/app/screens/orders/sheet/operations.ts
 var MAIL_QUESTION_DELAY_MS = 800;
@@ -1771,12 +1777,13 @@ function mailHtml(detail) {
   if (!customer?.email) return `<span class="sm">${t("orders.operations.noEmail")}</span>`;
   return `<a class="btn sec" id="pdmailpago" data-ped="${order.id}" href="${mailtoLink(escapeHtml(customer.email), paymentSubject(order, total, customer.nombre), paymentText(order, total, customer.nombre))}">${t("orders.operations.preparePaymentEmail")}</a>`;
 }
+var reportedHtml = (order, allowed) => `<label class="opchk ${order.reportar_profesional ? "on" : ""}"><input type="checkbox" data-reporte ${order.reportar_profesional ? "checked" : ""} ${allowed ? "" : "disabled"}>
+      <span>${t("orders.operations.reported", { professional: escapeHtml(term("medico", { article: "al" })) })}</span></label>`;
 function blockHtml3(detail, allowed) {
   const order = detail.pedido;
   return `<div class="blk" id="pdops" data-nosucio><h3>${t("orders.operations.title")}</h3>
     ${order.sin_cargo ? `<p class="sm">${t("orders.operations.freeDelivery")}</p>` : ""}${OPERATIONS.filter(([key]) => !(order.sin_cargo && key === "pago")).map(([key, label]) => operationHtml(order, key, t(label), allowed)).join("")}
-    <label class="opchk ${order.reportar_profesional ? "on" : ""}"><input type="checkbox" data-reporte ${order.reportar_profesional ? "checked" : ""} ${allowed ? "" : "disabled"}>
-      <span>${t("orders.operations.reported", { professional: escapeHtml(term("medico", { article: "al" })) })}</span></label>
+    ${marksReportedOrders() ? reportedHtml(order, allowed) : ""}
     <div class="acts u-m-6-0-0">
       ${mailHtml(detail)}
     </div></div>`;
@@ -2093,9 +2100,9 @@ async function showOrder(id) {
 }
 
 // delcos-shared:src/app/screens/customers/picker.ts
-var shared16 = globalThis["__delcosModules"]["screens/customers/picker"];
-var pick16 = (name) => shared16[name];
-var pickCustomer = /* @__PURE__ */ pick16("pickCustomer");
+var shared17 = globalThis["__delcosModules"]["screens/customers/picker"];
+var pick17 = (name) => shared17[name];
+var pickCustomer = /* @__PURE__ */ pick17("pickCustomer");
 
 // src/app/screens/orders/tpv/after-save.ts
 var CENT = 5e-3;
@@ -2114,11 +2121,6 @@ async function warnIfAmountChanged(id) {
   if (sent && total !== null && Math.abs(Number(sent.importe) - total) > CENT)
     notices.toast(t("ordersMore.tpv.amountChanged", { sent: euros(Number(sent.importe)), now: euros(total) }), true);
 }
-
-// delcos-shared:src/app/core/organisation.ts
-var shared17 = globalThis["__delcosModules"]["core/organisation"];
-var pick17 = (name) => shared17[name];
-var generalVat = /* @__PURE__ */ pick17("generalVat");
 
 // src/app/screens/orders/editor/state.ts
 var CHANNELS = { patient: "paciente", centre: "centro" };
@@ -2164,7 +2166,7 @@ function serviceOfOrder(order) {
 }
 function serviceFields(order) {
   if (order?.envio) return serviceOfOrder(order);
-  const service = defaultService(), fallback = { envio_iva: Number(service?.iva ?? generalVat()), envio_con: nonZeroOr(service?.pvp, 0) };
+  const service = defaultService(), fallback = { envio_iva: Number(service?.iva ?? defaultVat("envios")), envio_con: nonZeroOr(service?.pvp, 0) };
   return order ? { servicio_id: "", envio: false, ...fallback } : { servicio_id: service?.id ?? "", envio: Boolean(service), ...fallback };
 }
 var newForm = (preset) => ({
@@ -2496,7 +2498,7 @@ function customerZoneHtml(state) {
         <label class="solopac">${term("paciente", { capital: "C" })}</label><div id="pselpac" class="solopac"></div>
         <label><span class="solopac">${t("ordersMore.editor.reference", { Professional: term("medico", { capital: "C" }) })}</span><span class="solocen">${t("ordersMore.editor.buyingCentre")}</span></label><div id="pselmed"></div>
         <div class="sm u-mt-4"><span class="solopac">${t("ordersMore.editor.leaveName")}</span><span class="solocen">${t("ordersMore.editor.pickCentre")}</span></div>
-        <label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${state.form.reportar ? "checked" : ""}> ${t("ordersMore.editor.report", { toProfessional })}</label>
+        ${marksReportedOrders() ? `<label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${state.form.reportar ? "checked" : ""}> ${t("ordersMore.editor.report", { toProfessional })}</label>` : ""}
       </div>`;
 }
 function lineHtml2(line, index, count) {
@@ -2572,6 +2574,11 @@ function footerHtml(state) {
 function editorHtml2(state) {
   return headerHtml(state.order) + dateChannelOriginHtml(state) + customerZoneHtml(state) + linesHtml(state) + methodDiscountHtml(state) + paymentHtml(state) + serviceHtml(state) + footerHtml(state);
 }
+
+// delcos-shared:src/app/core/organisation.ts
+var shared18 = globalThis["__delcosModules"]["core/organisation"];
+var pick18 = (name) => shared18[name];
+var generalVat = /* @__PURE__ */ pick18("generalVat");
 
 // src/app/screens/orders/editor/index.ts
 var FULL_DISCOUNT2 = 100;
@@ -2807,12 +2814,12 @@ async function editOrder(preset) {
 }
 
 // delcos-shared:src/app/screens/orders/subscription/payments.ts
-var shared18 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
-var pick18 = (name) => shared18[name];
-var callPayments = /* @__PURE__ */ pick18("callPayments");
-var loadPaymentState = /* @__PURE__ */ pick18("loadPaymentState");
-var repaintPlanScreen = /* @__PURE__ */ pick18("repaintPlanScreen");
-var waitUntilActive = /* @__PURE__ */ pick18("waitUntilActive");
+var shared19 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
+var pick19 = (name) => shared19[name];
+var callPayments = /* @__PURE__ */ pick19("callPayments");
+var loadPaymentState = /* @__PURE__ */ pick19("loadPaymentState");
+var repaintPlanScreen = /* @__PURE__ */ pick19("repaintPlanScreen");
+var waitUntilActive = /* @__PURE__ */ pick19("waitUntilActive");
 
 // src/app/screens/orders/subscription/choose-plan.ts
 var MIN_USERS = 3;

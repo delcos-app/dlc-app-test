@@ -2,6 +2,7 @@
 import { commercialStates, isMobile, term } from '../../../legacy/bridge';
 import { escapeHtml } from '../../../services/format';
 import { range, sum } from '../../../services/values';
+import { noVisitIn } from '../tiles';
 import { t } from '../../../i18n';
 import { EMPTY_CHART, STATE_COLORS, type ChartResult } from './chart-tools';
 
@@ -64,6 +65,6 @@ export function noRecentVisitChart(kpis: Kpis): ChartResult {
   const percent = Math.round((kpis.sin_visita_60 ?? 0) / Math.max(1, kpis.medicos ?? 0) * 100);
   return {
     summary: t('home.indicators.shareOfPortfolio', { percent }),
-    visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>${t('home.indicators.noVisitIn60Days', { visit: term('visita') })}</span><span><i class="kvq b"></i>${t('home.indicators.theRest')}</span></div></div>`,
+    visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>${t('home.indicators.noVisitIn60Days', { visit: term('visita'), term: noVisitIn(kpis) })}</span><span><i class="kvq b"></i>${t('home.indicators.theRest')}</span></div></div>`,
   };
 }

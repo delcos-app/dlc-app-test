@@ -3,8 +3,9 @@ import { legacyDb, notices, term } from '../../../legacy/bridge';
 import { billing2Legacy } from '../../../legacy/billing2-bridge';
 import { t } from '../../../i18n';
 import { errorMessage } from '../model';
+import { deliveryRule } from '../../../core/rules';
 
-const MAX_SAMPLES = 10, MAX_REVIEW_MONTHS = 120;
+const MAX_REVIEW_MONTHS = 120;
 const byId = (id: string): HTMLElement | null => document.getElementById(id);
 const input = (id: string): HTMLInputElement | null => byId(id) as HTMLInputElement | null;
 
@@ -28,7 +29,7 @@ export function bindState(body: HTMLElement, product: { id: string }): void {
 
 export function bindSamples(productId: string): void {
   const save = async (): Promise<void> => {
-    const regulated = Boolean(input('prmreg')?.checked), max = Math.min(MAX_SAMPLES, Math.max(1, Number(input('prmmax')?.value) || MAX_SAMPLES));
+    const regulated = Boolean(input('prmreg')?.checked), cap = deliveryRule().cap, max = Math.min(cap, Math.max(1, Number(input('prmmax')?.value) || cap));
     byId('prmdat')?.classList.toggle('hide', !regulated);
     const { error } = await update(productId, { muestra_regulada: regulated, muestra_desde: orNull(input('prmdesde')?.value), muestra_max: max });
     notices.toast(error ? t('productsMore.editor.couldNotSave', { error: errorMessage(error) }) : t('productsMore.samples.saved'), Boolean(error));

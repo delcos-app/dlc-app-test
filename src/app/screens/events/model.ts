@@ -1,13 +1,17 @@
 /** What an event is (values stored in the database) and the cost of an attendee. */
 import { t, type MessageKey } from '../../i18n';
+import { eventRules } from '../../core/rules';
 
-export const EVENT_TYPES = ['Taller', 'Curso', 'Congreso', 'Webinar', 'Reunión científica', 'Comida de trabajo', 'Otro'] as const;
+/** The company's event types (v2.466.0, EVE-1: Configuración → Cartera y visitas → Eventos; without it, today's seven). */
+export const eventTypes = (): string[] => eventRules().types;
 export const ATTENDANCE_STATES = ['Invitado', 'Confirmado', 'Asistió', 'No asistió'] as const;
 /** The cost concepts of each attendee (database columns). */
 export const CONCEPTS = ['inscripcion', 'viaje', 'comida', 'honorarios'] as const;
 export type Concept = (typeof CONCEPTS)[number];
-/** Code of good practices: a meal should not go over this per person. */
-export const MEAL_MAX = 60;
+/** The company's limit per person of a concept (today, meals 60 €), undefined without a limit (v2.466.0, EVE-1). */
+export const limitOf = (concept: Concept): number | undefined => eventRules().limits[concept];
+/** True when the amount goes over the concept's limit. */
+export const isOverLimit = (concept: Concept, amount: number): boolean => { const limit = limitOf(concept); return limit !== undefined && amount > limit; };
 
 export const conceptLabel = (concept: Concept): string => t(`events.concepts.${concept}` as MessageKey);
 

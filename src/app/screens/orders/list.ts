@@ -11,6 +11,7 @@ import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 import { euros, isStepCode, STATES, stepPill, storedStateOf } from './model';
 import { restoreFilters } from '../../components/filters/memory';
+import { marksReportedOrders } from '../../core/rules';
 
 interface OrderRow {
   id: string; fecha: string; estado: string; numero?: string | null; factura?: string | null; contacto?: string | null; centro?: string | null; cuenta_texto?: string | null;
@@ -29,22 +30,22 @@ const PAID = 'Cobrado';
  * only offers «Factura por enviar»; the steps are in «Estado». «pago» and «paquete» stay as hidden options: the «Por hacer» cards
  * (legacy-c/order-alerts) still filter the table with them.
  */
-const EXTRA_FILTERS: readonly { id: string; after: string; html: () => string; onlyTeam?: boolean }[] = [
+const EXTRA_FILTERS: readonly { id: string; after: string; html: () => string; onlyTeam?: boolean; shown?: () => boolean }[] = [
   { id: 'popf', after: 'pestado', html: (): string => `<div><label for="popf">${t('orders.list.operations')}</label><select id="popf">
       <option value="">${t('orders.list.everything')}</option><option value="email">${t('orders.list.invoiceToSend')}</option>
       <option value="pago" hidden>${t('orders.list.toCollect')}</option><option value="paquete" hidden>${t('orders.list.toPack')}</option></select></div>` },
   // v2.115.0: the order's origin (web or the rest)
   { id: 'porigf', after: 'popf', html: (): string => `<div><label for="porigf">${t('orders.list.origin')}</label><select id="porigf">
       <option value="">${t('orders.page.all')}</option><option value="web">${t('orders.list.web')}</option><option value="portal">${t('orders.list.portal')}</option><option value="otros">${t('orders.list.others')}</option></select></div>` },
-  // v2.329.0: reported or not to the professional (internal: only who sees everything)
-  { id: 'prepf', after: 'porigf', onlyTeam: true, html: (): string => `<div><label for="prepf">${t('orders.list.report')}</label><select id="prepf">
+  // v2.329.0: reported or not to the professional (internal: only who sees everything); v2.466.0 (PPR-1): only if the portal shows the marked ones
+  { id: 'prepf', after: 'porigf', onlyTeam: true, shown: marksReportedOrders, html: (): string => `<div><label for="prepf">${t('orders.list.report')}</label><select id="prepf">
       <option value="">${t('orders.page.all')}</option><option value="si">${t('orders.list.reported')}</option><option value="no">${t('orders.list.notReported')}</option></select></div>` },
 ];
 
 function addExtraFilters(): void {
   for (const filter of EXTRA_FILTERS) {
     const previous = document.getElementById(filter.after);
-    if (document.getElementById(filter.id) || !previous || (filter.onlyTeam && !permissions.seesEverything())) continue;
+    if (document.getElementById(filter.id) || !previous || (filter.onlyTeam && !permissions.seesEverything()) || (filter.shown && !filter.shown())) continue;
     previous.closest('div')?.insertAdjacentHTML('afterend', filter.html());
     const select = document.getElementById(filter.id);
     if (select) select.onchange = (): void => { ordersLegacy.setPage(0); void paintOrderList(); };

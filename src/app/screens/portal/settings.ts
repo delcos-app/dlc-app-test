@@ -8,6 +8,7 @@ import { portalPageLegacy } from '../../legacy/portal-bridge';
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { helpButton } from './model';
+import { bindPortalRules, portalRulesHtml } from '../settings/rules/portal';
 
 const DEFAULT_MAX = 20, MAX_LIMIT = 1000;
 
@@ -72,7 +73,8 @@ export async function paintPortalSettings(): Promise<void> {
   box.innerHTML = `<div class="card"><div class="fh"><div><h2>${t('portal.settings.title', { ofProfessional: term('medico', { article: 'del' }) })}</h2>
       <div class="sm">${t('portal.settings.subtitle', { theProfessionals: term('medico', { number: 'p', article: 'el' }) })}</div></div></div>
     ${materialHtml(catalog ?? [], Array.isArray(allowed) ? allowed : [], Boolean(setting.material))}</div>
-  ${prepaymentHtml(Boolean(setting.pago_anticipado))}`;
+  ${prepaymentHtml(Boolean(setting.pago_anticipado))}${portalRulesHtml(setting)}`;
   const save = document.getElementById('cfpok'); if (save) save.onclick = (): void => { void saveMaterial(box, setting); };
   const savePay = document.getElementById('cfpantok') as HTMLButtonElement | null; if (savePay) savePay.onclick = (): void => { void savePrepayment(savePay); };
+  bindPortalRules(() => { void paintPortalSettings(); });
 }

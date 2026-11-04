@@ -24,6 +24,8 @@ export const paintRoutes = fromChunk('paintRoutes');
 export const openRoute = fromChunk('openRoute');
 export const appointmentsOn = fromChunk('appointmentsOn');
 export const copyToAgenda = fromChunk('copyToAgenda');
+/** v2.466.0: the message after passing a route to the agenda (also says which stops without an address were left out). */
+export const routeAddedText = fromChunk('addedText');
 export const refillRepeating = fromChunk('refillRepeating');
 export const buildPlan = fromChunk('buildPlan');
 export const planFromList = fromChunk('planFromList');

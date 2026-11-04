@@ -42,6 +42,11 @@ export const productsMore = {
     maxPerYear: 'Máximo por profesional y año',
     law: 'La ley permite como mucho 10 muestras por medicamento, profesional y año, durante los 2 años siguientes a su autorización, y con la solicitud firmada.',
     saved: 'Muestras: guardado',
+    regulatedOwn: 'Entra en «{name}»: tiene tope por {professional}',
+    maxPer: 'Máximo por {professional} y {period}',
+    periodYear: 'año',
+    periodQuarter: 'trimestre',
+    periodMonth: 'mes',
   },
   promotion: {
     title: 'Promoción',

@@ -7,6 +7,7 @@ import { legacyDb, notices, term } from '../../../legacy/bridge';
 import { settingsMoreLegacy, type ClassifierData, type ClassifierValue } from '../../../legacy/settings2-bridge';
 import { t } from '../../../i18n';
 import { addValue, saveValue } from './value-editor';
+import { loadNoReportsField } from '../../../core/no-reports';
 
 const FIELD_FLAGS = ['obligatorio', 'solo_lectura', 'en_ficha', 'en_tabla', 'en_filtro'];
 
@@ -21,9 +22,12 @@ const on = (id: string, action: () => Promise<void>): void => { const button = d
 async function saveField(view: ClassifierView): Promise<void> {
   const value: Record<string, unknown> = { tipo: valueOf('cfctipo') };
   FIELD_FLAGS.forEach(flag => { value[flag] = Boolean((document.getElementById(`cfc_${flag}`) as HTMLInputElement | null)?.checked); });
+  // v2.466.0 (PPR-1): the use «No recibe informes» (it goes if the field stops being yes/no)
+  if (document.getElementById('cfcpapel')) value.papel = value.tipo === 'si_no' ? valueOf('cfcpapel') : '';
   const { data: result, error } = await legacyDb().rpc<{ ok?: boolean }>('configurar_campo', { p_id: view.classifier.id, p: value });
   if (error || !result?.ok) { notices.toast(t('settingsMore.classifier.fieldNotSaved'), true); return; }
   notices.toast(t('settingsMore.classifier.fieldSaved')); void view.refresh({ kind: 'list' }); settingsMoreLegacy.loadCustomFields().catch(() => undefined);
+  loadNoReportsField().catch(() => undefined);
 }
 
 async function removeValue(view: ClassifierView, id: string): Promise<void> {

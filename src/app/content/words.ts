@@ -5,9 +5,16 @@
 import { term } from '../legacy/bridge';
 import { contentLegacy } from '../legacy/content-bridge';
 import { orFallback } from '../services/values';
+import { t } from '../i18n';
+import { noVisitWording } from '../core/rules';
 
 export function contentWords(): Record<string, string> {
+  const noVisit = noVisitWording(), days = { days: noVisit.days };
   return {
+    // v2.466.0 (INI-2, D13 A): «en 60 días» or «en su plazo»
+    noVisitIn: noVisit.byState ? t('settingsRules.noVisit.inTerm') : t('settingsRules.noVisit.inDays', days),
+    noVisitLonger: noVisit.byState ? t('settingsRules.noVisit.longerTerm') : t('settingsRules.noVisit.longerDays', days),
+    noVisitSince: noVisit.byState ? t('settingsRules.noVisit.sinceTerm') : t('settingsRules.noVisit.sinceDays', days),
     allConsultations: contentLegacy.allOf('consulta').toLowerCase(),
     aPatient: term('paciente', { article: 'un' }),
     aProfessional: term('medico', { article: 'un' }),

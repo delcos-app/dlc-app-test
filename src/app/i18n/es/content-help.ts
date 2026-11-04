@@ -48,7 +48,7 @@ export const contentHelp = {
     "citas_7d": "Tus citas abiertas de hoy a los próximos seis días. Pulsa para ver tu semana.",
     "muestras_mes": "Muestras entregadas en {theVisits} de este mes.",
     "material_mes": "Veces que se ha entregado material comercial (dípticos, catálogos…) este mes.",
-    "sin_visita_60": "{professionalsCap} que puedes ver y que no se visitan desde hace más de 60 días (o nunca).",
+    "sin_visita_60": "{professionalsCap} que puedes ver y que no se visitan desde hace {noVisitLonger} (o nunca). El plazo es la frecuencia de su estado comercial o, si no tiene, el plazo general (Configuración → Cartera y visitas → Frecuencia).",
     "sin_horario": "{professionalsCap} sin días ni horas de atención en su ficha. Sin ese dato, las rutas y el planificador no pueden ajustarse a su horario.",
     "borradores": "Pedidos guardados como borrador que todavía no cuentan en métricas ni comisiones. Pulsa para verlos.",
   },

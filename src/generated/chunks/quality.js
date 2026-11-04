@@ -46,7 +46,8 @@ var quality = {
     noSalespersonHelp: "{Professionals} que no están en ninguna cartera.",
     duplicates: "pendientes de unificar",
     duplicatesHelp: "Fichas marcadas como posibles duplicados.",
-    completeHint: "Una ficha completa tiene ubicación, horario, {speciality} y teléfono o email. Debajo, el avance de cada {professional}."
+    completeHint: "Una ficha completa tiene {fields}. Debajo, el avance de cada {professional}.",
+    and: " y "
   },
   addresses: {
     title: "Direcciones que no cuadran · {count}",
@@ -103,24 +104,40 @@ var permissions = /* @__PURE__ */ pick2("permissions");
 var qualityLegacy = /* @__PURE__ */ pick2("qualityLegacy");
 var term = /* @__PURE__ */ pick2("term");
 
-// delcos-shared:src/app/services/format.ts
-var shared3 = globalThis["__delcosModules"]["services/format"];
+// delcos-shared:src/app/core/rules.ts
+var shared3 = globalThis["__delcosModules"]["core/rules"];
 var pick3 = (name) => shared3[name];
-var escapeHtml = /* @__PURE__ */ pick3("escapeHtml");
-var formatNumber = /* @__PURE__ */ pick3("formatNumber");
+var COMPLETE_FIELDS = /* @__PURE__ */ pick3("COMPLETE_FIELDS");
+var completeFields = /* @__PURE__ */ pick3("completeFields");
+var deliveryRule = /* @__PURE__ */ pick3("deliveryRule");
+
+// delcos-shared:src/app/services/format.ts
+var shared4 = globalThis["__delcosModules"]["services/format"];
+var pick4 = (name) => shared4[name];
+var escapeHtml = /* @__PURE__ */ pick4("escapeHtml");
+var formatNumber = /* @__PURE__ */ pick4("formatNumber");
 
 // delcos-shared:src/app/services/values.ts
-var shared4 = globalThis["__delcosModules"]["services/values"];
-var pick4 = (name) => shared4[name];
-var orFallback = /* @__PURE__ */ pick4("orFallback");
+var shared5 = globalThis["__delcosModules"]["services/values"];
+var pick5 = (name) => shared5[name];
+var orFallback = /* @__PURE__ */ pick5("orFallback");
 
 // delcos-shared:src/app/core/organisation.ts
-var shared5 = globalThis["__delcosModules"]["core/organisation"];
-var pick5 = (name) => shared5[name];
-var addressQuery = /* @__PURE__ */ pick5("addressQuery");
-var organisationCountry = /* @__PURE__ */ pick5("organisationCountry");
+var shared6 = globalThis["__delcosModules"]["core/organisation"];
+var pick6 = (name) => shared6[name];
+var addressQuery = /* @__PURE__ */ pick6("addressQuery");
+var organisationCountry = /* @__PURE__ */ pick6("organisationCountry");
+
+// delcos-shared:src/app/screens/settings/rules/portfolio.ts
+var shared7 = globalThis["__delcosModules"]["screens/settings/rules/portfolio"];
+var pick7 = (name) => shared7[name];
+var completeFieldName = /* @__PURE__ */ pick7("completeFieldName");
 
 // src/app/screens/quality/data-quality.ts
+function fieldsText(quality2) {
+  const names = (quality2.campos ?? completeFields()).filter((field) => COMPLETE_FIELDS.includes(field)).map(completeFieldName);
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")}${t("quality.summary.and")}${names[names.length - 1] ?? ""}` : names.join("");
+}
 var percentOf = (done, total) => total ? Math.round(done / total * 100) : 0;
 var words = () => ({
   professional: term("medico"),
@@ -150,7 +167,7 @@ function summaryHtml(quality2) {
     <div class="kpis u-p-0-16-10">
       ${INDICATORS.map(([key, title, help]) => indicator(quality2[key], t(title, words()), t(help, words()))).join("")}
     </div>
-    <p class="sm u-p-0-16-10">${t("quality.summary.completeHint", words())}</p></div>`;
+    <p class="sm u-p-0-16-10">${escapeHtml(t("quality.summary.completeHint", { ...words(), fields: fieldsText(quality2) }))}</p></div>`;
 }
 async function paintSummary() {
   const { data: quality2 } = await callRpc("calidad_datos", {});
@@ -225,21 +242,27 @@ async function paintDoubtfulAddresses() {
   });
 }
 
+// delcos-shared:src/app/core/no-reports.ts
+var shared8 = globalThis["__delcosModules"]["core/no-reports"];
+var pick8 = (name) => shared8[name];
+var hasNoReports = /* @__PURE__ */ pick8("hasNoReports");
+var noReportsName = /* @__PURE__ */ pick8("noReportsName");
+
 // delcos-shared:src/app/services/date-format.ts
-var shared6 = globalThis["__delcosModules"]["services/date-format"];
-var pick6 = (name) => shared6[name];
-var formatShortDate = /* @__PURE__ */ pick6("formatShortDate");
+var shared9 = globalThis["__delcosModules"]["services/date-format"];
+var pick9 = (name) => shared9[name];
+var formatShortDate = /* @__PURE__ */ pick9("formatShortDate");
 
 // delcos-shared:src/app/services/dates.ts
-var shared7 = globalThis["__delcosModules"]["services/dates"];
-var pick7 = (name) => shared7[name];
-var addDays = /* @__PURE__ */ pick7("addDays");
-var todayIso = /* @__PURE__ */ pick7("todayIso");
+var shared10 = globalThis["__delcosModules"]["services/dates"];
+var pick10 = (name) => shared10[name];
+var addDays = /* @__PURE__ */ pick10("addDays");
+var todayIso = /* @__PURE__ */ pick10("todayIso");
 
 // delcos-shared:src/app/screens/home/index.ts
-var shared8 = globalThis["__delcosModules"]["screens/home/index"];
-var pick8 = (name) => shared8[name];
-var load = /* @__PURE__ */ pick8("load");
+var shared11 = globalThis["__delcosModules"]["screens/home/index"];
+var pick11 = (name) => shared11[name];
+var load = /* @__PURE__ */ pick11("load");
 
 // src/app/screens/quality/follow-up.ts
 var POSTPONE_DAYS = 7;
@@ -253,7 +276,7 @@ var filterParams = () => ({
 var loadingHtml = (text) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text)}</span></div>`;
 function nameHtml(row) {
   const urgent = row.urgente ? `<span class="pill p-urg">${t("quality.followUp.urgent")}</span> ` : "";
-  const reporting = row.sin_reporting ? `<span class="pill p-sr" title="${t("quality.followUp.noReportingHelp", { visit: term("visita") })}">${t("quality.followUp.noReporting")}</span> ` : "";
+  const reporting = hasNoReports(row) ? `<span class="pill p-sr" title="${t("quality.followUp.noReportingHelp", { visit: term("visita") })}">${escapeHtml(noReportsName() ?? t("quality.followUp.noReporting"))}</span> ` : "";
   return `<span class="nm">${urgent}${reporting}${escapeHtml(row.nombre)}</span>`;
 }
 function nextActionHtml(row) {
@@ -341,9 +364,9 @@ async function paintFollowUp(restart) {
 }
 
 // delcos-shared:src/app/core/navigation/current.ts
-var shared9 = globalThis["__delcosModules"]["core/navigation/current"];
-var pick9 = (name) => shared9[name];
-var markCurrent = /* @__PURE__ */ pick9("markCurrent");
+var shared12 = globalThis["__delcosModules"]["core/navigation/current"];
+var pick12 = (name) => shared12[name];
+var markCurrent = /* @__PURE__ */ pick12("markCurrent");
 
 // src/app/screens/quality/page.ts
 var MODES = [["todos", "quality.page.showAll"], ["visitados", "quality.page.showVisited"], ["sin_visitar", "quality.page.showNotVisited"], ["con_accion", "quality.page.showWithAction"], ["atrasados", "quality.page.showLate"]];
@@ -394,7 +417,7 @@ function paintIndicators(summary) {
   const funnel = (summary.embudo ?? []).map((step) => `<div class="kpi"><b>${formatNumber(step.n)}</b><span>${escapeHtml(step.estado)}</span></div>`).join("");
   box.innerHTML = `${funnel}<div class="kpi ok"><b>${formatNumber(summary.visitados)}</b><span>${term("medico", { number: "p", adjective: "visitado" })}</span></div>
        <div class="kpi"><b>${formatNumber(summary.visitas_total)}</b><span>${term("visita", { number: "p", adjective: "registrado" })}</span></div>
-       <div class="kpi"><b>${formatNumber(summary.muestras_total)}</b><span>${t("quality.page.samplesGiven")}</span></div>
+       ${deliveryRule().active ? `<div class="kpi"><b>${formatNumber(summary.muestras_total)}</b><span>${t("quality.page.samplesGiven")}</span></div>` : ""}
        <div class="kpi"><b>${percentText(summary.con_direccion, summary.total)}</b><span>${t("quality.page.withAddress")}</span></div>
        <div class="kpi"><b>${percentText(summary.con_dias, summary.total)}</b><span>${t("quality.page.withDays")}</span></div>`;
 }

@@ -6,6 +6,8 @@
 import { treeLegacy, type LegacyConfigItem } from '../../legacy/legado-d-bridge';
 import type { SettingsItem, SettingsTree } from '../../legacy/shell-bridge';
 import { t, type MessageKey } from '../../i18n';
+import { permissions } from '../../legacy/bridge';
+import { paintServicesSettings, paintTaxesSettings } from '../../screens/settings/rules/sales';
 
 type Group = [string, SettingsItem[]];
 
@@ -126,6 +128,21 @@ function joinFiscal(tree: Group[]): void {
   }
 }
 
+/**
+ * v2.466.0 (plan 12.2, batch 3): «Impuestos» in Facturación (who configures the organisation, FAC-1) and the group «Ventas» with
+ * «Servicios con material» (administration, when the company sees Intervenciones, VEN-3). The group goes before «Datos».
+ */
+function addSalesAndTaxes(tree: Group[]): void {
+  if (treeLegacy.canManageOrganisation() && treeLegacy.canUseModule('ventas')) {
+    const billing = groupOf(tree, t('legacyD.tree.billing'));
+    if (!billing[1].some(item => item.k === 'impuestos')) billing[1].push({ k: 'impuestos', t: t('settingsRules.taxesEntry'), ic: 'receipt', d: t('settingsRules.taxesHint'), r: (): unknown => paintTaxesSettings() });
+  }
+  if (!treeLegacy.can('administrar') || !permissions.canSeeArea('cirugias') || tree.some(group => group[0] === t('settingsRules.sales'))) return;
+  const sales: Group = [t('settingsRules.sales'), [{ k: 'servicios', t: t('settingsRules.servicesEntry'), ic: 'package', d: t('settingsRules.servicesHint'), r: (): unknown => paintServicesSettings() }]];
+  const data = tree.findIndex(group => group[0] === t('legacyD.tree.data'));
+  tree.splice(data < 0 ? tree.length : data, 0, sales);
+}
+
 /** The whole index, in the order the legacy layers built it. */
 export function settingsTree(): SettingsTree {
   const tree = baseTree();
@@ -135,6 +152,7 @@ export function settingsTree(): SettingsTree {
   addPaymentAndTests(shown);
   joinStates(shown);
   joinFiscal(shown);
+  addSalesAndTaxes(shown);
   return shown;
 }
 
@@ -143,5 +161,6 @@ export function installSettingsSearchWords(): void {
   treeLegacy.setSearchWords({
     'o.textos': t('legacyD.tree.textsWords'), distribuidores: t('legacyD.tree.distributorsWords'), estados: t('legacyD.tree.statesWords'),
     tpv: t('legacyD.tree.cardPaymentWords'), 'o.pruebas': t('legacyD.tree.testEnvironmentWords'),
+    impuestos: t('settingsRules.taxesWords'), servicios: t('settingsRules.servicesWords'),
   });
 }

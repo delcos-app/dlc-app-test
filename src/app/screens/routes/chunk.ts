@@ -8,7 +8,7 @@
 import './texts';
 export { paintRoutes } from './list';
 export { openRoute } from './wizard';
-export { appointmentsOn, copyToAgenda, refillRepeating } from './to-agenda';
+export { addedText, appointmentsOn, copyToAgenda, refillRepeating } from './to-agenda';
 export { buildPlan, planFromList, planRoute, planToAgenda, startRoute } from './planner/plan';
 export { planAgendaButtons, planCardsAndNotes, planHoursAndLeftOut, planMapAndDiscard, planNoStartNotice, planRecentlyVisited } from './planner/plan-view';
 export { showPlanMap } from './planner/plan-map';

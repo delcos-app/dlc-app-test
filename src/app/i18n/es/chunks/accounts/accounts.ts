@@ -160,6 +160,7 @@ export const accounts = {
     addPhotos: 'Añadir fotos',
     presented: 'Presentado: {list}',
     samplesTitle: 'Muestras este año',
+    deliveriesTitle: '{name} · este {period}',
     samplesGiven: '{given} de {max}',
     samplesOutOfTime: 'Fuera de plazo',
     samplesNoneLeft: 'Sin muestras este año',
