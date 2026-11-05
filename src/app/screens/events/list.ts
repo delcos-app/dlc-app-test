@@ -38,7 +38,7 @@ export async function paintEvents(): Promise<void> {
   if (error) { box.innerHTML = `<div class="vacio">${t('events.list.couldNotLoad')}</div>`; return; }
   const today = todayIso(), list = data ?? [];
   const upcoming = list.filter(event => event.fecha >= today).reverse(), past = list.filter(event => event.fecha < today);
-  box.innerHTML = `<div class="evpag"><div class="evcab"><button type="button" class="btn" id="evnuevo">${t('events.list.newEvent')}</button></div>
+  box.innerHTML = `<div class="evpag"><div class="evcab"><button type="button" class="btn" id="evnuevo" data-desktop-only>${t('events.list.newEvent')}</button></div>
     ${section(t('events.list.upcoming'), upcoming, t('events.list.noUpcoming'))}
     ${section(t('events.list.past'), past.slice(0, SHOWN_PAST), t('events.list.noPast'))}</div>`;
   const add = document.getElementById('evnuevo'); if (add) add.onclick = (): void => { editEvent(null); };

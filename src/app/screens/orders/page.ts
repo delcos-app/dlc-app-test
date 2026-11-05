@@ -86,7 +86,7 @@ function paintSections(loading: string): void {
 
 function purchaseButton(section: string): string {
   if (!purchasesLegacy.canBuy()) return '';
-  return section === PURCHASES ? `<button class="btn" id="compnueva">${t('orders.page.newPurchase')}</button>` : `<button class="btn" id="provnuevo">${t('orders.page.newSupplier')}</button>`;
+  return section === PURCHASES ? `<button class="btn" id="compnueva" data-desktop-only>${t('orders.page.newPurchase')}</button>` : `<button class="btn" id="provnuevo" data-desktop-only>${t('orders.page.newSupplier')}</button>`;
 }
 
 /** Oportunidades (only for who sees the whole team) and the sales operations. */

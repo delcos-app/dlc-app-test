@@ -8,6 +8,7 @@
 import { listsLegacy, type TableFilters } from '../../legacy/lists-bridge';
 import { t } from '../../i18n';
 import { cellValue, compareCells, normalise, notSortable } from './cell-values';
+import { dataCells } from '../list/row';
 
 /** The kind of a table: its first class other than dgrid (e.g. 'peds2'), the key of its order, filters and columns. */
 export const tableKind = (grid: Element): string => [...grid.classList].find(name => name !== 'dgrid') ?? 'tabla';
@@ -29,7 +30,7 @@ const rowsOf = (grid: Element): HTMLElement[] => [...grid.querySelectorAll<HTMLE
 export function markHeader(grid: Element): void {
   const kind = tableKind(grid), order = listsLegacy.sortState()[kind], header = headerOf(grid); if (!header) return;
   const server = listsLegacy.serverSort()[kind];
-  [...header.children].forEach((column, index) => {
+  dataCells(header).forEach((column, index) => {
     const name = column.textContent?.trim() ?? '', sortable = server ? Boolean(server(index, name)) : !notSortable(name);
     column.classList.toggle('htord', sortable);
     column.classList.toggle('ord-asc', Boolean(order) && order?.i === index && order.dir === 1);
@@ -44,7 +45,7 @@ export function sortRows(grid: Element): void {
   if (!order || listsLegacy.serverSort()[kind]) return;
   const header = headerOf(grid), rows = rowsOf(grid); if (!header || !rows.length) return;
   rows.forEach((row, position) => { row.dataset.htpos ??= String(position); });
-  const cellText = (row: HTMLElement): string | null | undefined => row.children[order.i]?.textContent;
+  const cellText = (row: HTMLElement): string | null | undefined => dataCells(row)[order.i]?.textContent;
   const sorted = [...rows].sort((first, second) => order.dir * compareCells(cellText(first), cellText(second)) || (Number(first.dataset.htpos) - Number(second.dataset.htpos)));
   if (sorted.some((row, position) => row !== rows[position])) { let previous: Element = header; sorted.forEach(row => { previous.after(row); previous = row; }); }
 }
@@ -73,7 +74,7 @@ export function applyColumnFilters(grid: Element): void {
   const text = normalise(filters.texto ?? ''), facets = Object.entries(filters.facetas ?? {}).filter(([, value]) => value);
   const ranges = Object.entries(filters.rangos ?? {}).filter(([, range]) => Boolean(range.d) || Boolean(range.h));
   rowsOf(grid).forEach(row => {
-    const cells = [...row.children];
+    const cells = dataCells(row);
     const matches = (!text || normalise(row.textContent).includes(text))
       && facets.every(([index, value]) => { const cell = cells[Number(index)]; return Boolean(cell) && normalise(cell?.textContent).includes(normalise(value)); })
       && ranges.every(([index, range]) => inRange(cells[Number(index)]?.textContent, range));

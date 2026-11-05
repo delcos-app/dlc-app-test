@@ -12,6 +12,8 @@ import { orFallback } from '../../services/values';
 import { euros, isStepCode, STATES, stepPill, storedStateOf } from './model';
 import { restoreFilters } from '../../components/filters/memory';
 import { markReloading } from '../../components/list-bar';
+import { openableRowHtml } from '../../components/list/row';
+import { orderLabel, publishOrders, type ListedOrder } from './list-selection';
 import { marksReportedOrders } from '../../core/rules';
 
 interface OrderRow {
@@ -97,17 +99,21 @@ function originText(row: OrderRow): string {
   return row.origen === 'portal' ? ` · <span class="pweb">${t('orders.list.portalTag')}</span>` : '';
 }
 
-function rowHtml(row: OrderRow, fields: readonly CustomField[]): string {
+function rowCells(row: OrderRow, fields: readonly CustomField[]): string {
   const amounts = permissions.canSeeAmounts(), reference = orFallback(row.factura, row.numero ?? '');
-  return `<button class="dr" data-ped="${row.id}" style="${row.estado === STATES.voided ? 'opacity:.55' : ''}">
+  return `
       <span>${formatShortDate(row.fecha)}${reference ? `<span class="sm">${escapeHtml(reference)}</span>` : ''}</span>
       <span><b>${escapeHtml(orFallback(row.contacto, orFallback(row.centro, orFallback(row.cuenta_texto, '—'))))}</b><span class="sm">${ordersLegacy.channelLabel(row, row.total)}${originText(row)}${row.forma_pago ? ` · ${escapeHtml(row.forma_pago)}` : ''}${row.justificante ? ` · <span title="${t('orders.list.withReceipt')}">📎</span>` : ''}</span></span>
       <span class="corta">${row.medico ? escapeHtml(row.medico) : `<span class="vac">${t('orders.list.unattributed')}</span>`}</span>
       <span>${row.comercial ? escapeHtml(row.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${escapeHtml(row.productos ?? '')}</span><span class="num">${formatNumber(row.unidades)}</span>
       ${amounts ? `<span class="num">${euros(row.base)}</span><span class="num"><b>${euros(row.total)}</b></span>` : ''}
-      <span>${stepPill(row)}</span><span>${operationIcons(row)}</span><span class="sm corta pednota" title="${escapeHtml(row.nota ?? '')}">${escapeHtml(row.nota ?? '')}</span>${ordersLegacy.fieldCells(fields, row.clasificadores)}</button>`;
+      <span>${stepPill(row)}</span><span>${operationIcons(row)}</span><span class="sm corta pednota" title="${escapeHtml(row.nota ?? '')}">${escapeHtml(row.nota ?? '')}</span>${ordersLegacy.fieldCells(fields, row.clasificadores)}`;
 }
+
+/** v2.472.0 (D-048): the row is not a button any more (it holds its selection box); its open button names the order. */
+const rowHtml = (row: OrderRow, fields: readonly CustomField[]): string => openableRowHtml('dr', `data-ped="${row.id}" style="${row.estado === STATES.voided ? 'opacity:.55' : ''}"`,
+  rowCells(row, fields), t('listSelection.open', { name: orderLabel(row as ListedOrder) }));
 
 function tableHtml(rows: readonly OrderRow[], fields: readonly CustomField[]): string {
   if (!rows.length) return `<div class="vacio">${t('orders.list.none')}</div>`;
@@ -128,9 +134,11 @@ function paintPages(list: HTMLElement, total: number): void {
   });
 }
 
-function paint(list: HTMLElement, data: OrdersPage): void {
+function paint(list: HTMLElement, data: OrdersPage, query: Record<string, unknown>): void {
   const rows = data.filas ?? [], fields = ordersLegacy.fieldColumns();
   ordersLegacy.setRows(rows);
+  // v2.472.0 (D-048): the page for the selection, before the table is painted
+  publishOrders({ rows: rows as ListedOrder[], total: data.total, query, fields, loadAll: async limit => await filteredOrders(limit) as ListedOrder[] });
   const totals = document.getElementById('ptotales'); if (totals) totals.innerHTML = summaryHtml(data.resumen ?? {});
   list.innerHTML = tableHtml(rows, fields);
   customersLegacy.widenGrid(list.querySelector('.dgrid.peds2'), fields.length);
@@ -152,6 +160,12 @@ async function loadPage(query: Record<string, unknown>): Promise<PageResult> {
   return requestPage({ ...query, p_estado: storedStateOf(step) });
 }
 
+/** Every order of the current filter, up to `limit` (D-048: «Seleccionar los N del filtro»). */
+export async function filteredOrders(limit: number): Promise<OrderRow[]> {
+  const result = await loadPage({ ...params(), lim: limit, desplaz: 0 });
+  return result.data?.filas ?? [];
+}
+
 export async function paintOrderList(): Promise<void> {
   // v2.470.0 (VEN-1): «Canal» is not there with only one active channel
   if (!document.getElementById('pedlista') || !document.getElementById('pper')) return;
@@ -171,6 +185,6 @@ export async function paintOrderList(): Promise<void> {
     list.innerHTML = `<div class="vacio" data-fallo>${t('orders.list.couldNotLoad', { error: error ? `: ${escapeHtml(error.message)}` : '' })}</div>`;
     return;
   }
-  paint(list, result.data);
+  paint(list, result.data, query);
   if (result.cache) showCacheNotice(list, result.fecha);
 }

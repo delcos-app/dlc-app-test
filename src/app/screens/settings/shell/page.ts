@@ -12,6 +12,8 @@ import { leavePanel } from '../../../components/embedded-window/panel';
 import { fitIndex } from './helpers';
 import { pendingSettings } from './pending';
 import { forgetActiveSection, stackSections } from './sections';
+import { isPhone, settingsBlockedOnPhone } from '../../../core/mobile/gate';
+import { paintDesktopNotice } from '../../../components/desktop-notice';
 
 const SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
 const DEFAULT_KEY = 'datos', PLAN_KEY = 'o.plan';
@@ -33,7 +35,15 @@ function planPill(item: SettingsItem): string {
   return `<span class="pill p-plan">${escapeHtml(shellLegacy.planMinimum(item.mod)?.nombre ?? t('settingsShell.plan'))}</span>`;
 }
 
-function indexHtml(tree: SettingsTree): string {
+/** v2.473.0 (M1 A): on the phone, an entry is in the index only if it, or one of its parts, is used on the phone. */
+const blockedEntry = (item: SettingsItem): boolean => settingsBlockedOnPhone(item.k) && !(item.hijos ?? []).some(part => !settingsBlockedOnPhone(part.k));
+
+/** The index as the phone or the computer shows it (groups left empty go too). */
+const shownTree = (tree: SettingsTree): SettingsTree => (isPhone()
+  ? tree.map(([group, items]) => [group, items.filter(item => !blockedEntry(item))] as const).filter(([, items]) => items.length) : tree);
+
+function indexHtml(fullTree: SettingsTree): string {
+  const tree = shownTree(fullTree);
   const index = tree.map(([group, items]) => `<h4>${escapeHtml(group)}</h4>${items.map(item => `<button type="button" data-ck="${item.k}">${shellLegacy.iconOf(item.ic)}<span>${escapeHtml(item.t)}</span>${planPill(item)}</button>`).join('')}`).join('');
   return `<div class="saludo"><div><h1>${t('settingsShell.title')}</h1><div class="fecha">${t(tree.length > 1 ? 'settingsShell.subtitleAll' : 'settingsShell.subtitleOwn')}</div></div></div>
       <div class="cfu">
@@ -102,6 +112,12 @@ function showPlanNeeded(item: SettingsItem): void {
   const see = byId('planver'); if (see) see.onclick = (): void => { shellLegacy.setKey(PLAN_KEY); shellLegacy.reload(); };
 }
 
+/** v2.473.0: a «Solo ordenador» entry reached on the phone (a link, a notice, the search): the notice, and «Volver» to the index. */
+function paintSettingsNotice(key: string): void {
+  const box = byId('cfgcuerpo'); if (!box) return;
+  paintDesktopNotice(box, { place: key, back: () => { byId('cfuvolver')?.click(); } });
+}
+
 function paintIndexIfChanged(view: HTMLElement, tree: SettingsTree, leaves: readonly Leaf[]): void {
   const mobile = isMobile();
   const signature = `${leaves.map(leaf => leaf.k + (leaf.hijos ? `(${leaf.hijos.map(part => part.k).join(',')})` : '')).join('|')}|${String(mobile)}`;
@@ -132,6 +148,12 @@ function paintPage(): void {
   paintIndexIfChanged(view, tree, leaves);
   paintHeader(view, leaf);
   showPending(view);
+  paintBody(leaf, part);
+}
+
+/** The content of the chosen section: the notice on the phone, the plan it needs, or its painter (or its parts). */
+function paintBody(leaf: Leaf, part: SettingsPart | null): void {
+  if (blockedEntry(leaf)) { paintSettingsNotice(part ? part.k : leaf.k); return; }
   if (leaf.mod && !shellLegacy.planIncludes(leaf.mod)) { showPlanNeeded(leaf); return; }
   const paint = leaf.hijos ? (): Promise<void> => stackSections(leaf, part) : leaf.r;
   if (paint) void Promise.resolve().then(paint);

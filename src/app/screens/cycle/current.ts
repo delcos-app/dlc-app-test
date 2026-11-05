@@ -39,14 +39,14 @@ function headerHtml(data: CycleData, selector: string): string {
   const left = data.quedan_dias === 1 ? t('cycle.current.oneDayLeft') : t('cycle.current.daysLeft', { count: formatNumber(data.quedan_dias) });
   return `<div class="ciccab"><div><b>${escapeHtml(rangeText(data))}</b>
       <span class="sm">${left} · ${t('cycle.current.allCount', words())}</span></div>
-      <span class="cicacc">${selector}${cardSectionsLegacy.can('administrar') ? `<button type="button" class="btn sec" id="cicajustar">${t('cycle.current.adjust')}</button>` : ''}</span></div>`;
+      <span class="cicacc">${selector}${cardSectionsLegacy.can('administrar') ? `<button type="button" class="btn sec" id="cicajustar" data-desktop-only>${t('cycle.current.adjust')}</button>` : ''}</span></div>`;
 }
 
 function unclassifiedHtml(count: number): string {
   if (!count) return '';
   const text = count === 1 ? t('cycle.current.oneUnclassified', words()) : t('cycle.current.unclassified', { ...words(), count: formatNumber(count) });
   return `<div class="banda-aviso cicsin">${text}${t('cycle.current.unclassifiedTail')}
-      <button type="button" class="btn sec" id="cicirclas">${t('cycle.classify')}</button></div>`;
+      <button type="button" class="btn sec" id="cicirclas" data-desktop-only>${t('cycle.classify')}</button></div>`;
 }
 
 function missingHtml(data: CycleData): string {

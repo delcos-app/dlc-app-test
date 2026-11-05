@@ -190,10 +190,10 @@ function planButton(plan, view) {
   const style = plan === view.next ? "btn" : "btn sec";
   if (planLegacy.paymentPlans().includes(plan.id)) {
     if (!view.canPay || view.plan === CUSTOM && !view.stripeSubscription) return "";
-    return `<button type="button" class="${style}" data-pgplan="${plan.id}">${t(view.subscribed ? "settingsRest.plan.changeTo" : "settingsRest.plan.hire", { plan: planLegacy.of(plan.id).nombre })}</button>`;
+    return `<button type="button" class="${style}" data-desktop-only data-pgplan="${plan.id}">${t(view.subscribed ? "settingsRest.plan.changeTo" : "settingsRest.plan.hire", { plan: planLegacy.of(plan.id).nombre })}</button>`;
   }
   const customCard = plan.id === CUSTOM;
-  return `<button type="button" class="${style}" data-presu="${customCard && view.plan !== CUSTOM ? "presupuesto" : "contrato"}">${t(customCard ? "settingsRest.plan.askBudget" : "settingsRest.plan.talk")}</button>`;
+  return `<button type="button" class="${style}" data-desktop-only data-presu="${customCard && view.plan !== CUSTOM ? "presupuesto" : "contrato"}">${t(customCard ? "settingsRest.plan.askBudget" : "settingsRest.plan.talk")}</button>`;
 }
 function planCard(plan, view) {
   const euros = planLegacy.euros;
@@ -249,7 +249,7 @@ function leavingNotice(plan, canPay) {
   if (!plan.baja_al_final || plan.estado !== "activo") return "";
   const date = formatShortDate(plan.periodo_fin ?? "");
   const content = canPay && subscribed(plan) ? `${t("settingsRest.plan.leavingWithButton", { date })}
-      <button type="button" class="btn sec" id="pgseguir">${t("settingsRest.plan.keep")}</button>` : t("settingsRest.plan.leaving", { date });
+      <button type="button" class="btn sec" id="pgseguir" data-desktop-only>${t("settingsRest.plan.keep")}</button>` : t("settingsRest.plan.leaving", { date });
   return `<div class="banda-aviso" id="pgbajafin">${content}</div>`;
 }
 function plannedNotice(plan, canManage) {
@@ -257,7 +257,7 @@ function plannedNotice(plan, canManage) {
   if (!change?.plan) return "";
   const payment = t(change.pago === "anual" ? "settingsRest.plan.yearlyLower" : "settingsRest.plan.monthlyLower");
   return `<div class="banda-info" id="pgprevisto">${t("settingsRest.plan.planned", { date: formatShortDate(change.desde), plan: escapeHtml(planLegacy.of(change.plan).nombre), users: formatNumber(change.usuarios), payment })}
-    ${canManage ? `<button type="button" class="btn sec" id="pganular">${t("settingsRest.plan.cancelChange")}</button>` : ""}</div>`;
+    ${canManage ? `<button type="button" class="btn sec" id="pganular" data-desktop-only>${t("settingsRest.plan.cancelChange")}</button>` : ""}</div>`;
 }
 function stateNotices(plan) {
   const next = subscribed(plan) && plan.periodo_fin && plan.estado === "activo" ? `<p class="sm">${t("settingsRest.plan.nextReceipt", { date: formatShortDate(plan.periodo_fin) })}</p>` : "";
@@ -291,9 +291,9 @@ function usageHtml(used, contracted) {
 }
 function actionsHtml(view) {
   const plan = view.plan, withSubscription = subscribed(plan);
-  const pay = view.canPay && plan.plan !== "medida" ? withSubscription ? `<button type="button" class="btn sec" id="pgusu2">${t("settingsRest.plan.usersButton")}</button><button type="button" class="btn sec" id="pgportal">${t("settingsRest.plan.managePayment")}</button>` : `<button type="button" class="btn" id="pgelegir">${t("settingsRest.plan.choose")}</button>` : "";
-  const leave = view.canPay && withSubscription && plan.estado === "activo" && !plan.baja_al_final ? `<button type="button" class="btn sec" id="pgdarbaja">${t("settingsRest.plan.leave")}</button>` : "";
-  const talk = view.canTalk ? `<button type="button" class="btn sec" data-presu="contrato">${t("settingsRest.plan.talk")}</button>` : "";
+  const pay = view.canPay && plan.plan !== "medida" ? withSubscription ? `<button type="button" class="btn sec" id="pgusu2" data-desktop-only>${t("settingsRest.plan.usersButton")}</button><button type="button" class="btn sec" id="pgportal" data-desktop-only>${t("settingsRest.plan.managePayment")}</button>` : `<button type="button" class="btn" id="pgelegir" data-desktop-only>${t("settingsRest.plan.choose")}</button>` : "";
+  const leave = view.canPay && withSubscription && plan.estado === "activo" && !plan.baja_al_final ? `<button type="button" class="btn sec" id="pgdarbaja" data-desktop-only>${t("settingsRest.plan.leave")}</button>` : "";
+  const talk = view.canTalk ? `<button type="button" class="btn sec" data-desktop-only data-presu="contrato">${t("settingsRest.plan.talk")}</button>` : "";
   return `<div class="acts">${pay}${leave}${talk}</div>`;
 }
 function currentCardHtml(view) {
@@ -470,7 +470,7 @@ function billingHtml(plan, data) {
   return `<div class="card cfgpanel" id="pgdatos"><h2 class="u-p-0-0-4">${t("settingsRest.plan.billingTitle")}</h2>
     <p class="sm">${t("settingsRest.plan.billingHint")}${review}</p>
     <div class="pgdlista">${billingRows(data)}</div>
-    <div class="acts"><button type="button" class="btn sec" id="pgdcorr">${t("settingsRest.plan.fixData")}</button></div></div>`;
+    <div class="acts"><button type="button" class="btn sec" id="pgdcorr" data-desktop-only>${t("settingsRest.plan.fixData")}</button></div></div>`;
 }
 var header = () => ["organizacion", "config"].includes(currentScreen()) ? `<p class="sm">${t("settingsRest.plan.priceNote")}</p>` : `<div class="saludo"><div><h1>${t("settingsRest.plan.pageTitle")}</h1><div class="fecha">${t("settingsRest.plan.priceNote")}</div></div></div>`;
 async function payAndReload(body, button, done) {

@@ -10,6 +10,7 @@ import { orFallback } from '../../services/values';
 import { loadingHtml } from './list';
 import { organisationCountry, usualLeadDays } from '../../core/organisation';
 import { type Supplier } from './model';
+import { levelNow } from '../../core/mobile/gate';
 
 const joined = (values: readonly (string | null | undefined)[]): string => values.filter(Boolean).join(' · ');
 
@@ -96,7 +97,8 @@ export function editSupplier(existing: Supplier | null): void {
   const supplier: Supplier = existing ?? { activo: true, plazo_dias: usualLeadDays(), pais: organisationCountry() };
   const body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;
-  body.innerHTML = editorHtml(supplier, purchasesLegacy.canBuy());
+  // v2.473.0: Proveedores is read only on the phone (the window opens with its fields locked and without «Guardar»)
+  body.innerHTML = editorHtml(supplier, purchasesLegacy.canBuy() && levelNow('proveedores') !== 'read');
   box.showModal();
   const ok = document.getElementById('pvok'); if (ok) ok.onclick = (): void => { void save(supplier); };
 }

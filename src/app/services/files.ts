@@ -6,6 +6,7 @@
 import { coreLegacy } from '../legacy/core-bridge';
 import { t } from '../i18n';
 import { wordFor } from '../core/vocabulary';
+import { canManageOrganization } from '../core/permissions';
 
 export const RECEIPT_MAX = 3000000;
 export const VISIT_PHOTOS_MAX = 6;
@@ -14,8 +15,38 @@ const PHOTOS_DB = 'delcos-fotos', STORE = 'pend', RECEIPT_SIDE = 1600, RECEIPT_Q
 const XLSX_URL = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
 const XLSX_HASH = 'sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT';
 
-/** Downloads are off to protect the data. */
+/** Downloads are off to protect the data (the only way out is exportSheet, below). */
 export function download(): void { coreLegacy.toast(t('core.files.downloadOff'), true); }
+
+/** A cell of an exported sheet: text, a number (to add up in Excel), a date or nothing. */
+export type SheetCell = string | number | Date | null;
+export interface Sheet { readonly list: string; readonly head: readonly string[]; readonly body: readonly (readonly SheetCell[])[] }
+
+let exportReady: Promise<boolean> | null = null;
+
+/** Whether the database records exports (SQL 196) and this person may export: without it, Exportar is not offered. */
+export function canExport(): Promise<boolean> {
+  if (!canManageOrganization()) return Promise.resolve(false);
+  exportReady ??= Promise.resolve(coreLegacy.rpc('exportacion_permitida', {})).then(answer => answer.data === true, () => false);
+  return exportReady;
+}
+
+/**
+ * v2.472.0 (D-048, Eric's E3 A): the only download of data that is allowed. Only for whoever configures the company (Propietario
+ * and administración); the database records who exported which list, how many rows and when (registrar_exportacion) and only
+ * then the .xlsx is written with SheetJS (the same pinned library as Importar). True when the file was written.
+ */
+export async function exportSheet(sheet: Sheet, fileName: string): Promise<boolean> {
+  if (!await canExport()) { coreLegacy.toast(t('core.files.downloadOff'), true); return false; }
+  const answer = await Promise.resolve(coreLegacy.rpc('registrar_exportacion', { p_lista: sheet.list, p_filas: sheet.body.length })).catch(() => null);
+  if (!answer || answer.error || (answer.data as { ok?: boolean } | null)?.ok !== true) { coreLegacy.toast(t('core.files.exportNotRecorded'), true); return false; }
+  try {
+    const library = await loadExcelReader() as SheetWriter, book = library.utils.book_new();
+    library.utils.book_append_sheet(book, library.utils.aoa_to_sheet([[...sheet.head], ...sheet.body.map(row => [...row])], { cellDates: true }), sheet.list.slice(0, 31));
+    library.writeFile(book, fileName);
+    return true;
+  } catch { coreLegacy.toast(t('core.files.exportFailed'), true); return false; }
+}
 
 /** An image as a data URL (null if it cannot be read). */
 export async function imageData(url: string): Promise<string | null> {

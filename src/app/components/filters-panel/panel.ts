@@ -11,15 +11,16 @@ import { escapeHtml } from '../../services/format';
 import { enhanceFields } from '../date-picker/enhance';
 import { columnKind, normalise, notFilterable } from '../filters/cell-values';
 import { applyColumnFilters, tableKind } from '../filters/table-sort';
+import { dataCells } from '../list/row';
 import { applyColumns, hiddenOf, setHidden } from './columns';
 import { counter, filtersOf, gridOf } from './counter';
 import { sideOpen, sideOpenFor, toolsBox } from './side';
 
 interface Facet { i: number; nombre: string; vals: string[] }
 
-const headsOf = (grid: Element): string[] => [...(grid.querySelector(':scope > .dh')?.children ?? [])].map(cell => cell.textContent?.trim() ?? '');
+const headsOf = (grid: Element): string[] => dataCells(grid.querySelector(':scope > .dh')).map(cell => cell.textContent?.trim() ?? '');
 const rowsOf = (grid: Element): Element[] => [...grid.querySelectorAll(':scope > .dr')];
-const cellText = (row: Element, index: number): string => row.children[index]?.textContent ?? '';
+const cellText = (row: Element, index: number): string => dataCells(row)[index]?.textContent ?? '';
 
 function facetsOf(grid: Element): Facet[] {
   const rows = rowsOf(grid);

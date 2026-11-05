@@ -66,7 +66,7 @@ function cardHtml(item: Shown, figures: Readonly<Record<string, Result>>): strin
   return `<div class="ankpi" data-anu="${escapeHtml(item.u)}">
         <div class="ankcab"><span class="anktit">${escapeHtml(title)}</span>
           <button type="button" class="ai" data-ayuda-txt="${escapeHtml(kpiHelp(item.k))}" data-ayuda-tit="${escapeHtml(kpiTitle(item.k))}" aria-label="${t('panels.kpis.whatIs')}">i</button>
-          <button type="button" class="ankcfg" data-ancfg="${escapeHtml(item.u)}" title="${t('panels.kpis.adjust')}" aria-label="${escapeHtml(t('panels.kpis.adjustOf', { name: title }))}">${icon('settings')}</button></div>
+          <button type="button" class="ankcfg" data-desktop-only data-ancfg="${escapeHtml(item.u)}" title="${t('panels.kpis.adjust')}" aria-label="${escapeHtml(t('panels.kpis.adjustOf', { name: title }))}">${icon('settings')}</button></div>
         <b class="ankval ${item.k.fmt === 'txt' ? 'txt' : ''}">${data.error ? '—' : formatValue(current, item.k.fmt)}</b>
         ${data.error ? `<span class="sm">${t('panels.kpis.couldNotCalculate')}</span>` : deltaHtml(item.k, current, previous, item.comp || (analyticsState.config?.comp ?? ''))}
         ${filter ? `<span class="ankfil">${escapeHtml(filter)}</span>` : ''}</div>`;

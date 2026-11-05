@@ -4,7 +4,7 @@
  */
 export { forgetUnrememberedSession, linkKind, patchClassList, readLinkError, storedList, storedObject } from './early';
 export { databaseOptions } from './database';
-export { switchScreen } from './switch-screen';
+export { switchScreen, switchToNotice } from './switch-screen';
 export { startShell } from './shell-listeners';
 export { listenToBottomBarAndMap, listenToDirectoryButtons, listenToSalespersonFilter, registerServiceWorker, startSelectorsAndWindows, watchNewVersion } from './shell-extras';
 export { paintConnection, watchConnection } from './connection';

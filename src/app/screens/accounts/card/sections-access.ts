@@ -17,7 +17,7 @@ const accountOf = async (id: string): Promise<CardAccount | Record<string, never
 
 /** Who has access; administration also sees their last connection (data-facccon, v2.335.0). */
 function hasAccessHtml(user: PlatformUser, isCentre: boolean, withConnection: boolean): string {
-  const impersonate = user.activo && accessLegacy.canImpersonate(user) ? `<button class="btn sec" data-ucomo="${user.id}">${t('accounts.access.impersonate')}</button>` : '';
+  const impersonate = user.activo && accessLegacy.canImpersonate(user) ? `<button class="btn sec" data-desktop-only data-ucomo="${user.id}">${t('accounts.access.impersonate')}</button>` : '';
   return `<p class="sm">${t('accounts.access.hasAccess')}${user.email ? t('accounts.access.asEmail', { email: escapeHtml(user.email) }) : ''}${user.activo ? '' : t('accounts.access.disabled')}: ${t(isCentre ? 'accounts.access.centreUses' : 'accounts.access.portalUses')}.</p>`
     + (withConnection ? `<p class="sm facccon" data-facccon="${user.id}"></p>` : '') + impersonate;
 }

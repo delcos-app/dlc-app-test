@@ -8,6 +8,7 @@ import { listBarLegacy } from '../../../legacy/listbar-bridge';
 import { t } from '../../../i18n';
 import { filterHasValue } from '../../filters';
 import type { Indicator, ListConfig } from '../types';
+import { accountSelection } from '../../../screens/accounts/bulk-actions';
 
 const PERSON = 'Persona', CENTRE = 'Centro';
 const SELECT_FILTERS = ['tipo', 'prov', 'muni', 'esp', 'est', 'rep', 'com'] as const;
@@ -75,4 +76,5 @@ export const directoryConfig = (): ListConfig => ({
   kpiOn: key => (isType(key) ? listBarLegacy.accountFilters().tipo === key : Boolean((listBarLegacy.accountFilters() as unknown as Record<string, unknown>)[key])),
   kpiPulsar: pressIndicator,
   card: null,
+  seleccion: accountSelection(),
 });

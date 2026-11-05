@@ -63,7 +63,7 @@ function editorHtml(service: Service, admin: boolean): string {
     <label class="opt u-mt-12">${checkbox('svdef', service.por_defecto, locked)} ${t('products.services.proposeByDefault')}</label>
     ${service.id ? `<label class="opt u-mt-8">${checkbox('svact', service.activo, locked)} ${t('products.services.active')}</label>` : ''}
     <div class="acts u-end"><button class="btn sec" data-cerrar>${t(admin ? 'common.cancel' : 'common.close')}</button>
-      ${admin ? `<button class="btn" id="svok">${t(service.id ? 'common.save' : 'products.services.create')}</button>` : ''}</div>`;
+      ${admin ? `<button class="btn" id="svok" data-desktop-only>${t(service.id ? 'common.save' : 'products.services.create')}</button>` : ''}</div>`;
 }
 
 /** The price without VAT and with VAT follow each other. */

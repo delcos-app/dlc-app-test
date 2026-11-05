@@ -63,6 +63,7 @@ import * as equipment from './screens/equipment';
 import * as surgeries from './screens/surgeries';
 import * as cycle from './screens/cycle';
 import { listenToPolicyViolations } from './core/csp-watch';
+import { reopenOnWidthChange } from './core/mobile/gate';
 import { publishSharedModules } from './core/lazy/registry';
 import { listenToSameCentre } from './screens/agenda/same-centre';
 import { listenToCards, listenToYourDay } from './screens/agenda/your-day/listeners';
@@ -195,6 +196,7 @@ window.delcos = {
 };
 
 listenToPolicyViolations();
+reopenOnWidthChange();
 listenToSameCentre();
 listenToDuplicates();
 listenToDayPickers();

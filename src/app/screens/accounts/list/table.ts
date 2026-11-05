@@ -8,11 +8,16 @@ import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { cell } from './cells';
 import { columnTitle, visibleColumns } from './columns';
+import { selectionShown } from '../../../components/list-bar';
+import { openableRowHtml } from '../../../components/list/row';
+
+/** The checkbox column of the selection (D-048), when it shows. */
+const SELECTION_WIDTH = 40;
 
 /** Paints the header and gives the table its full width (the sum of the column widths). */
 export function paintHeader(): void {
   const head = document.getElementById('thead'); if (!head) return;
-  const columns = visibleColumns(), width = columns.reduce((total, column) => total + column.w, 0);
+  const columns = visibleColumns(), width = columns.reduce((total, column) => total + column.w, selectionShown('directorio') ? SELECTION_WIDTH : 0);
   head.innerHTML = columns.map(column => `<span class="tcell th" style="width:${column.w}px;min-width:${column.w}px">${escapeHtml(columnTitle(column.k))}<i class="res" data-res="${column.k}"></i></span>`).join('');
   head.style.minWidth = `${width}px`;
   const list = document.getElementById('lista'); if (list) list.style.minWidth = `${width}px`;
@@ -36,8 +41,9 @@ function markSort(head: HTMLElement, columns: readonly ColumnSetting[]): void {
 export function rowHtml(row: AccountListRow, onAccessLoaded: () => void): string {
   const cells = visibleColumns().map(column => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row, column.k, onAccessLoaded)}</span>`).join('');
   const place = [row.centro_nombre, row.municipio].filter(Boolean).join(' · ');
-  const card = `<span class="plcard"><b>${row.urgente ? `<i class="plurg" aria-label="${t('accounts.list.urgent')}"></i>` : ''}${escapeHtml(row.nombre ?? '')}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${cell(row, 'estado_comercial', onAccessLoaded)}</span></span>`;
-  return `<button class="trow" data-id="${row.id}">${cells}${card}</button>`;
+  const card = `<span class="plcard"><b>${row.urgente ? `<i class="plurg" role="img" aria-label="${t('accounts.list.urgent')}"></i>` : ''}${escapeHtml(row.nombre ?? '')}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${cell(row, 'estado_comercial', onAccessLoaded)}</span></span>`;
+  // v2.472.0 (D-048): the row is not a button any more (it holds its selection box); its open button names the account
+  return openableRowHtml('trow', `data-id="${row.id}"`, `${cells}${card}`, t('listSelection.open', { name: row.nombre ?? '' }));
 }
 
 /** The chips of the active filters (each one removes its filter) and those of the custom fields. */

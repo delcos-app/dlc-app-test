@@ -48,15 +48,15 @@ function activityHtml(user: UserRow): string {
 
 function actionsHtml(user: UserRow): string {
   const admin = cardSectionsLegacy.can('administrar'), notMe = user.id !== settingsLegacy.user().id;
-  const impersonate = accessLegacy.canImpersonate(user) ? `<button class="btn${usersLegacy.isGuest(user) ? '' : ' sec'}" data-uacc="como">${t('settingsRest.users.impersonate')}</button>` : '';
+  const impersonate = accessLegacy.canImpersonate(user) ? `<button class="btn${usersLegacy.isGuest(user) ? '' : ' sec'}" data-desktop-only data-uacc="como">${t('settingsRest.users.impersonate')}</button>` : '';
   return `<div class="usracc">
-      <button class="btn" data-uacc="editar">${t('settingsRest.detail.edit')}</button>
-      ${isPrescriber(user) ? '' : `<button class="btn sec" data-uacc="cartera">${t('settingsRest.detail.assignPortfolio')}</button>`}
+      <button class="btn" data-desktop-only data-uacc="editar">${t('settingsRest.detail.edit')}</button>
+      ${isPrescriber(user) ? '' : `<button class="btn sec" data-desktop-only data-uacc="cartera">${t('settingsRest.detail.assignPortfolio')}</button>`}
       ${admin && notMe ? `<button class="btn sec" data-uacc="acceso">${t('settingsRest.detail.accessData')}</button>` : ''}
       <button class="btn sec" data-uacc="pass">${t('settingsRest.detail.sendPassword')}</button>
       <button class="btn sec" data-uacc="activar">${t('settingsRest.detail.resendActivation')}</button>
       ${impersonate}
-      ${admin && notMe ? `<button class="btn sec dang" data-uacc="borrar">${t('settingsRest.detail.deleteUser')}</button>` : ''}</div>`;
+      ${admin && notMe ? `<button class="btn sec dang" data-desktop-only data-uacc="borrar">${t('settingsRest.detail.deleteUser')}</button>` : ''}</div>`;
 }
 
 const closeAnd = (action: () => void): void => { dialog()?.close(); action(); };

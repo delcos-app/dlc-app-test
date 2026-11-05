@@ -68,7 +68,7 @@ function settingsHtml(line: StockLine): string {
 
 function batchHtml(batch: StockBatch, canBuy: boolean): string {
   const expiry = expiryClass(batch.caducidad), manyStores = purchasesLegacy.stores().filter(store => store.activo).length > 1;
-  const tools = canBuy ? `<button class="btn sec" data-aju="${batch.id}|${batch.almacen_id}">${t('products.sheet.adjust')}</button>${manyStores ? `<button class="btn sec" data-tras="${batch.id}|${batch.almacen_id}">${t('products.sheet.transfer')}</button>` : ''}` : '';
+  const tools = canBuy ? `<button class="btn sec" data-desktop-only data-aju="${batch.id}|${batch.almacen_id}">${t('products.sheet.adjust')}</button>${manyStores ? `<button class="btn sec" data-tras="${batch.id}|${batch.almacen_id}">${t('products.sheet.transfer')}</button>` : ''}` : '';
   return `<div class="item u-cursor-default">
         <span class="ic ${expiry === 'cad-pasada' ? 'w' : ''}">📦</span>
         <span class="tx"><b>${t('products.sheet.batch', { number: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}</b>

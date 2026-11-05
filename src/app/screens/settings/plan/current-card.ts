@@ -37,7 +37,7 @@ function leavingNotice(plan: CurrentPlan, canPay: boolean): string {
   const date = formatShortDate(plan.periodo_fin ?? '');
   // With a subscription the notice offers to keep it
   const content = canPay && subscribed(plan) ? `${t('settingsRest.plan.leavingWithButton', { date })}
-      <button type="button" class="btn sec" id="pgseguir">${t('settingsRest.plan.keep')}</button>` : t('settingsRest.plan.leaving', { date });
+      <button type="button" class="btn sec" id="pgseguir" data-desktop-only>${t('settingsRest.plan.keep')}</button>` : t('settingsRest.plan.leaving', { date });
   return `<div class="banda-aviso" id="pgbajafin">${content}</div>`;
 }
 
@@ -45,7 +45,7 @@ function plannedNotice(plan: CurrentPlan, canManage: boolean): string {
   const change = plan.cambio_previsto; if (!change?.plan) return '';
   const payment = t(change.pago === 'anual' ? 'settingsRest.plan.yearlyLower' : 'settingsRest.plan.monthlyLower');
   return `<div class="banda-info" id="pgprevisto">${t('settingsRest.plan.planned', { date: formatShortDate(change.desde), plan: escapeHtml(planLegacy.of(change.plan).nombre), users: formatNumber(change.usuarios), payment })}
-    ${canManage ? `<button type="button" class="btn sec" id="pganular">${t('settingsRest.plan.cancelChange')}</button>` : ''}</div>`;
+    ${canManage ? `<button type="button" class="btn sec" id="pganular" data-desktop-only>${t('settingsRest.plan.cancelChange')}</button>` : ''}</div>`;
 }
 
 function stateNotices(plan: CurrentPlan): string {
@@ -88,10 +88,10 @@ function usageHtml(used: number, contracted: number): string {
 function actionsHtml(view: CurrentView): string {
   const plan = view.plan, withSubscription = subscribed(plan);
   const pay = view.canPay && plan.plan !== 'medida' ? (withSubscription
-    ? `<button type="button" class="btn sec" id="pgusu2">${t('settingsRest.plan.usersButton')}</button><button type="button" class="btn sec" id="pgportal">${t('settingsRest.plan.managePayment')}</button>`
-    : `<button type="button" class="btn" id="pgelegir">${t('settingsRest.plan.choose')}</button>`) : '';
-  const leave = view.canPay && withSubscription && plan.estado === 'activo' && !plan.baja_al_final ? `<button type="button" class="btn sec" id="pgdarbaja">${t('settingsRest.plan.leave')}</button>` : '';
-  const talk = view.canTalk ? `<button type="button" class="btn sec" data-presu="contrato">${t('settingsRest.plan.talk')}</button>` : '';
+    ? `<button type="button" class="btn sec" id="pgusu2" data-desktop-only>${t('settingsRest.plan.usersButton')}</button><button type="button" class="btn sec" id="pgportal" data-desktop-only>${t('settingsRest.plan.managePayment')}</button>`
+    : `<button type="button" class="btn" id="pgelegir" data-desktop-only>${t('settingsRest.plan.choose')}</button>`) : '';
+  const leave = view.canPay && withSubscription && plan.estado === 'activo' && !plan.baja_al_final ? `<button type="button" class="btn sec" id="pgdarbaja" data-desktop-only>${t('settingsRest.plan.leave')}</button>` : '';
+  const talk = view.canTalk ? `<button type="button" class="btn sec" data-desktop-only data-presu="contrato">${t('settingsRest.plan.talk')}</button>` : '';
   return `<div class="acts">${pay}${leave}${talk}</div>`;
 }
 

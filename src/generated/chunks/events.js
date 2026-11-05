@@ -241,7 +241,7 @@ async function paintEvents() {
   }
   const today = todayIso(), list = data ?? [];
   const upcoming = list.filter((event) => event.fecha >= today).reverse(), past = list.filter((event) => event.fecha < today);
-  box.innerHTML = `<div class="evpag"><div class="evcab"><button type="button" class="btn" id="evnuevo">${t("events.list.newEvent")}</button></div>
+  box.innerHTML = `<div class="evpag"><div class="evcab"><button type="button" class="btn" id="evnuevo" data-desktop-only>${t("events.list.newEvent")}</button></div>
     ${section(t("events.list.upcoming"), upcoming, t("events.list.noUpcoming"))}
     ${section(t("events.list.past"), past.slice(0, SHOWN_PAST), t("events.list.noPast"))}</div>`;
   const add = document.getElementById("evnuevo");
@@ -349,7 +349,7 @@ function sheetHtml(event, attendees, canEdit) {
     <div class="evas" id="evas">${attendees.length ? attendees.map(attendeeHtml).join("") : `<div class="vacio vlinea">${t("events.sheet.noAttendees")}</div>`}</div>
     <div class="evpie"><span>${t("events.sheet.total")}</span><b id="evtotal">${formatCurrency(sum(attendees.map(attendeeTotal)))}</b></div>
     <p class="sm">${noteText()}</p>
-    <div class="acts u-end">${canEdit ? `<button type="button" class="btn sec" id="eveditar">${t("events.sheet.edit")}</button>` : ""}<button type="button" class="btn" data-cerrar>${t("events.sheet.done")}</button></div>`;
+    <div class="acts u-end">${canEdit ? `<button type="button" class="btn sec" id="eveditar" data-desktop-only>${t("events.sheet.edit")}</button>` : ""}<button type="button" class="btn" data-cerrar>${t("events.sheet.done")}</button></div>`;
 }
 function startAdding(id) {
   const add = document.getElementById("evanadir");

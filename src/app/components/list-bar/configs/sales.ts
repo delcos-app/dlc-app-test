@@ -5,12 +5,14 @@
 import { t } from '../../../i18n';
 import type { SectionConfigs } from '../types';
 import { gridConfig } from './grid';
+import { orderSelection } from '../../../screens/orders/bulk-actions';
+import { invoiceSelection } from '../../../screens/billing/bulk-actions';
 
 const PERIOD = (): string => t('listBar.bar.period');
 
 export const salesConfigs = (): SectionConfigs => ({
   pedidos: gridConfig({ tab: 'ventas', que: () => t('listBar.sales.orders'), lista: 'pedlista', pag: 'pedpag', buscador: 'pq', banda: 'operativa',
-    extra: [['opcfg', t('listBar.sales.chooseAlerts')]],
+    extra: [['opcfg', t('listBar.sales.chooseAlerts')]], seleccion: orderSelection(),
     rapidos: [['#pper select', PERIOD()], ['#pestado', ''], ['#pcanal', ''], ['#porigf', ''], ['#prepf', '']] }),
   oport: gridConfig({ tab: 'ventas', que: () => t('listBar.sales.opportunities'), lista: 'lllista', pag: 'llpag', buscador: 'llq', despues: 'llres2',
     rapidos: [['#llper select', PERIOD()], ['#llfres', '']] }),
@@ -19,7 +21,8 @@ export const salesConfigs = (): SectionConfigs => ({
 });
 
 export const billingConfigs = (): SectionConfigs => ({
-  facturas: gridConfig({ tab: 'facturacion', que: () => t('listBar.sales.invoices'), lista: 'flista', pag: 'fpag', buscador: 'fq', rapidos: [['#fper select', PERIOD()], ['#fcob', '']] }),
+  facturas: gridConfig({ tab: 'facturacion', que: () => t('listBar.sales.invoices'), lista: 'flista', pag: 'fpag', buscador: 'fq', rapidos: [['#fper select', PERIOD()], ['#fcob', '']],
+    seleccion: invoiceSelection() }),
 });
 
 export const productsConfigs = (): SectionConfigs => ({

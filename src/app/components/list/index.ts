@@ -8,3 +8,4 @@ export { pageHtml, paginateLists } from './pagination';
 export { closePopovers, openPopover } from './popover';
 export { sortRemembered } from './remembered-sort';
 export { tableSkeleton } from './skeleton';
+export { dataCells, openableRowHtml, openButtonHtml } from './row';

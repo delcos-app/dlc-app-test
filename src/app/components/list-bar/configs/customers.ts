@@ -5,7 +5,9 @@
 import { term } from '../../../legacy/bridge';
 import { listBarLegacy } from '../../../legacy/listbar-bridge';
 import { t } from '../../../i18n';
+import { dataCells } from '../../list/row';
 import type { Indicator, ListConfig, RowCard } from '../types';
+import { customerSelection } from '../../../screens/customers/bulk-actions';
 
 const COLUMNS_DELAY_MS = 80;
 const TOTAL = 'tot', COMPANIES = 'emp', COMPANY = 'Empresa';
@@ -55,7 +57,7 @@ function openColumns(): void {
  * other place: «street · postal code and town» and «phone · email», only with the values present (a line without any is left out).
  */
 function card(row: HTMLElement): RowCard {
-  const cells = row.children, text = (index: number): string => (cells[index]?.textContent ?? '').trim();
+  const cells = dataCells(row), text = (index: number): string => (cells[index]?.textContent ?? '').trim();
   const value = (key: string): string => (row.querySelector(`[data-cd="${key}"]`)?.textContent ?? '').trim();
   const line = (keys: readonly string[]): string => keys.map(value).filter(Boolean).join(' · ');
   return { a: text(0), b: line(['direccion', 'poblacion']), c: cells[1]?.innerHTML ?? '', d: line(['telefono', 'email']) };
@@ -87,4 +89,5 @@ export const customersConfig = (): ListConfig => ({
   kpiOn: isOn,
   kpiPulsar: press,
   card,
+  seleccion: customerSelection(),
 });

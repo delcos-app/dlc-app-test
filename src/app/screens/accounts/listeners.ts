@@ -6,6 +6,7 @@
  */
 import { currentScreen } from '../../legacy/bridge';
 import { columnSettings, saveColumns } from './list/columns';
+import { dataCells } from '../../components/list/row';
 import { answerDayPickerClick, answerDuplicatesClick, changeState, paintAccountsHeader } from './lazy';
 
 const MIN_WIDTH = 80, MAX_WIDTH = 600;
@@ -64,7 +65,7 @@ export function listenToColumnResize(): void {
     void paintAccountsHeader();
     const visible = settings.filter(item => item.on);
     document.querySelectorAll('#lista .trow').forEach(row => {
-      [...row.children].forEach((cellElement, index) => { const column = visible[index]; if (column && cellElement instanceof HTMLElement) { cellElement.style.width = `${column.w}px`; cellElement.style.minWidth = `${column.w}px`; } });
+      dataCells(row).forEach((cellElement, index) => { const column = visible[index]; if (column && cellElement instanceof HTMLElement) { cellElement.style.width = `${column.w}px`; cellElement.style.minWidth = `${column.w}px`; } });
     });
   });
   document.addEventListener('pointerup', () => { if (drag) { drag = null; document.body.style.cursor = ''; } });

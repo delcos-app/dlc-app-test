@@ -1,5 +1,5 @@
 /**
- * The block pages (Eventos, Intervenciones, Concursos, Parque instalado): their cards become a table with the same rows, and the
+ * The block pages (Eventos, Intervenciones, Concursos, Parque instalado, Depósitos): their cards become a table with the same rows, and the
  * blocks (Próximos, Pasados, Reposiciones…) become indicators that filter and a quick filter. Migrated from BLQ (componentes/lista.js)
  * and the PL entries of legado 087 (v2.239.0; v2.421.0).
  */
@@ -33,6 +33,10 @@ function surgeryCells(row: HTMLElement): string[] {
 
 const plainCells = (row: HTMLElement): string[] => [bold(row), escapeHtml(smallText(row.querySelector('.tx'))), statePill(row)];
 
+/** Depósitos: the row carries its cells (screens/products/deposits.ts). */
+const depositCells = (row: HTMLElement): string[] =>
+  [bold(row), escapeHtml(row.dataset.dcenMaterial ?? ''), escapeHtml(row.dataset.dcenValue ?? ''), escapeHtml(row.dataset.dcenPending ?? ''), statePill(row)];
+
 /** The block pages and how each one becomes a table (the record attribute, what it lists, its columns and cells). */
 export const blocks = (): Record<string, BlockConfig> => ({
   eventos: { attr: 'ev', que: t('listBar.blocks.events'), grupo: t('listBar.blocks.when'), def: t('listBar.blocks.allEvents'),
@@ -47,6 +51,9 @@ export const blocks = (): Record<string, BlockConfig> => ({
   parque: { attr: 'eq', que: t('listBar.blocks.equipment'), grupo: t('listBar.blocks.block'), def: t('listBar.blocks.allEquipment'),
     cols: [[t('listBar.blocks.equipmentName'), ''], [t('listBar.blocks.serialCentreContract'), ''], [t('listBar.blocks.reviewAndExpiry'), '']],
     celdas: plainCells },
+  deposito: { attr: 'dcen', que: t('listBar.blocks.deposits'), grupo: t('listBar.blocks.block'), def: t('listBar.blocks.allDeposits'),
+    cols: [[t('listBar.blocks.centre'), ''], [t('listBar.blocks.material'), ''], [t('listBar.blocks.value'), NUMBER], [t('listBar.blocks.pending'), NUMBER], [t('listBar.blocks.state'), '']],
+    celdas: depositCells },
 });
 
 /** The list configuration of a block page: its block filter, its band of blocks and the filters it counts. */

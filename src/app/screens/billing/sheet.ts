@@ -85,7 +85,7 @@ function actionsHtml(invoice: Invoice, pending: number): string {
   return `<div class="acts u-end u-wrap">
       <button class="btn sec" data-cerrar>${t('common.close')}</button>
       ${invoice.pedido_id ? `<button class="btn sec" id="fvped">${t('billing.sheet.seeOrder')}</button>` : ''}
-      ${can && !invoice.rectifica_id ? `<button class="btn sec dang" id="fvrect">${t('billing.sheet.rectify')}</button>` : ''}
+      ${can && !invoice.rectifica_id ? `<button class="btn sec dang" id="fvrect" data-desktop-only>${t('billing.sheet.rectify')}</button>` : ''}
       ${can && pending ? `<button class="btn sec" id="fvcob">${t('billing.sheet.registerPayment')}</button>` : ''}
       <button class="btn sec" id="fvpdf">${t('billing.sheet.see')}</button><button class="btn sec" id="fvdl">${t('billing.sheet.download')}</button>${can ? `<button class="btn" id="fvmail">${t('billing.sheet.email')}</button>` : ''}</div>`;
 }

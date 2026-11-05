@@ -138,3 +138,23 @@ export async function tryClose(dialog: HTMLDialogElement): Promise<void> {
     { titulo: t('components.dialogs.leaveTitle'), ok: t('components.dialogs.leaveOk'), peligro: true })) return;
   dialog.close();
 }
+
+/**
+ * v2.472.0 (D-048): a question with a field of the screen's own (an account picker, a list of users…): `mount` paints it in the
+ * window and returns how to read the answer (null = nothing chosen yet). The answer, or null if cancelled.
+ */
+export function askWith<T>(title: string, message: string, mount: (slot: HTMLElement) => () => T | null, ok: string): Promise<T | null> {
+  return new Promise(resolve => {
+    const dialog = mini();
+    dialog.innerHTML = `<div class="fbox"><div class="fh"><h2>${escapeHtml(title)}</h2></div>
+      ${message ? `<p>${escapeHtml(message)}</p>` : ''}<div id="mslot"></div>
+      <div class="acts u-end"><button class="btn sec" data-op="no">${t('components.dialogs.cancel')}</button><button class="btn" data-op="si">${escapeHtml(ok)}</button></div></div>`;
+    const slot = document.getElementById('mslot'), read = slot ? mount(slot) : (): T | null => null;
+    const finish = (answer: T | null): void => { dialog.close(); resolve(answer); };
+    dialog.querySelectorAll<HTMLElement>('[data-op]').forEach(button => {
+      button.onclick = (): void => { if (button.dataset.op !== 'si') { finish(null); return; } const answer = read(); if (answer !== null) finish(answer); };
+    });
+    dialog.oncancel = (event): void => { event.preventDefault(); finish(null); };
+    dialog.showModal();
+  });
+}

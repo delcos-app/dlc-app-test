@@ -1,6 +1,6 @@
 /**
  * v2.261.0 · Reading batches and serial numbers with the camera: on a phone or tablet, batch fields (stock entry, purchase receipt)
- * and serial number fields (surgeries, equipment) get a camera button. The code is read (DataMatrix, QR, Code 128, EAN…) and, if
+ * and serial number fields (surgeries, equipment) get a camera button (v2.471.0: also the deposit's «Leer el lote»). The code is read (DataMatrix, QR, Code 128, EAN…) and, if
  * it is GS1, split: batch, serial number, expiry and manufacturing date (filled in a stock entry when empty). With several units the
  * camera stays open and fills the next empty one, without repeating. It uses the browser reader (BarcodeDetector) and, without it
  * (iPhone), a library loaded only when the camera opens. Migrated from the legacy servicios/camara.js (v2.427.0); escPoner and
@@ -10,7 +10,7 @@ import { leftoversLegacy } from '../../legacy/leftovers-bridge';
 import { t } from '../../i18n';
 import { scannedValue, type Gs1 } from './gs1';
 
-const FIELDS: readonly (readonly [string, string])[] = [['#mvl', 'lote'], ['[data-r="lote"]', 'lote'], ['[data-cser]', 'serie'], ['[data-pqs]', 'serie'], ['#eqs', 'serie']];
+const FIELDS: readonly (readonly [string, string])[] = [['#mvl', 'lote'], ['[data-r="lote"]', 'lote'], ['[data-cser]', 'serie'], ['[data-pqs]', 'serie'], ['#eqs', 'serie'], ['#depleer', 'lote']];
 const ZXING_URL = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
 const ZXING_HASH = 'sha384-BzBxP10ZE72aitqj5UMmUsbKFliP/DZqA8Wq+BNNhlIJDGoEd1tpkMYXOg9+n6sB';
 const DETECT_EVERY_MS = 180, VIBRATION_MS = 60;

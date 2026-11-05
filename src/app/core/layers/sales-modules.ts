@@ -1,11 +1,13 @@
 /**
- * Concursos and Parque instalado in the menu (v2.200.0, v2.201.0): their icons, menu place, pages and tabs, the plans that include
+ * Concursos, Parque instalado and Depósitos in the menu (v2.200.0, v2.201.0, v2.471.0): their icons, menu place, pages and tabs, the plans that include
  * them, their notifications, and repainting each page when a window over it closes. Also the menu permissions and «Administración»
  * layers of legado 080, folded into one function each (v2.424.0); aplicarPermisosMenu and cargarAdmin stay as adapters.
  */
 import { menuLegacy, type LegacyPage } from '../../legacy/legado-d-bridge';
 import { t, type MessageKey } from '../../i18n';
-import { moduleInUse } from '../modules-in-use';
+import { moduleInUse, sectionShown } from '../modules-in-use';
+import { paintDeposits, showDeposit } from '../../screens/products';
+import { chooseDepositCentre } from '../../screens/settings/rules/modules';
 
 const GAVEL = '<path d="m14.5 12.5-8 8a2.12 2.12 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>';
 const MONITOR = '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>';
@@ -20,9 +22,9 @@ const NEW_NOTIFICATIONS: readonly NewNotification[] = [
   { key: 'revision_equipo', icon: '📆', title: 'legacyD.sales.reviewTitle', hint: 'legacyD.sales.reviewHint', what: 'legacyD.sales.reviewWhat', todo: 'legacyD.sales.reviewTodo' },
 ];
 
-/** Adds a module to the «Ventas» menu group, after `after`. */
-function addToSalesMenu(module: string, after: string, icon: string, svg: string): void {
-  menuLegacy.addIcon(icon, svg);
+/** Adds a module to the «Ventas» menu group, after `after` (with its icon: a new one, or one of the set without `svg`). */
+function addToSalesMenu(module: string, after: string, icon: string, svg?: string): void {
+  if (svg) menuLegacy.addIcon(icon, svg);
   menuLegacy.setModuleIcon(module, icon);
   const group = menuLegacy.menuGroups().find(item => item.id === 'ventas');
   if (group && !group.items.includes(module)) group.items.splice(group.items.indexOf(after) + 1, 0, module);
@@ -48,6 +50,17 @@ function equipmentPage(): LegacyPage {
   const page: LegacyPage = { t: t('legacyD.sales.equipment'), permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule('ventas') && menuLegacy.planIncludesSection('parque') && moduleInUse('parque'),
     tabs: [['lista', t('legacyD.sales.equipmentTab'), () => menuLegacy.paintEquipment()]] };
   Object.defineProperty(page, 'd', { get: () => t('legacyD.sales.equipmentHint') });
+  return page;
+}
+
+const paintDepositsTab = (): Promise<void> => paintDeposits(showDeposit, chooseDepositCentre);
+
+/** Depósitos (v2.471.0): every centre with material in consignment; only in the plan and with a consignment store (sectionShown). */
+function depositsPage(): LegacyPage {
+  const page: LegacyPage = { t: '', permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule('ventas') && sectionShown('deposito'),
+    tabs: [['centros', t('legacyD.sales.depositsTab'), paintDepositsTab]] };
+  Object.defineProperty(page, 't', { get: () => menuLegacy.depositsTitle() });
+  Object.defineProperty(page, 'd', { get: () => t('legacyD.sales.depositsHint') });
   return page;
 }
 
@@ -82,17 +95,22 @@ export function installSalesModules(): void {
   menuLegacy.setPage('parque', equipmentPage());
   repaintOnClose('parque', () => { menuLegacy.paintEquipment(); });
   try { menuLegacy.equipmentMenu(); menuLegacy.lockSections(); } catch { /* the menu may not be painted yet */ }
+  addToSalesMenu('deposito', 'productos', 'warehouse');
+  menuLegacy.setPage('deposito', depositsPage());
+  repaintOnClose('deposito', () => { void paintDepositsTab(); });
+  try { menuLegacy.depositsMenu(); } catch { /* the menu may not be painted yet */ }
   installNotifications();
   listenToManualButton();
 }
 
-/** aplicarPermisosMenu: the base permissions with Concursos and Parque around them, and the search with the company's words. */
+/** aplicarPermisosMenu: the base permissions with Concursos, Parque and Depósitos around them, and the search with the company's words. */
 export function applyMenuPermissions(args: unknown[]): unknown {
-  const tryMenus = (): void => { try { menuLegacy.equipmentMenu(); } catch { /* not painted yet */ } try { menuLegacy.tendersMenu(); } catch { /* not painted yet */ } };
+  const tryMenus = (): void => {
+    for (const menu of [menuLegacy.equipmentMenu, menuLegacy.tendersMenu, menuLegacy.depositsMenu]) { try { menu(); } catch { /* not painted yet */ } }
+  };
   tryMenus();
   const result = menuLegacy.baseMenuPermissions(args);
-  try { menuLegacy.tendersMenu(); } catch { /* not painted yet */ }
-  try { menuLegacy.equipmentMenu(); } catch { /* not painted yet */ }
+  tryMenus();
   const search = document.getElementById('q') as HTMLInputElement | null;
   if (search?.placeholder.startsWith('Buscar ')) search.placeholder = t('legacyD.sales.searchPlaceholder', { professional: menuLegacy.term('medico') });
   return result;

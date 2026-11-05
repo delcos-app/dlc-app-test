@@ -11,6 +11,7 @@ import { sections } from './state';
 import { syncBar } from './sync-bar';
 import { syncTable } from './sync-body';
 import { syncHeader, toggleIfDifferent } from './sync-header';
+import { paintSelection } from './selection/view';
 import { orFallback } from '../../services/values';
 import { t } from '../../i18n';
 import { labelOf, selectOf } from './text';
@@ -104,6 +105,7 @@ function syncModel(section: HTMLElement, tab: string, config: ListConfig): void 
   const anchor = syncHeader(section, tab, config, key);
   syncBar(section, tab, config, { key, anchor });
   syncTable(section, tab, config);
+  if (config.seleccion) paintSelection(section, config.seleccion);
 }
 
 /** The later layers, in their order: tabs first, waiting chips, the block chip, the professional chip, the empty chips. */

@@ -20,7 +20,7 @@ const MODES = [['todos', 'quality.page.showAll'], ['visitados', 'quality.page.sh
 const canSeeDuplicates = (): boolean => cardSectionsLegacy.can('administrar') || permissions.canReviewDuplicates();
 
 function headerHtml(): string {
-  const duplicates = canSeeDuplicates() ? `<button class="btn sec" id="caldup">${icon('copy')} ${t('quality.page.duplicates')}</button>` : '';
+  const duplicates = canSeeDuplicates() ? `<button class="btn sec" id="caldup" data-desktop-only>${icon('copy')} ${t('quality.page.duplicates')}</button>` : '';
   return `<button class="cfgvolver visible" id="calvolver" type="button">‹ ${escapeHtml(accountListLegacy.contactsLabel())}</button>
     <div class="saludo"><div><h1>${t('quality.page.title')}</h1><div class="fecha">${t('quality.page.subtitle', { professional: term('medico') })}</div></div>
       <div class="acts u-m-0">${duplicates}</div></div>`;

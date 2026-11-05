@@ -23,7 +23,7 @@ export function addProfileAndPlan(): void {
 /** v2.46.1: Empresa before Plan. */
 export function addCompany(): void {
   const plan = document.querySelector('[data-u="plan"]'); if (!plan || document.querySelector('[data-u="empresa"]')) return;
-  plan.insertAdjacentHTML('beforebegin', `<button data-u="empresa" class="hide">${svgIco(ICON_NOM.building ?? '')} ${t('legacyC.userMenu.company')}</button>`);
+  plan.insertAdjacentHTML('beforebegin', `<button data-u="empresa" class="hide" data-desktop-only>${svgIco(ICON_NOM.building ?? '')} ${t('legacyC.userMenu.company')}</button>`);
 }
 
 /** v2.52.0: «Reportar un problema» before Salir. */

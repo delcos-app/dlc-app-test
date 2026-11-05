@@ -81,7 +81,7 @@ export async function paintOrderAlerts(): Promise<void> {
   const profile = sessionStore.profile as { rol: string; preferencias?: { avisos_pedidos?: Record<string, boolean> } };
   const mandatory = settings?.valor?.obligatorios?.[profile.rol] ?? [], preferences = profile.preferencias?.avisos_pedidos ?? {};
   const shown = (PK_TARJ as readonly AlertCard[]).filter(([key]) => mandatory.includes(key) || preferences[key] !== false);
-  const gear = `<button type="button" class="pkcfg" id="opcfg" aria-label="${t('legacyC.orderAlerts.choose')}" title="${t('legacyC.orderAlerts.choose')}">${svgIco(ICON_NOM.settings ?? '')}</button>`;
+  const gear = `<button type="button" class="pkcfg" id="opcfg" data-desktop-only aria-label="${t('legacyC.orderAlerts.choose')}" title="${t('legacyC.orderAlerts.choose')}">${svgIco(ICON_NOM.settings ?? '')}</button>`;
   const context: Context = { today: legacyFreeCoreServices.calendar.today(), entries: data ?? {} };
   box.innerHTML = !shown.length ? `<div class="pkvacio">${t('legacyC.orderAlerts.hidden')} ${gear}</div>` : `<div class="pk">${shown.map(card => cardHtml(card, context)).join('')}${gear}</div>`;
   bindCards(box, mandatory, shown.length);

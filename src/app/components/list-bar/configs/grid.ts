@@ -6,6 +6,7 @@ import { listBarLegacy } from '../../../legacy/listbar-bridge';
 import { applyColumnFilters, tableKind } from '../../filters';
 import { counter } from '../../filters-panel';
 import { textOf } from '../text';
+import { dataCells } from '../../list/row';
 import type { ListConfig, RowCard } from '../types';
 
 const COLUMNS_DELAY_MS = 80;
@@ -59,7 +60,7 @@ function moreActions(options: GridOptions): [string, string][] {
 
 /** Mobile card: the first cell, the next two with text and the state pill (if any) on the right. */
 function gridCard(row: HTMLElement): RowCard {
-  const cells = [...row.children].filter(cell => !cell.classList.contains('plcard'));
+  const cells = dataCells(row);
   const state = cells.find(cell => cell.querySelector('.pill, .est, .cirest, [class*="estado"]'));
   const rest = cells.slice(1).filter(cell => cell !== state).map(textOf).filter(text => text && text !== '—').slice(0, 2);
   return { a: textOf(cells[0]), b: rest.join(' · '), c: state ? state.innerHTML : '' };

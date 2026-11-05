@@ -11,10 +11,12 @@ import { formatShortDate } from '../../services/date-format';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { listParams, TYPES, words } from './model';
 import { showCustomer } from './sheet';
+import { openableRowHtml } from '../../components/list/row';
+import { publishCustomers } from './list-selection';
 
 const SEARCH_WAIT_MS = 300;
 
-interface Row {
+export interface Row {
   id: string; nombre: string; tipo?: string | null; nif?: string | null; telefono?: string | null; movil?: string | null; email?: string | null;
   direccion?: string | null; cp?: string | null; municipio?: string | null; provincia?: string | null; medico?: string | null; comercial?: string | null; pedidos: number; unidades: number; ultimo_pedido?: string | null;
   clasificadores?: Record<string, unknown> | null;
@@ -31,17 +33,20 @@ function headerHtml(fields: readonly CustomField[]): string {
       <span>${words().Professional}</span><span>${t('customers.list.salesRep')}</span><span class="num">${t('customers.list.orders')}</span><span class="num">${t('customers.list.units')}</span><span>${t('customers.list.lastOrder')}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
 }
 
-function rowHtml(row: Row, fields: readonly CustomField[]): string {
+function rowCells(row: Row, fields: readonly CustomField[]): string {
   const company = row.tipo === TYPES.company, values = row.clasificadores ?? {};
-  return `<button class="dr" data-pac="${row.id}">
+  return `
       <span><b>${escapeHtml(row.nombre)}</b></span>
       <span><span class="pill ${company ? 'p-emp' : 'p-per'}">${company ? t('customers.company') : words().Patient}</span></span>
       <span>${shown(row.nif)}</span>${customerDataFields(row).map(field => `<span class="corta">${customerDataCell(field)}</span>`).join('')}
       <span class="corta">${row.medico ? escapeHtml(row.medico) : `<span class="vac">${t('customers.list.unassigned')}</span>`}</span><span>${shown(row.comercial)}</span>
       <span class="num">${formatNumber(row.pedidos)}</span><span class="num"><b>${formatNumber(row.unidades)}</b></span>
       <span>${row.ultimo_pedido ? formatShortDate(row.ultimo_pedido) : empty}</span>${fields.map(field => `<span>${shown(accountColumnsLegacy.fieldText(field, values[field.clave]))}</span>`).join('')}
-    </button>`;
+    `;
 }
+
+/** v2.472.0 (D-048): the row is not a button any more (it holds its selection box); its open button names the customer. */
+const rowHtml = (row: Row, fields: readonly CustomField[]): string => openableRowHtml('dr', `data-pac="${row.id}"`, rowCells(row, fields), t('listSelection.open', { name: row.nombre }));
 
 /** Nothing found: with a search, «Ningún cliente coincide con «…»» (in the company's word); without one, the filters say why. */
 function emptyHtml(): string {
@@ -55,6 +60,8 @@ function paintRows(page: CustomersPage): void {
   if (!count || !list) return;
   count.innerHTML = `<b>${formatNumber(page.total)}</b> ${page.total === 1 ? t('customers.list.oneCustomer') : t('customers.list.customers')}`;
   const rows = (page.filas ?? []) as Row[], fields = customersLegacy.visibleFieldColumns();
+  // v2.472.0 (D-048): the page for the selection, before the table is painted
+  publishCustomers({ rows, total: page.total, fields, loadAll: rowsOfFilter });
   list.innerHTML = rows.length ? `<div class="dgrid-wrap"><div class="dgrid pacs2">
     ${headerHtml(fields)}
     ${rows.map(row => rowHtml(row, fields)).join('')}</div></div>` : emptyHtml();
@@ -75,6 +82,12 @@ async function withAddresses(page: CustomersPage): Promise<CustomersPage> {
   const { data } = await legacyDb().from<Pick<Row, 'id' | 'direccion' | 'cp' | 'provincia'>[]>('contactos').select('id,direccion,cp,provincia').in('id', rows.map(row => row.id));
   const byId = new Map((data ?? []).map(item => [item.id, item]));
   return { ...page, filas: rows.map(row => ({ ...row, ...byId.get(row.id) })) };
+}
+
+/** Every customer of the current filter, up to `limit`, with their addresses (D-048: «Seleccionar los N del filtro»). */
+async function rowsOfFilter(limit: number): Promise<Row[]> {
+  const { data } = await legacyDb().rpc<CustomersPage>('clientes_lista', { ...listParams(), lim: limit, desplaz: 0 });
+  return data ? ((await withAddresses(data).catch(() => data)).filas ?? []) as Row[] : [];
 }
 
 /** The list could not be read: the standard message with «Volver a intentarlo», no count and no pages (those of before were wrong). */

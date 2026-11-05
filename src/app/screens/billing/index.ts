@@ -18,6 +18,7 @@ const fromChunk = lazyChunk<typeof Chunk>('billing');
 
 export const paintInvoices = fromChunk('paintInvoices');
 export const refreshInvoices = fromChunk('refreshInvoices');
+export const reloadInvoiceRows = fromChunk('reloadInvoiceRows');
 // The cache of the screen, the wide window, the sheet look and «‹ Volver», added to the screen's own functions instead of wrapping the
 // global names cargarFacturacion and verFactura (plan 7.3, cut D)
 export const loadBilling = cachedModuleLoader('facturacion', fromChunk('loadBilling'));

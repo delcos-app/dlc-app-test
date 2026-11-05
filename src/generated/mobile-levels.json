@@ -1,0 +1,118 @@
+{
+ "screens": {
+  "inicio": "full",
+  "agenda": "full",
+  "rutas": "full",
+  "manual": "full",
+  "informe": "full",
+  "config": "full",
+  "ciclo": "read",
+  "cirugias": "essential",
+  "directorio": "essential",
+  "pacientes": "essential",
+  "seguimiento": "essential",
+  "eventos": "essential",
+  "duplicados": "desktop",
+  "ventas": "full",
+  "oportunidades": "essential",
+  "compras": "essential",
+  "proveedores": "read",
+  "concursos": "read",
+  "parque": "essential",
+  "productos": "read",
+  "deposito": "essential",
+  "facturacion": "essential",
+  "analitica": "read",
+  "delcos": "desktop"
+ },
+ "tabs": {
+  "ciclo": {
+   "ciclo": "read",
+   "cobertura": "read",
+   "clasificar": "desktop",
+   "equipo": "read"
+  },
+  "eventos": {
+   "lista": "essential",
+   "transparencia": "desktop"
+  },
+  "concursos": {
+   "marcha": "read",
+   "contratos": "read",
+   "cerrados": "read"
+  },
+  "productos": {
+   "productos": "read",
+   "servicios": "read",
+   "stock": "essential"
+  },
+  "facturacion": {
+   "facturas": "essential",
+   "series": "desktop",
+   "empresa": "desktop",
+   "verifactu": "desktop",
+   "registro": "desktop"
+  },
+  "analitica": {
+   "resumen": "read",
+   "explorar": "desktop"
+  }
+ },
+ "settings": {
+  "datos": "full",
+  "notif": "full",
+  "rutas": "full",
+  "rutas.salida": "full",
+  "rutas.horario": "full",
+  "inicio.kpis": "essential",
+  "usuarios": "essential",
+  "o.plan": "read"
+ },
+ "settingsDefault": "desktop",
+ "windows": {
+  "productEditor": "desktop",
+  "userEditor": "desktop",
+  "rectifyInvoice": "desktop",
+  "roleEditor": "desktop"
+ },
+ "reasons": {
+  "duplicados": "duplicates",
+  "delcos": "platform",
+  "ciclo/clasificar": "classify",
+  "eventos/transparencia": "expenseReport",
+  "facturacion/registro": "invoiceLog",
+  "facturacion/series": "fiscal",
+  "facturacion/empresa": "fiscal",
+  "facturacion/verifactu": "verifactu",
+  "analitica/explorar": "explore",
+  "importar": "import",
+  "roles": "roles",
+  "cartera": "portfolio",
+  "comis": "commissions",
+  "seguridad": "security",
+  "o.marca": "brand",
+  "o.textos": "texts",
+  "o.correo": "email",
+  "o.copias": "backups",
+  "o.pruebas": "internal",
+  "o.zona": "company",
+  "o.orgs": "platform",
+  "o.fiscal": "fiscal",
+  "o.series": "fiscal",
+  "o.vf": "verifactu",
+  "o.pdf": "pdf",
+  "tpv": "cardPayment",
+  "impuestos": "companyRules",
+  "cat": "classifiers",
+  "estados": "classifiers",
+  "stock": "stores",
+  "portal": "portal",
+  "distribuidores": "distributors",
+  "servicios": "companyRules",
+  "contratos": "companyRules",
+  "productEditor": "productEditor",
+  "userEditor": "userEditor",
+  "rectifyInvoice": "rectify",
+  "roleEditor": "roles"
+ }
+}

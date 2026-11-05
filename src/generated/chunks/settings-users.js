@@ -466,6 +466,11 @@ function followRole(user) {
   });
 }
 
+// delcos-shared:src/app/core/mobile/gate.ts
+var shared14 = globalThis["__delcosModules"]["core/mobile/gate"];
+var pick14 = (name) => shared14[name];
+var windowBlockedOnPhone = /* @__PURE__ */ pick14("windowBlockedOnPhone");
+
 // src/app/screens/settings/users/editor.ts
 var LOADING_MAX_MS = 8e3;
 var HISTORY_START = "2000-01-01";
@@ -605,6 +610,7 @@ async function paintParts(user) {
   await paintLinkedCard(user);
 }
 async function editUser(id) {
+  if (windowBlockedOnPhone("userEditor")) return;
   await ensureUser(id);
   const box = dialog(), body = dialogBody(), user = userById(id);
   if (!box || !body || !user) return;
@@ -724,15 +730,15 @@ function activityHtml(user) {
 }
 function actionsHtml(user) {
   const admin = cardSectionsLegacy.can("administrar"), notMe = user.id !== settingsLegacy.user().id;
-  const impersonate = accessLegacy.canImpersonate(user) ? `<button class="btn${usersLegacy.isGuest(user) ? "" : " sec"}" data-uacc="como">${t("settingsRest.users.impersonate")}</button>` : "";
+  const impersonate = accessLegacy.canImpersonate(user) ? `<button class="btn${usersLegacy.isGuest(user) ? "" : " sec"}" data-desktop-only data-uacc="como">${t("settingsRest.users.impersonate")}</button>` : "";
   return `<div class="usracc">
-      <button class="btn" data-uacc="editar">${t("settingsRest.detail.edit")}</button>
-      ${isPrescriber(user) ? "" : `<button class="btn sec" data-uacc="cartera">${t("settingsRest.detail.assignPortfolio")}</button>`}
+      <button class="btn" data-desktop-only data-uacc="editar">${t("settingsRest.detail.edit")}</button>
+      ${isPrescriber(user) ? "" : `<button class="btn sec" data-desktop-only data-uacc="cartera">${t("settingsRest.detail.assignPortfolio")}</button>`}
       ${admin && notMe ? `<button class="btn sec" data-uacc="acceso">${t("settingsRest.detail.accessData")}</button>` : ""}
       <button class="btn sec" data-uacc="pass">${t("settingsRest.detail.sendPassword")}</button>
       <button class="btn sec" data-uacc="activar">${t("settingsRest.detail.resendActivation")}</button>
       ${impersonate}
-      ${admin && notMe ? `<button class="btn sec dang" data-uacc="borrar">${t("settingsRest.detail.deleteUser")}</button>` : ""}</div>`;
+      ${admin && notMe ? `<button class="btn sec dang" data-desktop-only data-uacc="borrar">${t("settingsRest.detail.deleteUser")}</button>` : ""}</div>`;
 }
 var closeAnd = (action) => {
   dialog()?.close();
@@ -924,6 +930,7 @@ function applyPreset(preset, role, toggle) {
   toggle();
 }
 function newUser(preset = null) {
+  if (windowBlockedOnPhone("userEditor")) return;
   const body = dialogBody(), box = dialog();
   if (!body || !box) return;
   body.innerHTML = formHtml();
@@ -982,7 +989,7 @@ function guestRow(user, connections) {
           ${user.activo ? "" : `<span class="pill p-anu">${t("settingsRest.users.deactivated")}</span>`}
           <span class="sm usrinvult">${last ? escapeHtml(connectionText(connection)) : t("settingsRest.users.notYet")}</span></span>
         <span class="sm usrinvve">${escapeHtml(usersLegacy.guestSees(user))}</span></span>
-      <span class="usrinvacts">${accessLegacy.canImpersonate(user) ? `<button class="btn" data-ucomo="${user.id}">${t("settingsRest.users.impersonate")}</button>` : ""}
+      <span class="usrinvacts">${accessLegacy.canImpersonate(user) ? `<button class="btn" data-desktop-only data-ucomo="${user.id}">${t("settingsRest.users.impersonate")}</button>` : ""}
         <button class="btn sec" data-uinvd="${user.id}">${t("settingsRest.users.details")}</button></span></div>`;
 }
 function paintGuests(list, connections) {
@@ -1040,7 +1047,7 @@ function pageHtml(all) {
       <div class="usrbar"><input id="usrq" type="search" placeholder="${t("settingsRest.users.search")}" value="${escapeHtml(userFilters.q)}">
         <select id="usrrol"><option value="">${t("settingsRest.users.allRoles")}</option>${roleOptions(userFilters.rol)}</select>
         <select id="usrest">${state("activos", "active")}${state("inactivos", "deactivatedPlural")}${state("todos", "all")}</select>
-        <button class="btn" id="usrnuevo">${t("settingsRest.users.newUser")}</button></div>
+        <button class="btn" id="usrnuevo" data-desktop-only>${t("settingsRest.users.newUser")}</button></div>
       <div id="usrl" class="usrlista"></div></div>
     <div class="card usrinvw" style="padding-top:14px;padding-bottom:14px"><h3>${t("settingsRest.users.guests")} <span id="usrinvn" class="sm"></span></h3>
       <p class="sm">${t("settingsRest.users.guestsHint", words())}</p>

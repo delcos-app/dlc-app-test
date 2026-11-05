@@ -10,6 +10,7 @@ import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { accessDataHtml, copyText, welcomeText } from './access';
 import { dialog, dialogBody, input, isPrescriber, PRESCRIBER, roleOptions, valueOf, words } from './model';
+import { windowBlockedOnPhone } from '../../../core/mobile/gate';
 
 const LINK_TRIES = 6, LINK_WAIT_MS = 700, MIN_PASSWORD = 6;
 
@@ -138,6 +139,7 @@ function applyPreset(preset: NewUserPreset, role: HTMLSelectElement, toggle: () 
 }
 
 export function newUser(preset: NewUserPreset | null = null): void {
+  if (windowBlockedOnPhone('userEditor')) return;   // v2.473.0 (M9 A): new users on the computer
   const body = dialogBody(), box = dialog(); if (!body || !box) return;
   body.innerHTML = formHtml();
   let professional: PickedAccount | null = preset?.medico ?? null;

@@ -1,6 +1,6 @@
 /**
  * Productos (v2.413.0): the screen and its tabs, the catalog, the services, the stock with its batches, traceability and
- * movements, the stores and the material in deposit at a centre. The legacy names cargarProductosModulo, pintarProductos,
+ * movements, the stores, the material in deposit at a centre and the list of every deposit (Depósitos). The legacy names cargarProductosModulo, pintarProductos,
  * fichaStock, verDeposito and pintarAlmacenes2 stay as adapters. The catalog loaders, the product editor and the visit material
  * stay in legacy (Pedidos, Visita and Configuración use them).
  */
@@ -10,6 +10,8 @@ export { paintStock } from './stock';
 export { stockMovement } from './movement';
 export { traceability } from './stock-sheet';
 export { editStores, paintStores } from './stores';
+// v2.471.0: Depósitos, every centre's deposit in one list (its own menu entry)
+export { paintDeposits } from './deposits';
 // v2.427.0: the product editor and the visit material
 export { editProduct, paintVisitMaterial, promotedProducts } from './editor';
 import { backOpener, sheetOpener } from '../../core/layers/dialogs';

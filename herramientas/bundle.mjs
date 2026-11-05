@@ -24,6 +24,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCREENS = 'src/app/screens';
 const CORE_ENTRY = 'src/app/main.ts', CORE_OUT = 'src/generated/core.js', CHUNKS_OUT = 'src/generated/chunks';
 const MANIFEST = 'src/app/core/lazy/manifest.ts';
+const LEVELS_ENTRY = 'src/app/core/mobile/levels.ts', LEVELS_OUT = 'src/generated/mobile-levels.json';
 /** The global the core publishes the shared modules in (the same name as src/app/core/lazy/registry.ts). */
 const REGISTRY_GLOBAL = '__delcosModules';
 const COMMON = { bundle: true, target: 'es2020', charset: 'utf8', legalComments: 'none', absWorkingDir: ROOT, write: false, metafile: true, logLevel: 'warning' };
@@ -184,6 +185,11 @@ for (const file of fs.readdirSync(path.join(ROOT, CHUNKS_OUT))) {
   if (CHECK) stale.push(`${CHUNKS_OUT}/${file}`); else fs.rmSync(path.join(ROOT, CHUNKS_OUT, file));
 }
 for (const chunk of chunks) write(`${CHUNKS_OUT}/${chunk.name}.js`, chunk.text);
+// v2.473.0: the phone levels as JSON, for the battery (src/app/core/mobile/levels.ts is pure data: it runs here as it is)
+const levels = await esbuild.build({ ...COMMON, metafile: false, entryPoints: [LEVELS_ENTRY], format: 'esm', outfile: 'levels.js' });
+const levelsModule = await import(`data:text/javascript;base64,${Buffer.from(levels.outputFiles[0].text).toString('base64')}`);
+write(LEVELS_OUT, `${JSON.stringify(levelsModule.mobileLevelsTable(), null, 1)}
+`);
 if (CHECK) {
   if (stale.length) { console.error(`✗ not what the sources give (run «npm run build»): ${stale.join(', ')}`); process.exit(1); }
   console.log(`✓ ${CORE_OUT}, the chunks and the manifest come from the sources; texts of the core and the chunks checked`);

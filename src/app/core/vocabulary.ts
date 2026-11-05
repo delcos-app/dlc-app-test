@@ -124,7 +124,7 @@ const SURGERY_WORDS = new Map<string, () => string>([
 
 /**
  * v2.463.0 (PRO-1): placeholders of the texts that take the word «depósito» (stock on consignment) from the vocabulary: {deposit}
- * «depósito», {Deposit} «Depósito», {depositThe} «el», {DepositThe} «El», {depositOne} «un» and {depositEnd} «o» (for the words that agree).
+ * «depósito», {Deposit} «Depósito», {depositThe} «el», {DepositThe} «El», {depositOne} «un» and {depositEnd} «o» (for the words that agree); v2.471.0: {deposits} «depósitos», {Deposits} «Depósitos» and {depositsThe} «los».
  */
 const DEPOSIT_WORDS = new Map<string, () => string>([
   ['deposit', () => wordFor('deposito', 's')],
@@ -133,6 +133,9 @@ const DEPOSIT_WORDS = new Map<string, () => string>([
   ['DepositThe', () => (termOf('deposito').g === 'f' ? 'La' : 'El')],
   ['depositOne', () => (termOf('deposito').g === 'f' ? 'una' : 'un')],
   ['depositEnd', () => ending('deposito', false)],
+  ['deposits', () => wordFor('deposito', 'p')],
+  ['Deposits', () => wordFor('deposito', 'p', { nounCase: 'C' })],
+  ['depositsThe', () => (termOf('deposito').g === 'f' ? 'las' : 'los')],
 ]);
 
 setVocabularyResolver(name => (SURGERY_WORDS.get(name) ?? DEPOSIT_WORDS.get(name))?.());

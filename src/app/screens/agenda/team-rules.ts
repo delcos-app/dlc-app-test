@@ -10,6 +10,6 @@ export async function paintTeam(): Promise<void> {
   await legacyBActions.teamTable();
   const header = document.getElementById('agcuerpo')?.querySelector('.semhead');
   if (!header || !legacyBActions.can('administrar') || document.getElementById('eqcart')) return;
-  header.insertAdjacentHTML('beforeend', `<button class="btn sec" id="eqcart">${t('legacyB.team.portfolioRules')}</button>`);
+  header.insertAdjacentHTML('beforeend', `<button class="btn sec" id="eqcart" data-desktop-only>${t('legacyB.team.portfolioRules')}</button>`);
   const rules = document.getElementById('eqcart'); if (rules) rules.onclick = (): void => { legacyBActions.portfolioRules(); };
 }

@@ -18,6 +18,9 @@ export { syncListBar } from './sync';
 export { markReloading } from './sync-body';
 export { icon } from './text';
 export { toolbarHtml } from './toolbar';
+export { filterKey, publishPage } from './selection/source';
+export { selectionShown } from './selection/shown';
+export type { ExportCell, PageSource, SelectableRow } from './selection/types';
 
 /** Cuentas and Clientes: observed and listened to from legado 084's place in the load order. */
 export function startScreens(): void {

@@ -10,6 +10,8 @@ import { chosenGroups } from './state';
 import { textOf } from './text';
 import type { BlockConfig } from './types';
 
+const TEXT_COLUMN = 'minmax(160px,1.5fr)', FIGURE_COLUMN = '120px';
+
 interface BlockRow { row: HTMLElement; groups: Set<string> }
 
 /** The header actions: the page's own buttons (.evcab) move to the header (the ones moved before are removed: their ids would repeat). */
@@ -52,6 +54,13 @@ function tableOf(tab: string, block: BlockConfig, rows: Map<string, BlockRow>, e
   return wrap;
 }
 
+/** A block page without its own column widths (Depósitos, v2.471.0): text columns share the width and figures get a fixed one. */
+function defaultColumns(wrap: HTMLElement, block: BlockConfig): void {
+  const grid = wrap.querySelector<HTMLElement>('.dgrid');
+  if (!grid || getComputedStyle(grid).getPropertyValue('--cols').trim()) return;
+  grid.style.setProperty('--cols', block.cols.map(([, kind]) => (kind ? FIGURE_COLUMN : TEXT_COLUMN)).join(' '));
+}
+
 /** The block filter (select) and the band of indicators of the blocks. */
 function paintChoice(section: HTMLElement, tab: string, block: BlockConfig, data: { rows: Map<string, BlockRow>; groups: string[] }): void {
   const { rows, groups } = data;
@@ -82,6 +91,7 @@ export function convertBlocks(tab: string): void {
   const notes = [...box.querySelectorAll('.cirpag > p.sm, .evpag > p.sm')];
   const wrap = tableOf(tab, block, data.rows, empty ? textOf(empty) : t('listBar.bar.nothingYet'));
   box.innerHTML = ''; notes.forEach(note => { box.appendChild(note); }); box.appendChild(wrap);
+  defaultColumns(wrap, block);
   paintChoice(section, tab, block, data);
   filterBlocks(tab);
 }

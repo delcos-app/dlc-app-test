@@ -1,7 +1,7 @@
 /**
  * The forms of a deposit: «Reponer» (from the user's case or the central store), «Apuntar lo usado» (with a reference, without
  * patient data) and «Recuento» (what is missing counts as used). What is used leaves a draft order of the centre and offers to
- * replenish it. Migrated from the legacy formDeposito (v2.413.0).
+ * replenish it. Migrated from the legacy formDeposito (v2.413.0). v2.471.0: «Apuntar lo usado» reads the batch (camera on a phone).
  */
 import { appLegacy, legacyDb, notices, purchasesLegacy, term } from '../../legacy/bridge';
 import { productsLegacy } from '../../legacy/products-bridge';
@@ -30,6 +30,7 @@ function replenishHtml(): string {
 
 function useHtml(lines: readonly DepositLine[]): string {
   return `<div class="depbox"><b>${t('products.deposit.useTitle')}</b>
+      <label for="depleer">${t('products.deposit.readBatch')}</label><input id="depleer" autocomplete="off" placeholder="${t('products.deposit.readBatchPlaceholder')}">
       <div class="depitems">${lines.map((line, index) => `<label><span>${escapeHtml(line.nombre)} <span class="sm">· ${batchOf(line)} · ${t('products.deposit.left', { units: formatNumber(line.unidades) })}</span></span>
         <input type="number" min="0" max="${line.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t('products.deposit.usedOf', { name: escapeHtml(line.nombre) })}"></label>`).join('')}</div>
       <label for="depref">${t('products.deposit.reference')}</label><input id="depref" maxlength="120" placeholder="${t('products.deposit.referencePlaceholder', { ofTheCustomer: term('paciente', { article: 'del' }) })}">
@@ -99,11 +100,26 @@ async function save(form: HTMLElement, deposit: OpenDeposit, action: DepositActi
   await afterSave(deposit, action, result);
 }
 
+/** «Leer el lote» (camera on a phone, docs/movil_alcance.md): each batch read adds one used unit to its line. */
+function countReadBatch(field: HTMLInputElement, lines: readonly DepositLine[]): void {
+  const batch = field.value.trim(); field.value = '';
+  if (!batch) return;
+  const index = lines.findIndex(line => String(line.numero_lote ?? '').trim().toLowerCase() === batch.toLowerCase());
+  const input = index < 0 ? null : document.querySelector<HTMLInputElement>(`[data-dlin="${index}"]`);
+  if (!input) { notices.toast(t('products.deposit.batchNotHere', { batch: escapeHtml(batch) }), true); return; }
+  const used = whole(input), left = lines[index]?.unidades ?? 0;
+  if (used >= left) { notices.toast(t('products.deposit.batchAllUsed', { batch: escapeHtml(batch) }), true); return; }
+  input.value = String(used + 1);
+  notices.toast(t('products.deposit.batchCounted', { batch: escapeHtml(batch), units: formatNumber(used + 1) }));
+}
+
 export function openDepositForm(deposit: OpenDeposit, action: DepositAction): void {
   const form = document.getElementById('depform'); if (!form) return;
   form.innerHTML = action === 'reponer' ? replenishHtml() : action === 'consumo' ? useHtml(deposit.lines) : countHtml(deposit.lines);
   const origins = form.querySelectorAll<HTMLElement>('[data-o]');
   origins.forEach(button => { button.onclick = (): void => { origins.forEach(other => { other.classList.toggle('on', other === button); other.setAttribute('aria-pressed', String(other === button)); }); }; });
+  const reader = document.getElementById('depleer') as HTMLInputElement | null;
+  if (reader) reader.onchange = (): void => { countReadBatch(reader, deposit.lines); };
   const cancel = document.getElementById('depcanc'); if (cancel) cancel.onclick = (): void => { form.innerHTML = ''; };
   const ok = document.getElementById('depok') as HTMLButtonElement | null; if (ok) ok.onclick = (): void => { void save(form, deposit, action, ok); };
 }

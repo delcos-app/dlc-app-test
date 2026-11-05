@@ -10,6 +10,7 @@ import { escapeHtml } from '../../services/format';
 import { filterChips } from '../classifiers/model';
 import { paintSidePanelClassifiers, screenOf } from '../classifiers/filters';
 import { applyColumnFilters, tableKind } from '../filters/table-sort';
+import { dataCells } from '../list/row';
 import { sideOpen, sideOpenFor, toolsBox } from './side';
 
 interface Chip { t: string; remove: () => void }
@@ -57,7 +58,7 @@ function selectChips(section: Element): Chip[] {
 function tableChips(section: Element): Chip[] {
   const grid = gridOf(section), state = grid ? panelsLegacy.tableFilters()[tableKind(grid)] : null;
   if (!grid || !state) return [];
-  const heads = [...(grid.querySelector(':scope > .dh')?.children ?? [])].map(head => head.textContent?.trim() ?? '');
+  const heads = dataCells(grid.querySelector(':scope > .dh')).map(head => head.textContent?.trim() ?? '');
   const chips: Chip[] = Object.entries(state.facetas ?? {}).filter(([, value]) => value).map(([index, value]) => ({
     t: `${heads[Number(index)] ?? t('panels.filters.column')}: ${value}`, remove: (): void => { if (state.facetas) state.facetas[index] = ''; applyColumnFilters(grid); },
   }));

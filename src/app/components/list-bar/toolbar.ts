@@ -18,7 +18,7 @@ export function toolbarHtml(tab: string): string {
     <div class="plrap">${quick}</div>
     <button type="button" class="plbtn chico plfil">${icon('sliders-horizontal')}<span>${t('listBar.bar.filters')}</span><span class="pln hide"></span></button>
     ${config.quitar ? `<button type="button" class="btn sec chico dang plquitar hide">${listBarLegacy.lineIcon('x')} ${t('listBar.bar.removeFilters')}</button>` : ''}
-    <button type="button" class="plbtn chico plcol">${icon('columns-3', 'table', 'list')}<span>${t('listBar.bar.columns')}</span></button>
+    <button type="button" class="plbtn chico plcol" data-desktop-only>${icon('columns-3', 'table', 'list')}<span>${t('listBar.bar.columns')}</span></button>
     ${config.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="${t('listBar.bar.onMap')}" aria-label="${t('listBar.bar.onMap')}">${icon('map')}</button>` : ''}
     <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
 }

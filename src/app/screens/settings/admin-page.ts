@@ -34,7 +34,7 @@ function userRow(user: AdminUser): string {
         <button class="btn sec" data-uver="${user.id}">${t('legacyA.admin.seePortfolio')}</button>
         <button class="btn sec" data-ucart="${user.id}">${t('legacyA.admin.assign')}</button>
         <button class="btn sec" data-upass="${user.id}">${t('legacyA.admin.password')}</button>
-        ${adminLegacy.canImpersonate(user) ? `<button class="btn sec" data-ucomo="${user.id}" title="${t('legacyA.admin.impersonateHint')}">${t('legacyA.admin.impersonate')}</button>` : ''}</span></div>`;
+        ${adminLegacy.canImpersonate(user) ? `<button class="btn sec" data-desktop-only data-ucomo="${user.id}" title="${t('legacyA.admin.impersonateHint')}">${t('legacyA.admin.impersonate')}</button>` : ''}</span></div>`;
 }
 
 function bindUsers(): void {

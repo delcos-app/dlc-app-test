@@ -188,6 +188,8 @@ declare function loteRecepcion(line: object, units: number | string, storeId: st
 
 interface SheetBook { SheetNames: string[]; Sheets: Record<string, unknown> }
 
+/** SheetJS writing an Excel (D-048, Exportar). */
+interface SheetWriter { utils: { book_new(): unknown; aoa_to_sheet(rows: unknown[][], options: Record<string, unknown>): unknown; book_append_sheet(book: unknown, sheet: unknown, name: string): void }; writeFile(book: unknown, name: string): void }
 interface SheetReader { read(data: ArrayBuffer | string, options: Record<string, unknown>): SheetBook; utils: { sheet_to_json(sheet: unknown, options: Record<string, unknown>): unknown[][] } }
 
 

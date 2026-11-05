@@ -225,6 +225,8 @@ export const core = {
   },
   files: {
     downloadOff: 'La descarga de datos está desactivada para proteger la información.',
+    exportNotRecorded: 'No se ha podido apuntar la exportación: no se ha descargado nada.',
+    exportFailed: 'No se ha podido escribir el archivo de Excel.',
     pdfTooBig: 'El PDF pesa más de 3 MB: haz una foto del justificante o reduce el PDF',
     photoOrPdf: 'Adjunta una foto o un PDF',
     photoFailed: 'No se ha podido preparar la foto',

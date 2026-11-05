@@ -39,6 +39,7 @@ import { settingsRules } from './es/settings-rules';
 import { salesChannels } from './es/sales-channels';
 import { routes } from './es/routes';
 import { orders } from './es/orders';
+import { accountsBulk, customersBulk, invoicesBulk, listSelection, ordersBulk } from './es/list-selection';
 import { products } from './es/products';
 import { platform } from './es/platform';
 import { portal } from './es/portal';
@@ -58,6 +59,7 @@ import { surgeries } from './es/surgeries';
 import { cycle } from './es/cycle';
 import { privacy } from './es/privacy';
 import { limits } from './es/limits';
+import { mobile } from './es/mobile';
 import type { texts as accountsTexts } from './es/chunks/accounts';
 import type { texts as agendaTexts } from './es/chunks/agenda';
 import type { texts as analyticsTexts } from './es/chunks/analytics';
@@ -77,6 +79,11 @@ import type { texts as settingsUsersTexts } from './es/chunks/settings-users';
 
 export const es = {
   salesChannels,
+  listSelection,
+  ordersBulk,
+  invoicesBulk,
+  customersBulk,
+  accountsBulk,
   settingsRules,
   equipment,
   tenders,
@@ -155,6 +162,7 @@ export const es = {
   cycle,
   privacy,
   limits,
+  mobile,
   home: {
     showIndicators: 'Ver tus indicadores',
     hideIndicators: 'Ocultar tus indicadores',

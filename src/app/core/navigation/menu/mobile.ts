@@ -14,10 +14,22 @@ import * as legacyFreeCoreLegacyB from '../../legacy-b';
 import * as legacyFreeCoreSettings from '../../settings';
 import { navigate } from '..';
 import * as legacyFreeComponentsListBar from '../../../components/list-bar';
+import { blockedOnPhone } from '../../mobile/gate';
+import { can } from '../../permissions';
 
 /** The screens that never go in the phone menu (v2.335.0: Usuarios is in Configuración). */
 export const MENU_OUT = ['usuarios'];
 export const BAR_DEFAULT = ['inicio', 'agenda', 'rutas', 'directorio'];
+/**
+ * v2.473.0 (M3 B): the bar a person starts with, from what they can do (capabilities, never the role's name; no SQL). Whoever chose
+ * their own bar keeps it. Field (the rest): Inicio, Agenda, Rutas, Profesionales, as before.
+ */
+export function defaultBar(): string[] {
+  if (can('televenta')) return ['inicio', 'ventas', 'pacientes', 'oportunidades'];
+  if (can('administrar')) return ['inicio', 'ventas', 'facturacion', 'pacientes'];
+  if (can('ver_todo')) return ['inicio', 'analitica', 'agenda', 'ventas'];
+  return BAR_DEFAULT;
+}
 /** The section the phone menu marks, not the page that holds it */
 const SUBSECTION_MENU: Readonly<Record<string, string>> = { llamadas: 'oportunidades', compras: 'compras', proveedores: 'proveedores' };
 const BAR_SIZE = 4, CLOSE_MS = 180, UNKNOWN = 999, NEW_AFTER = 900;
@@ -45,6 +57,7 @@ export function availableScreens(): string[] {
   return [...document.querySelectorAll<HTMLButtonElement>('nav.main [data-t]')].filter(button => {
     const key = button.dataset.t ?? '';
     if (seen.has(key) || button.classList.contains('hide') || button.disabled || button.classList.contains('bloq') || button.classList.contains('mlplan') || MENU_OUT.includes(key)) return false;
+    if (blockedOnPhone(key)) return false;   // v2.473.0 (M1 A): «Solo ordenador» screens are not in the phone menu
     seen.add(key); return true;
   }).map(button => button.dataset.t ?? '').sort((first, second) => menuPosition(first) - menuPosition(second));
 }
@@ -52,10 +65,10 @@ export function availableScreens(): string[] {
 /** The bottom bar: the chosen ones (up to 4) with Inicio first (v2.337.0). */
 export function bottomBar(): string[] {
   const available = availableScreens(), chosen = menuPrefs().barra;
-  let bar = (Array.isArray(chosen) && chosen.length ? chosen : BAR_DEFAULT).filter(key => available.includes(key) && key !== 'inicio');
+  let bar = (Array.isArray(chosen) && chosen.length ? chosen : defaultBar()).filter(key => available.includes(key) && key !== 'inicio');
   if (available.includes('inicio')) bar.unshift('inicio');
   bar = bar.slice(0, BAR_SIZE);
-  return bar.length ? bar : BAR_DEFAULT.filter(key => available.includes(key));
+  return bar.length ? bar : defaultBar().filter(key => available.includes(key));
 }
 
 /** The order of «Más»: the person's, and behind it the new ones in the menu order. */

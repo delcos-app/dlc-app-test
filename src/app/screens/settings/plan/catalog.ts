@@ -17,10 +17,10 @@ function planButton(plan: PlanDef, view: PlanView): string {
   const style = plan === view.next ? 'btn' : 'btn sec';
   if (planLegacy.paymentPlans().includes(plan.id)) {
     if (!view.canPay || (view.plan === CUSTOM && !view.stripeSubscription)) return '';
-    return `<button type="button" class="${style}" data-pgplan="${plan.id}">${t(view.subscribed ? 'settingsRest.plan.changeTo' : 'settingsRest.plan.hire', { plan: planLegacy.of(plan.id).nombre })}</button>`;
+    return `<button type="button" class="${style}" data-desktop-only data-pgplan="${plan.id}">${t(view.subscribed ? 'settingsRest.plan.changeTo' : 'settingsRest.plan.hire', { plan: planLegacy.of(plan.id).nombre })}</button>`;
   }
   const customCard = plan.id === CUSTOM;
-  return `<button type="button" class="${style}" data-presu="${customCard && view.plan !== CUSTOM ? 'presupuesto' : 'contrato'}">${t(customCard ? 'settingsRest.plan.askBudget' : 'settingsRest.plan.talk')}</button>`;
+  return `<button type="button" class="${style}" data-desktop-only data-presu="${customCard && view.plan !== CUSTOM ? 'presupuesto' : 'contrato'}">${t(customCard ? 'settingsRest.plan.askBudget' : 'settingsRest.plan.talk')}</button>`;
 }
 
 function planCard(plan: PlanDef, view: PlanView): string {

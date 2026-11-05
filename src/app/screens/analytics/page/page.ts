@@ -16,6 +16,7 @@ import { customise } from './customise';
 import { loadKpis } from './kpis';
 import { markTab, paintSummary } from './summary';
 import { channelFilterOptions, choosesChannel } from '../../../core/sales-channels';
+import { blockedOnPhone, paintScreenNotice } from '../../../core/mobile/gate';
 
 const SELECTS = ['adim', 'acanal', 'amedida', 'aprod', 'acom', 'arep', 'areprt'];
 const element = (id: string): HTMLElement | null => document.getElementById(id);
@@ -99,7 +100,7 @@ function addTabs(view: HTMLElement, panel: Element): void {
   const section = panelsLegacy.section();
   view.querySelector('.saludo')?.insertAdjacentHTML('afterend', `<div class="subnav" id="ansub">
     <button data-ansec="resumen" aria-pressed="${String(section === 'resumen')}">${t('panels.analytics.summary')}</button>
-    <button data-ansec="explorar" aria-pressed="${String(section === 'explorar')}">${t('panels.analytics.explore')}</button></div>
+    <button data-ansec="explorar" data-desktop-only aria-pressed="${String(section === 'explorar')}">${t('panels.analytics.explore')}</button></div>
     <div id="anres" class="${section === 'resumen' ? '' : 'hide'}"></div>`);
   panel.classList.toggle('hide', section === 'resumen');
   view.querySelectorAll<HTMLElement>('[data-ansec]').forEach(button => {
@@ -109,9 +110,21 @@ function addTabs(view: HTMLElement, panel: Element): void {
       view.querySelectorAll('[data-ansec]').forEach(other => { other.setAttribute('aria-pressed', String(other === button)); });
       element('anres')?.classList.toggle('hide', !summary); panel.classList.toggle('hide', summary);
       if (summary && !element('ankpis')) void paintSummary();
+      element('anaviso')?.remove();
+      if (blockedOnPhone('analitica', panelsLegacy.section())) paintExploreNotice(view, panel);
       setTimeout(markTab, 0);
     };
   });
+  if (blockedOnPhone('analitica', section)) paintExploreNotice(view, panel);
+}
+
+/** v2.473.0 (M10 A): «Explorar datos» reached on the phone: the notice in its place, with «Ir a Resumen». */
+function paintExploreNotice(view: HTMLElement, panel: Element): void {
+  panel.classList.add('hide');
+  element('anaviso')?.remove();
+  element('anres')?.insertAdjacentHTML('afterend', '<div id="anaviso"></div>');
+  const box = element('anaviso'); if (!box) return;
+  paintScreenNotice(box, 'analitica/explorar', { label: t('panels.analytics.summary'), open: () => { box.remove(); view.querySelector<HTMLElement>('[data-ansec="resumen"]')?.click(); } });
 }
 
 /** Explorar: «Ver por» and «Ordenar por» stay in view, above Ranking / Tabla; the rest goes to «Filtros y columnas». */
@@ -134,7 +147,7 @@ function addCustomise(view: HTMLElement): void {
   if (!greeting || element('anpers')) return;
   let acts = greeting.querySelector(':scope > .acts');
   if (!acts) { greeting.insertAdjacentHTML('beforeend', '<div class="acts"></div>'); acts = greeting.querySelector(':scope > .acts'); }
-  acts?.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec" id="anpers">${t('panels.analytics.customise')}</button>`);
+  acts?.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec" id="anpers" data-desktop-only>${t('panels.analytics.customise')}</button>`);
   const button = element('anpers');
   if (button) button.onclick = (): void => { analyticsState.config = analyticsState.config ?? loadConfig(); customise(() => { void loadKpis(); }); };
 }

@@ -28,5 +28,5 @@ export const sections: Record<string, () => string | null> = {
   facturacion: () => (listBarLegacy.billingSection() === 'facturas' ? 'facturas' : null),
   productos: () => { const open = listBarLegacy.productsSection(); return open === null ? null : PRODUCT_SECTIONS[open] ?? 'prods'; },
   eventos: eventsSection,
-  cirugias: () => LIST, concursos: () => LIST, parque: () => LIST,
+  cirugias: () => LIST, concursos: () => LIST, parque: () => LIST, deposito: () => LIST,
 };

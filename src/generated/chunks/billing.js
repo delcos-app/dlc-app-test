@@ -221,7 +221,6 @@ var formatShortDate = /* @__PURE__ */ pick4("formatShortDate");
 var shared5 = globalThis["__delcosModules"]["services/format"];
 var pick5 = (name) => shared5[name];
 var escapeHtml = /* @__PURE__ */ pick5("escapeHtml");
-var formatCurrency = /* @__PURE__ */ pick5("formatCurrency");
 var formatNumber = /* @__PURE__ */ pick5("formatNumber");
 
 // delcos-shared:src/app/services/values.ts
@@ -230,19 +229,23 @@ var pick6 = (name) => shared6[name];
 var orFallback = /* @__PURE__ */ pick6("orFallback");
 var sum = /* @__PURE__ */ pick6("sum");
 
-// delcos-shared:src/app/services/money.ts
-var shared7 = globalThis["__delcosModules"]["services/money"];
+// delcos-shared:src/app/screens/billing/model.ts
+var shared7 = globalThis["__delcosModules"]["screens/billing/model"];
 var pick7 = (name) => shared7[name];
-var round2 = /* @__PURE__ */ pick7("round2");
+var PAYMENT = /* @__PURE__ */ pick7("PAYMENT");
+var errorMessage = /* @__PURE__ */ pick7("errorMessage");
+var euros = /* @__PURE__ */ pick7("euros");
+var paymentPill = /* @__PURE__ */ pick7("paymentPill");
 
-// src/app/screens/billing/model.ts
-var PAYMENT = { paid: "Cobrada", overdue: "Vencida", pending: "Pendiente" };
-var euros = (value2) => formatCurrency(round2(value2));
-function paymentPill(state) {
-  const kind = state === PAYMENT.paid ? "p-est" : state === PAYMENT.overdue ? "p-anu" : "p-bor";
-  return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
-}
-var errorMessage = (error) => error?.message ?? "";
+// delcos-shared:src/app/components/list-bar/index.ts
+var shared8 = globalThis["__delcosModules"]["components/list-bar/index"];
+var pick8 = (name) => shared8[name];
+var publishPage = /* @__PURE__ */ pick8("publishPage");
+
+// delcos-shared:src/app/components/list/row.ts
+var shared9 = globalThis["__delcosModules"]["components/list/row"];
+var pick9 = (name) => shared9[name];
+var openableRowHtml = /* @__PURE__ */ pick9("openableRowHtml");
 
 // src/app/screens/billing/list.ts
 var SEARCH_WAIT_MS = 300;
@@ -269,14 +272,38 @@ function totalsHtml(rows) {
       <div class="kpi"><b>${euros(total(pending, "total") - total(pending, "cobrado"))}</b><span>${t("billing.list.toCollect", { count: formatNumber(pending.length) })}</span></div>
       <div class="kpi ${overdue.length ? "warn" : ""}"><b>${euros(total(overdue, "total") - total(overdue, "cobrado"))}</b><span>${t("billing.list.overdueTotal", { count: formatNumber(overdue.length) })}</span></div>`;
 }
-function rowHtml(row) {
+var invoiceLabel = (row) => [row.numero, formatShortDate(row.fecha), orFallback(row.cliente, "")].filter(Boolean).join(" · ");
+function rowCells(row) {
   const note = row.rectifica ? `<span class="sm">${t("billing.list.rectifies", { number: escapeHtml(row.rectifica) })}</span>` : row.rectificada_por ? `<span class="sm">${t("billing.list.rectifiedBy", { number: escapeHtml(row.rectificada_por) })}</span>` : "";
-  return `<button class="dr" data-fac="${row.id}">
+  return `
         <span><b>${escapeHtml(row.numero)}</b>${note}</span>
         <span>${formatShortDate(row.fecha)}</span><span class="corta">${escapeHtml(orFallback(row.cliente, "—"))}</span><span class="sm">${escapeHtml(orFallback(row.nif, "—"))}</span>
         <span class="num">${euros(row.base)}</span><span class="num">${euros(row.cuota_iva)}</span><span class="num"><b>${euros(row.total)}</b></span>
         <span class="${row.estado_cobro === PAYMENT.overdue ? "cad-pasada" : ""}">${row.vencimiento ? formatShortDate(row.vencimiento) : "—"}</span>
-        <span>${paymentPill(row.estado_cobro)}</span></button>`;
+        <span>${paymentPill(row.estado_cobro)}</span>`;
+}
+var rowHtml = (row) => openableRowHtml("dr", `data-fac="${row.id}"`, rowCells(row), t("listSelection.open", { name: invoiceLabel(row) }));
+var sheetDate = (value2) => value2 ? /* @__PURE__ */ new Date(`${String(value2).slice(0, 10)}T00:00:00`) : null;
+var exportValues = (row) => [
+  row.numero,
+  sheetDate(row.fecha),
+  row.cliente ?? null,
+  row.nif ?? null,
+  Number(row.base) || 0,
+  Number(row.cuota_iva) || 0,
+  Number(row.total) || 0,
+  sheetDate(row.vencimiento),
+  row.estado_cobro
+];
+var toSelectable = (row) => ({ id: row.id, label: invoiceLabel(row), data: row });
+function publishInvoices(rows, shown, filter) {
+  publishPage("facturas", {
+    filter: JSON.stringify(filter),
+    rows: shown.map(toSelectable),
+    total: rows.length,
+    all: (limit) => Promise.resolve(rows.slice(0, limit).map(toSelectable)),
+    values: (row) => exportValues(row.data)
+  });
 }
 function tableHtml(rows) {
   if (!rows.length) return `<div class="vacio">${t("billing.list.none")}</div>`;
@@ -294,12 +321,8 @@ function pageRows(rows) {
 async function paintRows() {
   billingLegacy.showLoading(document.getElementById("flista"), t("billing.list.loading"));
   const range = opportunitiesLegacy.periodOf(document.getElementById("fper"));
-  const { data, error } = await legacyDb().rpc("facturas_lista", {
-    p_desde: range.desde,
-    p_hasta: range.hasta,
-    q: emptyToNull(field("fq")?.value.trim()),
-    p_cobro: emptyToNull(field("fcob")?.value)
-  });
+  const query = { p_desde: range.desde, p_hasta: range.hasta, q: emptyToNull(field("fq")?.value.trim()), p_cobro: emptyToNull(field("fcob")?.value) };
+  const { data, error } = await legacyDb().rpc("facturas_lista", query);
   const list = document.getElementById("flista"), totals = document.getElementById("ftot");
   if (!list) return;
   if (error) {
@@ -308,7 +331,9 @@ async function paintRows() {
   }
   const rows = data ?? [];
   if (totals) totals.innerHTML = totalsHtml(rows);
-  list.innerHTML = tableHtml(pageRows(rows));
+  const shown = pageRows(rows);
+  publishInvoices(rows, shown, query);
+  list.innerHTML = tableHtml(shown);
   list.querySelectorAll("[data-fac]").forEach((button) => {
     button.onclick = () => {
       billingLegacy.openInvoice(button.dataset.fac ?? "");
@@ -349,14 +374,17 @@ function paintInvoices() {
   if (payment) payment.onchange = restart;
   void paintRows();
 }
+function reloadInvoiceRows() {
+  if (currentScreen() === "facturacion" && billingLegacy.section() === "facturas" && document.getElementById("flista")) void paintRows();
+}
 function refreshInvoices() {
   if (currentScreen() === "facturacion" && billingLegacy.section() === "facturas" && document.getElementById("flista")) paintInvoices();
 }
 
 // delcos-shared:src/app/services/dates.ts
-var shared8 = globalThis["__delcosModules"]["services/dates"];
-var pick8 = (name) => shared8[name];
-var todayIso = /* @__PURE__ */ pick8("todayIso");
+var shared10 = globalThis["__delcosModules"]["services/dates"];
+var pick10 = (name) => shared10[name];
+var todayIso = /* @__PURE__ */ pick10("todayIso");
 
 // src/app/screens/billing/series.ts
 var TYPES = [
@@ -552,9 +580,16 @@ async function paintVerifactu() {
 }
 
 // delcos-shared:src/app/core/organisation.ts
-var shared9 = globalThis["__delcosModules"]["core/organisation"];
-var pick9 = (name) => shared9[name];
-var usesVerifactu = /* @__PURE__ */ pick9("usesVerifactu");
+var shared11 = globalThis["__delcosModules"]["core/organisation"];
+var pick11 = (name) => shared11[name];
+var usesVerifactu = /* @__PURE__ */ pick11("usesVerifactu");
+
+// delcos-shared:src/app/core/mobile/gate.ts
+var shared12 = globalThis["__delcosModules"]["core/mobile/gate"];
+var pick12 = (name) => shared12[name];
+var blockedOnPhone = /* @__PURE__ */ pick12("blockedOnPhone");
+var paintScreenNotice = /* @__PURE__ */ pick12("paintScreenNotice");
+var windowBlockedOnPhone = /* @__PURE__ */ pick12("windowBlockedOnPhone");
 
 // src/app/screens/billing/page.ts
 var SECTIONS = [
@@ -583,11 +618,18 @@ function readOnlyHtml() {
   if (!billingLegacy.readOnly()) return "";
   return `<div id="facconsulta" class="banda-info">${t("billing.page.readOnly", { plan: escapeHtml(billingLegacy.planName()) })}</div>`;
 }
+function paintBillingNotice(body, section) {
+  paintScreenNotice(body, `facturacion/${section}`, { label: t("billing.page.invoices"), open: () => {
+    billingLegacy.setSection("facturas");
+    billingLegacy.reload();
+  } });
+}
 function loadBilling() {
   const screen = document.getElementById("v-facturacion");
   if (!screen) return Promise.resolve();
-  const admin = cardSectionsLegacy.can("administrar"), sections = SECTIONS.filter(([key, , adminOnly]) => (admin || !adminOnly) && (key !== "verifactu" || usesVerifactu()));
-  if (!sections.some(([key]) => key === billingLegacy.section())) billingLegacy.setSection("facturas");
+  const admin = cardSectionsLegacy.can("administrar"), allowed = SECTIONS.filter(([key, , adminOnly]) => (admin || !adminOnly) && (key !== "verifactu" || usesVerifactu()));
+  if (!allowed.some(([key]) => key === billingLegacy.section())) billingLegacy.setSection("facturas");
+  const sections = allowed.filter(([key]) => !blockedOnPhone("facturacion", key));
   const current = billingLegacy.section();
   screen.innerHTML = `
     <div class="saludo"><div><h1>${t("billing.page.title")}</h1><div class="fecha">${t("billing.page.subtitle")}</div></div>
@@ -600,7 +642,9 @@ function loadBilling() {
       billingLegacy.reload();
     };
   });
-  PAINT[current]?.();
+  const body = document.getElementById("fcuerpo");
+  if (body && blockedOnPhone("facturacion", current)) paintBillingNotice(body, current);
+  else PAINT[current]?.();
   requestAnimationFrame(() => {
     if (currentScreen() === "facturacion") billingLegacy.paintTabs();
   });
@@ -703,6 +747,7 @@ async function afterIssue(invoice, result, reason) {
   refreshInvoices();
 }
 function rectifyInvoice(invoice) {
+  if (windowBlockedOnPhone("rectifyInvoice")) return;
   const body = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
   if (!body || !box) return;
   body.innerHTML = formHtml2(invoice);
@@ -780,7 +825,7 @@ function actionsHtml(invoice, pending) {
   return `<div class="acts u-end u-wrap">
       <button class="btn sec" data-cerrar>${t("common.close")}</button>
       ${invoice.pedido_id ? `<button class="btn sec" id="fvped">${t("billing.sheet.seeOrder")}</button>` : ""}
-      ${can && !invoice.rectifica_id ? `<button class="btn sec dang" id="fvrect">${t("billing.sheet.rectify")}</button>` : ""}
+      ${can && !invoice.rectifica_id ? `<button class="btn sec dang" id="fvrect" data-desktop-only>${t("billing.sheet.rectify")}</button>` : ""}
       ${can && pending ? `<button class="btn sec" id="fvcob">${t("billing.sheet.registerPayment")}</button>` : ""}
       <button class="btn sec" id="fvpdf">${t("billing.sheet.see")}</button><button class="btn sec" id="fvdl">${t("billing.sheet.download")}</button>${can ? `<button class="btn" id="fvmail">${t("billing.sheet.email")}</button>` : ""}</div>`;
 }
@@ -855,5 +900,6 @@ export {
   paintSeries,
   paintVerifactu,
   refreshInvoices,
+  reloadInvoiceRows,
   showInvoice
 };

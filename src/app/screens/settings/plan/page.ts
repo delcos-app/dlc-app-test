@@ -53,7 +53,7 @@ function billingHtml(plan: CurrentPlan, data: BillingData | null | undefined): s
   return `<div class="card cfgpanel" id="pgdatos"><h2 class="u-p-0-0-4">${t('settingsRest.plan.billingTitle')}</h2>
     <p class="sm">${t('settingsRest.plan.billingHint')}${review}</p>
     <div class="pgdlista">${billingRows(data)}</div>
-    <div class="acts"><button type="button" class="btn sec" id="pgdcorr">${t('settingsRest.plan.fixData')}</button></div></div>`;
+    <div class="acts"><button type="button" class="btn sec" id="pgdcorr" data-desktop-only>${t('settingsRest.plan.fixData')}</button></div></div>`;
 }
 
 const header = (): string => (['organizacion', 'config'].includes(currentScreen()) ? `<p class="sm">${t('settingsRest.plan.priceNote')}</p>`

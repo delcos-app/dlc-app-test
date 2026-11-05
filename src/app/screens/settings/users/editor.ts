@@ -13,6 +13,7 @@ import { escapeHtml, formatNumber } from '../../../services/format';
 import { paintCommission } from './commission';
 import { dialog, dialogBody, ensureUser, input, isPrescriber, roleOptions, userById, valueOf, words } from './model';
 import { followRole, markedZones, paintZones } from './zones';
+import { windowBlockedOnPhone } from '../../../core/mobile/gate';
 
 const LOADING_MAX_MS = 8000, HISTORY_START = '2000-01-01';
 
@@ -137,6 +138,7 @@ async function paintParts(user: UserRow): Promise<void> {
 
 /** Opens the editor of a user (it works before the user list is loaded). */
 export async function editUser(id: string): Promise<void> {
+  if (windowBlockedOnPhone('userEditor')) return;   // v2.473.0 (M9 A): role, areas and zones on the computer
   await ensureUser(id);
   const box = dialog(), body = dialogBody(), user = userById(id);
   if (!box || !body || !user) return;

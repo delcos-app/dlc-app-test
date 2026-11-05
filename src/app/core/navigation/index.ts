@@ -37,6 +37,7 @@ export const NAVIGATION_STEPS: readonly NavigationStep[] = [
   inner.markNavigationInProgress,
   inner.legacyConfigPages,
   inner.noFlashOnFastLoad,
+  inner.desktopOnlyOnPhone,
 ];
 
 export function navigate(target: string, ...args: unknown[]): void {

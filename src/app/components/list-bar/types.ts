@@ -1,3 +1,5 @@
+import type { SelectionConfig } from './selection/types';
+
 /** What each list page tells the list bar (the «Lista» page model, v2.236.0). */
 
 /** An indicator of the band: key, title, figure and the line under it. */
@@ -47,6 +49,8 @@ export interface ListConfig {
   banda?: string;
   despues?: string;
   bloques?: BlockConfig;
+  /** v2.472.0 (D-048): rows that can be selected and their bulk actions (desktop only) */
+  seleccion?: SelectionConfig;
 }
 
 /** A screen with several sections: one configuration per section. */

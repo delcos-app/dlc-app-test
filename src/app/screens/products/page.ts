@@ -18,10 +18,10 @@ const TABS: readonly (readonly [string, MessageKey])[] = [['productos', 'product
 function actionsHtml(section: string): string {
   if (section === 'stock') {
     if (!purchasesLegacy.canBuy()) return '';
-    return `<button class="btn sec" id="stalm">${t('products.page.stores')}</button><button class="btn sec" id="stmue">${t('products.page.samples')}</button><button class="btn" id="stini">${t('products.page.stockEntry')}</button>`;
+    return `<button class="btn sec" id="stalm" data-desktop-only>${t('products.page.stores')}</button><button class="btn sec" id="stmue" data-desktop-only>${t('products.page.samples')}</button><button class="btn" id="stini">${t('products.page.stockEntry')}</button>`;
   }
   if (!cardSectionsLegacy.can('administrar')) return '';
-  return `<button class="btn" id="prodnuevo">${t(section === 'servicios' ? 'products.page.newService' : 'products.page.newProduct')}</button>`;
+  return `<button class="btn" id="prodnuevo" data-desktop-only>${t(section === 'servicios' ? 'products.page.newService' : 'products.page.newProduct')}</button>`;
 }
 
 const on = (id: string, action: () => void): void => { const button = document.getElementById(id); if (button) button.onclick = action; };

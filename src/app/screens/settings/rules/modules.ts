@@ -20,7 +20,7 @@ interface ModuleCard { key: SectorModule; texts: string; create: () => unknown; 
 const CARDS: Readonly<Record<SectorModule, ModuleCard>> = {
   cirugias: { key: 'cirugias', texts: 'surgeries', create: () => editSurgery(null), open: 'cirugias' },
   concursos: { key: 'concursos', texts: 'tenders', create: () => editTender(null), open: 'concursos' },
-  deposito: { key: 'deposito', texts: 'deposit', create: () => { chooseCentre(); } },
+  deposito: { key: 'deposito', texts: 'deposit', create: () => { chooseDepositCentre(); }, open: 'deposito' },
   parque: { key: 'parque', texts: 'equipment', create: () => { goTo('productos'); }, open: 'parque' },
 };
 
@@ -65,8 +65,8 @@ export function bindModuleCard(key: SectorModule): void {
   if (open && card.open) { const page = card.open; open.onclick = (): void => { goTo(page); }; }
 }
 
-/** Depósito: the first one is left at a centre, chosen here; its window opens to leave the material. */
-function chooseCentre(): void {
+/** Depósito: the material is left at a centre, chosen here; its window opens to leave it (also the main button of «Depósitos»). */
+export function chooseDepositCentre(): void {
   const body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;
   body.innerHTML = `<div class="fh"><div><h2>${t('settingsRules.modules.deposit.chooseTitle')}</h2><div class="sm">${t('settingsRules.modules.deposit.chooseHint')}</div></div>

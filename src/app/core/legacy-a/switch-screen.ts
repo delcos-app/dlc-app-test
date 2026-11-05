@@ -71,6 +71,19 @@ function watchLoading(target: string): void {
   }, LOADER_STEP_MS);
 }
 
+/**
+ * v2.473.0: switches to `screen` without loading it (nor asking for its data): `paint` fills its section instead (the «Solo
+ * ordenador» notice of the phone, core/mobile/gate). The menus mark it as the open screen.
+ */
+export function switchToNotice(screen: string, paint: (section: HTMLElement) => void): void {
+  cancelPending(screen);
+  if (!document.getElementById(`v-${screen}`)) document.querySelector('main')?.insertAdjacentHTML('beforeend', `<section id="v-${screen}"></section>`);
+  show(screen);
+  const section = document.getElementById(`v-${screen}`);
+  if (section) { section.classList.remove('cargando', 'plantilla'); paint(section); }
+  switchLegacy.paintBottomBar();
+}
+
 /** Switches to `screen`. */
 export function switchScreen(screen: string): void {
   const redirected = redirect(screen);

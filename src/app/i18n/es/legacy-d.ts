@@ -54,6 +54,8 @@ export const legacyD = {
     equipment: 'Parque instalado',
     equipmentTab: 'Equipos',
     equipmentHint: 'Equipos instalados con su número de serie, contrato, garantía y revisiones',
+    depositsTab: 'Centros',
+    depositsHint: 'El material que tienes en cada centro, lo que vale, lo usado pendiente de reponer y los lotes que caducan pronto',
     searchPlaceholder: 'Buscar {professional}, centro o municipio',
     replenishTitle: 'Reposiciones de {surgery}',
     replenishHint: 'Cuando pasa el plazo para reponer lo usado en {surgeryOne} {surgery}',

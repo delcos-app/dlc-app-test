@@ -62,7 +62,7 @@ function contractsHint(days: readonly number[]): string {
 function pageHtml(list: readonly Tender[], view: TenderView): string {
   const days = tendersLegacy.warningDays(), warnDays = Math.max(...days, 0);
   const empty = t(view === 'contratos' ? 'tenders.list.noContracts' : view === 'cerrados' ? 'tenders.list.noClosed' : 'tenders.list.noOpen');
-  return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="connuevo">${t('tenders.list.newTender')}</button>
+  return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="connuevo" data-desktop-only>${t('tenders.list.newTender')}</button>
       ${cardSectionsLegacy.can('administrar') ? `<button type="button" class="btn sec" id="conavisos">${t('tenders.list.warnings')}</button>` : ''}</div>
     ${view === 'contratos' ? contractsHint(days) : ''}
     <section class="card cirbloque">${list.length ? `<div class="lista">${list.map(item => rowHtml(item, view, warnDays)).join('')}</div>`

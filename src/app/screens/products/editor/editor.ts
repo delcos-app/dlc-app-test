@@ -15,6 +15,7 @@ import { paintCustomFieldsBlock } from '../../settings/custom-fields/card';
 import { insertCustomFields } from '../../settings/custom-fields/form';
 import { loadMaterials } from '../../visit/presentation';
 import { escapeHtml } from '../../../services/format';
+import { windowBlockedOnPhone } from '../../../core/mobile/gate';
 import { equipmentHtml, materialHtml, packsHtml, promotionHtml, samplesForNewHtml, samplesHtml, stateHtml, type ProductExtras } from './blocks';
 import { bindEquipment, bindPromotion, bindSamples, bindState } from './blocks-bind';
 import { bindMaterials } from './materials';
@@ -99,6 +100,7 @@ function bindBlocks(body: HTMLElement, product: Product & { id: string }, loaded
 
 /** Opens the editor of a product, or of a new one. */
 export async function editProduct(given: Product | null): Promise<void> {
+  if (windowBlockedOnPhone('productEditor')) return;   // v2.473.0: the product editor is used on the computer
   const product: Product = given ?? { iva: defaultVat('productos'), activo: true, unidades_envase: 1 };
   const loaded = await load(product), body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;

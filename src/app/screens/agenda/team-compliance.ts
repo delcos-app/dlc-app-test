@@ -69,7 +69,7 @@ export async function paintTeamCompliance(): Promise<void> {
   const body = document.getElementById('agcuerpo');
   if (!body) throw new TypeError('#agcuerpo');
   body.innerHTML = `<div class="semhead"><h2 class="u-p-0">${t('leftovers.team.title')}</h2>
-      ${leftoversLegacy.can('administrar') ? `<button class="btn sec" id="eqfrec">⚙ ${t('leftovers.team.frequency')}</button>` : ''}</div>
+      ${leftoversLegacy.can('administrar') ? `<button class="btn sec" id="eqfrec" data-desktop-only>⚙ ${t('leftovers.team.frequency')}</button>` : ''}</div>
     <div class="filtros" style="border:0;padding:4px 16px 10px"><div id="eqper"></div></div>
     <div id="eqtabla"></div>`;
   const frequency = document.getElementById('eqfrec'); if (frequency) frequency.onclick = (): void => { leftoversLegacy.editFrequency(); };

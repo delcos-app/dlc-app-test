@@ -10,6 +10,8 @@ import { billingStore } from '../../screens/billing/store';
 import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-window';
 import * as legacyFreeCoreNavigationApi from './api';
 import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeCoreLegacyA from '../legacy-a';
+import { blockedOnPhone, paintScreenNotice } from '../mobile/gate';
 
 const COMPANY_SECTIONS = ['__empresa', 'empresa', 'marca', 'correo', 'copias'];
 const MAIL_SECTIONS = ['correo', 'copias'];
@@ -123,5 +125,15 @@ export const noFlashOnFastLoad: NavigationStep = {
     section.classList.remove('cargando'); section.classList.add('cargando-pend');
     if (navigationStore.pendingReads > 0) section.classList.add('cargando');
     section.classList.remove('cargando-pend');
+  },
+};
+
+export const desktopOnlyOnPhone: NavigationStep = {
+  name: 'v2.473 · on the phone a «Solo ordenador» screen is not loaded: its section shows the notice (the last rule before switching)',
+  before: nav => {
+    if (!blockedOnPhone(nav.target)) return;
+    nav.blocked = true;
+    const screen = nav.target;
+    legacyFreeCoreLegacyA.switchToNotice(screen, section => { paintScreenNotice(section, screen); });
   },
 };

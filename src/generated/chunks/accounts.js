@@ -758,7 +758,7 @@ var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 var canShow = (id) => stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById("facceso");
 var accountOf = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico ?? {};
 function hasAccessHtml(user, isCentre2, withConnection) {
-  const impersonate = user.activo && accessLegacy.canImpersonate(user) ? `<button class="btn sec" data-ucomo="${user.id}">${t("accounts.access.impersonate")}</button>` : "";
+  const impersonate = user.activo && accessLegacy.canImpersonate(user) ? `<button class="btn sec" data-desktop-only data-ucomo="${user.id}">${t("accounts.access.impersonate")}</button>` : "";
   return `<p class="sm">${t("accounts.access.hasAccess")}${user.email ? t("accounts.access.asEmail", { email: escapeHtml(user.email) }) : ""}${user.activo ? "" : t("accounts.access.disabled")}: ${t(isCentre2 ? "accounts.access.centreUses" : "accounts.access.portalUses")}.</p>` + (withConnection ? `<p class="sm facccon" data-facccon="${user.id}"></p>` : "") + impersonate;
 }
 var canText = (isCentre2) => isCentre2 ? t("accounts.access.centreCan") : t("accounts.access.portalCan", { prescriptions: term("pauta", { number: "p" }), patients: term("paciente", { number: "p" }) });
@@ -1735,11 +1735,24 @@ var resetColumns = /* @__PURE__ */ pick16("resetColumns");
 var saveColumns = /* @__PURE__ */ pick16("saveColumns");
 var visibleColumns = /* @__PURE__ */ pick16("visibleColumns");
 
+// delcos-shared:src/app/components/list-bar/index.ts
+var shared17 = globalThis["__delcosModules"]["components/list-bar/index"];
+var pick17 = (name) => shared17[name];
+var filterKey = /* @__PURE__ */ pick17("filterKey");
+var publishPage = /* @__PURE__ */ pick17("publishPage");
+var selectionShown = /* @__PURE__ */ pick17("selectionShown");
+
+// delcos-shared:src/app/components/list/row.ts
+var shared18 = globalThis["__delcosModules"]["components/list/row"];
+var pick18 = (name) => shared18[name];
+var openableRowHtml = /* @__PURE__ */ pick18("openableRowHtml");
+
 // src/app/screens/accounts/list/table.ts
+var SELECTION_WIDTH = 40;
 function paintHeader() {
   const head = document.getElementById("thead");
   if (!head) return;
-  const columns = visibleColumns(), width = columns.reduce((total, column) => total + column.w, 0);
+  const columns = visibleColumns(), width = columns.reduce((total, column) => total + column.w, selectionShown("directorio") ? SELECTION_WIDTH : 0);
   head.innerHTML = columns.map((column) => `<span class="tcell th" style="width:${column.w}px;min-width:${column.w}px">${escapeHtml(columnTitle(column.k))}<i class="res" data-res="${column.k}"></i></span>`).join("");
   head.style.minWidth = `${width}px`;
   const list = document.getElementById("lista");
@@ -1762,8 +1775,8 @@ function markSort(head, columns) {
 function rowHtml(row, onAccessLoaded) {
   const cells = visibleColumns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row, column.k, onAccessLoaded)}</span>`).join("");
   const place = [row.centro_nombre, row.municipio].filter(Boolean).join(" · ");
-  const card = `<span class="plcard"><b>${row.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${cell(row, "estado_comercial", onAccessLoaded)}</span></span>`;
-  return `<button class="trow" data-id="${row.id}">${cells}${card}</button>`;
+  const card = `<span class="plcard"><b>${row.urgente ? `<i class="plurg" role="img" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${cell(row, "estado_comercial", onAccessLoaded)}</span></span>`;
+  return openableRowHtml("trow", `data-id="${row.id}"`, `${cells}${card}`, t("listSelection.open", { name: row.nombre ?? "" }));
 }
 function paintChips() {
   const box = document.getElementById("chips");
@@ -1780,9 +1793,9 @@ function paintChips() {
 }
 
 // delcos-shared:src/app/legacy/rest-bridge.ts
-var shared17 = globalThis["__delcosModules"]["legacy/rest-bridge"];
-var pick17 = (name) => shared17[name];
-var restLegacy = /* @__PURE__ */ pick17("restLegacy");
+var shared19 = globalThis["__delcosModules"]["legacy/rest-bridge"];
+var pick19 = (name) => shared19[name];
+var restLegacy = /* @__PURE__ */ pick19("restLegacy");
 
 // src/app/screens/accounts/map/index.ts
 var URGENT = "#B42318";
@@ -1846,6 +1859,23 @@ async function paintMap() {
   legend.innerHTML = legendHtml(points.length, filters.total);
 }
 
+// src/app/screens/accounts/list/selection.ts
+function textOf(html) {
+  const box = document.createElement("template");
+  box.innerHTML = html;
+  return (box.content.textContent ?? "").replace(/s+/g, " ").trim();
+}
+var toSelectable = (row) => ({ id: row.id, label: row.nombre ?? "", data: row });
+function publishAccounts(page) {
+  publishPage("directorio", {
+    filter: page.filter,
+    rows: page.rows.map(toSelectable),
+    total: page.total,
+    all: async (limit) => (await page.loadAll(limit)).map(toSelectable),
+    values: (row) => visibleColumns().map((column) => textOf(cell(row.data, column.k, () => void 0)) || null)
+  });
+}
+
 // src/app/screens/accounts/list/search.ts
 var lastSearch = 0;
 var orNull2 = (value4) => value4 ? value4 : null;
@@ -1896,6 +1926,7 @@ function showResult(data, list, count, elapsedMs) {
   count.innerHTML = t("accounts.list.count", { count: formatNumber(data.total), contacts: escapeHtml(accountListLegacy.contactsLabel().toLowerCase()), ms: elapsedMs });
   paintChips();
   const rows = data.filas ?? [];
+  publishAccounts({ rows, total: data.total, filter: filterKey(searchParams(), ["orden"]), loadAll: accountsOfFilter });
   if (!rows.length) {
     list.innerHTML = `<div class="vacio">${t("accounts.list.noMatches")}</div>`;
     const head = document.getElementById("thead");
@@ -1919,6 +1950,10 @@ function showResult(data, list, count, elapsedMs) {
       void searchAccounts(true);
     }
   });
+}
+async function accountsOfFilter(limit) {
+  const { data } = await legacyDb().rpc("buscar_cuentas", { ...searchParams(), lim: limit, desplaz: 0 });
+  return data?.filas ?? [];
 }
 async function searchWithRetry(mine) {
   const params = searchParams();
@@ -2109,9 +2144,9 @@ async function openEditor(id, type) {
 }
 
 // delcos-shared:src/app/screens/accounts/timetable.ts
-var shared18 = globalThis["__delcosModules"]["screens/accounts/timetable"];
-var pick18 = (name) => shared18[name];
-var missingTimetable = /* @__PURE__ */ pick18("missingTimetable");
+var shared20 = globalThis["__delcosModules"]["screens/accounts/timetable"];
+var pick20 = (name) => shared20[name];
+var missingTimetable = /* @__PURE__ */ pick20("missingTimetable");
 
 // src/app/screens/accounts/card/sections-base.ts
 async function timetableNotice(id) {
@@ -2218,26 +2253,26 @@ function visitMaterial(id) {
 }
 
 // delcos-shared:src/app/core/rules.ts
-var shared19 = globalThis["__delcosModules"]["core/rules"];
-var pick19 = (name) => shared19[name];
-var deliveryRule = /* @__PURE__ */ pick19("deliveryRule");
+var shared21 = globalThis["__delcosModules"]["core/rules"];
+var pick21 = (name) => shared21[name];
+var deliveryRule = /* @__PURE__ */ pick21("deliveryRule");
 
 // delcos-shared:src/app/screens/equipment/model.ts
-var shared20 = globalThis["__delcosModules"]["screens/equipment/model"];
-var pick20 = (name) => shared20[name];
-var reviewPill = /* @__PURE__ */ pick20("reviewPill");
+var shared22 = globalThis["__delcosModules"]["screens/equipment/model"];
+var pick22 = (name) => shared22[name];
+var reviewPill = /* @__PURE__ */ pick22("reviewPill");
 
 // delcos-shared:src/app/screens/surgeries/model.ts
-var shared21 = globalThis["__delcosModules"]["screens/surgeries/model"];
-var pick21 = (name) => shared21[name];
-var statePill = /* @__PURE__ */ pick21("statePill");
+var shared23 = globalThis["__delcosModules"]["screens/surgeries/model"];
+var pick23 = (name) => shared23[name];
+var statePill = /* @__PURE__ */ pick23("statePill");
 
 // delcos-shared:src/app/screens/tenders/model.ts
-var shared22 = globalThis["__delcosModules"]["screens/tenders/model"];
-var pick22 = (name) => shared22[name];
-var contractEnd = /* @__PURE__ */ pick22("contractEnd");
-var daysLeft = /* @__PURE__ */ pick22("daysLeft");
-var statePill2 = /* @__PURE__ */ pick22("statePill");
+var shared24 = globalThis["__delcosModules"]["screens/tenders/model"];
+var pick24 = (name) => shared24[name];
+var contractEnd = /* @__PURE__ */ pick24("contractEnd");
+var daysLeft = /* @__PURE__ */ pick24("daysLeft");
+var statePill2 = /* @__PURE__ */ pick24("statePill");
 
 // src/app/screens/accounts/card/sections-related.ts
 var ATTENDED = "Asistió";
@@ -2362,10 +2397,10 @@ function bindEquipment(block, id, name) {
 }
 
 // delcos-shared:src/app/screens/portal/model.ts
-var shared23 = globalThis["__delcosModules"]["screens/portal/model"];
-var pick23 = (name) => shared23[name];
-var failureText = /* @__PURE__ */ pick23("failureText");
-var messageThread = /* @__PURE__ */ pick23("messageThread");
+var shared25 = globalThis["__delcosModules"]["screens/portal/model"];
+var pick25 = (name) => shared25[name];
+var failureText = /* @__PURE__ */ pick25("failureText");
+var messageThread = /* @__PURE__ */ pick25("messageThread");
 
 // src/app/screens/accounts/card/sections-portal.ts
 var PENDING = "Pendiente";
@@ -2719,9 +2754,9 @@ function openColumnsPanel(onChange) {
 }
 
 // delcos-shared:src/app/components/index.ts
-var shared24 = globalThis["__delcosModules"]["components/index"];
-var pick24 = (name) => shared24[name];
-var showLoading = /* @__PURE__ */ pick24("showLoading");
+var shared26 = globalThis["__delcosModules"]["components/index"];
+var pick26 = (name) => shared26[name];
+var showLoading = /* @__PURE__ */ pick26("showLoading");
 
 // src/app/screens/accounts/duplicates/centres.ts
 var placeText = (item) => [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · ") || t("accountsMore.compare.noAddress");

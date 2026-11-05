@@ -12,6 +12,7 @@ import * as legacyFreeScreensSettingsRest from '../../screens/settings/rest';
 import { navigate } from './';
 import * as legacyFreeCoreLegacyC from '../legacy-c';
 import * as legacyFreeCoreServices from '../services';
+import { blockedOnPhone, paintScreenNotice } from '../mobile/gate';
 
 /** [key, label, painter] of a page tab. */
 export type PageTab = [string, string, () => unknown];
@@ -37,16 +38,20 @@ export const PAGES: Record<string, PageDefinition> = {
 
 const byId = (id: string): HTMLElement | null => document.getElementById(id);
 
+/** v2.473.0: the tabs the phone shows (a «Solo ordenador» tab is not in the bar; reached by a link, it shows the notice). */
+const shownTabs = (screen: string, page: PageDefinition): PageTab[] => page.tabs.filter(tab => !blockedOnPhone(screen, tab[0]));
+
 const chosenTab = (screen: string, page: PageDefinition): string => {
   const wanted = navigationStore.pageTabs[screen];
-  return page.tabs.some(tab => tab[0] === wanted) && wanted ? wanted : page.tabs[0]?.[0] ?? '';
+  return page.tabs.some(tab => tab[0] === wanted) && wanted ? wanted : (shownTabs(screen, page)[0] ?? page.tabs[0])?.[0] ?? '';
 };
 
 const painterOf = (page: PageDefinition, key: string): (() => unknown) | undefined => page.tabs.find(tab => tab[0] === key)?.[2];
 
 function headerHtml(screen: string, page: PageDefinition, tab: string): string {
   const header = screen === 'plan' ? '' : `<div class="saludo"><div><h1>${escapeHtml(page.t)}</h1><div class="fecha">${escapeHtml(page.d)}</div></div></div>`;
-  const tabs = page.tabs.length > 1 ? `<div class="cfgsubs pagtabs">${page.tabs.map(([key, name]) => `<button data-ptab="${key}" class="${key === tab ? 'on' : ''}">${escapeHtml(name)}</button>`).join('')}</div>` : '';
+  const shown = shownTabs(screen, page);
+  const tabs = shown.length > 1 ? `<div class="cfgsubs pagtabs">${shown.map(([key, name]) => `<button data-ptab="${key}" class="${key === tab ? 'on' : ''}">${escapeHtml(name)}</button>`).join('')}</div>` : '';
   return `${header}
     ${tabs}
     <div id="cfgcuerpo" class="pagcuerpo" data-tab="${tab}"></div>`;
@@ -67,6 +72,14 @@ function platformTitle(): void {
   if (description) description.textContent = PANEL_DESC[tab] ?? '';
 }
 
+/** v2.473.0: a «Solo ordenador» tab reached on the phone: the notice in the body, with «Ir a» the first tab that is on the phone. */
+function paintTabNotice(screen: string, page: PageDefinition, tab: string): void {
+  const box = byId('cfgcuerpo'), first = shownTabs(screen, page)[0];
+  if (!box) return;
+  const open = (): void => { navigationStore.pageTabs[screen] = first?.[0]; loadPage(screen); };
+  paintScreenNotice(box, `${screen}/${tab}`, first ? { label: first[1], open } : undefined);
+}
+
 /** Builds the whole page: only one content container at a time (Configuración and the other pages are emptied). */
 function buildPage(screen: string, page: PageDefinition): void {
   if (page.permiso && !page.permiso()) { navigate('inicio'); return; }
@@ -74,11 +87,13 @@ function buildPage(screen: string, page: PageDefinition): void {
   const section = sectionFor(screen); if (!section) return;
   const settings = byId('v-config'); if (settings) settings.innerHTML = '';
   Object.keys(PAGES).forEach(other => { const box = other === screen ? null : byId(`v-${other}`); if (box) box.innerHTML = ''; });
+  if (blockedOnPhone(screen)) { paintScreenNotice(section, screen); return; }
   const tab = chosenTab(screen, page);
   section.innerHTML = headerHtml(screen, page, tab);
   section.querySelectorAll<HTMLElement>('.pagtabs [data-ptab]').forEach(button => {
     button.onclick = (): void => { navigationStore.pageTabs[screen] = button.dataset.ptab; loadPage(screen); };
   });
+  if (blockedOnPhone(screen, tab)) { paintTabNotice(screen, page, tab); return; }
   void Promise.resolve().then(painterOf(page, tab));
   if (screen === 'delcos' && navigationStore.platformMode) platformTitle();
 }
@@ -86,6 +101,7 @@ function buildPage(screen: string, page: PageDefinition): void {
 /** Between tabs that are lists, the page stays: the tab is marked at once, the old list is dimmed and replaced when the new one arrives. */
 function switchListTab(screen: string, page: PageDefinition, box: Element, tabs: Element): Promise<unknown> | null {
   const tab = chosenTab(screen, page);
+  if (blockedOnPhone(screen, tab)) return null;
   tabs.querySelectorAll<HTMLElement>('[data-ptab]').forEach(button => button.classList.toggle('on', button.dataset.ptab === tab));
   // Only between tabs that are lists (Informe de gastos de Eventos is not: that page is built whole, as before)
   const isList = PL_SECC[screen];

@@ -4,7 +4,7 @@
  * it through core/lazy. Issuing from an order (issue/), the store, the company data and the settings subnav stay in the core.
  */
 import './texts';
-export { paintInvoices, refreshInvoices } from './list';
+export { paintInvoices, refreshInvoices, reloadInvoiceRows } from './list';
 export { loadBilling } from './page';
 export { editSeries, paintSeries } from './series';
 export { showInvoice } from './sheet';

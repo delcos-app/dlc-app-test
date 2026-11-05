@@ -90,6 +90,8 @@ function revealWhenReady(element: HTMLElement, screen: string, maxMs: number | u
 /** Shows a screen or window once it is complete. A card waits up to 5 s for all its blocks (v2.256.0). */
 export function reveal(element: HTMLElement | null, maxMs?: number, since?: number): void {
   if (!element) return;
+  // v2.473.0: the «Solo ordenador» notice of the phone asks for nothing: it is shown at once
+  if (element.querySelector(':scope > .aviso-ordenador')) { element.classList.remove('preparando'); arrive(element); return; }
   const limit = element.id === 'fbody' ? Math.max(maxMs ?? 0, CARD_MAX_MS) : maxMs, screen = element.id.slice(2);
   const sections = PL_SECC[screen];
   if (!sections || !isScreen(element)) { revealWhenReady(element, screen, limit, since); return; }

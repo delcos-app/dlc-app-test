@@ -7,6 +7,7 @@ import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { isPresent } from '../../services/values';
 import { STATES, writeFailure, type Tender } from './model';
+import { readOnlyOnPhone } from '../../core/mobile/gate';
 
 interface Person { id: string; nombre: string }
 
@@ -32,8 +33,8 @@ function editorHtml(tender: Partial<Tender>, existing: Tender | null, people: re
     <div class="g2"><div><label for="conimp">${t('tenders.editor.amount')}</label><input id="conimp" type="number" min="0" step="0.01" value="${isPresent(tender.importe_licitacion) ? Number(tender.importe_licitacion) : ''}"></div>
       <div><label for="conres">${t('tenders.editor.responsible')}</label><select id="conres">${people.map(person => `<option value="${person.id}" ${person.id === tender.responsable_id ? 'selected' : ''}>${escapeHtml(person.nombre)}</option>`).join('')}</select></div></div>
     <label for="conn">${t('tenders.editor.note')}</label><textarea id="conn" rows="2">${value(tender.nota)}</textarea>
-    <div class="acts u-end">${existing ? `<button type="button" class="btn sec peligro" id="conborrar">${t('tenders.editor.delete')}</button>` : ''}
-      <button type="button" class="btn sec" data-cerrar>${t('tenders.editor.cancel')}</button><button type="button" class="btn" id="conok">${t(existing ? 'tenders.editor.save' : 'tenders.editor.create')}</button></div>`;
+    <div class="acts u-end">${existing ? `<button type="button" class="btn sec peligro" id="conborrar" data-desktop-only>${t('tenders.editor.delete')}</button>` : ''}
+      <button type="button" class="btn sec" data-cerrar>${t('tenders.editor.cancel')}</button><button type="button" class="btn" id="conok" data-desktop-only>${t(existing ? 'tenders.editor.save' : 'tenders.editor.create')}</button></div>`;
 }
 
 function row(title: string, account: PickedAccount): Record<string, unknown> {
@@ -72,6 +73,7 @@ export async function editTender(existing: Tender | null): Promise<void> {
   if (!body || !box) return;
   body.innerHTML = editorHtml(tender, existing, people);
   if (!box.open) box.showModal();
+  readOnlyOnPhone(body, 'concursos');   // v2.473.0: Concursos is read only on the phone
   let account: PickedAccount | null = existing ? { id: existing.cuenta_id ?? '', nombre: existing.cuentas?.nombre ?? '' } : null;
   editorLegacy.pickAccount(document.getElementById('concta'), account, picked => { account = picked; }, t('tenders.editor.soldToPlaceholder'));
   const ok = document.getElementById('conok') as HTMLButtonElement | null;

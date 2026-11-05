@@ -38,10 +38,10 @@ export const settingsRules = {
     deposit: {
       title: 'Material en {deposit}',
       none: 'Todavía no usas {depositThe} {deposit}',
-      hint: 'Deja material en un centro y apunta lo que se usa. Al crear {depositThe} primer{depositEnd}, la ficha de cada centro lo enseña.',
+      hint: 'Deja material en un centro y apunta lo que se usa. Al crear {depositThe} primer{depositEnd}, «{Deposits}» aparece en el menú y la ficha de cada centro lo enseña.',
       create: 'Crear {depositThe} primer{depositEnd}',
-      used: 'La ficha de cada centro enseña su material en {deposit}.',
-      open: '',
+      used: '«{Deposits}» está en el menú y la ficha de cada centro enseña su material en {deposit}.',
+      open: 'Ir a {Deposits}',
       chooseTitle: 'Material en {deposit}',
       chooseHint: 'Elige el centro donde dejas el material',
       centre: 'Centro',

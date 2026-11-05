@@ -53,7 +53,7 @@ function guestRow(user: UserRow, connections: Record<string, Connection>): strin
           ${user.activo ? '' : `<span class="pill p-anu">${t('settingsRest.users.deactivated')}</span>`}
           <span class="sm usrinvult">${last ? escapeHtml(connectionText(connection)) : t('settingsRest.users.notYet')}</span></span>
         <span class="sm usrinvve">${escapeHtml(usersLegacy.guestSees(user))}</span></span>
-      <span class="usrinvacts">${accessLegacy.canImpersonate(user) ? `<button class="btn" data-ucomo="${user.id}">${t('settingsRest.users.impersonate')}</button>` : ''}
+      <span class="usrinvacts">${accessLegacy.canImpersonate(user) ? `<button class="btn" data-desktop-only data-ucomo="${user.id}">${t('settingsRest.users.impersonate')}</button>` : ''}
         <button class="btn sec" data-uinvd="${user.id}">${t('settingsRest.users.details')}</button></span></div>`;
 }
 
@@ -100,7 +100,7 @@ function pageHtml(all: readonly UserRow[]): string {
       <div class="usrbar"><input id="usrq" type="search" placeholder="${t('settingsRest.users.search')}" value="${escapeHtml(userFilters.q)}">
         <select id="usrrol"><option value="">${t('settingsRest.users.allRoles')}</option>${roleOptions(userFilters.rol)}</select>
         <select id="usrest">${state('activos', 'active')}${state('inactivos', 'deactivatedPlural')}${state('todos', 'all')}</select>
-        <button class="btn" id="usrnuevo">${t('settingsRest.users.newUser')}</button></div>
+        <button class="btn" id="usrnuevo" data-desktop-only>${t('settingsRest.users.newUser')}</button></div>
       <div id="usrl" class="usrlista"></div></div>
     <div class="card usrinvw" style="padding-top:14px;padding-bottom:14px"><h3>${t('settingsRest.users.guests')} <span id="usrinvn" class="sm"></span></h3>
       <p class="sm">${t('settingsRest.users.guestsHint', words())}</p>

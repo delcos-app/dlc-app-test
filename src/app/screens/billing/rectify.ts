@@ -9,6 +9,7 @@ import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 import { refreshInvoices } from './list';
 import { errorMessage, type Invoice } from './model';
+import { windowBlockedOnPhone } from '../../core/mobile/gate';
 
 interface RectifyResult { ok?: boolean; error?: string; id?: string; numero?: string }
 
@@ -57,6 +58,7 @@ async function afterIssue(invoice: Invoice, result: RectifyResult, reason: strin
 }
 
 export function rectifyInvoice(invoice: Invoice): void {
+  if (windowBlockedOnPhone('rectifyInvoice')) return;   // v2.473.0 (M6): a rectifying invoice is issued on the computer
   const body = document.getElementById('dlg2body'), box = document.getElementById('dlg2') as HTMLDialogElement | null;
   if (!body || !box) return;
   body.innerHTML = formHtml(invoice);

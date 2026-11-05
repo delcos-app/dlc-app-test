@@ -6,7 +6,7 @@
 export { customFieldBox, customFieldInput, checkDocument, liveEmailCheck, passwordEye, valueDataField, wideNote, withoutHistory } from '../components/fields';
 export { iconise, menuIcons } from '../components/icons';
 export { blockOf, currentPage, placeSave, saveAll } from '../components/page-save';
-export { menuCycle, menuEquipment, menuEvents, menuOrganization, menuSurgeries, menuTenders } from './module-menus';
+export { menuCycle, menuDeposits, menuEquipment, menuEvents, menuOrganization, menuSurgeries, menuTenders } from './module-menus';
 export { addScannerButtons, closeScanner, openScanner } from '../services/scanner/scanner';
 export { readGs1 } from '../services/scanner/gs1';
 export {

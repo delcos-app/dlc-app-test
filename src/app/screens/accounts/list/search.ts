@@ -9,6 +9,8 @@ import { escapeHtml, formatNumber } from '../../../services/format';
 import { paintChips, paintHeader, rowHtml } from './table';
 import { paintMap } from '../map';
 import { reportsFilterValue } from '../../../core/no-reports';
+import { publishAccounts } from './selection';
+import { filterKey } from '../../../components/list-bar';
 
 interface SearchResult { total: number; filas?: AccountListRow[] }
 
@@ -54,6 +56,8 @@ function showResult(data: SearchResult, list: HTMLElement, count: HTMLElement, e
   count.innerHTML = t('accounts.list.count', { count: formatNumber(data.total), contacts: escapeHtml(accountListLegacy.contactsLabel().toLowerCase()), ms: elapsedMs });
   paintChips();
   const rows = data.filas ?? [];
+  // v2.472.0 (D-048): the page for the selection, before the table is painted
+  publishAccounts({ rows, total: data.total, filter: filterKey(searchParams(), ['orden']), loadAll: accountsOfFilter });
   if (!rows.length) { list.innerHTML = `<div class="vacio">${t('accounts.list.noMatches')}</div>`; const head = document.getElementById('thead'); if (head) head.innerHTML = ''; }
   else { paintHeader(); list.innerHTML = rows.map(row => rowHtml(row, () => { void searchAccounts(true); })).join(''); }
   accountListLegacy.paginate({
@@ -61,6 +65,12 @@ function showResult(data: SearchResult, list: HTMLElement, count: HTMLElement, e
     onPage: page => { filters.pagina = page; void searchAccounts(false); document.getElementById('tabla')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); },
     onSize: () => { void searchAccounts(true); },
   });
+}
+
+/** Every account of the current filter, up to `limit` (D-048: «Seleccionar los N del filtro»). */
+async function accountsOfFilter(limit: number): Promise<AccountListRow[]> {
+  const { data } = await legacyDb().rpc<SearchResult>('buscar_cuentas', { ...searchParams(), lim: limit, desplaz: 0 });
+  return data?.filas ?? [];
 }
 
 /** buscar_cuentas, retried once at once if it fails; null when a newer search started meanwhile. */

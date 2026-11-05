@@ -7,7 +7,7 @@
 import { t, type MessageKey } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { menuPrefs } from './groups';
-import { availableScreens, BAR_DEFAULT, bottomBar, mobileName, moreOrder } from './mobile';
+import { availableScreens, bottomBar, defaultBar, mobileName, moreOrder } from './mobile';
 import { sessionStore } from '../../session-store';
 import { navigationStore } from '../store';
 import { mountSideMenu } from '../../legacy-c/side-menu';
@@ -92,7 +92,7 @@ function onClick(state: State, event: MouseEvent): void {
   if (arrow) { move(state, arrow.dataset.mpm ?? ''); return; }
   if (zone) { changeZone(state, zone.dataset.mpz ?? ''); return; }
   if (target.closest('#movpdef')) {
-    state.groups.barra = BAR_DEFAULT.filter(key => state.available.includes(key) && key !== state.fixed);
+    state.groups.barra = defaultBar().filter(key => state.available.includes(key) && key !== state.fixed);
     state.groups.mas = state.available.filter(key => !state.groups.barra.includes(key) && key !== state.fixed); state.groups.oculta = [];
     paint(state); return;
   }

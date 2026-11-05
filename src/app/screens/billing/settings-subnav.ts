@@ -13,7 +13,7 @@ const real = (selector: string): HTMLElement | undefined =>
 
 function addSettingsButton(nav: HTMLElement): void {
   if (nav.querySelector('[data-faccfg]') || !leftoversLegacy.can('administrar')) return;
-  nav.insertAdjacentHTML('beforeend', `<button data-faccfg="1">${leftoversLegacy.svgIcon(leftoversLegacy.namedIcon('settings'))} ${t('leftovers.billing.settings')}</button>`);
+  nav.insertAdjacentHTML('beforeend', `<button data-faccfg="1" data-desktop-only>${leftoversLegacy.svgIcon(leftoversLegacy.namedIcon('settings'))} ${t('leftovers.billing.settings')}</button>`);
   const button = nav.querySelector<HTMLElement>('[data-faccfg]');
   if (button) button.onclick = (): void => { leftoversLegacy.setBillingSection(leftoversLegacy.lastBillingSettings()); leftoversLegacy.loadBilling(); };
 }
