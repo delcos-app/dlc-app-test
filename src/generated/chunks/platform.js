@@ -91,7 +91,7 @@ var platform = {
   },
   newOrg: {
     title: "Nueva organización",
-    subtitle: "Nace con los roles, catálogos, series y ajustes de partida de la plataforma",
+    subtitle: "Nace con los roles, catálogos, series y ajustes de partida de la plataforma y los de su plantilla",
     name: "Nombre de la empresa",
     nif: "NIF",
     plan: "Plan",
@@ -104,6 +104,8 @@ var platform = {
     adminName: "Nombre",
     adminEmail: "Correo",
     password: "Contraseña temporal",
+    template: "Plantilla",
+    badTemplate: "Esa plantilla no existe",
     create: "Crear organización",
     creating: "Creando…",
     complete: "Completa el nombre, el administrador, su correo y la contraseña",
@@ -287,6 +289,27 @@ var platform = {
     catalogs: "Catálogos y estados",
     notice: "Estás cambiando la <b>plantilla de las empresas nuevas</b>.",
     back: "Volver a la plantilla"
+  },
+  /** v2.469.0 (CFG-1): the sector templates of the new companies */
+  templates: {
+    title: "Plantillas de sector",
+    text: "Al crear una empresa se elige una. Todas parten de la plantilla de arriba; la de un sector añade sus ajustes de partida y sus módulos. No llevan datos de ninguna empresa.",
+    brings: "Añade: {list}",
+    onlyBase: "Solo la plantilla de arriba: sin módulos del sector (aparecen cuando la empresa los configura)",
+    generica: { name: "Genérica" },
+    distribucion_sanitaria: { name: "Distribución sanitaria" },
+    modules: {
+      cirugias: "servicios en cliente con material",
+      deposito: "stock en consigna",
+      concursos: "contratos de precio",
+      parque: "activos instalados"
+    },
+    settings: {
+      impuestos: "productos al 10 % de IVA",
+      entregas: "entregas controladas de muestras de medicamento",
+      servicios: "reposición en 48 horas",
+      eventos: "eventos con límite de 60 € en comidas y nota del informe"
+    }
   }
 };
 
@@ -494,8 +517,8 @@ function stackFrames(stack) {
 // src/app/screens/platform/error-code.ts
 var mapRequests = /* @__PURE__ */ new Map();
 function loadMap(file) {
-  const known = mapRequests.get(file);
-  if (known) return known;
+  const known2 = mapRequests.get(file);
+  if (known2) return known2;
   const request = fetch(new URL(`${file}.map`, location.href).href, { cache: "force-cache" }).then(async (response) => {
     if (!response.ok) throw new Error(String(response.status));
     return readSourceMap(await response.json());
@@ -925,19 +948,42 @@ async function openFigures(organization) {
   });
 }
 
+// src/app/screens/platform/templates.ts
+var KNOWN = ["generica", "distribucion_sanitaria"];
+var known = (key) => KNOWN.includes(key);
+async function loadTemplates() {
+  try {
+    const { data, error } = await legacyDb().rpc("plantillas_sector");
+    return !error && Array.isArray(data) ? data.filter((item) => typeof item.clave === "string") : [];
+  } catch {
+    return [];
+  }
+}
+var templateName = (template) => known(template.clave) ? t(`platform.templates.${template.clave}.name`) : template.nombre;
+function templateBrings(template) {
+  const modules = template.modulos.map((key) => t(`platform.templates.modules.${key}`));
+  const settings = Object.keys(template.ajustes).map((key) => t(`platform.templates.settings.${key}`));
+  return [...modules, ...settings];
+}
+
 // src/app/screens/platform/org-new.ts
 var MIN_USERS = 3;
 var TRIAL_DAYS = 30;
 var MIN_PASSWORD = 6;
 var DEFAULT_PLAN = "empresa";
 var value = (id) => document.getElementById(id)?.value ?? "";
-var CREATE_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["nombre", "platform.newOrg.noName"], ["email", "platform.newOrg.badEmail"], ["email_existe", "platform.newOrg.emailTaken"]]);
-function formHtml() {
+var CREATE_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["nombre", "platform.newOrg.noName"], ["email", "platform.newOrg.badEmail"], ["email_existe", "platform.newOrg.emailTaken"], ["plantilla", "platform.newOrg.badTemplate"]]);
+function templateHtml(templates) {
+  if (!templates.length) return "";
+  return `<div><label for="oplant">${t("platform.newOrg.template")}</label><select id="oplant">${templates.map((item) => `<option value="${escapeHtml(item.clave)}">${escapeHtml(templateName(item))}</option>`).join("")}</select></div>`;
+}
+function formHtml(templates) {
   const plans = platformLegacy.plans().map((plan) => `<option value="${plan.id}" ${plan.id === DEFAULT_PLAN ? "selected" : ""}>${escapeHtml(plan.nombre)}</option>`).join("");
   return `<div class="fh"><div><h2>${t("platform.newOrg.title")}</h2><div class="sm">${t("platform.newOrg.subtitle")}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       <div class="g2"><div><label for="onom">${t("platform.newOrg.name")}</label><input id="onom"></div>
         <div><label for="onif">${t("platform.newOrg.nif")}</label><input id="onif"></div>
+        ${templateHtml(templates)}
         <div><label for="oplan">${t("platform.newOrg.plan")}</label><select id="oplan">${plans}</select></div>
         <div><label for="ousu">${t("platform.newOrg.users")}</label><input id="ousu" type="number" min="3" value="3"></div>
         <div><label for="opago">${t("platform.newOrg.payment")}</label><select id="opago"><option value="mensual">${t("platform.newOrg.monthly")}</option><option value="anual">${t("platform.newOrg.yearly")}</option></select></div>
@@ -965,7 +1011,8 @@ function newCompany(name, email) {
     usuarios: Number(value("ousu")) || MIN_USERS,
     pago: value("opago"),
     prueba_dias: document.getElementById("oprueba")?.checked ? TRIAL_DAYS : 0,
-    email_admin: email
+    email_admin: email,
+    ...document.getElementById("oplant") ? { plantilla: value("oplant") } : {}
   };
 }
 function createFailure(code, error) {
@@ -990,10 +1037,11 @@ async function create(button, repaint) {
   setMessage(failure ? `<span class="u-danger">${t("platform.newOrg.noUser", { error: escapeHtml(failure.message ?? "") })}</span>` : t("platform.newOrg.created", { email: escapeHtml(email), password: escapeHtml(password) }));
   void repaint();
 }
-function openNewOrganization(repaint) {
+async function openNewOrganization(repaint) {
+  const templates = await loadTemplates();
   const body = document.getElementById("dbody"), box = document.getElementById("dlg");
   if (!body || !box) return;
-  body.innerHTML = formHtml();
+  body.innerHTML = formHtml(templates);
   const ok = document.getElementById("ocrear");
   if (ok) ok.onclick = () => {
     void create(ok, repaint);
@@ -1156,7 +1204,7 @@ function bind(box, list) {
   });
   const add = document.getElementById("orgnueva");
   if (add) add.onclick = () => {
-    openNewOrganization(paintOrganizations);
+    void openNewOrganization(paintOrganizations);
   };
 }
 async function paintOrganizations() {
@@ -1351,21 +1399,35 @@ async function paintStatus() {
 }
 
 // src/app/screens/platform/template.ts
+function sectorTemplateHtml(template) {
+  const brings = templateBrings(template);
+  return `<div class="item u-cursor-default" data-plantilla="${escapeHtml(template.clave)}"><span class="tx"><b>${escapeHtml(templateName(template))}</b>
+      <span class="sm">${escapeHtml(brings.length ? t("platform.templates.brings", { list: brings.join(" · ") }) : t("platform.templates.onlyBase"))}</span></span></div>`;
+}
+function sectorTemplatesHtml(templates) {
+  if (!templates.length) return "";
+  return `<div class="card cfgpanel" id="plsector"><h2>${t("platform.templates.title")}</h2>
+      <p class="sm">${t("platform.templates.text")}</p>
+      <div class="lista">${templates.map(sectorTemplateHtml).join("")}</div></div>`;
+}
 async function paintTemplate(section) {
-  const box = panelBox();
-  if (!box) return;
   if (!section) {
-    box.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.template.title")}</h2>
+    const templates = await loadTemplates();
+    const box2 = panelBox();
+    if (!box2) return;
+    box2.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.template.title")}</h2>
       <p class="sm">${t("platform.template.text")}</p>
       <div class="acts u-start"><button type="button" class="btn sec" data-plsub="roles">${t("platform.template.roles")}</button>
-        <button type="button" class="btn sec" data-plsub="cat">${t("platform.template.catalogs")}</button></div></div>`;
-    box.querySelectorAll("[data-plsub]").forEach((button) => {
+        <button type="button" class="btn sec" data-plsub="cat">${t("platform.template.catalogs")}</button></div></div>${sectorTemplatesHtml(templates)}`;
+    box2.querySelectorAll("[data-plsub]").forEach((button) => {
       button.onclick = () => {
         void paintTemplate(button.dataset.plsub);
       };
     });
     return;
   }
+  const box = panelBox();
+  if (!box) return;
   if (section === "roles") await platformLegacy.paintRoles();
   else {
     box.innerHTML = "";

@@ -13,6 +13,8 @@ import { escapeHtml } from '../../services/format';
 import { paintPurchaseSettings } from '../../screens/purchases/settings';
 import { paintCompleteSettings, paintEventSettings } from '../../screens/settings/rules/portfolio';
 import { paintDeliverySettings } from '../../screens/settings/rules/deliveries';
+import { paintConsignmentSettings, paintInstalledSettings } from '../../screens/settings/rules/modules';
+import { planIncludesSection } from '../plans';
 
 type Painter = () => unknown;
 type Sub = [string, string, Painter];
@@ -76,7 +78,10 @@ function dataItems(admin: boolean): TreeItem[] {
       // v2.463.0 (PRO-3): the usual delivery lead time, saved by an administrator
       ...(admin ? [['compras', t('purchases.settings.part'), wrap(paintPurchaseSettings)] as Sub] : []),
       // v2.466.0 (VIS-1): controlled deliveries (today, medicine samples)
-      ...(admin ? [['entregas', t('settingsRules.deliveries.entry'), wrap(paintDeliverySettings)] as Sub] : [])] });
+      ...(admin ? [['entregas', t('settingsRules.deliveries.entry'), wrap(paintDeliverySettings)] as Sub] : []),
+      // v2.469.0 (CFG-1): whether the company uses the deposit and the installed equipment, and how to start
+      ...(admin && planIncludesSection('deposito') ? [['consigna', t('settingsRules.consignmentEntry'), wrap(paintConsignmentSettings)] as Sub] : []),
+      ...(admin && planIncludesSection('parque') ? [['activos', t('settingsRules.installedEntry'), wrap(paintInstalledSettings)] as Sub] : [])] });
   }
   return items;
 }

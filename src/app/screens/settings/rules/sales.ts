@@ -8,6 +8,7 @@ import { formatNumber } from '../../../services/format';
 import { generalVat, vatRates } from '../../../core/organisation';
 import { DEFAULT_REPLENISH_HOURS, MAX_REPLENISH_HOURS, SETTING_SERVICES, SETTING_TAXES, defaultVat, replenishHours } from '../../../core/rules';
 import { areaRowHtml, numberRowHtml, paintRuleCards, ruleCardHtml, saveRule, selectRowHtml, inputValue, wholeNumber, type Option } from './card';
+import { paintWithModule } from './modules';
 
 const REPLENISH = 'rgrepo', TAXES = 'rgiva', MAX_RATE = 100;
 
@@ -24,8 +25,8 @@ async function saveReplenish(): Promise<void> {
   await saveRule(SETTING_SERVICES, { ...current, reposicion_horas: hours });
 }
 
-/** Paints Ventas → Servicios con material. */
-export const paintServicesSettings = (): Promise<void> => paintRuleCards([{ id: REPLENISH, html: replenishHtml, save: saveReplenish }]);
+/** Paints Ventas → Servicios con material: whether the company uses it (v2.469.0, CFG-1), then Reposición. */
+export const paintServicesSettings = (): Promise<void> => paintWithModule('cirugias', [{ id: REPLENISH, html: replenishHtml, save: saveReplenish }]);
 
 // Impuestos
 

@@ -482,6 +482,7 @@
     language: () => language_exports,
     live: () => live_exports,
     maps: () => maps_exports,
+    modulesInUse: () => modules_in_use_exports,
     money: () => money_exports,
     noReports: () => no_reports_exports,
     organisation: () => organisation_exports,
@@ -1646,14 +1647,15 @@
       invoicingDetail: "Series, rectificativas y el registro de cada factura",
       purchases: "Compras, proveedores y trazabilidad",
       purchasesDetail: "Lo enviado, lo que está en camino y lo recibido",
-      deposit: "Material en {deposit}",
-      depositDetail: "Lo que tienes en cada centro, lo usado y su reposición",
-      surgeries: "{Surgeries} con lote y número de serie",
-      surgeriesDetail: "Programación, lo usado por unidad, pedido y reposición en 48 horas",
-      tenders: "Concursos y contratos",
-      tendersDetail: "Pliegos, lotes adjudicados y precios de contrato en los pedidos",
-      equipment: "Parque instalado",
-      equipmentDetail: "Equipos con su número de serie, contrato, garantía y revisiones",
+      // v2.469.0 (CFG-1): the sector modules by their generic name; each one appears when the company configures it
+      deposit: "Stock en consigna en clientes",
+      depositDetail: "Lo que tienes en cada cliente, lo usado y su reposición. Aparece al dejar material en el primero",
+      surgeries: "Servicios en cliente con material",
+      surgeriesDetail: "Programación, lo usado por unidad con lote y número de serie, pedido y reposición. Aparece al crear el primero",
+      tenders: "Contratos de precio con clientes",
+      tendersDetail: "Concursos, contratos y lotes con su precio pactado en los pedidos. Aparece al crear el primero",
+      equipment: "Activos instalados",
+      equipmentDetail: "Equipos con su número de serie, contrato, garantía y revisiones. Aparece al marcar un producto que se instala",
       audit: "Zonas, supervisión del equipo y auditoría",
       auditDetail: "Historial de cambios de cada ficha, con deshacer",
       service: "Servicio",
@@ -3549,6 +3551,54 @@
     servicesEntry: "Servicios con material",
     servicesHint: "Plazo para reponer lo usado",
     servicesWords: "reposición reponer horas plazo intervenciones servicios material",
+    /** v2.469.0 (CFG-1): the sector modules, used or not, in their section */
+    contractsEntry: "Contratos",
+    contractsHint: "Concursos y contratos de precio con clientes",
+    contractsWords: "concursos contratos licitación expediente lotes precio pactado",
+    consignmentEntry: "Material en {deposit}",
+    consignmentWords: "depósito consigna centro material almacén",
+    installedEntry: "Activos instalados",
+    installedWords: "parque instalado equipos activos número de serie revisiones",
+    modules: {
+      inUse: "En uso",
+      surgeries: {
+        title: "{Surgeries}",
+        none: "Todavía no usas {surgeriesThe} {surgeries}",
+        hint: "Programa {surgeryOne} {surgery} en un cliente con el material que se usa. Al crear {surgeryThe} primer{surgeryEnd}, «{Surgeries}» aparece en «Tu día».",
+        create: "Crear {surgeryThe} primer{surgeryEnd}",
+        used: "«{Surgeries}» está en «Tu día», con sus avisos y su bloque en la ficha.",
+        open: "Ir a {Surgeries}"
+      },
+      tenders: {
+        title: "Concursos",
+        none: "Todavía no usas los concursos",
+        hint: "Registra un concurso o un contrato de precio con un cliente. Al crear el primero, «Concursos» aparece en el menú, con sus avisos.",
+        create: "Crear el primero",
+        used: "«Concursos» está en el menú, con sus avisos y su bloque en la ficha.",
+        open: "Ir a Concursos"
+      },
+      deposit: {
+        title: "Material en {deposit}",
+        none: "Todavía no usas {depositThe} {deposit}",
+        hint: "Deja material en un centro y apunta lo que se usa. Al crear {depositThe} primer{depositEnd}, la ficha de cada centro lo enseña.",
+        create: "Crear {depositThe} primer{depositEnd}",
+        used: "La ficha de cada centro enseña su material en {deposit}.",
+        open: "",
+        chooseTitle: "Material en {deposit}",
+        chooseHint: "Elige el centro donde dejas el material",
+        centre: "Centro",
+        centrePlaceholder: "Busca el centro",
+        noCentre: "Elige un centro de la lista"
+      },
+      equipment: {
+        title: "Parque instalado",
+        none: "Todavía no usas el parque instalado",
+        hint: "Abre un producto y marca «Es un equipo: se instala con su número de serie». Desde entonces, «Parque instalado» aparece en el menú.",
+        create: "Ir a Productos",
+        used: "«Parque instalado» está en el menú, con sus revisiones y su bloque en la ficha.",
+        open: "Ir a Parque instalado"
+      }
+    },
     replenish: {
       title: "Reposición",
       info: "Cuando se registra lo usado en {surgeryOne} {surgery}, queda pendiente reponerlo en su almacén. Con un plazo, Inicio lo enseña en «Requiere tu atención» y, si pasa, llega el aviso «Reposición vencida». Vacío: no hay plazo ni aviso.",
@@ -5641,15 +5691,15 @@
     }
     return typeof node === "string" ? node : void 0;
   }
-  function fill(text, params) {
-    return text.replace(/\{(\w+)\}/g, (whole3, name) => {
+  function fill(text2, params) {
+    return text2.replace(/\{(\w+)\}/g, (whole3, name) => {
       const value10 = params[name] ?? vocabulary[name] ?? resolveWord?.(name);
       return value10 === void 0 ? whole3 : String(value10);
     });
   }
   function t(key, params = {}) {
-    const text = lookup(catalogs[currentLanguage], key) ?? lookup(registered[currentLanguage], key) ?? lookup(es, key) ?? lookup(registered.es, key) ?? key;
-    return fill(text, params);
+    const text2 = lookup(catalogs[currentLanguage], key) ?? lookup(registered[currentLanguage], key) ?? lookup(es, key) ?? lookup(registered.es, key) ?? key;
+    return fill(text2, params);
   }
 
   // src/app/core/settings/constants.ts
@@ -5778,8 +5828,8 @@
   function formatEuros(value10) {
     return `${Math.round(Number(value10) || 0).toLocaleString("es-ES")} €`;
   }
-  function looseText(text) {
-    return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  function looseText(text2) {
+    return String(text2 ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   }
   function formatCurrency(value10) {
     return (Number(value10) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
@@ -5841,7 +5891,7 @@
     const fallback = DEFAULT_TERMS[key] ?? EXTRA_TERMS[key] ?? { s: key, p: `${key}s`, g: "m" }, own = ownTerms()[key] ?? {};
     return { s: String(own.s ?? "").trim() || fallback.s, p: String(own.p ?? "").trim() || fallback.p, g: own.g === "f" || own.g === "m" ? own.g : fallback.g };
   }
-  var withCase = (text, mode) => mode === "U" ? text.toUpperCase() : mode === "C" ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+  var withCase = (text2, mode) => mode === "U" ? text2.toUpperCase() : mode === "C" ? text2.charAt(0).toUpperCase() + text2.slice(1) : text2;
   function wordFor(key, number2, form = {}) {
     const { determiner, determinerCase, nounCase, adjective } = form;
     const term2 = termOf(key), plural2 = number2 === "p", noun = withCase(plural2 ? term2.p : term2.s, nounCase);
@@ -6021,8 +6071,8 @@
   }
   async function impersonate(id) {
     const user = coreLegacy.users().find((item) => item.id === id) ?? { id, nombre: t("core.session.thisPerson"), rol: "" };
-    const text = t(isGuest(user) ? "core.session.confirmGuest" : "core.session.confirmUser", { name: user.nombre });
-    if (!await coreLegacy.confirm(text, { titulo: t("core.session.confirmTitle", { name: user.nombre }), ok: t("core.session.confirmOk") })) return;
+    const text2 = t(isGuest(user) ? "core.session.confirmGuest" : "core.session.confirmUser", { name: user.nombre });
+    if (!await coreLegacy.confirm(text2, { titulo: t("core.session.confirmTitle", { name: user.nombre }), ok: t("core.session.confirmOk") })) return;
     coreLegacy.showLoading(t("core.session.loading", { name: user.nombre }));
     const { data: { session: session2 } } = await coreLegacy.db().auth.getSession();
     if (!session2) {
@@ -6075,13 +6125,13 @@
     if (coreLegacy.paymentState()?.solo_lectura && READ_ONLY_REFUSAL.test(String(message))) return;
     if (type === "api" && isNetworkError(message)) return;
     try {
-      const text = String(message ?? "").slice(0, MAX_MESSAGE), screen3 = coreLegacy.currentScreen();
-      SESSION_ERRORS.push({ t: (/* @__PURE__ */ new Date()).toISOString(), tipo: type, m: text, pantalla: screen3 });
+      const text2 = String(message ?? "").slice(0, MAX_MESSAGE), screen3 = coreLegacy.currentScreen();
+      SESSION_ERRORS.push({ t: (/* @__PURE__ */ new Date()).toISOString(), tipo: type, m: text2, pantalla: screen3 });
       if (SESSION_ERRORS.length > KEPT_ERRORS) SESSION_ERRORS.shift();
-      const key = `${type}|${text}`;
+      const key = `${type}|${text2}`;
       if (sent.has(key) || !coreLegacy.profile()) return;
       sent.add(key);
-      Promise.resolve(coreLegacy.rpc("registrar_error", { p: { tipo: type, mensaje: text, detalle: detail ?? null, pantalla: screen3, version: coreLegacy.appVersion(), navegador: navigator.userAgent } })).then(() => void 0, () => void 0);
+      Promise.resolve(coreLegacy.rpc("registrar_error", { p: { tipo: type, mensaje: text2, detalle: detail ?? null, pantalla: screen3, version: coreLegacy.appVersion(), navegador: navigator.userAgent } })).then(() => void 0, () => void 0);
     } catch {
     }
   }
@@ -6370,11 +6420,11 @@
   var TITLE_ROWS = 15;
   var TITLE_SHARE = 0.8;
   var KEY_LENGTH = 40;
-  var normaliseHeader = (text) => String(text ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-  var customFieldKey = (text) => normaliseHeader(text).toUpperCase().replace(/ /g, "_").slice(0, KEY_LENGTH) || "CAMPO";
-  function hashText(text) {
+  var normaliseHeader = (text2) => String(text2 ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+  var customFieldKey = (text2) => normaliseHeader(text2).toUpperCase().replace(/ /g, "_").slice(0, KEY_LENGTH) || "CAMPO";
+  function hashText(text2) {
     let hash = 5381;
-    for (const char of text) hash = (hash << 5) + hash + char.charCodeAt(0) | 0;
+    for (const char of text2) hash = (hash << 5) + hash + char.charCodeAt(0) | 0;
     return (hash >>> 0).toString(36);
   }
   var pad = (value10) => String(value10).padStart(2, "0");
@@ -6389,9 +6439,9 @@
     if (best < 2) return 0;
     return scores.findIndex((score2) => score2 >= best * TITLE_SHARE);
   }
-  function pairs(text) {
+  function pairs(text2) {
     const found = /* @__PURE__ */ new Set();
-    for (let i = 0; i < text.length - 1; i++) found.add(text.slice(i, i + 2));
+    for (let i = 0; i < text2.length - 1; i++) found.add(text2.slice(i, i + 2));
     return found;
   }
   function similarity(first, second) {
@@ -6658,8 +6708,8 @@
   // src/app/legacy/settings2-bridge.ts
   var profile = () => sessionStore.profile;
   var settingsMoreLegacy = {
-    loading: (element, text) => {
-      showLoading(element, text);
+    loading: (element, text2) => {
+      showLoading(element, text2);
     },
     appName: () => appName(),
     hasPortal: () => hasExtra("portal"),
@@ -6712,7 +6762,7 @@
       } catch {
       }
     },
-    helpButton: (title2, text) => pmAyu(title2, text)
+    helpButton: (title2, text2) => pmAyu(title2, text2)
   };
 
   // src/app/screens/settings/more/access-log.ts
@@ -7129,7 +7179,7 @@
     return parts;
   }
   var onlyInText = (value10) => value10.en_estados?.length ? statesText(value10.en_estados) : "";
-  var help = (text) => `<span class="sm vhelp">${text}</span>`;
+  var help = (text2) => `<span class="sm vhelp">${text2}</span>`;
   var stateOptions = (selected2) => cardBaseLegacy.states().map((state2) => `<option value="${escapeHtml(state2)}" ${selected2 === state2 ? "selected" : ""}>${t("settingsMore.classifier.movesTo", { state: escapeHtml(state2) })}</option>`).join("");
   function destinationFieldHtml(id, selected2) {
     return `<div class="vfield"><label for="${id}">${t("settingsMore.valueEditor.destination")}</label>
@@ -7187,10 +7237,10 @@
   var PAYMENT_CATALOG = "forma_pago";
   var isPaymentKind = (role) => PAYMENT_KINDS.some((kind) => kind === role);
   function paymentKindByName(name) {
-    const text = name ?? "";
-    if (/reembolso/i.test(text)) return "entrega";
-    if (/transfer/i.test(text)) return "transferencia";
-    return /tarjeta|bizum/i.test(text) ? "tpv" : "otra";
+    const text2 = name ?? "";
+    if (/reembolso/i.test(text2)) return "entrega";
+    if (/transfer/i.test(text2)) return "transferencia";
+    return /tarjeta|bizum/i.test(text2) ? "tpv" : "otra";
   }
   function paymentKind(method) {
     const role = catalogLegacy.values(PAYMENT_CATALOG).find((value10) => value10.valor === method)?.papel;
@@ -7238,7 +7288,7 @@
   }
   var valueRoleKey = (classifier, value10) => isPaymentList(classifier) ? kindOf(value10) : value10.papel ?? "";
   var kindOptions = (selected2) => PAYMENT_KINDS.map((kind) => `<option value="${kind}" ${kind === selected2 ? "selected" : ""}>${t(KIND_TEXT[kind])}</option>`).join("");
-  var help2 = (text) => `<span class="sm vhelp">${text}</span>`;
+  var help2 = (text2) => `<span class="sm vhelp">${text2}</span>`;
   function roleFieldHtml(classifier, value10) {
     const fixed = value10 ? fixedRole(classifier, value10) : null;
     if (fixed) return `<div class="vfield"><span class="vlabel">${t("settingsMore.valueEditor.role")}</span>${help2(t("settingsMore.valueEditor.fixedHelp", { what: fixedWhat(fixed) }))}</div>`;
@@ -7362,7 +7412,7 @@
   }
 
   // src/app/screens/settings/more/value-editor.ts
-  var help3 = (text) => `<span class="sm vhelp">${text}</span>`;
+  var help3 = (text2) => `<span class="sm vhelp">${text2}</span>`;
   var valueOf2 = (id) => document.getElementById(id)?.value ?? "";
   function headHtml(classifier, title2) {
     return `<div class="fh"><div><h2>${title2}</h2><div class="sm">${t("settingsMore.valueEditor.in", { list: escapeHtml(classifier.nombre) })}</div></div>
@@ -7450,22 +7500,22 @@
     if (change || role !== void 0) notices.toast(t("settingsMore.valueEditor.saved"));
     return true;
   }
-  function newValue(classifier, text) {
+  function newValue(classifier, text2) {
     const parent = valueOf2("cvpadre"), extra = document.getElementById("cvextra") ? valueOf2("cvextra") : null, destination = document.getElementById("cvdest") ? valueOf2("cvdest") : null;
-    const value10 = { clasificador_id: classifier.id, valor: text, extra, destino: destination };
+    const value10 = { clasificador_id: classifier.id, valor: text2, extra, destino: destination };
     if (parent) {
       value10.padre = parent;
-      value10.valor = text.startsWith(`${parent} · `) ? text : `${parent} · ${text}`;
+      value10.valor = text2.startsWith(`${parent} · `) ? text2 : `${parent} · ${text2}`;
     }
     return value10;
   }
   async function addValue(classifier) {
-    const text = valueOf2("cvnew").trim();
-    if (!text) {
+    const text2 = valueOf2("cvnew").trim();
+    if (!text2) {
       notices.toast(t("settingsMore.valueEditor.nameMissing"), true);
       return false;
     }
-    const { data, error } = await legacyDb().rpc("guardar_valor", { p: newValue(classifier, text) });
+    const { data, error } = await legacyDb().rpc("guardar_valor", { p: newValue(classifier, text2) });
     if (error) {
       notices.toast(t("settingsMore.classifier.couldNotAdd"), true);
       return false;
@@ -7568,8 +7618,8 @@
     loadNoReportsField().catch(() => void 0);
   }
   async function removeValue(view, id) {
-    const text = t("settingsMore.classifier.deleteValueText", { visits: term("visita", { number: "p" }) });
-    if (!await notices.confirm(text, { titulo: t("settingsMore.classifier.deleteValueTitle"), ok: t("settingsMore.classifier.delete"), peligro: true })) return;
+    const text2 = t("settingsMore.classifier.deleteValueText", { visits: term("visita", { number: "p" }) });
+    if (!await notices.confirm(text2, { titulo: t("settingsMore.classifier.deleteValueTitle"), ok: t("settingsMore.classifier.delete"), peligro: true })) return;
     const { data: result } = await legacyDb().rpc("borrar_valor", { p_id: id });
     if (result?.ok === false) {
       notices.toast(t("settingsMore.classifier.noPermission"), true);
@@ -7969,7 +8019,7 @@
   function shortMonthNames() {
     return range(12).map((index) => new Date(2026, index, 15).toLocaleDateString(locale(), { month: "short" }).replace(".", ""));
   }
-  var capitalise = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+  var capitalise = (text2) => text2.charAt(0).toUpperCase() + text2.slice(1);
   function formatLongDate(isoDate) {
     return fromIsoDate(isoDate).toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
   }
@@ -8040,8 +8090,8 @@
   }
   var personParams = (undo, simulate2) => ({ p_usuario: undo.user, p_desde: `${undo.from}T00:00:00`, p_simular: simulate2 });
   async function undoAll(undo, check2, button3) {
-    const text = t("settingsMore.undo.confirmPerson", { count: formatNumber(check2.cambios), name: undo.name.trim(), date: formatShortDate(undo.from) });
-    if (!await notices.confirm(text, { titulo: t("settingsMore.undo.titlePerson"), ok: t("settingsMore.undo.undo") })) return;
+    const text2 = t("settingsMore.undo.confirmPerson", { count: formatNumber(check2.cambios), name: undo.name.trim(), date: formatShortDate(undo.from) });
+    if (!await notices.confirm(text2, { titulo: t("settingsMore.undo.titlePerson"), ok: t("settingsMore.undo.undo") })) return;
     button3.disabled = true;
     const { data: result } = await legacyDb().rpc("deshacer_persona", personParams(undo, false));
     if (!result?.ok) {
@@ -8105,9 +8155,9 @@
       <label class="vfswitch mini"><input type="checkbox" data-mact2="${material.id}" ${material.activo ? "checked" : ""}><span class="sw"></span><span class="sm">${t(material.activo ? "settingsMore.material.active" : "settingsMore.material.hidden")}</span></label>
       <span class="mterr sm" hidden></span></div>`;
   }
-  function validMax(text) {
-    const count = Number(text);
-    return text && Number.isInteger(count) && count >= 1 && count <= MAX_LIMIT ? count : null;
+  function validMax(text2) {
+    const count = Number(text2);
+    return text2 && Number.isInteger(count) && count >= 1 && count <= MAX_LIMIT ? count : null;
   }
   function readLimits(rows2) {
     let wrong2 = false;
@@ -8414,13 +8464,13 @@
       button3.classList.toggle("mloculto", hidden.includes(button3.dataset.t ?? "") && !fixed.includes(button3.dataset.t ?? "") && button3.dataset.t !== "inicio");
       const texts3 = [...button3.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim());
       if (texts3.length) {
-        const text = texts3.map((node) => node.textContent ?? "").join("").trim();
+        const text2 = texts3.map((node) => node.textContent ?? "").join("").trim();
         texts3.forEach((node) => {
           node.remove();
         });
         const label = button3.querySelector(".mllab");
-        if (label) label.textContent = text;
-        else button3.insertAdjacentHTML("beforeend", `<span class="mllab">${escapeHtml(text)}</span>`);
+        if (label) label.textContent = text2;
+        else button3.insertAdjacentHTML("beforeend", `<span class="mllab">${escapeHtml(text2)}</span>`);
       }
       button3.dataset.tip = (button3.querySelector(".mllab") ?? button3).textContent?.trim() ?? "";
       button3.setAttribute("aria-label", button3.dataset.tip);
@@ -8594,11 +8644,11 @@
   function renameButton(button3, names) {
     const key = button3.dataset.t ?? button3.dataset.bm;
     if (!key || key === "directorio" || key.startsWith("pd-")) return;
-    const text = menuLabelText(button3);
-    if (!text) return;
-    if (!button3.dataset.txdef) button3.dataset.txdef = text.get();
+    const text2 = menuLabelText(button3);
+    if (!text2) return;
+    if (!button3.dataset.txdef) button3.dataset.txdef = text2.get();
     const name = orFallback(names[key], button3.dataset.txdef);
-    if (text.get() !== name) text.set(name);
+    if (text2.get() !== name) text2.set(name);
   }
   function applyMenuNames() {
     const names = menuNames();
@@ -8668,10 +8718,10 @@
     });
     paintBottomBar([]);
   }
-  function placePageButton(nav, key, text, shown3) {
+  function placePageButton(nav, key, text2, shown3) {
     let button3 = nav.querySelector(`[data-t="${key}"]`);
     if (!button3 && shown3) {
-      nav.insertAdjacentHTML("beforeend", `<button data-t="${key}">${text}</button>`);
+      nav.insertAdjacentHTML("beforeend", `<button data-t="${key}">${text2}</button>`);
       button3 = nav.querySelector(`[data-t="${key}"]`);
     }
     if (!button3) return;
@@ -8686,9 +8736,9 @@
     }
     const users = document.querySelector('nav.main [data-t="usuarios"]');
     if (!users) return;
-    const text = menuLabelText(users), label = t("navigationCore.menu.users");
-    if (text && /roles/i.test(text.get())) text.set(label);
-    else if (!text && /roles/i.test(users.textContent ?? "")) users.textContent = label;
+    const text2 = menuLabelText(users), label = t("navigationCore.menu.users");
+    if (text2 && /roles/i.test(text2.get())) text2.set(label);
+    else if (!text2 && /roles/i.test(users.textContent ?? "")) users.textContent = label;
     if (users.dataset.txdef) users.dataset.txdef = label;
   }
 
@@ -8705,7 +8755,7 @@
   };
   var groupTitle = (id) => (MENU_GROUPS.find((group) => group.id === id) ?? { t: t("navigationCore.menu.others") }).t;
   var blocks = (draft) => draft.orden.filter((id) => (draft.items[id] ?? []).some(available));
-  var handle = (text, attributes) => `<button type="button" class="mlpasa" ${attributes} aria-label="${escapeHtml(t("navigationCore.menu.moveHandle", { what: text }))}" title="${t("navigationCore.menu.dragToSort")}">${svgIco(ICON_NOM["grip-vertical"] ?? "")}</button>`;
+  var handle = (text2, attributes) => `<button type="button" class="mlpasa" ${attributes} aria-label="${escapeHtml(t("navigationCore.menu.moveHandle", { what: text2 }))}" title="${t("navigationCore.menu.dragToSort")}">${svgIco(ICON_NOM["grip-vertical"] ?? "")}</button>`;
   function itemHtml(key, id, shown3) {
     return `<div class="mlpi${shown3 ? "" : " off"}" data-k="${key}" data-g="${id}">${handle(nameOf(key), `data-ak="${key}" data-g="${id}"`)}
               <span class="mlpico">${iconOf(key)}</span><span class="mlpn">${escapeHtml(nameOf(key))}</span>
@@ -9098,8 +9148,8 @@
   var AMOUNT_FIELD = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
   var vatOf = (amount2) => Math.round(amount2 * 21) / 100;
   var eurosWeb = (value10) => {
-    const text = euros(value10);
-    return Math.round(Number(value10) * 100) % 100 === 0 ? text.replace(/,00(?=\s?€)/, "") : text;
+    const text2 = euros(value10);
+    return Math.round(Number(value10) * 100) % 100 === 0 ? text2.replace(/,00(?=\s?€)/, "") : text2;
   };
 
   // src/app/core/organisation.ts
@@ -9200,10 +9250,10 @@
     meter.querySelectorAll(".clavebar i").forEach((bar, index) => {
       bar.style.background = password && index < Math.max(1, strength.level) ? colour : "";
     });
-    const text = meter.querySelector(".clavetxt");
-    if (text) {
-      text.textContent = password ? strength.text : "";
-      text.style.color = colour;
+    const text2 = meter.querySelector(".clavetxt");
+    if (text2) {
+      text2.textContent = password ? strength.text : "";
+      text2.style.color = colour;
     }
     const met = requirementsMet(password);
     meter.querySelectorAll("[data-r]").forEach((item) => item.classList.toggle("ok", Boolean(met[item.dataset.r ?? ""])));
@@ -9244,8 +9294,8 @@
   }
   async function resendActivation(email, reporter = {}) {
     const address = String(email ?? "").trim();
-    const fail2 = reporter.err ?? ((text) => {
-      notices.toast(text, true);
+    const fail2 = reporter.err ?? ((text2) => {
+      notices.toast(text2, true);
     });
     if (!EMAIL.test(address)) {
       fail2(t("access.activation.writeEmail"));
@@ -9256,15 +9306,15 @@
       fail2(resendFailure(error));
       return false;
     }
-    (reporter.ok ?? ((text) => {
-      notices.toast(text);
+    (reporter.ok ?? ((text2) => {
+      notices.toast(text2);
     }))(t("access.activation.sent", { email: address }));
     return true;
   }
-  function showNotActivated(text) {
+  function showNotActivated(text2) {
     const message = document.getElementById("lmsg");
     if (!message) return;
-    message.innerHTML = `<span>${escapeHtml(text)}</span> <button type="button" class="btn sec chico" id="lreenv">${t("access.activation.sendNewLink")}</button>`;
+    message.innerHTML = `<span>${escapeHtml(text2)}</span> <button type="button" class="btn sec chico" id="lreenv">${t("access.activation.sendNewLink")}</button>`;
     const button3 = document.getElementById("lreenv");
     if (!button3) return;
     button3.onclick = async () => {
@@ -9377,8 +9427,8 @@
     const cache = CACHE_MOD.inicio, minutes2 = cache ? Math.floor((Date.now() - cache.t) / MINUTE_MS2) : 0;
     button3.title = `${minutes2 < 1 ? t("legacyC.home.updatedNow") : t("legacyC.home.updatedAgo", { minutes: minutes2 })} · ${t("legacyC.home.pressToUpdate")}`;
     button3.setAttribute("aria-label", button3.title);
-    const text = button3.querySelector("span");
-    if (text) text.textContent = "";
+    const text2 = button3.querySelector("span");
+    if (text2) text2.textContent = "";
   }
   function keepUpdateTime() {
     setInterval(() => {
@@ -10797,11 +10847,11 @@
   var megabytes = (value10) => t("limits.megabytes", { value: formatNumber(value10 ?? 0) });
   function meterRow(name, hint, meter = {}, format) {
     const { uso, limite } = meter, pct = meter.pct ?? 0, hasLimit = limite !== null && limite !== void 0;
-    const text = hasLimit ? t("limits.ofLimit", { used: format(uso), limit: format(limite) }) : `${format(uso)} · ${t("limits.noLimit")}`;
+    const text2 = hasLimit ? t("limits.ofLimit", { used: format(uso), limit: format(limite) }) : `${format(uso)} · ${t("limits.noLimit")}`;
     const width = hasLimit ? Math.max(MIN_BAR, Math.min(FULL, pct)) : 0;
     return `<div class="bh" title="${escapeHtml(hint)}"><span class="bhn">${escapeHtml(name)}</span>
     <span class="bhb"><i style="width:${width}%"></i></span><b>${hasLimit ? `${pct} %` : "–"}</b></div>
-    <div class="sm">${text}</div>`;
+    <div class="sm">${text2}</div>`;
   }
   function usageCardHtml(use) {
     if (!use) return "";
@@ -11652,7 +11702,7 @@
     firstName: (name) => vocabulary_exports.firstName(name),
     askText: (message, value10, options3) => askText(message, value10, options3),
     newTemplateId: () => newTemplateId(),
-    helpButton: (title2, text) => pmAyu(title2, text),
+    helpButton: (title2, text2) => pmAyu(title2, text2),
     openInvoice: (id) => {
       void showInvoice(id);
     },
@@ -11745,8 +11795,8 @@
       void showInvoice(id);
     },
     withLoading: (work) => withDialogLoading(work),
-    showLoading: (element, text) => {
-      showLoading(element, text);
+    showLoading: (element, text2) => {
+      showLoading(element, text2);
     },
     readOnly: () => Boolean(readOnlyBilling()),
     planName: () => plans_exports.planOf(String(sessionStore.plan.plan)).nombre,
@@ -11904,13 +11954,13 @@
   }
 
   // src/app/components/loading-button.ts
-  async function withLoading2(button3, text, work) {
+  async function withLoading2(button3, text2, work) {
     if (!button3 || button3.dataset.cargando) return void 0;
     const before = button3.innerHTML;
     button3.dataset.cargando = "1";
     button3.disabled = true;
     button3.classList.add("btncarga");
-    button3.innerHTML = `<span class="giro"></span>${escapeHtml(text)}`;
+    button3.innerHTML = `<span class="giro"></span>${escapeHtml(text2)}`;
     try {
       return await work();
     } finally {
@@ -12376,15 +12426,15 @@
       company.nif ? t("billingMore.pdf.taxId", { id: company.nif }) : "",
       [company.direccion, [company.cp, company.municipio].filter(Boolean).join(" ")].filter(Boolean).join(", "),
       [company.telefono, company.email].filter(Boolean).join(" · ")
-    ].filter(Boolean).forEach((text, index) => {
-      doc.text(text, x, top + COMPANY_GAP * (index + 1), { align });
+    ].filter(Boolean).forEach((text2, index) => {
+      doc.text(text2, x, top + COMPANY_GAP * (index + 1), { align });
     });
     return top;
   }
   var customerAddress = (customer) => [
     customer.direccion,
     [customer.municipio, customer.cp ? `(${customer.cp})` : "", customer.provincia, customer.pais].filter(Boolean).join(", ").replace(", (", " (")
-  ].filter((text) => Boolean(text));
+  ].filter((text2) => Boolean(text2));
   function labelled(drawing, label, value10, at) {
     const { doc } = drawing, [x, y] = at;
     doc.setTextColor(...GREY);
@@ -12418,8 +12468,8 @@
     doc.setTextColor(...BLACK);
     doc.text(customer.nombre ?? "", customerX, y);
     doc.setFont(font, "normal");
-    [customer.nif, ...customerAddress(customer), customer.email].filter(Boolean).forEach((text, index) => {
-      doc.text(String(text), customerX, y + LINE_GAP * (index + 1));
+    [customer.nif, ...customerAddress(customer), customer.email].filter(Boolean).forEach((text2, index) => {
+      doc.text(String(text2), customerX, y + LINE_GAP * (index + 1));
     });
     return y;
   }
@@ -12477,12 +12527,12 @@
         } catch {
         }
       }
-      const text = doc.splitTextToSize(line2.descripcion ?? "", Math.max(30, conceptWidth));
-      doc.text(text, conceptX, y + 7);
+      const text2 = doc.splitTextToSize(line2.descripcion ?? "", Math.max(30, conceptWidth));
+      doc.text(text2, conceptX, y + 7);
       columns.forEach((column, index) => {
         doc.text(column[2](line2), xs[index] ?? RIGHT2, y + 7, { align: "right" });
       });
-      y += Math.max(height, 5 + text.length * 4.6);
+      y += Math.max(height, 5 + text2.length * 4.6);
       doc.setDrawColor(226, 230, 234);
       doc.line(LEFT2, y, RIGHT2, y);
     }
@@ -13001,9 +13051,9 @@
     const mail = byId6("efplant"), design = byId6("efdis");
     if (mail) mail.onchange = () => {
       billing2Legacy.setInvoiceMailChosen(mail.value);
-      const values2 = mailValues(invoice2), subject = byId6("efa"), text = byId6("eft");
+      const values2 = mailValues(invoice2), subject = byId6("efa"), text2 = byId6("eft");
       if (subject) subject.value = billing2Legacy.mailTemplate("factura", "asunto", values2);
-      if (text) text.value = billing2Legacy.mailTemplate("factura", "texto", values2);
+      if (text2) text2.value = billing2Legacy.mailTemplate("factura", "texto", values2);
     };
     if (design) design.onchange = () => {
       billing2Legacy.setPdfChosen(design.value);
@@ -13189,7 +13239,7 @@
     const product = opportunitiesLegacy.products().find((item) => item.id === productId);
     return product?.precio === null || product?.precio === void 0 ? null : round2(product.precio * units);
   }
-  var isPhone = (text) => /^[+\d\s]{6,}$/.test(text);
+  var isPhone = (text2) => /^[+\d\s]{6,}$/.test(text2);
 
   // src/app/screens/opportunities/call-record.ts
   var chosen = { motivo: "", resultado: "" };
@@ -13311,17 +13361,17 @@
     ];
   }
   function breakable(field10) {
-    const text = escapeHtml(field10.value);
-    if (field10.key === "telefono") return text.split(" / ").map((phone) => phone.replace(/ /g, "&nbsp;")).join(" / ");
-    if (field10.key === "email") return text.replace(/@/g, "@<wbr>").replace(/\./g, "<wbr>.");
-    return text;
+    const text2 = escapeHtml(field10.value);
+    if (field10.key === "telefono") return text2.split(" / ").map((phone) => phone.replace(/ /g, "&nbsp;")).join(" / ");
+    if (field10.key === "email") return text2.replace(/@/g, "@<wbr>").replace(/\./g, "<wbr>.");
+    return text2;
   }
   var valueHtml2 = (field10) => `<span data-cd="${field10.key}">${breakable(field10)}</span>`;
   var customerDataCell = (field10) => field10.value ? valueHtml2(field10) : "";
   var joined = (fields, render2) => fields.filter((field10) => field10.value).map(render2).join(" · ");
   function customerDataLines(customer) {
-    const fields = customerDataFields(customer), text = (field10) => field10.value;
-    return [joined(fields.slice(0, 2), text), joined(fields.slice(2), text)];
+    const fields = customerDataFields(customer), text2 = (field10) => field10.value;
+    return [joined(fields.slice(0, 2), text2), joined(fields.slice(2), text2)];
   }
   function customerDataHtml(customer, form = "compacto") {
     const fields = customerDataFields(customer);
@@ -14169,9 +14219,9 @@
     return [t(key), pillClass];
   }
   function stepPill(order) {
-    const [text, pillClass] = orderStep(order);
+    const [text2, pillClass] = orderStep(order);
     const done = order.estado === STATES2.confirmed ? [t("orders.steps.doneConfirmed"), order.paquete_en ? t("orders.steps.donePacked") : "", paymentOf(order) === PAID2 ? t("orders.steps.donePaid") : "", order.factura ? t("orders.steps.doneInvoiced") : ""].filter(Boolean).join(" · ") : "";
-    return `<span class="pill ${pillClass}"${done ? ` title="${t("orders.steps.done", { steps: done })}"` : ""}>${text}</span>`;
+    return `<span class="pill ${pillClass}"${done ? ` title="${t("orders.steps.done", { steps: done })}"` : ""}>${text2}</span>`;
   }
   var OPERATIONS = [
     ["pago", "orders.operations.paid", "pago_estado"],
@@ -14201,7 +14251,7 @@
   var values = (order, total, customer) => ({ documento: "pedido", numero: order.numero ?? null, importe: total, nombre: customer ?? null });
   var paymentSubject = (order, total, customer) => orderMailLegacy.template("pago", "asunto", values(order, total, customer));
   var paymentText = (order, total, customer) => orderMailLegacy.template("pago", "texto", values(order, total, customer));
-  var mailtoLink = (to, subject, text) => `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+  var mailtoLink = (to, subject, text2) => `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text2)}`;
   async function askPaymentEmailSent(id) {
     if (!await notices.confirm(t("orders.paymentEmail.sentQuestion"), { titulo: t("orders.paymentEmail.title"), ok: t("orders.paymentEmail.markSent") })) return false;
     await legacyDb().rpc("marcar_operativa", { p_pedido: id, p_campo: "email_pago", p_hecho: true });
@@ -14223,13 +14273,13 @@
       notices.toast(t("orders.paymentEmail.noEmail", { customer: term("paciente", { capital: "C" }) }), true);
       return false;
     }
-    const subject = paymentSubject(order, total, customer.nombre), text = paymentText(order, total, customer.nombre);
-    const { data: answer, error: failure4 } = await orderMailLegacy.invoke("enviar_email", { para: customer.email, asunto: subject, texto: text, pedido_id: id, marca: "email_pago" });
+    const subject = paymentSubject(order, total, customer.nombre), text2 = paymentText(order, total, customer.nombre);
+    const { data: answer, error: failure4 } = await orderMailLegacy.invoke("enviar_email", { para: customer.email, asunto: subject, texto: text2, pedido_id: id, marca: "email_pago" });
     if (!failure4 && answer?.ok) {
       notices.toast(t("orders.paymentEmail.sent"));
       return true;
     }
-    location.href = mailtoLink(customer.email, subject, text);
+    location.href = mailtoLink(customer.email, subject, text2);
     await askPaymentEmailSent(id);
     return true;
   }
@@ -14385,7 +14435,7 @@
       pickAccount(element, { valor: value10, alElegir: onPick, placeholder });
     },
     paymentMethods: () => CAT.forma_pago ?? [],
-    help: (title2, text) => pmAyu(title2, text),
+    help: (title2, text2) => pmAyu(title2, text2),
     readReceipt: (file) => files_exports.readReceipt(file),
     uploadReceipts: (id, list) => files_exports.uploadReceipts(id, list),
     orderFields: () => CAMPOS.pedido ?? [],
@@ -14410,7 +14460,7 @@
     visible: () => Boolean(TPV_VISIBLE),
     canUseSales: () => permissions_exports.canUseModule("ventas"),
     serverUrl: () => CFG.url,
-    whileWorking: (button3, text, work) => withLoading(button3, text, work)
+    whileWorking: (button3, text2, work) => withLoading(button3, text2, work)
   };
   var subscriptionLegacy = {
     state: () => ordersStore.paymentState,
@@ -14541,7 +14591,7 @@
     if (minutes2 < HOUR_MINUTES2) return t("ordersMore.billing.minutesAgo", { count: Math.max(1, minutes2) });
     return minutes2 < DAY_MINUTES ? t("ordersMore.billing.hoursAgo", { count: Math.round(minutes2 / HOUR_MINUTES2) }) : t("ordersMore.billing.daysAgo", { count: Math.round(minutes2 / DAY_MINUTES) });
   }
-  var kpiTiles = (tiles) => `<div class="pdkpis">${tiles.map(([value10, text, extra]) => `<div class="pdkpi${extra ? ` ${extra}` : ""}"><b>${value10}</b><span>${escapeHtml(text)}</span></div>`).join("")}</div>`;
+  var kpiTiles = (tiles) => `<div class="pdkpis">${tiles.map(([value10, text2, extra]) => `<div class="pdkpi${extra ? ` ${extra}` : ""}"><b>${value10}</b><span>${escapeHtml(text2)}</span></div>`).join("")}</div>`;
   var billingSkeleton = () => `<div class="card cfgpanel"><div class="pdkpis">${'<div class="pdkpi"><div class="skel" style="width:50%"></div><div class="skel" style="width:70%"></div></div>'.repeat(SKELETON_TILES)}</div><div class="skel"></div><div class="skel" style="width:80%"></div></div>`;
 
   // src/app/screens/orders/subscription/notices.ts
@@ -14560,15 +14610,15 @@
     return state2.plan?.estado === "impago" ? t("ordersMore.subscription.unpaid") : "";
   }
   function paintPaymentBand() {
-    const text = paymentText2();
-    if (!text) {
+    const text2 = paymentText2();
+    if (!text2) {
       document.getElementById("pagoaviso")?.remove();
       return;
     }
     const element = band("pagoaviso", "banda-peligro", "alert");
     if (!element) return;
     const canManage = subscriptionLegacy.canManageCompany();
-    element.innerHTML = text + (canManage ? ` <button type="button" class="btn sec" id="pgavbtn">${t("ordersMore.subscription.managePayment")}</button>` : t("ordersMore.subscription.tellManager"));
+    element.innerHTML = text2 + (canManage ? ` <button type="button" class="btn sec" id="pgavbtn">${t("ordersMore.subscription.managePayment")}</button>` : t("ordersMore.subscription.tellManager"));
     const button3 = document.getElementById("pgavbtn");
     if (button3) button3.onclick = () => {
       subscriptionLegacy.openPortal(button3);
@@ -14634,7 +14684,7 @@
     }
   }
   async function callPayments(body3, button3) {
-    const text = button3?.textContent ?? "";
+    const text2 = button3?.textContent ?? "";
     if (button3) {
       button3.disabled = true;
       button3.textContent = t("ordersMore.subscription.opening");
@@ -14650,7 +14700,7 @@
     } finally {
       if (button3) {
         button3.disabled = false;
-        button3.textContent = text;
+        button3.textContent = text2;
       }
     }
   }
@@ -14737,8 +14787,8 @@
     bindFieldFilters: (zone, state2, onChange) => {
       bindCustomFieldFilters(zone, state2, onChange);
     },
-    showLoading: (element, text) => {
-      showLoading(element, text);
+    showLoading: (element, text2) => {
+      showLoading(element, text2);
     },
     clearModules: (except) => {
       session_exports.emptyModules(except);
@@ -14797,8 +14847,8 @@
     return code ? t(`privacy.errors.${code}`) : t(fallback);
   }
   var tableName = (table) => {
-    const key = `privacy.tables.${table}`, text = t(key);
-    return text === key ? table : text;
+    const key = `privacy.tables.${table}`, text2 = t(key);
+    return text2 === key ? table : text2;
   };
   var countLines = (counts) => Object.entries(counts ?? {}).filter(([, count]) => count > 0).map(([table, count]) => `· ${tableName(table)}: ${formatNumber(count)}`);
   function confirmText(simulation) {
@@ -15020,8 +15070,8 @@
     </button>`;
   }
   function emptyHtml() {
-    const text = customersLegacy.filters().q.trim();
-    const message = text ? t("customers.list.noMatches", { none: term("paciente", { article: "ningun", articleCapital: "C" }), text: escapeHtml(text) }) : t("customers.list.none");
+    const text2 = customersLegacy.filters().q.trim();
+    const message = text2 ? t("customers.list.noMatches", { none: term("paciente", { article: "ningun", articleCapital: "C" }), text: escapeHtml(text2) }) : t("customers.list.none");
     return `<div class="vacio">${message}</div>`;
   }
   function paintRows(page) {
@@ -15228,11 +15278,11 @@
         });
       };
     }
-    search(text) {
+    search(text2) {
       const box3 = this.element.querySelector(".picker"), list = box3?.querySelector(".gsug");
       if (!box3 || !list) return;
       clearTimeout(this.timer);
-      if (text.length < MIN_LETTERS) {
+      if (text2.length < MIN_LETTERS) {
         list.classList.add("hide");
         box3.classList.remove("buscando");
         return;
@@ -15242,11 +15292,11 @@
       list.classList.remove("hide");
       const turn = ++this.asked;
       this.timer = setTimeout(() => {
-        void this.showFound(text, turn, box3, list);
+        void this.showFound(text2, turn, box3, list);
       }, WAIT_MS);
     }
-    async showFound(text, turn, box3, list) {
-      const { data } = await legacyDb().rpc("contactos_lista", { q: text, lim: SHOWN3 });
+    async showFound(text2, turn, box3, list) {
+      const { data } = await legacyDb().rpc("contactos_lista", { q: text2, lim: SHOWN3 });
       if (turn !== this.asked) return;
       box3.classList.remove("buscando");
       const found = data ?? [];
@@ -15281,8 +15331,8 @@
     if (currentScreen() === "pacientes") customersLegacy.repaintList();
     return true;
   }
-  async function searchCustomers(text) {
-    const clean2 = text.trim().replace(/[,()]/g, " ");
+  async function searchCustomers(text2) {
+    const clean2 = text2.trim().replace(/[,()]/g, " ");
     if (clean2.length < MIN_LETTERS2) return [];
     const { data } = await legacyDb().from("contactos").select("id,nombre,telefono,movil,email,nif,cuenta_id,direccion,cp,municipio,provincia").or(`nombre.ilike.%${clean2}%,telefono.ilike.%${clean2}%,movil.ilike.%${clean2}%,nif.ilike.%${clean2}%`).limit(SHOWN4);
     return data ?? [];
@@ -15397,26 +15447,26 @@
   var SHORT_DATE = /^(?:[a-záéíóú]{3,4}\.? )?(\d{1,2}) (ene|feb|mar|abr|may|jun|jul|ago|sept?|oct|nov|dic)[a-z.]*(?: (\d{4}))?/;
   var DOTTED_NUMBER = /^[-−]?\s?\d{1,3}(?:\.\d{3})*(?:,\d+)?\s*(?:€|%|uds?\.?|h|min|km)?$/i;
   var PLAIN_NUMBER = /^[-−]?\d+(?:[.,]\d+)?\s*(?:€|%|uds?\.?|h|min|km)?$/i;
-  function dateOf(text) {
-    const slash = SLASH_DATE.exec(text);
+  function dateOf(text2) {
+    const slash = SLASH_DATE.exec(text2);
     if (slash) {
       const [, day2 = "", month2 = "", year2 = ""] = slash;
       return `${year2.length === 2 ? `20${year2}` : year2}-${pad2(month2)}-${pad2(day2)}`;
     }
-    const iso = ISO_DATE.exec(text);
+    const iso = ISO_DATE.exec(text2);
     if (iso) return iso[0];
-    const short = SHORT_DATE.exec(text.toLowerCase());
+    const short = SHORT_DATE.exec(text2.toLowerCase());
     if (!short) return null;
     const [, day = "", month = "", year = String((/* @__PURE__ */ new Date()).getFullYear())] = short;
     return `${year}-${pad2(String(listsLegacy.shortMonths()[month]))}-${pad2(day)}`;
   }
-  function numberOf2(text) {
-    if (!DOTTED_NUMBER.test(text) && !PLAIN_NUMBER.test(text)) return null;
-    const value10 = parseFloat(text.replace(/[−]/, "-").replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", "."));
+  function numberOf2(text2) {
+    if (!DOTTED_NUMBER.test(text2) && !PLAIN_NUMBER.test(text2)) return null;
+    const value10 = parseFloat(text2.replace(/[−]/, "-").replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", "."));
     return Number.isNaN(value10) ? null : value10;
   }
-  function cellValue2(text) {
-    const clean2 = (text ? String(text) : "").replace(/\s+/g, " ").trim();
+  function cellValue2(text2) {
+    const clean2 = (text2 ? String(text2) : "").replace(/\s+/g, " ").trim();
     if (!clean2 || clean2 === "—" || clean2 === "-") return {};
     const date = dateOf(clean2);
     if (date) return { f: date };
@@ -15440,7 +15490,7 @@
     if (values2.every((value10) => value10.n !== void 0)) return "numero";
     return "texto";
   }
-  var normalise = (text) => (text ? String(text) : "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g, " ").trim();
+  var normalise = (text2) => (text2 ? String(text2) : "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g, " ").trim();
   var notSortable = (name) => !name || /^(operativa|acciones?|productos)$/i.test(name);
   var notFilterable = (name) => !name || /^(operativa|acciones?)$/i.test(name);
   function filterHasValue(value10) {
@@ -15539,8 +15589,8 @@
       previous = row3;
     });
   }
-  function inRange(text, range2) {
-    const value10 = cellValue2(text), isDate = range2.k === "fecha", current = isDate ? value10.f : value10.n;
+  function inRange(text2, range2) {
+    const value10 = cellValue2(text2), isDate = range2.k === "fecha", current = isDate ? value10.f : value10.n;
     if (current === void 0) return false;
     const bound = (end) => isDate ? end ?? null : end === "" || end === null || end === void 0 ? null : Number(end);
     const from = bound(range2.d), to = bound(range2.h);
@@ -15548,11 +15598,11 @@
   }
   function applyColumnFilters(grid) {
     const filters3 = listsLegacy.filterState()[tableKind(grid)] ?? { texto: "", facetas: {} };
-    const text = normalise(filters3.texto ?? ""), facets = Object.entries(filters3.facetas ?? {}).filter(([, value10]) => value10);
+    const text2 = normalise(filters3.texto ?? ""), facets = Object.entries(filters3.facetas ?? {}).filter(([, value10]) => value10);
     const ranges = Object.entries(filters3.rangos ?? {}).filter(([, range2]) => Boolean(range2.d) || Boolean(range2.h));
     rowsOf(grid).forEach((row3) => {
       const cells = [...row3.children];
-      const matches = (!text || normalise(row3.textContent).includes(text)) && facets.every(([index, value10]) => {
+      const matches = (!text2 || normalise(row3.textContent).includes(text2)) && facets.every(([index, value10]) => {
         const cell2 = cells[Number(index)];
         return Boolean(cell2) && normalise(cell2?.textContent).includes(normalise(value10));
       }) && ranges.every(([index, range2]) => inRange(cells[Number(index)]?.textContent, range2));
@@ -15698,7 +15748,7 @@
   };
 
   // src/app/components/classifiers/model.ts
-  var normalise2 = (text) => String(text ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  var normalise2 = (text2) => String(text2 ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   function fieldText(field10, value10) {
     if (value10 === null || value10 === void 0 || value10 === "") return "";
     if (field10?.tipo === "si_no") return t(value10 === true || value10 === "true" ? "components.classifiers.yes" : "components.classifiers.no");
@@ -15713,8 +15763,8 @@
       return !isNaN(number2) && (operator === "desde" ? number2 >= limit : number2 <= limit);
     }
     if (limit === void 0) return true;
-    const text = String(value10);
-    return operator === "desde" ? text >= limit : text <= limit;
+    const text2 = String(value10);
+    return operator === "desde" ? text2 >= limit : text2 <= limit;
   }
   function passesRange(value10, filter) {
     if ("contiene" in filter && !normalise2(value10).includes(normalise2(filter.contiene))) return false;
@@ -15726,10 +15776,10 @@
   }
   function filterText2(field10, filter) {
     if (filter && typeof filter === "object") {
-      const text = (value10) => fieldText(field10, value10), name = field10.nombre;
+      const text2 = (value10) => fieldText(field10, value10), name = field10.nombre;
       if ("contiene" in filter) return t("components.classifiers.contains", { name, text: filter.contiene ?? "" });
-      if ("desde" in filter && "hasta" in filter) return t("components.classifiers.fromTo", { name, from: text(filter.desde), to: text(filter.hasta) });
-      return "desde" in filter ? t("components.classifiers.from", { name, from: text(filter.desde) }) : t("components.classifiers.to", { name, to: text(filter.hasta) });
+      if ("desde" in filter && "hasta" in filter) return t("components.classifiers.fromTo", { name, from: text2(filter.desde), to: text2(filter.hasta) });
+      return "desde" in filter ? t("components.classifiers.from", { name, from: text2(filter.desde) }) : t("components.classifiers.to", { name, to: text2(filter.hasta) });
     }
     return `${field10.nombre}: ${fieldText(field10, filter)}`;
   }
@@ -15739,8 +15789,8 @@
   });
   var columnHeaders = (fields) => fields.map((field10) => `<span class="cpcol">${escapeHtml(field10.nombre)}</span>`).join("");
   var columnCells = (fields, values2) => fields.map((field10) => {
-    const text = fieldText(field10, values2?.[field10.clave]);
-    return `<span class="sm">${text ? escapeHtml(text) : '<span class="vac">—</span>'}</span>`;
+    const text2 = fieldText(field10, values2?.[field10.clave]);
+    return `<span class="sm">${text2 ? escapeHtml(text2) : '<span class="vac">—</span>'}</span>`;
   }).join("");
 
   // src/app/components/toast.ts
@@ -15757,12 +15807,12 @@
     }
   }
   function toast(message, isError = false) {
-    const text = isError && componentsLegacy.readOnlyCompany() ? t("components.notices.readOnly") : message;
+    const text2 = isError && componentsLegacy.readOnlyCompany() ? t("components.notices.readOnly") : message;
     const current = document.getElementById("toast");
     if (!current) return;
     const notice2 = current.cloneNode(true);
     current.replaceWith(notice2);
-    notice2.textContent = text;
+    notice2.textContent = text2;
     notice2.className = `toast${isError ? " err" : ""}`;
     clearTimeout(timer);
     timer = setTimeout(() => {
@@ -15875,8 +15925,8 @@
       const options3 = typeof active === "string" && active && !list.includes(active) ? [...list, active] : list;
       return `<select id="${id}" data-clv><option value="">${t("components.classifiers.all")}</option>${options3.map((value10) => `<option ${active === value10 ? "selected" : ""}>${escapeHtml(value10)}</option>`).join("")}</select>`;
     }
-    const text = active && typeof active === "object" ? active.contiene ?? "" : typeof active === "string" ? active : "";
-    return `<input id="${id}" type="search" data-clbus list="${id}_l" value="${escapeHtml(text)}" placeholder="${t("components.classifiers.typeToSearch")}" autocomplete="off">
+    const text2 = active && typeof active === "object" ? active.contiene ?? "" : typeof active === "string" ? active : "";
+    return `<input id="${id}" type="search" data-clbus list="${id}_l" value="${escapeHtml(text2)}" placeholder="${t("components.classifiers.typeToSearch")}" autocomplete="off">
     <datalist id="${id}_l">${list.map((value10) => `<option value="${escapeHtml(value10)}">`).join("")}</datalist>`;
   }
   function control(field10, active, values2, id) {
@@ -15913,8 +15963,8 @@
     search5.oninput = () => {
       clearTimeout(timer3);
       timer3 = setTimeout(() => {
-        const text = search5.value.trim();
-        if (text) state2[field10.clave] = { contiene: text };
+        const text2 = search5.value.trim();
+        if (text2) state2[field10.clave] = { contiene: text2 };
         else Reflect.deleteProperty(state2, field10.clave);
         onChange();
       }, SEARCH_WAIT_MS5);
@@ -16011,8 +16061,8 @@
   function paintNumber(section) {
     const button3 = section.querySelector(".htbtn");
     if (!button3) return;
-    const count = activeCount(section), text = count ? String(count) : "", number2 = button3.querySelector(".htn");
-    if (number2 && number2.textContent !== text) number2.textContent = text;
+    const count = activeCount(section), text2 = count ? String(count) : "", number2 = button3.querySelector(".htn");
+    if (number2 && number2.textContent !== text2) number2.textContent = text2;
     if (button3.classList.contains("conf") !== count > 0) button3.classList.toggle("conf", count > 0);
   }
   function selectChips(section) {
@@ -16312,14 +16362,14 @@
         applyColumns(grid);
         const column = columns.find((item) => item.i === index);
         if (column) column.on = on3;
-        const text = open2.firstChild;
-        if (text) text.textContent = label();
+        const text2 = open2.firstChild;
+        if (text2) text2.textContent = label();
       });
     };
   }
   function rangeColumns(panel, grid) {
     const own = [...panel.querySelectorAll(".htpropios label, .htpropios h4, .htpropios .lab")].map((item) => normalise(item.textContent));
-    const hasPeriod = own.some((text) => /periodo|fecha/.test(text)), rows2 = rowsOf2(grid);
+    const hasPeriod = own.some((text2) => /periodo|fecha/.test(text2)), rows2 = rowsOf2(grid);
     return headsOf(grid).map((nombre, i) => {
       if (notFilterable(nombre) || own.includes(normalise(nombre))) return null;
       const kind = columnKind(rows2.map((row3) => cellText(row3, i)));
@@ -16568,7 +16618,7 @@
   function gridCard(row3) {
     const cells = [...row3.children].filter((cell2) => !cell2.classList.contains("plcard"));
     const state2 = cells.find((cell2) => cell2.querySelector('.pill, .est, .cirest, [class*="estado"]'));
-    const rest = cells.slice(1).filter((cell2) => cell2 !== state2).map(textOf2).filter((text) => text && text !== "—").slice(0, 2);
+    const rest = cells.slice(1).filter((cell2) => cell2 !== state2).map(textOf2).filter((text2) => text2 && text2 !== "—").slice(0, 2);
     return { a: textOf2(cells[0]), b: rest.join(" · "), c: state2 ? state2.innerHTML : "" };
   }
   var gridConfig = (options3) => Object.assign({
@@ -16727,10 +16777,10 @@
     setTimeout(open2, COLUMNS_DELAY_MS2);
   }
   function card2(row3) {
-    const cells = row3.children, text = (index) => (cells[index]?.textContent ?? "").trim();
+    const cells = row3.children, text2 = (index) => (cells[index]?.textContent ?? "").trim();
     const value10 = (key) => (row3.querySelector(`[data-cd="${key}"]`)?.textContent ?? "").trim();
     const line2 = (keys) => keys.map(value10).filter(Boolean).join(" · ");
-    return { a: text(0), b: line2(["direccion", "poblacion"]), c: cells[1]?.innerHTML ?? "", d: line2(["telefono", "email"]) };
+    return { a: text2(0), b: line2(["direccion", "poblacion"]), c: cells[1]?.innerHTML ?? "", d: line2(["telefono", "email"]) };
   }
   var customersConfig = () => ({
     que: () => t("listBar.customers.what"),
@@ -17145,14 +17195,14 @@
   }
   function headerActions(section, config) {
     moreButton(section, config);
-    const main = config.nuevo?.(), text = config.textoNuevo?.();
-    if (!main || !text) return;
-    if (!isMobile() && !main.classList.contains("fab") && (main.textContent ?? "").trim() !== text) main.innerHTML = `${icon2("plus")} ${escapeHtml(text)}`;
+    const main = config.nuevo?.(), text2 = config.textoNuevo?.();
+    if (!main || !text2) return;
+    if (!isMobile() && !main.classList.contains("fab") && (main.textContent ?? "").trim() !== text2) main.innerHTML = `${icon2("plus")} ${escapeHtml(text2)}`;
     if (isMobile() && !main.dataset.plfab) {
       main.dataset.plfab = "1";
       main.classList.add("fab");
-      main.dataset.txt = text;
-      main.setAttribute("aria-label", text);
+      main.dataset.txt = text2;
+      main.setAttribute("aria-label", text2);
       main.innerHTML = icon2("plus");
       section.appendChild(main);
     }
@@ -17280,8 +17330,8 @@
     if (!select) return;
     if (!chip.dataset.plt) chip.dataset.plt = labelOf2(chip.dataset.plr ?? "");
     const name = chip.dataset.plt, isPeriod = name === t("listBar.bar.period"), chosen4 = select.selectedIndex > 0;
-    const text = chosen4 || isPeriod ? `${name}: ${(select.options[select.selectedIndex]?.text ?? "").replace(/\s*\(\d[\d.]*\)\s*$/, "")}` : name;
-    if (chip.textContent !== text) chip.textContent = text;
+    const text2 = chosen4 || isPeriod ? `${name}: ${(select.options[select.selectedIndex]?.text ?? "").replace(/\s*\(\d[\d.]*\)\s*$/, "")}` : name;
+    if (chip.textContent !== text2) chip.textContent = text2;
     toggleIfDifferent(chip, "on", chosen4 && !isPeriod);
   }
   function syncCounts(section, bar, config, tab) {
@@ -17451,13 +17501,13 @@
       chip?.remove();
       return;
     }
-    const text = `${term("medico", { capital: "C" })}: ${filters3.medicoNombre || "—"}`;
+    const text2 = `${term("medico", { capital: "C" })}: ${filters3.medicoNombre || "—"}`;
     if (!chip) {
       quick2.insertAdjacentHTML("afterbegin", `<button type="button" class="plchip on plmed" data-plmed title="${t("listBar.bar.removeThisFilter")}"><span></span><i aria-hidden="true">✕</i></button>`);
       chip = quick2.querySelector("[data-plmed]");
     }
     const label = chip?.querySelector("span");
-    if (label && label.textContent !== text) label.textContent = text;
+    if (label && label.textContent !== text2) label.textContent = text2;
   }
   function enableChip(chip, tab) {
     if (chip.classList.contains("plnada") && !(blocks3[tab] && chip.dataset.plr === `#plg-${tab}`)) chip.classList.remove("plnada");
@@ -17545,7 +17595,7 @@
     const items = config.mas().filter(([id]) => {
       const action = document.getElementById(id);
       return action && !action.classList.contains("hide");
-    }).map(([id, text]) => ({ t: text, fn: () => {
+    }).map(([id, text2]) => ({ t: text2, fn: () => {
       document.getElementById(id)?.click();
     } }));
     if (items.length) openPopover(button3, items);
@@ -17628,7 +17678,7 @@
     }
   }
   function searchLater(input6, search5) {
-    const text = input6.value.trim(), tab = input6.closest("section")?.id.slice(2) ?? "";
+    const text2 = input6.value.trim(), tab = input6.closest("section")?.id.slice(2) ?? "";
     startSearching(tab);
     if (pendingInput && pendingInput !== input6) delete pendingInput.dataset.pending;
     pendingInput = input6;
@@ -17637,7 +17687,7 @@
     searchTimer4 = setTimeout(() => {
       delete input6.dataset.pending;
       pendingInput = void 0;
-      search5(text);
+      search5(text2);
       searchSent(tab, syncListBar);
     }, SEARCH_WAIT_MS6);
   }
@@ -17654,8 +17704,8 @@
       const input6 = searchInput(event);
       if (!input6) return;
       const tab = input6.closest("section")?.id.slice(2) ?? "";
-      searchLater(input6, (text) => {
-        configs[tab]?.buscarQ(text);
+      searchLater(input6, (text2) => {
+        configs[tab]?.buscarQ(text2);
       });
     });
   }
@@ -17667,8 +17717,8 @@
       const tab = input6.closest("section")?.id.slice(2) ?? "";
       if (!sections[tab]) return;
       event.stopImmediatePropagation();
-      searchLater(input6, (text) => {
-        configOf(tab)?.buscarQ(text);
+      searchLater(input6, (text2) => {
+        configOf(tab)?.buscarQ(text2);
       });
     }, true);
   }
@@ -17787,7 +17837,7 @@
       savePageSize(size);
     },
     pageSizes: () => TAMANOS,
-    normalise: (text) => normalizar(text),
+    normalise: (text2) => normalizar(text2),
     touchScreen: () => PANTALLA_TACTIL,
     shortMonths: () => MESES_CORTOS,
     widthsKey: (kind) => claveAnchos(kind),
@@ -18023,7 +18073,7 @@
   // src/app/legacy/portal-bridge.ts
   var portalPageLegacy = {
     barChart: (items, format) => rankingBars(items, format),
-    emptyChart: (text) => emptyChart(text),
+    emptyChart: (text2) => emptyChart(text2),
     donut: (items) => donut(items),
     monthsBetween: (from, to) => calendar_exports.monthsBetween(from, to),
     skeletonCard: (title2) => cardSkeleton(title2),
@@ -18097,7 +18147,7 @@
     patients: term("paciente", { number: "p" }),
     place: term("consulta", { capital: "C" })
   });
-  var helpButton = (title2, text) => `<button type="button" class="ai" data-ayuda-tit="${escapeHtml(title2)}" data-ayuda-txt="${escapeHtml(text)}" aria-label="${t("portal.whatIsIt")}">i</button>`;
+  var helpButton = (title2, text2) => `<button type="button" class="ai" data-ayuda-tit="${escapeHtml(title2)}" data-ayuda-txt="${escapeHtml(text2)}" aria-label="${t("portal.whatIsIt")}">i</button>`;
   function skeleton(card3) {
     const box3 = '<div class="card ancard pmsk"><span class="plsk"></span></div>';
     return card3 ? `<div class="pmfila">${box3}${box3}</div><div class="pmfila">${box3}</div>` : `<div class="pmfila pm3">${box3}${box3}${box3}</div><div class="pmfila pm3">${box3}${box3}${box3}</div>`;
@@ -18294,8 +18344,8 @@
       result.classList.toggle("pcmal", review2.shared && review2.sharedUnits !== review2.units);
     }
     const units = totals.units ? ` · ${t("portal.order.totalUnits", { units: formatNumber(totals.units) })}${totals.free ? t("portal.order.packFree", { free: formatNumber(totals.free) }) : ""}` : "";
-    const text = document.getElementById("pctxt");
-    if (text) text.innerHTML = t("portal.order.total", { total: `<b id="cttot">${euros3(totals.amount)}</b>` }) + units;
+    const text2 = document.getElementById("pctxt");
+    if (text2) text2.innerHTML = t("portal.order.total", { total: `<b id="cttot">${euros3(totals.amount)}</b>` }) + units;
   }
   function review(box3) {
     const totals = { amount: 0, units: 0, free: 0 };
@@ -18401,26 +18451,26 @@
   var MAX_MINUTE = 59;
   var MORNING = ["09:00", "14:00"];
   var AFTERNOON = ["16:00", "20:00"];
-  function splitTime(text) {
-    if (text.includes(":")) {
-      const [hours2 = "", minutes2 = ""] = text.split(":");
+  function splitTime(text2) {
+    if (text2.includes(":")) {
+      const [hours2 = "", minutes2 = ""] = text2.split(":");
       return [hours2, minutes2];
     }
-    if (text.length <= 2) return [text, "00"];
-    return [text.slice(0, text.length - 2), text.slice(-2)];
+    if (text2.length <= 2) return [text2, "00"];
+    return [text2.slice(0, text2.length - 2), text2.slice(-2)];
   }
   function timeOf2(value10) {
-    const text = String(value10 ?? "").replace(/[^\d:]/g, "");
-    const [hoursText2, minutesText] = splitTime(text), hours2 = Number(hoursText2), minutes2 = Number(minutesText || 0);
-    if (!text || isNaN(hours2) || hours2 > MAX_HOUR || minutes2 > MAX_MINUTE) return "";
+    const text2 = String(value10 ?? "").replace(/[^\d:]/g, "");
+    const [hoursText2, minutesText] = splitTime(text2), hours2 = Number(hoursText2), minutes2 = Number(minutesText || 0);
+    if (!text2 || isNaN(hours2) || hours2 > MAX_HOUR || minutes2 > MAX_MINUTE) return "";
     return `${String(hours2).padStart(2, "0")}:${String(minutes2).padStart(2, "0")}`;
   }
   function rangesOf(value10) {
-    const text = String(value10 ?? ""), found = [];
+    const text2 = String(value10 ?? ""), found = [];
     const pattern = /(\d{1,2})(?::(\d{2}))?\s*[-–a]\s*(\d{1,2})(?::(\d{2}))?/g;
-    for (let match = pattern.exec(text); match; match = pattern.exec(text)) found.push([timeOf2(`${match[1]}:${match[2] ?? "00"}`), timeOf2(`${match[3]}:${match[4] ?? "00"}`)]);
-    if (!found.length && /mañana/i.test(text)) found.push([...MORNING]);
-    if (/tarde/i.test(text) && !found.some((range2) => range2[0] >= "14:00")) found.push([...AFTERNOON]);
+    for (let match = pattern.exec(text2); match; match = pattern.exec(text2)) found.push([timeOf2(`${match[1]}:${match[2] ?? "00"}`), timeOf2(`${match[3]}:${match[4] ?? "00"}`)]);
+    if (!found.length && /mañana/i.test(text2)) found.push([...MORNING]);
+    if (/tarde/i.test(text2) && !found.some((range2) => range2[0] >= "14:00")) found.push([...AFTERNOON]);
     return found;
   }
   function daysOf(saved3) {
@@ -18769,13 +18819,13 @@
     void paintMaterial();
   }
   async function sendMessage(button3) {
-    const text = value3("mdmsgt").trim();
-    if (!text) {
+    const text2 = value3("mdmsgt").trim();
+    if (!text2) {
       notices.toast(t("portal.failures.empty"), true);
       return;
     }
     button3.disabled = true;
-    const { data: result } = await legacyDb().rpc("enviar_mensaje_cuenta", { p_cuenta: null, p_texto: text });
+    const { data: result } = await legacyDb().rpc("enviar_mensaje_cuenta", { p_cuenta: null, p_texto: text2 });
     button3.disabled = false;
     if (!result?.ok) {
       notices.toast(failureText4(result), true);
@@ -19018,16 +19068,16 @@
   }
 
   // src/app/screens/portal/report.ts
-  var setText = (id, text) => {
+  var setText = (id, text2) => {
     const element = document.getElementById(id);
-    if (element) element.textContent = text;
+    if (element) element.textContent = text2;
   };
   function notLinked() {
-    const text = `<div class="card"><div class="vacio">${t("portal.report.notLinked", { professional: term("medico") })}</div></div>`;
+    const text2 = `<div class="card"><div class="vacio">${t("portal.report.notLinked", { professional: term("medico") })}</div></div>`;
     const summary4 = document.getElementById("mdcuerpo");
-    if (summary4) summary4.innerHTML = text;
+    if (summary4) summary4.innerHTML = text2;
     const form = document.getElementById("pmficha");
-    if (form) form.innerHTML = text;
+    if (form) form.innerHTML = text2;
     setText("mdnom", portalPageLegacy.userName());
   }
   async function paintReport() {
@@ -19073,7 +19123,7 @@
   }
 
   // src/app/screens/settings/rules/card.ts
-  var infoButton = (title2, text) => `<button type="button" class="ai" data-ayuda-tit="${escapeHtml(title2)}" data-ayuda-txt="${escapeHtml(text)}" aria-label="${t("settingsRules.whatIs")}">i</button>`;
+  var infoButton = (title2, text2) => `<button type="button" class="ai" data-ayuda-tit="${escapeHtml(title2)}" data-ayuda-txt="${escapeHtml(text2)}" aria-label="${t("settingsRules.whatIs")}">i</button>`;
   var texts = (row3) => `<div><b><label for="${row3.id}">${escapeHtml(row3.label)}</label></b><span class="sm">${escapeHtml(row3.help)}</span></div>`;
   var numberRowHtml = (row3) => `<div class="ajfila">${texts(row3)}
     <input id="${row3.id}" type="number" min="${row3.min}" max="${row3.max}" step="1" value="${row3.value ?? ""}" placeholder="${escapeHtml(row3.placeholder ?? "")}"></div>`;
@@ -19095,9 +19145,9 @@
   var inputValue = (id) => document.getElementById(id)?.value.trim() ?? "";
   var isChecked = (id) => document.getElementById(id)?.checked ?? false;
   function wholeNumber(id, min, max) {
-    const text = inputValue(id);
-    if (!text) return null;
-    const value10 = Number(text);
+    const text2 = inputValue(id);
+    if (!text2) return null;
+    const value10 = Number(text2);
     return Number.isInteger(value10) && value10 >= min && value10 <= max ? value10 : void 0;
   }
   async function saveRule(key, value10) {
@@ -19611,15 +19661,15 @@
     },
     readPhoto: (file) => files_exports.readReceipt(file),
     photosMax: () => FOTOS_VISITA_MAX,
-    normalise: (text) => normalise2(text),
+    normalise: (text2) => normalise2(text2),
     weekdayLetter: () => calendar_exports.todayLetter(),
     /** The write queue: without connection the call is kept and `data.encolada` is true. */
     writeRpc: (name, payload10) => read_cache_exports.writeQueued(name, payload10),
     reloadHome: () => {
       void loadWithCache();
     },
-    loading: (element, text) => {
-      showLoading(element, text);
+    loading: (element, text2) => {
+      showLoading(element, text2);
     },
     materials: () => productsStore.presentationMaterials,
     materialsTime: () => productsStore.presentationTime,
@@ -19805,8 +19855,8 @@
     afterChange(accountId, t("visit.edit.saved", { visit: term("visita", { capital: "C", adjective: "actualizado" }) }));
   }
   async function remove(visit2, accountId) {
-    const text = t("visit.edit.deleteText", { visit: term("visita", { article: "el", articleCapital: "C" }), professional: term("medico", { article: "del" }) });
-    if (!await notices.confirm(text, { titulo: t("visit.edit.deleteTitle", { visit: term("visita", { article: "el" }) }), ok: t("visit.edit.deleteOk"), peligro: true })) return;
+    const text2 = t("visit.edit.deleteText", { visit: term("visita", { article: "el", articleCapital: "C" }), professional: term("medico", { article: "del" }) });
+    if (!await notices.confirm(text2, { titulo: t("visit.edit.deleteTitle", { visit: term("visita", { article: "el" }) }), ok: t("visit.edit.deleteOk"), peligro: true })) return;
     const { data: result, error } = await legacyDb().rpc("borrar_actividad", { p_id: visit2.id });
     if (error || result?.ok === false) {
       notices.toast(t("visit.edit.couldNotDelete"), true);
@@ -19948,9 +19998,9 @@
   var MATERIALS_FRESH_MS = 3e5;
   var showing = null;
   async function loadMaterials(force = false) {
-    const cached3 = visitLegacy.materials();
-    if (cached3 && !force && Date.now() - visitLegacy.materialsTime() < MATERIALS_FRESH_MS) return cached3;
-    if (!navigator.onLine) return cached3 ?? [];
+    const cached4 = visitLegacy.materials();
+    if (cached4 && !force && Date.now() - visitLegacy.materialsTime() < MATERIALS_FRESH_MS) return cached4;
+    if (!navigator.onLine) return cached4 ?? [];
     try {
       const { data, error } = await legacyDb().from("producto_materiales").select("id,producto_id,nombre,tipo,orden,para_portal").order("orden").order("creado_en");
       if (!error) visitLegacy.setMaterials(data ?? [], Date.now());
@@ -20133,8 +20183,8 @@
   var LEFT_TEXTS = { anio: "visit.samples.left", trimestre: "visit.samples.leftQuarter", mes: "visit.samples.leftMonth" };
   function sampleRow(sample) {
     const available2 = sample.en_plazo && sample.quedan;
-    const text = !sample.en_plazo ? t("visit.samples.expired", { date: formatShortDate(sample.hasta ?? "") }) : t(LEFT_TEXTS[deliveryRule().period], { left: sample.quedan, max: sample.max }) + (sample.hasta ? t("visit.samples.until", { date: formatShortDate(sample.hasta) }) : "");
-    return `<div class="vmrow ${available2 ? "" : "agotada"}"><span><b>${escapeHtml(sample.nombre)}</b><span class="sm">${text}</span></span>
+    const text2 = !sample.en_plazo ? t("visit.samples.expired", { date: formatShortDate(sample.hasta ?? "") }) : t(LEFT_TEXTS[deliveryRule().period], { left: sample.quedan, max: sample.max }) + (sample.hasta ? t("visit.samples.until", { date: formatShortDate(sample.hasta) }) : "");
+    return `<div class="vmrow ${available2 ? "" : "agotada"}"><span><b>${escapeHtml(sample.nombre)}</b><span class="sm">${text2}</span></span>
       <input type="number" min="0" max="${sample.en_plazo ? sample.quedan : 0}" step="1" value="0" data-vmprod="${sample.producto_id}" aria-label="${t("visit.samples.of", { name: escapeHtml(sample.nombre) })}" ${available2 ? "" : "disabled"}></div>`;
   }
   function samplesHtml(samples, name) {
@@ -20474,8 +20524,8 @@
     clearModules: (except) => {
       session_exports.emptyModules(except);
     },
-    showLoading: (element, text) => {
-      showLoading(element, text);
+    showLoading: (element, text2) => {
+      showLoading(element, text2);
     },
     matchesFieldFilters: (values2) => Boolean(matchesFilters(values2, productsStore.filters)),
     hasFieldFilters: () => Object.keys(productsStore.filters).length > 0,
@@ -21133,10 +21183,10 @@
     clearLocalData: () => {
       session_exports.clearLocalData();
     },
-    showLoading: (element, text) => {
-      showLoading(element, text);
+    showLoading: (element, text2) => {
+      showLoading(element, text2);
     },
-    skeletonCard: (text) => cardSkeleton(text),
+    skeletonCard: (text2) => cardSkeleton(text2),
     /** The range chosen in a period box mounted with mountPeriod (the legacy box keeps it in a property of the element). */
     periodRange: (element) => {
       const read3 = element ? Reflect.get(element, "__rango") : void 0;
@@ -22304,7 +22354,7 @@
     }
   };
   var globalSearchLegacy = {
-    highlight: (text, query) => highlightSearch(text, query),
+    highlight: (text2, query) => highlightSearch(text2, query),
     // eslint-disable-next-line id-length -- F is the legacy name of the directory filters
     filters: () => F,
     goTo: (screen3) => {
@@ -22473,8 +22523,8 @@
   };
   var portfolioLegacy = {
     firstName: (name) => vocabulary_exports.firstName(name),
-    loading: (element, text) => {
-      showLoading(element, text);
+    loading: (element, text2) => {
+      showLoading(element, text2);
     },
     pages: (total, page, size) => pageHtml4(total, page, size),
     reloadAdmin: () => {
@@ -23068,7 +23118,7 @@
   }
   function resultsHtml2(found, query) {
     const places = found.municipios ?? [], centres = found.centros ?? [], people = found.medicos ?? [];
-    const professionals = term("medico", { number: "p" }), mark2 = (text) => globalSearchLegacy.highlight(text, query);
+    const professionals = term("medico", { number: "p" }), mark2 = (text2) => globalSearchLegacy.highlight(text2, query);
     const placesHtml2 = places.length ? `<div class="gsh">${t("legacyA.search.municipalities")}</div>${places.map((place3) => `<button data-gm="${escapeHtml(place3.valor)}">
         <span class="gic">📍</span><span><b>${mark2(place3.valor)}</b><span class="sm">${formatNumber(place3.n)} ${professionals}</span></span></button>`).join("")}` : "";
     const centresHtml = centres.length ? `<div class="gsh">${t("legacyA.search.centres")}</div>${centres.map((centre) => `<button data-gc="${escapeHtml(centre.valor)}"${centre.id ? ` data-gcid="${centre.id}"` : ""}>
@@ -23269,8 +23319,8 @@
   }
   function popoverContent(button3) {
     if (button3.dataset.ayuda) {
-      const [title2, text, items] = outsideClicksLegacy.help(button3.dataset.ayuda) ?? [t("legacyA.help.fallbackTitle"), "", []];
-      return `<b>${escapeHtml(title2)}</b>${escapeHtml(text)}${items.length ? `<ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul>` : ""}`;
+      const [title2, text2, items] = outsideClicksLegacy.help(button3.dataset.ayuda) ?? [t("legacyA.help.fallbackTitle"), "", []];
+      return `<b>${escapeHtml(title2)}</b>${escapeHtml(text2)}${items.length ? `<ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul>` : ""}`;
     }
     return `<b>${escapeHtml(orFallback(button3.dataset.ayudaTit, t("legacyA.help.whatIs")))}</b>${escapeHtml(button3.dataset.ayudaTxt ?? "")}`;
   }
@@ -23314,9 +23364,9 @@
   var LANGUAGE_RELOAD_KEY = "app-idioma-recarga";
   var DEFAULT_LANGUAGE = "es";
   var byId16 = (id) => document.getElementById(id);
-  var setText2 = (id, text) => {
+  var setText2 = (id, text2) => {
     const element = byId16(id);
-    if (element) element.textContent = text;
+    if (element) element.textContent = text2;
   };
   function applyLanguage(language) {
     let saved3 = DEFAULT_LANGUAGE;
@@ -23506,13 +23556,13 @@
     return t("legacyA.testStrip.couldNot", { error: error?.message ?? result?.error ?? "" });
   }
   async function reset() {
-    const text = await testStripLegacy.askText(
+    const text2 = await testStripLegacy.askText(
       t("legacyA.testStrip.resetText", { visits: term("visita", { number: "p" }), patients: term("paciente", { number: "p" }) }),
       "",
       { titulo: t("legacyA.testStrip.resetTitle"), ok: t("legacyA.testStrip.resetOk") }
     );
-    if (text === null) return;
-    if (text.trim().toUpperCase() !== RESET_WORD) {
+    if (text2 === null) return;
+    if (text2.trim().toUpperCase() !== RESET_WORD) {
       notices.toast(t("legacyA.testStrip.wordMismatch"), true);
       return;
     }
@@ -24191,8 +24241,8 @@
     paintCount(state2, repaint2);
   }
   function confirmChange(user, count, remove6) {
-    const text = t(remove6 ? "legacyA.portfolio.confirmRemove" : "legacyA.portfolio.confirmAssign", { count: formatNumber(count), professionals: term("medico", { number: "p" }), name: user.nombre });
-    return notices.confirm(text, { titulo: t(remove6 ? "legacyA.portfolio.removeTitle" : "legacyA.portfolio.assignTitle"), ok: t(remove6 ? "legacyA.portfolio.remove" : "legacyA.portfolio.assign"), peligro: remove6 });
+    const text2 = t(remove6 ? "legacyA.portfolio.confirmRemove" : "legacyA.portfolio.confirmAssign", { count: formatNumber(count), professionals: term("medico", { number: "p" }), name: user.nombre });
+    return notices.confirm(text2, { titulo: t(remove6 ? "legacyA.portfolio.removeTitle" : "legacyA.portfolio.assignTitle"), ok: t(remove6 ? "legacyA.portfolio.remove" : "legacyA.portfolio.assign"), peligro: remove6 });
   }
   var failureText8 = (error) => t("legacyA.portfolio.couldNot", { error: error?.message ?? t("legacyA.portfolio.noPermission") });
   function changedText(remove6, rows2, moved) {
@@ -24274,7 +24324,7 @@
       return { desde: start3, hasta: end };
     };
     Reflect.set(element, "__rango", range2);
-    const text = () => {
+    const text2 = () => {
       const current = range2(), label = element.querySelector(".perrango");
       if (!label) return;
       label.textContent = chosen4 === CUSTOM || chosen4 === ALL2 ? "" : current.desde === current.hasta ? periodLegacy.shortDate(current.desde) : `${periodLegacy.shortDate(current.desde)} – ${periodLegacy.shortDate(current.hasta)}`;
@@ -24288,16 +24338,16 @@
         from.value = start3 ?? "";
         until2.value = end ?? "";
       }
-      text();
+      text2();
       options3.alCambiar?.(range2());
     };
     const changed = () => {
-      text();
+      text2();
       options3.alCambiar?.(range2());
     };
     if (from) from.onchange = changed;
     if (until2) until2.onchange = changed;
-    text();
+    text2();
     return range2;
   }
 
@@ -24338,7 +24388,7 @@
   var TEXT_KEYS = ["q", "prov", "muni", "esp", "est", "com"];
   var SELECT_KEYS = ["prov", "muni", "esp", "est", "com"];
   var NOBODY = "ninguno";
-  var orNull2 = (text) => text ? text : null;
+  var orNull2 = (text2) => text2 ? text2 : null;
   function currentFilter() {
     const filters3 = accountsEditorLegacy.filters(), saved3 = {};
     TEXT_KEYS.forEach((key) => {
@@ -24428,9 +24478,9 @@
     return help4 ? `<button class="ai" data-ayuda-txt="${escapeHtml(help4)}" data-ayuda-tit="${escapeHtml(title2)}" aria-label="${t("home.indicators.whatIsIt")}">i</button>` : "";
   }
   function figure(raw) {
-    const text = String(raw), fraction = /^(\d+)\/(\d+)$/.exec(text);
+    const text2 = String(raw), fraction = /^(\d+)\/(\d+)$/.exec(text2);
     if (fraction) return `<b data-kvn="${fraction[1] ?? ""}">0</b><span class="kvu">/${fraction[2] ?? ""}</span>`;
-    return /^\d+$/.test(text) ? `<b data-kvn="${text}">0</b>` : `<b>${escapeHtml(text)}</b>`;
+    return /^\d+$/.test(text2) ? `<b data-kvn="${text2}">0</b>` : `<b>${escapeHtml(text2)}</b>`;
   }
   function indicatorCard(definition, setting2, context) {
     const title2 = setting2.t ? setting2.t : definition.t;
@@ -24577,7 +24627,7 @@
 
   // src/app/screens/purchases/list.ts
   var LATE_STYLE = "color:var(--danger);font-weight:700";
-  var loadingHtml = (text) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text)}</span></div>`;
+  var loadingHtml = (text2) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text2)}</span></div>`;
   function indicatorsHtml3(rows2) {
     const open2 = rows2.filter((row3) => OPEN_STATES.includes(row3.estado)), late = rows2.filter((row3) => row3.retrasada);
     const yearStart = `${todayIso().slice(0, 4)}-01-01`;
@@ -25816,8 +25866,8 @@
   ];
   function welcomeHtml(plan2) {
     const trialEnd = plan2.periodo_fin ? formatShortDate(plan2.periodo_fin) : "";
-    const steps = STEPS.map(([key, title2, text], index) => `<button type="button" class="bienpaso" data-bien="${key}"><span class="bienn">${index + 1}</span>
-      <span><b>${escapeHtml(t(title2))}</b><span class="sm">${escapeHtml(t(text, { professionals: term("medico", { number: "p" }) }))}</span></span></button>`).join("");
+    const steps = STEPS.map(([key, title2, text2], index) => `<button type="button" class="bienpaso" data-bien="${key}"><span class="bienn">${index + 1}</span>
+      <span><b>${escapeHtml(t(title2))}</b><span class="sm">${escapeHtml(t(text2, { professionals: term("medico", { number: "p" }) }))}</span></span></button>`).join("");
     return `<div class="fh"><div><h2>${t("access.welcome.title")}</h2>
       <div class="sm">${t("access.welcome.running", { app: escapeHtml(restLegacy.appName()) })}${plan2.en_prueba && plan2.periodo_fin ? t("access.welcome.trialUntil", { date: trialEnd }) : ""}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -25948,8 +25998,8 @@
     clearLocalData: () => {
       session_exports.clearLocalData();
     },
-    showLoadingScreen: (text) => {
-      showFullLoading(text);
+    showLoadingScreen: (text2) => {
+      showFullLoading(text2);
     },
     hideLoadingScreen: () => {
       hideFullLoading();
@@ -26783,11 +26833,11 @@
     legacyBActions.passwordMeter(document.getElementById("rp1"), document.getElementById("rp2"), document.getElementById("rok"));
   }
   function showAccessNotices() {
-    const notice2 = (text, ok) => {
+    const notice2 = (text2, ok) => {
       const message = document.getElementById("lmsg");
       if (!message) return;
       message.style.color = ok ? "var(--ok)" : "var(--dang)";
-      message.textContent = text;
+      message.textContent = text2;
     };
     if (new URLSearchParams(location.search).get("clave") === "cambiada") {
       setTimeout(() => {
@@ -27151,8 +27201,8 @@
   function mobileName(key) {
     const button3 = document.querySelector(`nav.main [data-t="${key}"]`);
     if (!button3) return key;
-    const text = menuLabelText(button3);
-    return orFallback(text?.get(), orFallback(button3.textContent, "")).replace("Pronto", "").trim();
+    const text2 = menuLabelText(button3);
+    return orFallback(text2?.get(), orFallback(button3.textContent, "")).replace("Pronto", "").trim();
   }
   function menuPosition(key) {
     let keys = [];
@@ -27293,11 +27343,11 @@
     document.querySelectorAll("main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]").forEach((button3) => {
       const actions = button3.closest("main > section")?.querySelector(":scope > .saludo .acts");
       if (!actions) return;
-      const text = button3.dataset.txt ?? button3.getAttribute("aria-label") ?? t("navigationCore.menu.add");
+      const text2 = button3.dataset.txt ?? button3.getAttribute("aria-label") ?? t("navigationCore.menu.add");
       button3.classList.remove("fab", "plfuera");
       delete button3.dataset.plfab;
       delete button3.dataset.txt;
-      button3.innerHTML = `${icon2("plus")} ${escapeHtml(text.replace(/^\s*\+\s*/, ""))}`;
+      button3.innerHTML = `${icon2("plus")} ${escapeHtml(text2.replace(/^\s*\+\s*/, ""))}`;
       actions.appendChild(button3);
     });
   }
@@ -27541,10 +27591,10 @@
     return t(profile6 && !profile6.activo ? "navigationCore.session.deactivatedUser" : "navigationCore.session.noProfile");
   }
   async function refuse(profile6) {
-    const text = await refusalText(profile6);
+    const text2 = await refusalText(profile6);
     localStorage.removeItem(PKEY);
     await db.auth.signOut();
-    showLogin(text);
+    showLogin(text2);
   }
   async function enter(profile6, saved3, roles2) {
     try {
@@ -27755,7 +27805,7 @@
     return members2.some((member) => member.id === me) ? members2 : [{ id: me, nombre: appLegacy.currentUserName() }, ...members2];
   }
   function editorHtml9(tender, existing, people) {
-    const value10 = (text) => escapeHtml(text ?? "");
+    const value10 = (text2) => escapeHtml(text2 ?? "");
     return `<div class="fh"><div><h2>${t(existing ? "tenders.editor.changeTitle" : "tenders.editor.newTitle")}</h2><div class="sm">${t("tenders.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <label for="cont">${t("tenders.editor.title")}</label><input id="cont" value="${value10(tender.titulo)}" placeholder="${t("tenders.editor.titlePlaceholder")}">
@@ -27879,8 +27929,8 @@
     const left = daysLeft(tender);
     if (left === null) return `<span class="pill p-warn">${t("tenders.list.noEndDate")}</span>`;
     if (left < 0) return `<span class="pill p-anu">${t("tenders.list.expired")}</span>`;
-    const text = left === 0 ? t("tenders.list.expiresToday") : left === 1 ? t("tenders.list.expiresInOneDay") : t("tenders.list.expiresInDays", { count: formatNumber(left) });
-    return `<span class="pill ${left <= warnDays ? "p-urg" : "p-est"}">${text}</span>`;
+    const text2 = left === 0 ? t("tenders.list.expiresToday") : left === 1 ? t("tenders.list.expiresInOneDay") : t("tenders.list.expiresInDays", { count: formatNumber(left) });
+    return `<span class="pill ${left <= warnDays ? "p-urg" : "p-est"}">${text2}</span>`;
   }
   function deadlinePill(tender) {
     if (!tender.limite) return "";
@@ -28320,7 +28370,7 @@
   var SOON_DAYS2 = 30;
   var SEARCH_WAIT_MS9 = 300;
   var listState = { query: "" };
-  var plain = (text) => String(text ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  var plain = (text2) => String(text2 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   function rowHtml16(item) {
     const details2 = [item.serie ? t("equipment.list.serial", { serial: item.serie }) : "", item.cuentas?.nombre, item.ubicacion, item.contrato].filter(Boolean).join(" · ");
     return `<button type="button" class="item conrow" data-eq="${item.id}"><span class="tx"><b>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</b>
@@ -28915,11 +28965,11 @@
     brandLogo: () => MARCA.logo ?? null,
     // Email page
     emailProviders: () => PROVEEDORES_CORREO,
-    withButtonLoading: (button3, text, work) => withLoading(button3, text, work),
+    withButtonLoading: (button3, text2, work) => withLoading(button3, text2, work),
     validateEmailLive: (input6) => {
       if (input6) liveEmailCheck(input6);
     },
-    helpButton: (title2, text) => pmAyu(title2, text),
+    helpButton: (title2, text2) => pmAyu(title2, text2),
     sendTestEmail: () => db.functions.invoke("enviar_email", { body: { prueba: true } }),
     /** Template chosen when sending (shared with Pedidos and Facturación). */
     chosenTemplate: (use) => billingStore.chosenTemplates[use] ?? null,
@@ -29034,8 +29084,8 @@
   function fillTemplate(use, field10, values2) {
     const list = templatesFor(use), chosen4 = settingsExtraLegacy.chosenTemplate(use);
     const template = list.find((item) => item.id === chosen4) ?? list.find((item) => item.defecto) ?? list[0];
-    const text = (template?.[field10] ?? "").trim() || defaultTemplate(use)[field10];
-    return text.replace(/\[(\w+)\]/g, (whole3, name) => name in values2 ? values2[name] ?? "" : whole3).replace(/ {2,}/g, " ").trim();
+    const text2 = (template?.[field10] ?? "").trim() || defaultTemplate(use)[field10];
+    return text2.replace(/\[(\w+)\]/g, (whole3, name) => name in values2 ? values2[name] ?? "" : whole3).replace(/ {2,}/g, " ").trim();
   }
   async function chooseTemplate2(use) {
     const list = templatesFor(use);
@@ -29219,8 +29269,8 @@
     },
     notificationAreas: () => NOTIF_AREAS,
     dailyNotifications: () => NOTIF_DIARIOS,
-    explainNotification: (key, text) => {
-      EXPLICA_NOTIF[key] = text;
+    explainNotification: (key, text2) => {
+      EXPLICA_NOTIF[key] = text2;
     },
     openManual: (anchor) => {
       void openManual(anchor || "");
@@ -29241,7 +29291,7 @@
     }
   };
   var polishLegacy = {
-    normalise: (text) => normaliseHeader(text ?? ""),
+    normalise: (text2) => normaliseHeader(text2 ?? ""),
     currentScreen: () => navigationStore.screen,
     polishedKeys: () => CFG_PULIR,
     settingsKey: () => CFG_KEY,
@@ -30130,8 +30180,8 @@
     toast: (message, isError = false) => {
       toast(message, !!isError);
     },
-    showLoading: (element, text) => {
-      showLoading(element, text);
+    showLoading: (element, text2) => {
+      showLoading(element, text2);
     },
     // Agenda
     viewedAgenda: () => agendaStore.viewedUser,
@@ -30182,7 +30232,7 @@
     repaintCalls: () => {
       void paintOpportunities();
     },
-    helpButton: (title2, text) => pmAyu(title2, text),
+    helpButton: (title2, text2) => pmAyu(title2, text2),
     // Fields, page save and icons
     fieldTable: (area) => CAMPO_TABLA[area],
     fieldTypes: () => TIPOS_CAMPO,
@@ -30351,21 +30401,21 @@
   }
   function customFieldInput(field10, current) {
     const attributes = `data-cpk="${escapeHtml(field10.clave)}" ${field10.solo_lectura ? "disabled" : ""}`;
-    const value10 = current ?? "", text = String(value10);
+    const value10 = current ?? "", text2 = String(value10);
     if (field10.tipo === "lista") {
-      const values2 = field10.valores ?? [], all = text !== "" && !values2.includes(text) ? [...values2, text] : values2;
+      const values2 = field10.valores ?? [], all = text2 !== "" && !values2.includes(text2) ? [...values2, text2] : values2;
       return `<select ${attributes}><option value=""></option>${all.map((item) => `<option ${item === value10 ? "selected" : ""}>${escapeHtml(item)}</option>`).join("")}</select>`;
     }
     if (field10.tipo === "si_no") return yesNo(attributes, value10);
-    if (field10.tipo === "fecha") return `<input type="date" ${attributes} value="${escapeHtml(text)}">`;
+    if (field10.tipo === "fecha") return `<input type="date" ${attributes} value="${escapeHtml(text2)}">`;
     if (field10.tipo === "numero") return `<input type="text" inputmode="decimal" ${attributes} value="${escapeHtml(String(value10).replace(".", ","))}">`;
-    return `<input ${attributes} value="${escapeHtml(text)}" maxlength="500" placeholder="${escapeHtml(field10.descripcion ?? "")}">`;
+    return `<input ${attributes} value="${escapeHtml(text2)}" maxlength="500" placeholder="${escapeHtml(field10.descripcion ?? "")}">`;
   }
   function wideNote(input6) {
     if (!input6 || input6.dataset.nota || input6.type !== "text") return;
     const label = input6.id ? document.querySelector(`label[for="${input6.id}"]`)?.textContent ?? "" : "";
-    const text = `${input6.id} ${input6.placeholder} ${label}`.toLowerCase();
-    if (!/\bnota|observac|comentario/.test(text) || text.includes("buscar")) return;
+    const text2 = `${input6.id} ${input6.placeholder} ${label}`.toLowerCase();
+    if (!/\bnota|observac|comentario/.test(text2) || text2.includes("buscar")) return;
     const area = document.createElement("textarea");
     [...input6.attributes].forEach((attribute) => {
       if (attribute.name !== "type" && attribute.name !== "value") area.setAttribute(attribute.name, attribute.value);
@@ -30406,17 +30456,17 @@
     return nodes;
   }
   function replaceEmojis(node, pattern) {
-    const parent = node.parentElement, text = node.nodeValue ?? "";
+    const parent = node.parentElement, text2 = node.nodeValue ?? "";
     if (!parent) return;
     if (parent.tagName === "OPTION" || parent.tagName === "TITLE") {
-      node.nodeValue = text.replace(pattern, "").replace(/^\s+/, "");
+      node.nodeValue = text2.replace(pattern, "").replace(/^\s+/, "");
       return;
     }
     const fragment = document.createDocumentFragment();
     let last = 0, match;
     pattern.lastIndex = 0;
-    while (match = pattern.exec(text)) {
-      if (match.index > last) fragment.appendChild(document.createTextNode(text.slice(last, match.index)));
+    while (match = pattern.exec(text2)) {
+      if (match.index > last) fragment.appendChild(document.createTextNode(text2.slice(last, match.index)));
       if (match[0] !== VARIATION_SELECTOR) {
         const icon3 = document.createElement("span");
         icon3.className = "icw";
@@ -30425,7 +30475,7 @@
       }
       last = match.index + match[0].length;
     }
-    if (last < text.length) fragment.appendChild(document.createTextNode(text.slice(last)));
+    if (last < text2.length) fragment.appendChild(document.createTextNode(text2.slice(last)));
     node.replaceWith(fragment);
   }
   function iconise(root) {
@@ -30478,9 +30528,9 @@
     const titles = [...page.cab.querySelectorAll("h1, h2"), ...[...page.cuerpo.querySelectorAll("h2, h3")].filter((title2) => !page.cab.contains(title2))];
     for (const title2 of titles) {
       if (!title2.getClientRects().length && !title2.classList.contains("cfudup")) continue;
-      const text = (title2.textContent ?? "").trim().toLowerCase();
-      if (text && text === previous) title2.classList.add("cfudup");
-      else previous = text;
+      const text2 = (title2.textContent ?? "").trim().toLowerCase();
+      if (text2 && text2 === previous) title2.classList.add("cfudup");
+      else previous = text2;
     }
   }
   var pressedBillingTab = () => document.querySelector(`${BILLING_SUB} button.on, ${BILLING_SUB} button[aria-pressed="true"]`);
@@ -30547,6 +30597,50 @@
     leftoversLegacy.markChanged();
   }
 
+  // src/app/core/modules-in-use.ts
+  var modules_in_use_exports = {};
+  __export(modules_in_use_exports, {
+    SECTOR_MODULES: () => SECTOR_MODULES,
+    SETTING_IN_USE: () => SETTING_IN_USE,
+    inUseSignature: () => inUseSignature,
+    isSectorModule: () => isSectorModule,
+    knowsModulesInUse: () => knowsModulesInUse,
+    moduleInUse: () => moduleInUse,
+    sectionShown: () => sectionShown,
+    settingsArrived: () => settingsArrived
+  });
+  var SECTOR_MODULES = ["cirugias", "deposito", "concursos", "parque"];
+  var SETTING_IN_USE = "modulos_en_uso";
+  var isSectorModule = (key) => SECTOR_MODULES.includes(key);
+  var CACHE_KEY = "dlc-modulos-en-uso";
+  var settingsHere = false;
+  var asInUse = (value10) => value10 && typeof value10 === "object" && !Array.isArray(value10) ? value10 : null;
+  function cached2() {
+    try {
+      return asInUse(JSON.parse(localStorage.getItem(CACHE_KEY) ?? "null"));
+    } catch {
+      return null;
+    }
+  }
+  var inUseSetting = () => asInUse(organisationLegacy.setting(SETTING_IN_USE)) ?? (settingsHere ? null : cached2());
+  var inUseSignature = () => SECTOR_MODULES.map(moduleInUse).join();
+  function settingsArrived() {
+    settingsHere = true;
+    const value10 = asInUse(organisationLegacy.setting(SETTING_IN_USE));
+    try {
+      if (value10) localStorage.setItem(CACHE_KEY, JSON.stringify(value10));
+      else localStorage.removeItem(CACHE_KEY);
+    } catch {
+    }
+  }
+  var knowsModulesInUse = () => inUseSetting() !== null;
+  function moduleInUse(key) {
+    if (!isSectorModule(key)) return true;
+    const inUse = inUseSetting();
+    return inUse === null || inUse[key] === true;
+  }
+  var sectionShown = (key) => planIncludesSection(key) && moduleInUse(key);
+
   // src/app/core/module-menus.ts
   function placeEntry(entry2) {
     const nav = document.querySelector("nav.main .in");
@@ -30558,7 +30652,7 @@
       neighbour.insertAdjacentHTML("afterend", `<button data-t="${entry2.screen}">${entry2.title()}</button>`);
       button3 = nav.querySelector(`[data-t="${entry2.screen}"]`);
     }
-    button3?.classList.toggle("hide", leftoversLegacy.isProfessionalPortal() || !leftoversLegacy.canUseModule(entry2.area));
+    button3?.classList.toggle("hide", leftoversLegacy.isProfessionalPortal() || !leftoversLegacy.canUseModule(entry2.area) || !moduleInUse(entry2.screen));
   }
   var menuCycle = () => {
     placeEntry({ screen: "ciclo", after: ["rutas", "agenda"], area: "agenda", title: () => t("leftovers.menu.cycle", { visits: term("visita", { number: "p" }) }) });
@@ -30589,22 +30683,22 @@
   var VARIABLE = /* @__PURE__ */ new Set(["10", "21", "22", "30", "37", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"]);
   var GROUP_SEPARATOR = "";
   var FIRST_YEAR = 2e3;
-  function gs1Date(text) {
-    if (!/^\d{6}$/.test(text ?? "")) return "";
-    const value10 = text ?? "", year = FIRST_YEAR + Number(value10.slice(0, 2)), month = Number(value10.slice(2, 4));
+  function gs1Date(text2) {
+    if (!/^\d{6}$/.test(text2 ?? "")) return "";
+    const value10 = text2 ?? "", year = FIRST_YEAR + Number(value10.slice(0, 2)), month = Number(value10.slice(2, 4));
     let day = Number(value10.slice(4, 6));
     if (month < 1 || month > 12) return "";
     if (!day) day = new Date(year, month, 0).getDate();
     return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   }
-  function bracketed(text) {
+  function bracketed(text2) {
     const fields = {}, pattern = /\((\d{2,4})\)([^(]*)/g;
     let match;
-    while (match = pattern.exec(text)) fields[match[1] ?? ""] = (match[2] ?? "").trim();
+    while (match = pattern.exec(text2)) fields[match[1] ?? ""] = (match[2] ?? "").trim();
     return fields;
   }
-  function separated(text) {
-    const value10 = text.replace(/^è|^\u001d/, "");
+  function separated(text2) {
+    const value10 = text2.replace(/^è|^\u001d/, "");
     if (!/^(01|02|00)\d/.test(value10)) return null;
     const fields = {};
     let index = 0;
@@ -30625,8 +30719,8 @@
     return fields;
   }
   function readGs1(raw) {
-    const text = String(raw ?? "").trim().replace(/^\](d2|C1|Q3|e0)/, "");
-    const fields = /^\(\d{2,4}\)/.test(text) ? bracketed(text) : separated(text);
+    const text2 = String(raw ?? "").trim().replace(/^\](d2|C1|Q3|e0)/, "");
+    const fields = /^\(\d{2,4}\)/.test(text2) ? bracketed(text2) : separated(text2);
     if (!fields || !fields["01"] && !fields["10"] && !fields["21"]) return null;
     return { gtin: fields["01"] ?? "", lote: fields["10"] ?? "", serie: fields["21"] ?? "", cad: gs1Date(fields["17"]), fab: gs1Date(fields["11"]) };
   }
@@ -30645,9 +30739,9 @@
   var VIBRATION_MS = 60;
   var session = null;
   var scannerWindow = () => document.getElementById("escaner");
-  var status = (text) => {
+  var status = (text2) => {
     const line2 = document.getElementById("escest");
-    if (line2 && line2.textContent !== text) line2.textContent = text;
+    if (line2 && line2.textContent !== text2) line2.textContent = text2;
   };
   var modeOf2 = (input6) => FIELDS4.find(([selector]) => input6.matches(selector))?.[1] ?? "";
   var unitsText = (count) => count === 1 ? t("leftovers.scanner.oneUnit") : t("leftovers.scanner.units", { count });
@@ -30745,10 +30839,10 @@
     if (gs1.cad && expiry && !expiry.value) setValue(expiry, gs1.cad);
     if (gs1.fab && made && !made.value) setValue(made, gs1.fab);
   }
-  function onRead(text) {
+  function onRead(text2) {
     const current = session;
-    if (!current?.live || !text) return;
-    const { v: value10, g: gs1 } = scannedValue(text, current.mode);
+    if (!current?.live || !text2) return;
+    const { v: value10, g: gs1 } = scannedValue(text2, current.mode);
     if (!value10) return;
     if (current.group.length > 1) {
       readIntoGroup(current, value10);
@@ -31462,7 +31556,7 @@
 
   // src/app/screens/home/alert-key.ts
   var MAX_LENGTH = 60;
-  var normaliseAlert = (text) => String(text).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").slice(0, MAX_LENGTH);
+  var normaliseAlert = (text2) => String(text2).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").slice(0, MAX_LENGTH);
   function alertKey(title2, item) {
     const { inificha, iniped, inistock, inicomp } = item.dataset, id = [inificha, iniped, inistock, inicomp].find(Boolean);
     return `${normaliseAlert(title2)}:${id ?? normaliseAlert((item.querySelector(".tx b") ?? item).textContent)}`;
@@ -31932,7 +32026,7 @@
   var NAMED_TOWNS = 2;
   var weekdayName2 = (letter) => t("dates.weekdaysLong").split(",")[WEEKDAYS2.indexOf(letter)] ?? "";
   var weekdayShort = (letter) => capitalise(weekdayName2(letter).slice(0, 3));
-  var titleCase = (text) => String(text ?? "").toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (...parts) => (parts[1] ?? "") + (parts[2] ?? "").toUpperCase());
+  var titleCase = (text2) => String(text2 ?? "").toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (...parts) => (parts[1] ?? "") + (parts[2] ?? "").toUpperCase());
   function monthlyRule(repeat, date) {
     if (Number(repeat.semana) === LAST_WEEK) {
       const next = new Date(date);
@@ -32075,7 +32169,7 @@
   __export(title_case_exports, {
     titleCase: () => titleCase2
   });
-  var titleCase2 = (text) => String(text ?? "").toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (...groups2) => (groups2[1] ?? "") + (groups2[2] ?? "").toUpperCase());
+  var titleCase2 = (text2) => String(text2 ?? "").toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (...groups2) => (groups2[1] ?? "") + (groups2[2] ?? "").toUpperCase());
 
   // src/app/screens/routes/suggestions.ts
   var LIMIT5 = 40;
@@ -32420,8 +32514,8 @@
     },
     materials: () => productsStore.presentationMaterials,
     linkError: () => ENLACE_ERROR,
-    accessWithoutActivation: (text) => {
-      showNotActivated(text);
+    accessWithoutActivation: (text2) => {
+      showNotActivated(text2);
     }
   };
 
@@ -33241,7 +33335,7 @@
   function tendersPage() {
     const page = {
       t: t("legacyD.sales.tenders"),
-      permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule("ventas"),
+      permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule("ventas") && moduleInUse("concursos"),
       tabs: [
         ["marcha", t("legacyD.sales.tendersOpen"), () => menuLegacy.paintTenders("marcha")],
         ["contratos", t("legacyD.sales.tendersContracts"), () => menuLegacy.paintTenders("contratos")],
@@ -33254,7 +33348,7 @@
   function equipmentPage() {
     const page = {
       t: t("legacyD.sales.equipment"),
-      permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule("ventas") && menuLegacy.planIncludesSection("parque"),
+      permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule("ventas") && menuLegacy.planIncludesSection("parque") && moduleInUse("parque"),
       tabs: [["lista", t("legacyD.sales.equipmentTab"), () => menuLegacy.paintEquipment()]]
     };
     Object.defineProperty(page, "d", { get: () => t("legacyD.sales.equipmentHint") });
@@ -33517,14 +33611,14 @@
       if (heading && polishLegacy.normalise(heading.textContent) === title2) heading.classList.add("cfudup");
       const children = [...card3.children];
       if (!children.length || !children.every((child) => child.matches("h2, p"))) return;
-      const text = [...card3.querySelectorAll(":scope > p")].map((paragraph) => (paragraph.textContent ?? "").trim()).join(" ");
-      if (header2 && text) {
+      const text2 = [...card3.querySelectorAll(":scope > p")].map((paragraph) => (paragraph.textContent ?? "").trim()).join(" ");
+      if (header2 && text2) {
         let paragraph = header2.querySelector("p");
         if (!paragraph) {
           paragraph = document.createElement("p");
           header2.appendChild(paragraph);
         }
-        paragraph.textContent = text;
+        paragraph.textContent = text2;
       }
       card3.remove();
     });
@@ -33592,10 +33686,10 @@
   function backupRow(body3) {
     const state2 = body3.querySelector(".copiaest"), button3 = byId19("copok");
     if (!state2 || !button3 || state2.contains(button3)) return;
-    const actions = button3.closest(".acts"), text = document.createElement("div");
+    const actions = button3.closest(".acts"), text2 = document.createElement("div");
     state2.classList.add("copiafila");
-    [...state2.children].forEach((child) => text.appendChild(child));
-    state2.append(text, button3);
+    [...state2.children].forEach((child) => text2.appendChild(child));
+    state2.append(text2, button3);
     if (actions && !actions.children.length) actions.remove();
   }
   function polishBase(key) {
@@ -33682,6 +33776,88 @@
     }).observe(settings2, { childList: true, subtree: true });
   }
 
+  // src/app/screens/settings/rules/modules.ts
+  var CARDS = {
+    cirugias: { key: "cirugias", texts: "surgeries", create: () => editSurgery(null), open: "cirugias" },
+    concursos: { key: "concursos", texts: "tenders", create: () => editTender(null), open: "concursos" },
+    deposito: { key: "deposito", texts: "deposit", create: () => {
+      chooseCentre();
+    } },
+    parque: { key: "parque", texts: "equipment", create: () => {
+      goTo("productos");
+    }, open: "parque" }
+  };
+  var text = (card3, part) => t(`settingsRules.modules.${card3.texts}.${part}`);
+  function moduleCardHtml(key) {
+    const card3 = CARDS[key], id = `mu${key}`;
+    if (moduleInUse(key)) {
+      return `<div class="card cfgpanel" id="${id}" data-en-uso="1"><h2>${text(card3, "title")}</h2>
+      <p class="sm"><span class="pill p-est">${t("settingsRules.modules.inUse")}</span> ${text(card3, "used")}</p>
+      ${card3.open ? `<div class="acts u-start"><button type="button" class="btn sec" id="${id}ir">${text(card3, "open")}</button></div>` : ""}</div>`;
+    }
+    return `<div class="card cfgpanel" id="${id}" data-en-uso="0"><h2>${text(card3, "title")}</h2>
+    <div class="vacio vguia"><b>${text(card3, "none")}</b><span>${text(card3, "hint")}</span>
+      <button type="button" class="btn" id="${id}crear">${text(card3, "create")}</button></div></div>`;
+  }
+  async function refreshModulesInUse() {
+    const { data, error } = await callRpc("modulos_en_uso");
+    if (error || !data || typeof data !== "object") return;
+    const before = JSON.stringify(cycleLegacy.setting(SETTING_IN_USE) ?? null);
+    cycleLegacy.setSetting(SETTING_IN_USE, data);
+    if (before === JSON.stringify(data)) return;
+    shellLegacy.applyMenuPermissions();
+    for (const key of Object.keys(CARDS)) {
+      const shown3 = document.getElementById(`mu${key}`);
+      if (shown3) {
+        shown3.outerHTML = moduleCardHtml(key);
+        bindModuleCard(key);
+      }
+    }
+  }
+  function refreshWhenClosed() {
+    const dialog7 = document.getElementById("dlg");
+    dialog7?.addEventListener("close", () => {
+      void refreshModulesInUse();
+    }, { once: true });
+  }
+  function bindModuleCard(key) {
+    const card3 = CARDS[key], create = document.getElementById(`mu${key}crear`), open2 = document.getElementById(`mu${key}ir`);
+    if (create) create.onclick = async () => {
+      await card3.create();
+      refreshWhenClosed();
+    };
+    if (open2 && card3.open) {
+      const page = card3.open;
+      open2.onclick = () => {
+        goTo(page);
+      };
+    }
+  }
+  function chooseCentre() {
+    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    body3.innerHTML = `<div class="fh"><div><h2>${t("settingsRules.modules.deposit.chooseTitle")}</h2><div class="sm">${t("settingsRules.modules.deposit.chooseHint")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label>${t("settingsRules.modules.deposit.centre")}</label><div id="mudepcta"></div>
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar>${t("common.cancel")}</button></div>`;
+    if (!box3.open) box3.showModal();
+    editorLegacy.pickAccount(document.getElementById("mudepcta"), null, async (account) => {
+      if (!account.id) {
+        notices.toast(t("settingsRules.modules.deposit.noCentre"), true);
+        return;
+      }
+      await showDeposit(account.id, account.nombre ?? "", "");
+      refreshWhenClosed();
+    }, t("settingsRules.modules.deposit.centrePlaceholder"));
+  }
+  async function paintWithModule(key, cards2 = []) {
+    await paintRuleCards([{ id: `mu${key}`, html: () => moduleCardHtml(key), save: () => Promise.resolve() }, ...cards2]);
+    bindModuleCard(key);
+  }
+  var paintContractsSettings = () => paintWithModule("concursos");
+  var paintConsignmentSettings = () => paintWithModule("deposito");
+  var paintInstalledSettings = () => paintWithModule("parque");
+
   // src/app/screens/settings/rules/sales.ts
   var REPLENISH = "rgrepo";
   var TAXES = "rgiva";
@@ -33711,9 +33887,9 @@
     const current = cycleLegacy.setting(SETTING_SERVICES) ?? {};
     await saveRule(SETTING_SERVICES, { ...current, reposicion_horas: hours2 });
   }
-  var paintServicesSettings = () => paintRuleCards([{ id: REPLENISH, html: replenishHtml2, save: saveReplenish }]);
+  var paintServicesSettings = () => paintWithModule("cirugias", [{ id: REPLENISH, html: replenishHtml2, save: saveReplenish }]);
   function ratesText() {
-    return vatRates().map(([rate, text]) => `${formatNumber(rate)} ${text.includes(" · ") ? text.slice(0, text.lastIndexOf(" · ")) : ""}`.trim()).join("\n");
+    return vatRates().map(([rate, text2]) => `${formatNumber(rate)} ${text2.includes(" · ") ? text2.slice(0, text2.lastIndexOf(" · ")) : ""}`.trim()).join("\n");
   }
   function parseRate(line2) {
     const match = /^(\d{1,3}(?:[.,]\d{1,2})?)\s*%?\s*(.*)$/.exec(line2.trim());
@@ -33721,7 +33897,7 @@
     const rate = Number((match[1] ?? "").replace(",", "."));
     return rate >= 0 && rate <= MAX_RATE2 ? { tipo: rate, nombre: (match[2] ?? "").trim() } : null;
   }
-  var rateOptions = () => vatRates().map(([rate, text]) => ({ value: String(rate), text }));
+  var rateOptions = () => vatRates().map(([rate, text2]) => ({ value: String(rate), text: text2 }));
   function taxesHtml() {
     const options3 = rateOptions(), row3 = (id, label, help4, value10) => selectRowHtml({ id: `${TAXES}${id}`, label: t(label), help: t(help4), value: String(value10), options: options3 });
     return ruleCardHtml({ id: TAXES, title: t("settingsRules.taxes.title"), info: t("settingsRules.taxes.info"), intro: t("settingsRules.taxes.intro"), rows: [
@@ -33826,10 +34002,6 @@
     company[1].splice(index + 1, 0, { k: "o.textos", t: t("legacyD.tree.texts"), ic: "file-text", d: t("legacyD.tree.textsHint"), r: () => treeLegacy.paintTexts() });
   }
   function addDataEntries(tree) {
-    if (treeLegacy.can("administrar") && treeLegacy.canUseModule("ventas")) {
-      const data2 = groupOf2(tree, t("legacyD.tree.data"));
-      if (!data2[1].some((item) => item.k === "distribuidores")) data2[1].push({ k: "distribuidores", t: t("legacyD.tree.distributors"), ic: "package", d: t("legacyD.tree.distributorsHint"), r: () => treeLegacy.paintDistributors() });
-    }
     if (!(treeLegacy.canEditCatalogs() || treeLegacy.can("administrar"))) return;
     const data = groupOf2(tree, t("legacyD.tree.data"));
     if (data[1].some((item) => item.k === "estados")) return;
@@ -33868,13 +34040,21 @@
       } : item);
     }
   }
+  function salesEntries() {
+    const sales = treeLegacy.canUseModule("ventas"), items = [];
+    if (treeLegacy.canUseModule("agenda") && planIncludesSection("cirugias")) items.push({ k: "servicios", t: t("settingsRules.servicesEntry"), ic: "package", d: t("settingsRules.servicesHint"), r: () => paintServicesSettings() });
+    if (sales && planIncludesSection("concursos")) items.push({ k: "contratos", t: t("settingsRules.contractsEntry"), ic: "file-text", d: t("settingsRules.contractsHint"), r: () => paintContractsSettings() });
+    if (sales) items.push({ k: "distribuidores", t: t("legacyD.tree.distributors"), ic: "package", d: t("legacyD.tree.distributorsHint"), r: () => treeLegacy.paintDistributors() });
+    return items;
+  }
   function addSalesAndTaxes(tree) {
     if (treeLegacy.canManageOrganisation() && treeLegacy.canUseModule("ventas")) {
       const billing = groupOf2(tree, t("legacyD.tree.billing"));
       if (!billing[1].some((item) => item.k === "impuestos")) billing[1].push({ k: "impuestos", t: t("settingsRules.taxesEntry"), ic: "receipt", d: t("settingsRules.taxesHint"), r: () => paintTaxesSettings() });
     }
-    if (!treeLegacy.can("administrar") || !permissions.canSeeArea("cirugias") || tree.some((group) => group[0] === t("settingsRules.sales"))) return;
-    const sales = [t("settingsRules.sales"), [{ k: "servicios", t: t("settingsRules.servicesEntry"), ic: "package", d: t("settingsRules.servicesHint"), r: () => paintServicesSettings() }]];
+    if (!treeLegacy.can("administrar") || tree.some((group) => group[0] === t("settingsRules.sales"))) return;
+    const sales = [t("settingsRules.sales"), salesEntries()];
+    if (!sales[1].length) return;
     const data = tree.findIndex((group) => group[0] === t("legacyD.tree.data"));
     tree.splice(data < 0 ? tree.length : data, 0, sales);
   }
@@ -33897,7 +34077,10 @@
       tpv: t("legacyD.tree.cardPaymentWords"),
       "o.pruebas": t("legacyD.tree.testEnvironmentWords"),
       impuestos: t("settingsRules.taxesWords"),
-      servicios: t("settingsRules.servicesWords")
+      servicios: t("settingsRules.servicesWords"),
+      contratos: t("settingsRules.contractsWords"),
+      "stock.consigna": t("settingsRules.consignmentWords"),
+      "stock.activos": t("settingsRules.installedWords")
     });
   }
 
@@ -34004,7 +34187,7 @@
     iconOf: (name) => svgIco(ICON_NOM[name ?? ""] ?? ""),
     tree: () => settingsTree2(),
     searchWords: (key) => CFG_CLAVES[key] ?? "",
-    normalise: (text) => normaliseHeader(text),
+    normalise: (text2) => normaliseHeader(text2),
     polish: () => {
       try {
         polishSettings();
@@ -34160,7 +34343,7 @@
   var DAY_MS6 = 864e5;
   var BACKUP_MAX_DAYS = 7;
   var BACKUP_ACTION = "Copia de seguridad";
-  var cached2 = { at: 0, list: {} };
+  var cached3 = { at: 0, list: {} };
   async function backupNotice() {
     const { data } = await legacyDb().from("auditoria").select("creado_en").eq("accion", BACKUP_ACTION).order("creado_en", { ascending: false }).limit(1);
     const last = data?.[0];
@@ -34181,14 +34364,14 @@
     }
   }
   async function pendingSettings() {
-    if (Date.now() - cached2.at < CACHE_MS) return cached2.list;
+    if (Date.now() - cached3.at < CACHE_MS) return cached3.list;
     const list = {};
     try {
       if (!shellLegacy.hasDeparture() && shellLegacy.canUseModule("agenda")) list["rutas.salida"] = t("settingsShell.pending.noDeparture");
     } catch {
     }
     if (shellLegacy.canManageOrganisation()) await organisationNotices(list);
-    cached2 = { at: Date.now(), list };
+    cached3 = { at: Date.now(), list };
     return list;
   }
 
@@ -34334,7 +34517,7 @@
   function filterIndex(view, query) {
     let shown3 = 0;
     view.querySelectorAll("#cfulista [data-ck]").forEach((button3) => {
-      const text = searchText3(button3.dataset.ck ?? ""), found = !query || query.split(/\s+/).every((word) => text.includes(word));
+      const text2 = searchText3(button3.dataset.ck ?? ""), found = !query || query.split(/\s+/).every((word) => text2.includes(word));
       button3.classList.toggle("hide", !found);
       if (found) shown3++;
     });
@@ -34380,11 +34563,11 @@
   function showPending(view) {
     void pendingSettings().then((list) => {
       if (!byId21("cfulista")) return;
-      Object.entries(list).forEach(([key, text]) => {
+      Object.entries(list).forEach(([key, text2]) => {
         const button3 = [...view.querySelectorAll("#cfulista [data-ck]")].find((candidate) => key === candidate.dataset.ck || key.startsWith(`${candidate.dataset.ck ?? ""}.`));
         if (button3 && !button3.querySelector(".cfupt")) {
           button3.insertAdjacentHTML("beforeend", '<span class="cfupt"></span>');
-          button3.title = text;
+          button3.title = text2;
         }
       });
       const notice2 = byId21("cfupend"), own = list[shellLegacy.key()];
@@ -35030,7 +35213,7 @@
   }
   var TRAIL_LENGTH = 25;
   var TRAIL_TEXT = 50;
-  var firstText = (...texts3) => texts3.find((text) => Boolean(text)) ?? "";
+  var firstText = (...texts3) => texts3.find((text2) => Boolean(text2)) ?? "";
   function recordTrail() {
     document.addEventListener("click", (event) => {
       const target = event.target instanceof Element ? event.target.closest("button, a, [data-t], [data-cfg], .dr, .trow") : null;
@@ -35048,8 +35231,8 @@
     notice2.classList.add("hide");
     notice2.dataset.comprobado = "1";
     try {
-      const text = await (await fetch("./sw.js", { cache: "no-store" })).text();
-      const newer = /dlc-os-([\d.]+)/.exec(text)?.[1];
+      const text2 = await (await fetch("./sw.js", { cache: "no-store" })).text();
+      const newer = /dlc-os-([\d.]+)/.exec(text2)?.[1];
       if (newer && newer !== current) notice2.classList.remove("hide");
     } catch {
     }
@@ -35087,8 +35270,8 @@
     });
     const title2 = document.querySelector("#dircab h1");
     if (title2) {
-      const text = [...title2.childNodes].find(isText);
-      if (text) text.nodeValue = name;
+      const text2 = [...title2.childNodes].find(isText);
+      if (text2) text2.nodeValue = name;
       else title2.insertAdjacentText("afterbegin", name);
     }
     const back = byId("calvolver");
@@ -35402,10 +35585,10 @@
     const homeOld = t("legacyC.kpis.homeOld"), homeNew = t("legacyC.kpis.homeNew"), old = t("legacyC.kpis.old"), renamed = t("legacyC.kpis.new");
     const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
-      const text = walker.currentNode, value10 = text.nodeValue ?? "", trimmed = value10.trim();
+      const text2 = walker.currentNode, value10 = text2.nodeValue ?? "", trimmed = value10.trim();
       if (!trimmed.includes(homeOld) && trimmed !== old) continue;
       const renamedHome = value10.replace(homeOld, homeNew);
-      text.nodeValue = renamedHome.trim() === old ? renamedHome.replace(old, renamed) : renamedHome;
+      text2.nodeValue = renamedHome.trim() === old ? renamedHome.replace(old, renamed) : renamedHome;
     }
   }
   function renameIndicators() {
@@ -35437,7 +35620,7 @@
     const select = document.createElement("select"), rates = vatRates();
     select.className = "ivasel";
     if (input6.disabled || input6.readOnly) select.disabled = true;
-    select.innerHTML = rates.map(([rate, text]) => `<option value="${rate}" ${rate === value10 ? "selected" : ""}>${text}</option>`).join("") + (value10 !== "" && !rates.some((rate) => rate[0] === value10) ? `<option value="${value10}" selected>${t("legacyC.vat.unusual", { rate: value10 })}</option>` : "");
+    select.innerHTML = rates.map(([rate, text2]) => `<option value="${rate}" ${rate === value10 ? "selected" : ""}>${text2}</option>`).join("") + (value10 !== "" && !rates.some((rate) => rate[0] === value10) ? `<option value="${value10}" selected>${t("legacyC.vat.unusual", { rate: value10 })}</option>` : "");
     return select;
   }
   function replaceWithSelect(input6) {
@@ -35616,8 +35799,8 @@
       input6.blur();
     }, true);
   }
-  async function withLoading(button3, text, work) {
-    if (!button3 || !(button3.id === "iniact" || button3.classList.contains("icoredondo") || button3.classList.contains("icobtn"))) return withLoading2(button3, text, work);
+  async function withLoading(button3, text2, work) {
+    if (!button3 || !(button3.id === "iniact" || button3.classList.contains("icoredondo") || button3.classList.contains("icobtn"))) return withLoading2(button3, text2, work);
     if (button3.dataset.cargando) return void 0;
     button3.dataset.cargando = "1";
     button3.disabled = true;
@@ -35662,12 +35845,12 @@
     const walker = document.createTreeWalker(popup, NodeFilter.SHOW_TEXT);
     let first = true;
     while (walker.nextNode()) {
-      const text = walker.currentNode, parent = text.parentElement;
+      const text2 = walker.currentNode, parent = text2.parentElement;
       if (!parent || parent.tagName === "B" || parent.closest("li")) continue;
-      const value10 = text.nodeValue ?? "";
+      const value10 = text2.nodeValue ?? "";
       if (first && value10.length > FIRST_SENTENCE_CHARS) {
         const cut = value10.slice(0, FIRST_SENTENCE_CHARS);
-        text.nodeValue = `${cut.slice(0, Math.max(cut.lastIndexOf(". ") + 1, cut.lastIndexOf(" ")))}…`;
+        text2.nodeValue = `${cut.slice(0, Math.max(cut.lastIndexOf(". ") + 1, cut.lastIndexOf(" ")))}…`;
       }
       first = false;
     }
@@ -35798,8 +35981,8 @@
   // src/app/screens/settings/time-zone/holidays.ts
   var TEXT_ROWS = 6;
   var shownDate = (value10) => value10.split("-").reverse().join("/");
-  function storedDate(text) {
-    const parts = text.trim().split(/[/.-]/).map((part) => part.trim());
+  function storedDate(text2) {
+    const parts = text2.trim().split(/[/.-]/).map((part) => part.trim());
     if (parts.length < 2 || parts.length > 3 || parts.some((part) => !/^\d+$/.test(part))) return "";
     const [day = "", month = "", year] = parts, pad3 = (part) => part.padStart(2, "0");
     const value10 = year ? `${year}-${pad3(month)}-${pad3(day)}` : `${pad3(month)}-${pad3(day)}`;
@@ -36128,8 +36311,8 @@
   }
   function unclassifiedHtml(count) {
     if (!count) return "";
-    const text = count === 1 ? t("cycle.current.oneUnclassified", words11()) : t("cycle.current.unclassified", { ...words11(), count: formatNumber(count) });
-    return `<div class="banda-aviso cicsin">${text}${t("cycle.current.unclassifiedTail")}
+    const text2 = count === 1 ? t("cycle.current.oneUnclassified", words11()) : t("cycle.current.unclassified", { ...words11(), count: formatNumber(count) });
+    return `<div class="banda-aviso cicsin">${text2}${t("cycle.current.unclassifiedTail")}
       <button type="button" class="btn sec" id="cicirclas">${t("cycle.classify")}</button></div>`;
   }
   function missingHtml(data) {
@@ -36487,8 +36670,8 @@
   function addPanelButtons() {
     const nav = document.getElementById("nav");
     if (!nav) return;
-    PANEL_SECCIONES.forEach(([key = "", , text = "", icon3 = ""]) => {
-      if (!nav.querySelector(`[data-t="${key}"]`)) nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" class="hide pdsec">${escapeHtml(text)}</button>`);
+    PANEL_SECCIONES.forEach(([key = "", , text2 = "", icon3 = ""]) => {
+      if (!nav.querySelector(`[data-t="${key}"]`)) nav.insertAdjacentHTML("beforeend", `<button data-t="${key}" class="hide pdsec">${escapeHtml(text2)}</button>`);
       navIcons()[key] = icon3;
     });
   }
@@ -36544,7 +36727,7 @@
     navIcons().cirugias = "scissors";
     moduleIcons().cirugias = svgIco(ICON_NOM.scissors ?? "");
     addToGroup("dia", "cirugias");
-    const page = { t: t("legacyC.pages.surgeries.title"), permiso: () => !ES_MEDICO() && permissions_exports.canUseModule("agenda"), tabs: [["lista", t("legacyC.pages.surgeries.title"), () => paintSurgeries()]] };
+    const page = { t: t("legacyC.pages.surgeries.title"), permiso: () => !ES_MEDICO() && permissions_exports.canUseModule("agenda") && modules_in_use_exports.moduleInUse("cirugias"), tabs: [["lista", t("legacyC.pages.surgeries.title"), () => paintSurgeries()]] };
     pages3().cirugias = page;
     Object.defineProperty(page, "d", { get: () => t("legacyC.pages.surgeries.description") });
   }
@@ -37310,8 +37493,8 @@
     return t("legacyC.agenda.attends", { who: who2, day, windows, arrival });
   }
   function explainNotice(info) {
-    const text = info.orden && !info.lejos ? t("legacyC.agenda.order") : attendanceText(info);
-    return info.otroCentro ? text.replace(t("legacyC.agenda.accordingTo"), t("legacyC.agenda.otherCentre", { place: info.otroCentro })) : text;
+    const text2 = info.orden && !info.lejos ? t("legacyC.agenda.order") : attendanceText(info);
+    return info.otroCentro ? text2.replace(t("legacyC.agenda.accordingTo"), t("legacyC.agenda.otherCentre", { place: info.otroCentro })) : text2;
   }
 
   // src/app/core/legacy-c/company.ts
@@ -37715,7 +37898,7 @@
     <text x="100" y="96" class="dn1">${formatNumber(total)}</text><text x="100" y="116" class="dn2">${t("components.charts.units")}</text></svg>
     <div class="donutley">${items.map((item, index) => `<span><i style="background:${colour(index)}"></i>${escapeHtml(item.n)} <b>${Math.round(item.v / total * 100)}%</b></span>`).join("")}</div></div>`;
   }
-  var emptyChart = (text) => `<div class="gvacio"><span>📊</span><b>${t("components.charts.noData")}</b><span class="sm">${escapeHtml(text)}</span></div>`;
+  var emptyChart = (text2) => `<div class="gvacio"><span>📊</span><b>${t("components.charts.noData")}</b><span class="sm">${escapeHtml(text2)}</span></div>`;
 
   // src/app/components/loading.ts
   var loading_exports = {};
@@ -37738,8 +37921,8 @@
   var hideFullLoading = () => {
     document.getElementById("cargatotal")?.classList.add("hide");
   };
-  function showLoading(element, text) {
-    if (element) element.innerHTML = `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(orFallback(text, t("components.loading.default")))}</span></div>`;
+  function showLoading(element, text2) {
+    if (element) element.innerHTML = `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(orFallback(text2, t("components.loading.default")))}</span></div>`;
   }
   var cardSkeleton = (title2) => `<h2>${escapeHtml(title2)}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div>`;
 
@@ -37987,7 +38170,7 @@
     set("cp", address.postcode ?? "");
     set("provincia", (address.province ?? address.state_district ?? address.county ?? address.state ?? "").toUpperCase());
   }
-  var geoText = (text) => String(text ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  var geoText = (text2) => String(text2 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
   var placeOf3 = (found) => {
     const address = found?.address ?? {};
     return address.city ?? address.town ?? address.village ?? address.municipality ?? address.suburb ?? address.county ?? "";
@@ -38055,7 +38238,7 @@
       coreLegacy.toast(t("core.maps.noGeolocation"), true);
       return;
     }
-    const text = button3.textContent;
+    const text2 = button3.textContent;
     button3.disabled = true;
     button3.textContent = t("core.maps.locating");
     try {
@@ -38067,7 +38250,7 @@
       coreLegacy.toast(t("core.maps.locationFailed"), true);
     } finally {
       button3.disabled = false;
-      button3.textContent = text;
+      button3.textContent = text2;
     }
   }
 
@@ -38419,10 +38602,10 @@
       label.textContent = value10;
       setTip(value10);
     } };
-    const text = [...button3.childNodes].find((node) => node.nodeType === Node.TEXT_NODE && (node.nodeValue ?? "").trim());
-    if (!text) return null;
-    return { get: () => (text.nodeValue ?? "").trim(), set: (value10) => {
-      text.nodeValue = (text.nodeValue ?? "").replace((text.nodeValue ?? "").trim(), value10);
+    const text2 = [...button3.childNodes].find((node) => node.nodeType === Node.TEXT_NODE && (node.nodeValue ?? "").trim());
+    if (!text2) return null;
+    return { get: () => (text2.nodeValue ?? "").trim(), set: (value10) => {
+      text2.nodeValue = (text2.nodeValue ?? "").replace((text2.nodeValue ?? "").trim(), value10);
       setTip(value10);
     } };
   }
@@ -38443,9 +38626,13 @@
   var LOGO_PLACES = "header .logo, .lbox img, #bootsplash img";
   async function loadSettings() {
     const { data } = await legacyDb().rpc("ajustes_lista");
+    const before = inUseSignature();
     settingsCoreLegacy.setSettings(data ?? {});
+    settingsArrived();
+    const menuChanges = before !== inUseSignature();
     settingsCoreLegacy.applyLabel();
     if (settingsCoreLegacy.hasProfile()) settingsCoreLegacy.organisationMenu();
+    if (menuChanges && settingsCoreLegacy.hasProfile()) shellLegacy.applyMenuPermissions();
   }
   function keepOrRestoreCatalogs(catalogs2) {
     try {
@@ -38740,7 +38927,10 @@
         // v2.463.0 (PRO-3): the usual delivery lead time, saved by an administrator
         ...admin ? [["compras", t("purchases.settings.part"), wrap2(paintPurchaseSettings)]] : [],
         // v2.466.0 (VIS-1): controlled deliveries (today, medicine samples)
-        ...admin ? [["entregas", t("settingsRules.deliveries.entry"), wrap2(paintDeliverySettings)]] : []
+        ...admin ? [["entregas", t("settingsRules.deliveries.entry"), wrap2(paintDeliverySettings)]] : [],
+        // v2.469.0 (CFG-1): whether the company uses the deposit and the installed equipment, and how to start
+        ...admin && planIncludesSection("deposito") ? [["consigna", t("settingsRules.consignmentEntry"), wrap2(paintConsignmentSettings)]] : [],
+        ...admin && planIncludesSection("parque") ? [["activos", t("settingsRules.installedEntry"), wrap2(paintInstalledSettings)]] : []
       ] });
     }
     return items;
@@ -38844,7 +39034,7 @@
     hideLoading: () => {
       hideFullLoading();
     },
-    withButtonLoading: (button3, text, work) => withLoading(button3, text, work),
+    withButtonLoading: (button3, text2, work) => withLoading(button3, text2, work),
     registerError: (type, message, detail) => {
       errors_exports.registerError(type, message, detail);
     },
@@ -39081,7 +39271,7 @@
   var MAX_MONTHS2 = 36;
   var MS_PER_DAY = 864e5;
   var LETTERS2 = "DLMXJVS";
-  var split = (text) => text.split(",");
+  var split = (text2) => text2.split(",");
   var localIso = (date) => toIsoDate(date);
   var today = () => todayIso();
   var plusDays = (isoDate, days) => addDays(isoDate, days);
@@ -39197,7 +39387,7 @@
     const key = FIELD_NAMES.get(name);
     return key ? t(key) : name;
   };
-  var chips = (name, list, selected2) => `<div class="rpchips" data-rp="${name}">${list.map(([value10, text]) => `<button type="button" data-v="${escapeHtml(value10)}" class="${value10 === selected2 ? "on" : ""}">${escapeHtml(text)}</button>`).join("")}</div>`;
+  var chips = (name, list, selected2) => `<div class="rpchips" data-rp="${name}">${list.map(([value10, text2]) => `<button type="button" data-v="${escapeHtml(value10)}" class="${value10 === selected2 ? "on" : ""}">${escapeHtml(text2)}</button>`).join("")}</div>`;
   function visibleModules() {
     return [...document.querySelectorAll("nav.main [data-t]")].filter((button3) => !button3.classList.contains("hide") && getComputedStyle(button3).display !== "none").map((button3) => [button3.dataset.t ?? "", (button3.textContent ?? "").trim()]);
   }
@@ -39245,10 +39435,10 @@
   }
   async function send5(body3, dialog7, values2, screenshot) {
     const summary4 = Object.entries(values2).map(([name, value10]) => `${labelOf3(name)}: ${body3.querySelector(`[data-rp="${name}"] [data-v="${value10}"]`)?.textContent ?? value10}`).join(" · ");
-    const text = document.getElementById("rpque")?.value.trim() ?? "";
+    const text2 = document.getElementById("rpque")?.value.trim() ?? "";
     const { data, error } = await coreLegacy.rpc("registrar_error", { p: {
       tipo: "reporte",
-      mensaje: `[${summary4}] ${text}`,
+      mensaje: `[${summary4}] ${text2}`,
       pantalla: values2.modulo ?? coreLegacy.currentScreen(),
       version: coreLegacy.appVersion(),
       navegador: navigator.userAgent,
@@ -39270,10 +39460,10 @@
     dialog7.showModal();
     const values2 = {};
     bindChips(body3, values2);
-    const text = document.getElementById("rpque"), ok = document.getElementById("rptok");
+    const text2 = document.getElementById("rpque"), ok = document.getElementById("rptok");
     const picture = document.getElementById("rpcap");
-    if (text && ok) text.oninput = () => {
-      ok.disabled = text.value.trim().length < MIN_TEXT;
+    if (text2 && ok) text2.oninput = () => {
+      ok.disabled = text2.value.trim().length < MIN_TEXT;
     };
     let screenshot = null;
     if (picture) picture.onchange = async () => {
@@ -39299,8 +39489,8 @@
   var GREETINGS = ["Buenos días", "Buenas tardes", "Buenas noches"];
   var GREETING = /^(Buenos días|Buenas tardes|Buenas noches), (.+)$/;
   var ATTRIBUTES = ["placeholder", "title", "aria-label"];
-  var upper = (text) => text.charAt(0).toUpperCase() + text.slice(1);
-  var lower = (text) => text.charAt(0).toLowerCase() + text.slice(1);
+  var upper = (text2) => text2.charAt(0).toUpperCase() + text2.slice(1);
+  var lower = (text2) => text2.charAt(0).toLowerCase() + text2.slice(1);
   function prepareLanguage(id) {
     const language = id in LOCALES ? id : "es";
     coreLegacy.setLanguage(language);
@@ -39317,15 +39507,15 @@
     });
     coreLegacy.setTranslationMap(map);
   }
-  function translateText(text) {
+  function translateText(text2) {
     const map = coreLegacy.translationMap();
     if (!map) return null;
-    const key = text.trim();
+    const key = text2.trim();
     if (!key || key.length > MAX_TEXT) return null;
     const found = map.get(key);
-    if (found) return text.replace(key, found);
+    if (found) return text2.replace(key, found);
     const greeting2 = GREETING.exec(key), greetings = coreLegacy.greetings()[coreLegacy.language()];
-    if (greeting2 && greetings) return text.replace(key, `${greetings[GREETINGS.indexOf(greeting2[1] ?? "")] ?? ""}, ${greeting2[2] ?? ""}`);
+    if (greeting2 && greetings) return text2.replace(key, `${greetings[GREETINGS.indexOf(greeting2[1] ?? "")] ?? ""}, ${greeting2[2] ?? ""}`);
     return null;
   }
   function translateAttributes(root) {
@@ -39763,9 +39953,9 @@
     }, LOCAL_TICK_MS);
   }
   function canReuseScreen(module) {
-    const cached3 = coreLegacy.moduleCache(module), section = document.getElementById(`v-${module}`);
-    if (!cached3 || coreLegacy.arrivedVia() !== module || !section?.children.length) return false;
-    return cached3.clave === coreLegacy.moduleState(module) && cached3.esc === coreLegacy.writeCount() && Date.now() - cached3.t < MODULE_CACHE_MS;
+    const cached4 = coreLegacy.moduleCache(module), section = document.getElementById(`v-${module}`);
+    if (!cached4 || coreLegacy.arrivedVia() !== module || !section?.children.length) return false;
+    return cached4.clave === coreLegacy.moduleState(module) && cached4.esc === coreLegacy.writeCount() && Date.now() - cached4.t < MODULE_CACHE_MS;
   }
 
   // src/app/legacy/bridge.ts
@@ -40051,7 +40241,8 @@
     forgetCentreFromAppointment: () => {
       accountsStore.cardCentre = null;
     },
-    planIncludes: (section) => plans_exports.planIncludesSection(section),
+    /** v2.469.0 (CFG-1): a sector module also needs to be in use. */
+    planIncludes: (section) => modules_in_use_exports.sectionShown(section),
     canEditType: (type) => permissions_exports.canEditType(type),
     /** The base sections, in their legacy order (each one paints a block of the card). */
     customFields: (id, container) => paintCustomFieldsBlock("cuentas", id, container)
@@ -40324,7 +40515,7 @@
     },
     periodOf: (element) => Reflect.get(element ?? {}, "__rango")?.() ?? { desde: null, hasta: null },
     barChart: (items, format) => rankingBars(items, format),
-    emptyChart: (text) => emptyChart(text),
+    emptyChart: (text2) => emptyChart(text2),
     page: () => ordersStore.callsPage,
     setPage: (page) => {
       ordersStore.callsPage = page;
@@ -40381,9 +40572,9 @@
   function attendanceWindows(days, isoDate) {
     const timetable = days ?? {};
     if (!Object.keys(timetable).some((key) => timetable[key])) return null;
-    const text = timetable[componentsLegacy.weekdayLetter(isoDate)];
-    if (!text) return [];
-    const windows = String(text).split(/[;,/]| y /i).map(windowOf).filter((window2) => window2 !== null);
+    const text2 = timetable[componentsLegacy.weekdayLetter(isoDate)];
+    if (!text2) return [];
+    const windows = String(text2).split(/[;,/]| y /i).map(windowOf).filter((window2) => window2 !== null);
     return windows.length ? windows.sort((first, second) => first[0] - second[0]) : [WHOLE_DAY];
   }
 
@@ -40876,8 +41067,8 @@
     }
     return start3 < 0 ? null : [start3, length];
   }
-  function highlightSearch(text, query) {
-    const value10 = String(text ?? "");
+  function highlightSearch(text2, query) {
+    const value10 = String(text2 ?? "");
     const tokens = [...new Set(normalise2(query).split(/[^\p{L}\p{N}]+/u).filter(Boolean))].sort((first, second) => second.length - first.length);
     if (!tokens.length) return escapeHtml(value10);
     let html = "", last = 0;
@@ -41218,7 +41409,7 @@
   };
 
   // src/app/content/fill.ts
-  var fill3 = (text, words16) => text.replace(/\{(\w+)\}/g, (whole3, name) => words16[name] ?? whole3);
+  var fill3 = (text2, words16) => text2.replace(/\{(\w+)\}/g, (whole3, name) => words16[name] ?? whole3);
   function fillDeep(value10, words16) {
     if (typeof value10 === "string") return fill3(value10, words16);
     if (Array.isArray(value10)) return value10.map((item) => fillDeep(item, words16));

@@ -8,18 +8,26 @@ import { legacyDb } from '../../legacy/bridge';
 import { settingsCoreLegacy } from '../../legacy/settings-core-bridge';
 import { t } from '../../i18n';
 import { loadNoReportsField } from '../no-reports';
+import { inUseSignature, settingsArrived } from '../modules-in-use';
+import { shellLegacy } from '../../legacy/shell-bridge';
 
 const CATALOGS_KEY = 'dlc-cat', NEUTRAL_LOGO = 'logo-app.png';
 const LOGO_PLACES = 'header .logo, .lbox img, #bootsplash img';
 
 export { NEUTRAL_LOGO };
 
-/** Reads the company settings, then applies the label of the contacts and, with a session, the organisation menu. */
+/** Reads the company settings, then applies the label of the contacts and, with a session, the organisation menu (and the main menu
+ * again when the sector modules in use changed). */
 export async function loadSettings(): Promise<void> {
   const { data } = await legacyDb().rpc<Record<string, unknown>>('ajustes_lista');
+  const before = inUseSignature();
   settingsCoreLegacy.setSettings(data ?? {});
+  settingsArrived();
+  const menuChanges = before !== inUseSignature();
   settingsCoreLegacy.applyLabel();
   if (settingsCoreLegacy.hasProfile()) settingsCoreLegacy.organisationMenu();
+  // v2.469.0 (CFG-1): the sector modules in use were not the ones the menu was painted with
+  if (menuChanges && settingsCoreLegacy.hasProfile()) shellLegacy.applyMenuPermissions();
 }
 
 function keepOrRestoreCatalogs(catalogs: Record<string, unknown[]>): void {

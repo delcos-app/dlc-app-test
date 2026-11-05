@@ -6,8 +6,9 @@
 import { treeLegacy, type LegacyConfigItem } from '../../legacy/legado-d-bridge';
 import type { SettingsItem, SettingsTree } from '../../legacy/shell-bridge';
 import { t, type MessageKey } from '../../i18n';
-import { permissions } from '../../legacy/bridge';
 import { paintServicesSettings, paintTaxesSettings } from '../../screens/settings/rules/sales';
+import { paintContractsSettings } from '../../screens/settings/rules/modules';
+import { planIncludesSection } from '../plans';
 
 type Group = [string, SettingsItem[]];
 
@@ -76,12 +77,8 @@ function addCustomTexts(tree: Group[]): void {
   company[1].splice(index + 1, 0, { k: 'o.textos', t: t('legacyD.tree.texts'), ic: 'file-text', d: t('legacyD.tree.textsHint'), r: (): unknown => treeLegacy.paintTexts() });
 }
 
-/** v2.260.0 «Distribuidores» and v2.264.0 «Estados comerciales» (after «Clasificadores»), in «Datos». */
+/** v2.264.0 «Estados comerciales» (after «Clasificadores»), in «Datos». «Distribuidores» (v2.260.0) is in «Ventas» since v2.469.0. */
 function addDataEntries(tree: Group[]): void {
-  if (treeLegacy.can('administrar') && treeLegacy.canUseModule('ventas')) {
-    const data = groupOf(tree, t('legacyD.tree.data'));
-    if (!data[1].some(item => item.k === 'distribuidores')) data[1].push({ k: 'distribuidores', t: t('legacyD.tree.distributors'), ic: 'package', d: t('legacyD.tree.distributorsHint'), r: (): unknown => treeLegacy.paintDistributors() });
-  }
   if (!(treeLegacy.canEditCatalogs() || treeLegacy.can('administrar'))) return;
   const data = groupOf(tree, t('legacyD.tree.data'));
   if (data[1].some(item => item.k === 'estados')) return;
@@ -128,17 +125,28 @@ function joinFiscal(tree: Group[]): void {
   }
 }
 
+/** The entries of «Ventas» the person and the plan allow. */
+function salesEntries(): SettingsItem[] {
+  const sales = treeLegacy.canUseModule('ventas'), items: SettingsItem[] = [];
+  if (treeLegacy.canUseModule('agenda') && planIncludesSection('cirugias')) items.push({ k: 'servicios', t: t('settingsRules.servicesEntry'), ic: 'package', d: t('settingsRules.servicesHint'), r: (): unknown => paintServicesSettings() });
+  if (sales && planIncludesSection('concursos')) items.push({ k: 'contratos', t: t('settingsRules.contractsEntry'), ic: 'file-text', d: t('settingsRules.contractsHint'), r: (): unknown => paintContractsSettings() });
+  if (sales) items.push({ k: 'distribuidores', t: t('legacyD.tree.distributors'), ic: 'package', d: t('legacyD.tree.distributorsHint'), r: (): unknown => treeLegacy.paintDistributors() });
+  return items;
+}
+
 /**
- * v2.466.0 (plan 12.2, batch 3): «Impuestos» in Facturación (who configures the organisation, FAC-1) and the group «Ventas» with
- * «Servicios con material» (administration, when the company sees Intervenciones, VEN-3). The group goes before «Datos».
+ * v2.466.0 (plan 12.2, batch 3): «Impuestos» in Facturación (who configures the organisation, FAC-1) and the group «Ventas» (VEN-3).
+ * v2.469.0 (CFG-1): the group is there for administration whenever the plan includes its modules, used or not (each section says
+ * how to start), with «Servicios con material», «Contratos» and «Distribuidores» (moved from «Datos», VEN-4). It goes before «Datos».
  */
 function addSalesAndTaxes(tree: Group[]): void {
   if (treeLegacy.canManageOrganisation() && treeLegacy.canUseModule('ventas')) {
     const billing = groupOf(tree, t('legacyD.tree.billing'));
     if (!billing[1].some(item => item.k === 'impuestos')) billing[1].push({ k: 'impuestos', t: t('settingsRules.taxesEntry'), ic: 'receipt', d: t('settingsRules.taxesHint'), r: (): unknown => paintTaxesSettings() });
   }
-  if (!treeLegacy.can('administrar') || !permissions.canSeeArea('cirugias') || tree.some(group => group[0] === t('settingsRules.sales'))) return;
-  const sales: Group = [t('settingsRules.sales'), [{ k: 'servicios', t: t('settingsRules.servicesEntry'), ic: 'package', d: t('settingsRules.servicesHint'), r: (): unknown => paintServicesSettings() }]];
+  if (!treeLegacy.can('administrar') || tree.some(group => group[0] === t('settingsRules.sales'))) return;
+  const sales: Group = [t('settingsRules.sales'), salesEntries()];
+  if (!sales[1].length) return;
   const data = tree.findIndex(group => group[0] === t('legacyD.tree.data'));
   tree.splice(data < 0 ? tree.length : data, 0, sales);
 }
@@ -161,6 +169,7 @@ export function installSettingsSearchWords(): void {
   treeLegacy.setSearchWords({
     'o.textos': t('legacyD.tree.textsWords'), distribuidores: t('legacyD.tree.distributorsWords'), estados: t('legacyD.tree.statesWords'),
     tpv: t('legacyD.tree.cardPaymentWords'), 'o.pruebas': t('legacyD.tree.testEnvironmentWords'),
-    impuestos: t('settingsRules.taxesWords'), servicios: t('settingsRules.servicesWords'),
+    impuestos: t('settingsRules.taxesWords'), servicios: t('settingsRules.servicesWords'), contratos: t('settingsRules.contractsWords'),
+    'stock.consigna': t('settingsRules.consignmentWords'), 'stock.activos': t('settingsRules.installedWords'),
   });
 }

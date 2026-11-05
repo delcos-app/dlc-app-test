@@ -179,7 +179,7 @@ export const coverageInPlans = (): void => { (PLAN_SECCIONES as Record<string, s
 export function defineSurgeries(): void {
   navIcons().cirugias = 'scissors'; moduleIcons().cirugias = svgIco(ICON_NOM.scissors ?? '');
   addToGroup('dia', 'cirugias');
-  const page: Page = { t: t('legacyC.pages.surgeries.title'), permiso: () => !ES_MEDICO() && legacyFreeCoreServices.permissions.canUseModule('agenda'), tabs: [['lista', t('legacyC.pages.surgeries.title'), () => legacyFreeScreensSurgeries.paintSurgeries()]] };
+  const page: Page = { t: t('legacyC.pages.surgeries.title'), permiso: () => !ES_MEDICO() && legacyFreeCoreServices.permissions.canUseModule('agenda') && legacyFreeCoreServices.modulesInUse.moduleInUse('cirugias'), tabs: [['lista', t('legacyC.pages.surgeries.title'), () => legacyFreeScreensSurgeries.paintSurgeries()]] };
   pages().cirugias = page;
   Object.defineProperty(page, 'd', { get: () => t('legacyC.pages.surgeries.description') });
 }

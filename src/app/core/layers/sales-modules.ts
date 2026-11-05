@@ -5,6 +5,7 @@
  */
 import { menuLegacy, type LegacyPage } from '../../legacy/legado-d-bridge';
 import { t, type MessageKey } from '../../i18n';
+import { moduleInUse } from '../modules-in-use';
 
 const GAVEL = '<path d="m14.5 12.5-8 8a2.12 2.12 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>';
 const MONITOR = '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>';
@@ -36,7 +37,7 @@ function repaintOnClose(screen: string, paint: () => void): void {
 }
 
 function tendersPage(): LegacyPage {
-  const page: LegacyPage = { t: t('legacyD.sales.tenders'), permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule('ventas'),
+  const page: LegacyPage = { t: t('legacyD.sales.tenders'), permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule('ventas') && moduleInUse('concursos'),
     tabs: [['marcha', t('legacyD.sales.tendersOpen'), () => menuLegacy.paintTenders('marcha')], ['contratos', t('legacyD.sales.tendersContracts'), () => menuLegacy.paintTenders('contratos')],
       ['cerrados', t('legacyD.sales.tendersClosed'), () => menuLegacy.paintTenders('cerrados')]] };
   Object.defineProperty(page, 'd', { get: () => t('legacyD.sales.tendersHint') });
@@ -44,7 +45,7 @@ function tendersPage(): LegacyPage {
 }
 
 function equipmentPage(): LegacyPage {
-  const page: LegacyPage = { t: t('legacyD.sales.equipment'), permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule('ventas') && menuLegacy.planIncludesSection('parque'),
+  const page: LegacyPage = { t: t('legacyD.sales.equipment'), permiso: () => !menuLegacy.isProfessionalPortal() && menuLegacy.canUseModule('ventas') && menuLegacy.planIncludesSection('parque') && moduleInUse('parque'),
     tabs: [['lista', t('legacyD.sales.equipmentTab'), () => menuLegacy.paintEquipment()]] };
   Object.defineProperty(page, 'd', { get: () => t('legacyD.sales.equipmentHint') });
   return page;

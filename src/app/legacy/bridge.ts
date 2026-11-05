@@ -302,7 +302,8 @@ export const accountCardLegacy = {
   setShownId: (id: string): void => { accountsStore.shownId = id; },
   forgetPatients: (): void => { accountsStore.cardPatients = null; },
   forgetCentreFromAppointment: (): void => { accountsStore.cardCentre = null; },
-  planIncludes: (section: string): boolean => legacyFreeCoreServices.plans.planIncludesSection(section),
+  /** v2.469.0 (CFG-1): a sector module also needs to be in use. */
+  planIncludes: (section: string): boolean => legacyFreeCoreServices.modulesInUse.sectionShown(section),
   canEditType: (type: string | null | undefined): boolean => legacyFreeCoreServices.permissions.canEditType(type),
   /** The base sections, in their legacy order (each one paints a block of the card). */
   customFields: (id: string, container: Element | null): Promise<void> => legacyFreeScreensSettings.paintCustomFieldsBlock(('cuentas'), id, container),

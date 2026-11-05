@@ -7,10 +7,12 @@
 import { term } from '../legacy/bridge';
 import { leftoversLegacy } from '../legacy/leftovers-bridge';
 import { t } from '../i18n';
+import { moduleInUse } from './modules-in-use';
 
 interface ModuleEntry { screen: string; after: readonly string[]; area: string; title: () => string }
 
-/** Adds the entry after the first neighbour found (if missing) and hides it when the user cannot open its area. */
+/** Adds the entry after the first neighbour found (if missing) and hides it when the user cannot open its area or the company does not
+ * use the sector module yet (v2.469.0, CFG-1). */
 function placeEntry(entry: ModuleEntry): void {
   const nav = document.querySelector('nav.main .in'); if (!nav) return;
   let button = nav.querySelector(`[data-t="${entry.screen}"]`);
@@ -20,7 +22,7 @@ function placeEntry(entry: ModuleEntry): void {
     neighbour.insertAdjacentHTML('afterend', `<button data-t="${entry.screen}">${entry.title()}</button>`);
     button = nav.querySelector(`[data-t="${entry.screen}"]`);
   }
-  button?.classList.toggle('hide', leftoversLegacy.isProfessionalPortal() || !leftoversLegacy.canUseModule(entry.area));
+  button?.classList.toggle('hide', leftoversLegacy.isProfessionalPortal() || !leftoversLegacy.canUseModule(entry.area) || !moduleInUse(entry.screen));
 }
 
 export const menuCycle = (): void => {

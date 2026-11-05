@@ -1,24 +1,32 @@
 /**
  * Panel delcos → Clientes → «+ Nueva organización»: a company is born with the platform's starting roles, catalogs, series and
  * settings, and its administrator is invited and signed up with a temporary password. Migrated from the legacy
- * pintarOrganizaciones (v2.413.0).
+ * pintarOrganizaciones (v2.413.0). v2.469.0 (CFG-1): the sector template («Genérica» or «Distribución sanitaria», SQL 194); without
+ * SQL 194 there is no choice and the company is born as before.
  */
 import { accessLegacy, legacyDb, notices } from '../../legacy/bridge';
 import { platformLegacy } from '../../legacy/platform-bridge';
 import { t, type MessageKey } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { errorMessage } from './model';
+import { loadTemplates, templateName, type SectorTemplate } from './templates';
 
 const MIN_USERS = 3, TRIAL_DAYS = 30, MIN_PASSWORD = 6, DEFAULT_PLAN = 'empresa';
 const value = (id: string): string => (document.getElementById(id) as HTMLInputElement | null)?.value ?? '';
-const CREATE_ERRORS = new Map<string, MessageKey>([['permiso', 'platform.orgs.noPermission'], ['nombre', 'platform.newOrg.noName'], ['email', 'platform.newOrg.badEmail'], ['email_existe', 'platform.newOrg.emailTaken']]);
+const CREATE_ERRORS = new Map<string, MessageKey>([['permiso', 'platform.orgs.noPermission'], ['nombre', 'platform.newOrg.noName'], ['email', 'platform.newOrg.badEmail'], ['email_existe', 'platform.newOrg.emailTaken'], ['plantilla', 'platform.newOrg.badTemplate']]);
 
-function formHtml(): string {
+function templateHtml(templates: readonly SectorTemplate[]): string {
+  if (!templates.length) return '';
+  return `<div><label for="oplant">${t('platform.newOrg.template')}</label><select id="oplant">${templates.map(item => `<option value="${escapeHtml(item.clave)}">${escapeHtml(templateName(item))}</option>`).join('')}</select></div>`;
+}
+
+function formHtml(templates: readonly SectorTemplate[]): string {
   const plans = platformLegacy.plans().map(plan => `<option value="${plan.id}" ${plan.id === DEFAULT_PLAN ? 'selected' : ''}>${escapeHtml(plan.nombre)}</option>`).join('');
   return `<div class="fh"><div><h2>${t('platform.newOrg.title')}</h2><div class="sm">${t('platform.newOrg.subtitle')}</div></div>
         <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
       <div class="g2"><div><label for="onom">${t('platform.newOrg.name')}</label><input id="onom"></div>
         <div><label for="onif">${t('platform.newOrg.nif')}</label><input id="onif"></div>
+        ${templateHtml(templates)}
         <div><label for="oplan">${t('platform.newOrg.plan')}</label><select id="oplan">${plans}</select></div>
         <div><label for="ousu">${t('platform.newOrg.users')}</label><input id="ousu" type="number" min="3" value="3"></div>
         <div><label for="opago">${t('platform.newOrg.payment')}</label><select id="opago"><option value="mensual">${t('platform.newOrg.monthly')}</option><option value="anual">${t('platform.newOrg.yearly')}</option></select></div>
@@ -38,6 +46,7 @@ function newCompany(name: string, email: string): Record<string, unknown> {
   return {
     nombre: name, nif: value('onif').trim(), plan: value('oplan'), usuarios: Number(value('ousu')) || MIN_USERS, pago: value('opago'),
     prueba_dias: (document.getElementById('oprueba') as HTMLInputElement | null)?.checked ? TRIAL_DAYS : 0, email_admin: email,
+    ...(document.getElementById('oplant') ? { plantilla: value('oplant') } : {}),
   };
 }
 
@@ -60,10 +69,12 @@ async function create(button: HTMLButtonElement, repaint: () => Promise<void>): 
   void repaint();
 }
 
-export function openNewOrganization(repaint: () => Promise<void>): void {
+/** The templates are read first, so the window opens whole. */
+export async function openNewOrganization(repaint: () => Promise<void>): Promise<void> {
+  const templates = await loadTemplates();
   const body = document.getElementById('dbody'), box = document.getElementById('dlg') as HTMLDialogElement | null;
   if (!body || !box) return;
-  body.innerHTML = formHtml();
+  body.innerHTML = formHtml(templates);
   const ok = document.getElementById('ocrear') as HTMLButtonElement | null; if (ok) ok.onclick = (): void => { void create(ok, repaint); };
   box.showModal();
 }

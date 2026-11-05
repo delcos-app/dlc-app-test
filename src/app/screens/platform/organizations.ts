@@ -81,7 +81,7 @@ function bind(box: HTMLElement, list: readonly Organization[]): void {
   for (const [key, action] of ACTIONS) box.querySelectorAll<HTMLButtonElement>(`[data-${key}]`).forEach(button => {
     button.onclick = (): void => { const organization = list.find(item => item.id === button.dataset[key]); if (organization) action(organization, button); };
   });
-  const add = document.getElementById('orgnueva'); if (add) add.onclick = (): void => { openNewOrganization(paintOrganizations); };
+  const add = document.getElementById('orgnueva'); if (add) add.onclick = (): void => { void openNewOrganization(paintOrganizations); };
 }
 
 export async function paintOrganizations(): Promise<void> {

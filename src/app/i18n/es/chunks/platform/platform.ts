@@ -88,7 +88,7 @@ export const platform = {
   },
   newOrg: {
     title: 'Nueva organización',
-    subtitle: 'Nace con los roles, catálogos, series y ajustes de partida de la plataforma',
+    subtitle: 'Nace con los roles, catálogos, series y ajustes de partida de la plataforma y los de su plantilla',
     name: 'Nombre de la empresa',
     nif: 'NIF',
     plan: 'Plan',
@@ -101,6 +101,8 @@ export const platform = {
     adminName: 'Nombre',
     adminEmail: 'Correo',
     password: 'Contraseña temporal',
+    template: 'Plantilla',
+    badTemplate: 'Esa plantilla no existe',
     create: 'Crear organización',
     creating: 'Creando…',
     complete: 'Completa el nombre, el administrador, su correo y la contraseña',
@@ -284,5 +286,26 @@ export const platform = {
     catalogs: 'Catálogos y estados',
     notice: 'Estás cambiando la <b>plantilla de las empresas nuevas</b>.',
     back: 'Volver a la plantilla',
+  },
+  /** v2.469.0 (CFG-1): the sector templates of the new companies */
+  templates: {
+    title: 'Plantillas de sector',
+    text: 'Al crear una empresa se elige una. Todas parten de la plantilla de arriba; la de un sector añade sus ajustes de partida y sus módulos. No llevan datos de ninguna empresa.',
+    brings: 'Añade: {list}',
+    onlyBase: 'Solo la plantilla de arriba: sin módulos del sector (aparecen cuando la empresa los configura)',
+    generica: { name: 'Genérica' },
+    distribucion_sanitaria: { name: 'Distribución sanitaria' },
+    modules: {
+      cirugias: 'servicios en cliente con material',
+      deposito: 'stock en consigna',
+      concursos: 'contratos de precio',
+      parque: 'activos instalados',
+    },
+    settings: {
+      impuestos: 'productos al 10 % de IVA',
+      entregas: 'entregas controladas de muestras de medicamento',
+      servicios: 'reposición en 48 horas',
+      eventos: 'eventos con límite de 60 € en comidas y nota del informe',
+    },
   },
 };
