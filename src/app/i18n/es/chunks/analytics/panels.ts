@@ -17,8 +17,6 @@ export const panels = {
     units: 'Unidades',
     amount: 'Importe',
     all: 'Todos',
-    toCustomer: 'Venta {toPatient}',
-    toCentre: 'Venta a centro',
     reporting: 'Reporting',
     allProfessionals: 'Todos {theProfessionals}',
     withReporting: 'Con reporting',

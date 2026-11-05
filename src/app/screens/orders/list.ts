@@ -153,7 +153,8 @@ async function loadPage(query: Record<string, unknown>): Promise<PageResult> {
 }
 
 export async function paintOrderList(): Promise<void> {
-  if (!document.getElementById('pedlista') || !document.getElementById('pper') || !document.getElementById('pcanal')) return;
+  // v2.470.0 (VEN-1): «Canal» is not there with only one active channel
+  if (!document.getElementById('pedlista') || !document.getElementById('pper')) return;
   addExtraFilters();
   // v2.269.0: the filters the user had
   restoreFilters(document.getElementById('v-ventas'));

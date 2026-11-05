@@ -7,8 +7,6 @@ export const orders = {
     newSale: '+ Nueva venta',
     channel: 'Canal',
     all: 'Todos',
-    saleTo: 'Venta {customer}',
-    saleToCentre: 'Venta a centro',
     state: 'Estado',
     search: 'Buscar',
     searchPlaceholder: '{professional}, {customer} o nº de pedido',

@@ -68,7 +68,7 @@ export const components = {
     noData: 'Aún no hay datos para este gráfico',
     channelTitle: 'Ventas por canal',
     howToRead: 'Cómo leerlo:',
-    channelHint: 'qué parte de las unidades llega con {aProfessional} de referencia y qué parte por venta directa a un centro.',
+    channelHint: 'qué parte de las unidades llega por cada canal de venta de la empresa.',
     channelEmpty: 'Verás qué parte de las ventas llega por cada canal.',
   },
   classifiers: {

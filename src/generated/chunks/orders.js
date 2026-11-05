@@ -14,8 +14,6 @@ var orders = {
     newSale: "+ Nueva venta",
     channel: "Canal",
     all: "Todos",
-    saleTo: "Venta {customer}",
-    saleToCentre: "Venta a centro",
     state: "Estado",
     search: "Buscar",
     searchPlaceholder: "{professional}, {customer} o nº de pedido",
@@ -294,8 +292,6 @@ var ordersMore = {
     subtitle: "Escribe los importes con IVA: la base y el IVA se calculan solos.",
     date: "Fecha",
     channel: "Canal",
-    toPatient: "Venta {toPatient}",
-    toCentre: "Venta a centro (con descuento)",
     origin: "Origen",
     manual: "Comercial, teléfono o correo",
     web: "Pedido por la web",
@@ -1054,7 +1050,7 @@ async function loadPage(query) {
   return requestPage({ ...query, p_estado: storedStateOf(step) });
 }
 async function paintOrderList() {
-  if (!document.getElementById("pedlista") || !document.getElementById("pper") || !document.getElementById("pcanal")) return;
+  if (!document.getElementById("pedlista") || !document.getElementById("pper")) return;
   addExtraFilters();
   restoreFilters(document.getElementById("v-ventas"));
   const query = params(), loading = document.getElementById("pedlista");
@@ -1086,6 +1082,17 @@ var editSupplier = /* @__PURE__ */ pick14("editSupplier");
 var paintPurchases = /* @__PURE__ */ pick14("paintPurchases");
 var paintSuppliers = /* @__PURE__ */ pick14("paintSuppliers");
 
+// delcos-shared:src/app/core/sales-channels.ts
+var shared15 = globalThis["__delcosModules"]["core/sales-channels"];
+var pick15 = (name) => shared15[name];
+var activeChannels = /* @__PURE__ */ pick15("activeChannels");
+var buysAsAccount = /* @__PURE__ */ pick15("buysAsAccount");
+var channelDiscount = /* @__PURE__ */ pick15("channelDiscount");
+var channelFilterOptions = /* @__PURE__ */ pick15("channelFilterOptions");
+var channelOf = /* @__PURE__ */ pick15("channelOf");
+var choosesChannel = /* @__PURE__ */ pick15("choosesChannel");
+var defaultChannel = /* @__PURE__ */ pick15("defaultChannel");
+
 // src/app/screens/orders/page.ts
 var SEARCH_WAIT_MS = 350;
 var SALES = "ventas";
@@ -1094,6 +1101,7 @@ var SUPPLIERS = "proveedores";
 var CALLS = "llamadas";
 var searchTimer;
 var stepOptions = () => ORDER_STEPS.map(([code, key]) => `<option value="${code}">${t(key)}</option>`).join("");
+var channelFilterHtml = () => choosesChannel() ? `<div><label for="pcanal">${t("orders.page.channel")}</label><select id="pcanal">${channelFilterOptions(t("orders.page.all"))}</select></div>` : "";
 function baseHtml([title, subtitle]) {
   return `
     <div class="saludo"><div><h1>${escapeHtml(title)}</h1><div class="fecha">${escapeHtml(subtitle)}</div></div>
@@ -1102,9 +1110,7 @@ function baseHtml([title, subtitle]) {
       <div class="panel">
         <div class="filtros">
           <div id="pper"></div>
-          <div><label for="pcanal">${t("orders.page.channel")}</label><select id="pcanal">
-            <option value="">${t("orders.page.all")}</option><option value="paciente">${t("orders.page.saleTo", { customer: term("paciente", { article: "al" }) })}</option>
-            <option value="centro">${t("orders.page.saleToCentre")}</option></select></div>
+          ${channelFilterHtml()}
           <div><label for="pestado">${t("orders.page.state")}</label><select id="pestado">
             <option value="">${t("orders.page.all")}</option>${stepOptions()}</select></div>
           <div><label for="pq">${t("orders.page.search")}</label><input id="pq" type="search" placeholder="${t("orders.page.searchPlaceholder", { professional: term("medico", { capital: "C" }), customer: term("paciente") })}"></div>
@@ -1235,13 +1241,13 @@ async function loadSales() {
 }
 
 // delcos-shared:src/app/screens/orders/payment-email.ts
-var shared15 = globalThis["__delcosModules"]["screens/orders/payment-email"];
-var pick15 = (name) => shared15[name];
-var askPaymentEmailSent = /* @__PURE__ */ pick15("askPaymentEmailSent");
-var mailtoLink = /* @__PURE__ */ pick15("mailtoLink");
-var paymentSubject = /* @__PURE__ */ pick15("paymentSubject");
-var paymentText = /* @__PURE__ */ pick15("paymentText");
-var sendPaymentDetails = /* @__PURE__ */ pick15("sendPaymentDetails");
+var shared16 = globalThis["__delcosModules"]["screens/orders/payment-email"];
+var pick16 = (name) => shared16[name];
+var askPaymentEmailSent = /* @__PURE__ */ pick16("askPaymentEmailSent");
+var mailtoLink = /* @__PURE__ */ pick16("mailtoLink");
+var paymentSubject = /* @__PURE__ */ pick16("paymentSubject");
+var paymentText = /* @__PURE__ */ pick16("paymentText");
+var sendPaymentDetails = /* @__PURE__ */ pick16("sendPaymentDetails");
 
 // src/app/screens/orders/sheet/bank-transfer.ts
 var PAID_FLAG_MS = 6e4;
@@ -1277,9 +1283,9 @@ function paintBankTransfer(detail) {
 }
 
 // delcos-shared:src/app/components/customer-data.ts
-var shared16 = globalThis["__delcosModules"]["components/customer-data"];
-var pick16 = (name) => shared16[name];
-var customerDataHtml = /* @__PURE__ */ pick16("customerDataHtml");
+var shared17 = globalThis["__delcosModules"]["components/customer-data"];
+var pick17 = (name) => shared17[name];
+var customerDataHtml = /* @__PURE__ */ pick17("customerDataHtml");
 
 // src/app/screens/orders/sheet/non-fiscal.ts
 var value2 = (id) => document.getElementById(id)?.value.trim() ?? "";
@@ -1484,9 +1490,9 @@ async function paintBase2(id) {
 }
 
 // delcos-shared:src/app/services/dates.ts
-var shared17 = globalThis["__delcosModules"]["services/dates"];
-var pick17 = (name) => shared17[name];
-var todayIso = /* @__PURE__ */ pick17("todayIso");
+var shared18 = globalThis["__delcosModules"]["services/dates"];
+var pick18 = (name) => shared18[name];
+var todayIso = /* @__PURE__ */ pick18("todayIso");
 
 // src/app/screens/orders/sheet/transfer-pdf.ts
 var LEFT = 15;
@@ -1770,10 +1776,10 @@ async function paintEquipment(orderId) {
 }
 
 // delcos-shared:src/app/core/catalog-roles.ts
-var shared18 = globalThis["__delcosModules"]["core/catalog-roles"];
-var pick18 = (name) => shared18[name];
-var isCardTerminal = /* @__PURE__ */ pick18("isCardTerminal");
-var isOnDelivery = /* @__PURE__ */ pick18("isOnDelivery");
+var shared19 = globalThis["__delcosModules"]["core/catalog-roles"];
+var pick19 = (name) => shared19[name];
+var isCardTerminal = /* @__PURE__ */ pick19("isCardTerminal");
+var isOnDelivery = /* @__PURE__ */ pick19("isOnDelivery");
 
 // src/app/screens/orders/sheet/operations.ts
 var MAIL_QUESTION_DELAY_MS = 800;
@@ -2113,9 +2119,9 @@ async function showOrder(id) {
 }
 
 // delcos-shared:src/app/screens/customers/picker.ts
-var shared19 = globalThis["__delcosModules"]["screens/customers/picker"];
-var pick19 = (name) => shared19[name];
-var pickCustomer = /* @__PURE__ */ pick19("pickCustomer");
+var shared20 = globalThis["__delcosModules"]["screens/customers/picker"];
+var pick20 = (name) => shared20[name];
+var pickCustomer = /* @__PURE__ */ pick20("pickCustomer");
 
 // src/app/screens/orders/tpv/after-save.ts
 var CENT = 5e-3;
@@ -2136,7 +2142,6 @@ async function warnIfAmountChanged(id) {
 }
 
 // src/app/screens/orders/editor/state.ts
-var CHANNELS = { patient: "paciente", centre: "centro" };
 var WEB_ORIGINS = ["web", "portal"];
 var MANUAL = "manual";
 var PERCENT = "porcentaje";
@@ -2184,9 +2189,9 @@ function serviceFields(order) {
 }
 var newForm = (preset) => ({
   fecha: todayIso(),
-  canal: CHANNELS.patient,
+  canal: defaultChannel().clave,
   forma_pago: "",
-  descuento: 0,
+  descuento: Number(defaultChannel().descuento ?? 0) || 0,
   descuento_tipo: PERCENT,
   nota: "",
   cuenta_texto: "",
@@ -2196,8 +2201,9 @@ var newForm = (preset) => ({
   reportar: false
 });
 var orderForm = (order) => ({
+  // v2.470.0 (VEN-1): a channel the company does not have (saved before SQL 195) opens in the default one, as the editor showed it
   fecha: order.fecha,
-  canal: order.canal ?? "",
+  canal: channelOf(order.canal) ? order.canal ?? "" : defaultChannel().clave,
   forma_pago: order.forma_pago ?? "",
   descuento: nonZeroOr(order.descuento, 0),
   descuento_tipo: order.descuento_tipo ?? "",
@@ -2490,24 +2496,31 @@ function headerHtml(order) {
         <div class="sm">${t("ordersMore.editor.subtitle")}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>`;
 }
-function dateChannelOriginHtml(state) {
-  const form = state.form;
-  return `
-      <div class="g2">
-        <div><label for="pfecha">${t("ordersMore.editor.date")}</label><input id="pfecha" type="date" value="${escapeHtml(form.fecha)}"></div>
-        <div><label for="pcan">${t("ordersMore.editor.channel")}</label><select id="pcan">
-          <option value="${CHANNELS.patient}" ${form.canal !== CHANNELS.centre ? "selected" : ""}>${t("ordersMore.editor.toPatient", { toPatient: term("paciente", { article: "al" }) })}</option>
-          <option value="${CHANNELS.centre}" ${form.canal === CHANNELS.centre ? "selected" : ""}>${t("ordersMore.editor.toCentre")}</option></select></div>
-      </div>
-      <div class="g2"><div><label for="porig">${t("ordersMore.editor.origin")}</label><select id="porig">
+function channelChoices(current) {
+  const own = channelOf(current), active = activeChannels();
+  return own && !own.activo ? [...active, own] : active;
+}
+function channelHtml(form) {
+  const choices = channelChoices(form.canal);
+  if (choices.length < 2) return `<input type="hidden" id="pcan" value="${escapeHtml(form.canal)}">`;
+  const options = choices.map((channel) => `<option value="${escapeHtml(channel.clave)}" ${channel.clave === form.canal ? "selected" : ""}>${escapeHtml(channel.nombre)}</option>`).join("");
+  return `<div><label for="pcan">${t("ordersMore.editor.channel")}</label><select id="pcan">${options}</select></div>`;
+}
+var originHtml = (form) => `<div><label for="porig">${t("ordersMore.editor.origin")}</label><select id="porig">
           <option value="manual">${t("ordersMore.editor.manual")}</option>
-          <option value="web" ${form.origen === "web" ? "selected" : ""}>${t("ordersMore.editor.web")}</option>${form.origen === "portal" ? `<option value="portal" selected>${t("ordersMore.editor.portal")}</option>` : ""}</select></div><div></div></div>
+          <option value="web" ${form.origen === "web" ? "selected" : ""}>${t("ordersMore.editor.web")}</option>${form.origen === "portal" ? `<option value="portal" selected>${t("ordersMore.editor.portal")}</option>` : ""}</select></div>`;
+function dateChannelOriginHtml(state) {
+  const form = state.form, channel = channelHtml(form), date = `<div><label for="pfecha">${t("ordersMore.editor.date")}</label><input id="pfecha" type="date" value="${escapeHtml(form.fecha)}"></div>`;
+  const rows = channel.startsWith("<input") ? `<div class="g2">${date}${originHtml(form)}</div>${channel}` : `<div class="g2">${date}${channel}</div>
+      <div class="g2">${originHtml(form)}<div></div></div>`;
+  return `
+      ${rows}
       ${distributorHtml(state.distributor)}`;
 }
 function customerZoneHtml(state) {
   const toProfessional = escapeHtml(term("medico", { article: "al" }));
   return `
-      <div id="zonapac" class="${state.form.canal === CHANNELS.centre ? "escentro" : ""}">
+      <div id="zonapac" class="${buysAsAccount(state.form.canal) ? "escentro" : ""}">
         <label class="solopac">${term("paciente", { capital: "C" })}</label><div id="pselpac" class="solopac"></div>
         <label><span class="solopac">${t("ordersMore.editor.reference", { Professional: term("medico", { capital: "C" }) })}</span><span class="solocen">${t("ordersMore.editor.buyingCentre")}</span></label><div id="pselmed"></div>
         <div class="sm u-mt-4"><span class="solopac">${t("ordersMore.editor.leaveName")}</span><span class="solocen">${t("ordersMore.editor.pickCentre")}</span></div>
@@ -2589,13 +2602,14 @@ function editorHtml2(state) {
 }
 
 // delcos-shared:src/app/core/organisation.ts
-var shared20 = globalThis["__delcosModules"]["core/organisation"];
-var pick20 = (name) => shared20[name];
-var generalVat = /* @__PURE__ */ pick20("generalVat");
+var shared21 = globalThis["__delcosModules"]["core/organisation"];
+var pick21 = (name) => shared21[name];
+var generalVat = /* @__PURE__ */ pick21("generalVat");
 
 // src/app/screens/orders/editor/index.ts
 var FULL_DISCOUNT2 = 100;
 var SALES_SCREEN4 = "ventas";
+var PERCENT2 = "porcentaje";
 var element = (id) => document.getElementById(id);
 var choice = (id) => document.getElementById(id);
 var on = (id, handler) => {
@@ -2670,10 +2684,21 @@ function bindLines(state) {
     paint2(state);
   };
 }
+function applyChannel(state, key) {
+  document.getElementById("zonapac")?.classList.toggle("escentro", buysAsAccount(key));
+  const before = channelDiscount(state.form.canal), after = channelDiscount(key), discount = element("pdto"), kind = choice("pdtot");
+  state.form.canal = key;
+  if (!discount || before === after) return;
+  const written = Number(discount.value) || 0, byHand = written !== 0 && (written !== before || kind?.value !== PERCENT2);
+  if (byHand) return;
+  discount.value = String(after);
+  if (kind) kind.value = PERCENT2;
+  paintBreakdown(state);
+}
 function bindPayment(state) {
   const method = choice("ppago"), channel = choice("pcan");
   if (channel) channel.onchange = () => {
-    document.getElementById("zonapac")?.classList.toggle("escentro", channel.value === "centro");
+    applyChannel(state, channel.value);
   };
   if (method) method.onchange = () => {
     document.getElementById("ppagox")?.classList.toggle("hide", !method.value);
@@ -2827,12 +2852,12 @@ async function editOrder(preset) {
 }
 
 // delcos-shared:src/app/screens/orders/subscription/payments.ts
-var shared21 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
-var pick21 = (name) => shared21[name];
-var callPayments = /* @__PURE__ */ pick21("callPayments");
-var loadPaymentState = /* @__PURE__ */ pick21("loadPaymentState");
-var repaintPlanScreen = /* @__PURE__ */ pick21("repaintPlanScreen");
-var waitUntilActive = /* @__PURE__ */ pick21("waitUntilActive");
+var shared22 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
+var pick22 = (name) => shared22[name];
+var callPayments = /* @__PURE__ */ pick22("callPayments");
+var loadPaymentState = /* @__PURE__ */ pick22("loadPaymentState");
+var repaintPlanScreen = /* @__PURE__ */ pick22("repaintPlanScreen");
+var waitUntilActive = /* @__PURE__ */ pick22("waitUntilActive");
 
 // src/app/screens/orders/subscription/choose-plan.ts
 var MIN_USERS = 3;

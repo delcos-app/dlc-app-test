@@ -1,12 +1,13 @@
 /**
- * «Ventas por canal» in Analítica, after «Embudo comercial»: which part of the units comes with a referring professional and which
- * by direct sale to a centre. Migrated from graficoCanal in componentes/graficos.js (v2.416.0); graficoCanal stays as an adapter.
+ * «Ventas por canal» in Analítica, after «Embudo comercial»: which part of the units comes by each of the company's sales channels
+ * (v2.470.0, VEN-1: their names from the catalogue; before, «with a referring professional» or «direct sale to a centre»). Migrated from graficoCanal in componentes/graficos.js (v2.416.0); graficoCanal stays as an adapter.
  */
-import { callRpc, term } from '../../legacy/bridge';
+import { callRpc } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { sum } from '../../services/values';
 import { CHART_COLOURS, emptyChart } from './small-charts';
+import { choosesChannel } from '../../core/sales-channels';
 
 interface ChannelRow { nombre: string; total: number | string | null }
 
@@ -30,9 +31,10 @@ function chartHtml(rows: readonly ChannelRow[], total: number): string {
 
 export async function channelChart(): Promise<void> {
   const funnel = [...document.querySelectorAll('#v-analitica .ancard')].find(card => (card.querySelector('h2')?.textContent ?? '').includes('Embudo comercial'));
-  if (!funnel || document.getElementById('ancanal')) return;
+  // v2.470.0 (VEN-1): with only one active channel there is nothing to split
+  if (!funnel || document.getElementById('ancanal') || !choosesChannel()) return;
   funnel.insertAdjacentHTML('afterend', `<div class="card ancard" id="ancanal"><h2>${t('components.charts.channelTitle')}</h2><div class="cargandolocal" style="min-height:160px"></div>
-    <p class="leer"><b>${t('components.charts.howToRead')}</b> ${t('components.charts.channelHint', { aProfessional: term('medico', { article: 'un' }) })}</p></div>`);
+    <p class="leer"><b>${t('components.charts.howToRead')}</b> ${t('components.charts.channelHint')}</p></div>`);
   const { data } = await callRpc<{ filas?: ChannelRow[] }>('analitica_tabla', { p_dim: 'canal', p_medida: 'unidades' });
   const rows = data?.filas ?? [], total = sum(rows.map(row => Number(row.total) || 0));
   const place = document.getElementById('ancanal')?.querySelector('.cargandolocal');

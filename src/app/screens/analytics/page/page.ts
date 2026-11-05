@@ -15,6 +15,7 @@ import { analyticsState, loadConfig } from './catalog';
 import { customise } from './customise';
 import { loadKpis } from './kpis';
 import { markTab, paintSummary } from './summary';
+import { channelFilterOptions, choosesChannel } from '../../../core/sales-channels';
 
 const SELECTS = ['adim', 'acanal', 'amedida', 'aprod', 'acom', 'arep', 'areprt'];
 const element = (id: string): HTMLElement | null => document.getElementById(id);
@@ -35,12 +36,10 @@ function filtersHtml(): string {
         <div><label for="adim">${t('panels.analytics.viewBy')}</label><select id="adim">
           ${option('medico', term('medico', { capital: 'C' }))}${option('comercial', t('panels.analytics.commercial'))}
           ${option('producto', t('panels.analytics.product'))}${option('municipio', t('panels.analytics.municipality'))}
-          ${option('mes', t('panels.analytics.month'))}${option('canal', t('panels.analytics.channel'))}</select></div>
+          ${option('mes', t('panels.analytics.month'))}${choosesChannel() ? option('canal', t('panels.analytics.channel')) : ''}</select></div>
         <div><label for="amedida">${t('panels.analytics.sortBy')}</label><select id="amedida">
           ${option('unidades', t('panels.analytics.units'))}${option('importe', t('panels.analytics.amount'))}</select></div>
-        <div><label for="acanal">${t('panels.analytics.channel')}</label><select id="acanal">
-          ${option('', t('panels.analytics.all'))}${option('paciente', t('panels.analytics.toCustomer', { toPatient: term('paciente', { article: 'al' }) }))}
-          ${option('centro', t('panels.analytics.toCentre'))}</select></div>
+        ${choosesChannel() ? `<div><label for="acanal">${t('panels.analytics.channel')}</label><select id="acanal">${channelFilterOptions(t('panels.analytics.all'))}</select></div>` : ''}
         <div><label for="aprod">${t('panels.analytics.product')}</label><select id="aprod">${option('', t('panels.analytics.all'))}
           ${panelsLegacy.products().map(product => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join('')}</select></div>
         ${reportsHtml()}

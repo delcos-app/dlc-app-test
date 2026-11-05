@@ -8,6 +8,8 @@ import type { SettingsItem, SettingsTree } from '../../legacy/shell-bridge';
 import { t, type MessageKey } from '../../i18n';
 import { paintServicesSettings, paintTaxesSettings } from '../../screens/settings/rules/sales';
 import { paintContractsSettings } from '../../screens/settings/rules/modules';
+import { paintChannelsSettings } from '../../screens/settings/rules/channels';
+import { knowsChannels } from '../sales-channels';
 import { planIncludesSection } from '../plans';
 
 type Group = [string, SettingsItem[]];
@@ -125,9 +127,10 @@ function joinFiscal(tree: Group[]): void {
   }
 }
 
-/** The entries of «Ventas» the person and the plan allow. */
+/** The entries of «Ventas» the person and the plan allow. v2.470.0 (VEN-1): «Canales de venta» first, with SQL 195. */
 function salesEntries(): SettingsItem[] {
   const sales = treeLegacy.canUseModule('ventas'), items: SettingsItem[] = [];
+  if (sales && knowsChannels()) items.push({ k: 'canales', t: t('salesChannels.entry'), ic: 'shopping-cart', d: t('salesChannels.entryHint'), r: (): unknown => paintChannelsSettings() });
   if (treeLegacy.canUseModule('agenda') && planIncludesSection('cirugias')) items.push({ k: 'servicios', t: t('settingsRules.servicesEntry'), ic: 'package', d: t('settingsRules.servicesHint'), r: (): unknown => paintServicesSettings() });
   if (sales && planIncludesSection('concursos')) items.push({ k: 'contratos', t: t('settingsRules.contractsEntry'), ic: 'file-text', d: t('settingsRules.contractsHint'), r: (): unknown => paintContractsSettings() });
   if (sales) items.push({ k: 'distribuidores', t: t('legacyD.tree.distributors'), ic: 'package', d: t('legacyD.tree.distributorsHint'), r: (): unknown => treeLegacy.paintDistributors() });
@@ -169,7 +172,7 @@ export function installSettingsSearchWords(): void {
   treeLegacy.setSearchWords({
     'o.textos': t('legacyD.tree.textsWords'), distribuidores: t('legacyD.tree.distributorsWords'), estados: t('legacyD.tree.statesWords'),
     tpv: t('legacyD.tree.cardPaymentWords'), 'o.pruebas': t('legacyD.tree.testEnvironmentWords'),
-    impuestos: t('settingsRules.taxesWords'), servicios: t('settingsRules.servicesWords'), contratos: t('settingsRules.contractsWords'),
+    impuestos: t('settingsRules.taxesWords'), canales: t('salesChannels.entryWords'), servicios: t('settingsRules.servicesWords'), contratos: t('settingsRules.contractsWords'),
     'stock.consigna': t('settingsRules.consignmentWords'), 'stock.activos': t('settingsRules.installedWords'),
   });
 }

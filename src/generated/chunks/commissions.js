@@ -68,8 +68,7 @@ var commissions = {
     fixed: "Importe fijo por unidad",
     channel: "Canal",
     allChannels: "Todos",
-    patientOnly: "Solo venta {toThePatient}",
-    centreOnly: "Solo venta a centro",
+    channelOnly: "Solo {channel}",
     eurosPerUnit: "Euros por unidad",
     tiers: "Tramos",
     tiersHint: '· deja vacío el "hasta" del último',
@@ -137,7 +136,6 @@ var cardSectionsLegacy = /* @__PURE__ */ pick2("cardSectionsLegacy");
 var legacyDb = /* @__PURE__ */ pick2("legacyDb");
 var notices = /* @__PURE__ */ pick2("notices");
 var salesTeam = /* @__PURE__ */ pick2("salesTeam");
-var term = /* @__PURE__ */ pick2("term");
 
 // delcos-shared:src/app/legacy/commissions-bridge.ts
 var shared3 = globalThis["__delcosModules"]["legacy/commissions-bridge"];
@@ -274,11 +272,24 @@ async function paintSchemePeople(schemeId) {
   await paintList(schemeId);
 }
 
+// delcos-shared:src/app/core/sales-channels.ts
+var shared8 = globalThis["__delcosModules"]["core/sales-channels"];
+var pick8 = (name) => shared8[name];
+var choosesChannel = /* @__PURE__ */ pick8("choosesChannel");
+var lowerFirst = /* @__PURE__ */ pick8("lowerFirst");
+var salesChannels = /* @__PURE__ */ pick8("salesChannels");
+
 // src/app/screens/commissions/scheme-editor.ts
 var FIXED = "fijo";
 var DEFAULT_CALCULATION = "tramo_alcanzado";
 var option = (value2, label, chosen) => `<option value="${value2}" ${chosen === value2 ? "selected" : ""}>${label}</option>`;
 var input = (id) => document.getElementById(id);
+function channelHtml(chosen) {
+  if (!choosesChannel() && !chosen) return '<div><input type="hidden" id="ecan" value=""></div>';
+  const options = salesChannels().filter((channel) => channel.activo || channel.clave === chosen).map((channel) => option(escapeHtml(channel.clave), escapeHtml(t("commissions.editor.channelOnly", { channel: lowerFirst(channel.nombre) })), chosen)).join("");
+  return `<div><label for="ecan">${t("commissions.editor.channel")}</label><select id="ecan">
+          <option value="">${t("commissions.editor.allChannels")}</option>${options}</select></div>`;
+}
 var SchemeEditor = class {
   constructor(id, scheme, onSaved) {
     this.id = id;
@@ -322,10 +333,7 @@ var SchemeEditor = class {
           ${option(FIXED, t("commissions.editor.fixed"), this.calculation)}</select></div>
       </div>
       <div class="g2">
-        <div><label for="ecan">${t("commissions.editor.channel")}</label><select id="ecan">
-          <option value="">${t("commissions.editor.allChannels")}</option>
-          ${option("paciente", t("commissions.editor.patientOnly", { toThePatient: term("paciente", { article: "al" }) }), scheme?.canal)}
-          ${option("centro", t("commissions.editor.centreOnly"), scheme?.canal)}</select></div>
+        ${channelHtml(scheme?.canal)}
         ${this.fixed ? `<div><label for="efijo">${t("commissions.editor.eurosPerUnit")}</label><input id="efijo" type="number" step="0.01" min="0" value="${this.fixedValue}"></div>` : "<div></div>"}
       </div>
       ${this.tiersHtml()}

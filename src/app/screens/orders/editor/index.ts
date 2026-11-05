@@ -19,8 +19,9 @@ import { saveOrder, type SaveOptions } from './save';
 import { autoAmount, buildState, editableProblem, newLine, readForm, type EditorAccount, type EditorCustomer, type EditorPreset, type EditorState } from './state';
 import { editorHtml, showsCardLink, showsTransfer } from './view';
 import { generalVat } from '../../../core/organisation';
+import { buysAsAccount, channelDiscount } from '../../../core/sales-channels';
 
-const FULL_DISCOUNT = 100, SALES_SCREEN = 'ventas';
+const FULL_DISCOUNT = 100, SALES_SCREEN = 'ventas', PERCENT = 'porcentaje';
 
 const element = (id: string): HTMLInputElement | null => document.getElementById(id) as HTMLInputElement | null;
 const choice = (id: string): HTMLSelectElement | null => document.getElementById(id) as HTMLSelectElement | null;
@@ -74,9 +75,25 @@ function bindLines(state: EditorState): void {
   };
 }
 
+/**
+ * v2.470.0 (VEN-1): choosing a channel asks the buying account (a channel where an account buys) or the customer and its reference,
+ * and proposes the channel's own discount: it replaces the general discount when that was empty or the one of the channel before
+ * (a discount written by hand stays).
+ */
+function applyChannel(state: EditorState, key: string): void {
+  document.getElementById('zonapac')?.classList.toggle('escentro', buysAsAccount(key));
+  const before = channelDiscount(state.form.canal), after = channelDiscount(key), discount = element('pdto'), kind = choice('pdtot');
+  state.form.canal = key;
+  if (!discount || before === after) return;
+  const written = Number(discount.value) || 0, byHand = written !== 0 && (written !== before || kind?.value !== PERCENT);
+  if (byHand) return;
+  discount.value = String(after); if (kind) kind.value = PERCENT;
+  paintBreakdown(state);
+}
+
 function bindPayment(state: EditorState): void {
   const method = choice('ppago'), channel = choice('pcan');
-  if (channel) channel.onchange = (): void => { document.getElementById('zonapac')?.classList.toggle('escentro', channel.value === 'centro'); };
+  if (channel) channel.onchange = (): void => { applyChannel(state, channel.value); };
   if (method) method.onchange = (): void => {
     document.getElementById('ppagox')?.classList.toggle('hide', !method.value);
     document.getElementById('ptrfbox')?.classList.toggle('hide', !showsTransfer(state, method.value));

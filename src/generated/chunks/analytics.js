@@ -101,8 +101,6 @@ var panels = {
     units: "Unidades",
     amount: "Importe",
     all: "Todos",
-    toCustomer: "Venta {toPatient}",
-    toCentre: "Venta a centro",
     reporting: "Reporting",
     allProfessionals: "Todos {theProfessionals}",
     withReporting: "Con reporting",
@@ -1433,6 +1431,12 @@ async function paintSummary() {
   moveFilters();
 }
 
+// delcos-shared:src/app/core/sales-channels.ts
+var shared21 = globalThis["__delcosModules"]["core/sales-channels"];
+var pick21 = (name) => shared21[name];
+var channelFilterOptions = /* @__PURE__ */ pick21("channelFilterOptions");
+var choosesChannel = /* @__PURE__ */ pick21("choosesChannel");
+
 // src/app/screens/analytics/page/page.ts
 var SELECTS = ["adim", "acanal", "amedida", "aprod", "acom", "arep", "areprt"];
 var element2 = (id) => document.getElementById(id);
@@ -1449,12 +1453,10 @@ function filtersHtml() {
         <div><label for="adim">${t("panels.analytics.viewBy")}</label><select id="adim">
           ${option3("medico", term("medico", { capital: "C" }))}${option3("comercial", t("panels.analytics.commercial"))}
           ${option3("producto", t("panels.analytics.product"))}${option3("municipio", t("panels.analytics.municipality"))}
-          ${option3("mes", t("panels.analytics.month"))}${option3("canal", t("panels.analytics.channel"))}</select></div>
+          ${option3("mes", t("panels.analytics.month"))}${choosesChannel() ? option3("canal", t("panels.analytics.channel")) : ""}</select></div>
         <div><label for="amedida">${t("panels.analytics.sortBy")}</label><select id="amedida">
           ${option3("unidades", t("panels.analytics.units"))}${option3("importe", t("panels.analytics.amount"))}</select></div>
-        <div><label for="acanal">${t("panels.analytics.channel")}</label><select id="acanal">
-          ${option3("", t("panels.analytics.all"))}${option3("paciente", t("panels.analytics.toCustomer", { toPatient: term("paciente", { article: "al" }) }))}
-          ${option3("centro", t("panels.analytics.toCentre"))}</select></div>
+        ${choosesChannel() ? `<div><label for="acanal">${t("panels.analytics.channel")}</label><select id="acanal">${channelFilterOptions(t("panels.analytics.all"))}</select></div>` : ""}
         <div><label for="aprod">${t("panels.analytics.product")}</label><select id="aprod">${option3("", t("panels.analytics.all"))}
           ${panelsLegacy.products().map((product) => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join("")}</select></div>
         ${reportsHtml()}

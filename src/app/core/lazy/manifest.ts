@@ -17,6 +17,7 @@ import * as coreNavigationCurrent from '../../core/navigation/current';
 import * as coreNoReports from '../../core/no-reports';
 import * as coreOrganisation from '../../core/organisation';
 import * as coreRules from '../../core/rules';
+import * as coreSalesChannels from '../../core/sales-channels';
 import * as coreVocabulary from '../../core/vocabulary';
 import * as i18nIndex from '../../i18n/index';
 import * as legacyAccounts2Bridge from '../../legacy/accounts2-bridge';
@@ -107,6 +108,7 @@ export const sharedModules = (): Record<string, object> => ({
   'core/no-reports': coreNoReports,
   'core/organisation': coreOrganisation,
   'core/rules': coreRules,
+  'core/sales-channels': coreSalesChannels,
   'core/vocabulary': coreVocabulary,
   'i18n/index': i18nIndex,
   'legacy/accounts2-bridge': legacyAccounts2Bridge,

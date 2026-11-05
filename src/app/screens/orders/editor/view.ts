@@ -11,7 +11,8 @@ import { marksReportedOrders } from '../../../core/rules';
 import { euros, isBankTransfer, round2, STATES, type Order } from '../model';
 import { isTpvPayment, tpvActive } from '../tpv/model';
 import { distributorHtml } from './distributor';
-import { CHANNELS, type EditorLine, type EditorState } from './state';
+import { activeChannels, buysAsAccount, channelOf, type SalesChannel } from '../../../core/sales-channels';
+import type { EditorForm, EditorLine, EditorState } from './state';
 
 const isConfirmed = (order: Order | null): boolean => order?.estado === STATES.confirmed;
 const withVat = (line: EditorLine): string => (line.importe !== null ? String(round2(line.importe * (1 + (Number(line.iva) || 0) / 100))) : '');
@@ -24,25 +25,39 @@ function headerHtml(order: Order | null): string {
         <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>`;
 }
 
-function dateChannelOriginHtml(state: EditorState): string {
-  const form = state.form;
-  return `
-      <div class="g2">
-        <div><label for="pfecha">${t('ordersMore.editor.date')}</label><input id="pfecha" type="date" value="${escapeHtml(form.fecha)}"></div>
-        <div><label for="pcan">${t('ordersMore.editor.channel')}</label><select id="pcan">
-          <option value="${CHANNELS.patient}" ${form.canal !== CHANNELS.centre ? 'selected' : ''}>${t('ordersMore.editor.toPatient', { toPatient: term('paciente', { article: 'al' }) })}</option>
-          <option value="${CHANNELS.centre}" ${form.canal === CHANNELS.centre ? 'selected' : ''}>${t('ordersMore.editor.toCentre')}</option></select></div>
-      </div>
-      <div class="g2"><div><label for="porig">${t('ordersMore.editor.origin')}</label><select id="porig">
+/** v2.470.0 (VEN-1): the channels the order can go by, the company's active ones (and its own, if it was deactivated after). */
+function channelChoices(current: string): SalesChannel[] {
+  const own = channelOf(current), active = activeChannels();
+  return own && !own.activo ? [...active, own] : active;
+}
+
+/** The channel: a select with more than one to choose; with one, nothing to ask (the order keeps it). */
+function channelHtml(form: EditorForm): string {
+  const choices = channelChoices(form.canal);
+  if (choices.length < 2) return `<input type="hidden" id="pcan" value="${escapeHtml(form.canal)}">`;
+  const options = choices.map(channel => `<option value="${escapeHtml(channel.clave)}" ${channel.clave === form.canal ? 'selected' : ''}>${escapeHtml(channel.nombre)}</option>`).join('');
+  return `<div><label for="pcan">${t('ordersMore.editor.channel')}</label><select id="pcan">${options}</select></div>`;
+}
+
+const originHtml = (form: EditorForm): string => `<div><label for="porig">${t('ordersMore.editor.origin')}</label><select id="porig">
           <option value="manual">${t('ordersMore.editor.manual')}</option>
-          <option value="web" ${form.origen === 'web' ? 'selected' : ''}>${t('ordersMore.editor.web')}</option>${form.origen === 'portal' ? `<option value="portal" selected>${t('ordersMore.editor.portal')}</option>` : ''}</select></div><div></div></div>
+          <option value="web" ${form.origen === 'web' ? 'selected' : ''}>${t('ordersMore.editor.web')}</option>${form.origen === 'portal' ? `<option value="portal" selected>${t('ordersMore.editor.portal')}</option>` : ''}</select></div>`;
+
+function dateChannelOriginHtml(state: EditorState): string {
+  const form = state.form, channel = channelHtml(form), date = `<div><label for="pfecha">${t('ordersMore.editor.date')}</label><input id="pfecha" type="date" value="${escapeHtml(form.fecha)}"></div>`;
+  // Without a channel to choose, the origin goes next to the date
+  const rows = channel.startsWith('<input') ? `<div class="g2">${date}${originHtml(form)}</div>${channel}`
+    : `<div class="g2">${date}${channel}</div>
+      <div class="g2">${originHtml(form)}<div></div></div>`;
+  return `
+      ${rows}
       ${distributorHtml(state.distributor)}`;
 }
 
 function customerZoneHtml(state: EditorState): string {
   const toProfessional = escapeHtml(term('medico', { article: 'al' }));
   return `
-      <div id="zonapac" class="${state.form.canal === CHANNELS.centre ? 'escentro' : ''}">
+      <div id="zonapac" class="${buysAsAccount(state.form.canal) ? 'escentro' : ''}">
         <label class="solopac">${term('paciente', { capital: 'C' })}</label><div id="pselpac" class="solopac"></div>
         <label><span class="solopac">${t('ordersMore.editor.reference', { Professional: term('medico', { capital: 'C' }) })}</span><span class="solocen">${t('ordersMore.editor.buyingCentre')}</span></label><div id="pselmed"></div>
         <div class="sm u-mt-4"><span class="solopac">${t('ordersMore.editor.leaveName')}</span><span class="solocen">${t('ordersMore.editor.pickCentre')}</span></div>

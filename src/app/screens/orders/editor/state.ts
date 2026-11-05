@@ -10,8 +10,8 @@ import { nonZeroOr, orFallback } from '../../../services/values';
 import { round2, STATES, type Order } from '../model';
 import type { DistributorChoice } from './distributor';
 import { defaultVat } from '../../../core/rules';
+import { channelOf, defaultChannel } from '../../../core/sales-channels';
 
-export const CHANNELS = { patient: 'paciente', centre: 'centro' } as const;
 const WEB_ORIGINS = ['web', 'portal'], MANUAL = 'manual', PERCENT = 'porcentaje';
 
 export interface EditorLine { producto_id: string | null; producto?: string | null; unidades: number | null; importe: number | null; descuento: number | null; iva: number | null; manual?: boolean }
@@ -78,15 +78,16 @@ function serviceFields(order: Order | null): Pick<EditorForm, 'servicio_id' | 'e
   return order ? { servicio_id: '', envio: false, ...fallback } : { servicio_id: service?.id ?? '', envio: Boolean(service), ...fallback };
 }
 
-/** The form of a new order. */
+/** The form of a new order: v2.470.0 (VEN-1), in the company's default channel, with its discount if it has one. */
 const newForm = (preset: EditorPreset | null): Omit<EditorForm, 'servicio_id' | 'envio' | 'envio_iva' | 'envio_con'> => ({
-  fecha: todayIso(), canal: CHANNELS.patient, forma_pago: '', descuento: 0, descuento_tipo: PERCENT, nota: '', cuenta_texto: '',
+  fecha: todayIso(), canal: defaultChannel().clave, forma_pago: '', descuento: Number(defaultChannel().descuento ?? 0) || 0, descuento_tipo: PERCENT, nota: '', cuenta_texto: '',
   origen: WEB_ORIGINS.includes(preset?.origen ?? '') ? preset?.origen ?? MANUAL : MANUAL, pago_referencia: '', sin_cargo: false, reportar: false,
 });
 
 /** The form of an existing order. */
 const orderForm = (order: Order): Omit<EditorForm, 'servicio_id' | 'envio' | 'envio_iva' | 'envio_con'> => ({
-  fecha: order.fecha, canal: order.canal ?? '', forma_pago: order.forma_pago ?? '', descuento: nonZeroOr(order.descuento, 0), descuento_tipo: order.descuento_tipo ?? '',
+  // v2.470.0 (VEN-1): a channel the company does not have (saved before SQL 195) opens in the default one, as the editor showed it
+  fecha: order.fecha, canal: channelOf(order.canal) ? order.canal ?? '' : defaultChannel().clave, forma_pago: order.forma_pago ?? '', descuento: nonZeroOr(order.descuento, 0), descuento_tipo: order.descuento_tipo ?? '',
   nota: order.nota ?? '', cuenta_texto: order.cuenta_texto ?? '', origen: WEB_ORIGINS.includes(order.origen ?? '') ? order.origen ?? MANUAL : MANUAL,
   pago_referencia: order.pago_referencia ?? '', sin_cargo: Boolean(order.sin_cargo), reportar: Boolean(order.reportar_profesional),
 });

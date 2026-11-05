@@ -493,6 +493,7 @@
     reads: () => read_cache_exports,
     report: () => problem_report_exports,
     rules: () => rules_exports,
+    salesChannels: () => sales_channels_exports,
     session: () => session_exports,
     states: () => commercial_states_exports,
     vocabulary: () => vocabulary_exports,
@@ -3126,7 +3127,7 @@
       noData: "Aún no hay datos para este gráfico",
       channelTitle: "Ventas por canal",
       howToRead: "Cómo leerlo:",
-      channelHint: "qué parte de las unidades llega con {aProfessional} de referencia y qué parte por venta directa a un centro.",
+      channelHint: "qué parte de las unidades llega por cada canal de venta de la empresa.",
       channelEmpty: "Verás qué parte de las ventas llega por cada canal."
     },
     classifiers: {
@@ -3724,6 +3725,88 @@
       longerTerm: "más tiempo del que marca su frecuencia",
       sinceDays: "Hace más de {days} días",
       sinceTerm: "Fuera de su frecuencia"
+    }
+  };
+
+  // src/app/i18n/es/sales-channels.ts
+  var salesChannels = {
+    entry: "Canales de venta",
+    entryHint: "Las formas de vender: quién compra y a quién cuenta",
+    entryWords: "canales venta paciente centro cliente empresa atribución portal descuento mayorista tienda web",
+    inactiveOption: "{name} (desactivado)",
+    list: {
+      title: "Canales de venta",
+      intro: "Cada pedido va por uno de estos canales. Con un solo canal activo, el pedido no lo pregunta.",
+      info: "Un canal de venta es una forma de vender de la empresa (p. ej. «Tienda», «Mayorista» o «Web»). Cada canal dice quién compra (un cliente con su cuenta de referencia, o una cuenta), a quién se atribuye la venta (cartera, comisiones y cifras de la cuenta), si la venta cuenta en el portal de la cuenta, el descuento que propone y a qué canal van los pedidos que llegan solos. Sale en Pedidos, en Analítica y en los esquemas de comisión. Lo que se guarda en cada pedido es su clave, que no cambia: cambiar el nombre no toca los pedidos de antes.",
+      infoTitle: "¿Qué es un canal de venta?",
+      openOf: "Abrir {name}",
+      open: "›",
+      isDefault: "Por defecto",
+      inactive: "Desactivado",
+      newChannel: "+ Nuevo canal",
+      none: "Todavía no hay canales."
+    },
+    summary: {
+      buysCustomer: "Compra: un cliente",
+      buysAccount: "Compra: una cuenta",
+      toReference: "Atribuye a la cuenta de referencia",
+      toBuyer: "Atribuye a la cuenta que compra",
+      toNobody: "Sin atribución",
+      inPortal: "Cuenta en el portal",
+      discount: "Descuento {discount} %",
+      receives: "Recibe: {origins}"
+    },
+    origins: {
+      importacion: "importación",
+      portal: "portal de la cuenta",
+      servicios: "servicios con material",
+      consigna: "consigna",
+      and: " y "
+    },
+    editor: {
+      editTitle: "Editar canal",
+      newTitle: "Nuevo canal",
+      in: "En Canales de venta",
+      name: "Nombre",
+      nameHelp: "Lo que se ve en Pedidos, Analítica y comisiones.",
+      namePlaceholder: "p. ej. Tienda",
+      key: "Clave interna: {key} (no cambia; es lo que guarda cada pedido).",
+      buyer: "Quién compra",
+      buyerHelp: "Un cliente: el pedido pide el cliente y su cuenta de referencia. Una cuenta: pide la cuenta que compra.",
+      buyerCustomer: "Un cliente",
+      buyerAccount: "Una cuenta",
+      attribution: "A quién se atribuye",
+      attributionHelp: "A quién cuenta la venta: cartera del comercial, comisiones y cifras de la cuenta. La cuenta que compra, cuando es un centro.",
+      toReference: "A la cuenta de referencia",
+      toBuyer: "A la cuenta que compra",
+      toNobody: "Sin atribución",
+      joins: "Une el cliente a su cuenta de referencia",
+      joinsHelp: "Con la primera venta, el cliente queda con esa cuenta si aún no tenía una.",
+      portal: "Cuenta en el portal de la cuenta",
+      portalHelp: "Sus ventas salen en el informe del portal, en la ficha de la cuenta y en el aviso de venta de cartera.",
+      discount: "Descuento de partida (%)",
+      discountHelp: "El pedido lo propone al elegir el canal. Vacío: sin descuento.",
+      origins: "Para pedidos que llegan de",
+      originsHelp: "Los pedidos que se crean solos van a este canal. Cada origen va a un solo canal: marcarlo aquí lo quita de otro.",
+      isDefault: "Por defecto",
+      defaultHelp: "El canal de un pedido nuevo.",
+      defaultFixed: "El canal de un pedido nuevo. Para cambiarlo, marca otro canal como por defecto.",
+      active: "Activo",
+      activeHelp: "Desactivado no sale al hacer un pedido; sus pedidos de antes y sus cifras siguen igual.",
+      activeFixed: "El canal por defecto siempre está activo.",
+      add: "Añadir",
+      saved: "Canal guardado",
+      added: "Canal añadido"
+    },
+    errors: {
+      nombre: "Escribe el nombre del canal",
+      nombre_largo: "El nombre es demasiado largo (60 letras como mucho)",
+      nombre_repetido: "Ya hay un canal con ese nombre",
+      descuento: "El descuento tiene que ser un número entre 0 y 100",
+      por_defecto: "El canal por defecto no se puede desactivar: antes marca otro como por defecto",
+      ultimo: "Tiene que quedar al menos un canal activo",
+      permiso: "Solo la administración cambia los canales",
+      other: "No se ha podido guardar el canal"
     }
   };
 
@@ -5474,6 +5557,7 @@
 
   // src/app/i18n/es.ts
   var es = {
+    salesChannels,
     settingsRules,
     equipment,
     tenders,
@@ -5853,293 +5937,23 @@
     withCase: () => withCase,
     wordFor: () => wordFor
   });
-  var DEFAULT_TERMS = {
-    medico: { s: t("core.terms.professional"), p: t("core.terms.professionals"), g: "m" },
-    paciente: { s: t("core.terms.customer"), p: t("core.terms.customers"), g: "m" },
-    visita: { s: t("core.terms.visit"), p: t("core.terms.visits"), g: "f" },
-    pauta: { s: t("core.terms.request"), p: t("core.terms.requests"), g: "f" },
-    consulta: { s: t("core.terms.location"), p: t("core.terms.locations"), g: "f" },
-    especialidad: { s: t("core.terms.segment"), p: t("core.terms.segments"), g: "m" }
-  };
-  var EXTRA_TERMS = {
-    intervencion: { s: t("core.terms.surgery"), p: t("core.terms.surgeries"), g: "f" },
-    deposito: { s: t("core.terms.deposit"), p: t("core.terms.deposits"), g: "m" }
-  };
-  var DETERMINERS = {
-    el: ["el", "los", "la", "las"],
-    un: ["un", "unos", "una", "unas"],
-    del: ["del", "de los", "de la", "de las"],
-    al: ["al", "a los", "a la", "a las"],
-    este: ["este", "estos", "esta", "estas"],
-    ningun: ["ningún", "ningunos", "ninguna", "ningunas"],
-    otro: ["otro", "otros", "otra", "otras"],
-    nuevo: ["nuevo", "nuevos", "nueva", "nuevas"],
-    primer: ["primer", "primeros", "primera", "primeras"],
-    ultimo: ["último", "últimos", "última", "últimas"],
-    proximo: ["próximo", "próximos", "próxima", "próximas"]
-  };
-  var TERMS_KEY = "dlc-terminos";
-  var TITLE = /^(dr|dra|d|dña|dª|sr|sra|srta|prof|profa|lic|ldo|lda)\.?$/i;
-  function ownTerms() {
-    try {
-      return coreLegacy.terms();
-    } catch {
-      return {};
-    }
-  }
-  function termOf(key) {
-    const fallback = DEFAULT_TERMS[key] ?? EXTRA_TERMS[key] ?? { s: key, p: `${key}s`, g: "m" }, own = ownTerms()[key] ?? {};
-    return { s: String(own.s ?? "").trim() || fallback.s, p: String(own.p ?? "").trim() || fallback.p, g: own.g === "f" || own.g === "m" ? own.g : fallback.g };
-  }
-  var withCase = (text2, mode) => mode === "U" ? text2.toUpperCase() : mode === "C" ? text2.charAt(0).toUpperCase() + text2.slice(1) : text2;
-  function wordFor(key, number2, form = {}) {
-    const { determiner, determinerCase, nounCase, adjective } = form;
-    const term2 = termOf(key), plural2 = number2 === "p", noun = withCase(plural2 ? term2.p : term2.s, nounCase);
-    const agreed = adjective ? ` ${term2.g === "f" ? adjective.replace(/o$/, "a") : adjective}${plural2 ? "s" : ""}` : "";
-    const forms = determiner ? DETERMINERS[determiner] : void 0;
-    if (!forms) return noun + agreed;
-    return `${withCase(forms[(term2.g === "f" ? 2 : 0) + (plural2 ? 1 : 0)] ?? "", determinerCase)} ${noun}${agreed}`;
-  }
-  var allOf = (key) => `${t(termOf(key).g === "f" ? "core.terms.allFeminine" : "core.terms.allMasculine")} ${wordFor(key, "p", { determiner: "el" })}`;
-  var contactsLabel = () => (coreLegacy.brandLabel() ?? "") || wordFor("medico", "p", { nounCase: "C" });
-  var channelLabel = (order, total) => {
-    if (coreLegacy.isFree(order, total)) return t("core.terms.freeDelivery");
-    return order.canal === "centro" ? t("core.terms.saleToCentre") : t("core.terms.saleTo", { customer: wordFor("paciente", "s", { determiner: "al" }) });
-  };
-  var nameParts = (name) => {
-    const parts = String(name ?? "").trim().split(/\s+/);
-    while (parts.length > 1 && TITLE.test(parts[0] ?? "")) parts.shift();
-    return parts;
-  };
-  var firstName = (name) => nameParts(name)[0] ?? "";
-  var initials = (name) => nameParts(name).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase();
-  var ending = (key, plural2) => `${termOf(key).g === "f" ? "a" : "o"}${plural2 ? "s" : ""}`;
-  var SURGERY_WORDS = /* @__PURE__ */ new Map([
-    ["surgery", () => wordFor("intervencion", "s")],
-    ["surgeries", () => wordFor("intervencion", "p")],
-    ["Surgery", () => wordFor("intervencion", "s", { nounCase: "C" })],
-    ["Surgeries", () => wordFor("intervencion", "p", { nounCase: "C" })],
-    ["surgeryThe", () => termOf("intervencion").g === "f" ? "la" : "el"],
-    ["SurgeryThe", () => termOf("intervencion").g === "f" ? "La" : "El"],
-    ["surgeryOfThe", () => termOf("intervencion").g === "f" ? "de la" : "del"],
-    ["surgeriesThe", () => termOf("intervencion").g === "f" ? "las" : "los"],
-    ["surgeryOne", () => termOf("intervencion").g === "f" ? "una" : "un"],
-    ["SurgeryOne", () => termOf("intervencion").g === "f" ? "Una" : "Un"],
-    ["surgeryThis", () => termOf("intervencion").g === "f" ? "esta" : "este"],
-    ["surgeryEnd", () => ending("intervencion", false)],
-    ["surgeryEnds", () => ending("intervencion", true)]
-  ]);
-  var DEPOSIT_WORDS = /* @__PURE__ */ new Map([
-    ["deposit", () => wordFor("deposito", "s")],
-    ["Deposit", () => wordFor("deposito", "s", { nounCase: "C" })],
-    ["depositThe", () => termOf("deposito").g === "f" ? "la" : "el"],
-    ["DepositThe", () => termOf("deposito").g === "f" ? "La" : "El"],
-    ["depositOne", () => termOf("deposito").g === "f" ? "una" : "un"],
-    ["depositEnd", () => ending("deposito", false)]
-  ]);
-  setVocabularyResolver((name) => (SURGERY_WORDS.get(name) ?? DEPOSIT_WORDS.get(name))?.());
 
-  // src/app/api/client.ts
-  function rpc(name, ...params) {
-    const [values2] = params;
-    return legacyDb().rpc(name, values2);
-  }
-
-  // src/app/core/session.ts
-  var ACCESS_CHECK_MS = 3e3;
-  var SESSION_ERRORS = [];
-  var impersonating = () => {
-    try {
-      return JSON.parse(localStorage.getItem(coreLegacy.impersonationKey()) ?? "null");
-    } catch {
-      return null;
-    }
-  };
-  var isGuest = (user) => Boolean(user) && (coreLegacy.roleCan(user?.rol ?? "", "portal_prescriptor") || coreLegacy.roleCan(user?.rol ?? "", "portal_centro"));
-  var guestSees = (user) => coreLegacy.roleCan(user.rol, "portal_centro") ? t("core.session.centreGuestSees") : t("core.session.professionalGuestSees", { requests: wordFor("pauta", "p"), customers: wordFor("paciente", "p") });
-  var ERROR_KEYS = {
-    administrador: "core.session.errors.administrator",
-    permiso: "core.session.errors.permission",
-    inactivo: "core.session.errors.inactive",
-    propio: "core.session.errors.own",
-    otra: "core.session.errors.otherCompany",
-    no_encontrado: "core.session.errors.notFound",
-    plan: "core.session.errors.plan",
-    sesion: "core.session.errors.session"
-  };
-  var IMPERSONATION_ERRORS = Object.fromEntries(Object.entries(ERROR_KEYS).map(([code, key]) => [code, t(key)]));
-  var outOfPlan = (button3) => Boolean(button3) && Boolean(button3?.classList.contains("bloq"));
-  function clearLocalData() {
-    try {
-      Object.keys(localStorage).filter((key) => /^dlc-(rc-|perfil|jornada-)/.test(key)).forEach((key) => {
-        localStorage.removeItem(key);
-      });
-    } catch {
-    }
-  }
-  var emptyModules = (except) => {
-    ["v-pacientes", "v-productos", "v-ventas"].forEach((id) => {
-      const section = document.getElementById(id);
-      if (id !== except && section) section.innerHTML = "";
-    });
-  };
-  function prepareOrganizationChange(target) {
-    try {
-      sessionStorage.setItem("dlc-cambio-org", target ?? "");
-      sessionStorage.removeItem("dlc-f5");
-      localStorage.removeItem("app-marca");
-    } catch {
-    }
-  }
-  function paintImpersonationBar() {
-    const saved3 = impersonating();
-    let bar = document.getElementById("barrasup");
-    if (!saved3) {
-      bar?.remove();
-      return;
-    }
-    if (!bar) {
-      document.body.insertAdjacentHTML("afterbegin", '<div id="barrasup"></div>');
-      bar = document.getElementById("barrasup");
-    }
-    if (!bar) return;
-    const profile6 = coreLegacy.profile();
-    bar.innerHTML = `<span>👤 <b>${t("core.session.impersonating", { name: escapeHtml(profile6 ? profile6.nombre : saved3.como) })}</b>${profile6 ? ` · ${escapeHtml(profile6.rol)}` : ""} · ${t("core.session.underTheirName")}</span>
-    <button class="btn chico" id="supvolver">${t("core.session.stop", { name: escapeHtml(firstName(saved3.nombre)) })}</button>`;
-    const back = document.getElementById("supvolver");
-    if (back) back.onclick = () => {
-      void coreLegacy.backToMySession();
-    };
-  }
-  function canCheck(force) {
-    const id = coreLegacy.profile()?.id;
-    if (coreLegacy.accessLost() || !id || document.body.classList.contains("sin-sesion") || !navigator.onLine) return null;
-    return force || Date.now() - coreLegacy.accessCheckedAt() >= ACCESS_CHECK_MS ? id : null;
-  }
-  async function sendOut() {
-    coreLegacy.setAccessLost();
-    try {
-      sessionStorage.setItem("delcos-fuera", "1");
-    } catch {
-    }
-    try {
-      localStorage.removeItem(coreLegacy.profileKey());
-      localStorage.removeItem("dlc-os-sesion");
-    } catch {
-    }
-    clearLocalData();
-    try {
-      await coreLegacy.db().auth.signOut();
-    } catch {
-    }
-    location.reload();
-  }
-  async function checkAccess(force) {
-    const id = canCheck(force);
-    if (!id) return;
-    coreLegacy.setAccessCheckedAt(Date.now());
-    const { data, error } = await coreLegacy.db().from("perfiles").select("id, activo").eq("id", id).maybeSingle();
-    if (error || data?.activo) return;
-    await sendOut();
-  }
-  async function askServer(id) {
-    const answer = await coreLegacy.db().functions.invoke("impersonar", { body: { usuario_id: id } });
-    const { error } = answer, data = answer.data;
-    if (error && !data && typeof error.context?.json === "function") {
-      try {
-        return { data: await error.context.json(), error };
-      } catch {
-      }
-    }
-    return { data, error };
-  }
-  var logFailure = (reason, error, detail) => {
-    coreLegacy.registerError("api", `Impersonalizar: ${reason || "sin respuesta"}`, { estado: error?.context?.status, detalle: detail });
-  };
-  function failed(answer, error) {
-    const code = answer?.error ?? "", known = IMPERSONATION_ERRORS[code], message = error?.message ?? "", detail = answer?.detalle;
-    const reason = [detail, message, code].find(Boolean) ?? t("core.session.noAnswer");
-    coreLegacy.toast(known ?? t("core.session.couldNotEnter", { reason }), true);
-    if (!known || code === "sesion") logFailure(code || message, error, detail);
-    coreLegacy.hideLoading();
-  }
-  async function markImpersonatedSession() {
-    try {
-      await rpc("suplantar_marcar_sesion");
-    } catch {
-    }
-  }
-  async function impersonate(id) {
-    const user = coreLegacy.users().find((item) => item.id === id) ?? { id, nombre: t("core.session.thisPerson"), rol: "" };
-    const text2 = t(isGuest(user) ? "core.session.confirmGuest" : "core.session.confirmUser", { name: user.nombre });
-    if (!await coreLegacy.confirm(text2, { titulo: t("core.session.confirmTitle", { name: user.nombre }), ok: t("core.session.confirmOk") })) return;
-    coreLegacy.showLoading(t("core.session.loading", { name: user.nombre }));
-    const { data: { session: session2 } } = await coreLegacy.db().auth.getSession();
-    if (!session2) {
-      coreLegacy.hideLoading();
-      coreLegacy.toast(IMPERSONATION_ERRORS.sesion ?? "", true);
-      return;
-    }
-    const { data, error } = await askServer(id);
-    if (!data?.ok) {
-      failed(data, error);
-      return;
-    }
-    const profile6 = coreLegacy.profile();
-    localStorage.setItem(coreLegacy.impersonationKey(), JSON.stringify({
-      access_token: session2.access_token,
-      refresh_token: session2.refresh_token,
-      nombre: profile6?.nombre,
-      id: profile6?.id,
-      como: data.nombre,
-      rol: data.rol,
-      desde: Date.now()
-    }));
-    const { error: opening } = await coreLegacy.db().auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
-    if (opening) {
-      localStorage.removeItem(coreLegacy.impersonationKey());
-      await coreLegacy.db().auth.setSession({ access_token: session2.access_token, refresh_token: session2.refresh_token });
-      coreLegacy.registerError("api", "Impersonalizar: no se abre la sesión", { mensaje: opening.message });
-      coreLegacy.toast(t("core.session.couldNotOpen", { error: opening.message ?? "" }), true);
-      coreLegacy.hideLoading();
-      return;
-    }
-    await markImpersonatedSession();
-    clearLocalData();
-    location.reload();
-  }
-
-  // src/app/core/errors.ts
-  var MAX_MESSAGE = 500;
-  var KEPT_ERRORS = 20;
-  var NETWORK = /failed to fetch|load failed|networkerror|network request failed|aborterror|fetch is aborted|internet connection|err_internet|err_network/i;
-  var TIMEOUT = /ha tardado demasiado|tiempo agotado|timeout|timed out/i;
-  var READ_ONLY_REFUSAL = /row-level security|violates row-level/i;
-  var sent = /* @__PURE__ */ new Set();
-  var textOf = (error) => {
-    if (error && typeof error === "object" && "message" in error) return String(error.message ?? "") || String(error);
-    return String(error ?? "");
-  };
-  var isNetworkError = (error) => NETWORK.test(textOf(error)) || TIMEOUT.test(textOf(error));
-  function registerError(type, message, detail) {
-    if (coreLegacy.paymentState()?.solo_lectura && READ_ONLY_REFUSAL.test(String(message))) return;
-    if (type === "api" && isNetworkError(message)) return;
-    try {
-      const text2 = String(message ?? "").slice(0, MAX_MESSAGE), screen3 = coreLegacy.currentScreen();
-      SESSION_ERRORS.push({ t: (/* @__PURE__ */ new Date()).toISOString(), tipo: type, m: text2, pantalla: screen3 });
-      if (SESSION_ERRORS.length > KEPT_ERRORS) SESSION_ERRORS.shift();
-      const key = `${type}|${text2}`;
-      if (sent.has(key) || !coreLegacy.profile()) return;
-      sent.add(key);
-      Promise.resolve(coreLegacy.rpc("registrar_error", { p: { tipo: type, mensaje: text2, detalle: detail ?? null, pantalla: screen3, version: coreLegacy.appVersion(), navegador: navigator.userAgent } })).then(() => void 0, () => void 0);
-    } catch {
-    }
-  }
-
-  // src/app/components/charts/month-bars.ts
-  var month_bars_exports = {};
-  __export(month_bars_exports, {
-    monthBars: () => monthBars
+  // src/app/core/sales-channels.ts
+  var sales_channels_exports = {};
+  __export(sales_channels_exports, {
+    ORIGINS: () => ORIGINS2,
+    SETTING_CHANNELS: () => SETTING_CHANNELS,
+    activeChannels: () => activeChannels,
+    buysAsAccount: () => buysAsAccount,
+    channelDiscount: () => channelDiscount,
+    channelFilterOptions: () => channelFilterOptions,
+    channelName: () => channelName,
+    channelOf: () => channelOf,
+    choosesChannel: () => choosesChannel,
+    defaultChannel: () => defaultChannel,
+    knowsChannels: () => knowsChannels,
+    lowerFirst: () => lowerFirst,
+    salesChannels: () => salesChannels2
   });
 
   // src/app/core/legacy-c/index.ts
@@ -7583,8 +7397,8 @@
       paintAccountsFilter();
       return;
     }
-    const field10 = data.find((row3) => row3.papel_campo === NO_REPORTS_ROLE && row3.tipo_campo === YES_NO && !row3.papel);
-    state = { known: data.some((row3) => "papel_campo" in row3), field: field10 ? { clave: field10.clave, nombre: field10.nombre } : null };
+    const field11 = data.find((row3) => row3.papel_campo === NO_REPORTS_ROLE && row3.tipo_campo === YES_NO && !row3.papel);
+    state = { known: data.some((row3) => "papel_campo" in row3), field: field11 ? { clave: field11.clave, nombre: field11.nombre } : null };
     try {
       localStorage.setItem(STORED_KEY, JSON.stringify(state));
     } catch {
@@ -8061,7 +7875,7 @@
   async function undoChange(id, then) {
     const fields = await undoableFields(id);
     if (!fields) return;
-    const fieldNames2 = fields.map((field10) => cardSectionsLegacy.fieldName(field10)).join(", ");
+    const fieldNames2 = fields.map((field11) => cardSectionsLegacy.fieldName(field11)).join(", ");
     if (!await notices.confirm(t("settingsMore.undo.confirmOne", { fields: fieldNames2 }), { titulo: t("settingsMore.undo.titleOne"), ok: t("settingsMore.undo.undo") })) return;
     const { data: result, error } = await legacyDb().rpc("deshacer_cambio", { p_id: id, p_simular: false });
     if (error || !result?.ok) {
@@ -9104,13 +8918,6 @@
     vatRates: () => vatRates
   });
 
-  // src/app/legacy/organisation-bridge.ts
-  var organisationLegacy = {
-    setting: (key) => settingsStore.settings[key],
-    name: () => appName(),
-    hasPortal: () => hasExtra("portal")
-  };
-
   // src/app/services/money.ts
   var money_exports = {};
   __export(money_exports, {
@@ -9625,7 +9432,7 @@
   function completeFields() {
     const own = setting(SETTING_COMPLETE)?.campos;
     if (!Array.isArray(own)) return [...DEFAULT_COMPLETE];
-    return COMPLETE_FIELDS.filter((field10) => own.includes(field10));
+    return COMPLETE_FIELDS.filter((field11) => own.includes(field11));
   }
   var SETTING_EVENTS = "eventos";
   var DEFAULT_EVENT_TYPES = ["Taller", "Curso", "Congreso", "Webinar", "Reunión científica", "Comida de trabajo", "Otro"];
@@ -9985,8 +9792,8 @@
   function placeHelpAndTools() {
     const tools = document.getElementById("dirtools"), title2 = document.querySelector("#dircab h1");
     if (tools?.parentElement && title2 && !title2.querySelector(".ai")) {
-      const help4 = tools.parentElement.querySelector(":scope > .ai");
-      if (help4) title2.appendChild(help4);
+      const help5 = tools.parentElement.querySelector(":scope > .ai");
+      if (help5) title2.appendChild(help5);
     }
     tools?.classList.add("aderecha");
   }
@@ -10134,7 +9941,7 @@
       { k: "estado_comercial", t: t("accounts.columns.state"), w: 150 },
       { k: SALES_REPS, t: t("accounts.columns.salesReps"), w: 190 },
       { k: "acceso", t: t("accounts.columns.access"), w: 170 },
-      ...accountColumnsLegacy.customFields().map((field10) => ({ k: CUSTOM_PREFIX + field10.clave, t: field10.nombre, w: CUSTOM_WIDTH }))
+      ...accountColumnsLegacy.customFields().map((field11) => ({ k: CUSTOM_PREFIX + field11.clave, t: field11.nombre, w: CUSTOM_WIDTH }))
     ];
   }
   var columnTitle = (key) => columnDefinitions().find((column) => column.k === key)?.t ?? key;
@@ -10164,7 +9971,7 @@
       if (!settings2.some((setting2) => setting2.k === column.k)) settings2.push({ k: column.k, on: column.k === SALES_REPS && everything, w: column.w });
     });
     const fields = accountColumnsLegacy.customFields();
-    return settings2.filter((setting2) => setting2.k !== SALES_REPS || everything).map((setting2) => setting2.k.startsWith(CUSTOM_PREFIX) && !(chosen4 ?? []).some((item) => item.k === setting2.k) ? { ...setting2, on: Boolean(fields.find((field10) => CUSTOM_PREFIX + field10.clave === setting2.k)?.en_tabla) } : setting2);
+    return settings2.filter((setting2) => setting2.k !== SALES_REPS || everything).map((setting2) => setting2.k.startsWith(CUSTOM_PREFIX) && !(chosen4 ?? []).some((item) => item.k === setting2.k) ? { ...setting2, on: Boolean(fields.find((field11) => CUSTOM_PREFIX + field11.clave === setting2.k)?.en_tabla) } : setting2);
   }
   var visibleColumns = () => columnSettings().filter((setting2) => setting2.on);
 
@@ -10876,7 +10683,7 @@
     closePopovers: () => closePopovers,
     itemHtml: () => itemHtml2,
     openPopover: () => openPopover,
-    pageHtml: () => pageHtml4,
+    pageHtml: () => pageHtml5,
     paginateLists: () => paginateLists,
     sortRemembered: () => sortRemembered,
     tableSkeleton: () => tableSkeleton
@@ -11219,7 +11026,7 @@
     const key = input6.dataset.cu ?? "", units = Math.min(Number(input6.max), Math.max(0, Math.floor(Number(input6.value) || 0)));
     const place3 = box3.querySelector(`[data-cs="${key}"]`);
     if (!place3) return;
-    const written = [...place3.querySelectorAll("input")].map((field10) => field10.value);
+    const written = [...place3.querySelectorAll("input")].map((field11) => field11.value);
     place3.innerHTML = range(Math.min(units, MAX_SERIALS)).map((index) => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? "")}" placeholder="${t("surgeries.use.serialOf", { index: index + 1 })}" aria-label="${t("surgeries.use.serialLabel", { index: index + 1 })}">`).join("");
   }
   function savedText(withOrder) {
@@ -11233,7 +11040,7 @@
       lote_id: line2.lote_id,
       max: line2.unidades,
       unidades: Math.max(0, Math.floor(Number(box3.querySelector(`[data-cu="${index}"]`)?.value) || 0)),
-      series: [...box3.querySelectorAll(`[data-cser="${index}"]`)].map((field10) => field10.value.trim()).filter(Boolean)
+      series: [...box3.querySelectorAll(`[data-cser="${index}"]`)].map((field11) => field11.value.trim()).filter(Boolean)
     })).filter((item) => item.unidades > 0);
     if (!items.length) {
       notices.toast(t("surgeries.use.writeUsed"), true);
@@ -11542,9 +11349,9 @@
     };
     toTop2();
     requestAnimationFrame(toTop2);
-    const field10 = dialog7.querySelector("input:not([type=hidden]), select, textarea");
-    if (field10) setTimeout(() => {
-      field10.focus({ preventScroll: true });
+    const field11 = dialog7.querySelector("input:not([type=hidden]), select, textarea");
+    if (field11) setTimeout(() => {
+      field11.focus({ preventScroll: true });
       toTop2();
     }, FOCUS_DELAY_MS);
   }
@@ -11847,14 +11654,14 @@
     if (!bar || bar.querySelector(".ai")) return;
     const texts3 = [body3.querySelector(".panel > .cuenta"), section === "series" ? body3.querySelector(".panel > p.sm") : null].filter((item) => item !== null);
     if (!texts3.length) return;
-    const help4 = document.createElement("button");
-    help4.type = "button";
-    help4.className = "ai";
-    help4.textContent = "i";
-    help4.setAttribute("aria-label", t("billingMore.layout.help"));
-    help4.dataset.ayudaTit = t(section === "series" ? "billingMore.layout.seriesTitle" : "billingMore.layout.logTitle");
-    help4.dataset.ayudaTxt = texts3.map(flatText).join(" ");
-    bar.insertBefore(help4, bar.firstChild);
+    const help5 = document.createElement("button");
+    help5.type = "button";
+    help5.className = "ai";
+    help5.textContent = "i";
+    help5.setAttribute("aria-label", t("billingMore.layout.help"));
+    help5.dataset.ayudaTit = t(section === "series" ? "billingMore.layout.seriesTitle" : "billingMore.layout.logTitle");
+    help5.dataset.ayudaTxt = texts3.map(flatText).join(" ");
+    bar.insertBefore(help5, bar.firstChild);
     texts3.forEach((item) => {
       item.remove();
     });
@@ -13360,24 +13167,24 @@
       { key: "email", label: t("components.customerData.email"), value: clean(customer.email) }
     ];
   }
-  function breakable(field10) {
-    const text2 = escapeHtml(field10.value);
-    if (field10.key === "telefono") return text2.split(" / ").map((phone) => phone.replace(/ /g, "&nbsp;")).join(" / ");
-    if (field10.key === "email") return text2.replace(/@/g, "@<wbr>").replace(/\./g, "<wbr>.");
+  function breakable(field11) {
+    const text2 = escapeHtml(field11.value);
+    if (field11.key === "telefono") return text2.split(" / ").map((phone) => phone.replace(/ /g, "&nbsp;")).join(" / ");
+    if (field11.key === "email") return text2.replace(/@/g, "@<wbr>").replace(/\./g, "<wbr>.");
     return text2;
   }
-  var valueHtml2 = (field10) => `<span data-cd="${field10.key}">${breakable(field10)}</span>`;
-  var customerDataCell = (field10) => field10.value ? valueHtml2(field10) : "";
-  var joined = (fields, render2) => fields.filter((field10) => field10.value).map(render2).join(" · ");
+  var valueHtml2 = (field11) => `<span data-cd="${field11.key}">${breakable(field11)}</span>`;
+  var customerDataCell = (field11) => field11.value ? valueHtml2(field11) : "";
+  var joined = (fields, render2) => fields.filter((field11) => field11.value).map(render2).join(" · ");
   function customerDataLines(customer) {
-    const fields = customerDataFields(customer), text2 = (field10) => field10.value;
+    const fields = customerDataFields(customer), text2 = (field11) => field11.value;
     return [joined(fields.slice(0, 2), text2), joined(fields.slice(2), text2)];
   }
   function customerDataHtml(customer, form = "compacto") {
     const fields = customerDataFields(customer);
-    if (!fields.some((field10) => field10.value)) return "";
+    if (!fields.some((field11) => field11.value)) return "";
     if (form === "bloque") {
-      return `<span class="cdatos bloque" data-cdatos>${fields.filter((field10) => field10.value).map((field10) => `<span class="sm">${field10.label}</span>${valueHtml2(field10)}`).join("")}</span>`;
+      return `<span class="cdatos bloque" data-cdatos>${fields.filter((field11) => field11.value).map((field11) => `<span class="sm">${field11.label}</span>${valueHtml2(field11)}`).join("")}</span>`;
     }
     const lines2 = [joined(fields.slice(0, 2), valueHtml2), joined(fields.slice(2), valueHtml2)].filter(Boolean);
     return `<span class="cdatos" data-cdatos>${lines2.map((line2) => `<span>${line2}</span>`).join("")}</span>`;
@@ -13386,8 +13193,8 @@
   // src/app/screens/opportunities/editor/draft.ts
   var typedQuery = () => document.getElementById("nvq")?.value.trim() ?? "";
   var fieldValue2 = (id) => {
-    const field10 = document.getElementById(id);
-    return field10 ? field10.value : null;
+    const field11 = document.getElementById(id);
+    return field11 ? field11.value : null;
   };
 
   // src/app/screens/opportunities/editor/interest.ts
@@ -14110,7 +13917,7 @@
     askText: (message, value10, options3) => askText(message, value10, options3)
   };
   var orderMailLegacy = {
-    template: (kind, field10, values2) => fillTemplate(kind, field10, emailVariables(values2)),
+    template: (kind, field11, values2) => fillTemplate(kind, field11, emailVariables(values2)),
     chooseTemplate: (kind) => chooseTemplate2(kind),
     forgetChosenTemplate: (kind) => {
       billingStore.chosenTemplates[kind] = null;
@@ -15054,7 +14861,7 @@
   var empty = '<span class="vac">—</span>';
   var shown = (value10) => value10 ? escapeHtml(value10) : empty;
   function headerHtml(fields) {
-    const titles = [t("customers.list.customer"), t("customers.list.type"), t("customers.list.taxId"), ...customerDataFields({}).map((field10) => field10.label)];
+    const titles = [t("customers.list.customer"), t("customers.list.type"), t("customers.list.taxId"), ...customerDataFields({}).map((field11) => field11.label)];
     return `<div class="dh">${titles.map((title2) => `<span>${title2}</span>`).join("")}
       <span>${words5().Professional}</span><span>${t("customers.list.salesRep")}</span><span class="num">${t("customers.list.orders")}</span><span class="num">${t("customers.list.units")}</span><span>${t("customers.list.lastOrder")}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
   }
@@ -15063,10 +14870,10 @@
     return `<button class="dr" data-pac="${row3.id}">
       <span><b>${escapeHtml(row3.nombre)}</b></span>
       <span><span class="pill ${company ? "p-emp" : "p-per"}">${company ? t("customers.company") : words5().Patient}</span></span>
-      <span>${shown(row3.nif)}</span>${customerDataFields(row3).map((field10) => `<span class="corta">${customerDataCell(field10)}</span>`).join("")}
+      <span>${shown(row3.nif)}</span>${customerDataFields(row3).map((field11) => `<span class="corta">${customerDataCell(field11)}</span>`).join("")}
       <span class="corta">${row3.medico ? escapeHtml(row3.medico) : `<span class="vac">${t("customers.list.unassigned")}</span>`}</span><span>${shown(row3.comercial)}</span>
       <span class="num">${formatNumber(row3.pedidos)}</span><span class="num"><b>${formatNumber(row3.unidades)}</b></span>
-      <span>${row3.ultimo_pedido ? formatShortDate(row3.ultimo_pedido) : empty}</span>${fields.map((field10) => `<span>${shown(accountColumnsLegacy.fieldText(field10, values2[field10.clave]))}</span>`).join("")}
+      <span>${row3.ultimo_pedido ? formatShortDate(row3.ultimo_pedido) : empty}</span>${fields.map((field11) => `<span>${shown(accountColumnsLegacy.fieldText(field11, values2[field11.clave]))}</span>`).join("")}
     </button>`;
   }
   function emptyHtml() {
@@ -15405,8 +15212,8 @@
 
   // src/app/components/list-bar/text.ts
   var icon2 = (...names) => listBarLegacy.icon(names);
-  var textOf2 = (element) => (element?.textContent ?? "").trim().replace(/\s+/g, " ");
-  var smallText = (element) => textOf2(element?.querySelector(".tx .sm, .sm"));
+  var textOf = (element) => (element?.textContent ?? "").trim().replace(/\s+/g, " ");
+  var smallText = (element) => textOf(element?.querySelector(".tx .sm, .sm"));
   var selectOf = (id) => {
     if (!id) return null;
     return /^[#.]/.test(id) ? document.querySelector(id) : document.getElementById(id);
@@ -15509,25 +15316,25 @@
   });
   var chosen2 = /* @__PURE__ */ new Map();
   var FILTER_FIELDS = ".filtros select[id], .filtros input[id], .htpropios select[id], .htpropios input[id]";
-  var isChoice = (field10) => field10.type === "checkbox" || field10.type === "radio";
+  var isChoice = (field11) => field11.type === "checkbox" || field11.type === "radio";
   function compact(element, small) {
-    [element, ...element.querySelectorAll("input, select")].forEach((field10) => {
-      if (field10.matches("input, select")) field10.classList.toggle("chico", small);
+    [element, ...element.querySelectorAll("input, select")].forEach((field11) => {
+      if (field11.matches("input, select")) field11.classList.toggle("chico", small);
     });
     return element;
   }
   function rememberFilter(event) {
-    const field10 = event.target;
-    if (!field10?.id || !/^(SELECT|INPUT)$/.test(field10.tagName) || !field10.closest("main .filtros, main .htpropios")) return;
-    if (isChoice(field10)) return;
-    chosen2.set(field10.id, field10.value);
+    const field11 = event.target;
+    if (!field11?.id || !/^(SELECT|INPUT)$/.test(field11.tagName) || !field11.closest("main .filtros, main .htpropios")) return;
+    if (isChoice(field11)) return;
+    chosen2.set(field11.id, field11.value);
   }
   function restoreFilters(root) {
-    (root ?? document).querySelectorAll(FILTER_FIELDS).forEach((field10) => {
-      const value10 = chosen2.get(field10.id);
-      if (value10 === void 0 || field10.value === value10 || isChoice(field10)) return;
-      if (field10 instanceof HTMLSelectElement && ![...field10.options].some((option3) => option3.value === value10)) return;
-      field10.value = value10;
+    (root ?? document).querySelectorAll(FILTER_FIELDS).forEach((field11) => {
+      const value10 = chosen2.get(field11.id);
+      if (value10 === void 0 || field11.value === value10 || isChoice(field11)) return;
+      if (field11 instanceof HTMLSelectElement && ![...field11.options].some((option3) => option3.value === value10)) return;
+      field11.value = value10;
     });
   }
 
@@ -15747,13 +15554,2554 @@
     billingSection: () => typeof billingStore.section === "undefined" ? null : billingStore.section
   };
 
+  // src/app/screens/products/index.ts
+  var products_exports = {};
+  __export(products_exports, {
+    editProduct: () => editProduct,
+    editService: () => editService,
+    editStores: () => editStores,
+    loadProductsModule: () => loadProductsModule,
+    paintProducts: () => paintProducts,
+    paintServices: () => paintServices,
+    paintStock: () => paintStock,
+    paintStores: () => paintStores,
+    paintVisitMaterial: () => paintVisitMaterial,
+    promotedProducts: () => promotedProducts,
+    showDeposit: () => showDeposit,
+    showStock: () => showStock,
+    stockMovement: () => stockMovement,
+    traceability: () => traceability
+  });
+
+  // src/app/screens/visit/index.ts
+  var visit_exports = {};
+  __export(visit_exports, {
+    editSamples: () => editSamples,
+    editVisit: () => editVisit,
+    loadMaterials: () => loadMaterials,
+    openVisit: () => openVisit,
+    presentOnly: () => presentOnly,
+    saveRevisitNotice: () => saveRevisitNotice,
+    showVisitPhotos: () => showVisitPhotos,
+    uploadVisitPhotos: () => uploadVisitPhotos,
+    visitBlock: () => visitBlock,
+    visitConsultation: () => visitConsultation
+  });
+
+  // src/app/screens/visit/card-block.ts
+  var card_block_exports = {};
+  __export(card_block_exports, {
+    visitBlock: () => visitBlock,
+    visitConsultation: () => visitConsultation
+  });
+
+  // src/app/legacy/visit-bridge.ts
+  var visitLegacy = {
+    setCurrent: (draft) => {
+      accountsStore.currentVisit = draft;
+    },
+    /** The day chosen in the Agenda for the visit (used once). */
+    takeDate: () => {
+      const date = VISITA_FECHA;
+      VISITA_FECHA = "";
+      return date;
+    },
+    withLoading: (work) => withDialogLoading(work),
+    saveCopy: (key, data) => {
+      read_cache_exports.saveCopy(key, data);
+    },
+    readCopy: (key) => read_cache_exports.readCopy(key)?.d ?? null,
+    resultValues: () => CAT.resultado_visita ?? [],
+    dataField: (value10, key) => valueDataField(value10, key, void 0),
+    signaturePad: (canvas) => signaturePad(canvas),
+    promotedProducts: () => promotedProducts(),
+    reloadProducts: async () => {
+      await cargarProductos();
+      return productsStore.products;
+    },
+    readPhoto: (file) => files_exports.readReceipt(file),
+    photosMax: () => FOTOS_VISITA_MAX,
+    normalise: (text2) => normalise2(text2),
+    weekdayLetter: () => calendar_exports.todayLetter(),
+    /** The write queue: without connection the call is kept and `data.encolada` is true. */
+    writeRpc: (name, payload10) => read_cache_exports.writeQueued(name, payload10),
+    reloadHome: () => {
+      void loadWithCache();
+    },
+    loading: (element, text2) => {
+      showLoading(element, text2);
+    },
+    materials: () => productsStore.presentationMaterials,
+    materialsTime: () => productsStore.presentationTime,
+    setMaterials: (list, time) => {
+      productsStore.presentationMaterials = list;
+      productsStore.presentationTime = time;
+    },
+    /** Downloaded material files by id (Productos forgets one when it is removed). */
+    materialFiles: () => PRES_DATOS,
+    preferences: () => sessionStore.profile.preferencias ?? {},
+    setPreferences: (value10) => {
+      sessionStore.profile.preferencias = value10;
+    }
+  };
+
+  // src/app/screens/visit/card-block.ts
+  var WEEK2 = "LMXJVSD";
+  var WORKDAYS = ["L", "M", "X", "J", "V"];
+  var DAY_NAMES = /* @__PURE__ */ new Map([
+    ["L", "visit.days.monday"],
+    ["M", "visit.days.tuesday"],
+    ["X", "visit.days.wednesday"],
+    ["J", "visit.days.thursday"],
+    ["V", "visit.days.friday"],
+    ["S", "visit.days.saturday"],
+    ["D", "visit.days.sunday"]
+  ]);
+  function visitConsultation(consultations) {
+    const centre = editorLegacy.centreFromCard(), preferred = centre ? visitLegacy.normalise(centre) : "";
+    const fromAppointment = preferred ? consultations.find((item) => visitLegacy.normalise(item.centro_nombre ?? "") === preferred) : void 0;
+    if (fromAppointment) return fromAppointment;
+    const today2 = visitLegacy.weekdayLetter();
+    return consultations.find((item) => item.dias?.[today2]) ?? consultations[0];
+  }
+  var row = (iconName, html, extraClass = "") => `<div class="fvfila ${extraClass}"><span class="fvico">${icon(iconName)}</span><div>${html}</div></div>`;
+  function placeRow(consultation) {
+    const where = [consultation.planta, consultation.sala].map((part) => String(part ?? "").trim()).filter((part) => part && !/^[-–·.]+$/.test(part)).map(escapeHtml).join(" · ");
+    const address = escapeHtml([consultation.direccion, [consultation.cp, consultation.municipio].filter(Boolean).join(" ")].filter(Boolean).join(", ")) || t("visit.block.noAddress");
+    const directions = consultation.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${icon("map-pin")} ${t("visit.block.directions")}</button>` : "";
+    return row("building-2", `<b>${escapeHtml(orFallback(consultation.centro_nombre, privateConsultation()))}</b>${where ? `<span class="fvdonde">${where}</span>` : ""}
+      <div class="sm">${address}</div>
+      ${directions}`);
+  }
+  function whenRow(consultation) {
+    const days = consultation.dias ?? {}, today2 = visitLegacy.weekdayLetter(), hours2 = days[today2];
+    const position = WEEK2.indexOf(today2), next = hours2 ? void 0 : [...WEEK2.slice(position + 1), ...WEEK2.slice(0, position + 1)].find((day) => days[day]);
+    const centre = consultation.horario_centro?.[today2];
+    const head = hours2 ? `<b>${t("visit.block.attendsToday", { hours: escapeHtml(hours2) })}</b>` : next ? t("visit.block.notToday", { day: t(DAY_NAMES.get(next) ?? "visit.days.monday"), hours: escapeHtml(days[next]) }) : t("visit.block.noTimetable");
+    return row("clock", `${head}
+      ${centre ? `<div class="sm">${t("visit.block.centreOpen", { hours: escapeHtml(centre) })}</div>` : ""}
+      <div class="dias fvdias">${WORKDAYS.map((day) => `<span class="${days[day] ? "on" : ""} ${day === today2 ? "hoy" : ""}" title="${escapeHtml(days[day] ?? "")}">${day}</span>`).join("")}</div>`);
+  }
+  function consultationRows(consultation) {
+    if (!consultation) return [row("building-2", `<span class="sm">${t("visit.block.noConsultation", { consultation: term("consulta") })}</span>`)];
+    const rows2 = [placeRow(consultation), whenRow(consultation)];
+    if (consultation.indicaciones) rows2.push(row("info", `<b>${t("visit.block.inside")}</b> ${escapeHtml(consultation.indicaciones)}`, "fvind"));
+    return rows2;
+  }
+  function lastVisitRow(last) {
+    if (!last) return [];
+    const material = cardSectionsLegacy.visitDetails(last);
+    return [row("notebook-pen", `<b>${t("visit.block.lastVisit", { visit: term("visita"), date: formatShortDate(last.fecha) })}</b> · ${escapeHtml(orFallback((last.resultados ?? []).join(" + "), t("visit.block.noResult")))}
+      ${last.nota ? `<div class="sm">${escapeHtml(last.nota)}</div>` : ""}${material ? `<div class="sm">${t("visit.block.material", { material: escapeHtml(material) })}</div>` : ""}`)];
+  }
+  function pendingRow(visits2) {
+    const pending = visits2.find((visit2) => Boolean(visit2.proxima_accion) || Boolean(visit2.proxima_fecha));
+    if (!pending) return [];
+    const date = pending.proxima_fecha, today2 = todayIso();
+    const pill = !date ? "" : date < today2 ? `<span class="pill p-bor">${t("visit.block.late")}</span>` : date === today2 ? `<span class="pill p-est">${t("visit.block.today")}</span>` : "";
+    return [row("clipboard-list", `<b>${t("visit.block.pending")}</b> ${escapeHtml(orFallback(pending.proxima_accion, t("visit.block.visitAgain", { visit: term("visita") })))}${date ? ` · ${formatShortDate(date)}` : ""} ${pill}`)];
+  }
+  function contactRows(account, consultation) {
+    const rows2 = account.nota ? [row("message-circle", `<b>${t("visit.block.notes")}</b> ${escapeHtml(account.nota)}`)] : [];
+    const phones = [account.telefono, consultation?.telefono].filter((phone) => Boolean(phone)).filter((phone, index, all) => all.indexOf(phone) === index);
+    if (phones.length || account.contacto) {
+      rows2.push(row("phone", `${phones.map((phone) => `<a href="tel:${escapeHtml(phone.replace(/\s+/g, ""))}"><b>${escapeHtml(phone)}</b></a>`).join(" · ")}
+    ${account.contacto ? `<div class="sm">${escapeHtml(account.contacto)}</div>` : ""}`));
+    }
+    return rows2;
+  }
+  function visitBlock(account, consultations, visits2) {
+    const person = account, consultation = visitConsultation(consultations);
+    const urgent = person.urgente ? [row("circle-alert", `<b>${t("visit.block.urgent")}</b>${person.urgente_motivo ? `: ${escapeHtml(person.urgente_motivo)}` : ""}`, "fvurg")] : [];
+    const rows2 = [...urgent, ...consultationRows(consultation), ...lastVisitRow(visits2[0]), ...pendingRow(visits2), ...contactRows(person, consultation)];
+    const title2 = t("visit.block.title", { visit: term("visita") });
+    return `<section class="fvis" aria-label="${title2}"><h3>${title2}</h3>${rows2.join("")}</section>`;
+  }
+
+  // src/app/screens/visit/edit.ts
+  var edit_exports = {};
+  __export(edit_exports, {
+    editVisit: () => editVisit
+  });
+
+  // src/app/screens/visit/model.ts
+  var NEGATIVE = "neg";
+  var MODES = [["presencial", "visit.modes.inPerson"], ["telefono", "visit.modes.phone"], ["video", "visit.modes.video"]];
+  var modeButtons = (attribute, chosen4) => MODES.map(([mode, label]) => `<button type="button" data-${attribute}="${mode}" class="${mode === chosen4 ? "on" : ""}" aria-pressed="${String(mode === chosen4)}">${t(label)}</button>`).join("");
+  var pressed = (button3) => button3.getAttribute("aria-pressed") === "true";
+  function togglePressed(button3) {
+    const on3 = !pressed(button3);
+    button3.setAttribute("aria-pressed", String(on3));
+    return on3;
+  }
+
+  // src/app/screens/visit/edit.ts
+  var value3 = (id) => document.getElementById(id)?.value ?? "";
+  function resultButtons(values2, marked, negative) {
+    return values2.map((result) => `<button type="button" class="opt${negative ? " neg" : ""}" data-res="${escapeHtml(result.valor)}"${negative ? ' data-neg="1"' : ""}
+      aria-pressed="${String(marked.includes(result.valor))}"><span class="mk"></span>${escapeHtml(result.valor)}</button>`).join("");
+  }
+  function extraHtml(extra) {
+    const products3 = extra.productList.length ? `<label>${t("visit.record.products")}</label><div class="opciones" id="evprods">${extra.productList.map((product) => `<button type="button" class="opt" data-evprod="${product.id}" aria-pressed="${String(extra.products.includes(product.id))}"><span class="mk"></span>${escapeHtml(product.nombre)}</button>`).join("")}</div>` : "";
+    return `<label>${t("visit.record.howItWas")}</label>
+      <div class="segs" id="evmodo" role="group" aria-label="${t("visit.record.howItWas")}">${modeButtons("evmodo", extra.mode)}</div>
+      ${products3}`;
+  }
+  function editorHtml5(visit2, extra) {
+    const results = visitLegacy.resultValues(), marked = visit2.resultados ?? [];
+    return `
+    <div class="fh"><div><h2>${t("visit.edit.title", { visit: term("visita") })}</h2><div class="sm">${t("visit.edit.recordedOn", { date: formatShortDate(visit2.fecha) })}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <div class="g2">
+      <div><label for="evf">${t("visit.edit.date")}</label><input id="evf" type="date" value="${escapeHtml(visit2.fecha)}"></div>
+      <div><label for="evm">${t("visit.edit.samples")}</label><input id="evm" type="number" min="0" value="${visit2.muestras ?? 0}"></div>
+    </div>
+    ${extraHtml(extra)}
+    <label>${t("visit.edit.result")}</label>
+    <div class="opciones">${resultButtons(results.filter((result) => result.extra !== NEGATIVE), marked, false)}</div>
+    <div class="opciones u-mt-8">${resultButtons(results.filter((result) => result.extra === NEGATIVE), marked, true)}</div>
+    <div class="g2 u-mt-6">
+      <div><label for="evpa">${t("visit.edit.nextAction")}</label><input id="evpa" value="${escapeHtml(visit2.proxima_accion ?? "")}"></div>
+      <div><label for="evpf">${t("visit.edit.date")}</label><input id="evpf" type="date" value="${escapeHtml(visit2.proxima_fecha ?? "")}"></div>
+    </div>
+    <label for="evn">${t("visit.edit.note")}</label><textarea id="evn" rows="3">${escapeHtml(visit2.nota ?? "")}</textarea>
+    <div class="acts u-between">
+      <button class="btn sec dang" id="evborrar">${t("visit.edit.delete", { visit: term("visita") })}</button>
+      <span class="acts u-m-0"><button class="btn sec" data-cerrar>${t("common.cancel")}</button>
+        <button class="btn" id="evok">${t("common.save")}</button></span></div>`;
+  }
+  async function loadExtra(visitId, planHasCoverage) {
+    const { data: activity } = await legacyDb().from("actividades").select("modo,productos").eq("id", visitId).maybeSingle();
+    const chosen4 = activity?.productos ?? [];
+    let productList = [];
+    if (planHasCoverage) {
+      productList = [...await visitLegacy.promotedProducts()];
+      const missing2 = chosen4.filter((id) => !productList.some((product) => product.id === id));
+      if (missing2.length) {
+        const { data } = await legacyDb().from("productos").select("id,nombre").in("id", missing2);
+        productList = productList.concat(data ?? []);
+      }
+    }
+    return { mode: activity?.modo ?? "presencial", products: [...chosen4], productList };
+  }
+  function afterChange(accountId, message) {
+    document.getElementById("dlg")?.close();
+    notices.toast(message);
+    agendaActions.openAccount(accountId);
+    visitLegacy.reloadHome();
+  }
+  async function save8(visit2, extra, accountId, button3) {
+    const body3 = document.getElementById("dbody");
+    const results = [...body3?.querySelectorAll("[data-res][aria-pressed=true]") ?? []].map((item) => item.dataset.res ?? "");
+    button3.disabled = true;
+    button3.textContent = t("visit.edit.saving");
+    const { data: result, error } = await legacyDb().rpc("actualizar_actividad", { p: {
+      id: visit2.id,
+      fecha: value3("evf"),
+      resultados: results,
+      muestras: Number(value3("evm")) || 0,
+      nota: value3("evn").trim(),
+      proxima_accion: value3("evpa").trim(),
+      proxima_fecha: value3("evpf"),
+      modo: extra.mode,
+      ...document.getElementById("evprods") ? { productos: extra.products } : {}
+    } });
+    button3.disabled = false;
+    button3.textContent = t("common.save");
+    if (error || result?.ok === false) {
+      notices.toast(t("visit.edit.couldNotSave"), true);
+      return;
+    }
+    afterChange(accountId, t("visit.edit.saved", { visit: term("visita", { capital: "C", adjective: "actualizado" }) }));
+  }
+  async function remove(visit2, accountId) {
+    const text2 = t("visit.edit.deleteText", { visit: term("visita", { article: "el", articleCapital: "C" }), professional: term("medico", { article: "del" }) });
+    if (!await notices.confirm(text2, { titulo: t("visit.edit.deleteTitle", { visit: term("visita", { article: "el" }) }), ok: t("visit.edit.deleteOk"), peligro: true })) return;
+    const { data: result, error } = await legacyDb().rpc("borrar_actividad", { p_id: visit2.id });
+    if (error || result?.ok === false) {
+      notices.toast(t("visit.edit.couldNotDelete"), true);
+      return;
+    }
+    afterChange(accountId, t("visit.edit.deleted", { visit: term("visita", { capital: "C", adjective: "borrado" }) }));
+  }
+  function bind7(body3, visit2, extra, accountId) {
+    body3.querySelectorAll("[data-res]").forEach((button3) => {
+      button3.onclick = () => {
+        const negative = button3.dataset.neg === "1", on3 = pressed(button3);
+        body3.querySelectorAll("[data-res]").forEach((other) => {
+          if (negative || other.dataset.neg === "1") other.setAttribute("aria-pressed", "false");
+        });
+        button3.setAttribute("aria-pressed", String(!on3));
+      };
+    });
+    const modes = body3.querySelectorAll("[data-evmodo]");
+    modes.forEach((button3) => {
+      button3.onclick = () => {
+        extra.mode = button3.dataset.evmodo ?? "presencial";
+        modes.forEach((other) => {
+          other.classList.toggle("on", other === button3);
+          other.setAttribute("aria-pressed", String(other === button3));
+        });
+      };
+    });
+    body3.querySelectorAll("[data-evprod]").forEach((button3) => {
+      button3.onclick = () => {
+        togglePressed(button3);
+        extra.products = [...body3.querySelectorAll("[data-evprod][aria-pressed=true]")].map((item) => item.dataset.evprod ?? "");
+      };
+    });
+    const ok = document.getElementById("evok");
+    if (ok) ok.onclick = () => {
+      void save8(visit2, extra, accountId, ok);
+    };
+    const del = document.getElementById("evborrar");
+    if (del) del.onclick = () => {
+      void remove(visit2, accountId);
+    };
+  }
+  async function editVisit(visit2, accountId) {
+    const extra = await loadExtra(visit2.id, accountCardLegacy.planIncludes("cobertura")).catch(() => ({ mode: "presencial", products: [], productList: [] }));
+    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    body3.innerHTML = editorHtml5(visit2, extra);
+    bind7(body3, visit2, extra, accountId);
+    box3.showModal();
+  }
+
+  // src/app/screens/visit/photos.ts
+  async function readVisitPhoto(file) {
+    if (!file.type.startsWith("image/")) {
+      notices.toast(t("visit.photos.chooseImage"), true);
+      return null;
+    }
+    return visitLegacy.readPhoto(file);
+  }
+  function paintPhotos(box3, photos, remove6) {
+    if (!box3) return;
+    box3.innerHTML = photos.map((photo, index) => `<span class="vfoto"><img alt="${t("visit.photos.photo", { number: index + 1 })}" src="data:${photo.tipo};base64,${photo.datos}">
+    ${remove6 ? `<button type="button" class="vfquitar" data-vfq="${index}" aria-label="${t("visit.photos.remove")}">✕</button>` : ""}</span>`).join("");
+    if (remove6) box3.querySelectorAll("[data-vfq]").forEach((button3) => {
+      button3.onclick = () => {
+        remove6(Number(button3.dataset.vfq));
+      };
+    });
+  }
+  async function uploadVisitPhotos(activityId, photos) {
+    for (const photo of photos) {
+      const { error } = await legacyDb().from("actividad_fotos").insert({ actividad_id: activityId, nombre: photo.nombre, tipo: photo.tipo, tamano: photo.tamano, datos: photo.datos });
+      if (error) {
+        notices.toast(t("visit.photos.uploadFailed", { visit: term("visita", { capital: "C", adjective: "guardado" }) }), true);
+        return false;
+      }
+    }
+    return true;
+  }
+  var photoCount = (count) => count ? count === 1 ? t("visit.photos.one") : t("visit.photos.many", { count }) : t("visit.photos.none");
+  function galleryHtml(photos) {
+    const canDelete = (photo) => photo.creado_por === salesTeam.currentUserId() || cardSectionsLegacy.can("administrar");
+    return `<div class="fh"><div><h2>${t("visit.photos.title", { visit: term("visita", { article: "el" }) })}</h2><div class="sm">${photoCount(photos.length)}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    <div class="vfotos grande">${photos.map((photo) => `<span class="vfoto"><img alt="${escapeHtml(orFallback(photo.nombre, t("visit.photos.photoAlt")))}" src="data:${escapeHtml(photo.tipo)};base64,${photo.datos}">
+      ${canDelete(photo) ? `<button type="button" class="vfquitar" data-vfdel="${photo.id}" aria-label="${t("visit.photos.delete")}">✕</button>` : ""}</span>`).join("")}</div>
+    <div class="acts u-end"><label class="btn sec u-inline-flex">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfmas" accept="image/*" data-fp="1" hidden multiple></label>
+      <button type="button" class="btn" data-cerrar2>${t("visit.photos.done")}</button></div>`;
+  }
+  function refresh(activityId, accountId) {
+    void showVisitPhotos(activityId, accountId);
+    if (accountCardLegacy.shownId() === accountId) agendaActions.openAccount(accountId);
+  }
+  async function deletePhoto(id, activityId, accountId) {
+    if (!await notices.confirm(t("visit.photos.deleteText", { visit: term("visita", { article: "este" }) }), { titulo: t("visit.photos.deleteTitle"), ok: t("visit.photos.deleteOk"), peligro: true })) return;
+    const { error } = await legacyDb().from("actividad_fotos").delete().eq("id", id);
+    if (error) {
+      notices.toast(t("visit.photos.couldNotDelete"), true);
+      return;
+    }
+    notices.toast(t("visit.photos.deleted"));
+    refresh(activityId, accountId);
+  }
+  async function addPhotos(input6, shown3, activityId, accountId) {
+    const files = [...input6.files ?? []], room = Math.max(0, visitLegacy.photosMax() - shown3), added = [];
+    for (const file of files.slice(0, room)) {
+      const photo = await readVisitPhoto(file);
+      if (photo) added.push(photo);
+    }
+    if (files.length > visitLegacy.photosMax() - shown3) notices.toast(t("visit.photos.atMost", { max: visitLegacy.photosMax(), visit: term("visita") }), true);
+    if (!added.length) return;
+    if (await uploadVisitPhotos(activityId, added)) {
+      notices.toast(t(added.length === 1 ? "visit.photos.added" : "visit.photos.addedMany"));
+      refresh(activityId, accountId);
+    }
+  }
+  async function showVisitPhotos(activityId, accountId) {
+    const { data, error } = await legacyDb().from("actividad_fotos").select("id,nombre,tipo,datos,creado_por").eq("actividad_id", activityId).order("creado_en");
+    if (error) {
+      notices.toast(t("visit.photos.couldNotOpen"), true);
+      return;
+    }
+    const photos = data ?? [], body3 = document.getElementById("dlg2body"), box3 = document.getElementById("dlg2");
+    if (!body3 || !box3) return;
+    body3.innerHTML = galleryHtml(photos);
+    body3.querySelectorAll("[data-vfdel]").forEach((button3) => {
+      button3.onclick = () => {
+        void deletePhoto(button3.dataset.vfdel ?? "", activityId, accountId);
+      };
+    });
+    const input6 = document.getElementById("vfmas");
+    if (input6) input6.onchange = () => {
+      void addPhotos(input6, photos.length, activityId, accountId);
+    };
+    if (!box3.open) box3.showModal();
+  }
+
+  // src/app/screens/visit/presentation.ts
+  var MATERIALS_FRESH_MS = 3e5;
+  var showing = null;
+  async function loadMaterials(force = false) {
+    const cached4 = visitLegacy.materials();
+    if (cached4 && !force && Date.now() - visitLegacy.materialsTime() < MATERIALS_FRESH_MS) return cached4;
+    if (!navigator.onLine) return cached4 ?? [];
+    try {
+      const { data, error } = await legacyDb().from("producto_materiales").select("id,producto_id,nombre,tipo,orden,para_portal").order("orden").order("creado_en");
+      if (!error) visitLegacy.setMaterials(data ?? [], Date.now());
+    } catch {
+    }
+    return visitLegacy.materials() ?? [];
+  }
+  var materialsOf = (productId) => (visitLegacy.materials() ?? []).filter((material) => material.producto_id === productId);
+  function blobUrl(material, data) {
+    const binary = atob(String(data).replace(/^data:[^,]*,/, "")), bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes], { type: material.tipo }));
+  }
+  function close2() {
+    showing?.urls.forEach((url) => {
+      URL.revokeObjectURL(url);
+    });
+    showing = null;
+    const box3 = document.getElementById("presenta");
+    if (box3?.open) box3.close();
+  }
+  async function fileOf(material, box3, current) {
+    const known = visitLegacy.materialFiles().get(material.id);
+    if (known) return known;
+    visitLegacy.loading(box3, t("common.loading"));
+    if (!navigator.onLine) {
+      box3.innerHTML = `<p class="vacio">${t("visit.presentation.offline")}</p>`;
+      return null;
+    }
+    const { data, error } = await legacyDb().from("producto_materiales").select("datos").eq("id", material.id).maybeSingle();
+    if (showing !== current || current.list[current.index] !== material) return null;
+    if (error || !data) {
+      box3.innerHTML = `<p class="vacio">${t("visit.presentation.couldNotLoad", { reason: escapeHtml(error?.message ?? t("visit.presentation.missing")) })}</p>`;
+      return null;
+    }
+    visitLegacy.materialFiles().set(material.id, data.datos);
+    return data.datos;
+  }
+  async function paint3() {
+    const current = showing;
+    if (!current) return;
+    const material = current.list[current.index], box3 = document.getElementById("prescuerpo");
+    if (!material || !box3) return;
+    const count = document.getElementById("presn");
+    if (count) count.textContent = current.list.length > 1 ? t("visit.presentation.position", { number: current.index + 1, total: current.list.length, name: material.nombre }) : material.nombre;
+    const previous = document.getElementById("presant"), next = document.getElementById("pressig");
+    if (previous) previous.disabled = current.index === 0;
+    if (next) next.disabled = current.index === current.list.length - 1;
+    const data = await fileOf(material, box3, current);
+    if (!data || showing !== current || current.list[current.index] !== material) return;
+    const url = blobUrl(material, data);
+    current.urls.push(url);
+    box3.innerHTML = material.tipo === "application/pdf" ? `<iframe class="prespdf" src="${url}" title="${escapeHtml(material.nombre)}"></iframe>` : `<img class="presimg" src="${url}" alt="${escapeHtml(material.nombre)}">`;
+  }
+  function move(step) {
+    if (!showing) return;
+    const index = showing.index + step;
+    if (index < 0 || index >= showing.list.length) return;
+    showing.index = index;
+    void paint3();
+  }
+  function dialog4() {
+    if (!document.getElementById("presenta")) document.body.insertAdjacentHTML("beforeend", `<dialog id="presenta" class="presdlg" aria-label="${t("visit.presentation.label")}"></dialog>`);
+    return document.getElementById("presenta");
+  }
+  function open(title2, list, index) {
+    const box3 = dialog4();
+    if (!box3) return;
+    box3.innerHTML = `<div class="prescab"><b>${escapeHtml(title2)}</b><span class="sm" id="presn"></span><button type="button" class="x" id="prescerrar" aria-label="${t("common.close")}">✕</button></div>
+    <div class="prescuerpo" id="prescuerpo"></div>
+    <button type="button" class="presnav ant" id="presant" aria-label="${t("visit.presentation.previous")}">‹</button><button type="button" class="presnav sig" id="pressig" aria-label="${t("visit.presentation.next")}">›</button>`;
+    showing = { list, index, urls: [] };
+    const on3 = (id, action) => {
+      const button3 = document.getElementById(id);
+      if (button3) button3.onclick = action;
+    };
+    on3("prescerrar", close2);
+    on3("presant", () => {
+      move(-1);
+    });
+    on3("pressig", () => {
+      move(1);
+    });
+    box3.oncancel = (event) => {
+      event.preventDefault();
+      close2();
+    };
+    box3.onkeydown = (event) => {
+      if (event.key === "ArrowRight") move(1);
+      if (event.key === "ArrowLeft") move(-1);
+    };
+    box3.showModal();
+    void paint3();
+  }
+  function presentProduct(productId) {
+    const list = materialsOf(productId);
+    if (!list.length) return;
+    const chip = document.querySelector(`#vprods [data-vprod="${productId}"]`);
+    if (chip && chip.getAttribute("aria-pressed") !== "true") chip.click();
+    open(chip?.textContent?.trim() ?? t("visit.presentation.label"), list, 0);
+  }
+  function presentOnly(product, materialId) {
+    const list = materialsOf(product.id);
+    if (!list.length) return;
+    open(orFallback(product.nombre, t("visit.presentation.material")), list, Math.max(0, list.findIndex((material) => material.id === materialId)));
+  }
+
+  // src/app/screens/visit/record/data.ts
+  var CENTRE2 = "Centro";
+  async function cardAndResults(id) {
+    const [card3, results] = await Promise.all([
+      cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`),
+      cachedRpc("clasificadores_actividad", { p_cuenta: id }, `clasact-${id}`)
+    ]);
+    let groups2 = results.data;
+    if (groups2 && !results.cache) visitLegacy.saveCopy("clasact", groups2);
+    groups2 ?? (groups2 = visitLegacy.readCopy("clasact"));
+    return { card: card3.data, groups: groups2 ?? [] };
+  }
+  async function accountFlags(id) {
+    try {
+      return (await legacyDb().from("cuentas").select("tipo,sin_reporting,clasificadores").eq("id", id).maybeSingle()).data;
+    } catch {
+      return null;
+    }
+  }
+  async function samplesLeft(id, type) {
+    if (!navigator.onLine || type === CENTRE2) return [];
+    const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
+    return Array.isArray(data) ? data : [];
+  }
+  function withoutReports(groups2) {
+    const kept = groups2.map((group) => ({ ...group, valores: group.valores.filter((value10) => !isReportResult(value10)) }));
+    return { groups: kept, hidden: kept.some((group, index) => group.valores.length !== groups2[index]?.valores.length) };
+  }
+  async function loadVisitData(id) {
+    const coverage = accountCardLegacy.planIncludes("cobertura");
+    const [{ card: card3, groups: groups2 }, flags, products3, missingTimetable2] = await Promise.all([
+      cardAndResults(id),
+      accountFlags(id),
+      coverage ? visitLegacy.promotedProducts().catch(() => []) : Promise.resolve([]),
+      missingTimetable(id).catch(() => false)
+    ]);
+    if (!card3?.medico) return navigator.onLine ? "online" : "offline";
+    const samples = await samplesLeft(id, flags?.tipo).catch(() => []);
+    const noReporting = hasNoReports(flags ?? card3.medico), shown3 = noReporting ? withoutReports(groups2) : { groups: groups2, hidden: false };
+    return { account: card3.medico, consultations: card3.consultas ?? [], groups: shown3.groups, samples, products: products3, noReporting, reportsHidden: shown3.hidden, missingTimetable: missingTimetable2 };
+  }
+
+  // src/app/screens/visit/record/form.ts
+  var RESULT_ROLE = "resultado_visita";
+  function splitGroups(groups2) {
+    const filled = groups2.filter((group) => group.valores.length);
+    const results = filled.find((group) => group.papel === RESULT_ROLE) ?? { clave: "", papel: RESULT_ROLE, nombre: t("visit.record.result"), valores: [...visitLegacy.resultValues()] };
+    return { results, others: filled.filter((group) => group !== results) };
+  }
+  function button2(index, group, value10, isResult) {
+    const key = `${group.clave}::${value10.valor}`, negative = isResult && value10.extra === NEGATIVE;
+    index.set(key, { group: group.clave, value: value10 });
+    return `<span class="optw"${value10.oculto ? ' data-oculto="1"' : ""}><button type="button" class="opt ${negative ? "neg" : ""}" data-vk="${escapeHtml(key)}" ${isResult ? `data-res="${escapeHtml(value10.valor)}"` : ""} ${negative ? 'data-neg="1"' : ""} aria-pressed="false">
+      <span class="mk"></span>${escapeHtml(value10.valor)}${value10.dato_tipo ? ` <span class="datom">${t("visit.record.withData")}</span>` : ""}</button>
+      ${value10.dato_tipo ? `<span class="datobox hide" data-box="${escapeHtml(key)}">${visitLegacy.dataField(value10, key)}</span>` : ""}</span>`;
+  }
+  function hiddenButton(groups2) {
+    const hidden = groups2.flatMap((group) => group.valores).filter((value10) => value10.oculto).length;
+    if (!hidden) return "";
+    return `<button type="button" class="lnk" id="vtodos">${hidden === 1 ? t("visit.record.showOneHidden") : t("visit.record.showHidden", { count: hidden })}</button>`;
+  }
+  var noReportsNote = () => `<p class="sm srnota">${t("visit.record.noReports", { professional: term("medico", { article: "este", articleCapital: "C" }) })}</p>`;
+  function resultsHtml(index, groups2, reportsHidden) {
+    const { results, others } = groups2;
+    const positive = results.valores.filter((value10) => value10.extra !== NEGATIVE), negative = results.valores.filter((value10) => value10.extra === NEGATIVE);
+    const more2 = hiddenButton([results, ...others]);
+    return `<label>${t("visit.record.resultLabel")} <span class="sm">${t("visit.record.severalResults", { done: term("visita", { adjective: "realizado" }) })}</span></label>
+    <div class="opciones">${positive.map((value10) => button2(index, results, value10, true)).join("")}</div>${reportsHidden ? noReportsNote() : ""}${negative.length ? "" : more2}
+    <div class="opciones u-mt-8">${negative.map((value10) => button2(index, results, value10, true)).join("")}</div>${negative.length ? more2 : ""}
+    ${others.map((group) => `<label>${escapeHtml(group.nombre)}${group.descripcion ? ` <span class="sm">· ${escapeHtml(group.descripcion)}</span>` : ""}</label>
+      <div class="opciones">${group.valores.map((value10) => button2(index, group, value10, false)).join("")}</div>`).join("")}`;
+  }
+  var LEFT_TEXTS = { anio: "visit.samples.left", trimestre: "visit.samples.leftQuarter", mes: "visit.samples.leftMonth" };
+  function sampleRow(sample) {
+    const available2 = sample.en_plazo && sample.quedan;
+    const text2 = !sample.en_plazo ? t("visit.samples.expired", { date: formatShortDate(sample.hasta ?? "") }) : t(LEFT_TEXTS[deliveryRule().period], { left: sample.quedan, max: sample.max }) + (sample.hasta ? t("visit.samples.until", { date: formatShortDate(sample.hasta) }) : "");
+    return `<div class="vmrow ${available2 ? "" : "agotada"}"><span><b>${escapeHtml(sample.nombre)}</b><span class="sm">${text2}</span></span>
+      <input type="number" min="0" max="${sample.en_plazo ? sample.quedan : 0}" step="1" value="0" data-vmprod="${sample.producto_id}" aria-label="${t("visit.samples.of", { name: escapeHtml(sample.nombre) })}" ${available2 ? "" : "disabled"}></div>`;
+  }
+  function samplesHtml(samples, name) {
+    const rule = deliveryRule();
+    if (!samples.length || !rule.active) return "";
+    return `<div class="vmuestras" id="vmuestras"><label>${escapeHtml(rule.name ?? t("visit.samples.title"))}</label>
+    ${samples.map(sampleRow).join("")}
+    ${rule.signature ? `<div class="vmfirma hide" id="vmfirma"><label>${t("visit.samples.signature")} <span class="sm">${t("visit.samples.signatureHint")}</span></label>
+      <canvas id="vmcanvas" aria-label="${t("visit.samples.signatureArea")}"></canvas>
+      <div class="vmfpie"><input id="vmfirmante" value="${escapeHtml(name)}" aria-label="${t("visit.samples.signer")}" placeholder="${t("visit.samples.signer")}"><button type="button" class="lnk" id="vmborrar">${t("visit.samples.clear")}</button></div></div>` : ""}</div>`;
+  }
+  function productsHtml(products3) {
+    if (!products3.length) return "";
+    const materials = visitLegacy.materials() ?? [], withMaterial = products3.filter((product) => materials.some((material) => material.producto_id === product.id));
+    return `<label>${t("visit.record.products")}</label>
+      <div class="opciones" id="vprods">${products3.map((product) => `<button type="button" class="opt" data-vprod="${product.id}" aria-pressed="false"><span class="mk"></span>${escapeHtml(product.nombre)}</button>`).join("")}</div>
+      ${withMaterial.length ? `<div class="vpres" id="vpres"><span class="sm">${t("visit.record.present")}</span>${withMaterial.map((product) => `<button type="button" class="chip" data-vpres="${product.id}">▶ ${escapeHtml(product.nombre)}</button>`).join("")}</div>` : ""}`;
+  }
+  function noticesHtml(data) {
+    const timetable = data.missingTimetable ? `<div class="avisoh" id="vhorario"><span>${t("visit.record.missingTimetable", { visit: term("visita", { article: "el" }) })}</span></div>` : "";
+    const offline = navigator.onLine ? "" : `<div class="banda-aviso vsinred"><b>${t("visit.record.offlineTitle")}</b> ${t("visit.record.offline", { visit: escapeHtml(term("visita", { article: "la", capital: "C" })) })}</div>`;
+    return timetable + offline;
+  }
+  function centreOptions(consultations) {
+    return consultations.map((item) => `<option value="${item.id ?? ""}">${escapeHtml(orFallback(item.centro_nombre, privateConsultation()))}${item.municipio ? ` · ${escapeHtml(item.municipio)}` : ""}</option>`).join("");
+  }
+  function visitHtml(data, index) {
+    const groups2 = splitGroups(data.groups), visit2 = term("visita");
+    return `
+    <div class="fh"><div><h2>${t("visit.record.title", { visit: visit2 })}</h2><div class="sm">${escapeHtml(data.account.nombre)}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>${noticesHtml(data)}
+    <div class="g2">
+      <div><label for="vf">${t("visit.edit.date")}</label><input id="vf" type="date" value="${todayIso()}"></div>
+      <div><label for="vc">${t("visit.record.centre", { visit: term("visita", { article: "del" }) })}</label><select id="vc">
+        ${centreOptions(data.consultations)}
+      </select></div>
+    </div><label>${t("visit.record.howItWas")}</label>
+    <div class="segs" id="vmodo" role="group" aria-label="${t("visit.record.howItWas")}">${modeButtons("vmodo", "presencial")}</div>${productsHtml(data.products)}
+    ${resultsHtml(index, groups2, data.reportsHidden)}
+    <div class="g2 u-mt-6">
+      <div><label for="vpa">${t("visit.edit.nextAction")}</label><input id="vpa" placeholder="${t("visit.record.nextActionPlaceholder")}"></div>
+      <div><label for="vpf">${t("visit.record.nextActionDate")}</label><input id="vpf" type="date"></div>
+    </div>
+    ${samplesHtml(data.samples, data.account.nombre)}<label for="vn">${t("visit.edit.note")}</label><textarea id="vn" rows="3"></textarea><div class="vfotosw"><label class="btn sec u-inline-flex" id="vfotobtn">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfotof" accept="image/*" data-fp="1" hidden multiple></label>
+    <span class="sm">${t("visit.photos.hint", { max: visitLegacy.photosMax() })}</span><div class="vfotos" id="vfotos"></div></div>
+    <div class="acts u-end">
+      <button class="btn sec" data-cerrar>${t("common.cancel")}</button>
+      <button class="btn" id="vguardar">${t("visit.record.save", { visit: visit2 })}</button>
+    </div>`;
+  }
+
+  // src/app/screens/visit/record/save.ts
+  var operationId = null;
+  var forgetOperation = () => {
+    operationId = null;
+  };
+  var value4 = (id) => document.getElementById(id)?.value ?? "";
+  function details(body3, marked, index) {
+    return marked.map((key) => {
+      const field11 = body3.querySelector(`[data-dato="${CSS.escape(key)}"]`), extra = field11 ? field11.value.trim() : "";
+      const info = index.get(key);
+      return { clasificador: info?.group ?? "", valor: info?.value.valor ?? "", ...extra ? { dato: extra } : {} };
+    });
+  }
+  async function askUrgent(account, id) {
+    const message = t("visit.record.urgentText", { name: `${account.nombre}${account.urgente_motivo ? ` · ${account.urgente_motivo}` : ""}` });
+    const choice = await notices.choose(t("visit.record.urgentTitle"), message, [{ k: "dejar", t: t("visit.record.keepUrgent"), cls: "sec" }, { k: "quitar", t: t("visit.record.removeUrgent") }]);
+    if (choice !== "quitar") return;
+    const { error } = await legacyDb().from("cuentas").update({ urgente: false, urgente_motivo: null }).eq("id", id);
+    notices.toast(t(error ? "visit.record.couldNotUnmark" : "visit.record.unmarked"), Boolean(error));
+  }
+  function payload4(id, results, detailList) {
+    operationId ?? (operationId = `v-${id}-${Date.now()}`);
+    return {
+      cuenta_id: id,
+      ubicacion_id: value4("vc") || null,
+      fecha: value4("vf"),
+      resultados: results,
+      detalles: detailList,
+      nota: value4("vn").trim(),
+      proxima_accion: value4("vpa").trim(),
+      proxima_fecha: value4("vpf") || null,
+      op_id: operationId
+    };
+  }
+  function savedNotice(saved3) {
+    if (saved3?.encolada) return;
+    notices.toast(t("visit.record.saved", { visit: term("visita", { capital: "C", adjective: "registrado" }) }) + (saved3?.estado ? t("visit.record.newState", { state: saved3.estado }) : ""));
+  }
+  async function saveVisit(visit2, button3) {
+    const { id, account, index, resultsKey } = visit2;
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    const marked = [...body3.querySelectorAll("[data-vk][aria-pressed=true]")].map((item) => item.dataset.vk ?? "");
+    const isResult = (key) => index.get(key)?.group === resultsKey;
+    const results = marked.filter(isResult).map((key) => index.get(key)?.value.valor ?? "");
+    if (!results.length) {
+      notices.toast(t("visit.record.chooseResult"), true);
+      return;
+    }
+    button3.disabled = true;
+    button3.textContent = t("visit.edit.saving");
+    const { data, error } = await visitLegacy.writeRpc("registrar_actividad", { p: payload4(id, results, details(body3, marked, index)) });
+    button3.disabled = false;
+    button3.textContent = t("visit.record.save", { visit: term("visita") });
+    if (error) {
+      notices.toast(t("visit.record.couldNotSave", { error: error.message ?? "" }), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    savedNotice(data);
+    const done = marked.some((key) => isResult(key) && index.get(key)?.value.extra !== NEGATIVE);
+    if (account.urgente && done) await askUrgent(account, id);
+    visitLegacy.reloadHome();
+    if (accountCardLegacy.shownId() === id) agendaActions.openAccount(id);
+  }
+
+  // src/app/screens/visit/record/index.ts
+  function bindResults(body3, visit2) {
+    body3.querySelectorAll("[data-vk]").forEach((button3) => {
+      button3.onclick = () => {
+        const key = button3.dataset.vk ?? "", on3 = pressed(button3);
+        if (visit2.index.get(key)?.group === visit2.resultsKey) {
+          const negative = button3.dataset.neg === "1";
+          body3.querySelectorAll("[data-res]").forEach((other) => {
+            if ((negative || other.dataset.neg === "1") && other !== button3) {
+              other.setAttribute("aria-pressed", "false");
+              body3.querySelector(`[data-box="${CSS.escape(other.dataset.vk ?? "")}"]`)?.classList.add("hide");
+            }
+          });
+        }
+        button3.setAttribute("aria-pressed", String(!on3));
+        const box3 = body3.querySelector(`[data-box="${CSS.escape(key)}"]`);
+        if (box3) {
+          box3.classList.toggle("hide", on3);
+          if (!on3) {
+            const field11 = box3.querySelector("input, select");
+            if (field11) setTimeout(() => {
+              field11.focus();
+            }, 30);
+          }
+        }
+      };
+    });
+    const more2 = document.getElementById("vtodos");
+    if (more2) more2.onclick = () => {
+      body3.classList.add("vertodos");
+      more2.remove();
+    };
+  }
+  function bindModeAndProducts(body3, draft) {
+    const modes = body3.querySelectorAll("[data-vmodo]");
+    modes.forEach((button3) => {
+      button3.onclick = () => {
+        draft.modo = button3.dataset.vmodo ?? "presencial";
+        modes.forEach((other) => {
+          other.classList.toggle("on", other === button3);
+          other.setAttribute("aria-pressed", String(other === button3));
+        });
+      };
+    });
+    body3.querySelectorAll("[data-vprod]").forEach((button3) => {
+      button3.onclick = () => {
+        togglePressed(button3);
+        draft.productos = [...body3.querySelectorAll("[data-vprod][aria-pressed=true]")].map((item) => item.dataset.vprod ?? "");
+      };
+    });
+    body3.querySelectorAll("[data-vpres]").forEach((button3) => {
+      button3.onclick = () => {
+        presentProduct(button3.dataset.vpres ?? "");
+      };
+    });
+  }
+  function bindPhotos(draft) {
+    const paint10 = () => {
+      paintPhotos(document.getElementById("vfotos"), draft.fotos, (index) => {
+        draft.fotos.splice(index, 1);
+        paint10();
+      });
+    };
+    const input6 = document.getElementById("vfotof");
+    if (input6) input6.onchange = async () => {
+      for (const file of [...input6.files ?? []]) {
+        if (draft.fotos.length >= visitLegacy.photosMax()) {
+          notices.toast(t("visit.photos.atMost", { max: visitLegacy.photosMax(), visit: term("visita") }), true);
+          break;
+        }
+        const photo = await readVisitPhoto(file);
+        if (photo) draft.fotos.push(photo);
+      }
+      input6.value = "";
+      paint10();
+    };
+  }
+  function bindSamples(body3, samples, draft) {
+    if (!samples.length || !deliveryRule().active) return;
+    const signature = deliveryRule().signature;
+    let pad3 = null;
+    const items = () => [...body3.querySelectorAll("[data-vmprod]")].map((input6) => ({ producto_id: input6.dataset.vmprod ?? "", unidades: Math.max(0, Math.floor(Number(input6.value) || 0)), max: Number(input6.max) })).filter((item) => item.unidades > 0);
+    const show2 = () => {
+      const any = items().length > 0, canvas = document.getElementById("vmcanvas");
+      document.getElementById("vmfirma")?.classList.toggle("hide", !any);
+      if (any && !pad3 && canvas) pad3 = visitLegacy.signaturePad(canvas);
+    };
+    body3.querySelectorAll("[data-vmprod]").forEach((input6) => {
+      input6.addEventListener("input", show2);
+    });
+    const clear = document.getElementById("vmborrar");
+    if (clear) clear.onclick = () => {
+      pad3?.borrar();
+    };
+    draft.muestras = {
+      items,
+      firmante: () => document.getElementById("vmfirmante")?.value.trim() ?? "",
+      firma: () => pad3?.imagen() ?? null,
+      validar: () => {
+        const chosen4 = items();
+        if (!chosen4.length) return null;
+        if (chosen4.some((item) => item.unidades > item.max)) return t("visit.samples.overLimit");
+        return signature && (!pad3 || pad3.vacia()) ? t("visit.samples.missingSignature") : null;
+      }
+    };
+  }
+  function applyDateRules(date) {
+    const field11 = document.getElementById("vf");
+    if (!field11) return;
+    const today2 = todayIso();
+    field11.max = today2;
+    if (!cardSectionsLegacy.can("visita_fecha_pasada")) {
+      field11.value = today2;
+      field11.min = today2;
+      field11.disabled = true;
+      field11.title = t("visit.record.sameDay");
+    } else if (date && date <= today2) field11.value = date;
+  }
+  function paint4(id, data, date) {
+    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    const index = /* @__PURE__ */ new Map(), resultsKey = splitGroups(data.groups).results.clave;
+    body3.classList.remove("vertodos");
+    body3.innerHTML = visitHtml(data, index);
+    const draft = { id, modo: "presencial", fotos: [], ...data.products.length ? { productos: [] } : {} };
+    visitLegacy.setCurrent(draft);
+    const visit2 = { id, account: data.account, index, resultsKey };
+    bindResults(body3, visit2);
+    bindModeAndProducts(body3, draft);
+    bindPhotos(draft);
+    bindSamples(body3, data.samples, draft);
+    applyDateRules(date);
+    const save26 = document.getElementById("vguardar");
+    if (save26) save26.onclick = () => {
+      void saveVisit(visit2, save26);
+    };
+    box3.showModal();
+  }
+  async function openVisit(id) {
+    const date = visitLegacy.takeDate();
+    forgetOperation();
+    await visitLegacy.withLoading(async () => {
+      const data = await loadVisitData(id);
+      if (typeof data === "string") {
+        notices.toast(t("visit.record.couldNotOpen", { reason: t(data === "online" ? "visit.record.cardUnreadable" : "visit.record.noCopy") }), true);
+        return;
+      }
+      paint4(id, data, date);
+    });
+  }
+
+  // src/app/screens/visit/settings.ts
+  function samplesHtml2(setting2, products3) {
+    return `
+    <div class="fh"><div><h2>${t("visit.settings.samplesTitle")}</h2><div class="sm">${t("visit.settings.samplesSubtitle", { visit: term("visita", { article: "un" }) })}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label class="opt u-mt-10"><input type="checkbox" id="murest" ${setting2.restar_stock ? "checked" : ""}>
+      <span><b>${t("visit.settings.fromStock")}</b><br><span class="sm">${t("visit.settings.fromStockHint", { visit: term("visita", { article: "el" }) })}</span></span></label>
+    <label for="muprod">${t("visit.settings.product")}</label><select id="muprod"><option value="">—</option>${products3.map((product) => `<option value="${product.id}" ${product.id === setting2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("")}</select>
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="muok">${t("common.save")}</button></div>`;
+  }
+  async function saveSamples(box3) {
+    const fromStock = document.getElementById("murest")?.checked ?? false, product = document.getElementById("muprod")?.value ?? "";
+    if (fromStock && !product) {
+      notices.toast(t("visit.settings.chooseProduct"), true);
+      return;
+    }
+    const { error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "muestras", p_valor: { producto_id: product || null, restar_stock: fromStock } });
+    if (error) {
+      notices.toast(t("visit.settings.couldNotSave"), true);
+      return;
+    }
+    box3.close();
+    notices.toast(t("visit.settings.saved"));
+  }
+  async function editSamples() {
+    const [, products3] = await Promise.all([cycleLegacy.loadSettings(), visitLegacy.reloadProducts()]);
+    const setting2 = { producto_id: null, restar_stock: false, ...cycleLegacy.setting("muestras") };
+    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    body3.innerHTML = samplesHtml2(setting2, products3);
+    box3.showModal();
+    const ok = document.getElementById("muok");
+    if (ok) ok.onclick = () => {
+      void saveSamples(box3);
+    };
+  }
+  async function saveRevisitNotice(notice2) {
+    const preferences = { ...visitLegacy.preferences() };
+    preferences.avisos = { ...preferences.avisos, revisita: notice2 };
+    const { data, error } = await legacyDb().rpc("guardar_preferencias", { p: preferences });
+    if (error) {
+      notices.toast(t("visit.settings.couldNotSave"), true);
+      return false;
+    }
+    visitLegacy.setPreferences(data ?? preferences);
+    return true;
+  }
+
+  // src/app/legacy/products-bridge.ts
+  var productsLegacy = {
+    section: () => productsStore.section,
+    setSection: (section) => {
+      productsStore.section = section;
+    },
+    /** Through the global names (the adapters of pantallas/productos.js), which call the screen with its cache and «‹ Volver». */
+    reload: () => {
+      void loadProductsModule();
+    },
+    openStock: (line2) => {
+      void showStock(line2);
+    },
+    openDeposit: (accountId, name, notice2) => showDeposit(accountId, name, notice2 ?? ""),
+    editProduct: (product) => {
+      void editProduct(product ?? null);
+    },
+    editSamples: () => {
+      void editSamples();
+    },
+    clearModules: (except) => {
+      session_exports.emptyModules(except);
+    },
+    showLoading: (element, text2) => {
+      showLoading(element, text2);
+    },
+    matchesFieldFilters: (values2) => Boolean(matchesFilters(values2, productsStore.filters)),
+    hasFieldFilters: () => Object.keys(productsStore.filters).length > 0,
+    visibleFieldColumns: () => visibleFields("producto"),
+    fieldHeaders: (fields) => columnHeaders(fields),
+    fieldCells: (fields, values2) => columnCells(fields, values2),
+    widenGrid: (grid, count) => {
+      widenGrid(grid, count);
+    }
+  };
+
+  // src/app/screens/products/model.ts
+  var ORDER_MARGIN_DAYS = 14;
+  var EXPIRY_SOON_DAYS = 90;
+  var euros3 = (value10) => formatCurrency(round2(value10));
+  function stockState(line2) {
+    if (line2.stock <= 0) return [t("products.stock.outOfStock"), "p-anu"];
+    if (line2.stock_minimo !== null && line2.stock_minimo !== void 0 && line2.stock < line2.stock_minimo) return [t("products.stock.belowMinimum"), "p-bor"];
+    if (line2.dias_cobertura !== null && line2.dias_cobertura !== void 0 && line2.dias_cobertura <= line2.plazo_dias + ORDER_MARGIN_DAYS && !line2.en_camino) return [t("products.stock.orderNow"), "p-bor"];
+    return [t("products.stock.fine"), "p-est"];
+  }
+  function expiryClass(isoDate) {
+    if (!isoDate) return "";
+    const today2 = todayIso();
+    if (isoDate < today2) return "cad-pasada";
+    return isoDate <= addDays(today2, EXPIRY_SOON_DAYS) ? "cad-pronto" : "";
+  }
+  var storeIcon = (store4) => store4.tipo === "central" || store4.tipo === "deposito" ? "🏢" : "💼";
+  function storeKind(store4) {
+    if (store4.tipo === "central") return t("products.stores.central");
+    return store4.tipo === "deposito" ? t("products.stores.deposit") : t("products.stores.caseOf", { name: escapeHtml(orFallback(store4.usuario, "—")) });
+  }
+  var errorMessage = (error) => error?.message ?? "";
+
+  // src/app/screens/products/catalog.ts
+  var money = (value10) => isPresent(value10) ? euros3(value10) : "—";
+  var activePill = (active) => `<span class="pill ${active ? "p-est" : "p-anu"}">${t(active ? "products.catalog.activeState" : "products.catalog.inactiveState")}</span>`;
+  function countHtml(rows2) {
+    const active = rows2.filter((row3) => row3.activo).length, inactive = rows2.length - active;
+    return `<b>${formatNumber(active)}</b> ${t(active === 1 ? "products.catalog.oneActive" : "products.catalog.active")}${inactive ? t("products.catalog.inactive", { count: formatNumber(inactive) }) : ""}`;
+  }
+  function rowHtml6(row3, fields) {
+    const photo = row3.foto_url ? `background-image:url('${escapeHtml(row3.foto_url)}')` : "";
+    return `<button class="dr" data-prod="${row3.id}" style="${row3.activo ? "" : "opacity:.55"}">
+        <span><span class="pfoto" style="${photo}">${row3.foto_url ? "" : "◧"}</span></span>
+        <span><b>${escapeHtml(row3.nombre)}</b><span class="sm">${escapeHtml(orFallback(row3.presentacion, t("products.catalog.noPresentation")))}</span></span>
+        <span class="sm">${escapeHtml(orFallback(row3.referencia, "—"))}</span><span class="num">${money(row3.precio)}</span>
+        <span class="num">${formatNumber(row3.iva ?? 0)}%</span><span class="num"><b>${money(row3.pvp)}</b></span>
+        <span>${activePill(row3.activo)}</span>${productsLegacy.fieldCells(fields, row3.clasificadores)}</button>`;
+  }
+  function tableHtml2(rows2, fields) {
+    const head = [["", ""], ["", "product"], ["", "reference"], ["num", "withoutVat"], ["num", "vat"], ["num", "withVat"], ["", "state"]];
+    const empty2 = `<div class="vacio">${t(productsLegacy.hasFieldFilters() ? "products.catalog.noneFiltered" : "products.catalog.none")}</div>`;
+    return `<div class="dgrid-wrap"><div class="dgrid prods">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${key ? t(`products.catalog.${key}`) : ""}</span>`).join("")}${productsLegacy.fieldHeaders(fields)}</div>
+      ${rows2.map((row3) => rowHtml6(row3, fields)).join("") || empty2}
+    </div></div>`;
+  }
+  async function paintProducts() {
+    const admin = cardSectionsLegacy.can("administrar");
+    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.catalog.loading"));
+    const { data } = await callRpc("productos_lista", { p_todos: admin });
+    const body3 = document.getElementById("vcuerpo");
+    if (!body3) return;
+    const rows2 = (data ?? []).filter((row3) => orFallback(row3.tipo, "producto") === "producto" && productsLegacy.matchesFieldFilters(row3.clasificadores));
+    const fields = productsLegacy.visibleFieldColumns();
+    body3.innerHTML = `<div class="panel">
+    <div class="cuenta">${countHtml(rows2)}</div>
+    ${tableHtml2(rows2, fields)}</div>`;
+    productsLegacy.widenGrid(body3.querySelector(".dgrid.prods"), fields.length);
+    body3.querySelectorAll("[data-prod]").forEach((button3) => {
+      button3.onclick = () => {
+        productsLegacy.editProduct(rows2.find((row3) => row3.id === button3.dataset.prod) ?? null);
+      };
+    });
+  }
+
+  // src/app/screens/products/services.ts
+  var PRICE_DECIMALS = 4;
+  var money2 = (value10) => isPresent(value10) ? euros3(value10) : "—";
+  var field2 = (id) => document.getElementById(id);
+  function rowHtml7(service) {
+    const byDefault = service.por_defecto ? `<span class="pill p-est">${t("products.services.byDefault")}</span>` : '<span class="vac">—</span>';
+    return `<button class="dr" data-serv="${service.id ?? ""}" style="${service.activo ? "" : "opacity:.55"}">
+        <span><b>${escapeHtml(service.nombre ?? "")}</b></span><span class="num">${money2(service.precio)}</span>
+        <span class="num">${formatNumber(service.iva ?? 0)}%</span><span class="num"><b>${money2(service.pvp)}</b></span>
+        <span>${byDefault}</span>
+        <span><span class="pill ${service.activo ? "p-est" : "p-anu"}">${t(service.activo ? "products.catalog.activeState" : "products.catalog.inactiveState")}</span></span></button>`;
+  }
+  async function paintServices() {
+    const admin = cardSectionsLegacy.can("administrar");
+    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.services.loading"));
+    const { data } = await callRpc("productos_lista", { p_todos: admin });
+    const body3 = document.getElementById("vcuerpo");
+    if (!body3) return;
+    const list = (data ?? []).filter((item) => item.tipo === "servicio");
+    const head = [["", "products.services.service"], ["num", "products.catalog.withoutVat"], ["num", "products.catalog.vat"], ["num", "products.catalog.withVat"], ["", "products.services.inNewOrders"], ["", "products.catalog.state"]];
+    body3.innerHTML = `<div class="panel">
+    <div class="cuenta"><b>${formatNumber(list.filter((item) => item.activo).length)}</b>${t("products.services.activeCount")}</div>
+    <div class="dgrid-wrap"><div class="dgrid servs">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(key)}</span>`).join("")}</div>
+      ${list.map(rowHtml7).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
+    </div></div></div>`;
+    body3.querySelectorAll("[data-serv]").forEach((button3) => {
+      button3.onclick = () => {
+        editService(list.find((item) => item.id === button3.dataset.serv) ?? null);
+      };
+    });
+  }
+  function prices(service) {
+    if (!isPresent(service.precio)) return ["", ""];
+    return [String(Number(Number(service.precio).toFixed(PRICE_DECIMALS))), String(round2(service.precio * (1 + (service.iva ?? 0) / 100)))];
+  }
+  var checkbox = (id, on3, locked) => `<input type="checkbox" id="${id}" ${on3 ? "checked" : ""} ${locked}>`;
+  function editorHtml6(service, admin) {
+    const locked = admin ? "" : "disabled", vat = service.iva ?? defaultVat("servicios"), [price, withVat2] = prices(service);
+    return `
+    <div class="fh"><div><h2>${service.id ? escapeHtml(service.nombre ?? "") : t("products.services.newTitle")}</h2>
+      <div class="sm">${t("products.services.hint")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label for="svn">${t("products.services.name")}</label><input id="svn" value="${escapeHtml(service.nombre ?? "")}" placeholder="${t("products.services.namePlaceholder")}" ${locked}>
+    <div class="pvp">
+      <div><label for="svs">${t("products.services.withoutVat")}</label><input id="svs" type="number" step="0.01" min="0" value="${price}" ${locked}></div>
+      <div><label for="svi">${t("products.services.vat")}</label><input id="svi" type="number" step="1" min="0" max="21" value="${vat}" ${locked}></div>
+      <div><label for="svc">${t("products.services.withVat")}</label><input id="svc" type="number" step="0.01" min="0" value="${withVat2}" ${locked}></div></div>
+    <label class="opt u-mt-12">${checkbox("svdef", service.por_defecto, locked)} ${t("products.services.proposeByDefault")}</label>
+    ${service.id ? `<label class="opt u-mt-8">${checkbox("svact", service.activo, locked)} ${t("products.services.active")}</label>` : ""}
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t(admin ? "common.cancel" : "common.close")}</button>
+      ${admin ? `<button class="btn" id="svok">${t(service.id ? "common.save" : "products.services.create")}</button>` : ""}</div>`;
+  }
+  function bindPrices() {
+    const without = field2("svs"), vat = field2("svi"), withVat2 = field2("svc");
+    if (!without || !vat || !withVat2) return;
+    const rate = () => (Number(vat.value) || 0) / 100;
+    without.oninput = () => {
+      withVat2.value = without.value === "" ? "" : String(round2(Number(without.value) * (1 + rate())));
+    };
+    withVat2.oninput = () => {
+      without.value = withVat2.value === "" ? "" : String(Number((Number(withVat2.value) / (1 + rate())).toFixed(PRICE_DECIMALS)));
+    };
+    vat.oninput = () => {
+      if (without.value !== "") withVat2.value = String(round2(Number(without.value) * (1 + rate())));
+    };
+  }
+  function payload5(service, name) {
+    const active = field2("svact");
+    return {
+      id: service.id ?? null,
+      tipo: "servicio",
+      nombre: name,
+      precio: field2("svs")?.value,
+      iva: field2("svi")?.value,
+      por_defecto: Boolean(field2("svdef")?.checked),
+      ...active ? { activo: active.checked } : {}
+    };
+  }
+  async function save9(service) {
+    const name = field2("svn")?.value.trim() ?? "";
+    if (!name) {
+      notices.toast(t("products.services.writeName"), true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("guardar_producto", { p: payload5(service, name) });
+    if (error || result?.ok === false) {
+      notices.toast(t("products.services.couldNotSave"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t(service.id ? "products.services.saved" : "products.services.created"));
+    await purchasesLegacy.loadProducts();
+    if (currentScreen() === "productos") void paintServices();
+  }
+  function editService(existing) {
+    const admin = cardSectionsLegacy.can("administrar"), service = existing ?? { iva: defaultVat("servicios"), activo: true };
+    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    body3.innerHTML = editorHtml6(service, admin);
+    box3.showModal();
+    if (!admin) return;
+    bindPrices();
+    const ok = document.getElementById("svok");
+    if (ok) ok.onclick = () => {
+      void save9(service);
+    };
+  }
+
+  // src/app/screens/products/stock.ts
+  function rowHtml8(line2) {
+    const [label, kind] = stockState(line2);
+    const unbatched = line2.sin_lote ? ` · <span class="u-warn">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line2.sin_lote) })}</span>` : "";
+    const byStore = (line2.por_almacen ?? []).map((store4) => `${escapeHtml(store4.almacen)}: ${formatNumber(store4.unidades)}`).join(" · ") || "—";
+    const coverage = isPresent(line2.dias_cobertura) ? t("products.stock.coverageDays", { days: formatNumber(line2.dias_cobertura), supplier: formatNumber(line2.plazo_dias) }) : t("products.stock.noSales");
+    const onTheWay = line2.en_camino ? formatNumber(line2.en_camino) + (line2.llegada ? `<span class="sm">${formatShortDate(line2.llegada)}</span>` : "") : "—";
+    return `<button class="dr" data-stk="${line2.id}">
+        <span><b>${escapeHtml(line2.nombre)}</b><span class="sm">${escapeHtml(line2.presentacion ?? "")}${unbatched}</span></span>
+        <span class="num"><b>${formatNumber(line2.stock)}</b></span>
+        <span class="sm">${byStore}</span>
+        <span class="${expiryClass(line2.proxima_caducidad)}">${line2.proxima_caducidad ? formatShortDate(line2.proxima_caducidad) : "—"}</span>
+        <span class="sm">${coverage}</span>
+        <span class="num">${onTheWay}</span>
+        <span><span class="pill ${kind}">${label}</span></span></button>`;
+  }
+  async function paintStock() {
+    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.stock.loading"));
+    await purchasesLegacy.loadStores();
+    const { data, error } = await callRpc("stock_resumen", {});
+    const body3 = document.getElementById("vcuerpo");
+    if (!body3) return;
+    if (error) {
+      body3.innerHTML = `<div class="vacio">${escapeHtml(errorMessage(error))}</div>`;
+      return;
+    }
+    const list = (data ?? []).filter((line2) => Boolean(line2.activo) || Boolean(line2.stock));
+    const head = [["", "product"], ["num", "stock"], ["", "byStore"], ["", "nextExpiry"], ["", "coverage"], ["num", "onTheWay"], ["", "state"]];
+    body3.innerHTML = `<div class="panel">
+    <div class="cuenta">${t("products.stock.intro")}</div>
+    <div class="dgrid-wrap"><div class="dgrid stock">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`products.stock.${key}`)}</span>`).join("")}</div>
+      ${list.map(rowHtml8).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
+    </div></div></div>`;
+    body3.querySelectorAll("[data-stk]").forEach((button3) => {
+      button3.onclick = () => {
+        const line2 = list.find((item) => item.id === button3.dataset.stk);
+        if (line2) productsLegacy.openStock(line2);
+      };
+    });
+  }
+
+  // src/app/screens/products/movement.ts
+  var TEXTS = {
+    inicial: ["products.movement.entryTitle", "products.movement.entryHint"],
+    ajuste: ["products.movement.adjustTitle", "products.movement.adjustHint"],
+    traspaso: ["products.movement.transferTitle", "products.movement.transferHint"]
+  };
+  var value5 = (id) => document.getElementById(id)?.value ?? "";
+  var options = (list, selected2) => list.map((item) => `<option value="${item.id ?? ""}" ${selected2 && item.id === selected2 ? "selected" : ""}>${escapeHtml(item.nombre ?? "")}</option>`).join("");
+  function entryHtml2(line2) {
+    const stores2 = purchasesLegacy.stores().filter((store4) => store4.activo);
+    return `<div class="g2">
+      <div><label for="mvp">${t("products.movement.product")}</label><select id="mvp">${options(purchasesLegacy.products(), line2?.id)}</select></div>
+      <div><label for="mva">${t("products.movement.store")}</label><select id="mva">${options(stores2)}</select></div></div>
+      <div class="g2"><div><label for="mvl">${t("products.movement.batch")}</label><input id="mvl" placeholder="${t("products.movement.batchPlaceholder")}"></div>
+        <div><label for="mvpr">${t("products.movement.supplier")}</label><select id="mvpr"><option value="">—</option>${options(purchasesLegacy.suppliers())}</select></div></div>
+      <div class="g2"><div><label for="mvc">${t("products.movement.expiry")}</label><input id="mvc" type="date"></div><div><label for="mvf">${t("products.movement.made")}</label><input id="mvf" type="date"></div></div>`;
+  }
+  function formHtml2(line2, kind, place3) {
+    const [title2, hint] = TEXTS[kind], adjust = kind === "ajuste";
+    const destinations = purchasesLegacy.stores().filter((store4) => store4.activo && store4.id !== place3?.storeId);
+    return `
+    <div class="fh"><div><h2>${t(title2)}</h2><div class="sm">${t(hint)}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    ${kind === "inicial" ? entryHtml2(line2) : ""}
+    ${kind === "traspaso" ? `<label for="mvd">${t("products.movement.destination")}</label><select id="mvd">${options(destinations)}</select>` : ""}
+    <div class="g2"><div><label for="mvu">${t(adjust ? "products.movement.unitsSigned" : "products.movement.units")}</label><input id="mvu" type="number" ${adjust ? "" : 'min="1"'}></div>
+      <div><label for="mvn">${t("products.movement.note")}</label><input id="mvn" placeholder="${t(adjust ? "products.movement.adjustPlaceholder" : "products.movement.optional")}"></div></div>
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="mvok">${t("products.movement.register")}</button></div>`;
+  }
+  function payload6(line2, kind, place3, units) {
+    const note = value5("mvn").trim();
+    if (kind === "inicial") {
+      return {
+        tipo: kind,
+        producto_id: value5("mvp"),
+        almacen_id: value5("mva"),
+        numero_lote: value5("mvl").trim(),
+        caducidad: value5("mvc"),
+        fecha_fabricacion: value5("mvf"),
+        proveedor_id: value5("mvpr"),
+        unidades: units,
+        nota: note
+      };
+    }
+    return { tipo: kind, producto_id: line2?.id, lote_id: place3?.batchId, almacen_id: place3?.storeId, destino_id: document.getElementById("mvd") ? value5("mvd") : null, unidades: units, nota: note };
+  }
+  function missing(kind, units) {
+    if (!units) return t("products.movement.writeUnits");
+    return kind === "inicial" && !value5("mvl").trim() ? t("products.movement.writeBatch") : "";
+  }
+  async function register(line2, kind, place3) {
+    const units = Number(value5("mvu")), problem = missing(kind, units);
+    if (problem) {
+      notices.toast(problem, true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("movimiento_manual", { p: payload6(line2, kind, place3, units) });
+    if (error || result?.ok === false) {
+      notices.toast(t("products.movement.failed", { error: orFallback(errorMessage(error), result?.error ?? "") }), true);
+      return;
+    }
+    for (const id of ["dlg2", "dlg"]) document.getElementById(id)?.close();
+    notices.toast(t("products.movement.registered"));
+    if (currentScreen() === "productos") void paintStock();
+  }
+  async function stockMovement(line2, kind, place3) {
+    await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadStores(), purchasesLegacy.loadSuppliers()]);
+    const body3 = document.getElementById("dlg2body"), box3 = document.getElementById("dlg2");
+    if (!body3 || !box3) return;
+    body3.innerHTML = formHtml2(line2, kind, place3);
+    box3.showModal();
+    const ok = document.getElementById("mvok");
+    if (ok) ok.onclick = () => {
+      void register(line2, kind, place3);
+    };
+  }
+
+  // src/app/screens/products/stock-sheet.ts
+  var MOVEMENTS = /* @__PURE__ */ new Map([
+    ["inicial", "products.trace.initial"],
+    ["entrada_compra", "products.trace.purchaseEntry"],
+    ["salida_venta", "products.trace.sale"],
+    ["anulacion_venta", "products.trace.saleCancelled"],
+    ["salida_muestra", "products.trace.sample"],
+    ["ajuste", "products.trace.adjustment"],
+    ["traspaso_salida", "products.trace.transferOut"],
+    ["traspaso_entrada", "products.trace.transferIn"],
+    ["devolucion", "products.trace.returned"],
+    ["consumo_deposito", "products.trace.depositUse"],
+    ["consumo_cirugia", "products.trace.surgeryUse"]
+  ]);
+  var movementName = (type) => {
+    const key = MOVEMENTS.get(type);
+    return key ? t(key, { visit: term("visita") }) : type;
+  };
+  function traceRow(item) {
+    return `<div class="dr u-cursor-default"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span><span>${escapeHtml(movementName(item.tipo))}${item.pedido ? `<span class="sm">${t("products.trace.order", { number: escapeHtml(item.pedido) })}</span>` : ""}</span>
+        <span class="num" style="color:${item.unidades < 0 ? "var(--danger)" : "var(--ok)"}"><b>${item.unidades > 0 ? "+" : ""}${formatNumber(item.unidades)}</b></span>
+        <span>${escapeHtml(orFallback(item.cliente, "—"))}${item.telefono ? `<span class="sm">${escapeHtml(item.telefono)}</span>` : ""}</span><span class="sm">${escapeHtml(orFallback(item.medico, "—"))}</span><span class="sm">${escapeHtml(item.almacen)}</span></div>`;
+  }
+  function batchDetails(batch) {
+    return `${escapeHtml(batch.producto ?? "")}${batch.caducidad ? t("products.trace.expires", { date: formatShortDate(batch.caducidad) }) : ""}${batch.proveedor ? ` · ${escapeHtml(batch.proveedor)}` : ""}${batch.compra ? t("products.trace.purchase", { number: escapeHtml(batch.compra) }) : ""}`;
+  }
+  async function traceability(batchId) {
+    const { data } = await callRpc("trazabilidad_lote", { p_lote: batchId });
+    const batch = data?.lote ?? {}, movements = data?.movimientos ?? [];
+    const body3 = document.getElementById("dlg2body"), box3 = document.getElementById("dlg2");
+    if (!body3 || !box3) return;
+    const details2 = batchDetails(batch);
+    const head = [t("products.trace.date"), t("products.trace.movement"), t("products.trace.units"), t("products.trace.client"), term("medico", { capital: "C" }), t("products.trace.store")];
+    body3.innerHTML = `
+    <div class="fh"><div><h2>${t("products.trace.title", { number: escapeHtml(batch.numero_lote ?? "") })}</h2>
+      <div class="sm">${details2}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    <p class="sm">${t("products.trace.intro")}</p>
+    <div class="dgrid-wrap"><div class="dgrid traz">
+      <div class="dh">${head.map((title2, index) => `<span${index === 2 ? ' class="num"' : ""}>${title2}</span>`).join("")}</div>
+      ${movements.map(traceRow).join("") || `<div class="vacio">${t("products.trace.none")}</div>`}</div></div>
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.close")}</button></div>`;
+    box3.showModal();
+  }
+  function summaryText(line2) {
+    const use = Number(line2.consumo_diario) ? t("products.sheet.dailyUse", { value: String(line2.consumo_diario).replace(".", ",") }) : t("products.sheet.noUse");
+    return `${t("products.sheet.units", { units: formatNumber(line2.stock) })} · ${use}${isPresent(line2.dias_cobertura) ? t("products.sheet.covers", { days: formatNumber(line2.dias_cobertura) }) : ""}`;
+  }
+  function settingsHtml(line2) {
+    const suppliers = purchasesLegacy.suppliers().map((supplier) => `<option value="${supplier.id ?? ""}" ${supplier.nombre === line2.proveedor ? "selected" : ""}>${t("products.sheet.supplierOption", { name: escapeHtml(supplier.nombre ?? ""), days: formatNumber(supplier.plazo_dias) })}</option>`).join("");
+    return `<div class="g2">
+      <div><label for="stmin">${t("products.sheet.minimum")}</label><input id="stmin" type="number" min="0" value="${line2.stock_minimo ?? ""}" placeholder="${t("products.sheet.noMinimum")}"></div>
+      <div><label for="stprov">${t("products.sheet.supplier")}</label><select id="stprov"><option value="">—</option>${suppliers}</select></div></div>`;
+  }
+  function batchHtml(batch, canBuy2) {
+    const expiry = expiryClass(batch.caducidad), manyStores = purchasesLegacy.stores().filter((store4) => store4.activo).length > 1;
+    const tools = canBuy2 ? `<button class="btn sec" data-aju="${batch.id}|${batch.almacen_id}">${t("products.sheet.adjust")}</button>${manyStores ? `<button class="btn sec" data-tras="${batch.id}|${batch.almacen_id}">${t("products.sheet.transfer")}</button>` : ""}` : "";
+    return `<div class="item u-cursor-default">
+        <span class="ic ${expiry === "cad-pasada" ? "w" : ""}">📦</span>
+        <span class="tx"><b>${t("products.sheet.batch", { number: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}</b>
+          <span class="sm"><span class="${expiry}">${batch.caducidad ? t("products.sheet.expiresOn", { date: formatShortDate(batch.caducidad) }) : t("products.sheet.noExpiry")}</span>${batch.fecha_fabricacion ? t("products.sheet.madeOn", { date: formatShortDate(batch.fecha_fabricacion) }) : ""} · ${escapeHtml(batch.almacen)}${batch.proveedor ? ` · ${escapeHtml(batch.proveedor)}` : ""}</span></span>
+        <span class="acts u-m-0"><button class="btn sec" data-traz="${batch.id}">${t("products.sheet.traceability")}</button>
+          ${tools}</span></div>`;
+  }
+  function sheetHtml3(line2, canBuy2) {
+    const [label, kind] = stockState(line2), batches = line2.lotes ?? [];
+    return `
+    <div class="fh"><div><h2>${escapeHtml(line2.nombre)} <span class="pill ${kind}">${label}</span></h2>
+      <div class="sm">${summaryText(line2)}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${canBuy2 ? settingsHtml(line2) : ""}
+    <div class="blk"><h3>${t("products.sheet.batches")}</h3>
+      ${batches.length ? `<div class="lista">${batches.map((batch) => batchHtml(batch, canBuy2)).join("")}</div>` : `<div class="sm">${t("products.sheet.noBatches")}</div>`}</div>
+    <div class="acts u-end">
+      <button class="btn sec" data-cerrar>${t("common.close")}</button>
+      ${canBuy2 ? `<button class="btn sec" id="stent">${t("products.sheet.entry")}</button><button class="btn" id="stgu">${t("products.sheet.saveMinimum")}</button>` : ""}</div>`;
+  }
+  async function saveSettings(line2) {
+    const minimum = document.getElementById("stmin")?.value ?? "", supplier = document.getElementById("stprov")?.value ?? "";
+    const { error } = await legacyDb().from("productos").update({ stock_minimo: minimum === "" ? null : Number(minimum), proveedor_id: supplier || null }).eq("id", line2.id);
+    if (error) {
+      notices.toast(t("products.sheet.couldNotSave"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t("products.sheet.saved"));
+    void paintStock();
+  }
+  function bind8(body3, line2) {
+    body3.querySelectorAll("[data-traz]").forEach((button3) => {
+      button3.onclick = () => {
+        void traceability(button3.dataset.traz ?? "");
+      };
+    });
+    for (const [attribute, kind] of [["aju", "ajuste"], ["tras", "traspaso"]]) {
+      body3.querySelectorAll(`[data-${attribute}]`).forEach((button3) => {
+        const [batchId = "", storeId = ""] = (button3.dataset[attribute] ?? "").split("|");
+        button3.onclick = () => {
+          void stockMovement(line2, kind, { batchId, storeId });
+        };
+      });
+    }
+    const entry2 = document.getElementById("stent");
+    if (entry2) entry2.onclick = () => {
+      void stockMovement(line2, "inicial");
+    };
+    const save26 = document.getElementById("stgu");
+    if (save26) save26.onclick = () => {
+      void saveSettings(line2);
+    };
+  }
+  async function showStock2(line2) {
+    await purchasesLegacy.loadSuppliers();
+    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    body3.innerHTML = sheetHtml3(line2, purchasesLegacy.canBuy());
+    if (!box3.open) box3.showModal();
+    bind8(body3, line2);
+  }
+
+  // src/app/screens/products/stores.ts
+  var stores = () => purchasesLegacy.stores();
+  var members = () => salesTeam.members();
+  async function load() {
+    await purchasesLegacy.loadStores();
+    if (!salesTeam.members().length) await salesTeam.load();
+  }
+  async function createCase(member) {
+    const { error } = await legacyDb().rpc("guardar_almacen", { p: { nombre: t("products.stores.caseName", { name: String(member.nombre).split(" ")[0] ?? "" }), tipo: "maletin", usuario_id: member.id } });
+    if (error) {
+      notices.toast(t("products.stores.couldNotCreate"), true);
+      return false;
+    }
+    notices.toast(t("products.stores.created"));
+    return true;
+  }
+  var chosenMember = () => members().find((member) => member.id === document.getElementById("almu")?.value);
+  function windowHtml() {
+    const list = stores().map((store4) => `<div class="item u-cursor-default"><span class="ic">${storeIcon(store4)}</span>
+        <span class="tx"><b>${escapeHtml(store4.nombre)}</b><span class="sm">${storeKind(store4)}${t("products.stores.unitsTail", { units: formatNumber(store4.unidades) })}${store4.activo ? "" : t("products.stores.inactive")}</span></span></div>`).join("");
+    return `
+      <div class="fh"><div><h2>${t("products.stores.title")}</h2><div class="sm">${t("products.stores.subtitle")}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+      <div class="lista">${list}</div>
+      <h3 class="u-mt-14">${t("products.stores.newCase")}</h3>
+      <div class="g2"><div><label for="almu">${t("products.stores.salesperson")}</label><select id="almu">${members().map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select></div>
+        <div><label>&nbsp;</label><button class="btn" id="almok">${t("products.stores.createCase")}</button></div></div>
+      <p class="sm">${t("products.stores.caseHint", { theVisit: term("visita", { article: "el" }) })}</p>`;
+  }
+  function paintWindow() {
+    const body3 = document.getElementById("dbody");
+    if (!body3) return;
+    body3.innerHTML = windowHtml();
+    const ok = document.getElementById("almok");
+    if (ok) ok.onclick = async () => {
+      const member = chosenMember();
+      if (!member || !await createCase(member)) return;
+      await purchasesLegacy.loadStores();
+      paintWindow();
+    };
+  }
+  async function editStores() {
+    await load();
+    paintWindow();
+    document.getElementById("dlg")?.showModal();
+  }
+  function storeCard(store4) {
+    return `<div class="almc"><span class="ic">${storeIcon(store4)}</span>
+        <b>${escapeHtml(store4.nombre)}</b><span class="sm">${storeKind(store4)}${store4.activo ? "" : t("products.stores.inactive")}</span>
+        <span class="almu"><b>${formatNumber(store4.unidades ?? 0)}</b> ${t("products.stores.units")}</span></div>`;
+  }
+  function withoutCaseHtml(withoutCase) {
+    if (!withoutCase.length) return "";
+    const who2 = withoutCase.length === 1 ? t("products.stores.oneWithout", { name: escapeHtml(withoutCase[0]?.nombre ?? "") }) : t("products.stores.manyWithout", { count: withoutCase.length });
+    return `<div class="avisoh u-mt-12"><span>${who2}${t("products.stores.withoutCase")}</span></div>`;
+  }
+  async function paintStores() {
+    await load();
+    const body3 = document.getElementById("cfgcuerpo");
+    if (!body3) return;
+    const canHaveCase = members().filter((member) => cardSectionsLegacy.roleCan(member.rol ?? "", "almacen_propio"));
+    const withoutCase = canHaveCase.filter((member) => !stores().some((store4) => store4.usuario_id === member.id));
+    body3.innerHTML = `
+    <div class="card cfgpanel"><h2>${t("products.stores.title")}</h2>
+      <p class="sm">${t("products.stores.pageIntro")}</p>
+      <div class="mattipos"><div><b>${t("products.stores.centralTitle")}</b><span>${t("products.stores.centralText")}</span></div>
+        <div><b>${t("products.stores.caseTitle")}</b><span>${t("products.stores.caseText", { visits: term("visita", { number: "p" }) })}</span></div></div></div>
+    <div class="card cfgpanel"><h2>${t("products.stores.yours")}</h2>
+      <div class="almgrid">${stores().map(storeCard).join("")}</div>
+      ${withoutCaseHtml(withoutCase)}
+      <div class="matadd u-mt-12"><select id="almu">${canHaveCase.map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select>
+        <button class="btn sec" id="almok">${t("products.stores.createCase")}</button></div>
+      <p class="sm">${t("products.stores.transferHint")}</p></div>`;
+    const ok = document.getElementById("almok");
+    if (ok) ok.onclick = async () => {
+      const member = chosenMember();
+      if (member && await createCase(member)) void paintStores();
+    };
+  }
+
+  // src/app/core/plans.ts
+  var plans_exports = {};
+  __export(plans_exports, {
+    PLAN_EXTRAS: () => PLAN_EXTRAS2,
+    PLAN_SECTIONS: () => PLAN_SECTIONS,
+    currentPlanName: () => currentPlanName,
+    isDowngrade: () => isDowngrade,
+    minimumPlan: () => minimumPlan,
+    notificationTypesOfRole: () => notificationTypesOfRole,
+    planIncludes: () => planIncludes,
+    planIncludesSection: () => planIncludesSection,
+    planNotice: () => planNotice,
+    planOf: () => planOf,
+    planRank: () => planRank,
+    planRows: () => planRows
+  });
+  var PLAN_ORDER = ["campo", "comercial", "empresa", "medida"];
+  var DEFAULT_PLAN_INDEX = 3;
+  var PLAN_EXTRAS2 = { oportunidades: ["comercial", "empresa", "medida"], portal: ["empresa", "medida"] };
+  var PLAN_SECTIONS = { compras: ["empresa", "medida"], proveedores: ["empresa", "medida"] };
+  var planOf = (id) => {
+    const plans2 = coreLegacy.plans();
+    const plan2 = plans2.find((item) => item.id === id) ?? plans2[DEFAULT_PLAN_INDEX];
+    if (!plan2) throw new Error("The plans are not loaded");
+    return plan2;
+  };
+  var planIncludes = (module) => !(module in MODULE_AREA) || planOf(coreLegacy.currentPlan().plan).modulos.includes(module) || module === "facturacion" && coreLegacy.billingReadOnly();
+  var minimumPlan = (module) => coreLegacy.plans().find((plan2) => plan2.modulos.includes(module));
+  var planIncludesSection = (section) => !(section in PLAN_SECTIONS) || Boolean(PLAN_SECTIONS[section]?.includes(coreLegacy.currentPlan().plan));
+  var currentPlanName = () => {
+    try {
+      return planOf(coreLegacy.currentPlan().plan).nombre;
+    } catch {
+      return "";
+    }
+  };
+  var planRank = (id) => PLAN_ORDER.indexOf(id);
+  var isDowngrade = (from, to) => planRank(to.plan) < planRank(from.plan) || planRank(to.plan) === planRank(from.plan) && (Number(to.usuarios) < Number(from.usuarios) || from.pago === "anual" && to.pago === "mensual");
+  var notificationTypesOfRole = () => coreLegacy.notificationTypes().filter((type) => can(`aviso_${String(type[0])}`));
+  function planRows() {
+    const all = PLAN_ORDER, fromSales = PLAN_ORDER.slice(1), fromCompany = PLAN_ORDER.slice(2), custom = PLAN_ORDER.slice(3);
+    const words16 = { professionals: wordFor("medico", "p"), visits: wordFor("visita", "p"), customers: wordFor("paciente", "p"), visit: wordFor("visita", "s") };
+    const row3 = (key, plans2, detail = true) => plans2 ? [t(`core.planRows.${key}`, words16), detail ? t(`core.planRows.${key}Detail`, words16) : null, plans2] : [t(`core.planRows.${key}`, words16), null];
+    return [
+      row3("field", null),
+      row3("portfolio", all),
+      row3("agenda", all),
+      row3("routes", all),
+      row3("cycle", all),
+      row3("samples", all),
+      row3("quality", all),
+      row3("notifications", all),
+      row3("users", all),
+      row3("import", all),
+      row3("sale", null),
+      row3("orders", fromSales),
+      row3("webOrders", fromSales),
+      row3("opportunities", fromSales),
+      row3("coverage", fromSales),
+      row3("events", fromSales),
+      row3("products", fromSales),
+      row3("analytics", fromSales),
+      row3("commissions", fromSales),
+      row3("office", null),
+      row3("invoicing", fromCompany),
+      row3("purchases", fromCompany),
+      row3("deposit", fromCompany),
+      row3("surgeries", fromCompany),
+      row3("tenders", fromCompany),
+      row3("equipment", fromCompany),
+      row3("audit", fromCompany),
+      row3("service", null),
+      row3("migration", custom),
+      row3("support", custom, false)
+    ];
+  }
+  function noticeHtml(title2, plan2, canChange2) {
+    const current = planOf(coreLegacy.currentPlan().plan).nombre;
+    return `<div class="fh"><div><h2>${escapeHtml(title2)}</h2><div class="sm">${escapeHtml(t("core.plans.notInPlan", { plan: current }))}</div></div>
+    <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <p>${t("core.plans.availableFrom", { plan: escapeHtml(plan2 ? plan2.nombre : t("core.plans.custom")) })}${plan2 ? ` (${coreLegacy.planPrice(plan2)})` : ""}.</p>
+    ${plan2 ? `<ul class="manlist">${plan2.ventajas.map((advantage) => `<li><span>✓</span><span>${escapeHtml(advantage)}</span></li>`).join("")}</ul>` : ""}
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("core.plans.notNow")}</button>${canChange2 ? `<button class="btn" id="vplan">${t("core.plans.seePlans")}</button>` : ""}</div>`;
+  }
+  function showNotice(html) {
+    const body3 = document.getElementById("dbody"), dialog7 = document.getElementById("dlg");
+    if (!body3 || !dialog7) return;
+    body3.innerHTML = html;
+    dialog7.showModal();
+    const button3 = document.getElementById("vplan");
+    if (button3) button3.onclick = () => {
+      dialog7.close();
+      coreLegacy.openPlanSettings();
+    };
+  }
+  function planNotice(module) {
+    const sectionPlans = PLAN_SECTIONS[module];
+    if (sectionPlans) {
+      showNotice(noticeHtml(coreLegacy.sectionTitle(module) ?? module, planOf(sectionPlans[0] ?? ""), canManageOrganization()));
+      return;
+    }
+    const name = (document.querySelector(`nav.main [data-t="${module}"]`)?.textContent ?? module).replace("🔒", "").trim();
+    showNotice(noticeHtml(`🔒 ${name}`, minimumPlan(module), can("administrar")));
+  }
+
+  // src/app/legacy/settings1-bridge.ts
+  var settings1_bridge_exports = {};
+  __export(settings1_bridge_exports, {
+    settingsLegacy: () => settingsLegacy
+  });
+  var settingsLegacy = {
+    user: () => sessionStore.profile,
+    setPreferences: (preferences) => {
+      sessionStore.profile.preferencias = preferences;
+    },
+    place: (key) => sessionStore.profile.preferencias?.[key] ?? null,
+    changeNavigator: (name) => {
+      void maps_exports.changeNavigator(name);
+    },
+    revisitNotice: () => avisoRevisita(),
+    /** The legacy name answers whether it was saved (its declaration says void). */
+    saveRevisitNotice: (value10) => saveRevisitNotice(value10),
+    moduleIcon: (module) => ICO_MOD[module],
+    classifiers: () => settingsStore.catalogs,
+    setClassifiers: (list) => {
+      settingsStore.catalogs = list;
+    },
+    openClassifier: (id) => {
+      openClassifier(id);
+    },
+    reloadCatalogs: () => {
+      void loadCatalogs();
+    },
+    undoable: (entry2) => isUndoable(entry2),
+    undoPersonBox: (box3, options3) => {
+      cajaDeshacerPersona(box3, options3.userId, options3.from, options3.name, options3.then);
+    },
+    billingEventDetail: (detail) => eventDetail(detail),
+    fields: () => CAMPOS,
+    fieldTable: (area) => CAMPO_TABLA[area],
+    areaOfTable: (table) => Object.keys(CAMPO_TABLA).find((area) => CAMPO_TABLA[area] === table),
+    fieldInput: (field11, value10) => customFieldInput(field11, value10),
+    fieldText: (field11, value10) => fieldText(field11, value10),
+    testEnvironment: () => RPC_ORIG_FROM("entorno_pruebas"),
+    refreshReason: (reason) => MOTIVO_REFRESCO[reason],
+    edgeFunctions: () => db.functions,
+    resetTestData: () => {
+      void backToTestData();
+    },
+    clearLocalData: () => {
+      session_exports.clearLocalData();
+    },
+    showLoading: (element, text2) => {
+      showLoading(element, text2);
+    },
+    skeletonCard: (text2) => cardSkeleton(text2),
+    /** The range chosen in a period box mounted with mountPeriod (the legacy box keeps it in a property of the element). */
+    periodRange: (element) => {
+      const read3 = element ? Reflect.get(element, "__rango") : void 0;
+      return read3 ? read3() : { desde: null, hasta: null };
+    },
+    mountPeriod: (element, options3) => {
+      mountPeriod(element, [options3]);
+    },
+    modules: () => Object.keys(MODULO_AREA).filter((module) => permissions_exports.canUseModule(module))
+  };
+
+  // src/app/screens/settings/custom-fields/card.ts
+  var keyName = (key) => key.replace(/_/g, " ").toLowerCase().replace(/^./, (letter) => letter.toUpperCase());
+  var blockHtml2 = (cells) => `<div class="campospers"><h3>${t("settings.customFields.title")}</h3><div class="cpgrid">${cells}</div></div>`;
+  function knownHtml(definitions2, values2, keys) {
+    const ordered = [
+      ...definitions2.filter((field11) => keys.includes(field11.clave)),
+      ...keys.filter((key) => !definitions2.some((field11) => field11.clave === key)).map((key) => ({ clave: key, nombre: keyName(key) }))
+    ];
+    return blockHtml2(ordered.map((field11) => `<div><span class="sm">${escapeHtml(field11.nombre)}</span><b>${escapeHtml(settingsLegacy.fieldText(field11, values2[field11.clave]))}</b></div>`).join(""));
+  }
+  var rawText = (value10) => typeof value10 === "object" ? JSON.stringify(value10) : String(value10);
+  async function paintCustomFieldsBlock(table, id, container) {
+    if (!container || !id || container.querySelector(".campospers")) return;
+    const { data } = await legacyDb().from(table).select("clasificadores").eq("id", id).maybeSingle();
+    const values2 = data?.clasificadores ?? {}, keys = Object.keys(values2).filter((key) => values2[key] !== "" && values2[key] !== null && values2[key] !== void 0);
+    const area = settingsLegacy.areaOfTable(table), definitions2 = area ? settingsLegacy.fields()[area] ?? [] : [];
+    if (!keys.length || container.querySelector(".campospers")) return;
+    container.insertAdjacentHTML("beforeend", definitions2.length ? knownHtml(definitions2, values2, keys) : blockHtml2(keys.map((key) => `<div><span class="sm">${escapeHtml(keyName(key))}</span><b>${escapeHtml(rawText(values2[key]))}</b></div>`).join("")));
+  }
+  function bindCustomFieldFilters(zone, state2, onChange) {
+    zone.querySelectorAll("[data-fcp]").forEach((select) => {
+      select.onchange = () => {
+        const key = select.dataset.fcp ?? "";
+        if (!select.value) Reflect.deleteProperty(state2, key);
+        else state2[key] = select.dataset.fcpt === "si_no" ? select.value === "true" : select.value;
+        onChange();
+      };
+    });
+  }
+
+  // src/app/screens/settings/custom-fields/form.ts
+  var definitions = (area) => settingsLegacy.fields()[area] ?? [];
+  async function loadCustomFields() {
+    const fields = settingsLegacy.fields(), areas2 = Object.keys(fields);
+    const results = await Promise.all(areas2.map((area) => legacyDb().rpc("campos_de", { p_ambito: area })));
+    areas2.forEach((area, index) => {
+      const result = results[index];
+      if (result && !result.error) fields[area] = result.data ?? [];
+    });
+  }
+  function customFieldsHtml(area, values2) {
+    const list = definitions(area).filter((field11) => field11.en_ficha);
+    if (!list.length) return "";
+    return `<div class="cpersform" data-cpamb="${area}"><h3>${t("settings.customFields.title")}</h3><div class="g2">${list.map((field11) => `<div><label>${escapeHtml(field11.nombre)}${field11.obligatorio ? ' <span class="cpob">*</span>' : ""}</label>${settingsLegacy.fieldInput(field11, values2?.[field11.clave])}</div>`).join("")}</div></div>`;
+  }
+  function readCustomFields(root) {
+    const block3 = root?.querySelector(".cpersform");
+    if (!block3) return null;
+    const area = block3.dataset.cpamb ?? "", values2 = {}, missing2 = [];
+    block3.querySelectorAll("[data-cpk]:not([disabled])").forEach((input6) => {
+      const key = input6.dataset.cpk ?? "", field11 = definitions(area).find((item) => item.clave === key);
+      values2[key] = input6.value.trim();
+      if (field11?.obligatorio && !input6.value.trim()) missing2.push(field11.nombre);
+    });
+    return { amb: area, valores: values2, falta: missing2 };
+  }
+  var PROBLEMS = /* @__PURE__ */ new Map([
+    ["obligatorio", "settings.customFields.problems.obligatorio"],
+    ["numero", "settings.customFields.problems.numero"],
+    ["fecha", "settings.customFields.problems.fecha"],
+    ["lista", "settings.customFields.problems.lista"],
+    ["si_no", "settings.customFields.problems.siNo"],
+    ["solo_lectura", "settings.customFields.problems.soloLectura"],
+    ["desconocido", "settings.customFields.problems.desconocido"]
+  ]);
+  function failureText4(area, failure4) {
+    if (!failure4) return t("settings.customFields.couldNotSave");
+    const field11 = definitions(area).find((item) => item.clave === failure4.campo), problem = PROBLEMS.get(failure4.error);
+    return t("settings.customFields.check", { field: field11 ? field11.nombre : failure4.campo, problem: problem ? t(problem) : failure4.error });
+  }
+  async function saveCustomFields(read3, id) {
+    if (!read3 || !id || !Object.keys(read3.valores).length) return true;
+    const { data, error } = await legacyDb().rpc("guardar_campos", { p_ambito: read3.amb, p_id: id, p_valores: read3.valores });
+    if (!error && data?.ok) return true;
+    notices.toast(failureText4(read3.amb, (data?.errores ?? [])[0]), true);
+    return false;
+  }
+  async function insertCustomFields(root, area, id, before) {
+    if (!root || !definitions(area).some((field11) => field11.en_ficha) || root.querySelector(".cpersform")) return;
+    let values2 = {};
+    const table = settingsLegacy.fieldTable(area);
+    if (id && table) {
+      const { data } = await legacyDb().from(table).select("clasificadores").eq("id", id).maybeSingle();
+      values2 = data?.clasificadores ?? {};
+    }
+    if (root.querySelector(".cpersform") || !root.isConnected) return;
+    if (before?.isConnected) before.insertAdjacentHTML("beforebegin", customFieldsHtml(area, values2));
+    else root.insertAdjacentHTML("beforeend", customFieldsHtml(area, values2));
+  }
+
+  // src/app/screens/products/editor/blocks.ts
+  var PRODUCT_STATES = ["Activo", "En pausa", "Descatalogado"];
+  var stateHtml2 = (state2) => `<div class="blk" id="prestado"><h3>${t("productsMore.state.title")}</h3><div class="segs">${PRODUCT_STATES.map((item) => `<button type="button" data-pest="${item}" class="${item === state2 ? "on" : ""}">${item}</button>`).join("")}</div>
+      <div class="sm u-mt-6">${t("productsMore.state.hint")}</div></div>`;
+  var PERIOD_WORDS = { anio: "productsMore.samples.periodYear", trimestre: "productsMore.samples.periodQuarter", mes: "productsMore.samples.periodMonth" };
+  var periodWord = (period) => t(PERIOD_WORDS[period]);
+  var samplesTitle = () => deliveryRule().name ?? t("productsMore.samples.title");
+  var samplesForNewHtml = () => deliveryRule().active ? `<div class="blk" id="prmuestra"><h3>${escapeHtml(samplesTitle())}</h3><p class="sm">${t("productsMore.samples.saveFirst")}</p></div>` : "";
+  function samplesTexts() {
+    const rule = deliveryRule(), professional = term("medico");
+    if (rule.name === null) return { regulated: t("productsMore.samples.regulated"), max: t("productsMore.samples.maxPerYear"), legal: t("productsMore.samples.law") };
+    return { regulated: t("productsMore.samples.regulatedOwn", { name: rule.name, professional }), max: t("productsMore.samples.maxPer", { professional, period: periodWord(rule.period) }), legal: rule.legal ?? "" };
+  }
+  function samplesHtml3(extras) {
+    const rule = deliveryRule(), texts3 = samplesTexts(), cap = rule.cap;
+    if (!rule.active) return "";
+    return `<div class="blk" id="prmuestra"><h3>${escapeHtml(samplesTitle())}</h3>
+      <label class="opt"><input type="checkbox" id="prmreg" ${extras.muestra_regulada ? "checked" : ""}> ${escapeHtml(texts3.regulated)}</label>
+      <div class="g2 ${extras.muestra_regulada ? "" : "hide"}" id="prmdat">
+        <div><label for="prmdesde">${t("productsMore.samples.authorised")}</label><input id="prmdesde" type="date" value="${escapeHtml(extras.muestra_desde ?? "")}"></div>
+        <div><label for="prmmax">${escapeHtml(texts3.max)}</label><input id="prmmax" type="number" min="1" max="${cap}" step="1" value="${Math.min(Number(extras.muestra_max) || cap, cap)}"></div></div>
+      ${texts3.legal ? `<p class="sm">${escapeHtml(texts3.legal)}</p>` : ""}</div>`;
+  }
+  var promotionHtml = (extras) => `<div class="blk" id="prpromo"><h3>${t("productsMore.promotion.title")}</h3>
+      <label class="opt"><input type="checkbox" id="prpromoc" ${extras.promocionado ? "checked" : ""}> ${t("productsMore.promotion.promoted", { visits: term("visita", { number: "p" }) })}</label>
+      <p class="sm">${t("productsMore.promotion.hint", { visit: term("visita") })}</p></div>`;
+  var equipmentHtml = (extras) => `<div class="blk" id="prequipo"><h3>${t("productsMore.equipment.title")}</h3>
+      <label class="opt"><input type="checkbox" id="preqc" ${extras.es_equipo ? "checked" : ""}> ${t("productsMore.equipment.isEquipment")}</label>
+      <div class="${extras.es_equipo ? "" : "hide"}" id="preqd"><label for="preqr">${t("productsMore.equipment.review")}</label><input id="preqr" type="number" min="0" max="120" step="1" value="${Number(extras.revision_meses) || 0}" style="max-width:140px"></div>
+      <p class="sm">${t("productsMore.equipment.hint")}</p></div>`;
+  var packsHtml = (extras) => `<div class="blk" id="prpacks"><h3>${t("productsMore.packs.title")}</h3>
+      <p class="sm">${t("productsMore.packs.hint")}</p>
+      <div id="prpkl"></div><button type="button" class="btn sec chico" id="prpkmas">${t("productsMore.packs.add")}</button>
+      <div class="g2 u-mt-10"><div><label for="prpkpvp">${t("productsMore.packs.retailPrice")}</label><input id="prpkpvp" type="number" step="0.01" value="${extras.pvp_recomendado !== null && extras.pvp_recomendado !== void 0 ? Number(extras.pvp_recomendado) : ""}" placeholder="${t("productsMore.packs.notSet")}"></div></div>
+      <span class="pcerr" id="prpkerr" hidden></span>
+      <div class="prpkacts"><button type="button" class="btn sec" id="prpkok">${t("productsMore.packs.save")}</button></div></div>`;
+  var materialHtml = () => `<div class="blk" id="prmat"><h3>${t("productsMore.material.title")}</h3>
+      <p class="sm">${escapeHtml(t("productsMore.material.hint", { aVisit: term("visita", { article: "una" }) }))}</p>
+      <div class="prmatl" id="prmatl"></div>
+      <label class="btn sec prmatadd">${t("productsMore.material.add")}<input type="file" id="prmatf" accept="image/*,application/pdf" data-fp="1" multiple hidden></label></div>`;
+
+  // src/app/screens/products/editor/blocks-bind.ts
+  var MAX_REVIEW_MONTHS = 120;
+  var byId7 = (id) => document.getElementById(id);
+  var input3 = (id) => byId7(id);
+  var orNull = (value10) => value10 === void 0 || value10 === "" ? null : value10;
+  var update = (id, values2) => legacyDb().from("productos").update(values2).eq("id", id);
+  function bindState(body3, product) {
+    body3.querySelectorAll("[data-pest]").forEach((button3) => {
+      button3.onclick = async () => {
+        const state2 = button3.dataset.pest ?? "";
+        const { data, error } = await billing2Legacy.rawRpc("estado_producto", { p_id: product.id, p_estado: state2 });
+        if (error || !data?.ok) {
+          notices.toast(t("productsMore.state.couldNotChange"), true);
+          return;
+        }
+        billing2Legacy.productStates()[product.id] = state2;
+        const listed = billing2Legacy.products().find((item) => item.id === product.id);
+        if (listed) listed.estado = state2;
+        body3.querySelectorAll("[data-pest]").forEach((other) => {
+          other.classList.toggle("on", other === button3);
+        });
+        notices.toast(t("productsMore.state.changed", { state: state2 }));
+      };
+    });
+  }
+  function bindSamples2(productId) {
+    const save26 = async () => {
+      const regulated = Boolean(input3("prmreg")?.checked), cap = deliveryRule().cap, max = Math.min(cap, Math.max(1, Number(input3("prmmax")?.value) || cap));
+      byId7("prmdat")?.classList.toggle("hide", !regulated);
+      const { error } = await update(productId, { muestra_regulada: regulated, muestra_desde: orNull(input3("prmdesde")?.value), muestra_max: max });
+      notices.toast(error ? t("productsMore.editor.couldNotSave", { error: errorMessage(error) }) : t("productsMore.samples.saved"), Boolean(error));
+    };
+    ["prmreg", "prmdesde", "prmmax"].forEach((id) => {
+      byId7(id)?.addEventListener("change", () => {
+        void save26();
+      });
+    });
+  }
+  function bindPromotion(productId) {
+    const box3 = input3("prpromoc");
+    if (!box3) return;
+    box3.onchange = async () => {
+      const { error } = await update(productId, { promocionado: box3.checked });
+      const done = box3.checked ? t("productsMore.promotion.on", { visits: term("visita", { number: "p" }) }) : t("productsMore.promotion.off");
+      notices.toast(error ? t("productsMore.editor.couldNotSave", { error: errorMessage(error) }) : done, Boolean(error));
+      if (!error) billing2Legacy.setPromoted(null);
+    };
+  }
+  function bindEquipment(productId) {
+    const save26 = async () => {
+      const equipment2 = Boolean(input3("preqc")?.checked);
+      byId7("preqd")?.classList.toggle("hide", !equipment2);
+      const months2 = Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(input3("preqr")?.value) || 0)));
+      const { error } = await update(productId, { es_equipo: equipment2, revision_meses: months2 });
+      notices.toast(error ? t("productsMore.editor.couldNotSave", { error: errorMessage(error) }) : t("productsMore.equipment.saved"), Boolean(error));
+    };
+    const box3 = input3("preqc"), months = input3("preqr");
+    if (box3) box3.onchange = () => {
+      void save26();
+    };
+    if (months) months.onchange = () => {
+      void save26();
+    };
+  }
+
+  // src/app/screens/products/editor/materials.ts
+  var PDF = "application/pdf";
+  var listOf = async (productId) => (await loadMaterials(true)).filter((item) => item.producto_id === productId);
+  var rowHtml9 = (item) => `<div class="prmati"><span>${item.tipo === PDF ? t("productsMore.material.pdf") : t("productsMore.material.image")} · ${escapeHtml(item.nombre)}</span><label class="prmatpp"><input type="checkbox" data-prmatpp="${item.id}" ${item.para_portal ? "checked" : ""}> ${t("productsMore.material.forCentres")}</label>
+          <button type="button" class="lnk" data-prmatver="${item.id}">${t("productsMore.material.see")}</button><button type="button" class="lnk" data-prmatdel="${item.id}" aria-label="${t("productsMore.material.removeLabel", { name: escapeHtml(item.nombre) })}">${t("productsMore.material.remove")}</button></div>`;
+  async function remove2(product, item) {
+    if (!await notices.confirm(t("productsMore.material.removeText", { name: item.nombre }), { titulo: t("productsMore.material.removeTitle"), ok: t("productsMore.material.remove"), peligro: true })) return;
+    const { error } = await legacyDb().from("producto_materiales").delete().eq("id", item.id);
+    if (error) {
+      notices.toast(t("productsMore.material.couldNotRemove", { error: errorMessage(error) }), true);
+      return;
+    }
+    billing2Legacy.presentationFiles().delete(item.id);
+    paintMaterials(product, await listOf(product.id));
+    notices.toast(t("productsMore.material.removed"));
+  }
+  function paintMaterials(product, list) {
+    const box3 = document.getElementById("prmatl");
+    if (!box3) return;
+    box3.innerHTML = list.length ? list.map(rowHtml9).join("") : `<p class="sm">${t("productsMore.material.none")}</p>`;
+    box3.querySelectorAll("[data-prmatver]").forEach((button3) => {
+      button3.onclick = async () => {
+        await loadMaterials();
+        presentOnly({ id: product.id, nombre: product.nombre ?? null }, button3.dataset.prmatver ?? "");
+      };
+    });
+    box3.querySelectorAll("[data-prmatdel]").forEach((button3) => {
+      button3.onclick = () => {
+        const item = list.find((other) => other.id === button3.dataset.prmatdel);
+        if (item) void remove2(product, item);
+      };
+    });
+  }
+  async function uploadOf(file) {
+    if (file.type === PDF) {
+      if (file.size > billing2Legacy.presentationMax()) {
+        notices.toast(t("productsMore.material.tooBig", { name: file.name }), true);
+        return null;
+      }
+      return { nombre: file.name, tipo: file.type, tamano: file.size, datos: await toBase64(file) };
+    }
+    if (file.type.startsWith("image/")) return readReceipt(file);
+    notices.toast(t("productsMore.material.notAllowed", { name: file.name }), true);
+    return null;
+  }
+  async function addFiles(product, files, start3) {
+    let added = 0, order = start3;
+    for (const file of files) {
+      const upload = await uploadOf(file);
+      if (!upload) continue;
+      const { error } = await legacyDb().from("producto_materiales").insert({ producto_id: product.id, nombre: upload.nombre, tipo: upload.tipo, tamano: upload.tamano, datos: upload.datos, orden: order++ });
+      if (error) {
+        notices.toast(t("productsMore.material.couldNotUpload", { name: file.name, error: errorMessage(error) }), true);
+        continue;
+      }
+      added++;
+    }
+    if (added) notices.toast(added === 1 ? t("productsMore.material.oneAdded") : t("productsMore.material.added", { count: added }));
+    if (document.getElementById("prmatl")) paintMaterials(product, await listOf(product.id));
+  }
+  function bindMaterials(product, list) {
+    paintMaterials(product, list);
+    const picker = document.getElementById("prmatf");
+    if (!picker) return;
+    picker.onchange = () => {
+      const files = [...picker.files ?? []];
+      picker.value = "";
+      void addFiles(product, files, list.length);
+    };
+  }
+
+  // src/app/screens/products/editor/packs.ts
+  var byId8 = (id) => document.getElementById(id);
+  function read() {
+    return [...byId8("prpkl")?.querySelectorAll(".prpkf") ?? []].map((row3) => ({
+      compra: row3.querySelector("[data-pkc]")?.value ?? "",
+      regalo: row3.querySelector("[data-pkg]")?.value ?? ""
+    }));
+  }
+  function problemOf(packs, price) {
+    const bad = packs.some((pack) => !Number.isInteger(pack.compra) || pack.compra < 1 || !Number.isInteger(pack.regalo) || pack.regalo < 0);
+    if (bad) return t("productsMore.packs.badPack");
+    if (packs.some((pack, index) => packs.findIndex((other) => other.compra === pack.compra && other.regalo === pack.regalo) !== index)) return t("productsMore.packs.repeated");
+    return price !== null && !(price >= 0) ? t("productsMore.packs.badPrice") : "";
+  }
+  function bindPacks(productId, extras) {
+    let packs = (Array.isArray(extras.packs) ? extras.packs : []).map((pack) => ({ compra: Number(pack.compra) || 0, regalo: Number(pack.regalo) || 0 }));
+    const paint10 = () => {
+      const list = byId8("prpkl");
+      if (!list) return;
+      list.innerHTML = packs.length ? packs.map((pack, index) => `<div class="prpkf"><label>${t("productsMore.packs.buy")} <input type="number" step="1" data-pkc value="${pack.compra || ""}"></label>
+          <label>${t("productsMore.packs.free")} <input type="number" step="1" data-pkg value="${pack.regalo || 0}"></label><button type="button" class="pmhx" data-pkx="${index}" aria-label="${t("productsMore.packs.removePack")}">✕</button></div>`).join("") : `<p class="sm">${t("productsMore.packs.none")}</p>`;
+      list.querySelectorAll("[data-pkx]").forEach((button3) => {
+        button3.onclick = () => {
+          packs = read();
+          packs.splice(Number(button3.dataset.pkx), 1);
+          paint10();
+        };
+      });
+    };
+    paint10();
+    const add = byId8("prpkmas");
+    if (add) add.onclick = () => {
+      packs = read();
+      packs.push({ compra: "", regalo: 0 });
+      paint10();
+    };
+    const ok = byId8("prpkok");
+    if (ok) ok.onclick = async () => {
+      const list = read().map((pack) => ({ compra: Number(pack.compra), regalo: Number(pack.regalo || 0) })), error = byId8("prpkerr");
+      const priceText = byId8("prpkpvp")?.value ?? "", price = priceText === "" ? null : Number(priceText);
+      const problem = problemOf(list, price);
+      if (error) {
+        error.hidden = !problem;
+        error.textContent = problem;
+      }
+      if (problem) return;
+      ok.disabled = true;
+      const { error: failed5 } = await legacyDb().from("productos").update({ packs: list.length ? list.sort((first, second) => first.compra - second.compra) : null, pvp_recomendado: price }).eq("id", productId);
+      ok.disabled = false;
+      if (failed5) {
+        notices.toast(t("productsMore.packs.couldNotSave", { error: errorMessage(failed5) }), true);
+        return;
+      }
+      packs = list;
+      paint10();
+      notices.toast(list.length ? t("productsMore.packs.saved", { count: formatNumber(list.length) }) : t("productsMore.packs.noPacks"));
+    };
+  }
+
+  // src/app/screens/products/editor/remove.ts
+  function failureText5(error, result) {
+    if (result?.error === "stock") return t("productsMore.remove.stock", { units: formatNumber(result.unidades) });
+    if (result?.error === "permiso") return t("productsMore.remove.noPermission");
+    return t("productsMore.remove.couldNotRemove", { error: error?.message ?? result?.error ?? "" });
+  }
+  function doneText(result) {
+    const detail = result.detalle ?? {};
+    if (result.modo === "borrado") return Number(detail.unidades) ? t("productsMore.remove.removedWithStock", { units: formatNumber(detail.unidades) }) : t("productsMore.remove.removed");
+    const uses = billing2Legacy.productUses();
+    return t("productsMore.remove.kept", { uses: Object.entries(detail).map(([key, count]) => `${formatNumber(count)} ${uses[key] ?? key}`).join(", ") });
+  }
+  async function remove3(product) {
+    if (!await notices.confirm(t("productsMore.remove.text"), { titulo: t("productsMore.remove.title", { name: product.nombre ?? "" }), ok: t("productsMore.remove.ok"), peligro: true })) return;
+    const { data: result, error } = await legacyDb().rpc("eliminar_producto", { p_id: product.id });
+    if (error || !result?.ok) {
+      notices.toast(failureText5(error, result), true);
+      return;
+    }
+    const box3 = document.getElementById("dlg");
+    if (box3?.open) box3.close();
+    notices.toast(doneText(result));
+    billing2Legacy.refreshProducts();
+  }
+  function addRemoveButton(product) {
+    const save26 = document.getElementById("prok"), row3 = save26?.closest(".acts");
+    if (!row3 || document.getElementById("prelim")) return;
+    row3.insertAdjacentHTML("afterbegin", `<button type="button" class="btn sec dang prelimb" id="prelim">${t("productsMore.remove.button")}</button>`);
+    const button3 = document.getElementById("prelim");
+    if (button3) button3.onclick = () => {
+      void remove3(product);
+    };
+  }
+
+  // src/app/screens/products/editor/form.ts
+  var field3 = (id) => document.getElementById(id);
+  var valueOf6 = (id) => field3(id)?.value ?? "";
+  function bindPrices2() {
+    const vat = () => (Number(valueOf6("priva")) || 0) / 100, net = field3("prpr"), gross = field3("prpvp"), rate = field3("priva");
+    if (net && gross) net.oninput = () => {
+      gross.value = net.value === "" ? "" : String(round2(Number(net.value) * (1 + vat())));
+    };
+    if (net && gross) gross.oninput = () => {
+      net.value = gross.value === "" ? "" : String(Number((Number(gross.value) / (1 + vat())).toFixed(4)));
+    };
+    if (net && gross && rate) rate.oninput = () => {
+      if (net.value !== "") gross.value = String(round2(Number(net.value) * (1 + vat())));
+    };
+  }
+  function bindPhoto() {
+    const input6 = field3("prfoto"), preview3 = document.getElementById("prfprev");
+    if (!input6 || !preview3) return;
+    input6.onchange = () => {
+      const file = input6.files?.[0];
+      if (!file) return;
+      preview3.style.backgroundImage = `url('${URL.createObjectURL(file)}')`;
+      preview3.textContent = "";
+    };
+  }
+  async function uploadPhoto() {
+    const file = field3("prfoto")?.files?.[0];
+    if (!file) return void 0;
+    const storage = legacyDb().storage, path = `p-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "")}`;
+    const { error } = await storage.from("productos").upload(path, file, { upsert: true });
+    if (error) {
+      notices.toast(t("productsMore.editor.photoFailed", { error: error.message ?? "" }), true);
+      return void 0;
+    }
+    return storage.from("productos").getPublicUrl(path).data.publicUrl;
+  }
+  function payload7(product, photo) {
+    const active = field3("pract");
+    return {
+      id: product.id ?? null,
+      nombre: valueOf6("prn").trim(),
+      presentacion: valueOf6("prp").trim(),
+      precio: valueOf6("prpr"),
+      iva: valueOf6("priva"),
+      referencia: valueOf6("prref").trim(),
+      codigo_barras: valueOf6("prcb").trim(),
+      unidades_envase: valueOf6("prue"),
+      coste: valueOf6("prco"),
+      ...photo ? { foto_url: photo } : {},
+      ...active ? { activo: active.checked } : {}
+    };
+  }
+  function checked(body3) {
+    if (!valueOf6("prn").trim()) {
+      notices.toast(t("productsMore.editor.writeName"), true);
+      return false;
+    }
+    const fields = readCustomFields(body3);
+    if (fields?.falta.length) {
+      notices.toast(t("productsMore.editor.fillField", { field: fields.falta[0] ?? "" }), true);
+      return false;
+    }
+    return fields;
+  }
+  async function store(product, button3) {
+    button3.disabled = true;
+    button3.textContent = t("productsMore.editor.saving");
+    const photo = await uploadPhoto();
+    const { data: result, error } = await legacyDb().rpc("guardar_producto", { p: payload7(product, photo) });
+    button3.disabled = false;
+    button3.textContent = t(product.id ? "productsMore.editor.save" : "productsMore.editor.create");
+    if (!error && result?.ok !== false) return result ?? {};
+    notices.toast(t("productsMore.editor.couldNotSave", { error: errorMessage(error) || (result?.error ?? "") }), true);
+    return null;
+  }
+  async function save10(body3, product, button3, after) {
+    const fields = checked(body3);
+    if (fields === false) return;
+    const result = await store(product, button3);
+    if (!result) return;
+    if (fields && !await saveCustomFields(fields, result.id ?? product.id)) return;
+    document.getElementById("dlg")?.close();
+    notices.toast(t(product.id ? "productsMore.editor.saved" : "productsMore.editor.created"));
+    await billing2Legacy.loadProducts();
+    after();
+  }
+  function bindForm(body3, product, after) {
+    bindPrices2();
+    bindPhoto();
+    const ok = document.getElementById("prok");
+    if (ok) ok.onclick = () => {
+      void save10(body3, product, ok, after);
+    };
+  }
+
+  // src/app/screens/products/editor/editor.ts
+  var EXTRAS = "muestra_regulada,muestra_desde,muestra_max,promocionado,es_equipo,revision_meses,packs,pvp_recomendado";
+  var disabled = (admin) => admin ? "" : "disabled";
+  function headerHtml2(product, admin) {
+    const photo = product.foto_url ?? "";
+    return `<div class="fh"><div><h2>${product.id ? escapeHtml(product.nombre) : t("productsMore.editor.newTitle")}</h2>
+      <div class="sm">${t(admin ? "productsMore.editor.hintAdmin" : "productsMore.editor.hintOthers")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("productsMore.editor.close")}">✕</button></div>
+    <div style="display:flex;gap:14px;align-items:center;margin-top:8px">
+      <span class="pfoto" id="prfprev" style="width:72px;height:72px;${photo ? `background-image:url('${escapeHtml(photo)}')` : ""}">${photo ? "" : "◧"}</span>
+      ${admin ? `<div class="u-flex-1"><label for="prfoto" class="u-mt-0">${t("productsMore.editor.photo")}</label><input id="prfoto" type="file" accept="image/*"></div>` : ""}</div>`;
+  }
+  function pricesHtml(product, off) {
+    const price = product.precio ?? null, vat = product.iva ?? defaultVat("productos");
+    const net = price === null ? "" : String(Number(Number(price).toFixed(4))), gross = price === null ? "" : String(round2(Number(price) * (1 + (Number(product.iva) || 0) / 100)));
+    return `<div class="pvp">
+      <div><label for="prpr">${t("productsMore.editor.priceWithoutVat")}</label><input id="prpr" type="number" step="0.01" min="0" value="${net}" ${off}></div>
+      <div><label for="priva">${t("productsMore.editor.vat")}</label><input id="priva" type="number" step="1" min="0" max="${highestVat()}" value="${vat}" ${off}></div>
+      <div><label for="prpvp">${t("productsMore.editor.priceWithVat")}</label><input id="prpvp" type="number" step="0.01" min="0" value="${gross}" ${off}></div></div>`;
+  }
+  function formHtml3(product, admin) {
+    const off = disabled(admin);
+    return `${headerHtml2(product, admin)}
+    <div class="g2">
+      <div><label for="prn">${t("productsMore.editor.name")}</label><input id="prn" value="${escapeHtml(product.nombre ?? "")}" ${off}></div>
+      <div><label for="prp">${t("productsMore.editor.presentation")}</label><input id="prp" value="${escapeHtml(product.presentacion ?? "")}" placeholder="${t("productsMore.editor.presentationPlaceholder")}" ${off}></div></div>
+    ${pricesHtml(product, off)}
+    <div class="g2">
+      <div><label for="prref">${t("productsMore.editor.reference")}</label><input id="prref" value="${escapeHtml(product.referencia ?? "")}" ${off}></div>
+      <div><label for="prcb">${t("productsMore.editor.barcode")}</label><input id="prcb" value="${escapeHtml(product.codigo_barras ?? "")}" ${off}></div></div>
+    <div class="g2">
+      <div><label for="prue">${t("productsMore.editor.unitsPerPack")}</label><input id="prue" type="number" min="1" value="${Number(product.unidades_envase) || 1}" ${off}></div>
+      <div><label for="prco">${t("productsMore.editor.cost")}</label><input id="prco" type="number" step="0.01" min="0" value="${product.coste ?? ""}" ${off}></div></div>
+    ${admin && product.id ? `<label class="opt u-mt-12"><input type="checkbox" id="pract" ${product.activo ? "checked" : ""}> ${t("productsMore.editor.active")}</label>` : ""}`;
+  }
+  var actionsHtml2 = (product, admin) => `<div class="acts u-end">
+      <button class="btn sec" data-cerrar>${t(admin ? "productsMore.editor.cancel" : "productsMore.editor.close")}</button>
+      ${admin ? `<button class="btn" id="prok">${t(product.id ? "productsMore.editor.save" : "productsMore.editor.create")}</button>` : ""}</div>`;
+  function blocksHtml(product, loaded) {
+    if (!product.id) return loaded.admin ? samplesForNewHtml() : "";
+    const state2 = billing2Legacy.productStates()[product.id] ?? product.estado ?? "Activo";
+    if (!loaded.admin) return stateHtml2(state2);
+    return [
+      stateHtml2(state2),
+      samplesHtml3(loaded.extras),
+      loaded.promotion ? promotionHtml(loaded.extras) : "",
+      loaded.equipment ? equipmentHtml(loaded.extras) : "",
+      packsHtml(loaded.extras),
+      materialHtml()
+    ].join("");
+  }
+  async function load2(product) {
+    const admin = can("administrar"), promotion = planIncludesSection("cobertura"), equipment2 = planIncludesSection("parque");
+    if (!admin || !product.id) return { admin, extras: {}, materials: [], promotion, equipment: equipment2 };
+    const [{ data }, all] = await Promise.all([legacyDb().from("productos").select(EXTRAS).eq("id", product.id).maybeSingle(), loadMaterials(true)]);
+    return { admin, extras: data ?? {}, materials: all.filter((item) => item.producto_id === product.id), promotion, equipment: equipment2 };
+  }
+  function bindBlocks(body3, product, loaded) {
+    bindState(body3, product);
+    if (!loaded.admin) return;
+    bindSamples2(product.id);
+    if (loaded.promotion) bindPromotion(product.id);
+    if (loaded.equipment) bindEquipment(product.id);
+    bindPacks(product.id, loaded.extras);
+    bindMaterials(product, loaded.materials);
+    if (canDeleteProduct()) addRemoveButton(product);
+  }
+  async function editProduct(given) {
+    const product = given ?? { iva: defaultVat("productos"), activo: true, unidades_envase: 1 };
+    const loaded = await load2(product), body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    body3.innerHTML = formHtml3(product, loaded.admin) + blocksHtml(product, loaded) + actionsHtml2(product, loaded.admin);
+    if (loaded.admin) await insertCustomFields(body3, "producto", product.id ?? null, body3.querySelector(".blk") ?? body3.querySelector(".acts:last-of-type"));
+    if (product.id) await paintCustomFieldsBlock("productos", product.id, body3).catch(() => void 0);
+    if (!box3.open) box3.showModal();
+    if (loaded.admin) bindForm(body3, product, () => {
+      if (currentScreen() === "productos") void paintProducts();
+    });
+    if (product.id) bindBlocks(body3, { ...product, id: product.id }, loaded);
+  }
+
+  // src/app/screens/products/editor/visit-material.ts
+  var MATERIAL_ROLE = "material_visita";
+  var NUMBER_KIND = "numero";
+  var UNITS_LABEL = "Unidades";
+  var DISCONTINUED = "Descatalogado";
+  var byId9 = (id) => document.getElementById(id);
+  var words6 = () => ({
+    visit: term("visita"),
+    aVisit: term("visita", { article: "un" }),
+    theVisit: term("visita", { article: "el" }),
+    theVisits: term("visita", { number: "p", article: "el" }),
+    ofProfessional: term("medico", { article: "del" }),
+    professional: term("medico")
+  });
+  function samplesHtml4(samples) {
+    const products3 = billing2Legacy.products().filter((item) => item.tipo !== "servicio");
+    return `<div class="card cfgpanel"><h2>${t("productsMore.visitMaterial.samplesKind")}</h2>
+      <div class="g2"><div><label for="muprod">${t("productsMore.visitMaterial.sampleProduct")}</label><select id="muprod"><option value="">${t("productsMore.visitMaterial.none")}</option>${products3.map((item) => `<option value="${item.id}" ${item.id === samples.producto_id ? "selected" : ""}>${escapeHtml(item.nombre)}</option>`).join("")}</select></div><div></div></div>
+      <label class="vfswitch u-mt-10"><input type="checkbox" id="murest" ${samples.restar_stock ? "checked" : ""}><span class="sw"></span>
+        <span><b>${t("productsMore.visitMaterial.discount")}</b><br><span class="sm">${t("productsMore.visitMaterial.discountText", words6())}</span></span></label>
+      <div class="acts u-end"><button class="btn" id="muok">${t("productsMore.visitMaterial.save")}</button></div></div>`;
+  }
+  var valueRow = (value10) => `<div class="matfila ${value10.activo ? "" : "off"}"><b>${escapeHtml(value10.valor)}</b><span class="sm">${t(value10.dato_tipo === NUMBER_KIND ? "productsMore.visitMaterial.asksQuantity" : "productsMore.visitMaterial.onlyMarked")}</span>
+        <label class="vfswitch mini"><input type="checkbox" data-mact="${value10.id}" ${value10.activo ? "checked" : ""}><span class="sw"></span><span class="sm">${t(value10.activo ? "productsMore.visitMaterial.active" : "productsMore.visitMaterial.hidden")}</span></label></div>`;
+  function pageHtml4(samples, values2, canAdd) {
+    return `
+    <div class="card cfgpanel"><h2>${t("productsMore.visitMaterial.title", words6())}</h2>
+      <p class="sm">${t("productsMore.visitMaterial.intro", words6())}</p>
+      <div class="mattipos"><div><b>${t("productsMore.visitMaterial.samplesKind")}</b><span>${t("productsMore.visitMaterial.samplesKindText")}</span></div>
+        <div><b>${t("productsMore.visitMaterial.promoKind")}</b><span>${t("productsMore.visitMaterial.promoKindText")}</span></div></div></div>
+    ${samplesHtml4(samples)}
+    <div class="card cfgpanel"><h2>${t("productsMore.visitMaterial.promoKind")}</h2>
+      <p class="sm">${t("productsMore.visitMaterial.promoText", words6())}</p>
+      <div class="matlista">${values2.map(valueRow).join("") || `<div class="sm">${t("productsMore.visitMaterial.noMaterial")}</div>`}</div>
+      <div class="matadd"><input id="matn" placeholder="${t("productsMore.visitMaterial.newPlaceholder")}"><label class="opt u-m-0"><input type="checkbox" id="matq" checked> ${t("productsMore.visitMaterial.countUnits")}</label>
+        <button class="btn sec" id="matok" ${canAdd ? "" : "disabled"}>${t("productsMore.visitMaterial.add")}</button></div></div>`;
+  }
+  async function saveSamples2() {
+    const product = byId9("muprod")?.value ?? "", discount = Boolean(byId9("murest")?.checked);
+    if (discount && !product) {
+      notices.toast(t("productsMore.visitMaterial.chooseProduct"), true);
+      return;
+    }
+    const value10 = { producto_id: product || null, restar_stock: discount };
+    const { error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "muestras", p_valor: value10 });
+    if (error) {
+      notices.toast(t("productsMore.visitMaterial.couldNotSave"), true);
+      return;
+    }
+    billing2Legacy.settings().muestras = value10;
+    notices.toast(t("productsMore.visitMaterial.saved"));
+  }
+  async function addMaterial(classifierId) {
+    const name = (byId9("matn")?.value ?? "").trim();
+    if (!name) return;
+    const counted2 = Boolean(byId9("matq")?.checked);
+    const { error } = await legacyDb().rpc("guardar_valor", { p: { clasificador_id: classifierId, valor: name, ...counted2 ? { dato_tipo: NUMBER_KIND, dato_etiqueta: UNITS_LABEL } : {} } });
+    if (error) {
+      notices.toast(t("productsMore.visitMaterial.couldNotAdd", { error: error.message ?? "" }), true);
+      return;
+    }
+    notices.toast(t("productsMore.visitMaterial.added"));
+    billing2Legacy.loadCatalogs();
+    void paintVisitMaterial();
+  }
+  function bind9(box3, classifierId) {
+    const ok = byId9("muok");
+    if (ok) ok.onclick = () => {
+      void saveSamples2();
+    };
+    box3.querySelectorAll("[data-mact]").forEach((input6) => {
+      input6.onchange = async () => {
+        await legacyDb().rpc("guardar_valor", { p: { id: input6.dataset.mact, activo: input6.checked } });
+        notices.toast(t(input6.checked ? "productsMore.visitMaterial.visible" : "productsMore.visitMaterial.hiddenIn", words6()));
+        billing2Legacy.loadCatalogs();
+        void paintVisitMaterial();
+      };
+    });
+    const add = byId9("matok");
+    if (add && classifierId) add.onclick = () => {
+      void addMaterial(classifierId);
+    };
+  }
+  async function paintVisitMaterial() {
+    await Promise.all([billing2Legacy.loadSettings(), billing2Legacy.loadProducts()]);
+    const samples = { producto_id: null, restar_stock: false, ...billing2Legacy.settings().muestras };
+    await legacyDb().rpc("clasificadores_actividad");
+    const { data: classifier } = await legacyDb().from("clasificadores").select("id").eq("papel", MATERIAL_ROLE).maybeSingle();
+    const { data: values2 } = classifier ? await legacyDb().from("valores_clasificador").select("id,valor,activo,dato_tipo").eq("clasificador_id", classifier.id).order("orden") : { data: [] };
+    const box3 = byId9("cfgcuerpo");
+    if (!box3) return;
+    box3.innerHTML = pageHtml4(samples, values2 ?? [], Boolean(classifier));
+    bind9(box3, classifier?.id ?? null);
+    try {
+      await improveMaterial();
+    } catch (error) {
+      registerError("error", t("productsMore.visitMaterial.errorLog", { error: error.message }));
+    }
+  }
+  async function promotedProducts() {
+    const read3 = async () => {
+      if (!navigator.onLine) return billing2Legacy.promoted() ?? [];
+      try {
+        const { data, error } = await legacyDb().from("productos").select("id,nombre,estado").eq("promocionado", true).order("nombre");
+        if (!error) billing2Legacy.setPromoted((data ?? []).filter((item) => (item.estado ?? "Activo") !== DISCONTINUED).map((item) => ({ id: item.id, nombre: item.nombre })));
+      } catch {
+      }
+      return billing2Legacy.promoted() ?? [];
+    };
+    const [list] = await Promise.all([read3(), loadMaterials()]);
+    return list;
+  }
+
+  // src/app/screens/products/deposit-form.ts
+  var whole2 = (input6) => Math.max(0, Math.floor(Number(input6.value) || 0));
+  var batchOf = (line2) => escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatchLower")));
+  var actsHtml = (ok) => `<div class="acts u-end"><button type="button" class="btn sec" id="depcanc">${t("common.cancel")}</button><button type="button" class="btn" id="depok">${ok}</button></div>`;
+  function replenishHtml() {
+    const products3 = purchasesLegacy.products().filter((item) => item.activo !== false && orFallback(item.estado, "Activo") !== "Descatalogado");
+    return `<div class="depbox"><b>${t("products.deposit.replenishTitle")}</b>
+      <div class="segs" id="depori" role="group" aria-label="${t("products.deposit.from")}"><button type="button" data-o="maletin" class="on" aria-pressed="true">${t("products.deposit.fromCase")}</button><button type="button" data-o="central" aria-pressed="false">${t("products.deposit.fromCentral")}</button></div>
+      <div class="depitems">${products3.map((item) => `<label><span>${escapeHtml(item.nombre)}</span><input type="number" min="0" step="1" data-dprod="${item.id}" placeholder="0" aria-label="${t("products.deposit.unitsOfProduct", { name: escapeHtml(item.nombre) })}"></label>`).join("")}</div>
+      ${actsHtml(t("products.deposit.replenish"))}</div>`;
+  }
+  function useHtml(lines2) {
+    return `<div class="depbox"><b>${t("products.deposit.useTitle")}</b>
+      <div class="depitems">${lines2.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.left", { units: formatNumber(line2.unidades) })}</span></span>
+        <input type="number" min="0" max="${line2.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t("products.deposit.usedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
+      <label for="depref">${t("products.deposit.reference")}</label><input id="depref" maxlength="120" placeholder="${t("products.deposit.referencePlaceholder", { ofTheCustomer: term("paciente", { article: "del" }) })}">
+      ${actsHtml(t("products.deposit.record"))}</div>`;
+  }
+  function countHtml2(lines2) {
+    return `<div class="depbox"><b>${t("products.deposit.countTitle")}</b><span class="sm">${t("products.deposit.countHint")}</span>
+      <div class="depitems">${lines2.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.had", { units: formatNumber(line2.unidades) })}</span></span>
+        <input type="number" min="0" step="1" data-dcnt="${index}" value="${line2.unidades}" aria-label="${t("products.deposit.countedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
+      ${actsHtml(t("products.deposit.saveCount"))}</div>`;
+  }
+  function request(form, deposit, action) {
+    const base = { cuenta_id: deposit.accountId, accion: action, op_id: `d${Date.now()}` };
+    if (action === "reponer") {
+      const items = [...form.querySelectorAll("[data-dprod]")].map((input6) => ({ producto_id: input6.dataset.dprod, unidades: whole2(input6) })).filter((item) => item.unidades > 0);
+      return items.length ? { ...base, origen: form.querySelector("#depori .on")?.dataset.o, items } : t("products.deposit.writeReplenish");
+    }
+    const lineAt = (input6, key) => deposit.lines[Number(input6.dataset[key])];
+    if (action === "consumo") {
+      const items = [...form.querySelectorAll("[data-dlin]")].map((input6) => {
+        const line2 = lineAt(input6, "dlin");
+        return { producto_id: line2?.producto_id, lote_id: line2?.lote_id, unidades: whole2(input6), max: line2?.unidades ?? 0 };
+      }).filter((item) => item.unidades > 0);
+      if (!items.length) return t("products.deposit.writeUsed");
+      if (items.some((item) => item.unidades > item.max)) return t("products.deposit.tooMany");
+      return { ...base, items, referencia: document.getElementById("depref")?.value.trim() ?? "" };
+    }
+    return { ...base, items: [...form.querySelectorAll("[data-dcnt]")].map((input6) => {
+      const line2 = lineAt(input6, "dcnt");
+      return { producto_id: line2?.producto_id, lote_id: line2?.lote_id, contadas: whole2(input6) };
+    }) };
+  }
+  function failureText6(result) {
+    if (result?.error === "sin_origen") return t("products.deposit.noSource");
+    return t(result?.error === "permiso" ? "products.deposit.noMovePermission" : "products.deposit.couldNotSave");
+  }
+  async function replenishUsed(deposit, used, button3) {
+    button3.disabled = true;
+    const { data: result } = await legacyDb().rpc("deposito_mover", { p: { cuenta_id: deposit.accountId, accion: "reponer", items: used.map((item) => ({ producto_id: item.producto_id, unidades: item.unidades })), op_id: `r${Date.now()}` } });
+    if (!result || result.ok === false) {
+      button3.disabled = false;
+      notices.toast(result?.error === "sin_origen" ? t("products.deposit.noSource") : t("products.deposit.couldNotReplenish"), true);
+      return;
+    }
+    notices.toast(t("products.deposit.usedReplenished"));
+    void productsLegacy.openDeposit(deposit.accountId, deposit.name);
+  }
+  async function afterSave(deposit, action, result) {
+    const used = result.usado ?? [];
+    let notice2 = "";
+    if (action === "reponer") notices.toast(t("products.deposit.replenished"));
+    else if (!used.length) notices.toast(t("products.deposit.nothingMissing"));
+    else {
+      notices.toast(t("products.deposit.usedRecorded"));
+      notice2 = `<div class="banda-ok depaviso">${t("products.deposit.usedNotice", { list: used.map((item) => `${escapeHtml(item.nombre)} ${formatNumber(item.unidades)}`).join(" · ") })}
+        <span class="depav"><button type="button" class="btn sec" id="depverped">${t("products.deposit.seeOrder")}</button><button type="button" class="btn" id="depreponer">${t("products.deposit.replenishUsed")}</button></span></div>`;
+    }
+    await productsLegacy.openDeposit(deposit.accountId, deposit.name, notice2);
+    const order = document.getElementById("depverped"), again = document.getElementById("depreponer");
+    if (order && result.pedido_id) order.onclick = () => {
+      appLegacy.openOrder(result.pedido_id ?? "");
+    };
+    if (again) again.onclick = () => {
+      void replenishUsed(deposit, used, again);
+    };
+  }
+  async function save11(form, deposit, action, button3) {
+    const payload10 = request(form, deposit, action);
+    if (typeof payload10 === "string") {
+      notices.toast(payload10, true);
+      return;
+    }
+    button3.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("deposito_mover", { p: payload10 });
+    button3.disabled = false;
+    if (error || !result || result.ok === false) {
+      notices.toast(failureText6(result), true);
+      return;
+    }
+    await afterSave(deposit, action, result);
+  }
+  function openDepositForm(deposit, action) {
+    const form = document.getElementById("depform");
+    if (!form) return;
+    form.innerHTML = action === "reponer" ? replenishHtml() : action === "consumo" ? useHtml(deposit.lines) : countHtml2(deposit.lines);
+    const origins = form.querySelectorAll("[data-o]");
+    origins.forEach((button3) => {
+      button3.onclick = () => {
+        origins.forEach((other) => {
+          other.classList.toggle("on", other === button3);
+          other.setAttribute("aria-pressed", String(other === button3));
+        });
+      };
+    });
+    const cancel3 = document.getElementById("depcanc");
+    if (cancel3) cancel3.onclick = () => {
+      form.innerHTML = "";
+    };
+    const ok = document.getElementById("depok");
+    if (ok) ok.onclick = () => {
+      void save11(form, deposit, action, ok);
+    };
+  }
+
+  // src/app/screens/products/deposit.ts
+  var MOVEMENTS2 = /* @__PURE__ */ new Map([
+    ["traspaso_entrada", "products.deposit.moveIn"],
+    ["traspaso_salida", "products.deposit.moveOut"],
+    ["consumo_deposito", "products.deposit.moveUsed"],
+    ["ajuste", "products.deposit.moveAdjust"]
+  ]);
+  function summary2(lines2) {
+    const total = sum(lines2.map((line2) => line2.unidades));
+    if (!total) return t("products.deposit.empty");
+    const count = new Set(lines2.map((line2) => line2.producto_id)).size;
+    return t("products.deposit.unitsOf", { units: formatNumber(total), products: count === 1 ? t("products.deposit.oneProduct") : t("products.deposit.products", { count }) });
+  }
+  function tableHtml3(lines2) {
+    if (!lines2.length) return `<div class="vacio vlinea">${t("products.deposit.emptyDeposit")}</div>`;
+    const rows2 = lines2.map((line2) => `<div class="depf"><span>${escapeHtml(line2.nombre)}</span>
+      <span>${escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatch")))}</span><span class="${relatedLegacy.expiresSoon(line2.caducidad) ? "depcad" : ""}">${line2.caducidad ? formatShortDate(line2.caducidad) : "—"}</span><b>${formatNumber(line2.unidades)}</b></div>`).join("");
+    return `<div class="deptab"><div class="deph"><span>${t("products.deposit.product")}</span><span>${t("products.deposit.batch")}</span><span>${t("products.deposit.expires")}</span><span>${t("products.deposit.units")}</span></div>${rows2}</div>`;
+  }
+  function movementRow(item) {
+    const key = MOVEMENTS2.get(item.tipo);
+    return `<div class="depmf"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span>
+      <span>${key ? t(key) : escapeHtml(item.tipo)}</span><span>${escapeHtml(item.nombre)}${item.numero_lote ? ` · ${escapeHtml(item.numero_lote)}` : ""}</span><b>${item.unidades > 0 ? "+" : ""}${formatNumber(item.unidades)}</b>
+      <span class="sm">${escapeHtml(String(item.nota ?? "").replace(/\s*\[[^\]]*\]$/, ""))}</span></div>`;
+  }
+  function historyHtml(detail) {
+    const used = detail.usado_90 ?? [], movements = detail.movimientos ?? [];
+    const usedText = used.length ? `<p class="sm">${t("products.deposit.used90", { list: used.map((item) => `${escapeHtml(item.nombre)} ${formatNumber(item.unidades)}`).join(" · ") })}</p>` : "";
+    return usedText + (movements.length ? `<details class="depmov"><summary>${t("products.deposit.lastMovements")}</summary>${movements.map(movementRow).join("")}</details>` : "");
+  }
+  function sheetHtml4(detail, name, notice2, lines2) {
+    const none = lines2.length ? "" : "disabled";
+    return `<div class="fh"><div><h2>${t("products.deposit.title", { name: escapeHtml(name) })}</h2><div class="sm">${summary2(lines2)}${t("products.deposit.stillYours")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${notice2}
+    <div class="depacts"><button type="button" class="btn" data-dep="reponer">${t("products.deposit.replenish")}</button><button type="button" class="btn sec" data-dep="consumo" ${none}>${t("products.deposit.recordUse")}</button>
+      <button type="button" class="btn sec" data-dep="recuento" ${none}>${t("products.deposit.count")}</button></div>
+    <div id="depform"></div>
+    ${tableHtml3(lines2)}
+    ${historyHtml(detail)}
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
+  }
+  async function showDeposit2(accountId, name, notice2 = "") {
+    const { data: detail, error } = await legacyDb().rpc("deposito_estado", { p_cuenta: accountId });
+    if (error || !detail || detail.ok === false) {
+      notices.toast(t(detail?.error === "permiso" ? "products.deposit.noPermission" : "products.deposit.couldNotOpen"), true);
+      return;
+    }
+    if (!purchasesLegacy.products().length) await purchasesLegacy.loadProducts();
+    const lines2 = (detail.lineas ?? []).filter((line2) => line2.unidades > 0);
+    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    body3.innerHTML = sheetHtml4(detail, name, notice2, lines2);
+    if (!box3.open) box3.showModal();
+    const deposit = { accountId, name, lines: lines2 };
+    body3.querySelectorAll("[data-dep]").forEach((button3) => {
+      button3.onclick = () => {
+        openDepositForm(deposit, button3.dataset.dep ?? "reponer");
+      };
+    });
+  }
+
+  // src/app/screens/products/page.ts
+  var TABS = [["productos", "products.page.products"], ["servicios", "products.page.services"], ["stock", "products.page.stock"]];
+  function actionsHtml3(section) {
+    if (section === "stock") {
+      if (!purchasesLegacy.canBuy()) return "";
+      return `<button class="btn sec" id="stalm">${t("products.page.stores")}</button><button class="btn sec" id="stmue">${t("products.page.samples")}</button><button class="btn" id="stini">${t("products.page.stockEntry")}</button>`;
+    }
+    if (!cardSectionsLegacy.can("administrar")) return "";
+    return `<button class="btn" id="prodnuevo">${t(section === "servicios" ? "products.page.newService" : "products.page.newProduct")}</button>`;
+  }
+  var on2 = (id, action) => {
+    const button3 = document.getElementById(id);
+    if (button3) button3.onclick = action;
+  };
+  function bind10(screen3, section) {
+    screen3.querySelectorAll("[data-ps]").forEach((button3) => {
+      button3.onclick = () => {
+        productsLegacy.setSection(button3.dataset.ps ?? "productos");
+        productsLegacy.reload();
+      };
+    });
+    on2("prodnuevo", () => {
+      if (section === "servicios") editService(null);
+      else productsLegacy.editProduct(null);
+    });
+    on2("stalm", () => {
+      void editStores();
+    });
+    on2("stmue", () => {
+      productsLegacy.editSamples();
+    });
+    on2("stini", () => {
+      void stockMovement(null, "inicial");
+    });
+  }
+  function loadProductsModule2() {
+    productsLegacy.clearModules("v-productos");
+    const screen3 = document.getElementById("v-productos");
+    if (!screen3) return Promise.resolve();
+    const section = productsLegacy.section();
+    screen3.innerHTML = `
+    <div class="saludo"><div><h1>${t("products.page.title")}</h1><div class="fecha">${t("products.page.subtitle")}</div></div>
+      <div class="acts u-m-0">${actionsHtml3(section)}</div></div>
+    <div class="subnav">${TABS.map(([key, label]) => `<button data-ps="${key}" aria-pressed="${String(section === key)}">${t(label)}</button>`).join("\n      ")}</div>
+    <div id="vcuerpo"></div>`;
+    bind10(screen3, section);
+    if (section === "stock") void paintStock();
+    else if (section === "servicios") void paintServices();
+    else void paintProducts();
+    return Promise.resolve();
+  }
+
+  // src/app/screens/products/index.ts
+  var loadProductsModule = cachedModuleLoader("productos", loadProductsModule2);
+  var showStock = backOpener("fichaStock", sheetOpener(showStock2));
+  var showDeposit = backOpener("verDeposito", sheetOpener(showDeposit2));
+
+  // src/app/legacy/components-bridge.ts
+  var componentsLegacy = {
+    popup: () => navigationStore.pickerPopup,
+    setPopup: (popup) => {
+      navigationStore.pickerPopup = popup;
+    },
+    showValue: (input6) => {
+      visibleValue(input6);
+    },
+    placePopup: (popup, anchor) => {
+      placePicker(anchor);
+    },
+    emitChange: (input6) => {
+      emitir(input6);
+    },
+    pending: () => navigationStore.pendingEnhancements,
+    flushScheduled: () => Boolean(navigationStore.enhanceFrame),
+    setFlushScheduled: (scheduled) => {
+      navigationStore.enhanceFrame = scheduled ? 1 : 0;
+    },
+    isVatField: (input6) => Boolean(money_exports.isVatField(input6)),
+    vatSelector: (input6) => {
+      vatSelector(input6);
+    },
+    touchScreen: () => PANTALLA_TACTIL,
+    weekdayLetter: (isoDate) => calendar_exports.dayLetter(isoDate),
+    readOnlyCompany: () => Boolean(ordersStore.paymentState?.solo_lectura),
+    hasStartPoint: () => Boolean(activePreferences().salida),
+    helpAnchors: () => ANCLAS_AYUDA,
+    manualAnchors: () => MANUAL_ANCLA,
+    euros: (value10) => money_exports.eurosRounded(value10),
+    customFields: (scope) => CAMPOS[scope] ?? [],
+    sortedFields: (scope) => sortedFields(scope),
+    canEditCatalogs: () => Boolean(permissions_exports.canManageLists()),
+    sidePanelOpen: () => sideOpen(),
+    customerFilters: () => PAC.campos = PAC.campos ?? {},
+    reloadCustomers: () => {
+      PAC.pagina = 0;
+      void listCustomers();
+    },
+    orderFilters: () => ordersStore.filters,
+    reloadOrders: () => {
+      ordersStore.page = 0;
+      void paintOrderList();
+    },
+    productFilters: () => productsStore.filters,
+    reloadProducts: () => {
+      void paintProducts();
+    },
+    productsSection: () => productsStore.section
+  };
+
   // src/app/components/classifiers/model.ts
   var normalise2 = (text2) => String(text2 ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-  function fieldText(field10, value10) {
+  function fieldText(field11, value10) {
     if (value10 === null || value10 === void 0 || value10 === "") return "";
-    if (field10?.tipo === "si_no") return t(value10 === true || value10 === "true" ? "components.classifiers.yes" : "components.classifiers.no");
-    if (field10?.tipo === "fecha") return formatShortDate(String(value10));
-    if (field10?.tipo === "numero") return String(value10).replace(".", ",");
+    if (field11?.tipo === "si_no") return t(value10 === true || value10 === "true" ? "components.classifiers.yes" : "components.classifiers.no");
+    if (field11?.tipo === "fecha") return formatShortDate(String(value10));
+    if (field11?.tipo === "numero") return String(value10).replace(".", ",");
     return String(value10);
   }
   function passesLimit(value10, operator, limit) {
@@ -15774,22 +18122,22 @@
     const own = values2 ?? {};
     return Object.entries(filters3 ?? {}).every(([key, filter]) => !filter || typeof filter !== "object" ? own[key] === filter : passesRange(own[key], filter));
   }
-  function filterText2(field10, filter) {
+  function filterText2(field11, filter) {
     if (filter && typeof filter === "object") {
-      const text2 = (value10) => fieldText(field10, value10), name = field10.nombre;
+      const text2 = (value10) => fieldText(field11, value10), name = field11.nombre;
       if ("contiene" in filter) return t("components.classifiers.contains", { name, text: filter.contiene ?? "" });
       if ("desde" in filter && "hasta" in filter) return t("components.classifiers.fromTo", { name, from: text2(filter.desde), to: text2(filter.hasta) });
       return "desde" in filter ? t("components.classifiers.from", { name, from: text2(filter.desde) }) : t("components.classifiers.to", { name, to: text2(filter.hasta) });
     }
-    return `${field10.nombre}: ${fieldText(field10, filter)}`;
+    return `${field11.nombre}: ${fieldText(field11, filter)}`;
   }
   var filterChips = (scope, state2) => Object.keys(state2 ?? {}).map((key) => {
-    const field10 = componentsLegacy.customFields(scope).find((item) => item.clave === key) ?? { clave: key, nombre: key };
-    return { k: key, t: filterText2(field10, state2?.[key]) };
+    const field11 = componentsLegacy.customFields(scope).find((item) => item.clave === key) ?? { clave: key, nombre: key };
+    return { k: key, t: filterText2(field11, state2?.[key]) };
   });
-  var columnHeaders = (fields) => fields.map((field10) => `<span class="cpcol">${escapeHtml(field10.nombre)}</span>`).join("");
-  var columnCells = (fields, values2) => fields.map((field10) => {
-    const text2 = fieldText(field10, values2?.[field10.clave]);
+  var columnHeaders = (fields) => fields.map((field11) => `<span class="cpcol">${escapeHtml(field11.nombre)}</span>`).join("");
+  var columnCells = (fields, values2) => fields.map((field11) => {
+    const text2 = fieldText(field11, values2?.[field11.clave]);
     return `<span class="sm">${text2 ? escapeHtml(text2) : '<span class="vac">—</span>'}</span>`;
   }).join("");
 
@@ -15862,11 +18210,11 @@
   }
   function visibleFields(scope) {
     const chosen4 = savedChoice(scope);
-    return componentsLegacy.customFields(scope).filter((field10) => field10.clave in chosen4 ? chosen4[field10.clave] : field10.en_tabla);
+    return componentsLegacy.customFields(scope).filter((field11) => field11.clave in chosen4 ? chosen4[field11.clave] : field11.en_tabla);
   }
   function showsColumn(scope, key) {
     if (scope === ACCOUNTS) return Boolean(columnSettings().find((column) => column.k === CUSTOM_PREFIX2 + key)?.on);
-    return visibleFields(scope).some((field10) => field10.clave === key);
+    return visibleFields(scope).some((field11) => field11.clave === key);
   }
   function setColumn(scope, key, on3) {
     if (scope === ACCOUNTS) {
@@ -15914,11 +18262,11 @@
     if (data) knownValues[scope] = data;
     return knownValues[scope] ?? {};
   }
-  function rangeControl(field10, active, id) {
-    const range2 = active && typeof active === "object" ? active : {}, type = field10.tipo === "fecha" ? 'type="date"' : 'type="text" inputmode="decimal"';
-    const shown3 = (value10) => value10 === null || value10 === void 0 ? "" : escapeHtml(field10.tipo === "numero" ? String(value10).replace(".", ",") : String(value10));
-    return `<div class="clasrango"><input id="${id}" ${type} data-clr="desde" value="${shown3(range2.desde)}" placeholder="${t("components.classifiers.fromPlaceholder")}" aria-label="${t("components.classifiers.fromLabel", { name: escapeHtml(field10.nombre) })}">
-      <input ${type} data-clr="hasta" value="${shown3(range2.hasta)}" placeholder="${t("components.classifiers.toPlaceholder")}" aria-label="${t("components.classifiers.toLabel", { name: escapeHtml(field10.nombre) })}"></div>`;
+  function rangeControl(field11, active, id) {
+    const range2 = active && typeof active === "object" ? active : {}, type = field11.tipo === "fecha" ? 'type="date"' : 'type="text" inputmode="decimal"';
+    const shown3 = (value10) => value10 === null || value10 === void 0 ? "" : escapeHtml(field11.tipo === "numero" ? String(value10).replace(".", ",") : String(value10));
+    return `<div class="clasrango"><input id="${id}" ${type} data-clr="desde" value="${shown3(range2.desde)}" placeholder="${t("components.classifiers.fromPlaceholder")}" aria-label="${t("components.classifiers.fromLabel", { name: escapeHtml(field11.nombre) })}">
+      <input ${type} data-clr="hasta" value="${shown3(range2.hasta)}" placeholder="${t("components.classifiers.toPlaceholder")}" aria-label="${t("components.classifiers.toLabel", { name: escapeHtml(field11.nombre) })}"></div>`;
   }
   function listControl(list, active, id) {
     if (list.length <= MAX_DROPDOWN) {
@@ -15929,34 +18277,34 @@
     return `<input id="${id}" type="search" data-clbus list="${id}_l" value="${escapeHtml(text2)}" placeholder="${t("components.classifiers.typeToSearch")}" autocomplete="off">
     <datalist id="${id}_l">${list.map((value10) => `<option value="${escapeHtml(value10)}">`).join("")}</datalist>`;
   }
-  function control(field10, active, values2, id) {
-    if (field10.tipo === "si_no") return `<select id="${id}" data-clv><option value="">${t("components.classifiers.all")}</option>${[["true", t("components.classifiers.yes")], ["false", t("components.classifiers.no")]].map(([value10 = "", label = ""]) => `<option value="${value10}" ${active === (value10 === "true") ? "selected" : ""}>${label}</option>`).join("")}</select>`;
-    if (field10.tipo === "numero" || field10.tipo === "fecha") return rangeControl(field10, active, id);
-    return listControl(field10.tipo === "lista" ? field10.valores ?? [] : values2[field10.clave] ?? [], active, id);
+  function control(field11, active, values2, id) {
+    if (field11.tipo === "si_no") return `<select id="${id}" data-clv><option value="">${t("components.classifiers.all")}</option>${[["true", t("components.classifiers.yes")], ["false", t("components.classifiers.no")]].map(([value10 = "", label = ""]) => `<option value="${value10}" ${active === (value10 === "true") ? "selected" : ""}>${label}</option>`).join("")}</select>`;
+    if (field11.tipo === "numero" || field11.tipo === "fecha") return rangeControl(field11, active, id);
+    return listControl(field11.tipo === "lista" ? field11.valores ?? [] : values2[field11.clave] ?? [], active, id);
   }
-  function readRange(field10, inputs) {
+  function readRange(field11, inputs) {
     const range2 = {};
     for (const input6 of inputs) {
       const value10 = input6.value.trim();
       if (!value10) continue;
-      const parsed = field10.tipo === "numero" ? Number(value10.replace(",", ".")) : value10;
+      const parsed = field11.tipo === "numero" ? Number(value10.replace(",", ".")) : value10;
       if (typeof parsed === "number" && isNaN(parsed)) {
-        toast(t("components.classifiers.mustBeNumber", { name: field10.nombre }), true);
+        toast(t("components.classifiers.mustBeNumber", { name: field11.nombre }), true);
         return false;
       }
       range2[input6.dataset.clr ?? ""] = parsed;
     }
     return Object.keys(range2).length ? range2 : null;
   }
-  function bindSelect(block3, { field: field10, state: state2, onChange }) {
+  function bindSelect(block3, { field: field11, state: state2, onChange }) {
     const select = block3.querySelector("select[data-clv]");
     if (select) select.onchange = () => {
-      if (!select.value) Reflect.deleteProperty(state2, field10.clave);
-      else state2[field10.clave] = field10.tipo === "si_no" ? select.value === "true" : select.value;
+      if (!select.value) Reflect.deleteProperty(state2, field11.clave);
+      else state2[field11.clave] = field11.tipo === "si_no" ? select.value === "true" : select.value;
       onChange();
     };
   }
-  function bindSearch2(block3, { field: field10, state: state2, onChange }) {
+  function bindSearch2(block3, { field: field11, state: state2, onChange }) {
     const search5 = block3.querySelector("input[data-clbus]");
     if (!search5) return;
     let timer3;
@@ -15964,30 +18312,30 @@
       clearTimeout(timer3);
       timer3 = setTimeout(() => {
         const text2 = search5.value.trim();
-        if (text2) state2[field10.clave] = { contiene: text2 };
-        else Reflect.deleteProperty(state2, field10.clave);
+        if (text2) state2[field11.clave] = { contiene: text2 };
+        else Reflect.deleteProperty(state2, field11.clave);
         onChange();
       }, SEARCH_WAIT_MS5);
     };
   }
-  function bindRange(block3, { field: field10, state: state2, onChange }) {
+  function bindRange(block3, { field: field11, state: state2, onChange }) {
     const inputs = [...block3.querySelectorAll("input[data-clr]")];
     inputs.forEach((input6) => {
       input6.onchange = () => {
-        const range2 = readRange(field10, inputs);
+        const range2 = readRange(field11, inputs);
         if (range2 === false) return;
-        if (range2) state2[field10.clave] = range2;
-        else Reflect.deleteProperty(state2, field10.clave);
+        if (range2) state2[field11.clave] = range2;
+        else Reflect.deleteProperty(state2, field11.clave);
         onChange();
       };
     });
   }
-  function blockHtml2(scope, fields, state2, values2) {
+  function blockHtml3(scope, fields, state2, values2) {
     const prefix = `clas_${scope}_`;
-    return fields.map((field10, index) => `<div class="clascampo" data-clk="${escapeHtml(field10.clave)}">
-      <div class="clascab"><label for="${prefix}${index}">${escapeHtml(field10.nombre)}</label>
-        <label class="clascol" title="${t("components.classifiers.asColumn", { name: escapeHtml(field10.nombre) })}"><input type="checkbox" data-clcol ${showsColumn(scope, field10.clave) ? "checked" : ""}> ${t("components.classifiers.column")}</label></div>
-      ${control(field10, state2[field10.clave], values2, prefix + String(index))}</div>`).join("");
+    return fields.map((field11, index) => `<div class="clascampo" data-clk="${escapeHtml(field11.clave)}">
+      <div class="clascab"><label for="${prefix}${index}">${escapeHtml(field11.nombre)}</label>
+        <label class="clascol" title="${t("components.classifiers.asColumn", { name: escapeHtml(field11.nombre) })}"><input type="checkbox" data-clcol ${showsColumn(scope, field11.clave) ? "checked" : ""}> ${t("components.classifiers.column")}</label></div>
+      ${control(field11, state2[field11.clave], values2, prefix + String(index))}</div>`).join("");
   }
   async function paintClassifiers2(container, scope, options3) {
     const { state: state2, onChange, onColumn, heading } = options3;
@@ -15998,20 +18346,20 @@
       container.innerHTML = componentsLegacy.canEditCatalogs() ? `<div class="htbloque clasif">${title2}<p class="sm">${t("components.classifiers.none")}</p></div>` : "";
       return;
     }
-    const needsValues = fields.some((field10) => field10.tipo === "texto" || field10.tipo === "lista" && (field10.valores ?? []).length > MAX_DROPDOWN);
+    const needsValues = fields.some((field11) => field11.tipo === "texto" || field11.tipo === "lista" && (field11.valores ?? []).length > MAX_DROPDOWN);
     const values2 = needsValues ? await loadValues(scope) : {};
     if (!container.isConnected) return;
-    container.innerHTML = `<div class="htbloque clasif">${title2}${blockHtml2(scope, fields, state2, values2)}</div>`;
+    container.innerHTML = `<div class="htbloque clasif">${title2}${blockHtml3(scope, fields, state2, values2)}</div>`;
     container.querySelectorAll("[data-clk]").forEach((block3) => {
-      const field10 = fields.find((item) => item.clave === block3.dataset.clk);
-      if (!field10) return;
-      const binding = { field: field10, state: state2, onChange };
+      const field11 = fields.find((item) => item.clave === block3.dataset.clk);
+      if (!field11) return;
+      const binding = { field: field11, state: state2, onChange };
       bindSelect(block3, binding);
       bindSearch2(block3, binding);
       bindRange(block3, binding);
       const column = block3.querySelector("[data-clcol]");
       if (column) column.onchange = () => {
-        setColumn(scope, field10.clave, column.checked);
+        setColumn(scope, field11.clave, column.checked);
         onColumn();
       };
     });
@@ -16575,16 +18923,16 @@
 
   // src/app/components/list-bar/configs/grid.ts
   var COLUMNS_DELAY_MS = 80;
-  var byId7 = (id) => id ? document.getElementById(id) : null;
+  var byId10 = (id) => id ? document.getElementById(id) : null;
   var gridOf2 = (tab) => document.querySelector(`#v-${tab} .dgrid`);
   function searchText2(options3) {
-    const input6 = byId7(options3.buscador);
+    const input6 = byId10(options3.buscador);
     if (input6) return input6.value || "";
     const grid = gridOf2(options3.tab);
     return grid ? listBarLegacy.tableFilters()[tableKind(grid)]?.texto ?? "" : "";
   }
   function search2(options3, value10) {
-    const input6 = byId7(options3.buscador);
+    const input6 = byId10(options3.buscador);
     if (input6) {
       input6.value = value10;
       input6.dispatchEvent(new Event("input", { bubbles: true }));
@@ -16618,15 +18966,15 @@
   function gridCard(row3) {
     const cells = [...row3.children].filter((cell2) => !cell2.classList.contains("plcard"));
     const state2 = cells.find((cell2) => cell2.querySelector('.pill, .est, .cirest, [class*="estado"]'));
-    const rest = cells.slice(1).filter((cell2) => cell2 !== state2).map(textOf2).filter((text2) => text2 && text2 !== "—").slice(0, 2);
-    return { a: textOf2(cells[0]), b: rest.join(" · "), c: state2 ? state2.innerHTML : "" };
+    const rest = cells.slice(1).filter((cell2) => cell2 !== state2).map(textOf).filter((text2) => text2 && text2 !== "—").slice(0, 2);
+    return { a: textOf(cells[0]), b: rest.join(" · "), c: state2 ? state2.innerHTML : "" };
   }
   var gridConfig = (options3) => Object.assign({
     rejilla: true,
     nuevo: () => document.querySelector(`#v-${options3.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) ?? document.querySelector(`#v-${options3.tab} .fab`),
-    cuerpo: () => byId7(options3.lista),
-    tabla: () => byId7(options3.lista) ?? document.querySelector(`#v-${options3.tab} .dgrid-wrap`),
-    pie: () => byId7(options3.pag),
+    cuerpo: () => byId10(options3.lista),
+    tabla: () => byId10(options3.lista) ?? document.querySelector(`#v-${options3.tab} .dgrid-wrap`),
+    pie: () => byId10(options3.pag),
     cuenta: () => null,
     conDatos: (element) => Boolean(element.querySelector(".dgrid, .vacio")),
     rapidos: [],
@@ -16652,7 +19000,7 @@
   // src/app/components/list-bar/configs/blocks.ts
   var TIME = /^\d{1,2}:\d{2}$/;
   var NUMBER2 = "num";
-  var bold = (row3) => `<b>${escapeHtml(textOf2(row3.querySelector(".tx b")))}</b>`;
+  var bold = (row3) => `<b>${escapeHtml(textOf(row3.querySelector(".tx b")))}</b>`;
   var statePill3 = (row3) => row3.querySelector(".cirest")?.innerHTML ?? "";
   function eventCells(row3) {
     const parts = smallText(row3).split(" · "), time = parts.find((part) => TIME.test(part));
@@ -16665,12 +19013,12 @@
       escapeHtml(type ?? "—"),
       escapeHtml(place3 || "—"),
       escapeHtml((/\d+/.exec(attendees) ?? ["0"])[0]),
-      escapeHtml(textOf2(row3.querySelector(".evtot")) || "—")
+      escapeHtml(textOf(row3.querySelector(".evtot")) || "—")
     ];
   }
   function surgeryCells(row3) {
-    const time = textOf2(row3.querySelector(".cirf .sm"));
-    return [escapeHtml(textOf2(row3.querySelector(".cirf b")) + (time ? ` · ${time}` : "")), bold(row3), escapeHtml(smallText(row3.querySelector(".tx"))), statePill3(row3)];
+    const time = textOf(row3.querySelector(".cirf .sm"));
+    return [escapeHtml(textOf(row3.querySelector(".cirf b")) + (time ? ` · ${time}` : "")), bold(row3), escapeHtml(smallText(row3.querySelector(".tx"))), statePill3(row3)];
   }
   var plainCells = (row3) => [bold(row3), escapeHtml(smallText(row3.querySelector(".tx"))), statePill3(row3)];
   var blocks2 = () => ({
@@ -16723,7 +19071,7 @@
   var TOTAL = "tot";
   var COMPANIES = "emp";
   var COMPANY = "Empresa";
-  var byId8 = (id) => document.getElementById(id);
+  var byId11 = (id) => document.getElementById(id);
   async function indicators() {
     const count = (filters3) => Promise.resolve(listBarLegacy.countRows("clientes_lista", {
       q: null,
@@ -16755,18 +19103,18 @@
       filters3.pedidos = "";
     } else if (key === COMPANIES) filters3.tipo = filters3.tipo === COMPANY ? "" : COMPANY;
     else filters3.pedidos = filters3.pedidos === key ? "" : key;
-    const type = byId8("pactipo");
+    const type = byId11("pactipo");
     if (type) type.value = filters3.tipo ?? "";
-    const orders2 = byId8("pacped");
+    const orders2 = byId11("pacped");
     if (orders2) orders2.value = filters3.pedidos ?? "";
     filters3.pagina = 0;
     listBarLegacy.searchCustomers();
   }
   function openColumns2() {
     const open2 = () => {
-      byId8("tools")?.querySelector(".t2abrir")?.click();
+      byId11("tools")?.querySelector(".t2abrir")?.click();
     };
-    const tools = byId8("tools");
+    const tools = byId11("tools");
     if (tools?.classList.contains("abierto") && tools.querySelector(".t2abrir")) {
       open2();
       return;
@@ -16786,17 +19134,17 @@
     que: () => t("listBar.customers.what"),
     // v2.467.0: the search says where it looks
     buscaTxt: () => t("customers.list.searchPlaceholder", { professional: term("medico") }),
-    nuevo: () => byId8("pacnuevo"),
-    cuerpo: () => byId8("paclista"),
-    tabla: () => byId8("paclista"),
-    pie: () => byId8("pacpag"),
-    cuenta: () => byId8("paccuenta"),
+    nuevo: () => byId11("pacnuevo"),
+    cuerpo: () => byId11("paclista"),
+    tabla: () => byId11("paclista"),
+    pie: () => byId11("pacpag"),
+    cuenta: () => byId11("paccuenta"),
     conDatos: (element) => Boolean(element.querySelector(".dgrid, .vacio")),
     rapidos: [["pactipo", t("listBar.customers.type")], ["pacped", t("listBar.customers.orders")], ["pacmun", t("listBar.customers.town")]],
     q: () => listBarLegacy.customerFilters().q || "",
     // v2.249.0: the bar's search searches directly (before, it went through the hidden field and waited twice)
     buscarQ: (value10) => {
-      const input6 = byId8("pacq");
+      const input6 = byId11("pacq");
       if (input6) input6.value = value10;
       const filters3 = listBarLegacy.customerFilters();
       filters3.q = value10.trim();
@@ -16821,11 +19169,11 @@
 
   // src/app/components/list-bar/configs/directory.ts
   var PERSON = "Persona";
-  var CENTRE2 = "Centro";
+  var CENTRE3 = "Centro";
   var SELECT_FILTERS = ["tipo", "prov", "muni", "esp", "est", "rep", "com"];
   var FLAG_FILTERS = ["urg", "mios", "sin"];
   var FIELD_IDS = ["ftipo", "fest", "fprov", "fmuni", "fesp", "fcom", "frep", "q"];
-  var byId9 = (id) => document.getElementById(id);
+  var byId12 = (id) => document.getElementById(id);
   function activeFilters() {
     const filters3 = listBarLegacy.accountFilters();
     return SELECT_FILTERS.filter((key) => filters3[key]).length + FLAG_FILTERS.filter((key) => filters3[key]).length + Object.values(filters3.campos ?? {}).filter(filterHasValue).length;
@@ -16833,43 +19181,43 @@
   function clearFilters() {
     Object.assign(listBarLegacy.accountFilters(), { q: "", tipo: "", prov: "", muni: "", esp: "", est: "", urg: false, mios: false, sin: false, com: "", rep: "", campos: {} });
     FIELD_IDS.forEach((id) => {
-      const field10 = byId9(id);
-      if (field10) field10.value = "";
+      const field11 = byId12(id);
+      if (field11) field11.value = "";
     });
-    const tools = byId9("tools");
+    const tools = byId12("tools");
     if (tools?.classList.contains("abierto") && listBarLegacy.toolsContext() === "directorio") tools.classList.remove("abierto");
     listBarLegacy.loadAccountFilters();
     listBarLegacy.searchAccounts(true);
   }
   async function indicators2() {
     const count = (filters3) => Promise.resolve(listBarLegacy.countRows("buscar_cuentas", { q: null, lim: 1, desplaz: 0, ...filters3 })).then((result) => result.data?.total ?? 0, () => 0);
-    const [people, centres, urgent, never, mine] = await Promise.all([count({ f_tipo: PERSON }), count({ f_tipo: CENTRE2 }), count({ f_urgentes: true }), count({ f_sin_visitar: true }), count({ f_mios: true })]);
+    const [people, centres, urgent, never, mine] = await Promise.all([count({ f_tipo: PERSON }), count({ f_tipo: CENTRE3 }), count({ f_urgentes: true }), count({ f_sin_visitar: true }), count({ f_mios: true })]);
     return [
       { k: PERSON, t: term("medico", { number: "p", capital: "C" }), n: people, s: t("listBar.directory.inTotal") },
-      { k: CENTRE2, t: t("listBar.directory.centres"), n: centres, s: t("listBar.directory.inTotal") },
+      { k: CENTRE3, t: t("listBar.directory.centres"), n: centres, s: t("listBar.directory.inTotal") },
       { k: "urg", t: t("listBar.directory.urgent"), n: urgent, s: t("listBar.directory.markedUrgent") },
       { k: "sin", t: t("listBar.directory.neverVisited"), n: never, s: t("listBar.directory.withoutVisits", { visits: term("visita", { number: "p" }) }) },
       { k: "mios", t: t("listBar.directory.mine"), n: mine, s: t("listBar.directory.assignedToYou") }
     ];
   }
-  var isType = (key) => key === PERSON || key === CENTRE2;
+  var isType = (key) => key === PERSON || key === CENTRE3;
   function pressIndicator(key) {
     const filters3 = listBarLegacy.accountFilters();
     if (isType(key)) {
       filters3.tipo = filters3.tipo === key ? "" : key;
-      const select = byId9("ftipo");
+      const select = byId12("ftipo");
       if (select) select.value = filters3.tipo;
     } else filters3[key] = !filters3[key];
     listBarLegacy.searchAccounts(true);
   }
   var directoryConfig = () => ({
     que: () => term("medico", { number: "p" }),
-    nuevo: () => byId9("nuevoBtn"),
+    nuevo: () => byId12("nuevoBtn"),
     textoNuevo: () => t("listBar.directory.add", { professional: term("medico") }),
-    cuerpo: () => byId9("lista"),
-    tabla: () => byId9("tabla"),
-    pie: () => byId9("dirpag"),
-    cuenta: () => byId9("cuenta"),
+    cuerpo: () => byId12("lista"),
+    tabla: () => byId12("tabla"),
+    pie: () => byId12("dirpag"),
+    cuenta: () => byId12("cuenta"),
     conDatos: (element) => Boolean(element.querySelector(".trow, .vacio")),
     rapidos: [["ftipo", t("listBar.directory.type")], ["fest", t("listBar.directory.state")], ["fcom", ""], ["fprov", t("listBar.directory.province")], ["fmuni", t("listBar.directory.municipality")], ["fesp", t("listBar.directory.speciality")]],
     q: () => listBarLegacy.accountFilters().q || "",
@@ -16884,12 +19232,12 @@
     activos: activeFilters,
     quitar: clearFilters,
     filtros: () => {
-      byId9("dirtools")?.click();
+      byId12("dirtools")?.click();
     },
     columnas: () => {
       listBarLegacy.openAccountColumns();
     },
-    mapa: () => byId9("mapaBtn"),
+    mapa: () => byId12("mapaBtn"),
     mas: () => [["dircalidad", t("listBar.directory.quality")], ["cercaBtn", t("listBar.directory.nearby")]],
     kpis: indicators2,
     kpiOn: (key) => isType(key) ? listBarLegacy.accountFilters().tipo === key : Boolean(listBarLegacy.accountFilters()[key]),
@@ -16974,7 +19322,7 @@
   function collectRows(box3, block3) {
     const rows2 = /* @__PURE__ */ new Map(), groups2 = [];
     box3.querySelectorAll("section.card, .card").forEach((card3) => {
-      const heading = card3.querySelector("h2"), group = heading ? textOf2(heading).replace(/\s*·\s*[\d.]+$/, "") : block3.def;
+      const heading = card3.querySelector("h2"), group = heading ? textOf(heading).replace(/\s*·\s*[\d.]+$/, "") : block3.def;
       const items = [...card3.querySelectorAll(`.lista > .item[data-${block3.attr}]`)];
       if (!items.length) return;
       if (!groups2.includes(group)) groups2.push(group);
@@ -17038,7 +19386,7 @@
     moveActions(section, box3);
     const data = collectRows(box3, block3), empty2 = box3.querySelector(".vacio");
     const notes = [...box3.querySelectorAll(".cirpag > p.sm, .evpag > p.sm")];
-    const wrap3 = tableOf(tab, block3, data.rows, empty2 ? textOf2(empty2) : t("listBar.bar.nothingYet"));
+    const wrap3 = tableOf(tab, block3, data.rows, empty2 ? textOf(empty2) : t("listBar.bar.nothingYet"));
     box3.innerHTML = "";
     notes.forEach((note) => {
       box3.appendChild(note);
@@ -17280,7 +19628,7 @@
     const pages4 = section.querySelector(".pltab .pag > span, .pag > span");
     return pages4 ? /de\s+([\d.]+)/.exec(pages4.textContent ?? "") : null;
   }
-  var failed2 = (config) => Boolean(config.cuerpo()?.querySelector(":scope > .vacio[data-fallo]"));
+  var failed = (config) => Boolean(config.cuerpo()?.querySelector(":scope > .vacio[data-fallo]"));
   function screenCount(section, config) {
     const own = config.cuenta();
     if (own && /\d/.test(own.textContent ?? "")) return own.innerHTML.replace(/<span class="sm">[\s\S]*?<\/span>/, "").trim();
@@ -17293,8 +19641,8 @@
     if (!grid) return section.querySelector("#cfgcuerpo .vacio") ? counted("0", config) : "";
     return counted(formatNumber(grid.querySelectorAll(":scope > .dr:not(.htfuera):not(.plgfuera)").length), config);
   }
-  function countHtml(section, config) {
-    const html = config.bloques ? blockCount(section, config) : failed2(config) ? counted("—", config) : screenCount(section, config);
+  function countHtml3(section, config) {
+    const html = config.bloques ? blockCount(section, config) : failed(config) ? counted("—", config) : screenCount(section, config);
     return html.replace(/\sid="cercacerrar"/g, " data-cercavolver");
   }
 
@@ -17343,7 +19691,7 @@
     }
     const remove6 = bar.querySelector(".plquitar");
     if (remove6) toggleIfDifferent(remove6, "hide", !active);
-    const count = bar.querySelector(".plcnt"), html = isSearching(tab) ? searchingText() : countHtml(section, config);
+    const count = bar.querySelector(".plcnt"), html = isSearching(tab) ? searchingText() : countHtml3(section, config);
     if (count && html && count.dataset.h !== html) {
       count.dataset.h = html;
       count.innerHTML = html;
@@ -17452,10 +19800,10 @@
       panel.appendChild(aside);
     }
     const foreign = new Set(FOREIGN[key] ?? []);
-    [...own.children, ...aside.children].forEach((field10) => {
-      const select = field10.querySelector("select"), id = field10.id || (select?.id ?? ""), isForeign = foreign.has(id);
-      if (isForeign && field10.parentElement !== aside) aside.appendChild(field10);
-      else if (!isForeign && field10.parentElement === aside) own.appendChild(field10);
+    [...own.children, ...aside.children].forEach((field11) => {
+      const select = field11.querySelector("select"), id = field11.id || (select?.id ?? ""), isForeign = foreign.has(id);
+      if (isForeign && field11.parentElement !== aside) aside.appendChild(field11);
+      else if (!isForeign && field11.parentElement === aside) own.appendChild(field11);
     });
   }
   function removeModel(section) {
@@ -17857,7 +20205,7 @@
     }
     return numbers;
   }
-  function pageHtml4(total, page, size) {
+  function pageHtml5(total, page, size) {
     const pages4 = Math.max(1, Math.ceil(total / size));
     const from = total ? page * size + 1 : 0, to = Math.min(total, (page + 1) * size);
     const buttons = pageNumbers(pages4, page).map((item) => item === "…" ? '<span class="sm">…</span>' : `<button data-pg="${item}" aria-current="${String(item === page)}">${item + 1}</button>`).join("");
@@ -17955,7 +20303,7 @@
       row3.style.display = Math.floor(index / size) === page ? "" : "none";
     });
     const bar = barOf2(list, state2), holder = document.createElement("div");
-    holder.innerHTML = pageHtml4(rows2.length, page, size);
+    holder.innerHTML = pageHtml5(rows2.length, page, size);
     bar.innerHTML = holder.firstElementChild?.innerHTML ?? "";
     bindBar(list, state2, bar);
   }
@@ -18016,8 +20364,8 @@
   }
 
   // src/app/components/list/remembered-sort.ts
-  function fieldValue4(row3, field10) {
-    const value10 = typeof field10 === "function" ? field10(row3) : row3[field10];
+  function fieldValue4(row3, field11) {
+    const value10 = typeof field11 === "function" ? field11(row3) : row3[field11];
     return value10 === null || value10 === void 0 || value10 === "" ? null : value10;
   }
   var NUMBER3 = /^-?\d+(\.\d+)?$/;
@@ -18028,11 +20376,11 @@
   function sortRemembered(kind, list) {
     const order = listsLegacy.sortState()[kind], settings2 = listsLegacy.rememberedSort()[kind];
     if (!order || !settings2 || !Array.isArray(list)) return list;
-    const field10 = settings2.campos[order.i];
-    if (field10 === void 0) return list;
+    const field11 = settings2.campos[order.i];
+    if (field11 === void 0) return list;
     const rows2 = list;
     return rows2.map((row3, position) => ({ row: row3, position })).sort((first, second) => {
-      const one = fieldValue4(first.row, field10), other = fieldValue4(second.row, field10);
+      const one = fieldValue4(first.row, field11), other = fieldValue4(second.row, field11);
       if (one === null || other === null) return Number(one === null) - Number(other === null) || first.position - second.position;
       return order.dir * compareValues(one, other) || first.position - second.position;
     }).map((item) => item.row);
@@ -18044,19 +20392,19 @@
   var ROWS = 8;
   var HEADER_BAR = 46;
   var cell = (width, barWidth) => `<span class="plskc" style="width:${width}px;min-width:${width}px"><i class="plsk" style="width:${barWidth}%"></i></span>`;
-  function rowHtml6(widths, row3) {
+  function rowHtml10(widths, row3) {
     return `<div class="plskr">${widths.map((width, index) => cell(width, BAR_WIDTHS[(index + row3) % BAR_WIDTHS.length] ?? 0)).join("")}<span class="plcard"><i class="plsk" style="width:62%"></i><i class="plsk" style="width:44%"></i></span></div>`;
   }
   function tableSkeleton(screen3, withHeader) {
     const widths = screen3 === "directorio" ? columnSettings().filter((column) => column.on).map((column) => column.w) : DEFAULT_WIDTHS;
     const header2 = withHeader ? `<div class="plskh">${widths.map((width) => cell(width, HEADER_BAR)).join("")}</div>` : "";
-    return `<div class="plsktab">${header2}${range(ROWS).map((row3) => rowHtml6(widths, row3)).join("")}</div>`;
+    return `<div class="plsktab">${header2}${range(ROWS).map((row3) => rowHtml10(widths, row3)).join("")}</div>`;
   }
 
   // src/app/screens/portal/index.ts
   var portal_exports = {};
   __export(portal_exports, {
-    failureText: () => failureText4,
+    failureText: () => failureText7,
     formatText: () => formatText,
     listenToCentreDocs: () => listenToCentreDocs,
     listenToForm: () => listenToForm,
@@ -18113,7 +20461,7 @@
   var model_exports6 = {};
   __export(model_exports6, {
     WEEKDAYS: () => WEEKDAYS,
-    failureText: () => failureText4,
+    failureText: () => failureText7,
     helpButton: () => helpButton,
     isCentre: () => isCentre,
     messageThread: () => messageThread,
@@ -18121,7 +20469,7 @@
     portalState: () => portalState,
     shortDateTime: () => shortDateTime,
     skeleton: () => skeleton,
-    words: () => words6
+    words: () => words7
   });
   var portalState = {
     tab: "res",
@@ -18135,7 +20483,7 @@
   };
   var WEEKDAYS = ["L", "M", "X", "J", "V", "S"];
   var isCentre = () => cardSectionsLegacy.can("portal_centro");
-  var words6 = () => ({
+  var words7 = () => ({
     orders: term("pauta", { number: "p" }),
     order: term("pauta"),
     Orders: term("pauta", { number: "p", articleCapital: "C" }),
@@ -18161,18 +20509,18 @@
     ["cerrada", "portal.failures.closed"],
     ["no_existe", "portal.failures.gone"]
   ]);
-  var failureText4 = (result) => t(FAILURES.get(result?.motivo ?? "") ?? "portal.failures.generic");
+  var failureText7 = (result) => t(FAILURES.get(result?.motivo ?? "") ?? "portal.failures.generic");
   var shortDateTime = (value10) => new Date(value10).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   function messageThread(list, fromProfessional) {
     if (!list.length) return `<div class="sm">${t("portal.messages.none")}</div>`;
     return `<div class="hilo">${list.map((message) => `<div class="msj ${message.del_portal === fromProfessional ? "mio" : "suyo"}"><div>${escapeHtml(message.texto)}</div>
-      <span class="sm">${message.del_portal ? escapeHtml(words6().Professional) : t("portal.messages.team")} · ${shortDateTime(message.creado_en)}</span></div>`).join("")}</div>`;
+      <span class="sm">${message.del_portal ? escapeHtml(words7().Professional) : t("portal.messages.team")} · ${shortDateTime(message.creado_en)}</span></div>`).join("")}</div>`;
   }
   function missingText2() {
     const labels = /* @__PURE__ */ new Map([
       ["horario", t(isCentre() ? "portal.missing.timetableCentre" : "portal.missing.timetable")],
       ["telefono", t("portal.missing.phone")],
-      ["visitas", t("portal.missing.visits", words6())]
+      ["visitas", t("portal.missing.visits", words7())]
     ]);
     const list = portalState.missing.map((key) => labels.get(key)).filter((label) => Boolean(label));
     const last = list[list.length - 1];
@@ -18208,7 +20556,7 @@
     await withButton(button3, async () => {
       const { data } = await callRpc("portal_proforma", { p_id: id });
       if (!data?.ok) {
-        notices.toast(data?.motivo === "no_encontrado" ? t("portal.docs.notPending") : failureText4(data), true);
+        notices.toast(data?.motivo === "no_encontrado" ? t("portal.docs.notPending") : failureText7(data), true);
         return;
       }
       await portalPageLegacy.saveInvoice(data, "", { titulo: t("portal.docs.proformaTitle"), formaPago: true, iban: true, vencimiento: false }, `${data.numero ?? ""}.pdf`);
@@ -18222,7 +20570,7 @@
     await withButton(button3, async () => {
       const { data } = await callRpc("portal_factura", { p_id: id });
       if (!data?.ok) {
-        notices.toast(failureText4(data), true);
+        notices.toast(failureText7(data), true);
         return;
       }
       await portalPageLegacy.saveInvoice(data, data.rectifica_num ?? "", {}, null);
@@ -18235,7 +20583,7 @@
     await withButton(button3, async () => {
       const { data } = await callRpc("portal_material_archivo", { p_id: id });
       if (!data?.ok) {
-        notices.toast(failureText4(data), true);
+        notices.toast(failureText7(data), true);
         return;
       }
       const binary = atob(data.datos ?? ""), bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
@@ -18285,27 +20633,27 @@
   // src/app/screens/portal/centre-order.ts
   var MAX_UNITS = 1e3;
   var MAX_PACKS = 50;
-  var euros3 = (value10) => portalLegacy.euros(value10);
+  var euros4 = (value10) => portalLegacy.euros(value10);
   var withVat = (product) => round2((Number(product.precio) || 0) * (1 + (Number(product.iva) || 0) / 100));
   var percent2 = (value10) => `${(Math.round(value10 * 1e3) / 10).toLocaleString(t("dates.locale"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
   function packRow(product, pack, index) {
     const unitPrice = withVat(product), bought = Number(pack.compra) || 0, free = Number(pack.regalo) || 0, retail = Number(product.pvp_recomendado) || 0;
     const amount2 = round2(bought * unitPrice), cost = bought + free ? amount2 / (bought + free) : 0, name = `${formatNumber(bought)}${free ? `+${formatNumber(free)}` : ""}`;
     return `<div class="pclin pcpack"><span class="pcpk"><b>${t("portal.order.pack", { pack: `${formatNumber(bought)}${free ? ` + ${formatNumber(free)}` : ""}` })}</b><span class="sm">${t("portal.order.packUnits", { units: formatNumber(bought + free) })}${free ? t("portal.order.packFree", { free: formatNumber(free) }) : ""}</span></span>
-          <span class="pcdato"><b>${euros3(amount2)}</b><span class="sm">${t("portal.order.withVat")}</span></span>
-          <span class="pcdato"><b>${euros3(cost)}</b><span class="sm">${t("portal.order.perUnit")}</span></span>
+          <span class="pcdato"><b>${euros4(amount2)}</b><span class="sm">${t("portal.order.withVat")}</span></span>
+          <span class="pcdato"><b>${euros4(cost)}</b><span class="sm">${t("portal.order.perUnit")}</span></span>
           ${retail ? `<span class="pcdato"><b>${percent2((retail - cost) / retail)}</b><span class="sm">${t("portal.order.margin")}</span></span>` : "<span></span>"}
           <input type="number" step="1" value="0" data-pcpk="${product.producto_id}" data-pci="${index}" data-pcc="${bought}" data-pcg="${free}" data-pcimp="${amount2}" aria-label="${t("portal.order.howManyPacks", { pack: name })}">
           <span class="pcerr" hidden></span></div>`;
   }
   function productHtml(product) {
     const unitPrice = withVat(product), packs = Array.isArray(product.packs) ? product.packs : [], retail = Number(product.pvp_recomendado) || 0;
-    if (!packs.length) return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros3(unitPrice) })}${product.propio ? t("portal.order.yourPrice") : ""}</span></div>
+    if (!packs.length) return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros4(unitPrice) })}${product.propio ? t("portal.order.yourPrice") : ""}</span></div>
       <div class="pclin"><span class="sm">${t("portal.order.units")}</span><input type="number" step="1" value="0" data-ctp="${product.producto_id}" data-ctpr="${unitPrice}" aria-label="${t("portal.order.unitsOf", { name: escapeHtml(product.nombre) })}"><span class="pcerr" hidden></span></div></div>`;
-    return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros3(unitPrice) })}${retail ? t("portal.order.retail", { price: euros3(retail) }) : ""}</span></div>
+    return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros4(unitPrice) })}${retail ? t("portal.order.retail", { price: euros4(retail) }) : ""}</span></div>
       <div class="pcpacks">${packs.map((pack, index) => packRow(product, pack, index)).join("")}</div></div>`;
   }
-  function formHtml2(products3) {
+  function formHtml4(products3) {
     const addresses = [...new Set(portalState.places.map((place3) => [place3.direccion, place3.municipio].filter(Boolean).join(", ")).filter(Boolean))];
     return `<div id="ctprods">${products3.map(productHtml).join("")}</div>
       <div class="pcent"><b>${t("portal.order.delivery")}</b>
@@ -18314,7 +20662,7 @@
         <div id="pcentl" class="pcentl" hidden><datalist id="pcdirs">${addresses.map((address) => `<option value="${escapeHtml(address)}">`).join("")}</datalist>
           <div id="pcentf"></div><button type="button" class="btn sec chico" id="pcentmas">${t("portal.order.otherAddress")}</button><span class="sm" id="pcentres"></span></div></div>
       ${portalState.prepayment ? `<p class="sm pcant">${t("portal.order.prepayment")}</p>` : ""}<label for="ctnota">${t("portal.order.note")}</label><input id="ctnota" placeholder="${t("portal.order.notePlaceholder")}">
-      <div class="pctot"><span id="pctxt">${t("portal.order.total", { total: `<b id="cttot">${euros3(0)}</b>` })}</span><button type="button" class="btn" id="ctok">${t("portal.order.send")}</button></div>`;
+      <div class="pctot"><span id="pctxt">${t("portal.order.total", { total: `<b id="cttot">${euros4(0)}</b>` })}</span><button type="button" class="btn" id="ctok">${t("portal.order.send")}</button></div>`;
   }
   var deliveryRow = () => `<div class="pcef"><input list="pcdirs" placeholder="${t("portal.order.addressPlaceholder")}" value="" data-pced><input type="number" step="1" placeholder="${t("portal.order.units")}" value="" data-pceu><button type="button" class="pmhx" data-pcex aria-label="${t("portal.order.removeAddress")}">✕</button></div>`;
   function checkQuantity(input6) {
@@ -18345,7 +20693,7 @@
     }
     const units = totals.units ? ` · ${t("portal.order.totalUnits", { units: formatNumber(totals.units) })}${totals.free ? t("portal.order.packFree", { free: formatNumber(totals.free) }) : ""}` : "";
     const text2 = document.getElementById("pctxt");
-    if (text2) text2.innerHTML = t("portal.order.total", { total: `<b id="cttot">${euros3(totals.amount)}</b>` }) + units;
+    if (text2) text2.innerHTML = t("portal.order.total", { total: `<b id="cttot">${euros4(totals.amount)}</b>` }) + units;
   }
   function review(box3) {
     const totals = { amount: 0, units: 0, free: 0 };
@@ -18386,7 +20734,7 @@
     if (reason === "vacio") return t("portal.order.chooseSomething");
     if (reason === "pack") return t("portal.order.packGone", { product: answer?.producto ?? t("portal.order.product") });
     if (reason === "unidades") return t("portal.order.checkProduct", { product: answer?.producto ?? t("portal.order.aProduct") });
-    return reason === "entregas" ? t("portal.order.deliveriesMustAdd", { total: formatNumber(answer?.total) }) : failureText4(answer);
+    return reason === "entregas" ? t("portal.order.deliveriesMustAdd", { total: formatNumber(answer?.total) }) : failureText7(answer);
   }
   async function send3(box3, button3, onSent) {
     const checked5 = review(box3);
@@ -18420,7 +20768,7 @@
     if (!box3) return;
     const title2 = t("portal.order.title");
     box3.innerHTML = `<div class="card ancard pmcons pcped"><h2>${title2} ${helpButton(title2, t("portal.order.help", { packs: formatNumber(MAX_PACKS) }))}</h2>
-    ${products3.length ? formHtml2(products3) : `<p class="sm">${t("portal.order.noProducts")}</p>`}</div>`;
+    ${products3.length ? formHtml4(products3) : `<p class="sm">${t("portal.order.noProducts")}</p>`}</div>`;
     if (!products3.length) return;
     const check2 = () => {
       review(box3);
@@ -18498,14 +20846,14 @@
       notas: sent2.notas ?? ""
     };
   }
-  var field2 = (id) => document.getElementById(id)?.value ?? "";
+  var field4 = (id) => document.getElementById(id)?.value ?? "";
   function readForm() {
     const form = portalState.form;
     if (!form || !document.getElementById("pmtel")) return;
-    form.telefono = field2("pmtel").trim();
-    form.email = field2("pmmail").trim();
-    form.visitas = { como: field2("pmcomo"), momento: field2("pmmom").trim() };
-    form.notas = field2("pmnot").trim();
+    form.telefono = field4("pmtel").trim();
+    form.email = field4("pmmail").trim();
+    form.visitas = { como: field4("pmcomo"), momento: field4("pmmom").trim() };
+    form.notas = field4("pmnot").trim();
     document.querySelectorAll("#pmficha [data-pmcf]").forEach((input6) => {
       const [index = "", key = ""] = (input6.dataset.pmcf ?? "").split("|"), place3 = form.consultas[Number(index)];
       if (!place3) return;
@@ -18528,13 +20876,13 @@
   var SEARCH_WAIT_MS7 = 250;
   var MIN_SEARCH2 = 2;
   var HOW_OPTIONS = ["portal.form.howBooked", "portal.form.howEndOfDay", "portal.form.howAnyGap", "portal.form.howPhone", "portal.form.howWriteFirst"];
-  var DAY_NAMES = /* @__PURE__ */ new Map([["L", "portal.form.monday"], ["M", "portal.form.tuesday"], ["X", "portal.form.wednesday"], ["J", "portal.form.thursday"], ["V", "portal.form.friday"], ["S", "portal.form.saturday"]]);
+  var DAY_NAMES2 = /* @__PURE__ */ new Map([["L", "portal.form.monday"], ["M", "portal.form.tuesday"], ["X", "portal.form.wednesday"], ["J", "portal.form.thursday"], ["V", "portal.form.friday"], ["S", "portal.form.saturday"]]);
   function timetableDay(index, day, ranges) {
     const rows2 = ranges.map((range2, row3) => `<span class="pmhf"><input data-pmhi="${index}|${day}|${row3}|0" value="${escapeHtml(range2[0])}" inputmode="numeric" maxlength="5" aria-label="${t("portal.form.from")}">
           <span>${t("portal.form.to")}</span><input data-pmhi="${index}|${day}|${row3}|1" value="${escapeHtml(range2[1])}" inputmode="numeric" maxlength="5" aria-label="${t("portal.form.until")}">
           <button type="button" class="pmhx" data-pmhx="${index}|${day}|${row3}" aria-label="${t("portal.form.removeRange")}">✕</button></span>`).join("");
     return `<div class="pmhd ${ranges.length ? "on" : ""}">
-      <button type="button" class="pmhdia" data-pmhd="${index}|${day}" aria-pressed="${String(Boolean(ranges.length))}">${t(DAY_NAMES.get(day) ?? "portal.form.monday")}</button>
+      <button type="button" class="pmhdia" data-pmhd="${index}|${day}" aria-pressed="${String(Boolean(ranges.length))}">${t(DAY_NAMES2.get(day) ?? "portal.form.monday")}</button>
       <div class="pmhr">${ranges.length ? `${rows2}<button type="button" class="pmhmas" data-pmha="${index}|${day}">${t("portal.form.addRange")}</button>` : `<span class="sm">${t("portal.form.closed")}</span>`}</div></div>`;
   }
   function timetableHtml(days, index) {
@@ -18548,7 +20896,7 @@
   function placeHtml(place3, index) {
     const isNew = !place3.centro_id && !place3.ubicacion_id || !String(place3.nombre ?? "").trim();
     const head = isNew ? `<div class="g2 pmcnuevo"><div><label>${t("portal.form.placeName")}</label><input data-pmcf="${index}|nombre" value="${escapeHtml(place3.nombre ?? "")}"></div>
-        <div><label>${t("portal.form.placeAddress")}</label><input data-pmcf="${index}|direccion" value="${escapeHtml(placeText(place3, ", "))}" placeholder="${t("portal.form.placeAddressPlaceholder")}"></div></div>` : `<div><b>${escapeHtml(orFallback(place3.nombre, words6().place))}</b><span class="sm">${escapeHtml(placeText(place3, " · "))}</span></div>`;
+        <div><label>${t("portal.form.placeAddress")}</label><input data-pmcf="${index}|direccion" value="${escapeHtml(placeText(place3, ", "))}" placeholder="${t("portal.form.placeAddressPlaceholder")}"></div></div>` : `<div><b>${escapeHtml(orFallback(place3.nombre, words7().place))}</b><span class="sm">${escapeHtml(placeText(place3, " · "))}</span></div>`;
     return `<div class="pmc" data-pmc="${index}">
     <div class="pmccab">${head}
       <button type="button" class="btn sec chico pmcx" data-pmcx="${index}">${t("portal.form.remove")}</button></div>
@@ -18567,7 +20915,7 @@
     const done = phone && how && timetable;
     box3.classList.toggle("ok", done);
     box3.innerHTML = `<b>${t(done ? "portal.form.checkDone" : "portal.form.checkTitle")}</b>
-    <ul><li class="${phone ? "ok" : ""}">${t("portal.form.checkPhone")}</li><li class="${timetable ? "ok" : ""}">${t(isCentre() ? "portal.form.checkTimetableCentre" : "portal.form.checkTimetable")}</li><li class="${how ? "ok" : ""}">${t("portal.form.checkHow", words6())}</li></ul>
+    <ul><li class="${phone ? "ok" : ""}">${t("portal.form.checkPhone")}</li><li class="${timetable ? "ok" : ""}">${t(isCentre() ? "portal.form.checkTimetableCentre" : "portal.form.checkTimetable")}</li><li class="${how ? "ok" : ""}">${t("portal.form.checkHow", words7())}</li></ul>
     <span class="sm">${t(done ? "portal.form.checkDoneText" : "portal.form.checkText")}</span>`;
   }
   function repaintPlaces() {
@@ -18594,13 +20942,13 @@
     return proposal.estado === "Pendiente" ? t("portal.form.sentOn", { date: shortDateTime(proposal.modificado_en ?? "") }) : t("portal.form.reviewed");
   }
   function contactCard() {
-    const form = portalState.form, title2 = t("portal.form.contactTitle", words6());
+    const form = portalState.form, title2 = t("portal.form.contactTitle", words7());
     if (!form) return "";
     const how = HOW_OPTIONS.map((key) => `<option ${form.visitas.como === t(key) ? "selected" : ""}>${escapeHtml(t(key))}</option>`).join("");
     return `<div class="card ancard pmcons pmcont"><h2>${title2} ${helpButton(title2, t("portal.form.contactHelp"))}</h2>
       <div class="pmcampos"><div><label for="pmtel">${t("portal.form.phone")} <span class="pmreq">${t("portal.form.required")}</span></label><input id="pmtel" inputmode="tel" value="${escapeHtml(form.telefono)}" placeholder="${t("portal.form.phonePlaceholder")}"></div>
         <div><label for="pmmail">${t("portal.form.email")}</label><input id="pmmail" type="email" value="${escapeHtml(form.email)}" placeholder="${t("portal.form.emailPlaceholder")}"></div>
-        <div><label for="pmcomo">${t("portal.form.how", words6())} <span class="pmreq">${t("portal.form.required")}</span></label><select id="pmcomo"><option value="">${t("portal.form.choose")}</option>${how}</select></div>
+        <div><label for="pmcomo">${t("portal.form.how", words7())} <span class="pmreq">${t("portal.form.required")}</span></label><select id="pmcomo"><option value="">${t("portal.form.choose")}</option>${how}</select></div>
         <div><label for="pmmom">${t("portal.form.when")}</label><input id="pmmom" value="${escapeHtml(form.visitas.momento)}" placeholder="${t("portal.form.whenPlaceholder")}"></div>
         <div class="pmancho"><label for="pmnot">${t("portal.form.notes")}</label><textarea id="pmnot" rows="2" placeholder="${t("portal.form.notesPlaceholder")}">${escapeHtml(form.notas)}</textarea></div></div></div>`;
   }
@@ -18782,28 +21130,28 @@
       <textarea id="mdmsgt" rows="2" placeholder="${t("portal.material.questionPlaceholder")}" aria-label="${t("portal.material.questionLabel")}"></textarea>
       <div class="acts u-start"><button type="button" class="btn" id="mdmsgok">${t("portal.material.send")}</button></div></div>`;
   }
-  var value3 = (id) => document.getElementById(id)?.value ?? "";
+  var value6 = (id) => document.getElementById(id)?.value ?? "";
   var chosenMax = () => Number(document.getElementById("mdmatm")?.selectedOptions[0]?.dataset.max);
   function showMaximum() {
     const hint = document.getElementById("mdmatmax");
     if (!hint || !document.getElementById("mdmatm")) return;
-    const max = chosenMax(), count = Number(value3("mdmatn")) || 0;
+    const max = chosenMax(), count = Number(value6("mdmatn")) || 0;
     hint.classList.toggle("mdmatpasa", count > max);
     hint.textContent = t(count > max ? "portal.material.atMost" : "portal.material.max", { max: formatNumber(max) });
   }
   async function ask(button3) {
     button3.disabled = true;
-    const max = chosenMax(), count = Number(value3("mdmatn")) || 0;
+    const max = chosenMax(), count = Number(value6("mdmatn")) || 0;
     if (count < 1 || count > max) {
       button3.disabled = false;
       showMaximum();
       notices.toast(count < 1 ? t("portal.material.howMany") : t("portal.material.tooMany", { max: formatNumber(max) }), true);
       return;
     }
-    const { data: result } = await legacyDb().rpc("pedir_material", { p_material: value3("mdmatm"), p_cantidad: count, p_nota: value3("mdmatt").trim() || null });
+    const { data: result } = await legacyDb().rpc("pedir_material", { p_material: value6("mdmatm"), p_cantidad: count, p_nota: value6("mdmatt").trim() || null });
     button3.disabled = false;
     if (!result?.ok) {
-      notices.toast(result?.motivo === "cantidad" ? t("portal.material.atMostShort", { max: formatNumber(result.max) }) : failureText4(result), true);
+      notices.toast(result?.motivo === "cantidad" ? t("portal.material.atMostShort", { max: formatNumber(result.max) }) : failureText7(result), true);
       return;
     }
     notices.toast(t("portal.material.asked"));
@@ -18812,14 +21160,14 @@
   async function cancel(id) {
     const { data: result } = await legacyDb().rpc("cerrar_material", { p_id: id, p_estado: CANCELLED });
     if (!result?.ok) {
-      notices.toast(failureText4(result), true);
+      notices.toast(failureText7(result), true);
       return;
     }
     notices.toast(t("portal.material.cancelled"));
     void paintMaterial();
   }
   async function sendMessage(button3) {
-    const text2 = value3("mdmsgt").trim();
+    const text2 = value6("mdmsgt").trim();
     if (!text2) {
       notices.toast(t("portal.failures.empty"), true);
       return;
@@ -18828,13 +21176,13 @@
     const { data: result } = await legacyDb().rpc("enviar_mensaje_cuenta", { p_cuenta: null, p_texto: text2 });
     button3.disabled = false;
     if (!result?.ok) {
-      notices.toast(failureText4(result), true);
+      notices.toast(failureText7(result), true);
       return;
     }
     notices.toast(t("portal.material.messageSent"));
     void paintMaterial();
   }
-  function bind7(box3) {
+  function bind11(box3) {
     const select = document.getElementById("mdmatm");
     if (select) select.onchange = showMaximum;
     document.getElementById("mdmatn")?.addEventListener("input", showMaximum);
@@ -18865,7 +21213,7 @@
     if (!box3) return;
     const list = messages ?? [];
     box3.innerHTML = cardsHtml(Array.isArray(allowed) ? allowed : [], requests2 ?? [], list);
-    bind7(box3);
+    bind11(box3);
     if (list.some((message) => !message.del_portal && !message.leido_en)) void callRpc("leer_mensajes_cuenta", { p_cuenta: null });
   }
 
@@ -18892,16 +21240,16 @@
   }
 
   // src/app/screens/portal/centre.ts
-  var TABS = ["res", "ped", "ficha", "mat"];
+  var TABS2 = ["res", "ped", "ficha", "mat"];
   var SHOWN_ORDERS = 8;
   var CANCELLED2 = "Anulado";
   var PREPARED = "Preparado";
-  var euros4 = (value10) => portalLegacy.euros(value10);
+  var euros5 = (value10) => portalLegacy.euros(value10);
   function orderRow(order) {
     const lines2 = (order.lineas ?? []).map((line2) => `${line2.producto} × ${formatNumber(line2.unidades)}${line2.regalo ? t("portal.centre.free") : ""}`).join(", ");
     return `<div class="item"><span class="tx">
             <b>${order.numero ? `${escapeHtml(order.numero)} · ` : ""}${formatShortDate(String(order.fecha).slice(0, 10))}</b>
-            <span class="sm">${escapeHtml(lines2)}${order.total !== null && order.total !== void 0 ? ` · ${euros4(order.total)}` : ""}</span>${orderExtras(order)}</span>
+            <span class="sm">${escapeHtml(lines2)}${order.total !== null && order.total !== void 0 ? ` · ${euros5(order.total)}` : ""}</span>${orderExtras(order)}</span>
             <span class="pcpst"><span class="pill ${portalPageLegacy.centreStateClass(order.estado)}">${escapeHtml(order.estado)}</span>${order.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${order.id}">${t("portal.centre.proforma")}</button>` : ""}</span></div>`;
   }
   function indicators3(orders2, bought, products3) {
@@ -18960,7 +21308,7 @@
   async function loadCentre() {
     const page = document.getElementById("v-informe");
     if (!page) return;
-    if (!TABS.includes(portalState.tab)) portalState.tab = "res";
+    if (!TABS2.includes(portalState.tab)) portalState.tab = "res";
     page.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">${t("portal.centre.kicker")}</div><h1 id="ctnom">…</h1>
       <div class="sm" style="color:rgba(255,255,255,.85)">${t("portal.centre.subtitle")}</div></div></div>
     ${tabBar([["res", "portal.tabs.summary"], ["ped", "portal.tabs.order"], ["ficha", "portal.tabs.centre"], ["mat", "portal.tabs.material"]])}
@@ -18996,19 +21344,19 @@
     return format === "1" ? t("portal.summary.oneUnit") : t("portal.summary.units", { count: format });
   }
   function formatsCard(data) {
-    const list = data.formatos ?? [], total = sum(list.map((item) => item.n ?? 0)), title2 = t("portal.summary.formatsTitle", { Orders: capitalise(words6().orders) });
-    const chart = total ? portalPageLegacy.barChart(list.map((item) => ({ n: formatText(item.formato), v: Math.round((item.n ?? 0) / total * 100) })), (value10) => `${value10} %`) : portalPageLegacy.emptyChart(t("portal.summary.formatsEmpty", words6()));
-    return `<div class="card ancard" id="pmformatos"><h2>${title2} ${helpButton(title2, t("portal.summary.formatsHelp", words6()))}</h2>
+    const list = data.formatos ?? [], total = sum(list.map((item) => item.n ?? 0)), title2 = t("portal.summary.formatsTitle", { Orders: capitalise(words7().orders) });
+    const chart = total ? portalPageLegacy.barChart(list.map((item) => ({ n: formatText(item.formato), v: Math.round((item.n ?? 0) / total * 100) })), (value10) => `${value10} %`) : portalPageLegacy.emptyChart(t("portal.summary.formatsEmpty", words7()));
+    return `<div class="card ancard" id="pmformatos"><h2>${title2} ${helpButton(title2, t("portal.summary.formatsHelp", words7()))}</h2>
     ${chart}</div>`;
   }
   function periodCard(data) {
-    const last = t("portal.summary.lastOrder", words6());
+    const last = t("portal.summary.lastOrder", words7());
     const rows2 = [
-      [formatNumber(data.unidades), t("portal.summary.unitsLabel"), t("portal.summary.unitsHelp", words6())],
-      [data.ultima_pauta ? formatShortDate(data.ultima_pauta) : "—", last, t("portal.summary.lastOrderHelp", words6())]
+      [formatNumber(data.unidades), t("portal.summary.unitsLabel"), t("portal.summary.unitsHelp", words7())],
+      [data.ultima_pauta ? formatShortDate(data.ultima_pauta) : "—", last, t("portal.summary.lastOrderHelp", words7())]
     ];
     return `<div class="card ancard" id="pmperiodo"><h2>${t("portal.summary.periodTitle")}</h2>
-    <div class="pmperl">${rows2.map(([value10, label, help4]) => `<div><span>${escapeHtml(label)} ${helpButton(label, help4)}</span><b>${value10}</b></div>`).join("")}</div></div>`;
+    <div class="pmperl">${rows2.map(([value10, label, help5]) => `<div><span>${escapeHtml(label)} ${helpButton(label, help5)}</span><b>${value10}</b></div>`).join("")}</div></div>`;
   }
   function activityBanner(data) {
     const select = document.querySelector("#mdper [data-per]"), key = PERIODS2.get(select ? select.value : "semana");
@@ -19022,20 +21370,20 @@
   function monthColumn(month, figures, max) {
     const units = figures?.unidades ?? 0, orders2 = figures?.pautas ?? 0;
     const name = (/* @__PURE__ */ new Date(`${month}-01T12:00`)).toLocaleDateString(t("dates.locale"), { month: "short" }).replace(".", "");
-    const title2 = t("portal.summary.monthTitle", { month: name, units: formatNumber(units), orders: formatNumber(orders2), ordersWord: words6().orders });
+    const title2 = t("portal.summary.monthTitle", { month: name, units: formatNumber(units), orders: formatNumber(orders2), ordersWord: words7().orders });
     return `<div class="pmcol" title="${escapeHtml(title2)}"><div class="pmbar"><b>${units ? formatNumber(units) : ""}</b><i style="height:${units ? Math.max(3, units / max * 100) : 0}%"></i></div>
         <span class="pmm">${escapeHtml(name)}</span><span class="pmn">${orders2 ? `<em>${formatNumber(orders2)}</em>` : ""}</span></div>`;
   }
   function evolution(data) {
-    if (!data.unidades) return portalPageLegacy.emptyChart(t("portal.summary.evolutionEmpty", words6()));
+    if (!data.unidades) return portalPageLegacy.emptyChart(t("portal.summary.evolutionEmpty", words7()));
     const months = portalPageLegacy.monthsBetween(data.desde, data.hasta), series = new Map((data.serie ?? []).map((item) => [item.mes, item]));
     const max = Math.max(1, ...months.map((month) => series.get(month)?.unidades ?? 0));
-    return `<div class="pmleg"><span><i></i>${t("portal.summary.unitsLabel")}</span><span><i class="v"></i>${words6().Orders}</span></div>
+    return `<div class="pmleg"><span><i></i>${t("portal.summary.unitsLabel")}</span><span><i class="v"></i>${words7().Orders}</span></div>
     <div class="pmev" style="--n:${months.length}">${months.map((month) => monthColumn(month, series.get(month), max)).join("")}</div>`;
   }
   function continuity(figures) {
     if (!figures.ok) return `<p class="sm">${t("portal.summary.notAvailable")}</p>`;
-    if (figures.pocos) return `<p class="sm">${t("portal.summary.fewStarted", { ...words6(), months: formatNumber(figures.meses ?? DEFAULT_RECURRENCE.meses), started: formatNumber(figures.empezaron), minimum: formatNumber(figures.minimo ?? DEFAULT_RECURRENCE.minimo) })}</p>`;
+    if (figures.pocos) return `<p class="sm">${t("portal.summary.fewStarted", { ...words7(), months: formatNumber(figures.meses ?? DEFAULT_RECURRENCE.meses), started: formatNumber(figures.empezaron), minimum: formatNumber(figures.minimo ?? DEFAULT_RECURRENCE.minimo) })}</p>`;
     const started = figures.empezaron ?? 0;
     return `<div class="minis cons"><div><b>${formatNumber(started)}</b><span>${t("portal.summary.started")}</span></div><div><b>${started ? `${Math.round((figures.repiten ?? 0) / started * 100)}%` : "—"}</b><span>${t("portal.summary.repeated")}</span></div>
         <div><b>${figures.dias_entre ? t("portal.summary.days", { count: formatNumber(figures.dias_entre) }) : "—"}</b><span>${t("portal.summary.between")}</span></div><div><b>${formatNumber(figures.sin_pedir)}</b><span>${t("portal.summary.overDays", { days: formatNumber(figures.dias ?? DEFAULT_RECURRENCE.dias) })}</span></div></div>`;
@@ -19046,17 +21394,17 @@
       <button type="button" class="btn" data-pmir="ficha">${t("portal.summary.completeCardButton")}</button></div>`;
   }
   function metricsCard(data) {
-    const title2 = t("portal.summary.metricsTitle", words6());
-    const last = data.ultima_pauta ? t("portal.summary.metricsLast", { ...words6(), date: formatShortDate(data.ultima_pauta) }) : "";
-    return `<div class="card ancard"><h2>${title2} ${helpButton(title2, t("portal.summary.metricsHelp", words6()) + last)}</h2>${evolution(data)}</div>`;
+    const title2 = t("portal.summary.metricsTitle", words7());
+    const last = data.ultima_pauta ? t("portal.summary.metricsLast", { ...words7(), date: formatShortDate(data.ultima_pauta) }) : "";
+    return `<div class="card ancard"><h2>${title2} ${helpButton(title2, t("portal.summary.metricsHelp", words7()) + last)}</h2>${evolution(data)}</div>`;
   }
   function productsCard(data) {
     const title2 = t("portal.summary.byProduct"), products3 = data.productos ?? [];
-    return `<div class="card ancard"><h2>${title2} ${helpButton(title2, t("portal.summary.byProductHelp", words6()))}</h2>
+    return `<div class="card ancard"><h2>${title2} ${helpButton(title2, t("portal.summary.byProductHelp", words7()))}</h2>
         ${products3.length ? `<div class="pmdon">${portalPageLegacy.donut(products3.map((item) => ({ n: item.nombre, v: item.unidades })))}</div>` : portalPageLegacy.emptyChart(t("portal.summary.byProductEmpty"))}</div>`;
   }
   function summaryHtml3(data, figures) {
-    const title2 = t("portal.summary.continuityTitle", words6());
+    const title2 = t("portal.summary.continuityTitle", words7());
     return `${activityBanner(data)}${missingBanner()}
     <div class="pmfila pm3">
       ${periodCard(data)}
@@ -19064,7 +21412,7 @@
       ${productsCard(data)}</div>
     <div class="pmfila">
       ${formatsCard(data)}
-      <div class="card ancard" id="pmconst"><h2>${title2} ${helpButton(title2, t("portal.summary.continuityHelp", { ...words6(), months: formatNumber(figures.meses ?? DEFAULT_RECURRENCE.meses), days: formatNumber(figures.dias ?? DEFAULT_RECURRENCE.dias) }))}</h2>${continuity(figures)}</div></div>`;
+      <div class="card ancard" id="pmconst"><h2>${title2} ${helpButton(title2, t("portal.summary.continuityHelp", { ...words7(), months: formatNumber(figures.meses ?? DEFAULT_RECURRENCE.meses), days: formatNumber(figures.dias ?? DEFAULT_RECURRENCE.dias) }))}</h2>${continuity(figures)}</div></div>`;
   }
 
   // src/app/screens/portal/report.ts
@@ -19187,7 +21535,7 @@
   var MARKED = "marcados";
   var repaint = () => void 0;
   var LIMITS = { group: [2, 99], meses: [1, 36], dias: [7, 365], minimo: [MIN_RECURRENCE, 100] };
-  var words7 = () => ({
+  var words8 = () => ({
     order: term("pauta"),
     orders: term("pauta", { number: "p" }),
     Orders: term("pauta", { number: "p", capital: "C" }),
@@ -19202,11 +21550,11 @@
     return ruleCardHtml({
       id: REPORTS,
       title: t("settingsRules.portalReports.title"),
-      info: t("settingsRules.portalReports.info", words7()),
-      intro: t("settingsRules.portalReports.intro", words7()),
+      info: t("settingsRules.portalReports.info", words8()),
+      intro: t("settingsRules.portalReports.intro", words8()),
       rows: [selectRowHtml({
         id: `${REPORTS}p`,
-        label: t("settingsRules.portalReports.orders", words7()),
+        label: t("settingsRules.portalReports.orders", words8()),
         help: t("settingsRules.portalReports.ordersHelp"),
         value: setting2.pedidos === ALL ? ALL : MARKED,
         options: [{ value: ALL, text: t("settingsRules.portalReports.all") }, { value: MARKED, text: t("settingsRules.portalReports.marked") }]
@@ -19217,8 +21565,8 @@
     return ruleCardHtml({
       id: FORMATS,
       title: t("settingsRules.portalFormats.title"),
-      info: t("settingsRules.portalFormats.info", words7()),
-      intro: t("settingsRules.portalFormats.intro", words7()),
+      info: t("settingsRules.portalFormats.info", words8()),
+      intro: t("settingsRules.portalFormats.intro", words8()),
       rows: [numberRowHtml({
         id: `${FORMATS}n`,
         label: t("settingsRules.portalFormats.groupFrom"),
@@ -19231,10 +21579,10 @@
   }
   function recurrenceHtml(setting2) {
     const own = setting2.recurrencia ?? {};
-    const row3 = (key, label, help4) => numberRowHtml({
+    const row3 = (key, label, help5) => numberRowHtml({
       id: `${RECURRENCE}${key}`,
-      label: t(label, words7()),
-      help: t(help4, { ...words7(), count: DEFAULT_RECURRENCE[key], min: MIN_RECURRENCE }),
+      label: t(label, words8()),
+      help: t(help5, { ...words8(), count: DEFAULT_RECURRENCE[key], min: MIN_RECURRENCE }),
       value: numberOr(own[key], DEFAULT_RECURRENCE[key]),
       min: LIMITS[key][0],
       max: LIMITS[key][1]
@@ -19242,7 +21590,7 @@
     return ruleCardHtml({
       id: RECURRENCE,
       title: t("settingsRules.portalRecurrence.title"),
-      info: t("settingsRules.portalRecurrence.info", words7()),
+      info: t("settingsRules.portalRecurrence.info", words8()),
       intro: t("settingsRules.portalRecurrence.intro"),
       rows: [
         row3("meses", "settingsRules.portalRecurrence.months", "settingsRules.portalRecurrence.monthsHelp"),
@@ -19252,7 +21600,7 @@
     });
   }
   function wrong(label, [min, max]) {
-    notices.toast(t("settingsRules.wrongNumber", { field: t(label, words7()), min, max }), true);
+    notices.toast(t("settingsRules.wrongNumber", { field: t(label, words8()), min, max }), true);
   }
   async function saveReports() {
     const value10 = inputValue(`${REPORTS}p`) === ALL ? ALL : MARKED;
@@ -19307,7 +21655,7 @@
         <input type="checkbox" data-cfpm="${escapeHtml(item.valor)}" ${chosen4 ? "checked" : ""}> <span class="tx"><b>${escapeHtml(item.valor)}</b></span>
         <span class="sm">${t("portal.settings.maximum")}</span> <input type="number" min="1" max="${MAX_LIMIT3}" value="${chosen4 ? chosen4.max : DEFAULT_MAX2}" data-cfpx="${escapeHtml(item.valor)}" style="max-width:110px" aria-label="${t("portal.settings.maximumOf", { name: escapeHtml(item.valor) })}"></label>`;
   }
-  function materialHtml(catalog2, allowed, saved3) {
+  function materialHtml2(catalog2, allowed, saved3) {
     if (!catalog2.length) return `<div class="vacio">${t("portal.settings.noCatalog")}</div>`;
     return `<div class="lista" id="cfpmat">${catalog2.map((item) => materialRow(item, allowed.find((other) => other.valor === item.valor))).join("")}</div>
       ${saved3 ? "" : `<p class="sm u-p-0-16">${t("portal.settings.everything")}</p>`}
@@ -19346,7 +21694,7 @@
     if (!box3) return;
     box3.innerHTML = `<div class="card"><div class="fh"><div><h2>${t("portal.settings.title", { ofProfessional: term("medico", { article: "del" }) })}</h2>
       <div class="sm">${t("portal.settings.subtitle", { theProfessionals: term("medico", { number: "p", article: "el" }) })}</div></div></div>
-    ${materialHtml(catalog2 ?? [], Array.isArray(allowed) ? allowed : [], Boolean(setting2.material))}</div>
+    ${materialHtml2(catalog2 ?? [], Array.isArray(allowed) ? allowed : [], Boolean(setting2.material))}</div>
   ${prepaymentHtml(Boolean(setting2.pago_anticipado))}${portalRulesHtml(setting2)}`;
     const save26 = document.getElementById("cfpok");
     if (save26) save26.onclick = () => {
@@ -19479,9 +21827,9 @@
   var editScheme = fromChunk8("editScheme");
 
   // src/app/screens/home/indicator-settings.ts
-  var dialog4 = () => document.getElementById("dlg");
+  var dialog5 = () => document.getElementById("dlg");
   var markChanged = () => {
-    const box3 = dialog4();
+    const box3 = dialog5();
     if (box3) box3.dataset.sucio = "1";
   };
   function startingList() {
@@ -19510,7 +21858,7 @@
             ${item.filtro ? `<button type="button" class="kmv" data-kdel="${index}" aria-label="${t("ordersMore.indicators.remove")}" title="${t("ordersMore.indicators.remove")}">✕</button>` : ""}</div>
         </div>`;
   }
-  function windowHtml(list) {
+  function windowHtml2(list) {
     return `
       <div class="fh"><div><h2>${t("ordersMore.indicators.title")}</h2>
         <div class="sm">${t("ordersMore.indicators.subtitle")}</div></div>
@@ -19520,18 +21868,18 @@
         <button class="btn sec" id="kres">${t("ordersMore.indicators.restore")}</button>
         <button class="btn" id="kok">${t("ordersMore.indicators.save")}</button></div>`;
   }
-  async function save8(list, button3) {
+  async function save12(list, button3) {
     button3.disabled = true;
     button3.textContent = t("ordersMore.indicators.saving");
     const saved3 = await indicatorSettingsLegacy.save(list.map((item) => ({ id: item.id, on: item.on, t: item.t, ...item.filtro ? { filtro: item.filtro } : {} })));
     button3.disabled = false;
     button3.textContent = t("ordersMore.indicators.save");
     if (!saved3) return;
-    dialog4()?.close();
+    dialog5()?.close();
     notices.toast(t("ordersMore.indicators.saved"));
     indicatorSettingsLegacy.reloadHome();
   }
-  function bind8(body3, state2) {
+  function bind12(body3, state2) {
     const readNames = () => {
       body3.querySelectorAll("[data-kt]").forEach((input6) => {
         const item = state2.list[Number(input6.dataset.kt)];
@@ -19542,7 +21890,7 @@
       readNames();
       work();
       markChanged();
-      paint3(state2);
+      paint5(state2);
     };
     body3.querySelectorAll("[data-kon]").forEach((button3) => {
       button3.onclick = () => {
@@ -19561,7 +21909,7 @@
         state2.list[from] = second;
         state2.list[to] = first;
         markChanged();
-        paint3(state2);
+        paint5(state2);
       };
     });
     body3.querySelectorAll("[data-kdel]").forEach((button3) => {
@@ -19575,2513 +21923,24 @@
     if (restore) restore.onclick = () => {
       state2.list = indicatorCatalog.definitions().map((definition) => ({ id: definition.id, on: indicatorSettingsLegacy.defaults().includes(definition.id), t: "" }));
       markChanged();
-      paint3(state2);
+      paint5(state2);
     };
     const ok = document.getElementById("kok");
     if (ok) ok.onclick = () => {
       readNames();
-      void save8(state2.list, ok);
+      void save12(state2.list, ok);
     };
   }
-  function paint3(state2) {
+  function paint5(state2) {
     const body3 = document.getElementById("dbody");
     if (!body3) return;
-    body3.innerHTML = windowHtml(state2.list);
-    bind8(body3, state2);
+    body3.innerHTML = windowHtml2(state2.list);
+    bind12(body3, state2);
   }
   function openIndicatorSettings() {
-    paint3({ list: startingList() });
-    dialog4()?.showModal();
+    paint5({ list: startingList() });
+    dialog5()?.showModal();
   }
-
-  // src/app/screens/products/index.ts
-  var products_exports = {};
-  __export(products_exports, {
-    editProduct: () => editProduct,
-    editService: () => editService,
-    editStores: () => editStores,
-    loadProductsModule: () => loadProductsModule,
-    paintProducts: () => paintProducts,
-    paintServices: () => paintServices,
-    paintStock: () => paintStock,
-    paintStores: () => paintStores,
-    paintVisitMaterial: () => paintVisitMaterial,
-    promotedProducts: () => promotedProducts,
-    showDeposit: () => showDeposit,
-    showStock: () => showStock,
-    stockMovement: () => stockMovement,
-    traceability: () => traceability
-  });
-
-  // src/app/screens/visit/index.ts
-  var visit_exports = {};
-  __export(visit_exports, {
-    editSamples: () => editSamples,
-    editVisit: () => editVisit,
-    loadMaterials: () => loadMaterials,
-    openVisit: () => openVisit,
-    presentOnly: () => presentOnly,
-    saveRevisitNotice: () => saveRevisitNotice,
-    showVisitPhotos: () => showVisitPhotos,
-    uploadVisitPhotos: () => uploadVisitPhotos,
-    visitBlock: () => visitBlock,
-    visitConsultation: () => visitConsultation
-  });
-
-  // src/app/screens/visit/card-block.ts
-  var card_block_exports = {};
-  __export(card_block_exports, {
-    visitBlock: () => visitBlock,
-    visitConsultation: () => visitConsultation
-  });
-
-  // src/app/legacy/visit-bridge.ts
-  var visitLegacy = {
-    setCurrent: (draft) => {
-      accountsStore.currentVisit = draft;
-    },
-    /** The day chosen in the Agenda for the visit (used once). */
-    takeDate: () => {
-      const date = VISITA_FECHA;
-      VISITA_FECHA = "";
-      return date;
-    },
-    withLoading: (work) => withDialogLoading(work),
-    saveCopy: (key, data) => {
-      read_cache_exports.saveCopy(key, data);
-    },
-    readCopy: (key) => read_cache_exports.readCopy(key)?.d ?? null,
-    resultValues: () => CAT.resultado_visita ?? [],
-    dataField: (value10, key) => valueDataField(value10, key, void 0),
-    signaturePad: (canvas) => signaturePad(canvas),
-    promotedProducts: () => promotedProducts(),
-    reloadProducts: async () => {
-      await cargarProductos();
-      return productsStore.products;
-    },
-    readPhoto: (file) => files_exports.readReceipt(file),
-    photosMax: () => FOTOS_VISITA_MAX,
-    normalise: (text2) => normalise2(text2),
-    weekdayLetter: () => calendar_exports.todayLetter(),
-    /** The write queue: without connection the call is kept and `data.encolada` is true. */
-    writeRpc: (name, payload10) => read_cache_exports.writeQueued(name, payload10),
-    reloadHome: () => {
-      void loadWithCache();
-    },
-    loading: (element, text2) => {
-      showLoading(element, text2);
-    },
-    materials: () => productsStore.presentationMaterials,
-    materialsTime: () => productsStore.presentationTime,
-    setMaterials: (list, time) => {
-      productsStore.presentationMaterials = list;
-      productsStore.presentationTime = time;
-    },
-    /** Downloaded material files by id (Productos forgets one when it is removed). */
-    materialFiles: () => PRES_DATOS,
-    preferences: () => sessionStore.profile.preferencias ?? {},
-    setPreferences: (value10) => {
-      sessionStore.profile.preferencias = value10;
-    }
-  };
-
-  // src/app/screens/visit/card-block.ts
-  var WEEK2 = "LMXJVSD";
-  var WORKDAYS = ["L", "M", "X", "J", "V"];
-  var DAY_NAMES2 = /* @__PURE__ */ new Map([
-    ["L", "visit.days.monday"],
-    ["M", "visit.days.tuesday"],
-    ["X", "visit.days.wednesday"],
-    ["J", "visit.days.thursday"],
-    ["V", "visit.days.friday"],
-    ["S", "visit.days.saturday"],
-    ["D", "visit.days.sunday"]
-  ]);
-  function visitConsultation(consultations) {
-    const centre = editorLegacy.centreFromCard(), preferred = centre ? visitLegacy.normalise(centre) : "";
-    const fromAppointment = preferred ? consultations.find((item) => visitLegacy.normalise(item.centro_nombre ?? "") === preferred) : void 0;
-    if (fromAppointment) return fromAppointment;
-    const today2 = visitLegacy.weekdayLetter();
-    return consultations.find((item) => item.dias?.[today2]) ?? consultations[0];
-  }
-  var row = (iconName, html, extraClass = "") => `<div class="fvfila ${extraClass}"><span class="fvico">${icon(iconName)}</span><div>${html}</div></div>`;
-  function placeRow(consultation) {
-    const where = [consultation.planta, consultation.sala].map((part) => String(part ?? "").trim()).filter((part) => part && !/^[-–·.]+$/.test(part)).map(escapeHtml).join(" · ");
-    const address = escapeHtml([consultation.direccion, [consultation.cp, consultation.municipio].filter(Boolean).join(" ")].filter(Boolean).join(", ")) || t("visit.block.noAddress");
-    const directions = consultation.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${icon("map-pin")} ${t("visit.block.directions")}</button>` : "";
-    return row("building-2", `<b>${escapeHtml(orFallback(consultation.centro_nombre, privateConsultation()))}</b>${where ? `<span class="fvdonde">${where}</span>` : ""}
-      <div class="sm">${address}</div>
-      ${directions}`);
-  }
-  function whenRow(consultation) {
-    const days = consultation.dias ?? {}, today2 = visitLegacy.weekdayLetter(), hours2 = days[today2];
-    const position = WEEK2.indexOf(today2), next = hours2 ? void 0 : [...WEEK2.slice(position + 1), ...WEEK2.slice(0, position + 1)].find((day) => days[day]);
-    const centre = consultation.horario_centro?.[today2];
-    const head = hours2 ? `<b>${t("visit.block.attendsToday", { hours: escapeHtml(hours2) })}</b>` : next ? t("visit.block.notToday", { day: t(DAY_NAMES2.get(next) ?? "visit.days.monday"), hours: escapeHtml(days[next]) }) : t("visit.block.noTimetable");
-    return row("clock", `${head}
-      ${centre ? `<div class="sm">${t("visit.block.centreOpen", { hours: escapeHtml(centre) })}</div>` : ""}
-      <div class="dias fvdias">${WORKDAYS.map((day) => `<span class="${days[day] ? "on" : ""} ${day === today2 ? "hoy" : ""}" title="${escapeHtml(days[day] ?? "")}">${day}</span>`).join("")}</div>`);
-  }
-  function consultationRows(consultation) {
-    if (!consultation) return [row("building-2", `<span class="sm">${t("visit.block.noConsultation", { consultation: term("consulta") })}</span>`)];
-    const rows2 = [placeRow(consultation), whenRow(consultation)];
-    if (consultation.indicaciones) rows2.push(row("info", `<b>${t("visit.block.inside")}</b> ${escapeHtml(consultation.indicaciones)}`, "fvind"));
-    return rows2;
-  }
-  function lastVisitRow(last) {
-    if (!last) return [];
-    const material = cardSectionsLegacy.visitDetails(last);
-    return [row("notebook-pen", `<b>${t("visit.block.lastVisit", { visit: term("visita"), date: formatShortDate(last.fecha) })}</b> · ${escapeHtml(orFallback((last.resultados ?? []).join(" + "), t("visit.block.noResult")))}
-      ${last.nota ? `<div class="sm">${escapeHtml(last.nota)}</div>` : ""}${material ? `<div class="sm">${t("visit.block.material", { material: escapeHtml(material) })}</div>` : ""}`)];
-  }
-  function pendingRow(visits2) {
-    const pending = visits2.find((visit2) => Boolean(visit2.proxima_accion) || Boolean(visit2.proxima_fecha));
-    if (!pending) return [];
-    const date = pending.proxima_fecha, today2 = todayIso();
-    const pill = !date ? "" : date < today2 ? `<span class="pill p-bor">${t("visit.block.late")}</span>` : date === today2 ? `<span class="pill p-est">${t("visit.block.today")}</span>` : "";
-    return [row("clipboard-list", `<b>${t("visit.block.pending")}</b> ${escapeHtml(orFallback(pending.proxima_accion, t("visit.block.visitAgain", { visit: term("visita") })))}${date ? ` · ${formatShortDate(date)}` : ""} ${pill}`)];
-  }
-  function contactRows(account, consultation) {
-    const rows2 = account.nota ? [row("message-circle", `<b>${t("visit.block.notes")}</b> ${escapeHtml(account.nota)}`)] : [];
-    const phones = [account.telefono, consultation?.telefono].filter((phone) => Boolean(phone)).filter((phone, index, all) => all.indexOf(phone) === index);
-    if (phones.length || account.contacto) {
-      rows2.push(row("phone", `${phones.map((phone) => `<a href="tel:${escapeHtml(phone.replace(/\s+/g, ""))}"><b>${escapeHtml(phone)}</b></a>`).join(" · ")}
-    ${account.contacto ? `<div class="sm">${escapeHtml(account.contacto)}</div>` : ""}`));
-    }
-    return rows2;
-  }
-  function visitBlock(account, consultations, visits2) {
-    const person = account, consultation = visitConsultation(consultations);
-    const urgent = person.urgente ? [row("circle-alert", `<b>${t("visit.block.urgent")}</b>${person.urgente_motivo ? `: ${escapeHtml(person.urgente_motivo)}` : ""}`, "fvurg")] : [];
-    const rows2 = [...urgent, ...consultationRows(consultation), ...lastVisitRow(visits2[0]), ...pendingRow(visits2), ...contactRows(person, consultation)];
-    const title2 = t("visit.block.title", { visit: term("visita") });
-    return `<section class="fvis" aria-label="${title2}"><h3>${title2}</h3>${rows2.join("")}</section>`;
-  }
-
-  // src/app/screens/visit/edit.ts
-  var edit_exports = {};
-  __export(edit_exports, {
-    editVisit: () => editVisit
-  });
-
-  // src/app/screens/visit/model.ts
-  var NEGATIVE = "neg";
-  var MODES = [["presencial", "visit.modes.inPerson"], ["telefono", "visit.modes.phone"], ["video", "visit.modes.video"]];
-  var modeButtons = (attribute, chosen4) => MODES.map(([mode, label]) => `<button type="button" data-${attribute}="${mode}" class="${mode === chosen4 ? "on" : ""}" aria-pressed="${String(mode === chosen4)}">${t(label)}</button>`).join("");
-  var pressed = (button3) => button3.getAttribute("aria-pressed") === "true";
-  function togglePressed(button3) {
-    const on3 = !pressed(button3);
-    button3.setAttribute("aria-pressed", String(on3));
-    return on3;
-  }
-
-  // src/app/screens/visit/edit.ts
-  var value4 = (id) => document.getElementById(id)?.value ?? "";
-  function resultButtons(values2, marked, negative) {
-    return values2.map((result) => `<button type="button" class="opt${negative ? " neg" : ""}" data-res="${escapeHtml(result.valor)}"${negative ? ' data-neg="1"' : ""}
-      aria-pressed="${String(marked.includes(result.valor))}"><span class="mk"></span>${escapeHtml(result.valor)}</button>`).join("");
-  }
-  function extraHtml(extra) {
-    const products3 = extra.productList.length ? `<label>${t("visit.record.products")}</label><div class="opciones" id="evprods">${extra.productList.map((product) => `<button type="button" class="opt" data-evprod="${product.id}" aria-pressed="${String(extra.products.includes(product.id))}"><span class="mk"></span>${escapeHtml(product.nombre)}</button>`).join("")}</div>` : "";
-    return `<label>${t("visit.record.howItWas")}</label>
-      <div class="segs" id="evmodo" role="group" aria-label="${t("visit.record.howItWas")}">${modeButtons("evmodo", extra.mode)}</div>
-      ${products3}`;
-  }
-  function editorHtml5(visit2, extra) {
-    const results = visitLegacy.resultValues(), marked = visit2.resultados ?? [];
-    return `
-    <div class="fh"><div><h2>${t("visit.edit.title", { visit: term("visita") })}</h2><div class="sm">${t("visit.edit.recordedOn", { date: formatShortDate(visit2.fecha) })}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <div class="g2">
-      <div><label for="evf">${t("visit.edit.date")}</label><input id="evf" type="date" value="${escapeHtml(visit2.fecha)}"></div>
-      <div><label for="evm">${t("visit.edit.samples")}</label><input id="evm" type="number" min="0" value="${visit2.muestras ?? 0}"></div>
-    </div>
-    ${extraHtml(extra)}
-    <label>${t("visit.edit.result")}</label>
-    <div class="opciones">${resultButtons(results.filter((result) => result.extra !== NEGATIVE), marked, false)}</div>
-    <div class="opciones u-mt-8">${resultButtons(results.filter((result) => result.extra === NEGATIVE), marked, true)}</div>
-    <div class="g2 u-mt-6">
-      <div><label for="evpa">${t("visit.edit.nextAction")}</label><input id="evpa" value="${escapeHtml(visit2.proxima_accion ?? "")}"></div>
-      <div><label for="evpf">${t("visit.edit.date")}</label><input id="evpf" type="date" value="${escapeHtml(visit2.proxima_fecha ?? "")}"></div>
-    </div>
-    <label for="evn">${t("visit.edit.note")}</label><textarea id="evn" rows="3">${escapeHtml(visit2.nota ?? "")}</textarea>
-    <div class="acts u-between">
-      <button class="btn sec dang" id="evborrar">${t("visit.edit.delete", { visit: term("visita") })}</button>
-      <span class="acts u-m-0"><button class="btn sec" data-cerrar>${t("common.cancel")}</button>
-        <button class="btn" id="evok">${t("common.save")}</button></span></div>`;
-  }
-  async function loadExtra(visitId, planHasCoverage) {
-    const { data: activity } = await legacyDb().from("actividades").select("modo,productos").eq("id", visitId).maybeSingle();
-    const chosen4 = activity?.productos ?? [];
-    let productList = [];
-    if (planHasCoverage) {
-      productList = [...await visitLegacy.promotedProducts()];
-      const missing2 = chosen4.filter((id) => !productList.some((product) => product.id === id));
-      if (missing2.length) {
-        const { data } = await legacyDb().from("productos").select("id,nombre").in("id", missing2);
-        productList = productList.concat(data ?? []);
-      }
-    }
-    return { mode: activity?.modo ?? "presencial", products: [...chosen4], productList };
-  }
-  function afterChange(accountId, message) {
-    document.getElementById("dlg")?.close();
-    notices.toast(message);
-    agendaActions.openAccount(accountId);
-    visitLegacy.reloadHome();
-  }
-  async function save9(visit2, extra, accountId, button3) {
-    const body3 = document.getElementById("dbody");
-    const results = [...body3?.querySelectorAll("[data-res][aria-pressed=true]") ?? []].map((item) => item.dataset.res ?? "");
-    button3.disabled = true;
-    button3.textContent = t("visit.edit.saving");
-    const { data: result, error } = await legacyDb().rpc("actualizar_actividad", { p: {
-      id: visit2.id,
-      fecha: value4("evf"),
-      resultados: results,
-      muestras: Number(value4("evm")) || 0,
-      nota: value4("evn").trim(),
-      proxima_accion: value4("evpa").trim(),
-      proxima_fecha: value4("evpf"),
-      modo: extra.mode,
-      ...document.getElementById("evprods") ? { productos: extra.products } : {}
-    } });
-    button3.disabled = false;
-    button3.textContent = t("common.save");
-    if (error || result?.ok === false) {
-      notices.toast(t("visit.edit.couldNotSave"), true);
-      return;
-    }
-    afterChange(accountId, t("visit.edit.saved", { visit: term("visita", { capital: "C", adjective: "actualizado" }) }));
-  }
-  async function remove(visit2, accountId) {
-    const text2 = t("visit.edit.deleteText", { visit: term("visita", { article: "el", articleCapital: "C" }), professional: term("medico", { article: "del" }) });
-    if (!await notices.confirm(text2, { titulo: t("visit.edit.deleteTitle", { visit: term("visita", { article: "el" }) }), ok: t("visit.edit.deleteOk"), peligro: true })) return;
-    const { data: result, error } = await legacyDb().rpc("borrar_actividad", { p_id: visit2.id });
-    if (error || result?.ok === false) {
-      notices.toast(t("visit.edit.couldNotDelete"), true);
-      return;
-    }
-    afterChange(accountId, t("visit.edit.deleted", { visit: term("visita", { capital: "C", adjective: "borrado" }) }));
-  }
-  function bind9(body3, visit2, extra, accountId) {
-    body3.querySelectorAll("[data-res]").forEach((button3) => {
-      button3.onclick = () => {
-        const negative = button3.dataset.neg === "1", on3 = pressed(button3);
-        body3.querySelectorAll("[data-res]").forEach((other) => {
-          if (negative || other.dataset.neg === "1") other.setAttribute("aria-pressed", "false");
-        });
-        button3.setAttribute("aria-pressed", String(!on3));
-      };
-    });
-    const modes = body3.querySelectorAll("[data-evmodo]");
-    modes.forEach((button3) => {
-      button3.onclick = () => {
-        extra.mode = button3.dataset.evmodo ?? "presencial";
-        modes.forEach((other) => {
-          other.classList.toggle("on", other === button3);
-          other.setAttribute("aria-pressed", String(other === button3));
-        });
-      };
-    });
-    body3.querySelectorAll("[data-evprod]").forEach((button3) => {
-      button3.onclick = () => {
-        togglePressed(button3);
-        extra.products = [...body3.querySelectorAll("[data-evprod][aria-pressed=true]")].map((item) => item.dataset.evprod ?? "");
-      };
-    });
-    const ok = document.getElementById("evok");
-    if (ok) ok.onclick = () => {
-      void save9(visit2, extra, accountId, ok);
-    };
-    const del = document.getElementById("evborrar");
-    if (del) del.onclick = () => {
-      void remove(visit2, accountId);
-    };
-  }
-  async function editVisit(visit2, accountId) {
-    const extra = await loadExtra(visit2.id, accountCardLegacy.planIncludes("cobertura")).catch(() => ({ mode: "presencial", products: [], productList: [] }));
-    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
-    if (!body3 || !box3) return;
-    body3.innerHTML = editorHtml5(visit2, extra);
-    bind9(body3, visit2, extra, accountId);
-    box3.showModal();
-  }
-
-  // src/app/screens/visit/photos.ts
-  async function readVisitPhoto(file) {
-    if (!file.type.startsWith("image/")) {
-      notices.toast(t("visit.photos.chooseImage"), true);
-      return null;
-    }
-    return visitLegacy.readPhoto(file);
-  }
-  function paintPhotos(box3, photos, remove6) {
-    if (!box3) return;
-    box3.innerHTML = photos.map((photo, index) => `<span class="vfoto"><img alt="${t("visit.photos.photo", { number: index + 1 })}" src="data:${photo.tipo};base64,${photo.datos}">
-    ${remove6 ? `<button type="button" class="vfquitar" data-vfq="${index}" aria-label="${t("visit.photos.remove")}">✕</button>` : ""}</span>`).join("");
-    if (remove6) box3.querySelectorAll("[data-vfq]").forEach((button3) => {
-      button3.onclick = () => {
-        remove6(Number(button3.dataset.vfq));
-      };
-    });
-  }
-  async function uploadVisitPhotos(activityId, photos) {
-    for (const photo of photos) {
-      const { error } = await legacyDb().from("actividad_fotos").insert({ actividad_id: activityId, nombre: photo.nombre, tipo: photo.tipo, tamano: photo.tamano, datos: photo.datos });
-      if (error) {
-        notices.toast(t("visit.photos.uploadFailed", { visit: term("visita", { capital: "C", adjective: "guardado" }) }), true);
-        return false;
-      }
-    }
-    return true;
-  }
-  var photoCount = (count) => count ? count === 1 ? t("visit.photos.one") : t("visit.photos.many", { count }) : t("visit.photos.none");
-  function galleryHtml(photos) {
-    const canDelete = (photo) => photo.creado_por === salesTeam.currentUserId() || cardSectionsLegacy.can("administrar");
-    return `<div class="fh"><div><h2>${t("visit.photos.title", { visit: term("visita", { article: "el" }) })}</h2><div class="sm">${photoCount(photos.length)}</div></div>
-      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
-    <div class="vfotos grande">${photos.map((photo) => `<span class="vfoto"><img alt="${escapeHtml(orFallback(photo.nombre, t("visit.photos.photoAlt")))}" src="data:${escapeHtml(photo.tipo)};base64,${photo.datos}">
-      ${canDelete(photo) ? `<button type="button" class="vfquitar" data-vfdel="${photo.id}" aria-label="${t("visit.photos.delete")}">✕</button>` : ""}</span>`).join("")}</div>
-    <div class="acts u-end"><label class="btn sec u-inline-flex">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfmas" accept="image/*" data-fp="1" hidden multiple></label>
-      <button type="button" class="btn" data-cerrar2>${t("visit.photos.done")}</button></div>`;
-  }
-  function refresh(activityId, accountId) {
-    void showVisitPhotos(activityId, accountId);
-    if (accountCardLegacy.shownId() === accountId) agendaActions.openAccount(accountId);
-  }
-  async function deletePhoto(id, activityId, accountId) {
-    if (!await notices.confirm(t("visit.photos.deleteText", { visit: term("visita", { article: "este" }) }), { titulo: t("visit.photos.deleteTitle"), ok: t("visit.photos.deleteOk"), peligro: true })) return;
-    const { error } = await legacyDb().from("actividad_fotos").delete().eq("id", id);
-    if (error) {
-      notices.toast(t("visit.photos.couldNotDelete"), true);
-      return;
-    }
-    notices.toast(t("visit.photos.deleted"));
-    refresh(activityId, accountId);
-  }
-  async function addPhotos(input6, shown3, activityId, accountId) {
-    const files = [...input6.files ?? []], room = Math.max(0, visitLegacy.photosMax() - shown3), added = [];
-    for (const file of files.slice(0, room)) {
-      const photo = await readVisitPhoto(file);
-      if (photo) added.push(photo);
-    }
-    if (files.length > visitLegacy.photosMax() - shown3) notices.toast(t("visit.photos.atMost", { max: visitLegacy.photosMax(), visit: term("visita") }), true);
-    if (!added.length) return;
-    if (await uploadVisitPhotos(activityId, added)) {
-      notices.toast(t(added.length === 1 ? "visit.photos.added" : "visit.photos.addedMany"));
-      refresh(activityId, accountId);
-    }
-  }
-  async function showVisitPhotos(activityId, accountId) {
-    const { data, error } = await legacyDb().from("actividad_fotos").select("id,nombre,tipo,datos,creado_por").eq("actividad_id", activityId).order("creado_en");
-    if (error) {
-      notices.toast(t("visit.photos.couldNotOpen"), true);
-      return;
-    }
-    const photos = data ?? [], body3 = document.getElementById("dlg2body"), box3 = document.getElementById("dlg2");
-    if (!body3 || !box3) return;
-    body3.innerHTML = galleryHtml(photos);
-    body3.querySelectorAll("[data-vfdel]").forEach((button3) => {
-      button3.onclick = () => {
-        void deletePhoto(button3.dataset.vfdel ?? "", activityId, accountId);
-      };
-    });
-    const input6 = document.getElementById("vfmas");
-    if (input6) input6.onchange = () => {
-      void addPhotos(input6, photos.length, activityId, accountId);
-    };
-    if (!box3.open) box3.showModal();
-  }
-
-  // src/app/screens/visit/presentation.ts
-  var MATERIALS_FRESH_MS = 3e5;
-  var showing = null;
-  async function loadMaterials(force = false) {
-    const cached4 = visitLegacy.materials();
-    if (cached4 && !force && Date.now() - visitLegacy.materialsTime() < MATERIALS_FRESH_MS) return cached4;
-    if (!navigator.onLine) return cached4 ?? [];
-    try {
-      const { data, error } = await legacyDb().from("producto_materiales").select("id,producto_id,nombre,tipo,orden,para_portal").order("orden").order("creado_en");
-      if (!error) visitLegacy.setMaterials(data ?? [], Date.now());
-    } catch {
-    }
-    return visitLegacy.materials() ?? [];
-  }
-  var materialsOf = (productId) => (visitLegacy.materials() ?? []).filter((material) => material.producto_id === productId);
-  function blobUrl(material, data) {
-    const binary = atob(String(data).replace(/^data:[^,]*,/, "")), bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return URL.createObjectURL(new Blob([bytes], { type: material.tipo }));
-  }
-  function close2() {
-    showing?.urls.forEach((url) => {
-      URL.revokeObjectURL(url);
-    });
-    showing = null;
-    const box3 = document.getElementById("presenta");
-    if (box3?.open) box3.close();
-  }
-  async function fileOf(material, box3, current) {
-    const known = visitLegacy.materialFiles().get(material.id);
-    if (known) return known;
-    visitLegacy.loading(box3, t("common.loading"));
-    if (!navigator.onLine) {
-      box3.innerHTML = `<p class="vacio">${t("visit.presentation.offline")}</p>`;
-      return null;
-    }
-    const { data, error } = await legacyDb().from("producto_materiales").select("datos").eq("id", material.id).maybeSingle();
-    if (showing !== current || current.list[current.index] !== material) return null;
-    if (error || !data) {
-      box3.innerHTML = `<p class="vacio">${t("visit.presentation.couldNotLoad", { reason: escapeHtml(error?.message ?? t("visit.presentation.missing")) })}</p>`;
-      return null;
-    }
-    visitLegacy.materialFiles().set(material.id, data.datos);
-    return data.datos;
-  }
-  async function paint4() {
-    const current = showing;
-    if (!current) return;
-    const material = current.list[current.index], box3 = document.getElementById("prescuerpo");
-    if (!material || !box3) return;
-    const count = document.getElementById("presn");
-    if (count) count.textContent = current.list.length > 1 ? t("visit.presentation.position", { number: current.index + 1, total: current.list.length, name: material.nombre }) : material.nombre;
-    const previous = document.getElementById("presant"), next = document.getElementById("pressig");
-    if (previous) previous.disabled = current.index === 0;
-    if (next) next.disabled = current.index === current.list.length - 1;
-    const data = await fileOf(material, box3, current);
-    if (!data || showing !== current || current.list[current.index] !== material) return;
-    const url = blobUrl(material, data);
-    current.urls.push(url);
-    box3.innerHTML = material.tipo === "application/pdf" ? `<iframe class="prespdf" src="${url}" title="${escapeHtml(material.nombre)}"></iframe>` : `<img class="presimg" src="${url}" alt="${escapeHtml(material.nombre)}">`;
-  }
-  function move(step) {
-    if (!showing) return;
-    const index = showing.index + step;
-    if (index < 0 || index >= showing.list.length) return;
-    showing.index = index;
-    void paint4();
-  }
-  function dialog5() {
-    if (!document.getElementById("presenta")) document.body.insertAdjacentHTML("beforeend", `<dialog id="presenta" class="presdlg" aria-label="${t("visit.presentation.label")}"></dialog>`);
-    return document.getElementById("presenta");
-  }
-  function open(title2, list, index) {
-    const box3 = dialog5();
-    if (!box3) return;
-    box3.innerHTML = `<div class="prescab"><b>${escapeHtml(title2)}</b><span class="sm" id="presn"></span><button type="button" class="x" id="prescerrar" aria-label="${t("common.close")}">✕</button></div>
-    <div class="prescuerpo" id="prescuerpo"></div>
-    <button type="button" class="presnav ant" id="presant" aria-label="${t("visit.presentation.previous")}">‹</button><button type="button" class="presnav sig" id="pressig" aria-label="${t("visit.presentation.next")}">›</button>`;
-    showing = { list, index, urls: [] };
-    const on3 = (id, action) => {
-      const button3 = document.getElementById(id);
-      if (button3) button3.onclick = action;
-    };
-    on3("prescerrar", close2);
-    on3("presant", () => {
-      move(-1);
-    });
-    on3("pressig", () => {
-      move(1);
-    });
-    box3.oncancel = (event) => {
-      event.preventDefault();
-      close2();
-    };
-    box3.onkeydown = (event) => {
-      if (event.key === "ArrowRight") move(1);
-      if (event.key === "ArrowLeft") move(-1);
-    };
-    box3.showModal();
-    void paint4();
-  }
-  function presentProduct(productId) {
-    const list = materialsOf(productId);
-    if (!list.length) return;
-    const chip = document.querySelector(`#vprods [data-vprod="${productId}"]`);
-    if (chip && chip.getAttribute("aria-pressed") !== "true") chip.click();
-    open(chip?.textContent?.trim() ?? t("visit.presentation.label"), list, 0);
-  }
-  function presentOnly(product, materialId) {
-    const list = materialsOf(product.id);
-    if (!list.length) return;
-    open(orFallback(product.nombre, t("visit.presentation.material")), list, Math.max(0, list.findIndex((material) => material.id === materialId)));
-  }
-
-  // src/app/screens/visit/record/data.ts
-  var CENTRE3 = "Centro";
-  async function cardAndResults(id) {
-    const [card3, results] = await Promise.all([
-      cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`),
-      cachedRpc("clasificadores_actividad", { p_cuenta: id }, `clasact-${id}`)
-    ]);
-    let groups2 = results.data;
-    if (groups2 && !results.cache) visitLegacy.saveCopy("clasact", groups2);
-    groups2 ?? (groups2 = visitLegacy.readCopy("clasact"));
-    return { card: card3.data, groups: groups2 ?? [] };
-  }
-  async function accountFlags(id) {
-    try {
-      return (await legacyDb().from("cuentas").select("tipo,sin_reporting,clasificadores").eq("id", id).maybeSingle()).data;
-    } catch {
-      return null;
-    }
-  }
-  async function samplesLeft(id, type) {
-    if (!navigator.onLine || type === CENTRE3) return [];
-    const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
-    return Array.isArray(data) ? data : [];
-  }
-  function withoutReports(groups2) {
-    const kept = groups2.map((group) => ({ ...group, valores: group.valores.filter((value10) => !isReportResult(value10)) }));
-    return { groups: kept, hidden: kept.some((group, index) => group.valores.length !== groups2[index]?.valores.length) };
-  }
-  async function loadVisitData(id) {
-    const coverage = accountCardLegacy.planIncludes("cobertura");
-    const [{ card: card3, groups: groups2 }, flags, products3, missingTimetable2] = await Promise.all([
-      cardAndResults(id),
-      accountFlags(id),
-      coverage ? visitLegacy.promotedProducts().catch(() => []) : Promise.resolve([]),
-      missingTimetable(id).catch(() => false)
-    ]);
-    if (!card3?.medico) return navigator.onLine ? "online" : "offline";
-    const samples = await samplesLeft(id, flags?.tipo).catch(() => []);
-    const noReporting = hasNoReports(flags ?? card3.medico), shown3 = noReporting ? withoutReports(groups2) : { groups: groups2, hidden: false };
-    return { account: card3.medico, consultations: card3.consultas ?? [], groups: shown3.groups, samples, products: products3, noReporting, reportsHidden: shown3.hidden, missingTimetable: missingTimetable2 };
-  }
-
-  // src/app/screens/visit/record/form.ts
-  var RESULT_ROLE = "resultado_visita";
-  function splitGroups(groups2) {
-    const filled = groups2.filter((group) => group.valores.length);
-    const results = filled.find((group) => group.papel === RESULT_ROLE) ?? { clave: "", papel: RESULT_ROLE, nombre: t("visit.record.result"), valores: [...visitLegacy.resultValues()] };
-    return { results, others: filled.filter((group) => group !== results) };
-  }
-  function button2(index, group, value10, isResult) {
-    const key = `${group.clave}::${value10.valor}`, negative = isResult && value10.extra === NEGATIVE;
-    index.set(key, { group: group.clave, value: value10 });
-    return `<span class="optw"${value10.oculto ? ' data-oculto="1"' : ""}><button type="button" class="opt ${negative ? "neg" : ""}" data-vk="${escapeHtml(key)}" ${isResult ? `data-res="${escapeHtml(value10.valor)}"` : ""} ${negative ? 'data-neg="1"' : ""} aria-pressed="false">
-      <span class="mk"></span>${escapeHtml(value10.valor)}${value10.dato_tipo ? ` <span class="datom">${t("visit.record.withData")}</span>` : ""}</button>
-      ${value10.dato_tipo ? `<span class="datobox hide" data-box="${escapeHtml(key)}">${visitLegacy.dataField(value10, key)}</span>` : ""}</span>`;
-  }
-  function hiddenButton(groups2) {
-    const hidden = groups2.flatMap((group) => group.valores).filter((value10) => value10.oculto).length;
-    if (!hidden) return "";
-    return `<button type="button" class="lnk" id="vtodos">${hidden === 1 ? t("visit.record.showOneHidden") : t("visit.record.showHidden", { count: hidden })}</button>`;
-  }
-  var noReportsNote = () => `<p class="sm srnota">${t("visit.record.noReports", { professional: term("medico", { article: "este", articleCapital: "C" }) })}</p>`;
-  function resultsHtml(index, groups2, reportsHidden) {
-    const { results, others } = groups2;
-    const positive = results.valores.filter((value10) => value10.extra !== NEGATIVE), negative = results.valores.filter((value10) => value10.extra === NEGATIVE);
-    const more2 = hiddenButton([results, ...others]);
-    return `<label>${t("visit.record.resultLabel")} <span class="sm">${t("visit.record.severalResults", { done: term("visita", { adjective: "realizado" }) })}</span></label>
-    <div class="opciones">${positive.map((value10) => button2(index, results, value10, true)).join("")}</div>${reportsHidden ? noReportsNote() : ""}${negative.length ? "" : more2}
-    <div class="opciones u-mt-8">${negative.map((value10) => button2(index, results, value10, true)).join("")}</div>${negative.length ? more2 : ""}
-    ${others.map((group) => `<label>${escapeHtml(group.nombre)}${group.descripcion ? ` <span class="sm">· ${escapeHtml(group.descripcion)}</span>` : ""}</label>
-      <div class="opciones">${group.valores.map((value10) => button2(index, group, value10, false)).join("")}</div>`).join("")}`;
-  }
-  var LEFT_TEXTS = { anio: "visit.samples.left", trimestre: "visit.samples.leftQuarter", mes: "visit.samples.leftMonth" };
-  function sampleRow(sample) {
-    const available2 = sample.en_plazo && sample.quedan;
-    const text2 = !sample.en_plazo ? t("visit.samples.expired", { date: formatShortDate(sample.hasta ?? "") }) : t(LEFT_TEXTS[deliveryRule().period], { left: sample.quedan, max: sample.max }) + (sample.hasta ? t("visit.samples.until", { date: formatShortDate(sample.hasta) }) : "");
-    return `<div class="vmrow ${available2 ? "" : "agotada"}"><span><b>${escapeHtml(sample.nombre)}</b><span class="sm">${text2}</span></span>
-      <input type="number" min="0" max="${sample.en_plazo ? sample.quedan : 0}" step="1" value="0" data-vmprod="${sample.producto_id}" aria-label="${t("visit.samples.of", { name: escapeHtml(sample.nombre) })}" ${available2 ? "" : "disabled"}></div>`;
-  }
-  function samplesHtml(samples, name) {
-    const rule = deliveryRule();
-    if (!samples.length || !rule.active) return "";
-    return `<div class="vmuestras" id="vmuestras"><label>${escapeHtml(rule.name ?? t("visit.samples.title"))}</label>
-    ${samples.map(sampleRow).join("")}
-    ${rule.signature ? `<div class="vmfirma hide" id="vmfirma"><label>${t("visit.samples.signature")} <span class="sm">${t("visit.samples.signatureHint")}</span></label>
-      <canvas id="vmcanvas" aria-label="${t("visit.samples.signatureArea")}"></canvas>
-      <div class="vmfpie"><input id="vmfirmante" value="${escapeHtml(name)}" aria-label="${t("visit.samples.signer")}" placeholder="${t("visit.samples.signer")}"><button type="button" class="lnk" id="vmborrar">${t("visit.samples.clear")}</button></div></div>` : ""}</div>`;
-  }
-  function productsHtml(products3) {
-    if (!products3.length) return "";
-    const materials = visitLegacy.materials() ?? [], withMaterial = products3.filter((product) => materials.some((material) => material.producto_id === product.id));
-    return `<label>${t("visit.record.products")}</label>
-      <div class="opciones" id="vprods">${products3.map((product) => `<button type="button" class="opt" data-vprod="${product.id}" aria-pressed="false"><span class="mk"></span>${escapeHtml(product.nombre)}</button>`).join("")}</div>
-      ${withMaterial.length ? `<div class="vpres" id="vpres"><span class="sm">${t("visit.record.present")}</span>${withMaterial.map((product) => `<button type="button" class="chip" data-vpres="${product.id}">▶ ${escapeHtml(product.nombre)}</button>`).join("")}</div>` : ""}`;
-  }
-  function noticesHtml(data) {
-    const timetable = data.missingTimetable ? `<div class="avisoh" id="vhorario"><span>${t("visit.record.missingTimetable", { visit: term("visita", { article: "el" }) })}</span></div>` : "";
-    const offline = navigator.onLine ? "" : `<div class="banda-aviso vsinred"><b>${t("visit.record.offlineTitle")}</b> ${t("visit.record.offline", { visit: escapeHtml(term("visita", { article: "la", capital: "C" })) })}</div>`;
-    return timetable + offline;
-  }
-  function centreOptions(consultations) {
-    return consultations.map((item) => `<option value="${item.id ?? ""}">${escapeHtml(orFallback(item.centro_nombre, privateConsultation()))}${item.municipio ? ` · ${escapeHtml(item.municipio)}` : ""}</option>`).join("");
-  }
-  function visitHtml(data, index) {
-    const groups2 = splitGroups(data.groups), visit2 = term("visita");
-    return `
-    <div class="fh"><div><h2>${t("visit.record.title", { visit: visit2 })}</h2><div class="sm">${escapeHtml(data.account.nombre)}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>${noticesHtml(data)}
-    <div class="g2">
-      <div><label for="vf">${t("visit.edit.date")}</label><input id="vf" type="date" value="${todayIso()}"></div>
-      <div><label for="vc">${t("visit.record.centre", { visit: term("visita", { article: "del" }) })}</label><select id="vc">
-        ${centreOptions(data.consultations)}
-      </select></div>
-    </div><label>${t("visit.record.howItWas")}</label>
-    <div class="segs" id="vmodo" role="group" aria-label="${t("visit.record.howItWas")}">${modeButtons("vmodo", "presencial")}</div>${productsHtml(data.products)}
-    ${resultsHtml(index, groups2, data.reportsHidden)}
-    <div class="g2 u-mt-6">
-      <div><label for="vpa">${t("visit.edit.nextAction")}</label><input id="vpa" placeholder="${t("visit.record.nextActionPlaceholder")}"></div>
-      <div><label for="vpf">${t("visit.record.nextActionDate")}</label><input id="vpf" type="date"></div>
-    </div>
-    ${samplesHtml(data.samples, data.account.nombre)}<label for="vn">${t("visit.edit.note")}</label><textarea id="vn" rows="3"></textarea><div class="vfotosw"><label class="btn sec u-inline-flex" id="vfotobtn">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfotof" accept="image/*" data-fp="1" hidden multiple></label>
-    <span class="sm">${t("visit.photos.hint", { max: visitLegacy.photosMax() })}</span><div class="vfotos" id="vfotos"></div></div>
-    <div class="acts u-end">
-      <button class="btn sec" data-cerrar>${t("common.cancel")}</button>
-      <button class="btn" id="vguardar">${t("visit.record.save", { visit: visit2 })}</button>
-    </div>`;
-  }
-
-  // src/app/screens/visit/record/save.ts
-  var operationId = null;
-  var forgetOperation = () => {
-    operationId = null;
-  };
-  var value5 = (id) => document.getElementById(id)?.value ?? "";
-  function details(body3, marked, index) {
-    return marked.map((key) => {
-      const field10 = body3.querySelector(`[data-dato="${CSS.escape(key)}"]`), extra = field10 ? field10.value.trim() : "";
-      const info = index.get(key);
-      return { clasificador: info?.group ?? "", valor: info?.value.valor ?? "", ...extra ? { dato: extra } : {} };
-    });
-  }
-  async function askUrgent(account, id) {
-    const message = t("visit.record.urgentText", { name: `${account.nombre}${account.urgente_motivo ? ` · ${account.urgente_motivo}` : ""}` });
-    const choice = await notices.choose(t("visit.record.urgentTitle"), message, [{ k: "dejar", t: t("visit.record.keepUrgent"), cls: "sec" }, { k: "quitar", t: t("visit.record.removeUrgent") }]);
-    if (choice !== "quitar") return;
-    const { error } = await legacyDb().from("cuentas").update({ urgente: false, urgente_motivo: null }).eq("id", id);
-    notices.toast(t(error ? "visit.record.couldNotUnmark" : "visit.record.unmarked"), Boolean(error));
-  }
-  function payload4(id, results, detailList) {
-    operationId ?? (operationId = `v-${id}-${Date.now()}`);
-    return {
-      cuenta_id: id,
-      ubicacion_id: value5("vc") || null,
-      fecha: value5("vf"),
-      resultados: results,
-      detalles: detailList,
-      nota: value5("vn").trim(),
-      proxima_accion: value5("vpa").trim(),
-      proxima_fecha: value5("vpf") || null,
-      op_id: operationId
-    };
-  }
-  function savedNotice(saved3) {
-    if (saved3?.encolada) return;
-    notices.toast(t("visit.record.saved", { visit: term("visita", { capital: "C", adjective: "registrado" }) }) + (saved3?.estado ? t("visit.record.newState", { state: saved3.estado }) : ""));
-  }
-  async function saveVisit(visit2, button3) {
-    const { id, account, index, resultsKey } = visit2;
-    const body3 = document.getElementById("dbody");
-    if (!body3) return;
-    const marked = [...body3.querySelectorAll("[data-vk][aria-pressed=true]")].map((item) => item.dataset.vk ?? "");
-    const isResult = (key) => index.get(key)?.group === resultsKey;
-    const results = marked.filter(isResult).map((key) => index.get(key)?.value.valor ?? "");
-    if (!results.length) {
-      notices.toast(t("visit.record.chooseResult"), true);
-      return;
-    }
-    button3.disabled = true;
-    button3.textContent = t("visit.edit.saving");
-    const { data, error } = await visitLegacy.writeRpc("registrar_actividad", { p: payload4(id, results, details(body3, marked, index)) });
-    button3.disabled = false;
-    button3.textContent = t("visit.record.save", { visit: term("visita") });
-    if (error) {
-      notices.toast(t("visit.record.couldNotSave", { error: error.message ?? "" }), true);
-      return;
-    }
-    document.getElementById("dlg")?.close();
-    savedNotice(data);
-    const done = marked.some((key) => isResult(key) && index.get(key)?.value.extra !== NEGATIVE);
-    if (account.urgente && done) await askUrgent(account, id);
-    visitLegacy.reloadHome();
-    if (accountCardLegacy.shownId() === id) agendaActions.openAccount(id);
-  }
-
-  // src/app/screens/visit/record/index.ts
-  function bindResults(body3, visit2) {
-    body3.querySelectorAll("[data-vk]").forEach((button3) => {
-      button3.onclick = () => {
-        const key = button3.dataset.vk ?? "", on3 = pressed(button3);
-        if (visit2.index.get(key)?.group === visit2.resultsKey) {
-          const negative = button3.dataset.neg === "1";
-          body3.querySelectorAll("[data-res]").forEach((other) => {
-            if ((negative || other.dataset.neg === "1") && other !== button3) {
-              other.setAttribute("aria-pressed", "false");
-              body3.querySelector(`[data-box="${CSS.escape(other.dataset.vk ?? "")}"]`)?.classList.add("hide");
-            }
-          });
-        }
-        button3.setAttribute("aria-pressed", String(!on3));
-        const box3 = body3.querySelector(`[data-box="${CSS.escape(key)}"]`);
-        if (box3) {
-          box3.classList.toggle("hide", on3);
-          if (!on3) {
-            const field10 = box3.querySelector("input, select");
-            if (field10) setTimeout(() => {
-              field10.focus();
-            }, 30);
-          }
-        }
-      };
-    });
-    const more2 = document.getElementById("vtodos");
-    if (more2) more2.onclick = () => {
-      body3.classList.add("vertodos");
-      more2.remove();
-    };
-  }
-  function bindModeAndProducts(body3, draft) {
-    const modes = body3.querySelectorAll("[data-vmodo]");
-    modes.forEach((button3) => {
-      button3.onclick = () => {
-        draft.modo = button3.dataset.vmodo ?? "presencial";
-        modes.forEach((other) => {
-          other.classList.toggle("on", other === button3);
-          other.setAttribute("aria-pressed", String(other === button3));
-        });
-      };
-    });
-    body3.querySelectorAll("[data-vprod]").forEach((button3) => {
-      button3.onclick = () => {
-        togglePressed(button3);
-        draft.productos = [...body3.querySelectorAll("[data-vprod][aria-pressed=true]")].map((item) => item.dataset.vprod ?? "");
-      };
-    });
-    body3.querySelectorAll("[data-vpres]").forEach((button3) => {
-      button3.onclick = () => {
-        presentProduct(button3.dataset.vpres ?? "");
-      };
-    });
-  }
-  function bindPhotos(draft) {
-    const paint10 = () => {
-      paintPhotos(document.getElementById("vfotos"), draft.fotos, (index) => {
-        draft.fotos.splice(index, 1);
-        paint10();
-      });
-    };
-    const input6 = document.getElementById("vfotof");
-    if (input6) input6.onchange = async () => {
-      for (const file of [...input6.files ?? []]) {
-        if (draft.fotos.length >= visitLegacy.photosMax()) {
-          notices.toast(t("visit.photos.atMost", { max: visitLegacy.photosMax(), visit: term("visita") }), true);
-          break;
-        }
-        const photo = await readVisitPhoto(file);
-        if (photo) draft.fotos.push(photo);
-      }
-      input6.value = "";
-      paint10();
-    };
-  }
-  function bindSamples(body3, samples, draft) {
-    if (!samples.length || !deliveryRule().active) return;
-    const signature = deliveryRule().signature;
-    let pad3 = null;
-    const items = () => [...body3.querySelectorAll("[data-vmprod]")].map((input6) => ({ producto_id: input6.dataset.vmprod ?? "", unidades: Math.max(0, Math.floor(Number(input6.value) || 0)), max: Number(input6.max) })).filter((item) => item.unidades > 0);
-    const show2 = () => {
-      const any = items().length > 0, canvas = document.getElementById("vmcanvas");
-      document.getElementById("vmfirma")?.classList.toggle("hide", !any);
-      if (any && !pad3 && canvas) pad3 = visitLegacy.signaturePad(canvas);
-    };
-    body3.querySelectorAll("[data-vmprod]").forEach((input6) => {
-      input6.addEventListener("input", show2);
-    });
-    const clear = document.getElementById("vmborrar");
-    if (clear) clear.onclick = () => {
-      pad3?.borrar();
-    };
-    draft.muestras = {
-      items,
-      firmante: () => document.getElementById("vmfirmante")?.value.trim() ?? "",
-      firma: () => pad3?.imagen() ?? null,
-      validar: () => {
-        const chosen4 = items();
-        if (!chosen4.length) return null;
-        if (chosen4.some((item) => item.unidades > item.max)) return t("visit.samples.overLimit");
-        return signature && (!pad3 || pad3.vacia()) ? t("visit.samples.missingSignature") : null;
-      }
-    };
-  }
-  function applyDateRules(date) {
-    const field10 = document.getElementById("vf");
-    if (!field10) return;
-    const today2 = todayIso();
-    field10.max = today2;
-    if (!cardSectionsLegacy.can("visita_fecha_pasada")) {
-      field10.value = today2;
-      field10.min = today2;
-      field10.disabled = true;
-      field10.title = t("visit.record.sameDay");
-    } else if (date && date <= today2) field10.value = date;
-  }
-  function paint5(id, data, date) {
-    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
-    if (!body3 || !box3) return;
-    const index = /* @__PURE__ */ new Map(), resultsKey = splitGroups(data.groups).results.clave;
-    body3.classList.remove("vertodos");
-    body3.innerHTML = visitHtml(data, index);
-    const draft = { id, modo: "presencial", fotos: [], ...data.products.length ? { productos: [] } : {} };
-    visitLegacy.setCurrent(draft);
-    const visit2 = { id, account: data.account, index, resultsKey };
-    bindResults(body3, visit2);
-    bindModeAndProducts(body3, draft);
-    bindPhotos(draft);
-    bindSamples(body3, data.samples, draft);
-    applyDateRules(date);
-    const save26 = document.getElementById("vguardar");
-    if (save26) save26.onclick = () => {
-      void saveVisit(visit2, save26);
-    };
-    box3.showModal();
-  }
-  async function openVisit(id) {
-    const date = visitLegacy.takeDate();
-    forgetOperation();
-    await visitLegacy.withLoading(async () => {
-      const data = await loadVisitData(id);
-      if (typeof data === "string") {
-        notices.toast(t("visit.record.couldNotOpen", { reason: t(data === "online" ? "visit.record.cardUnreadable" : "visit.record.noCopy") }), true);
-        return;
-      }
-      paint5(id, data, date);
-    });
-  }
-
-  // src/app/screens/visit/settings.ts
-  function samplesHtml2(setting2, products3) {
-    return `
-    <div class="fh"><div><h2>${t("visit.settings.samplesTitle")}</h2><div class="sm">${t("visit.settings.samplesSubtitle", { visit: term("visita", { article: "un" }) })}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <label class="opt u-mt-10"><input type="checkbox" id="murest" ${setting2.restar_stock ? "checked" : ""}>
-      <span><b>${t("visit.settings.fromStock")}</b><br><span class="sm">${t("visit.settings.fromStockHint", { visit: term("visita", { article: "el" }) })}</span></span></label>
-    <label for="muprod">${t("visit.settings.product")}</label><select id="muprod"><option value="">—</option>${products3.map((product) => `<option value="${product.id}" ${product.id === setting2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("")}</select>
-    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="muok">${t("common.save")}</button></div>`;
-  }
-  async function saveSamples(box3) {
-    const fromStock = document.getElementById("murest")?.checked ?? false, product = document.getElementById("muprod")?.value ?? "";
-    if (fromStock && !product) {
-      notices.toast(t("visit.settings.chooseProduct"), true);
-      return;
-    }
-    const { error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "muestras", p_valor: { producto_id: product || null, restar_stock: fromStock } });
-    if (error) {
-      notices.toast(t("visit.settings.couldNotSave"), true);
-      return;
-    }
-    box3.close();
-    notices.toast(t("visit.settings.saved"));
-  }
-  async function editSamples() {
-    const [, products3] = await Promise.all([cycleLegacy.loadSettings(), visitLegacy.reloadProducts()]);
-    const setting2 = { producto_id: null, restar_stock: false, ...cycleLegacy.setting("muestras") };
-    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
-    if (!body3 || !box3) return;
-    body3.innerHTML = samplesHtml2(setting2, products3);
-    box3.showModal();
-    const ok = document.getElementById("muok");
-    if (ok) ok.onclick = () => {
-      void saveSamples(box3);
-    };
-  }
-  async function saveRevisitNotice(notice2) {
-    const preferences = { ...visitLegacy.preferences() };
-    preferences.avisos = { ...preferences.avisos, revisita: notice2 };
-    const { data, error } = await legacyDb().rpc("guardar_preferencias", { p: preferences });
-    if (error) {
-      notices.toast(t("visit.settings.couldNotSave"), true);
-      return false;
-    }
-    visitLegacy.setPreferences(data ?? preferences);
-    return true;
-  }
-
-  // src/app/legacy/products-bridge.ts
-  var productsLegacy = {
-    section: () => productsStore.section,
-    setSection: (section) => {
-      productsStore.section = section;
-    },
-    /** Through the global names (the adapters of pantallas/productos.js), which call the screen with its cache and «‹ Volver». */
-    reload: () => {
-      void loadProductsModule();
-    },
-    openStock: (line2) => {
-      void showStock(line2);
-    },
-    openDeposit: (accountId, name, notice2) => showDeposit(accountId, name, notice2 ?? ""),
-    editProduct: (product) => {
-      void editProduct(product ?? null);
-    },
-    editSamples: () => {
-      void editSamples();
-    },
-    clearModules: (except) => {
-      session_exports.emptyModules(except);
-    },
-    showLoading: (element, text2) => {
-      showLoading(element, text2);
-    },
-    matchesFieldFilters: (values2) => Boolean(matchesFilters(values2, productsStore.filters)),
-    hasFieldFilters: () => Object.keys(productsStore.filters).length > 0,
-    visibleFieldColumns: () => visibleFields("producto"),
-    fieldHeaders: (fields) => columnHeaders(fields),
-    fieldCells: (fields, values2) => columnCells(fields, values2),
-    widenGrid: (grid, count) => {
-      widenGrid(grid, count);
-    }
-  };
-
-  // src/app/screens/products/model.ts
-  var ORDER_MARGIN_DAYS = 14;
-  var EXPIRY_SOON_DAYS = 90;
-  var euros5 = (value10) => formatCurrency(round2(value10));
-  function stockState(line2) {
-    if (line2.stock <= 0) return [t("products.stock.outOfStock"), "p-anu"];
-    if (line2.stock_minimo !== null && line2.stock_minimo !== void 0 && line2.stock < line2.stock_minimo) return [t("products.stock.belowMinimum"), "p-bor"];
-    if (line2.dias_cobertura !== null && line2.dias_cobertura !== void 0 && line2.dias_cobertura <= line2.plazo_dias + ORDER_MARGIN_DAYS && !line2.en_camino) return [t("products.stock.orderNow"), "p-bor"];
-    return [t("products.stock.fine"), "p-est"];
-  }
-  function expiryClass(isoDate) {
-    if (!isoDate) return "";
-    const today2 = todayIso();
-    if (isoDate < today2) return "cad-pasada";
-    return isoDate <= addDays(today2, EXPIRY_SOON_DAYS) ? "cad-pronto" : "";
-  }
-  var storeIcon = (store4) => store4.tipo === "central" || store4.tipo === "deposito" ? "🏢" : "💼";
-  function storeKind(store4) {
-    if (store4.tipo === "central") return t("products.stores.central");
-    return store4.tipo === "deposito" ? t("products.stores.deposit") : t("products.stores.caseOf", { name: escapeHtml(orFallback(store4.usuario, "—")) });
-  }
-  var errorMessage = (error) => error?.message ?? "";
-
-  // src/app/screens/products/catalog.ts
-  var money = (value10) => isPresent(value10) ? euros5(value10) : "—";
-  var activePill = (active) => `<span class="pill ${active ? "p-est" : "p-anu"}">${t(active ? "products.catalog.activeState" : "products.catalog.inactiveState")}</span>`;
-  function countHtml2(rows2) {
-    const active = rows2.filter((row3) => row3.activo).length, inactive = rows2.length - active;
-    return `<b>${formatNumber(active)}</b> ${t(active === 1 ? "products.catalog.oneActive" : "products.catalog.active")}${inactive ? t("products.catalog.inactive", { count: formatNumber(inactive) }) : ""}`;
-  }
-  function rowHtml7(row3, fields) {
-    const photo = row3.foto_url ? `background-image:url('${escapeHtml(row3.foto_url)}')` : "";
-    return `<button class="dr" data-prod="${row3.id}" style="${row3.activo ? "" : "opacity:.55"}">
-        <span><span class="pfoto" style="${photo}">${row3.foto_url ? "" : "◧"}</span></span>
-        <span><b>${escapeHtml(row3.nombre)}</b><span class="sm">${escapeHtml(orFallback(row3.presentacion, t("products.catalog.noPresentation")))}</span></span>
-        <span class="sm">${escapeHtml(orFallback(row3.referencia, "—"))}</span><span class="num">${money(row3.precio)}</span>
-        <span class="num">${formatNumber(row3.iva ?? 0)}%</span><span class="num"><b>${money(row3.pvp)}</b></span>
-        <span>${activePill(row3.activo)}</span>${productsLegacy.fieldCells(fields, row3.clasificadores)}</button>`;
-  }
-  function tableHtml2(rows2, fields) {
-    const head = [["", ""], ["", "product"], ["", "reference"], ["num", "withoutVat"], ["num", "vat"], ["num", "withVat"], ["", "state"]];
-    const empty2 = `<div class="vacio">${t(productsLegacy.hasFieldFilters() ? "products.catalog.noneFiltered" : "products.catalog.none")}</div>`;
-    return `<div class="dgrid-wrap"><div class="dgrid prods">
-      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${key ? t(`products.catalog.${key}`) : ""}</span>`).join("")}${productsLegacy.fieldHeaders(fields)}</div>
-      ${rows2.map((row3) => rowHtml7(row3, fields)).join("") || empty2}
-    </div></div>`;
-  }
-  async function paintProducts() {
-    const admin = cardSectionsLegacy.can("administrar");
-    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.catalog.loading"));
-    const { data } = await callRpc("productos_lista", { p_todos: admin });
-    const body3 = document.getElementById("vcuerpo");
-    if (!body3) return;
-    const rows2 = (data ?? []).filter((row3) => orFallback(row3.tipo, "producto") === "producto" && productsLegacy.matchesFieldFilters(row3.clasificadores));
-    const fields = productsLegacy.visibleFieldColumns();
-    body3.innerHTML = `<div class="panel">
-    <div class="cuenta">${countHtml2(rows2)}</div>
-    ${tableHtml2(rows2, fields)}</div>`;
-    productsLegacy.widenGrid(body3.querySelector(".dgrid.prods"), fields.length);
-    body3.querySelectorAll("[data-prod]").forEach((button3) => {
-      button3.onclick = () => {
-        productsLegacy.editProduct(rows2.find((row3) => row3.id === button3.dataset.prod) ?? null);
-      };
-    });
-  }
-
-  // src/app/screens/products/services.ts
-  var PRICE_DECIMALS = 4;
-  var money2 = (value10) => isPresent(value10) ? euros5(value10) : "—";
-  var field3 = (id) => document.getElementById(id);
-  function rowHtml8(service) {
-    const byDefault = service.por_defecto ? `<span class="pill p-est">${t("products.services.byDefault")}</span>` : '<span class="vac">—</span>';
-    return `<button class="dr" data-serv="${service.id ?? ""}" style="${service.activo ? "" : "opacity:.55"}">
-        <span><b>${escapeHtml(service.nombre ?? "")}</b></span><span class="num">${money2(service.precio)}</span>
-        <span class="num">${formatNumber(service.iva ?? 0)}%</span><span class="num"><b>${money2(service.pvp)}</b></span>
-        <span>${byDefault}</span>
-        <span><span class="pill ${service.activo ? "p-est" : "p-anu"}">${t(service.activo ? "products.catalog.activeState" : "products.catalog.inactiveState")}</span></span></button>`;
-  }
-  async function paintServices() {
-    const admin = cardSectionsLegacy.can("administrar");
-    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.services.loading"));
-    const { data } = await callRpc("productos_lista", { p_todos: admin });
-    const body3 = document.getElementById("vcuerpo");
-    if (!body3) return;
-    const list = (data ?? []).filter((item) => item.tipo === "servicio");
-    const head = [["", "products.services.service"], ["num", "products.catalog.withoutVat"], ["num", "products.catalog.vat"], ["num", "products.catalog.withVat"], ["", "products.services.inNewOrders"], ["", "products.catalog.state"]];
-    body3.innerHTML = `<div class="panel">
-    <div class="cuenta"><b>${formatNumber(list.filter((item) => item.activo).length)}</b>${t("products.services.activeCount")}</div>
-    <div class="dgrid-wrap"><div class="dgrid servs">
-      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(key)}</span>`).join("")}</div>
-      ${list.map(rowHtml8).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
-    </div></div></div>`;
-    body3.querySelectorAll("[data-serv]").forEach((button3) => {
-      button3.onclick = () => {
-        editService(list.find((item) => item.id === button3.dataset.serv) ?? null);
-      };
-    });
-  }
-  function prices(service) {
-    if (!isPresent(service.precio)) return ["", ""];
-    return [String(Number(Number(service.precio).toFixed(PRICE_DECIMALS))), String(round2(service.precio * (1 + (service.iva ?? 0) / 100)))];
-  }
-  var checkbox = (id, on3, locked) => `<input type="checkbox" id="${id}" ${on3 ? "checked" : ""} ${locked}>`;
-  function editorHtml6(service, admin) {
-    const locked = admin ? "" : "disabled", vat = service.iva ?? defaultVat("servicios"), [price, withVat2] = prices(service);
-    return `
-    <div class="fh"><div><h2>${service.id ? escapeHtml(service.nombre ?? "") : t("products.services.newTitle")}</h2>
-      <div class="sm">${t("products.services.hint")}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <label for="svn">${t("products.services.name")}</label><input id="svn" value="${escapeHtml(service.nombre ?? "")}" placeholder="${t("products.services.namePlaceholder")}" ${locked}>
-    <div class="pvp">
-      <div><label for="svs">${t("products.services.withoutVat")}</label><input id="svs" type="number" step="0.01" min="0" value="${price}" ${locked}></div>
-      <div><label for="svi">${t("products.services.vat")}</label><input id="svi" type="number" step="1" min="0" max="21" value="${vat}" ${locked}></div>
-      <div><label for="svc">${t("products.services.withVat")}</label><input id="svc" type="number" step="0.01" min="0" value="${withVat2}" ${locked}></div></div>
-    <label class="opt u-mt-12">${checkbox("svdef", service.por_defecto, locked)} ${t("products.services.proposeByDefault")}</label>
-    ${service.id ? `<label class="opt u-mt-8">${checkbox("svact", service.activo, locked)} ${t("products.services.active")}</label>` : ""}
-    <div class="acts u-end"><button class="btn sec" data-cerrar>${t(admin ? "common.cancel" : "common.close")}</button>
-      ${admin ? `<button class="btn" id="svok">${t(service.id ? "common.save" : "products.services.create")}</button>` : ""}</div>`;
-  }
-  function bindPrices() {
-    const without = field3("svs"), vat = field3("svi"), withVat2 = field3("svc");
-    if (!without || !vat || !withVat2) return;
-    const rate = () => (Number(vat.value) || 0) / 100;
-    without.oninput = () => {
-      withVat2.value = without.value === "" ? "" : String(round2(Number(without.value) * (1 + rate())));
-    };
-    withVat2.oninput = () => {
-      without.value = withVat2.value === "" ? "" : String(Number((Number(withVat2.value) / (1 + rate())).toFixed(PRICE_DECIMALS)));
-    };
-    vat.oninput = () => {
-      if (without.value !== "") withVat2.value = String(round2(Number(without.value) * (1 + rate())));
-    };
-  }
-  function payload5(service, name) {
-    const active = field3("svact");
-    return {
-      id: service.id ?? null,
-      tipo: "servicio",
-      nombre: name,
-      precio: field3("svs")?.value,
-      iva: field3("svi")?.value,
-      por_defecto: Boolean(field3("svdef")?.checked),
-      ...active ? { activo: active.checked } : {}
-    };
-  }
-  async function save10(service) {
-    const name = field3("svn")?.value.trim() ?? "";
-    if (!name) {
-      notices.toast(t("products.services.writeName"), true);
-      return;
-    }
-    const { data: result, error } = await legacyDb().rpc("guardar_producto", { p: payload5(service, name) });
-    if (error || result?.ok === false) {
-      notices.toast(t("products.services.couldNotSave"), true);
-      return;
-    }
-    document.getElementById("dlg")?.close();
-    notices.toast(t(service.id ? "products.services.saved" : "products.services.created"));
-    await purchasesLegacy.loadProducts();
-    if (currentScreen() === "productos") void paintServices();
-  }
-  function editService(existing) {
-    const admin = cardSectionsLegacy.can("administrar"), service = existing ?? { iva: defaultVat("servicios"), activo: true };
-    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
-    if (!body3 || !box3) return;
-    body3.innerHTML = editorHtml6(service, admin);
-    box3.showModal();
-    if (!admin) return;
-    bindPrices();
-    const ok = document.getElementById("svok");
-    if (ok) ok.onclick = () => {
-      void save10(service);
-    };
-  }
-
-  // src/app/screens/products/stock.ts
-  function rowHtml9(line2) {
-    const [label, kind] = stockState(line2);
-    const unbatched = line2.sin_lote ? ` · <span class="u-warn">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line2.sin_lote) })}</span>` : "";
-    const byStore = (line2.por_almacen ?? []).map((store4) => `${escapeHtml(store4.almacen)}: ${formatNumber(store4.unidades)}`).join(" · ") || "—";
-    const coverage = isPresent(line2.dias_cobertura) ? t("products.stock.coverageDays", { days: formatNumber(line2.dias_cobertura), supplier: formatNumber(line2.plazo_dias) }) : t("products.stock.noSales");
-    const onTheWay = line2.en_camino ? formatNumber(line2.en_camino) + (line2.llegada ? `<span class="sm">${formatShortDate(line2.llegada)}</span>` : "") : "—";
-    return `<button class="dr" data-stk="${line2.id}">
-        <span><b>${escapeHtml(line2.nombre)}</b><span class="sm">${escapeHtml(line2.presentacion ?? "")}${unbatched}</span></span>
-        <span class="num"><b>${formatNumber(line2.stock)}</b></span>
-        <span class="sm">${byStore}</span>
-        <span class="${expiryClass(line2.proxima_caducidad)}">${line2.proxima_caducidad ? formatShortDate(line2.proxima_caducidad) : "—"}</span>
-        <span class="sm">${coverage}</span>
-        <span class="num">${onTheWay}</span>
-        <span><span class="pill ${kind}">${label}</span></span></button>`;
-  }
-  async function paintStock() {
-    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.stock.loading"));
-    await purchasesLegacy.loadStores();
-    const { data, error } = await callRpc("stock_resumen", {});
-    const body3 = document.getElementById("vcuerpo");
-    if (!body3) return;
-    if (error) {
-      body3.innerHTML = `<div class="vacio">${escapeHtml(errorMessage(error))}</div>`;
-      return;
-    }
-    const list = (data ?? []).filter((line2) => Boolean(line2.activo) || Boolean(line2.stock));
-    const head = [["", "product"], ["num", "stock"], ["", "byStore"], ["", "nextExpiry"], ["", "coverage"], ["num", "onTheWay"], ["", "state"]];
-    body3.innerHTML = `<div class="panel">
-    <div class="cuenta">${t("products.stock.intro")}</div>
-    <div class="dgrid-wrap"><div class="dgrid stock">
-      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`products.stock.${key}`)}</span>`).join("")}</div>
-      ${list.map(rowHtml9).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
-    </div></div></div>`;
-    body3.querySelectorAll("[data-stk]").forEach((button3) => {
-      button3.onclick = () => {
-        const line2 = list.find((item) => item.id === button3.dataset.stk);
-        if (line2) productsLegacy.openStock(line2);
-      };
-    });
-  }
-
-  // src/app/screens/products/movement.ts
-  var TEXTS = {
-    inicial: ["products.movement.entryTitle", "products.movement.entryHint"],
-    ajuste: ["products.movement.adjustTitle", "products.movement.adjustHint"],
-    traspaso: ["products.movement.transferTitle", "products.movement.transferHint"]
-  };
-  var value6 = (id) => document.getElementById(id)?.value ?? "";
-  var options = (list, selected2) => list.map((item) => `<option value="${item.id ?? ""}" ${selected2 && item.id === selected2 ? "selected" : ""}>${escapeHtml(item.nombre ?? "")}</option>`).join("");
-  function entryHtml2(line2) {
-    const stores2 = purchasesLegacy.stores().filter((store4) => store4.activo);
-    return `<div class="g2">
-      <div><label for="mvp">${t("products.movement.product")}</label><select id="mvp">${options(purchasesLegacy.products(), line2?.id)}</select></div>
-      <div><label for="mva">${t("products.movement.store")}</label><select id="mva">${options(stores2)}</select></div></div>
-      <div class="g2"><div><label for="mvl">${t("products.movement.batch")}</label><input id="mvl" placeholder="${t("products.movement.batchPlaceholder")}"></div>
-        <div><label for="mvpr">${t("products.movement.supplier")}</label><select id="mvpr"><option value="">—</option>${options(purchasesLegacy.suppliers())}</select></div></div>
-      <div class="g2"><div><label for="mvc">${t("products.movement.expiry")}</label><input id="mvc" type="date"></div><div><label for="mvf">${t("products.movement.made")}</label><input id="mvf" type="date"></div></div>`;
-  }
-  function formHtml3(line2, kind, place3) {
-    const [title2, hint] = TEXTS[kind], adjust = kind === "ajuste";
-    const destinations = purchasesLegacy.stores().filter((store4) => store4.activo && store4.id !== place3?.storeId);
-    return `
-    <div class="fh"><div><h2>${t(title2)}</h2><div class="sm">${t(hint)}</div></div>
-      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
-    ${kind === "inicial" ? entryHtml2(line2) : ""}
-    ${kind === "traspaso" ? `<label for="mvd">${t("products.movement.destination")}</label><select id="mvd">${options(destinations)}</select>` : ""}
-    <div class="g2"><div><label for="mvu">${t(adjust ? "products.movement.unitsSigned" : "products.movement.units")}</label><input id="mvu" type="number" ${adjust ? "" : 'min="1"'}></div>
-      <div><label for="mvn">${t("products.movement.note")}</label><input id="mvn" placeholder="${t(adjust ? "products.movement.adjustPlaceholder" : "products.movement.optional")}"></div></div>
-    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="mvok">${t("products.movement.register")}</button></div>`;
-  }
-  function payload6(line2, kind, place3, units) {
-    const note = value6("mvn").trim();
-    if (kind === "inicial") {
-      return {
-        tipo: kind,
-        producto_id: value6("mvp"),
-        almacen_id: value6("mva"),
-        numero_lote: value6("mvl").trim(),
-        caducidad: value6("mvc"),
-        fecha_fabricacion: value6("mvf"),
-        proveedor_id: value6("mvpr"),
-        unidades: units,
-        nota: note
-      };
-    }
-    return { tipo: kind, producto_id: line2?.id, lote_id: place3?.batchId, almacen_id: place3?.storeId, destino_id: document.getElementById("mvd") ? value6("mvd") : null, unidades: units, nota: note };
-  }
-  function missing(kind, units) {
-    if (!units) return t("products.movement.writeUnits");
-    return kind === "inicial" && !value6("mvl").trim() ? t("products.movement.writeBatch") : "";
-  }
-  async function register(line2, kind, place3) {
-    const units = Number(value6("mvu")), problem = missing(kind, units);
-    if (problem) {
-      notices.toast(problem, true);
-      return;
-    }
-    const { data: result, error } = await legacyDb().rpc("movimiento_manual", { p: payload6(line2, kind, place3, units) });
-    if (error || result?.ok === false) {
-      notices.toast(t("products.movement.failed", { error: orFallback(errorMessage(error), result?.error ?? "") }), true);
-      return;
-    }
-    for (const id of ["dlg2", "dlg"]) document.getElementById(id)?.close();
-    notices.toast(t("products.movement.registered"));
-    if (currentScreen() === "productos") void paintStock();
-  }
-  async function stockMovement(line2, kind, place3) {
-    await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadStores(), purchasesLegacy.loadSuppliers()]);
-    const body3 = document.getElementById("dlg2body"), box3 = document.getElementById("dlg2");
-    if (!body3 || !box3) return;
-    body3.innerHTML = formHtml3(line2, kind, place3);
-    box3.showModal();
-    const ok = document.getElementById("mvok");
-    if (ok) ok.onclick = () => {
-      void register(line2, kind, place3);
-    };
-  }
-
-  // src/app/screens/products/stock-sheet.ts
-  var MOVEMENTS = /* @__PURE__ */ new Map([
-    ["inicial", "products.trace.initial"],
-    ["entrada_compra", "products.trace.purchaseEntry"],
-    ["salida_venta", "products.trace.sale"],
-    ["anulacion_venta", "products.trace.saleCancelled"],
-    ["salida_muestra", "products.trace.sample"],
-    ["ajuste", "products.trace.adjustment"],
-    ["traspaso_salida", "products.trace.transferOut"],
-    ["traspaso_entrada", "products.trace.transferIn"],
-    ["devolucion", "products.trace.returned"],
-    ["consumo_deposito", "products.trace.depositUse"],
-    ["consumo_cirugia", "products.trace.surgeryUse"]
-  ]);
-  var movementName = (type) => {
-    const key = MOVEMENTS.get(type);
-    return key ? t(key, { visit: term("visita") }) : type;
-  };
-  function traceRow(item) {
-    return `<div class="dr u-cursor-default"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span><span>${escapeHtml(movementName(item.tipo))}${item.pedido ? `<span class="sm">${t("products.trace.order", { number: escapeHtml(item.pedido) })}</span>` : ""}</span>
-        <span class="num" style="color:${item.unidades < 0 ? "var(--danger)" : "var(--ok)"}"><b>${item.unidades > 0 ? "+" : ""}${formatNumber(item.unidades)}</b></span>
-        <span>${escapeHtml(orFallback(item.cliente, "—"))}${item.telefono ? `<span class="sm">${escapeHtml(item.telefono)}</span>` : ""}</span><span class="sm">${escapeHtml(orFallback(item.medico, "—"))}</span><span class="sm">${escapeHtml(item.almacen)}</span></div>`;
-  }
-  function batchDetails(batch) {
-    return `${escapeHtml(batch.producto ?? "")}${batch.caducidad ? t("products.trace.expires", { date: formatShortDate(batch.caducidad) }) : ""}${batch.proveedor ? ` · ${escapeHtml(batch.proveedor)}` : ""}${batch.compra ? t("products.trace.purchase", { number: escapeHtml(batch.compra) }) : ""}`;
-  }
-  async function traceability(batchId) {
-    const { data } = await callRpc("trazabilidad_lote", { p_lote: batchId });
-    const batch = data?.lote ?? {}, movements = data?.movimientos ?? [];
-    const body3 = document.getElementById("dlg2body"), box3 = document.getElementById("dlg2");
-    if (!body3 || !box3) return;
-    const details2 = batchDetails(batch);
-    const head = [t("products.trace.date"), t("products.trace.movement"), t("products.trace.units"), t("products.trace.client"), term("medico", { capital: "C" }), t("products.trace.store")];
-    body3.innerHTML = `
-    <div class="fh"><div><h2>${t("products.trace.title", { number: escapeHtml(batch.numero_lote ?? "") })}</h2>
-      <div class="sm">${details2}</div></div>
-      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
-    <p class="sm">${t("products.trace.intro")}</p>
-    <div class="dgrid-wrap"><div class="dgrid traz">
-      <div class="dh">${head.map((title2, index) => `<span${index === 2 ? ' class="num"' : ""}>${title2}</span>`).join("")}</div>
-      ${movements.map(traceRow).join("") || `<div class="vacio">${t("products.trace.none")}</div>`}</div></div>
-    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.close")}</button></div>`;
-    box3.showModal();
-  }
-  function summaryText(line2) {
-    const use = Number(line2.consumo_diario) ? t("products.sheet.dailyUse", { value: String(line2.consumo_diario).replace(".", ",") }) : t("products.sheet.noUse");
-    return `${t("products.sheet.units", { units: formatNumber(line2.stock) })} · ${use}${isPresent(line2.dias_cobertura) ? t("products.sheet.covers", { days: formatNumber(line2.dias_cobertura) }) : ""}`;
-  }
-  function settingsHtml(line2) {
-    const suppliers = purchasesLegacy.suppliers().map((supplier) => `<option value="${supplier.id ?? ""}" ${supplier.nombre === line2.proveedor ? "selected" : ""}>${t("products.sheet.supplierOption", { name: escapeHtml(supplier.nombre ?? ""), days: formatNumber(supplier.plazo_dias) })}</option>`).join("");
-    return `<div class="g2">
-      <div><label for="stmin">${t("products.sheet.minimum")}</label><input id="stmin" type="number" min="0" value="${line2.stock_minimo ?? ""}" placeholder="${t("products.sheet.noMinimum")}"></div>
-      <div><label for="stprov">${t("products.sheet.supplier")}</label><select id="stprov"><option value="">—</option>${suppliers}</select></div></div>`;
-  }
-  function batchHtml(batch, canBuy2) {
-    const expiry = expiryClass(batch.caducidad), manyStores = purchasesLegacy.stores().filter((store4) => store4.activo).length > 1;
-    const tools = canBuy2 ? `<button class="btn sec" data-aju="${batch.id}|${batch.almacen_id}">${t("products.sheet.adjust")}</button>${manyStores ? `<button class="btn sec" data-tras="${batch.id}|${batch.almacen_id}">${t("products.sheet.transfer")}</button>` : ""}` : "";
-    return `<div class="item u-cursor-default">
-        <span class="ic ${expiry === "cad-pasada" ? "w" : ""}">📦</span>
-        <span class="tx"><b>${t("products.sheet.batch", { number: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}</b>
-          <span class="sm"><span class="${expiry}">${batch.caducidad ? t("products.sheet.expiresOn", { date: formatShortDate(batch.caducidad) }) : t("products.sheet.noExpiry")}</span>${batch.fecha_fabricacion ? t("products.sheet.madeOn", { date: formatShortDate(batch.fecha_fabricacion) }) : ""} · ${escapeHtml(batch.almacen)}${batch.proveedor ? ` · ${escapeHtml(batch.proveedor)}` : ""}</span></span>
-        <span class="acts u-m-0"><button class="btn sec" data-traz="${batch.id}">${t("products.sheet.traceability")}</button>
-          ${tools}</span></div>`;
-  }
-  function sheetHtml3(line2, canBuy2) {
-    const [label, kind] = stockState(line2), batches = line2.lotes ?? [];
-    return `
-    <div class="fh"><div><h2>${escapeHtml(line2.nombre)} <span class="pill ${kind}">${label}</span></h2>
-      <div class="sm">${summaryText(line2)}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    ${canBuy2 ? settingsHtml(line2) : ""}
-    <div class="blk"><h3>${t("products.sheet.batches")}</h3>
-      ${batches.length ? `<div class="lista">${batches.map((batch) => batchHtml(batch, canBuy2)).join("")}</div>` : `<div class="sm">${t("products.sheet.noBatches")}</div>`}</div>
-    <div class="acts u-end">
-      <button class="btn sec" data-cerrar>${t("common.close")}</button>
-      ${canBuy2 ? `<button class="btn sec" id="stent">${t("products.sheet.entry")}</button><button class="btn" id="stgu">${t("products.sheet.saveMinimum")}</button>` : ""}</div>`;
-  }
-  async function saveSettings(line2) {
-    const minimum = document.getElementById("stmin")?.value ?? "", supplier = document.getElementById("stprov")?.value ?? "";
-    const { error } = await legacyDb().from("productos").update({ stock_minimo: minimum === "" ? null : Number(minimum), proveedor_id: supplier || null }).eq("id", line2.id);
-    if (error) {
-      notices.toast(t("products.sheet.couldNotSave"), true);
-      return;
-    }
-    document.getElementById("dlg")?.close();
-    notices.toast(t("products.sheet.saved"));
-    void paintStock();
-  }
-  function bind10(body3, line2) {
-    body3.querySelectorAll("[data-traz]").forEach((button3) => {
-      button3.onclick = () => {
-        void traceability(button3.dataset.traz ?? "");
-      };
-    });
-    for (const [attribute, kind] of [["aju", "ajuste"], ["tras", "traspaso"]]) {
-      body3.querySelectorAll(`[data-${attribute}]`).forEach((button3) => {
-        const [batchId = "", storeId = ""] = (button3.dataset[attribute] ?? "").split("|");
-        button3.onclick = () => {
-          void stockMovement(line2, kind, { batchId, storeId });
-        };
-      });
-    }
-    const entry2 = document.getElementById("stent");
-    if (entry2) entry2.onclick = () => {
-      void stockMovement(line2, "inicial");
-    };
-    const save26 = document.getElementById("stgu");
-    if (save26) save26.onclick = () => {
-      void saveSettings(line2);
-    };
-  }
-  async function showStock2(line2) {
-    await purchasesLegacy.loadSuppliers();
-    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
-    if (!body3 || !box3) return;
-    body3.innerHTML = sheetHtml3(line2, purchasesLegacy.canBuy());
-    if (!box3.open) box3.showModal();
-    bind10(body3, line2);
-  }
-
-  // src/app/screens/products/stores.ts
-  var stores = () => purchasesLegacy.stores();
-  var members = () => salesTeam.members();
-  async function load() {
-    await purchasesLegacy.loadStores();
-    if (!salesTeam.members().length) await salesTeam.load();
-  }
-  async function createCase(member) {
-    const { error } = await legacyDb().rpc("guardar_almacen", { p: { nombre: t("products.stores.caseName", { name: String(member.nombre).split(" ")[0] ?? "" }), tipo: "maletin", usuario_id: member.id } });
-    if (error) {
-      notices.toast(t("products.stores.couldNotCreate"), true);
-      return false;
-    }
-    notices.toast(t("products.stores.created"));
-    return true;
-  }
-  var chosenMember = () => members().find((member) => member.id === document.getElementById("almu")?.value);
-  function windowHtml2() {
-    const list = stores().map((store4) => `<div class="item u-cursor-default"><span class="ic">${storeIcon(store4)}</span>
-        <span class="tx"><b>${escapeHtml(store4.nombre)}</b><span class="sm">${storeKind(store4)}${t("products.stores.unitsTail", { units: formatNumber(store4.unidades) })}${store4.activo ? "" : t("products.stores.inactive")}</span></span></div>`).join("");
-    return `
-      <div class="fh"><div><h2>${t("products.stores.title")}</h2><div class="sm">${t("products.stores.subtitle")}</div></div>
-        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-      <div class="lista">${list}</div>
-      <h3 class="u-mt-14">${t("products.stores.newCase")}</h3>
-      <div class="g2"><div><label for="almu">${t("products.stores.salesperson")}</label><select id="almu">${members().map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select></div>
-        <div><label>&nbsp;</label><button class="btn" id="almok">${t("products.stores.createCase")}</button></div></div>
-      <p class="sm">${t("products.stores.caseHint", { theVisit: term("visita", { article: "el" }) })}</p>`;
-  }
-  function paintWindow() {
-    const body3 = document.getElementById("dbody");
-    if (!body3) return;
-    body3.innerHTML = windowHtml2();
-    const ok = document.getElementById("almok");
-    if (ok) ok.onclick = async () => {
-      const member = chosenMember();
-      if (!member || !await createCase(member)) return;
-      await purchasesLegacy.loadStores();
-      paintWindow();
-    };
-  }
-  async function editStores() {
-    await load();
-    paintWindow();
-    document.getElementById("dlg")?.showModal();
-  }
-  function storeCard(store4) {
-    return `<div class="almc"><span class="ic">${storeIcon(store4)}</span>
-        <b>${escapeHtml(store4.nombre)}</b><span class="sm">${storeKind(store4)}${store4.activo ? "" : t("products.stores.inactive")}</span>
-        <span class="almu"><b>${formatNumber(store4.unidades ?? 0)}</b> ${t("products.stores.units")}</span></div>`;
-  }
-  function withoutCaseHtml(withoutCase) {
-    if (!withoutCase.length) return "";
-    const who2 = withoutCase.length === 1 ? t("products.stores.oneWithout", { name: escapeHtml(withoutCase[0]?.nombre ?? "") }) : t("products.stores.manyWithout", { count: withoutCase.length });
-    return `<div class="avisoh u-mt-12"><span>${who2}${t("products.stores.withoutCase")}</span></div>`;
-  }
-  async function paintStores() {
-    await load();
-    const body3 = document.getElementById("cfgcuerpo");
-    if (!body3) return;
-    const canHaveCase = members().filter((member) => cardSectionsLegacy.roleCan(member.rol ?? "", "almacen_propio"));
-    const withoutCase = canHaveCase.filter((member) => !stores().some((store4) => store4.usuario_id === member.id));
-    body3.innerHTML = `
-    <div class="card cfgpanel"><h2>${t("products.stores.title")}</h2>
-      <p class="sm">${t("products.stores.pageIntro")}</p>
-      <div class="mattipos"><div><b>${t("products.stores.centralTitle")}</b><span>${t("products.stores.centralText")}</span></div>
-        <div><b>${t("products.stores.caseTitle")}</b><span>${t("products.stores.caseText", { visits: term("visita", { number: "p" }) })}</span></div></div></div>
-    <div class="card cfgpanel"><h2>${t("products.stores.yours")}</h2>
-      <div class="almgrid">${stores().map(storeCard).join("")}</div>
-      ${withoutCaseHtml(withoutCase)}
-      <div class="matadd u-mt-12"><select id="almu">${canHaveCase.map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select>
-        <button class="btn sec" id="almok">${t("products.stores.createCase")}</button></div>
-      <p class="sm">${t("products.stores.transferHint")}</p></div>`;
-    const ok = document.getElementById("almok");
-    if (ok) ok.onclick = async () => {
-      const member = chosenMember();
-      if (member && await createCase(member)) void paintStores();
-    };
-  }
-
-  // src/app/core/plans.ts
-  var plans_exports = {};
-  __export(plans_exports, {
-    PLAN_EXTRAS: () => PLAN_EXTRAS2,
-    PLAN_SECTIONS: () => PLAN_SECTIONS,
-    currentPlanName: () => currentPlanName,
-    isDowngrade: () => isDowngrade,
-    minimumPlan: () => minimumPlan,
-    notificationTypesOfRole: () => notificationTypesOfRole,
-    planIncludes: () => planIncludes,
-    planIncludesSection: () => planIncludesSection,
-    planNotice: () => planNotice,
-    planOf: () => planOf,
-    planRank: () => planRank,
-    planRows: () => planRows
-  });
-  var PLAN_ORDER = ["campo", "comercial", "empresa", "medida"];
-  var DEFAULT_PLAN_INDEX = 3;
-  var PLAN_EXTRAS2 = { oportunidades: ["comercial", "empresa", "medida"], portal: ["empresa", "medida"] };
-  var PLAN_SECTIONS = { compras: ["empresa", "medida"], proveedores: ["empresa", "medida"] };
-  var planOf = (id) => {
-    const plans2 = coreLegacy.plans();
-    const plan2 = plans2.find((item) => item.id === id) ?? plans2[DEFAULT_PLAN_INDEX];
-    if (!plan2) throw new Error("The plans are not loaded");
-    return plan2;
-  };
-  var planIncludes = (module) => !(module in MODULE_AREA) || planOf(coreLegacy.currentPlan().plan).modulos.includes(module) || module === "facturacion" && coreLegacy.billingReadOnly();
-  var minimumPlan = (module) => coreLegacy.plans().find((plan2) => plan2.modulos.includes(module));
-  var planIncludesSection = (section) => !(section in PLAN_SECTIONS) || Boolean(PLAN_SECTIONS[section]?.includes(coreLegacy.currentPlan().plan));
-  var currentPlanName = () => {
-    try {
-      return planOf(coreLegacy.currentPlan().plan).nombre;
-    } catch {
-      return "";
-    }
-  };
-  var planRank = (id) => PLAN_ORDER.indexOf(id);
-  var isDowngrade = (from, to) => planRank(to.plan) < planRank(from.plan) || planRank(to.plan) === planRank(from.plan) && (Number(to.usuarios) < Number(from.usuarios) || from.pago === "anual" && to.pago === "mensual");
-  var notificationTypesOfRole = () => coreLegacy.notificationTypes().filter((type) => can(`aviso_${String(type[0])}`));
-  function planRows() {
-    const all = PLAN_ORDER, fromSales = PLAN_ORDER.slice(1), fromCompany = PLAN_ORDER.slice(2), custom = PLAN_ORDER.slice(3);
-    const words16 = { professionals: wordFor("medico", "p"), visits: wordFor("visita", "p"), customers: wordFor("paciente", "p"), visit: wordFor("visita", "s") };
-    const row3 = (key, plans2, detail = true) => plans2 ? [t(`core.planRows.${key}`, words16), detail ? t(`core.planRows.${key}Detail`, words16) : null, plans2] : [t(`core.planRows.${key}`, words16), null];
-    return [
-      row3("field", null),
-      row3("portfolio", all),
-      row3("agenda", all),
-      row3("routes", all),
-      row3("cycle", all),
-      row3("samples", all),
-      row3("quality", all),
-      row3("notifications", all),
-      row3("users", all),
-      row3("import", all),
-      row3("sale", null),
-      row3("orders", fromSales),
-      row3("webOrders", fromSales),
-      row3("opportunities", fromSales),
-      row3("coverage", fromSales),
-      row3("events", fromSales),
-      row3("products", fromSales),
-      row3("analytics", fromSales),
-      row3("commissions", fromSales),
-      row3("office", null),
-      row3("invoicing", fromCompany),
-      row3("purchases", fromCompany),
-      row3("deposit", fromCompany),
-      row3("surgeries", fromCompany),
-      row3("tenders", fromCompany),
-      row3("equipment", fromCompany),
-      row3("audit", fromCompany),
-      row3("service", null),
-      row3("migration", custom),
-      row3("support", custom, false)
-    ];
-  }
-  function noticeHtml(title2, plan2, canChange2) {
-    const current = planOf(coreLegacy.currentPlan().plan).nombre;
-    return `<div class="fh"><div><h2>${escapeHtml(title2)}</h2><div class="sm">${escapeHtml(t("core.plans.notInPlan", { plan: current }))}</div></div>
-    <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <p>${t("core.plans.availableFrom", { plan: escapeHtml(plan2 ? plan2.nombre : t("core.plans.custom")) })}${plan2 ? ` (${coreLegacy.planPrice(plan2)})` : ""}.</p>
-    ${plan2 ? `<ul class="manlist">${plan2.ventajas.map((advantage) => `<li><span>✓</span><span>${escapeHtml(advantage)}</span></li>`).join("")}</ul>` : ""}
-    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("core.plans.notNow")}</button>${canChange2 ? `<button class="btn" id="vplan">${t("core.plans.seePlans")}</button>` : ""}</div>`;
-  }
-  function showNotice(html) {
-    const body3 = document.getElementById("dbody"), dialog7 = document.getElementById("dlg");
-    if (!body3 || !dialog7) return;
-    body3.innerHTML = html;
-    dialog7.showModal();
-    const button3 = document.getElementById("vplan");
-    if (button3) button3.onclick = () => {
-      dialog7.close();
-      coreLegacy.openPlanSettings();
-    };
-  }
-  function planNotice(module) {
-    const sectionPlans = PLAN_SECTIONS[module];
-    if (sectionPlans) {
-      showNotice(noticeHtml(coreLegacy.sectionTitle(module) ?? module, planOf(sectionPlans[0] ?? ""), canManageOrganization()));
-      return;
-    }
-    const name = (document.querySelector(`nav.main [data-t="${module}"]`)?.textContent ?? module).replace("🔒", "").trim();
-    showNotice(noticeHtml(`🔒 ${name}`, minimumPlan(module), can("administrar")));
-  }
-
-  // src/app/legacy/settings1-bridge.ts
-  var settings1_bridge_exports = {};
-  __export(settings1_bridge_exports, {
-    settingsLegacy: () => settingsLegacy
-  });
-  var settingsLegacy = {
-    user: () => sessionStore.profile,
-    setPreferences: (preferences) => {
-      sessionStore.profile.preferencias = preferences;
-    },
-    place: (key) => sessionStore.profile.preferencias?.[key] ?? null,
-    changeNavigator: (name) => {
-      void maps_exports.changeNavigator(name);
-    },
-    revisitNotice: () => avisoRevisita(),
-    /** The legacy name answers whether it was saved (its declaration says void). */
-    saveRevisitNotice: (value10) => saveRevisitNotice(value10),
-    moduleIcon: (module) => ICO_MOD[module],
-    classifiers: () => settingsStore.catalogs,
-    setClassifiers: (list) => {
-      settingsStore.catalogs = list;
-    },
-    openClassifier: (id) => {
-      openClassifier(id);
-    },
-    reloadCatalogs: () => {
-      void loadCatalogs();
-    },
-    undoable: (entry2) => isUndoable(entry2),
-    undoPersonBox: (box3, options3) => {
-      cajaDeshacerPersona(box3, options3.userId, options3.from, options3.name, options3.then);
-    },
-    billingEventDetail: (detail) => eventDetail(detail),
-    fields: () => CAMPOS,
-    fieldTable: (area) => CAMPO_TABLA[area],
-    areaOfTable: (table) => Object.keys(CAMPO_TABLA).find((area) => CAMPO_TABLA[area] === table),
-    fieldInput: (field10, value10) => customFieldInput(field10, value10),
-    fieldText: (field10, value10) => fieldText(field10, value10),
-    testEnvironment: () => RPC_ORIG_FROM("entorno_pruebas"),
-    refreshReason: (reason) => MOTIVO_REFRESCO[reason],
-    edgeFunctions: () => db.functions,
-    resetTestData: () => {
-      void backToTestData();
-    },
-    clearLocalData: () => {
-      session_exports.clearLocalData();
-    },
-    showLoading: (element, text2) => {
-      showLoading(element, text2);
-    },
-    skeletonCard: (text2) => cardSkeleton(text2),
-    /** The range chosen in a period box mounted with mountPeriod (the legacy box keeps it in a property of the element). */
-    periodRange: (element) => {
-      const read3 = element ? Reflect.get(element, "__rango") : void 0;
-      return read3 ? read3() : { desde: null, hasta: null };
-    },
-    mountPeriod: (element, options3) => {
-      mountPeriod(element, [options3]);
-    },
-    modules: () => Object.keys(MODULO_AREA).filter((module) => permissions_exports.canUseModule(module))
-  };
-
-  // src/app/screens/settings/custom-fields/card.ts
-  var keyName = (key) => key.replace(/_/g, " ").toLowerCase().replace(/^./, (letter) => letter.toUpperCase());
-  var blockHtml3 = (cells) => `<div class="campospers"><h3>${t("settings.customFields.title")}</h3><div class="cpgrid">${cells}</div></div>`;
-  function knownHtml(definitions2, values2, keys) {
-    const ordered = [
-      ...definitions2.filter((field10) => keys.includes(field10.clave)),
-      ...keys.filter((key) => !definitions2.some((field10) => field10.clave === key)).map((key) => ({ clave: key, nombre: keyName(key) }))
-    ];
-    return blockHtml3(ordered.map((field10) => `<div><span class="sm">${escapeHtml(field10.nombre)}</span><b>${escapeHtml(settingsLegacy.fieldText(field10, values2[field10.clave]))}</b></div>`).join(""));
-  }
-  var rawText = (value10) => typeof value10 === "object" ? JSON.stringify(value10) : String(value10);
-  async function paintCustomFieldsBlock(table, id, container) {
-    if (!container || !id || container.querySelector(".campospers")) return;
-    const { data } = await legacyDb().from(table).select("clasificadores").eq("id", id).maybeSingle();
-    const values2 = data?.clasificadores ?? {}, keys = Object.keys(values2).filter((key) => values2[key] !== "" && values2[key] !== null && values2[key] !== void 0);
-    const area = settingsLegacy.areaOfTable(table), definitions2 = area ? settingsLegacy.fields()[area] ?? [] : [];
-    if (!keys.length || container.querySelector(".campospers")) return;
-    container.insertAdjacentHTML("beforeend", definitions2.length ? knownHtml(definitions2, values2, keys) : blockHtml3(keys.map((key) => `<div><span class="sm">${escapeHtml(keyName(key))}</span><b>${escapeHtml(rawText(values2[key]))}</b></div>`).join("")));
-  }
-  function bindCustomFieldFilters(zone, state2, onChange) {
-    zone.querySelectorAll("[data-fcp]").forEach((select) => {
-      select.onchange = () => {
-        const key = select.dataset.fcp ?? "";
-        if (!select.value) Reflect.deleteProperty(state2, key);
-        else state2[key] = select.dataset.fcpt === "si_no" ? select.value === "true" : select.value;
-        onChange();
-      };
-    });
-  }
-
-  // src/app/screens/settings/custom-fields/form.ts
-  var definitions = (area) => settingsLegacy.fields()[area] ?? [];
-  async function loadCustomFields() {
-    const fields = settingsLegacy.fields(), areas2 = Object.keys(fields);
-    const results = await Promise.all(areas2.map((area) => legacyDb().rpc("campos_de", { p_ambito: area })));
-    areas2.forEach((area, index) => {
-      const result = results[index];
-      if (result && !result.error) fields[area] = result.data ?? [];
-    });
-  }
-  function customFieldsHtml(area, values2) {
-    const list = definitions(area).filter((field10) => field10.en_ficha);
-    if (!list.length) return "";
-    return `<div class="cpersform" data-cpamb="${area}"><h3>${t("settings.customFields.title")}</h3><div class="g2">${list.map((field10) => `<div><label>${escapeHtml(field10.nombre)}${field10.obligatorio ? ' <span class="cpob">*</span>' : ""}</label>${settingsLegacy.fieldInput(field10, values2?.[field10.clave])}</div>`).join("")}</div></div>`;
-  }
-  function readCustomFields(root) {
-    const block3 = root?.querySelector(".cpersform");
-    if (!block3) return null;
-    const area = block3.dataset.cpamb ?? "", values2 = {}, missing2 = [];
-    block3.querySelectorAll("[data-cpk]:not([disabled])").forEach((input6) => {
-      const key = input6.dataset.cpk ?? "", field10 = definitions(area).find((item) => item.clave === key);
-      values2[key] = input6.value.trim();
-      if (field10?.obligatorio && !input6.value.trim()) missing2.push(field10.nombre);
-    });
-    return { amb: area, valores: values2, falta: missing2 };
-  }
-  var PROBLEMS = /* @__PURE__ */ new Map([
-    ["obligatorio", "settings.customFields.problems.obligatorio"],
-    ["numero", "settings.customFields.problems.numero"],
-    ["fecha", "settings.customFields.problems.fecha"],
-    ["lista", "settings.customFields.problems.lista"],
-    ["si_no", "settings.customFields.problems.siNo"],
-    ["solo_lectura", "settings.customFields.problems.soloLectura"],
-    ["desconocido", "settings.customFields.problems.desconocido"]
-  ]);
-  function failureText5(area, failure4) {
-    if (!failure4) return t("settings.customFields.couldNotSave");
-    const field10 = definitions(area).find((item) => item.clave === failure4.campo), problem = PROBLEMS.get(failure4.error);
-    return t("settings.customFields.check", { field: field10 ? field10.nombre : failure4.campo, problem: problem ? t(problem) : failure4.error });
-  }
-  async function saveCustomFields(read3, id) {
-    if (!read3 || !id || !Object.keys(read3.valores).length) return true;
-    const { data, error } = await legacyDb().rpc("guardar_campos", { p_ambito: read3.amb, p_id: id, p_valores: read3.valores });
-    if (!error && data?.ok) return true;
-    notices.toast(failureText5(read3.amb, (data?.errores ?? [])[0]), true);
-    return false;
-  }
-  async function insertCustomFields(root, area, id, before) {
-    if (!root || !definitions(area).some((field10) => field10.en_ficha) || root.querySelector(".cpersform")) return;
-    let values2 = {};
-    const table = settingsLegacy.fieldTable(area);
-    if (id && table) {
-      const { data } = await legacyDb().from(table).select("clasificadores").eq("id", id).maybeSingle();
-      values2 = data?.clasificadores ?? {};
-    }
-    if (root.querySelector(".cpersform") || !root.isConnected) return;
-    if (before?.isConnected) before.insertAdjacentHTML("beforebegin", customFieldsHtml(area, values2));
-    else root.insertAdjacentHTML("beforeend", customFieldsHtml(area, values2));
-  }
-
-  // src/app/screens/products/editor/blocks.ts
-  var PRODUCT_STATES = ["Activo", "En pausa", "Descatalogado"];
-  var stateHtml2 = (state2) => `<div class="blk" id="prestado"><h3>${t("productsMore.state.title")}</h3><div class="segs">${PRODUCT_STATES.map((item) => `<button type="button" data-pest="${item}" class="${item === state2 ? "on" : ""}">${item}</button>`).join("")}</div>
-      <div class="sm u-mt-6">${t("productsMore.state.hint")}</div></div>`;
-  var PERIOD_WORDS = { anio: "productsMore.samples.periodYear", trimestre: "productsMore.samples.periodQuarter", mes: "productsMore.samples.periodMonth" };
-  var periodWord = (period) => t(PERIOD_WORDS[period]);
-  var samplesTitle = () => deliveryRule().name ?? t("productsMore.samples.title");
-  var samplesForNewHtml = () => deliveryRule().active ? `<div class="blk" id="prmuestra"><h3>${escapeHtml(samplesTitle())}</h3><p class="sm">${t("productsMore.samples.saveFirst")}</p></div>` : "";
-  function samplesTexts() {
-    const rule = deliveryRule(), professional = term("medico");
-    if (rule.name === null) return { regulated: t("productsMore.samples.regulated"), max: t("productsMore.samples.maxPerYear"), legal: t("productsMore.samples.law") };
-    return { regulated: t("productsMore.samples.regulatedOwn", { name: rule.name, professional }), max: t("productsMore.samples.maxPer", { professional, period: periodWord(rule.period) }), legal: rule.legal ?? "" };
-  }
-  function samplesHtml3(extras) {
-    const rule = deliveryRule(), texts3 = samplesTexts(), cap = rule.cap;
-    if (!rule.active) return "";
-    return `<div class="blk" id="prmuestra"><h3>${escapeHtml(samplesTitle())}</h3>
-      <label class="opt"><input type="checkbox" id="prmreg" ${extras.muestra_regulada ? "checked" : ""}> ${escapeHtml(texts3.regulated)}</label>
-      <div class="g2 ${extras.muestra_regulada ? "" : "hide"}" id="prmdat">
-        <div><label for="prmdesde">${t("productsMore.samples.authorised")}</label><input id="prmdesde" type="date" value="${escapeHtml(extras.muestra_desde ?? "")}"></div>
-        <div><label for="prmmax">${escapeHtml(texts3.max)}</label><input id="prmmax" type="number" min="1" max="${cap}" step="1" value="${Math.min(Number(extras.muestra_max) || cap, cap)}"></div></div>
-      ${texts3.legal ? `<p class="sm">${escapeHtml(texts3.legal)}</p>` : ""}</div>`;
-  }
-  var promotionHtml = (extras) => `<div class="blk" id="prpromo"><h3>${t("productsMore.promotion.title")}</h3>
-      <label class="opt"><input type="checkbox" id="prpromoc" ${extras.promocionado ? "checked" : ""}> ${t("productsMore.promotion.promoted", { visits: term("visita", { number: "p" }) })}</label>
-      <p class="sm">${t("productsMore.promotion.hint", { visit: term("visita") })}</p></div>`;
-  var equipmentHtml = (extras) => `<div class="blk" id="prequipo"><h3>${t("productsMore.equipment.title")}</h3>
-      <label class="opt"><input type="checkbox" id="preqc" ${extras.es_equipo ? "checked" : ""}> ${t("productsMore.equipment.isEquipment")}</label>
-      <div class="${extras.es_equipo ? "" : "hide"}" id="preqd"><label for="preqr">${t("productsMore.equipment.review")}</label><input id="preqr" type="number" min="0" max="120" step="1" value="${Number(extras.revision_meses) || 0}" style="max-width:140px"></div>
-      <p class="sm">${t("productsMore.equipment.hint")}</p></div>`;
-  var packsHtml = (extras) => `<div class="blk" id="prpacks"><h3>${t("productsMore.packs.title")}</h3>
-      <p class="sm">${t("productsMore.packs.hint")}</p>
-      <div id="prpkl"></div><button type="button" class="btn sec chico" id="prpkmas">${t("productsMore.packs.add")}</button>
-      <div class="g2 u-mt-10"><div><label for="prpkpvp">${t("productsMore.packs.retailPrice")}</label><input id="prpkpvp" type="number" step="0.01" value="${extras.pvp_recomendado !== null && extras.pvp_recomendado !== void 0 ? Number(extras.pvp_recomendado) : ""}" placeholder="${t("productsMore.packs.notSet")}"></div></div>
-      <span class="pcerr" id="prpkerr" hidden></span>
-      <div class="prpkacts"><button type="button" class="btn sec" id="prpkok">${t("productsMore.packs.save")}</button></div></div>`;
-  var materialHtml2 = () => `<div class="blk" id="prmat"><h3>${t("productsMore.material.title")}</h3>
-      <p class="sm">${escapeHtml(t("productsMore.material.hint", { aVisit: term("visita", { article: "una" }) }))}</p>
-      <div class="prmatl" id="prmatl"></div>
-      <label class="btn sec prmatadd">${t("productsMore.material.add")}<input type="file" id="prmatf" accept="image/*,application/pdf" data-fp="1" multiple hidden></label></div>`;
-
-  // src/app/screens/products/editor/blocks-bind.ts
-  var MAX_REVIEW_MONTHS = 120;
-  var byId10 = (id) => document.getElementById(id);
-  var input3 = (id) => byId10(id);
-  var orNull = (value10) => value10 === void 0 || value10 === "" ? null : value10;
-  var update = (id, values2) => legacyDb().from("productos").update(values2).eq("id", id);
-  function bindState(body3, product) {
-    body3.querySelectorAll("[data-pest]").forEach((button3) => {
-      button3.onclick = async () => {
-        const state2 = button3.dataset.pest ?? "";
-        const { data, error } = await billing2Legacy.rawRpc("estado_producto", { p_id: product.id, p_estado: state2 });
-        if (error || !data?.ok) {
-          notices.toast(t("productsMore.state.couldNotChange"), true);
-          return;
-        }
-        billing2Legacy.productStates()[product.id] = state2;
-        const listed = billing2Legacy.products().find((item) => item.id === product.id);
-        if (listed) listed.estado = state2;
-        body3.querySelectorAll("[data-pest]").forEach((other) => {
-          other.classList.toggle("on", other === button3);
-        });
-        notices.toast(t("productsMore.state.changed", { state: state2 }));
-      };
-    });
-  }
-  function bindSamples2(productId) {
-    const save26 = async () => {
-      const regulated = Boolean(input3("prmreg")?.checked), cap = deliveryRule().cap, max = Math.min(cap, Math.max(1, Number(input3("prmmax")?.value) || cap));
-      byId10("prmdat")?.classList.toggle("hide", !regulated);
-      const { error } = await update(productId, { muestra_regulada: regulated, muestra_desde: orNull(input3("prmdesde")?.value), muestra_max: max });
-      notices.toast(error ? t("productsMore.editor.couldNotSave", { error: errorMessage(error) }) : t("productsMore.samples.saved"), Boolean(error));
-    };
-    ["prmreg", "prmdesde", "prmmax"].forEach((id) => {
-      byId10(id)?.addEventListener("change", () => {
-        void save26();
-      });
-    });
-  }
-  function bindPromotion(productId) {
-    const box3 = input3("prpromoc");
-    if (!box3) return;
-    box3.onchange = async () => {
-      const { error } = await update(productId, { promocionado: box3.checked });
-      const done = box3.checked ? t("productsMore.promotion.on", { visits: term("visita", { number: "p" }) }) : t("productsMore.promotion.off");
-      notices.toast(error ? t("productsMore.editor.couldNotSave", { error: errorMessage(error) }) : done, Boolean(error));
-      if (!error) billing2Legacy.setPromoted(null);
-    };
-  }
-  function bindEquipment(productId) {
-    const save26 = async () => {
-      const equipment2 = Boolean(input3("preqc")?.checked);
-      byId10("preqd")?.classList.toggle("hide", !equipment2);
-      const months2 = Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(input3("preqr")?.value) || 0)));
-      const { error } = await update(productId, { es_equipo: equipment2, revision_meses: months2 });
-      notices.toast(error ? t("productsMore.editor.couldNotSave", { error: errorMessage(error) }) : t("productsMore.equipment.saved"), Boolean(error));
-    };
-    const box3 = input3("preqc"), months = input3("preqr");
-    if (box3) box3.onchange = () => {
-      void save26();
-    };
-    if (months) months.onchange = () => {
-      void save26();
-    };
-  }
-
-  // src/app/screens/products/editor/materials.ts
-  var PDF = "application/pdf";
-  var listOf = async (productId) => (await loadMaterials(true)).filter((item) => item.producto_id === productId);
-  var rowHtml10 = (item) => `<div class="prmati"><span>${item.tipo === PDF ? t("productsMore.material.pdf") : t("productsMore.material.image")} · ${escapeHtml(item.nombre)}</span><label class="prmatpp"><input type="checkbox" data-prmatpp="${item.id}" ${item.para_portal ? "checked" : ""}> ${t("productsMore.material.forCentres")}</label>
-          <button type="button" class="lnk" data-prmatver="${item.id}">${t("productsMore.material.see")}</button><button type="button" class="lnk" data-prmatdel="${item.id}" aria-label="${t("productsMore.material.removeLabel", { name: escapeHtml(item.nombre) })}">${t("productsMore.material.remove")}</button></div>`;
-  async function remove2(product, item) {
-    if (!await notices.confirm(t("productsMore.material.removeText", { name: item.nombre }), { titulo: t("productsMore.material.removeTitle"), ok: t("productsMore.material.remove"), peligro: true })) return;
-    const { error } = await legacyDb().from("producto_materiales").delete().eq("id", item.id);
-    if (error) {
-      notices.toast(t("productsMore.material.couldNotRemove", { error: errorMessage(error) }), true);
-      return;
-    }
-    billing2Legacy.presentationFiles().delete(item.id);
-    paintMaterials(product, await listOf(product.id));
-    notices.toast(t("productsMore.material.removed"));
-  }
-  function paintMaterials(product, list) {
-    const box3 = document.getElementById("prmatl");
-    if (!box3) return;
-    box3.innerHTML = list.length ? list.map(rowHtml10).join("") : `<p class="sm">${t("productsMore.material.none")}</p>`;
-    box3.querySelectorAll("[data-prmatver]").forEach((button3) => {
-      button3.onclick = async () => {
-        await loadMaterials();
-        presentOnly({ id: product.id, nombre: product.nombre ?? null }, button3.dataset.prmatver ?? "");
-      };
-    });
-    box3.querySelectorAll("[data-prmatdel]").forEach((button3) => {
-      button3.onclick = () => {
-        const item = list.find((other) => other.id === button3.dataset.prmatdel);
-        if (item) void remove2(product, item);
-      };
-    });
-  }
-  async function uploadOf(file) {
-    if (file.type === PDF) {
-      if (file.size > billing2Legacy.presentationMax()) {
-        notices.toast(t("productsMore.material.tooBig", { name: file.name }), true);
-        return null;
-      }
-      return { nombre: file.name, tipo: file.type, tamano: file.size, datos: await toBase64(file) };
-    }
-    if (file.type.startsWith("image/")) return readReceipt(file);
-    notices.toast(t("productsMore.material.notAllowed", { name: file.name }), true);
-    return null;
-  }
-  async function addFiles(product, files, start3) {
-    let added = 0, order = start3;
-    for (const file of files) {
-      const upload = await uploadOf(file);
-      if (!upload) continue;
-      const { error } = await legacyDb().from("producto_materiales").insert({ producto_id: product.id, nombre: upload.nombre, tipo: upload.tipo, tamano: upload.tamano, datos: upload.datos, orden: order++ });
-      if (error) {
-        notices.toast(t("productsMore.material.couldNotUpload", { name: file.name, error: errorMessage(error) }), true);
-        continue;
-      }
-      added++;
-    }
-    if (added) notices.toast(added === 1 ? t("productsMore.material.oneAdded") : t("productsMore.material.added", { count: added }));
-    if (document.getElementById("prmatl")) paintMaterials(product, await listOf(product.id));
-  }
-  function bindMaterials(product, list) {
-    paintMaterials(product, list);
-    const picker = document.getElementById("prmatf");
-    if (!picker) return;
-    picker.onchange = () => {
-      const files = [...picker.files ?? []];
-      picker.value = "";
-      void addFiles(product, files, list.length);
-    };
-  }
-
-  // src/app/screens/products/editor/packs.ts
-  var byId11 = (id) => document.getElementById(id);
-  function read() {
-    return [...byId11("prpkl")?.querySelectorAll(".prpkf") ?? []].map((row3) => ({
-      compra: row3.querySelector("[data-pkc]")?.value ?? "",
-      regalo: row3.querySelector("[data-pkg]")?.value ?? ""
-    }));
-  }
-  function problemOf(packs, price) {
-    const bad = packs.some((pack) => !Number.isInteger(pack.compra) || pack.compra < 1 || !Number.isInteger(pack.regalo) || pack.regalo < 0);
-    if (bad) return t("productsMore.packs.badPack");
-    if (packs.some((pack, index) => packs.findIndex((other) => other.compra === pack.compra && other.regalo === pack.regalo) !== index)) return t("productsMore.packs.repeated");
-    return price !== null && !(price >= 0) ? t("productsMore.packs.badPrice") : "";
-  }
-  function bindPacks(productId, extras) {
-    let packs = (Array.isArray(extras.packs) ? extras.packs : []).map((pack) => ({ compra: Number(pack.compra) || 0, regalo: Number(pack.regalo) || 0 }));
-    const paint10 = () => {
-      const list = byId11("prpkl");
-      if (!list) return;
-      list.innerHTML = packs.length ? packs.map((pack, index) => `<div class="prpkf"><label>${t("productsMore.packs.buy")} <input type="number" step="1" data-pkc value="${pack.compra || ""}"></label>
-          <label>${t("productsMore.packs.free")} <input type="number" step="1" data-pkg value="${pack.regalo || 0}"></label><button type="button" class="pmhx" data-pkx="${index}" aria-label="${t("productsMore.packs.removePack")}">✕</button></div>`).join("") : `<p class="sm">${t("productsMore.packs.none")}</p>`;
-      list.querySelectorAll("[data-pkx]").forEach((button3) => {
-        button3.onclick = () => {
-          packs = read();
-          packs.splice(Number(button3.dataset.pkx), 1);
-          paint10();
-        };
-      });
-    };
-    paint10();
-    const add = byId11("prpkmas");
-    if (add) add.onclick = () => {
-      packs = read();
-      packs.push({ compra: "", regalo: 0 });
-      paint10();
-    };
-    const ok = byId11("prpkok");
-    if (ok) ok.onclick = async () => {
-      const list = read().map((pack) => ({ compra: Number(pack.compra), regalo: Number(pack.regalo || 0) })), error = byId11("prpkerr");
-      const priceText = byId11("prpkpvp")?.value ?? "", price = priceText === "" ? null : Number(priceText);
-      const problem = problemOf(list, price);
-      if (error) {
-        error.hidden = !problem;
-        error.textContent = problem;
-      }
-      if (problem) return;
-      ok.disabled = true;
-      const { error: failed5 } = await legacyDb().from("productos").update({ packs: list.length ? list.sort((first, second) => first.compra - second.compra) : null, pvp_recomendado: price }).eq("id", productId);
-      ok.disabled = false;
-      if (failed5) {
-        notices.toast(t("productsMore.packs.couldNotSave", { error: errorMessage(failed5) }), true);
-        return;
-      }
-      packs = list;
-      paint10();
-      notices.toast(list.length ? t("productsMore.packs.saved", { count: formatNumber(list.length) }) : t("productsMore.packs.noPacks"));
-    };
-  }
-
-  // src/app/screens/products/editor/remove.ts
-  function failureText6(error, result) {
-    if (result?.error === "stock") return t("productsMore.remove.stock", { units: formatNumber(result.unidades) });
-    if (result?.error === "permiso") return t("productsMore.remove.noPermission");
-    return t("productsMore.remove.couldNotRemove", { error: error?.message ?? result?.error ?? "" });
-  }
-  function doneText(result) {
-    const detail = result.detalle ?? {};
-    if (result.modo === "borrado") return Number(detail.unidades) ? t("productsMore.remove.removedWithStock", { units: formatNumber(detail.unidades) }) : t("productsMore.remove.removed");
-    const uses = billing2Legacy.productUses();
-    return t("productsMore.remove.kept", { uses: Object.entries(detail).map(([key, count]) => `${formatNumber(count)} ${uses[key] ?? key}`).join(", ") });
-  }
-  async function remove3(product) {
-    if (!await notices.confirm(t("productsMore.remove.text"), { titulo: t("productsMore.remove.title", { name: product.nombre ?? "" }), ok: t("productsMore.remove.ok"), peligro: true })) return;
-    const { data: result, error } = await legacyDb().rpc("eliminar_producto", { p_id: product.id });
-    if (error || !result?.ok) {
-      notices.toast(failureText6(error, result), true);
-      return;
-    }
-    const box3 = document.getElementById("dlg");
-    if (box3?.open) box3.close();
-    notices.toast(doneText(result));
-    billing2Legacy.refreshProducts();
-  }
-  function addRemoveButton(product) {
-    const save26 = document.getElementById("prok"), row3 = save26?.closest(".acts");
-    if (!row3 || document.getElementById("prelim")) return;
-    row3.insertAdjacentHTML("afterbegin", `<button type="button" class="btn sec dang prelimb" id="prelim">${t("productsMore.remove.button")}</button>`);
-    const button3 = document.getElementById("prelim");
-    if (button3) button3.onclick = () => {
-      void remove3(product);
-    };
-  }
-
-  // src/app/screens/products/editor/form.ts
-  var field4 = (id) => document.getElementById(id);
-  var valueOf6 = (id) => field4(id)?.value ?? "";
-  function bindPrices2() {
-    const vat = () => (Number(valueOf6("priva")) || 0) / 100, net = field4("prpr"), gross = field4("prpvp"), rate = field4("priva");
-    if (net && gross) net.oninput = () => {
-      gross.value = net.value === "" ? "" : String(round2(Number(net.value) * (1 + vat())));
-    };
-    if (net && gross) gross.oninput = () => {
-      net.value = gross.value === "" ? "" : String(Number((Number(gross.value) / (1 + vat())).toFixed(4)));
-    };
-    if (net && gross && rate) rate.oninput = () => {
-      if (net.value !== "") gross.value = String(round2(Number(net.value) * (1 + vat())));
-    };
-  }
-  function bindPhoto() {
-    const input6 = field4("prfoto"), preview3 = document.getElementById("prfprev");
-    if (!input6 || !preview3) return;
-    input6.onchange = () => {
-      const file = input6.files?.[0];
-      if (!file) return;
-      preview3.style.backgroundImage = `url('${URL.createObjectURL(file)}')`;
-      preview3.textContent = "";
-    };
-  }
-  async function uploadPhoto() {
-    const file = field4("prfoto")?.files?.[0];
-    if (!file) return void 0;
-    const storage = legacyDb().storage, path = `p-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "")}`;
-    const { error } = await storage.from("productos").upload(path, file, { upsert: true });
-    if (error) {
-      notices.toast(t("productsMore.editor.photoFailed", { error: error.message ?? "" }), true);
-      return void 0;
-    }
-    return storage.from("productos").getPublicUrl(path).data.publicUrl;
-  }
-  function payload7(product, photo) {
-    const active = field4("pract");
-    return {
-      id: product.id ?? null,
-      nombre: valueOf6("prn").trim(),
-      presentacion: valueOf6("prp").trim(),
-      precio: valueOf6("prpr"),
-      iva: valueOf6("priva"),
-      referencia: valueOf6("prref").trim(),
-      codigo_barras: valueOf6("prcb").trim(),
-      unidades_envase: valueOf6("prue"),
-      coste: valueOf6("prco"),
-      ...photo ? { foto_url: photo } : {},
-      ...active ? { activo: active.checked } : {}
-    };
-  }
-  function checked(body3) {
-    if (!valueOf6("prn").trim()) {
-      notices.toast(t("productsMore.editor.writeName"), true);
-      return false;
-    }
-    const fields = readCustomFields(body3);
-    if (fields?.falta.length) {
-      notices.toast(t("productsMore.editor.fillField", { field: fields.falta[0] ?? "" }), true);
-      return false;
-    }
-    return fields;
-  }
-  async function store(product, button3) {
-    button3.disabled = true;
-    button3.textContent = t("productsMore.editor.saving");
-    const photo = await uploadPhoto();
-    const { data: result, error } = await legacyDb().rpc("guardar_producto", { p: payload7(product, photo) });
-    button3.disabled = false;
-    button3.textContent = t(product.id ? "productsMore.editor.save" : "productsMore.editor.create");
-    if (!error && result?.ok !== false) return result ?? {};
-    notices.toast(t("productsMore.editor.couldNotSave", { error: errorMessage(error) || (result?.error ?? "") }), true);
-    return null;
-  }
-  async function save11(body3, product, button3, after) {
-    const fields = checked(body3);
-    if (fields === false) return;
-    const result = await store(product, button3);
-    if (!result) return;
-    if (fields && !await saveCustomFields(fields, result.id ?? product.id)) return;
-    document.getElementById("dlg")?.close();
-    notices.toast(t(product.id ? "productsMore.editor.saved" : "productsMore.editor.created"));
-    await billing2Legacy.loadProducts();
-    after();
-  }
-  function bindForm(body3, product, after) {
-    bindPrices2();
-    bindPhoto();
-    const ok = document.getElementById("prok");
-    if (ok) ok.onclick = () => {
-      void save11(body3, product, ok, after);
-    };
-  }
-
-  // src/app/screens/products/editor/editor.ts
-  var EXTRAS = "muestra_regulada,muestra_desde,muestra_max,promocionado,es_equipo,revision_meses,packs,pvp_recomendado";
-  var disabled = (admin) => admin ? "" : "disabled";
-  function headerHtml2(product, admin) {
-    const photo = product.foto_url ?? "";
-    return `<div class="fh"><div><h2>${product.id ? escapeHtml(product.nombre) : t("productsMore.editor.newTitle")}</h2>
-      <div class="sm">${t(admin ? "productsMore.editor.hintAdmin" : "productsMore.editor.hintOthers")}</div></div>
-      <button class="x" data-cerrar aria-label="${t("productsMore.editor.close")}">✕</button></div>
-    <div style="display:flex;gap:14px;align-items:center;margin-top:8px">
-      <span class="pfoto" id="prfprev" style="width:72px;height:72px;${photo ? `background-image:url('${escapeHtml(photo)}')` : ""}">${photo ? "" : "◧"}</span>
-      ${admin ? `<div class="u-flex-1"><label for="prfoto" class="u-mt-0">${t("productsMore.editor.photo")}</label><input id="prfoto" type="file" accept="image/*"></div>` : ""}</div>`;
-  }
-  function pricesHtml(product, off) {
-    const price = product.precio ?? null, vat = product.iva ?? defaultVat("productos");
-    const net = price === null ? "" : String(Number(Number(price).toFixed(4))), gross = price === null ? "" : String(round2(Number(price) * (1 + (Number(product.iva) || 0) / 100)));
-    return `<div class="pvp">
-      <div><label for="prpr">${t("productsMore.editor.priceWithoutVat")}</label><input id="prpr" type="number" step="0.01" min="0" value="${net}" ${off}></div>
-      <div><label for="priva">${t("productsMore.editor.vat")}</label><input id="priva" type="number" step="1" min="0" max="${highestVat()}" value="${vat}" ${off}></div>
-      <div><label for="prpvp">${t("productsMore.editor.priceWithVat")}</label><input id="prpvp" type="number" step="0.01" min="0" value="${gross}" ${off}></div></div>`;
-  }
-  function formHtml4(product, admin) {
-    const off = disabled(admin);
-    return `${headerHtml2(product, admin)}
-    <div class="g2">
-      <div><label for="prn">${t("productsMore.editor.name")}</label><input id="prn" value="${escapeHtml(product.nombre ?? "")}" ${off}></div>
-      <div><label for="prp">${t("productsMore.editor.presentation")}</label><input id="prp" value="${escapeHtml(product.presentacion ?? "")}" placeholder="${t("productsMore.editor.presentationPlaceholder")}" ${off}></div></div>
-    ${pricesHtml(product, off)}
-    <div class="g2">
-      <div><label for="prref">${t("productsMore.editor.reference")}</label><input id="prref" value="${escapeHtml(product.referencia ?? "")}" ${off}></div>
-      <div><label for="prcb">${t("productsMore.editor.barcode")}</label><input id="prcb" value="${escapeHtml(product.codigo_barras ?? "")}" ${off}></div></div>
-    <div class="g2">
-      <div><label for="prue">${t("productsMore.editor.unitsPerPack")}</label><input id="prue" type="number" min="1" value="${Number(product.unidades_envase) || 1}" ${off}></div>
-      <div><label for="prco">${t("productsMore.editor.cost")}</label><input id="prco" type="number" step="0.01" min="0" value="${product.coste ?? ""}" ${off}></div></div>
-    ${admin && product.id ? `<label class="opt u-mt-12"><input type="checkbox" id="pract" ${product.activo ? "checked" : ""}> ${t("productsMore.editor.active")}</label>` : ""}`;
-  }
-  var actionsHtml2 = (product, admin) => `<div class="acts u-end">
-      <button class="btn sec" data-cerrar>${t(admin ? "productsMore.editor.cancel" : "productsMore.editor.close")}</button>
-      ${admin ? `<button class="btn" id="prok">${t(product.id ? "productsMore.editor.save" : "productsMore.editor.create")}</button>` : ""}</div>`;
-  function blocksHtml(product, loaded) {
-    if (!product.id) return loaded.admin ? samplesForNewHtml() : "";
-    const state2 = billing2Legacy.productStates()[product.id] ?? product.estado ?? "Activo";
-    if (!loaded.admin) return stateHtml2(state2);
-    return [
-      stateHtml2(state2),
-      samplesHtml3(loaded.extras),
-      loaded.promotion ? promotionHtml(loaded.extras) : "",
-      loaded.equipment ? equipmentHtml(loaded.extras) : "",
-      packsHtml(loaded.extras),
-      materialHtml2()
-    ].join("");
-  }
-  async function load2(product) {
-    const admin = can("administrar"), promotion = planIncludesSection("cobertura"), equipment2 = planIncludesSection("parque");
-    if (!admin || !product.id) return { admin, extras: {}, materials: [], promotion, equipment: equipment2 };
-    const [{ data }, all] = await Promise.all([legacyDb().from("productos").select(EXTRAS).eq("id", product.id).maybeSingle(), loadMaterials(true)]);
-    return { admin, extras: data ?? {}, materials: all.filter((item) => item.producto_id === product.id), promotion, equipment: equipment2 };
-  }
-  function bindBlocks(body3, product, loaded) {
-    bindState(body3, product);
-    if (!loaded.admin) return;
-    bindSamples2(product.id);
-    if (loaded.promotion) bindPromotion(product.id);
-    if (loaded.equipment) bindEquipment(product.id);
-    bindPacks(product.id, loaded.extras);
-    bindMaterials(product, loaded.materials);
-    if (canDeleteProduct()) addRemoveButton(product);
-  }
-  async function editProduct(given) {
-    const product = given ?? { iva: defaultVat("productos"), activo: true, unidades_envase: 1 };
-    const loaded = await load2(product), body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
-    if (!body3 || !box3) return;
-    body3.innerHTML = formHtml4(product, loaded.admin) + blocksHtml(product, loaded) + actionsHtml2(product, loaded.admin);
-    if (loaded.admin) await insertCustomFields(body3, "producto", product.id ?? null, body3.querySelector(".blk") ?? body3.querySelector(".acts:last-of-type"));
-    if (product.id) await paintCustomFieldsBlock("productos", product.id, body3).catch(() => void 0);
-    if (!box3.open) box3.showModal();
-    if (loaded.admin) bindForm(body3, product, () => {
-      if (currentScreen() === "productos") void paintProducts();
-    });
-    if (product.id) bindBlocks(body3, { ...product, id: product.id }, loaded);
-  }
-
-  // src/app/screens/products/editor/visit-material.ts
-  var MATERIAL_ROLE = "material_visita";
-  var NUMBER_KIND = "numero";
-  var UNITS_LABEL = "Unidades";
-  var DISCONTINUED = "Descatalogado";
-  var byId12 = (id) => document.getElementById(id);
-  var words8 = () => ({
-    visit: term("visita"),
-    aVisit: term("visita", { article: "un" }),
-    theVisit: term("visita", { article: "el" }),
-    theVisits: term("visita", { number: "p", article: "el" }),
-    ofProfessional: term("medico", { article: "del" }),
-    professional: term("medico")
-  });
-  function samplesHtml4(samples) {
-    const products3 = billing2Legacy.products().filter((item) => item.tipo !== "servicio");
-    return `<div class="card cfgpanel"><h2>${t("productsMore.visitMaterial.samplesKind")}</h2>
-      <div class="g2"><div><label for="muprod">${t("productsMore.visitMaterial.sampleProduct")}</label><select id="muprod"><option value="">${t("productsMore.visitMaterial.none")}</option>${products3.map((item) => `<option value="${item.id}" ${item.id === samples.producto_id ? "selected" : ""}>${escapeHtml(item.nombre)}</option>`).join("")}</select></div><div></div></div>
-      <label class="vfswitch u-mt-10"><input type="checkbox" id="murest" ${samples.restar_stock ? "checked" : ""}><span class="sw"></span>
-        <span><b>${t("productsMore.visitMaterial.discount")}</b><br><span class="sm">${t("productsMore.visitMaterial.discountText", words8())}</span></span></label>
-      <div class="acts u-end"><button class="btn" id="muok">${t("productsMore.visitMaterial.save")}</button></div></div>`;
-  }
-  var valueRow = (value10) => `<div class="matfila ${value10.activo ? "" : "off"}"><b>${escapeHtml(value10.valor)}</b><span class="sm">${t(value10.dato_tipo === NUMBER_KIND ? "productsMore.visitMaterial.asksQuantity" : "productsMore.visitMaterial.onlyMarked")}</span>
-        <label class="vfswitch mini"><input type="checkbox" data-mact="${value10.id}" ${value10.activo ? "checked" : ""}><span class="sw"></span><span class="sm">${t(value10.activo ? "productsMore.visitMaterial.active" : "productsMore.visitMaterial.hidden")}</span></label></div>`;
-  function pageHtml5(samples, values2, canAdd) {
-    return `
-    <div class="card cfgpanel"><h2>${t("productsMore.visitMaterial.title", words8())}</h2>
-      <p class="sm">${t("productsMore.visitMaterial.intro", words8())}</p>
-      <div class="mattipos"><div><b>${t("productsMore.visitMaterial.samplesKind")}</b><span>${t("productsMore.visitMaterial.samplesKindText")}</span></div>
-        <div><b>${t("productsMore.visitMaterial.promoKind")}</b><span>${t("productsMore.visitMaterial.promoKindText")}</span></div></div></div>
-    ${samplesHtml4(samples)}
-    <div class="card cfgpanel"><h2>${t("productsMore.visitMaterial.promoKind")}</h2>
-      <p class="sm">${t("productsMore.visitMaterial.promoText", words8())}</p>
-      <div class="matlista">${values2.map(valueRow).join("") || `<div class="sm">${t("productsMore.visitMaterial.noMaterial")}</div>`}</div>
-      <div class="matadd"><input id="matn" placeholder="${t("productsMore.visitMaterial.newPlaceholder")}"><label class="opt u-m-0"><input type="checkbox" id="matq" checked> ${t("productsMore.visitMaterial.countUnits")}</label>
-        <button class="btn sec" id="matok" ${canAdd ? "" : "disabled"}>${t("productsMore.visitMaterial.add")}</button></div></div>`;
-  }
-  async function saveSamples2() {
-    const product = byId12("muprod")?.value ?? "", discount = Boolean(byId12("murest")?.checked);
-    if (discount && !product) {
-      notices.toast(t("productsMore.visitMaterial.chooseProduct"), true);
-      return;
-    }
-    const value10 = { producto_id: product || null, restar_stock: discount };
-    const { error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "muestras", p_valor: value10 });
-    if (error) {
-      notices.toast(t("productsMore.visitMaterial.couldNotSave"), true);
-      return;
-    }
-    billing2Legacy.settings().muestras = value10;
-    notices.toast(t("productsMore.visitMaterial.saved"));
-  }
-  async function addMaterial(classifierId) {
-    const name = (byId12("matn")?.value ?? "").trim();
-    if (!name) return;
-    const counted2 = Boolean(byId12("matq")?.checked);
-    const { error } = await legacyDb().rpc("guardar_valor", { p: { clasificador_id: classifierId, valor: name, ...counted2 ? { dato_tipo: NUMBER_KIND, dato_etiqueta: UNITS_LABEL } : {} } });
-    if (error) {
-      notices.toast(t("productsMore.visitMaterial.couldNotAdd", { error: error.message ?? "" }), true);
-      return;
-    }
-    notices.toast(t("productsMore.visitMaterial.added"));
-    billing2Legacy.loadCatalogs();
-    void paintVisitMaterial();
-  }
-  function bind11(box3, classifierId) {
-    const ok = byId12("muok");
-    if (ok) ok.onclick = () => {
-      void saveSamples2();
-    };
-    box3.querySelectorAll("[data-mact]").forEach((input6) => {
-      input6.onchange = async () => {
-        await legacyDb().rpc("guardar_valor", { p: { id: input6.dataset.mact, activo: input6.checked } });
-        notices.toast(t(input6.checked ? "productsMore.visitMaterial.visible" : "productsMore.visitMaterial.hiddenIn", words8()));
-        billing2Legacy.loadCatalogs();
-        void paintVisitMaterial();
-      };
-    });
-    const add = byId12("matok");
-    if (add && classifierId) add.onclick = () => {
-      void addMaterial(classifierId);
-    };
-  }
-  async function paintVisitMaterial() {
-    await Promise.all([billing2Legacy.loadSettings(), billing2Legacy.loadProducts()]);
-    const samples = { producto_id: null, restar_stock: false, ...billing2Legacy.settings().muestras };
-    await legacyDb().rpc("clasificadores_actividad");
-    const { data: classifier } = await legacyDb().from("clasificadores").select("id").eq("papel", MATERIAL_ROLE).maybeSingle();
-    const { data: values2 } = classifier ? await legacyDb().from("valores_clasificador").select("id,valor,activo,dato_tipo").eq("clasificador_id", classifier.id).order("orden") : { data: [] };
-    const box3 = byId12("cfgcuerpo");
-    if (!box3) return;
-    box3.innerHTML = pageHtml5(samples, values2 ?? [], Boolean(classifier));
-    bind11(box3, classifier?.id ?? null);
-    try {
-      await improveMaterial();
-    } catch (error) {
-      registerError("error", t("productsMore.visitMaterial.errorLog", { error: error.message }));
-    }
-  }
-  async function promotedProducts() {
-    const read3 = async () => {
-      if (!navigator.onLine) return billing2Legacy.promoted() ?? [];
-      try {
-        const { data, error } = await legacyDb().from("productos").select("id,nombre,estado").eq("promocionado", true).order("nombre");
-        if (!error) billing2Legacy.setPromoted((data ?? []).filter((item) => (item.estado ?? "Activo") !== DISCONTINUED).map((item) => ({ id: item.id, nombre: item.nombre })));
-      } catch {
-      }
-      return billing2Legacy.promoted() ?? [];
-    };
-    const [list] = await Promise.all([read3(), loadMaterials()]);
-    return list;
-  }
-
-  // src/app/screens/products/deposit-form.ts
-  var whole2 = (input6) => Math.max(0, Math.floor(Number(input6.value) || 0));
-  var batchOf = (line2) => escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatchLower")));
-  var actsHtml = (ok) => `<div class="acts u-end"><button type="button" class="btn sec" id="depcanc">${t("common.cancel")}</button><button type="button" class="btn" id="depok">${ok}</button></div>`;
-  function replenishHtml() {
-    const products3 = purchasesLegacy.products().filter((item) => item.activo !== false && orFallback(item.estado, "Activo") !== "Descatalogado");
-    return `<div class="depbox"><b>${t("products.deposit.replenishTitle")}</b>
-      <div class="segs" id="depori" role="group" aria-label="${t("products.deposit.from")}"><button type="button" data-o="maletin" class="on" aria-pressed="true">${t("products.deposit.fromCase")}</button><button type="button" data-o="central" aria-pressed="false">${t("products.deposit.fromCentral")}</button></div>
-      <div class="depitems">${products3.map((item) => `<label><span>${escapeHtml(item.nombre)}</span><input type="number" min="0" step="1" data-dprod="${item.id}" placeholder="0" aria-label="${t("products.deposit.unitsOfProduct", { name: escapeHtml(item.nombre) })}"></label>`).join("")}</div>
-      ${actsHtml(t("products.deposit.replenish"))}</div>`;
-  }
-  function useHtml(lines2) {
-    return `<div class="depbox"><b>${t("products.deposit.useTitle")}</b>
-      <div class="depitems">${lines2.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.left", { units: formatNumber(line2.unidades) })}</span></span>
-        <input type="number" min="0" max="${line2.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t("products.deposit.usedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
-      <label for="depref">${t("products.deposit.reference")}</label><input id="depref" maxlength="120" placeholder="${t("products.deposit.referencePlaceholder", { ofTheCustomer: term("paciente", { article: "del" }) })}">
-      ${actsHtml(t("products.deposit.record"))}</div>`;
-  }
-  function countHtml3(lines2) {
-    return `<div class="depbox"><b>${t("products.deposit.countTitle")}</b><span class="sm">${t("products.deposit.countHint")}</span>
-      <div class="depitems">${lines2.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.had", { units: formatNumber(line2.unidades) })}</span></span>
-        <input type="number" min="0" step="1" data-dcnt="${index}" value="${line2.unidades}" aria-label="${t("products.deposit.countedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
-      ${actsHtml(t("products.deposit.saveCount"))}</div>`;
-  }
-  function request(form, deposit, action) {
-    const base = { cuenta_id: deposit.accountId, accion: action, op_id: `d${Date.now()}` };
-    if (action === "reponer") {
-      const items = [...form.querySelectorAll("[data-dprod]")].map((input6) => ({ producto_id: input6.dataset.dprod, unidades: whole2(input6) })).filter((item) => item.unidades > 0);
-      return items.length ? { ...base, origen: form.querySelector("#depori .on")?.dataset.o, items } : t("products.deposit.writeReplenish");
-    }
-    const lineAt = (input6, key) => deposit.lines[Number(input6.dataset[key])];
-    if (action === "consumo") {
-      const items = [...form.querySelectorAll("[data-dlin]")].map((input6) => {
-        const line2 = lineAt(input6, "dlin");
-        return { producto_id: line2?.producto_id, lote_id: line2?.lote_id, unidades: whole2(input6), max: line2?.unidades ?? 0 };
-      }).filter((item) => item.unidades > 0);
-      if (!items.length) return t("products.deposit.writeUsed");
-      if (items.some((item) => item.unidades > item.max)) return t("products.deposit.tooMany");
-      return { ...base, items, referencia: document.getElementById("depref")?.value.trim() ?? "" };
-    }
-    return { ...base, items: [...form.querySelectorAll("[data-dcnt]")].map((input6) => {
-      const line2 = lineAt(input6, "dcnt");
-      return { producto_id: line2?.producto_id, lote_id: line2?.lote_id, contadas: whole2(input6) };
-    }) };
-  }
-  function failureText7(result) {
-    if (result?.error === "sin_origen") return t("products.deposit.noSource");
-    return t(result?.error === "permiso" ? "products.deposit.noMovePermission" : "products.deposit.couldNotSave");
-  }
-  async function replenishUsed(deposit, used, button3) {
-    button3.disabled = true;
-    const { data: result } = await legacyDb().rpc("deposito_mover", { p: { cuenta_id: deposit.accountId, accion: "reponer", items: used.map((item) => ({ producto_id: item.producto_id, unidades: item.unidades })), op_id: `r${Date.now()}` } });
-    if (!result || result.ok === false) {
-      button3.disabled = false;
-      notices.toast(result?.error === "sin_origen" ? t("products.deposit.noSource") : t("products.deposit.couldNotReplenish"), true);
-      return;
-    }
-    notices.toast(t("products.deposit.usedReplenished"));
-    void productsLegacy.openDeposit(deposit.accountId, deposit.name);
-  }
-  async function afterSave(deposit, action, result) {
-    const used = result.usado ?? [];
-    let notice2 = "";
-    if (action === "reponer") notices.toast(t("products.deposit.replenished"));
-    else if (!used.length) notices.toast(t("products.deposit.nothingMissing"));
-    else {
-      notices.toast(t("products.deposit.usedRecorded"));
-      notice2 = `<div class="banda-ok depaviso">${t("products.deposit.usedNotice", { list: used.map((item) => `${escapeHtml(item.nombre)} ${formatNumber(item.unidades)}`).join(" · ") })}
-        <span class="depav"><button type="button" class="btn sec" id="depverped">${t("products.deposit.seeOrder")}</button><button type="button" class="btn" id="depreponer">${t("products.deposit.replenishUsed")}</button></span></div>`;
-    }
-    await productsLegacy.openDeposit(deposit.accountId, deposit.name, notice2);
-    const order = document.getElementById("depverped"), again = document.getElementById("depreponer");
-    if (order && result.pedido_id) order.onclick = () => {
-      appLegacy.openOrder(result.pedido_id ?? "");
-    };
-    if (again) again.onclick = () => {
-      void replenishUsed(deposit, used, again);
-    };
-  }
-  async function save12(form, deposit, action, button3) {
-    const payload10 = request(form, deposit, action);
-    if (typeof payload10 === "string") {
-      notices.toast(payload10, true);
-      return;
-    }
-    button3.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("deposito_mover", { p: payload10 });
-    button3.disabled = false;
-    if (error || !result || result.ok === false) {
-      notices.toast(failureText7(result), true);
-      return;
-    }
-    await afterSave(deposit, action, result);
-  }
-  function openDepositForm(deposit, action) {
-    const form = document.getElementById("depform");
-    if (!form) return;
-    form.innerHTML = action === "reponer" ? replenishHtml() : action === "consumo" ? useHtml(deposit.lines) : countHtml3(deposit.lines);
-    const origins = form.querySelectorAll("[data-o]");
-    origins.forEach((button3) => {
-      button3.onclick = () => {
-        origins.forEach((other) => {
-          other.classList.toggle("on", other === button3);
-          other.setAttribute("aria-pressed", String(other === button3));
-        });
-      };
-    });
-    const cancel3 = document.getElementById("depcanc");
-    if (cancel3) cancel3.onclick = () => {
-      form.innerHTML = "";
-    };
-    const ok = document.getElementById("depok");
-    if (ok) ok.onclick = () => {
-      void save12(form, deposit, action, ok);
-    };
-  }
-
-  // src/app/screens/products/deposit.ts
-  var MOVEMENTS2 = /* @__PURE__ */ new Map([
-    ["traspaso_entrada", "products.deposit.moveIn"],
-    ["traspaso_salida", "products.deposit.moveOut"],
-    ["consumo_deposito", "products.deposit.moveUsed"],
-    ["ajuste", "products.deposit.moveAdjust"]
-  ]);
-  function summary2(lines2) {
-    const total = sum(lines2.map((line2) => line2.unidades));
-    if (!total) return t("products.deposit.empty");
-    const count = new Set(lines2.map((line2) => line2.producto_id)).size;
-    return t("products.deposit.unitsOf", { units: formatNumber(total), products: count === 1 ? t("products.deposit.oneProduct") : t("products.deposit.products", { count }) });
-  }
-  function tableHtml3(lines2) {
-    if (!lines2.length) return `<div class="vacio vlinea">${t("products.deposit.emptyDeposit")}</div>`;
-    const rows2 = lines2.map((line2) => `<div class="depf"><span>${escapeHtml(line2.nombre)}</span>
-      <span>${escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatch")))}</span><span class="${relatedLegacy.expiresSoon(line2.caducidad) ? "depcad" : ""}">${line2.caducidad ? formatShortDate(line2.caducidad) : "—"}</span><b>${formatNumber(line2.unidades)}</b></div>`).join("");
-    return `<div class="deptab"><div class="deph"><span>${t("products.deposit.product")}</span><span>${t("products.deposit.batch")}</span><span>${t("products.deposit.expires")}</span><span>${t("products.deposit.units")}</span></div>${rows2}</div>`;
-  }
-  function movementRow(item) {
-    const key = MOVEMENTS2.get(item.tipo);
-    return `<div class="depmf"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span>
-      <span>${key ? t(key) : escapeHtml(item.tipo)}</span><span>${escapeHtml(item.nombre)}${item.numero_lote ? ` · ${escapeHtml(item.numero_lote)}` : ""}</span><b>${item.unidades > 0 ? "+" : ""}${formatNumber(item.unidades)}</b>
-      <span class="sm">${escapeHtml(String(item.nota ?? "").replace(/\s*\[[^\]]*\]$/, ""))}</span></div>`;
-  }
-  function historyHtml(detail) {
-    const used = detail.usado_90 ?? [], movements = detail.movimientos ?? [];
-    const usedText = used.length ? `<p class="sm">${t("products.deposit.used90", { list: used.map((item) => `${escapeHtml(item.nombre)} ${formatNumber(item.unidades)}`).join(" · ") })}</p>` : "";
-    return usedText + (movements.length ? `<details class="depmov"><summary>${t("products.deposit.lastMovements")}</summary>${movements.map(movementRow).join("")}</details>` : "");
-  }
-  function sheetHtml4(detail, name, notice2, lines2) {
-    const none = lines2.length ? "" : "disabled";
-    return `<div class="fh"><div><h2>${t("products.deposit.title", { name: escapeHtml(name) })}</h2><div class="sm">${summary2(lines2)}${t("products.deposit.stillYours")}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    ${notice2}
-    <div class="depacts"><button type="button" class="btn" data-dep="reponer">${t("products.deposit.replenish")}</button><button type="button" class="btn sec" data-dep="consumo" ${none}>${t("products.deposit.recordUse")}</button>
-      <button type="button" class="btn sec" data-dep="recuento" ${none}>${t("products.deposit.count")}</button></div>
-    <div id="depform"></div>
-    ${tableHtml3(lines2)}
-    ${historyHtml(detail)}
-    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
-  }
-  async function showDeposit2(accountId, name, notice2 = "") {
-    const { data: detail, error } = await legacyDb().rpc("deposito_estado", { p_cuenta: accountId });
-    if (error || !detail || detail.ok === false) {
-      notices.toast(t(detail?.error === "permiso" ? "products.deposit.noPermission" : "products.deposit.couldNotOpen"), true);
-      return;
-    }
-    if (!purchasesLegacy.products().length) await purchasesLegacy.loadProducts();
-    const lines2 = (detail.lineas ?? []).filter((line2) => line2.unidades > 0);
-    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
-    if (!body3 || !box3) return;
-    body3.innerHTML = sheetHtml4(detail, name, notice2, lines2);
-    if (!box3.open) box3.showModal();
-    const deposit = { accountId, name, lines: lines2 };
-    body3.querySelectorAll("[data-dep]").forEach((button3) => {
-      button3.onclick = () => {
-        openDepositForm(deposit, button3.dataset.dep ?? "reponer");
-      };
-    });
-  }
-
-  // src/app/screens/products/page.ts
-  var TABS2 = [["productos", "products.page.products"], ["servicios", "products.page.services"], ["stock", "products.page.stock"]];
-  function actionsHtml3(section) {
-    if (section === "stock") {
-      if (!purchasesLegacy.canBuy()) return "";
-      return `<button class="btn sec" id="stalm">${t("products.page.stores")}</button><button class="btn sec" id="stmue">${t("products.page.samples")}</button><button class="btn" id="stini">${t("products.page.stockEntry")}</button>`;
-    }
-    if (!cardSectionsLegacy.can("administrar")) return "";
-    return `<button class="btn" id="prodnuevo">${t(section === "servicios" ? "products.page.newService" : "products.page.newProduct")}</button>`;
-  }
-  var on2 = (id, action) => {
-    const button3 = document.getElementById(id);
-    if (button3) button3.onclick = action;
-  };
-  function bind12(screen3, section) {
-    screen3.querySelectorAll("[data-ps]").forEach((button3) => {
-      button3.onclick = () => {
-        productsLegacy.setSection(button3.dataset.ps ?? "productos");
-        productsLegacy.reload();
-      };
-    });
-    on2("prodnuevo", () => {
-      if (section === "servicios") editService(null);
-      else productsLegacy.editProduct(null);
-    });
-    on2("stalm", () => {
-      void editStores();
-    });
-    on2("stmue", () => {
-      productsLegacy.editSamples();
-    });
-    on2("stini", () => {
-      void stockMovement(null, "inicial");
-    });
-  }
-  function loadProductsModule2() {
-    productsLegacy.clearModules("v-productos");
-    const screen3 = document.getElementById("v-productos");
-    if (!screen3) return Promise.resolve();
-    const section = productsLegacy.section();
-    screen3.innerHTML = `
-    <div class="saludo"><div><h1>${t("products.page.title")}</h1><div class="fecha">${t("products.page.subtitle")}</div></div>
-      <div class="acts u-m-0">${actionsHtml3(section)}</div></div>
-    <div class="subnav">${TABS2.map(([key, label]) => `<button data-ps="${key}" aria-pressed="${String(section === key)}">${t(label)}</button>`).join("\n      ")}</div>
-    <div id="vcuerpo"></div>`;
-    bind12(screen3, section);
-    if (section === "stock") void paintStock();
-    else if (section === "servicios") void paintServices();
-    else void paintProducts();
-    return Promise.resolve();
-  }
-
-  // src/app/screens/products/index.ts
-  var loadProductsModule = cachedModuleLoader("productos", loadProductsModule2);
-  var showStock = backOpener("fichaStock", sheetOpener(showStock2));
-  var showDeposit = backOpener("verDeposito", sheetOpener(showDeposit2));
 
   // src/app/legacy/legado-a-bridge.ts
   var startupLegacy = {
@@ -22526,7 +22385,7 @@
     loading: (element, text2) => {
       showLoading(element, text2);
     },
-    pages: (total, page, size) => pageHtml4(total, page, size),
+    pages: (total, page, size) => pageHtml5(total, page, size),
     reloadAdmin: () => {
       void loadAdmin([]);
     }
@@ -23755,8 +23614,8 @@
   function clearFilters2(panel, filters3) {
     Object.assign(filters3, { q: "", prov: "", muni: "", esp: "", est: "", urg: false, mios: false, sin: false, orden: "nombre", com: "", rep: "", campos: {} });
     for (const id of ["frep", "fcom", "q"]) {
-      const field10 = document.getElementById(id);
-      if (field10) field10.value = "";
+      const field11 = document.getElementById(id);
+      if (field11) field11.value = "";
     }
     toolsPanelLegacy.search();
     panel.classList.remove("abierto");
@@ -24280,8 +24139,8 @@
     body3.innerHTML = windowHtml3(user, options3 ?? {});
     const state2 = { total: 0, page: 0, left: /* @__PURE__ */ new Set() };
     FILTER_IDS.forEach((key) => {
-      const field10 = byId17(key);
-      if (field10) field10.onchange = () => {
+      const field11 = byId17(key);
+      if (field11) field11.onchange = () => {
         state2.page = 0;
         state2.left.clear();
         void paintList2(state2);
@@ -24474,8 +24333,8 @@
   function chartFor(id, kpis, panel, charts) {
     return CHARTS.get(id)?.({ id, kpis, panel, charts, today: todayIso() }) ?? EMPTY_CHART;
   }
-  function helpButton2(help4, title2) {
-    return help4 ? `<button class="ai" data-ayuda-txt="${escapeHtml(help4)}" data-ayuda-tit="${escapeHtml(title2)}" aria-label="${t("home.indicators.whatIsIt")}">i</button>` : "";
+  function helpButton2(help5, title2) {
+    return help5 ? `<button class="ai" data-ayuda-txt="${escapeHtml(help5)}" data-ayuda-tit="${escapeHtml(title2)}" aria-label="${t("home.indicators.whatIsIt")}">i</button>` : "";
   }
   function figure(raw) {
     const text2 = String(raw), fraction = /^(\d+)\/(\d+)$/.exec(text2);
@@ -24487,12 +24346,12 @@
     const classes = `kpi ${definition.cls ? definition.cls(context.kpis) : ""} ${definition.h ? "click" : ""}${context.panel ? " kv" : ""}`;
     const action = definition.h ? ` data-k="${definition.h}"` : "";
     const icon3 = indicatorCatalog.icon(definition.id), description = indicatorCatalog.description(definition.id);
-    const help4 = helpButton2(indicatorCatalog.help(definition.id), title2);
+    const help5 = helpButton2(indicatorCatalog.help(definition.id), title2);
     const raw = definition.v(context.kpis);
     const body3 = context.panel ? liveBody(definition.id, capitalise(title2).trim(), raw, context) : `
-       ${help4}
+       ${help5}
        <b>${typeof raw === "string" ? raw : formatNumber(raw)}</b><span>${escapeHtml(capitalise(title2))}</span>`;
-    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon3 ? `<span class="kico" aria-hidden="true">${icon3}</span>` : ""}${context.panel ? help4 : ""}${body3}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
+    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon3 ? `<span class="kico" aria-hidden="true">${icon3}</span>` : ""}${context.panel ? help5 : ""}${body3}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
   }
   function liveBody(id, title2, raw, context) {
     const { summary: summary4, visual } = chartFor(id, context.kpis, context.panel, context.charts);
@@ -24503,12 +24362,12 @@
   function filterCard(setting2, index, live) {
     const filter = setting2.filtro ?? {};
     const name = setting2.t ? setting2.t : filterText(filter);
-    const help4 = `<button class="ai" data-ayuda-txt="${escapeHtml(t("home.indicators.filterHelp", { help: indicatorCatalog.help("filtro") ?? "", filter: filterText(filter) }))}" data-ayuda-tit="${escapeHtml(setting2.t ? setting2.t : t("home.indicators.savedFilter"))}" aria-label="${t("home.indicators.whatIsIt")}">i</button>`;
+    const help5 = `<button class="ai" data-ayuda-txt="${escapeHtml(t("home.indicators.filterHelp", { help: indicatorCatalog.help("filtro") ?? "", filter: filterText(filter) }))}" data-ayuda-tit="${escapeHtml(setting2.t ? setting2.t : t("home.indicators.savedFilter"))}" aria-label="${t("home.indicators.whatIsIt")}">i</button>`;
     const count = '<b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b>';
     return live ? `<div class="kpi click kv" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">
-        ${help4}
+        ${help5}
         <span class="kvt">${escapeHtml(name)}</span><div class="kvn">${count}</div></div>` : `<div class="kpi click" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">
-        ${help4}
+        ${help5}
         ${count}<span>${escapeHtml(name)}</span></div>`;
   }
 
@@ -24942,9 +24801,9 @@
     if (box3) box3.innerHTML = totalsHtml2(editor.lines, Number(value7("cpport")) || 0);
   }
   function onLineChange(editor, target) {
-    const [index = "", field10 = ""] = (target.dataset.cl ?? "").split("|"), line2 = editor.lines[Number(index)];
-    if (!field10 || !line2) return;
-    if (field10 === "producto_id") {
+    const [index = "", field11 = ""] = (target.dataset.cl ?? "").split("|"), line2 = editor.lines[Number(index)];
+    if (!field11 || !line2) return;
+    if (field11 === "producto_id") {
       line2.producto_id = target.value;
       const product = purchasesLegacy.products().find((item) => item.id === target.value);
       if (product && product.coste !== null && product.coste !== void 0) {
@@ -24952,7 +24811,7 @@
         paint6(editor);
         return;
       }
-    } else if (field10 === "unidades") line2.unidades = Number(target.value);
+    } else if (field11 === "unidades") line2.unidades = Number(target.value);
     else line2.coste_unitario = Number(target.value);
     paintTotals2(editor);
   }
@@ -26392,13 +26251,13 @@
     let { data: result, error } = await legacyBActions.rpcOriginal("pruebas_resetear_responsable", { p_confirmacion: CONFIRMATION });
     if (error && missingFunction.test(error.message ?? "")) ({ data: result, error } = await legacyBActions.rpcOriginal("pruebas_resetear", { p_confirmacion: CONFIRMATION }));
     if (error || !result?.ok) {
-      failed3(result, error);
+      failed2(result, error);
       return;
     }
     legacyBActions.clearLocalData();
     location.reload();
   }
-  function failed3(result, error) {
+  function failed2(result, error) {
     legacyBActions.hideLoadingScreen();
     notices.toast(result?.error === "permiso" ? t("legacyB.testEnvironment.onlyResponsible") : t("legacyB.testEnvironment.couldNot", { error: error?.message ?? result?.error ?? "" }), true);
   }
@@ -26662,9 +26521,9 @@
       stepNumber(stepper);
       return;
     }
-    const field10 = target.closest(".selw");
-    if (field10) {
-      const input6 = field10.querySelector("input");
+    const field11 = target.closest(".selw");
+    if (field11) {
+      const input6 = field11.querySelector("input");
       if (!input6 || input6.disabled || input6.dataset.ro === "1") return;
       event.preventDefault();
       openPicker(input6);
@@ -28651,7 +28510,7 @@
       element.innerHTML = "";
       return;
     }
-    element.innerHTML = pageHtml4(total, page, size);
+    element.innerHTML = pageHtml5(total, page, size);
     element.querySelectorAll("[data-pg]").forEach((button3) => {
       button3.onclick = () => {
         onPage(Number(button3.dataset.pg));
@@ -29081,10 +28940,10 @@
       iban: company.iban ?? ""
     };
   }
-  function fillTemplate(use, field10, values2) {
+  function fillTemplate(use, field11, values2) {
     const list = templatesFor(use), chosen4 = settingsExtraLegacy.chosenTemplate(use);
     const template = list.find((item) => item.id === chosen4) ?? list.find((item) => item.defecto) ?? list[0];
-    const text2 = (template?.[field10] ?? "").trim() || defaultTemplate(use)[field10];
+    const text2 = (template?.[field11] ?? "").trim() || defaultTemplate(use)[field11];
     return text2.replace(/\[(\w+)\]/g, (whole3, name) => name in values2 ? values2[name] ?? "" : whole3).replace(/ {2,}/g, " ").trim();
   }
   async function chooseTemplate2(use) {
@@ -29966,16 +29825,16 @@
     activeWorkingDay: () => activeWorkingDay
   });
   function activeWorkingDay() {
-    let stored3 = null;
+    let stored4 = null;
     try {
-      stored3 = JSON.parse(localStorage.getItem(restLegacy.workingDayKey()) ?? "null");
+      stored4 = JSON.parse(localStorage.getItem(restLegacy.workingDayKey()) ?? "null");
     } catch {
     }
-    if (stored3 && stored3.fecha !== todayIso()) {
+    if (stored4 && stored4.fecha !== todayIso()) {
       localStorage.removeItem(restLegacy.workingDayKey());
       return null;
     }
-    return stored3;
+    return stored4;
   }
 
   // src/app/screens/agenda/appointment-origin.ts
@@ -30399,17 +30258,17 @@
   function yesNo(attributes, value10) {
     return `<select ${attributes}><option value=""></option><option value="true" ${value10 === true ? "selected" : ""}>${t("leftovers.fields.yes")}</option><option value="false" ${value10 === false ? "selected" : ""}>${t("leftovers.fields.no")}</option></select>`;
   }
-  function customFieldInput(field10, current) {
-    const attributes = `data-cpk="${escapeHtml(field10.clave)}" ${field10.solo_lectura ? "disabled" : ""}`;
+  function customFieldInput(field11, current) {
+    const attributes = `data-cpk="${escapeHtml(field11.clave)}" ${field11.solo_lectura ? "disabled" : ""}`;
     const value10 = current ?? "", text2 = String(value10);
-    if (field10.tipo === "lista") {
-      const values2 = field10.valores ?? [], all = text2 !== "" && !values2.includes(text2) ? [...values2, text2] : values2;
+    if (field11.tipo === "lista") {
+      const values2 = field11.valores ?? [], all = text2 !== "" && !values2.includes(text2) ? [...values2, text2] : values2;
       return `<select ${attributes}><option value=""></option>${all.map((item) => `<option ${item === value10 ? "selected" : ""}>${escapeHtml(item)}</option>`).join("")}</select>`;
     }
-    if (field10.tipo === "si_no") return yesNo(attributes, value10);
-    if (field10.tipo === "fecha") return `<input type="date" ${attributes} value="${escapeHtml(text2)}">`;
-    if (field10.tipo === "numero") return `<input type="text" inputmode="decimal" ${attributes} value="${escapeHtml(String(value10).replace(".", ","))}">`;
-    return `<input ${attributes} value="${escapeHtml(text2)}" maxlength="500" placeholder="${escapeHtml(field10.descripcion ?? "")}">`;
+    if (field11.tipo === "si_no") return yesNo(attributes, value10);
+    if (field11.tipo === "fecha") return `<input type="date" ${attributes} value="${escapeHtml(text2)}">`;
+    if (field11.tipo === "numero") return `<input type="text" inputmode="decimal" ${attributes} value="${escapeHtml(String(value10).replace(".", ","))}">`;
+    return `<input ${attributes} value="${escapeHtml(text2)}" maxlength="500" placeholder="${escapeHtml(field11.descripcion ?? "")}">`;
   }
   function wideNote(input6) {
     if (!input6 || input6.dataset.nota || input6.type !== "text") return;
@@ -30429,8 +30288,8 @@
   }
   var HISTORY_FREE = "input:not([autocomplete]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]), textarea:not([autocomplete])";
   function withoutHistory(root) {
-    (root ?? document).querySelectorAll(HISTORY_FREE).forEach((field10) => {
-      field10.setAttribute("autocomplete", "off");
+    (root ?? document).querySelectorAll(HISTORY_FREE).forEach((field11) => {
+      field11.setAttribute("autocomplete", "off");
     });
   }
 
@@ -30870,7 +30729,7 @@
     }
     const group = groupOf(input6);
     dialog7.innerHTML = windowHtml4(group.length > 1);
-    const opened = { input: input6, mode: modeOf2(input6), group, live: true, read: new Set(group.map((field10) => field10.value.trim()).filter(Boolean)), count: 0 };
+    const opened = { input: input6, mode: modeOf2(input6), group, live: true, read: new Set(group.map((field11) => field11.value.trim()).filter(Boolean)), count: 0 };
     session = opened;
     const finish2 = document.getElementById("escfin");
     if (finish2) finish2.onclick = closeScanner;
@@ -31341,7 +31200,7 @@
     button3.textContent = buttonText(state2, withOrder);
     return { data: answer.data, error: answer.error };
   }
-  function failed4(error, result) {
+  function failed3(error, result) {
     if (error && (error.hint ?? "").includes(DUPLICATE_HINT)) {
       notices.toast(error.message ?? "", true);
       field9("konif")?.dispatchEvent(new Event("input"));
@@ -31355,7 +31214,7 @@
   }
   async function store3(state2, button3, ready2, withOrder) {
     const { data: result, error } = await send4(state2, button3, ready2.taxId, withOrder);
-    if (failed4(error, result)) return null;
+    if (failed3(error, result)) return null;
     const saved3 = { ...result?.contacto ?? {} }, id = result?.contacto?.id ?? state2.customer.id;
     if (ready2.fields && !await saveCustomFields(ready2.fields, id)) return null;
     if (!await saveFreeAccount(state2, id, saved3)) return null;
@@ -32988,7 +32847,7 @@
       void open2();
     };
   }
-  async function removedWindow({ title: title2, hint, listId, load: load4, rowHtml: rowHtml21, empty: empty2 }) {
+  async function removedWindow({ title: title2, hint, listId, load: load4, rowHtml: rowHtml22, empty: empty2 }) {
     const body3 = document.getElementById("dbody");
     if (!body3) return;
     body3.innerHTML = `<div class="fh"><div><h2>${title2}</h2><div class="sm">${hint}</div></div>
@@ -32996,7 +32855,7 @@
     removedLegacy.dialog("dlg")?.showModal();
     const rows2 = await load4(), list = document.getElementById(listId);
     if (!list) return;
-    list.innerHTML = rows2.length ? `<div class="lista">${rows2.map(rowHtml21).join("")}</div>` : `<div class="vacio">${empty2}</div>`;
+    list.innerHTML = rows2.length ? `<div class="lista">${rows2.map(rowHtml22).join("")}</div>` : `<div class="vacio">${empty2}</div>`;
   }
   function removeRowOnClick(selector) {
     document.addEventListener("click", (event) => {
@@ -33514,7 +33373,7 @@
       general = value10;
     });
   }
-  var ACCESS_CHECK_MS2 = 15e3;
+  var ACCESS_CHECK_MS = 15e3;
   var LOGIN_TRY_MS = 250;
   var LOGIN_TRIES = 60;
   var PROFILE_TRY_MS = 1e3;
@@ -33546,7 +33405,7 @@
   function installAccessChecks() {
     setInterval(() => {
       if (document.visibilityState === "visible") sessionGlueLegacy.checkAccess();
-    }, ACCESS_CHECK_MS2);
+    }, ACCESS_CHECK_MS);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
         sessionGlueLegacy.checkAccess(true);
@@ -33899,7 +33758,7 @@
   }
   var rateOptions = () => vatRates().map(([rate, text2]) => ({ value: String(rate), text: text2 }));
   function taxesHtml() {
-    const options3 = rateOptions(), row3 = (id, label, help4, value10) => selectRowHtml({ id: `${TAXES}${id}`, label: t(label), help: t(help4), value: String(value10), options: options3 });
+    const options3 = rateOptions(), row3 = (id, label, help5, value10) => selectRowHtml({ id: `${TAXES}${id}`, label: t(label), help: t(help5), value: String(value10), options: options3 });
     return ruleCardHtml({ id: TAXES, title: t("settingsRules.taxes.title"), info: t("settingsRules.taxes.info"), intro: t("settingsRules.taxes.intro"), rows: [
       areaRowHtml({ id: `${TAXES}t`, label: t("settingsRules.taxes.rates"), help: t("settingsRules.taxes.ratesHelp"), value: ratesText(), rows: 4, placeholder: t("settingsRules.taxes.ratesPlaceholder") }),
       row3("g", "settingsRules.taxes.general", "settingsRules.taxes.generalHelp", generalVat()),
@@ -33928,6 +33787,214 @@
     if (await saveRule(SETTING_TAXES, { ...current, tipos: list, general: pick2("g"), productos: pick2("p"), servicios: pick2("s"), envios: pick2("e") })) void paintTaxesSettings();
   }
   var paintTaxesSettings = () => paintRuleCards([{ id: TAXES, html: taxesHtml, save: saveTaxes }]);
+
+  // src/app/screens/settings/rules/channel-editor.ts
+  var ERRORS5 = ["nombre", "nombre_largo", "nombre_repetido", "descuento", "por_defecto", "ultimo", "permiso"];
+  var MAX_NAME2 = 60;
+  var help4 = (text2) => `<span class="sm vhelp">${escapeHtml(text2)}</span>`;
+  var field10 = (id) => document.getElementById(id);
+  var valueOf12 = (id) => document.getElementById(id)?.value ?? "";
+  var NEW_CHANNEL = {
+    clave: "",
+    nombre: "",
+    compra: "cliente",
+    atribucion: "referencia",
+    une_cliente: true,
+    en_portal: true,
+    descuento: null,
+    origenes: [],
+    por_defecto: false,
+    orden: 0,
+    activo: true
+  };
+  function selectHtml(id, chosen4, options3) {
+    return `<select id="${id}">${options3.map(([value10, text2]) => `<option value="${value10}" ${value10 === chosen4 ? "selected" : ""}>${t(text2)}</option>`).join("")}</select>`;
+  }
+  function switchHtml(id, label, text2, state2) {
+    return `<div class="vfield"><label class="vfswitch u-mt-12"><input type="checkbox" role="switch" id="${id}" ${state2.checked ? "checked" : ""} ${state2.fixed ? "disabled" : ""}><span class="sw"></span><b>${escapeHtml(label)}</b></label>${help4(text2)}</div>`;
+  }
+  function nameHtml(channel) {
+    const key = channel.clave ? help4(t("salesChannels.editor.key", { key: channel.clave })) : "";
+    return `<div class="vfield"><label for="cvname">${t("salesChannels.editor.name")}</label><input id="cvname" value="${escapeHtml(channel.nombre)}" maxlength="${MAX_NAME2}" autocomplete="off" placeholder="${t("salesChannels.editor.namePlaceholder")}">${help4(t("salesChannels.editor.nameHelp"))}${key}</div>`;
+  }
+  function rulesHtml(channel) {
+    return `<div class="vfield"><label for="cvbuyer">${t("salesChannels.editor.buyer")}</label>${selectHtml(
+      "cvbuyer",
+      channel.compra,
+      [["cliente", "salesChannels.editor.buyerCustomer"], ["cuenta", "salesChannels.editor.buyerAccount"]]
+    )}${help4(t("salesChannels.editor.buyerHelp"))}</div>
+    <div class="vfield"><label for="cvattr">${t("salesChannels.editor.attribution")}</label>${selectHtml(
+      "cvattr",
+      channel.atribucion,
+      [["referencia", "salesChannels.editor.toReference"], ["compradora", "salesChannels.editor.toBuyer"], ["ninguna", "salesChannels.editor.toNobody"]]
+    )}${help4(t("salesChannels.editor.attributionHelp"))}</div>
+    ${switchHtml("cvjoins", t("salesChannels.editor.joins"), t("salesChannels.editor.joinsHelp"), { checked: channel.une_cliente })}
+    ${switchHtml("cvportal", t("salesChannels.editor.portal"), t("salesChannels.editor.portalHelp"), { checked: channel.en_portal })}
+    <div class="vfield"><label for="cvdisc">${t("salesChannels.editor.discount")}</label><input id="cvdisc" type="number" min="0" max="100" step="0.01" inputmode="decimal" value="${channel.descuento ? formatNumber(channel.descuento).replace(",", ".") : ""}">${help4(t("salesChannels.editor.discountHelp"))}</div>`;
+  }
+  function originsHtml(channel) {
+    const boxes = ORIGINS2.map((origin) => `<label class="opt"><input type="checkbox" data-cvori="${origin}" ${channel.origenes.includes(origin) ? "checked" : ""}> ${escapeHtml(t(`salesChannels.origins.${origin}`))}</label>`).join("");
+    return `<div class="vfield"><label>${t("salesChannels.editor.origins")}</label><div class="u-flex u-gap-8 u-wrap">${boxes}</div>${help4(t("salesChannels.editor.originsHelp"))}</div>`;
+  }
+  function stateHtml3(channel, isNew) {
+    const fixedDefault = channel.por_defecto;
+    return `${switchHtml("cvdefault", t("salesChannels.editor.isDefault"), t(fixedDefault ? "salesChannels.editor.defaultFixed" : "salesChannels.editor.defaultHelp"), { checked: channel.por_defecto, fixed: fixedDefault })}
+    ${isNew ? "" : switchHtml("cvactive", t("salesChannels.editor.active"), t(fixedDefault ? "salesChannels.editor.activeFixed" : "salesChannels.editor.activeHelp"), { checked: channel.activo, fixed: fixedDefault })}`;
+  }
+  function channelEditorHtml(existing) {
+    const channel = existing ?? NEW_CHANNEL, isNew = !existing;
+    return `<div class="fh"><div><h2>${t(isNew ? "salesChannels.editor.newTitle" : "salesChannels.editor.editTitle")}</h2><div class="sm">${escapeHtml(isNew ? t("salesChannels.editor.in") : channel.nombre)}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <div class="vform">${nameHtml(channel)}${rulesHtml(channel)}${originsHtml(channel)}${stateHtml3(channel, isNew)}</div>
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar>${t("common.cancel")}</button><button type="button" class="btn" id="cvok">${t(isNew ? "salesChannels.editor.add" : "common.save")}</button></div>`;
+  }
+  function readChannel(channel) {
+    const checked5 = (id) => Boolean(field10(id)?.checked);
+    return {
+      clave: channel?.clave ?? "",
+      nombre: valueOf12("cvname").trim(),
+      compra: valueOf12("cvbuyer"),
+      atribucion: valueOf12("cvattr"),
+      une_cliente: checked5("cvjoins"),
+      en_portal: checked5("cvportal"),
+      descuento: valueOf12("cvdisc").trim(),
+      origenes: [...document.querySelectorAll("[data-cvori]")].filter((box3) => box3.checked).map((box3) => box3.dataset.cvori ?? ""),
+      por_defecto: checked5("cvdefault"),
+      activo: field10("cvactive") ? checked5("cvactive") : true
+    };
+  }
+  var errorText5 = (error) => error && ERRORS5.includes(error) ? t(`salesChannels.errors.${error}`) : t("salesChannels.errors.other");
+  async function saveChannel(channel) {
+    const fields = readChannel(channel);
+    if (!fields.nombre) {
+      notices.toast(t("salesChannels.errors.nombre"), true);
+      return null;
+    }
+    const { data, error } = await callRpc("guardar_canal_venta", { p: fields });
+    if (error || !data?.ok) {
+      notices.toast(errorText5(data?.error), true);
+      return null;
+    }
+    notices.toast(t(channel ? "salesChannels.editor.saved" : "salesChannels.editor.added"));
+    return data.clave ?? channel?.clave ?? "";
+  }
+  function bindChannelEditor(channel, saved3) {
+    const ok = document.getElementById("cvok");
+    if (!ok) return;
+    const save26 = async () => {
+      ok.disabled = true;
+      const key = await saveChannel(channel);
+      ok.disabled = false;
+      if (key !== null) await saved3(key);
+    };
+    ok.onclick = () => {
+      void save26();
+    };
+    const name = field10("cvname");
+    if (name) {
+      name.focus({ preventScroll: true });
+      name.onkeydown = (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          void save26();
+        }
+      };
+    }
+  }
+
+  // src/app/screens/settings/rules/channels.ts
+  var PANEL = "cvpanel";
+  var SEPARATOR2 = " · ";
+  function originsText(origins) {
+    const names = origins.map((origin) => t(`salesChannels.origins.${origin}`));
+    return names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")}${t("salesChannels.origins.and")}${names[names.length - 1] ?? ""}`;
+  }
+  var ATTRIBUTION = {
+    referencia: "salesChannels.summary.toReference",
+    compradora: "salesChannels.summary.toBuyer",
+    ninguna: "salesChannels.summary.toNobody"
+  };
+  function summaryText2(channel) {
+    const parts = [
+      t(channel.compra === "cuenta" ? "salesChannels.summary.buysAccount" : "salesChannels.summary.buysCustomer"),
+      t(ATTRIBUTION[channel.atribucion] ?? "salesChannels.summary.toNobody")
+    ];
+    if (channel.en_portal) parts.push(t("salesChannels.summary.inPortal"));
+    if (channel.descuento) parts.push(t("salesChannels.summary.discount", { discount: formatNumber(channel.descuento) }));
+    if (channel.origenes.length) parts.push(t("salesChannels.summary.receives", { origins: originsText(channel.origenes) }));
+    return parts.join(SEPARATOR2);
+  }
+  function rowHtml19(channel) {
+    const name = escapeHtml(channel.nombre);
+    const pills = `${channel.por_defecto ? `<span class="pill p-est">${t("salesChannels.list.isDefault")}</span>` : ""}${channel.activo ? "" : `<span class="pill p-anu">${t("salesChannels.list.inactive")}</span>`}`;
+    return `<div class="item vrow ${channel.activo ? "" : "off"}" data-cvcanal="${escapeHtml(channel.clave)}" role="button" tabindex="0" aria-label="${t("salesChannels.list.openOf", { name })}">
+        <span class="tx"><b>${name}</b><span class="sm">${escapeHtml(summaryText2(channel))}</span></span>${pills}<span class="vchev" aria-hidden="true">${t("salesChannels.list.open")}</span>
+      </div>`;
+  }
+  function listHtml2() {
+    const channels = salesChannels2(), title2 = t("salesChannels.list.title");
+    return `<h2>${title2}</h2>
+    <p class="sm">${t("salesChannels.list.intro")} ${infoButton(t("salesChannels.list.infoTitle"), t("salesChannels.list.info"))}</p>
+    <div class="lista vlist">${channels.map(rowHtml19).join("") || `<div class="vacio">${t("salesChannels.list.none")}</div>`}</div>
+    <div class="acts u-end"><button type="button" class="btn" id="cvnuevo">${t("salesChannels.list.newChannel")}</button></div>`;
+  }
+  async function reloadChannels() {
+    const { data } = await callRpc("ajustes_lista");
+    const list = data?.[SETTING_CHANNELS];
+    if (Array.isArray(list)) cycleLegacy.setSetting(SETTING_CHANNELS, list);
+  }
+  function openEditor2(channel) {
+    const body3 = document.getElementById("dbody"), box3 = document.getElementById("dlg");
+    if (!body3 || !box3) return;
+    body3.innerHTML = channelEditorHtml(channel);
+    bindChannelEditor(channel, async (key) => {
+      delete box3.dataset.sucio;
+      box3.close();
+      await reloadChannels();
+      showChannels(key);
+    });
+    if (!box3.open) box3.showModal();
+  }
+  function bindList(panel) {
+    const open2 = (key) => {
+      const channel = salesChannels2().find((item) => item.clave === key);
+      if (channel) openEditor2(channel);
+    };
+    panel.querySelectorAll("[data-cvcanal]").forEach((row3) => {
+      row3.onclick = () => {
+        open2(row3.dataset.cvcanal);
+      };
+      row3.onkeydown = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          open2(row3.dataset.cvcanal);
+        }
+      };
+    });
+    const add = document.getElementById("cvnuevo");
+    if (add) add.onclick = () => {
+      openEditor2(null);
+    };
+  }
+  function showChannels(focus) {
+    const panel = document.getElementById(PANEL);
+    if (!panel) return;
+    panel.innerHTML = listHtml2();
+    bindList(panel);
+    const row3 = focus ? panel.querySelector(`[data-cvcanal="${focus}"]`) : null;
+    if (row3) {
+      row3.scrollIntoView({ block: "nearest" });
+      row3.focus({ preventScroll: true });
+    }
+  }
+  async function paintChannelsSettings() {
+    if (!document.getElementById("cfgcuerpo")) return;
+    await reloadChannels();
+    const box3 = document.getElementById("cfgcuerpo");
+    if (!box3) return;
+    box3.innerHTML = `<div class="card cfgpanel" id="${PANEL}"></div>`;
+    showChannels();
+  }
 
   // src/app/core/layers/settings-tree.ts
   var entry = (fields) => Object.fromEntries(Object.entries(fields).filter(([, value10]) => value10 !== void 0));
@@ -34042,6 +34109,7 @@
   }
   function salesEntries() {
     const sales = treeLegacy.canUseModule("ventas"), items = [];
+    if (sales && knowsChannels()) items.push({ k: "canales", t: t("salesChannels.entry"), ic: "shopping-cart", d: t("salesChannels.entryHint"), r: () => paintChannelsSettings() });
     if (treeLegacy.canUseModule("agenda") && planIncludesSection("cirugias")) items.push({ k: "servicios", t: t("settingsRules.servicesEntry"), ic: "package", d: t("settingsRules.servicesHint"), r: () => paintServicesSettings() });
     if (sales && planIncludesSection("concursos")) items.push({ k: "contratos", t: t("settingsRules.contractsEntry"), ic: "file-text", d: t("settingsRules.contractsHint"), r: () => paintContractsSettings() });
     if (sales) items.push({ k: "distribuidores", t: t("legacyD.tree.distributors"), ic: "package", d: t("legacyD.tree.distributorsHint"), r: () => treeLegacy.paintDistributors() });
@@ -34077,6 +34145,7 @@
       tpv: t("legacyD.tree.cardPaymentWords"),
       "o.pruebas": t("legacyD.tree.testEnvironmentWords"),
       impuestos: t("settingsRules.taxesWords"),
+      canales: t("salesChannels.entryWords"),
       servicios: t("settingsRules.servicesWords"),
       contratos: t("settingsRules.contractsWords"),
       "stock.consigna": t("settingsRules.consignmentWords"),
@@ -35484,8 +35553,8 @@
       if (ordered.some((button3, index) => button3 !== buttons[index])) ordered.forEach((button3) => actions.appendChild(button3));
       const tools = actions.querySelector(":scope > #dirtools"), gap = actions.querySelector(":scope > .ai-hueco");
       if (tools && gap && gap.nextElementSibling !== tools) actions.insertBefore(gap, tools);
-      actions.querySelectorAll(":scope > .ai-dir").forEach((help4) => {
-        help4.remove();
+      actions.querySelectorAll(":scope > .ai-dir").forEach((help5) => {
+        help5.remove();
       });
     });
   }
@@ -35533,8 +35602,8 @@
   }
   function keepOneTitleHelp() {
     observe(document.querySelector("main"), () => {
-      document.querySelector("#dircab h1")?.querySelectorAll(".ai").forEach((help4, index) => {
-        if (index) help4.remove();
+      document.querySelector("#dircab h1")?.querySelectorAll(".ai").forEach((help5, index) => {
+        if (index) help5.remove();
       });
     }, { childList: true, subtree: true });
   }
@@ -36190,6 +36259,12 @@
     paintCycleTeam: () => paintCycleTeam
   });
 
+  // src/app/api/client.ts
+  function rpc(name, ...params) {
+    const [values2] = params;
+    return legacyDb().rpc(name, values2);
+  }
+
   // src/app/screens/cycle/model.ts
   var CLASSES = ["A", "B", "C"];
   var cycleState = { owner: "", classFilter: "", classifyFilter: "sin", query: "" };
@@ -36381,23 +36456,23 @@
   // src/app/screens/cycle/classify.ts
   var SHOWN6 = 300;
   var SEARCH_WAIT_MS10 = 350;
-  function rowHtml19(item) {
+  function rowHtml20(item) {
     return `<div class="item cicrow" data-cfila="${item.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
           <span class="sm">${escapeHtml([item.especialidad, item.municipio, item.estado_comercial].filter(Boolean).join(" · "))}</span></span>
         <span class="cicfal"><b>${formatNumber(item.actividades_12m)}</b><span class="sm">${t("cycle.classifyPage.in12Months")}</span></span>
         ${classButtons(item.id, item.clase)}</div>`;
   }
-  function listHtml2(rows2) {
+  function listHtml3(rows2) {
     if (!rows2.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
-    return `<section class="card cicbloque"><div class="lista">${rows2.map(rowHtml19).join("")}</div></section>${rows2.length >= SHOWN6 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
+    return `<section class="card cicbloque"><div class="lista">${rows2.map(rowHtml20).join("")}</div></section>${rows2.length >= SHOWN6 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
   }
   function pageHtml9(rows2, selector) {
     const filters3 = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value10 = "", label = ""]) => `<button type="button" data-cl="${value10}" class="${value10 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value10 === cycleState.classifyFilter)}">${label}</button>`).join("");
     return `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="${t("cycle.classifyPage.show")}">${filters3}</span>
       <span class="cicacc"><input id="cicq" type="search" placeholder="${t("cycle.classifyPage.search", words11())}" value="${escapeHtml(cycleState.query)}" aria-label="${t("cycle.classifyPage.searchLabel")}">${selector}</span></div>
     <p class="sm">${t("cycle.classifyPage.hint", words11())}</p>
-    ${listHtml2(rows2)}</div>`;
+    ${listHtml3(rows2)}</div>`;
   }
   var searchTimer7;
   function bind20(box3, wasSearching) {
@@ -36538,7 +36613,7 @@
 
   // src/app/screens/cycle/team.ts
   var ofText = (done, goal) => t("cycle.current.progress", { done: formatNumber(done), goal: formatNumber(goal) });
-  function rowHtml20(member) {
+  function rowHtml21(member) {
     const classified = member.a + member.b + member.c, percent3 = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
     const progress = percent3 === null ? "—" : `<span class="cicbarc">${progressBar(percent3)}${ofText(member.hechas, member.objetivo)} · ${percent3}%</span>`;
     return `<tr><td><button type="button" class="lnk" data-cde="${member.id}"><b>${escapeHtml(member.nombre)}</b></button><span class="sm"> · ${escapeHtml(member.rol)}</span></td><td>${formatNumber(member.cartera)}</td><td>${formatNumber(member.a)}</td><td>${formatNumber(member.b)}</td><td>${formatNumber(member.c)}</td>
@@ -36549,7 +36624,7 @@
     if (!members2.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
     const head = [t("cycle.team.person"), t("cycle.team.portfolio"), "A", "B", "C", t("cycle.team.noClass"), t("cycle.team.upToDate"), t("cycle.team.cycleVisits", words11())];
     return `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr>${head.map((title2) => `<th>${title2}</th>`).join("")}</tr></thead>
-      <tbody>${members2.map(rowHtml20).join("")}</tbody></table></div></div>
+      <tbody>${members2.map(rowHtml21).join("")}</tbody></table></div></div>
       <p class="sm">${t("cycle.team.countHint", words11())}</p>`;
   }
   async function paintCycleTeam() {
@@ -37530,9 +37605,9 @@
   }
   function fieldNames() {
     const names = {};
-    FIELDS6.forEach((field10) => {
-      if (field10 === "especialidad") Object.defineProperty(names, field10, { enumerable: true, configurable: true, get: () => term("especialidad", { capital: "C" }) });
-      else names[field10] = field10 === "cuenta_id" ? term("medico", { capital: "C" }) : t(`legacyC.fieldNames.${field10}`);
+    FIELDS6.forEach((field11) => {
+      if (field11 === "especialidad") Object.defineProperty(names, field11, { enumerable: true, configurable: true, get: () => term("especialidad", { capital: "C" }) });
+      else names[field11] = field11 === "cuenta_id" ? term("medico", { capital: "C" }) : t(`legacyC.fieldNames.${field11}`);
     });
     return names;
   }
@@ -37723,57 +37798,363 @@
     surgeriesMenu();
   }
 
-  // src/app/legacy/components-bridge.ts
-  var componentsLegacy = {
-    popup: () => navigationStore.pickerPopup,
-    setPopup: (popup) => {
-      navigationStore.pickerPopup = popup;
-    },
-    showValue: (input6) => {
-      visibleValue(input6);
-    },
-    placePopup: (popup, anchor) => {
-      placePicker(anchor);
-    },
-    emitChange: (input6) => {
-      emitir(input6);
-    },
-    pending: () => navigationStore.pendingEnhancements,
-    flushScheduled: () => Boolean(navigationStore.enhanceFrame),
-    setFlushScheduled: (scheduled) => {
-      navigationStore.enhanceFrame = scheduled ? 1 : 0;
-    },
-    isVatField: (input6) => Boolean(money_exports.isVatField(input6)),
-    vatSelector: (input6) => {
-      vatSelector(input6);
-    },
-    touchScreen: () => PANTALLA_TACTIL,
-    weekdayLetter: (isoDate) => calendar_exports.dayLetter(isoDate),
-    readOnlyCompany: () => Boolean(ordersStore.paymentState?.solo_lectura),
-    hasStartPoint: () => Boolean(activePreferences().salida),
-    helpAnchors: () => ANCLAS_AYUDA,
-    manualAnchors: () => MANUAL_ANCLA,
-    euros: (value10) => money_exports.eurosRounded(value10),
-    customFields: (scope) => CAMPOS[scope] ?? [],
-    sortedFields: (scope) => sortedFields(scope),
-    canEditCatalogs: () => Boolean(permissions_exports.canManageLists()),
-    sidePanelOpen: () => sideOpen(),
-    customerFilters: () => PAC.campos = PAC.campos ?? {},
-    reloadCustomers: () => {
-      PAC.pagina = 0;
-      void listCustomers();
-    },
-    orderFilters: () => ordersStore.filters,
-    reloadOrders: () => {
-      ordersStore.page = 0;
-      void paintOrderList();
-    },
-    productFilters: () => productsStore.filters,
-    reloadProducts: () => {
-      void paintProducts();
-    },
-    productsSection: () => productsStore.section
+  // src/app/legacy/organisation-bridge.ts
+  var organisationLegacy = {
+    setting: (key) => settingsStore.settings[key],
+    name: () => appName(),
+    hasPortal: () => hasExtra("portal")
   };
+
+  // src/app/core/sales-channels.ts
+  var SETTING_CHANNELS = "canales_venta";
+  var ORIGINS2 = ["importacion", "portal", "servicios", "consigna"];
+  var PATIENT = "paciente";
+  var CENTRE5 = "centro";
+  function fixedChannels() {
+    return [
+      {
+        clave: PATIENT,
+        nombre: t("core.terms.saleTo", { customer: term("paciente", { article: "al" }) }),
+        compra: "cliente",
+        atribucion: "referencia",
+        une_cliente: true,
+        en_portal: true,
+        descuento: null,
+        origenes: ["importacion"],
+        por_defecto: true,
+        orden: 1,
+        activo: true
+      },
+      {
+        clave: CENTRE5,
+        nombre: t("core.terms.saleToCentre"),
+        compra: "cuenta",
+        atribucion: "compradora",
+        une_cliente: false,
+        en_portal: false,
+        descuento: null,
+        origenes: ["portal", "servicios", "consigna"],
+        por_defecto: false,
+        orden: 2,
+        activo: true
+      }
+    ];
+  }
+  var isChannel = (value10) => Boolean(value10) && typeof value10 === "object" && typeof value10.clave === "string" && typeof value10.nombre === "string";
+  function stored3() {
+    const value10 = organisationLegacy.setting(SETTING_CHANNELS);
+    if (!Array.isArray(value10)) return null;
+    const list = value10.filter(isChannel);
+    return list.length ? list : null;
+  }
+  var knowsChannels = () => stored3() !== null;
+  function salesChannels2() {
+    const list = stored3() ?? fixedChannels();
+    return [...list].sort((one, other) => one.orden - other.orden || one.clave.localeCompare(other.clave));
+  }
+  var activeChannels = () => salesChannels2().filter((channel) => channel.activo);
+  var channelOf = (key) => salesChannels2().find((channel) => channel.clave === key);
+  function defaultChannel() {
+    const active = activeChannels(), [first] = salesChannels2();
+    return active.find((channel) => channel.por_defecto) ?? active[0] ?? first ?? fixedChannels()[0];
+  }
+  function channelName(key) {
+    const channel = channelOf(key);
+    if (channel) return channel.nombre;
+    return key === CENTRE5 ? t("core.terms.saleToCentre") : defaultChannel().nombre;
+  }
+  var choosesChannel = () => activeChannels().length > 1;
+  var buysAsAccount = (key) => channelOf(key)?.compra === "cuenta";
+  var channelDiscount = (key) => Number(channelOf(key)?.descuento ?? 0) || 0;
+  var lowerFirst = (text2) => text2.charAt(0).toLocaleLowerCase("es") + text2.slice(1);
+  function channelFilterOptions(allText, chosen4 = "") {
+    const option3 = (value10, text2) => `<option value="${escapeHtml(value10)}" ${value10 === chosen4 ? "selected" : ""}>${escapeHtml(text2)}</option>`;
+    return option3("", allText) + salesChannels2().map((channel) => option3(channel.clave, channel.activo ? channel.nombre : t("salesChannels.inactiveOption", { name: channel.nombre }))).join("");
+  }
+
+  // src/app/core/vocabulary.ts
+  var DEFAULT_TERMS = {
+    medico: { s: t("core.terms.professional"), p: t("core.terms.professionals"), g: "m" },
+    paciente: { s: t("core.terms.customer"), p: t("core.terms.customers"), g: "m" },
+    visita: { s: t("core.terms.visit"), p: t("core.terms.visits"), g: "f" },
+    pauta: { s: t("core.terms.request"), p: t("core.terms.requests"), g: "f" },
+    consulta: { s: t("core.terms.location"), p: t("core.terms.locations"), g: "f" },
+    especialidad: { s: t("core.terms.segment"), p: t("core.terms.segments"), g: "m" }
+  };
+  var EXTRA_TERMS = {
+    intervencion: { s: t("core.terms.surgery"), p: t("core.terms.surgeries"), g: "f" },
+    deposito: { s: t("core.terms.deposit"), p: t("core.terms.deposits"), g: "m" }
+  };
+  var DETERMINERS = {
+    el: ["el", "los", "la", "las"],
+    un: ["un", "unos", "una", "unas"],
+    del: ["del", "de los", "de la", "de las"],
+    al: ["al", "a los", "a la", "a las"],
+    este: ["este", "estos", "esta", "estas"],
+    ningun: ["ningún", "ningunos", "ninguna", "ningunas"],
+    otro: ["otro", "otros", "otra", "otras"],
+    nuevo: ["nuevo", "nuevos", "nueva", "nuevas"],
+    primer: ["primer", "primeros", "primera", "primeras"],
+    ultimo: ["último", "últimos", "última", "últimas"],
+    proximo: ["próximo", "próximos", "próxima", "próximas"]
+  };
+  var TERMS_KEY = "dlc-terminos";
+  var TITLE = /^(dr|dra|d|dña|dª|sr|sra|srta|prof|profa|lic|ldo|lda)\.?$/i;
+  function ownTerms() {
+    try {
+      return coreLegacy.terms();
+    } catch {
+      return {};
+    }
+  }
+  function termOf(key) {
+    const fallback = DEFAULT_TERMS[key] ?? EXTRA_TERMS[key] ?? { s: key, p: `${key}s`, g: "m" }, own = ownTerms()[key] ?? {};
+    return { s: String(own.s ?? "").trim() || fallback.s, p: String(own.p ?? "").trim() || fallback.p, g: own.g === "f" || own.g === "m" ? own.g : fallback.g };
+  }
+  var withCase = (text2, mode) => mode === "U" ? text2.toUpperCase() : mode === "C" ? text2.charAt(0).toUpperCase() + text2.slice(1) : text2;
+  function wordFor(key, number2, form = {}) {
+    const { determiner, determinerCase, nounCase, adjective } = form;
+    const term2 = termOf(key), plural2 = number2 === "p", noun = withCase(plural2 ? term2.p : term2.s, nounCase);
+    const agreed = adjective ? ` ${term2.g === "f" ? adjective.replace(/o$/, "a") : adjective}${plural2 ? "s" : ""}` : "";
+    const forms = determiner ? DETERMINERS[determiner] : void 0;
+    if (!forms) return noun + agreed;
+    return `${withCase(forms[(term2.g === "f" ? 2 : 0) + (plural2 ? 1 : 0)] ?? "", determinerCase)} ${noun}${agreed}`;
+  }
+  var allOf = (key) => `${t(termOf(key).g === "f" ? "core.terms.allFeminine" : "core.terms.allMasculine")} ${wordFor(key, "p", { determiner: "el" })}`;
+  var contactsLabel = () => (coreLegacy.brandLabel() ?? "") || wordFor("medico", "p", { nounCase: "C" });
+  var channelLabel = (order, total) => {
+    if (coreLegacy.isFree(order, total)) return t("core.terms.freeDelivery");
+    return channelName(order.canal);
+  };
+  var nameParts = (name) => {
+    const parts = String(name ?? "").trim().split(/\s+/);
+    while (parts.length > 1 && TITLE.test(parts[0] ?? "")) parts.shift();
+    return parts;
+  };
+  var firstName = (name) => nameParts(name)[0] ?? "";
+  var initials = (name) => nameParts(name).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase();
+  var ending = (key, plural2) => `${termOf(key).g === "f" ? "a" : "o"}${plural2 ? "s" : ""}`;
+  var SURGERY_WORDS = /* @__PURE__ */ new Map([
+    ["surgery", () => wordFor("intervencion", "s")],
+    ["surgeries", () => wordFor("intervencion", "p")],
+    ["Surgery", () => wordFor("intervencion", "s", { nounCase: "C" })],
+    ["Surgeries", () => wordFor("intervencion", "p", { nounCase: "C" })],
+    ["surgeryThe", () => termOf("intervencion").g === "f" ? "la" : "el"],
+    ["SurgeryThe", () => termOf("intervencion").g === "f" ? "La" : "El"],
+    ["surgeryOfThe", () => termOf("intervencion").g === "f" ? "de la" : "del"],
+    ["surgeriesThe", () => termOf("intervencion").g === "f" ? "las" : "los"],
+    ["surgeryOne", () => termOf("intervencion").g === "f" ? "una" : "un"],
+    ["SurgeryOne", () => termOf("intervencion").g === "f" ? "Una" : "Un"],
+    ["surgeryThis", () => termOf("intervencion").g === "f" ? "esta" : "este"],
+    ["surgeryEnd", () => ending("intervencion", false)],
+    ["surgeryEnds", () => ending("intervencion", true)]
+  ]);
+  var DEPOSIT_WORDS = /* @__PURE__ */ new Map([
+    ["deposit", () => wordFor("deposito", "s")],
+    ["Deposit", () => wordFor("deposito", "s", { nounCase: "C" })],
+    ["depositThe", () => termOf("deposito").g === "f" ? "la" : "el"],
+    ["DepositThe", () => termOf("deposito").g === "f" ? "La" : "El"],
+    ["depositOne", () => termOf("deposito").g === "f" ? "una" : "un"],
+    ["depositEnd", () => ending("deposito", false)]
+  ]);
+  setVocabularyResolver((name) => (SURGERY_WORDS.get(name) ?? DEPOSIT_WORDS.get(name))?.());
+
+  // src/app/core/session.ts
+  var ACCESS_CHECK_MS2 = 3e3;
+  var SESSION_ERRORS = [];
+  var impersonating = () => {
+    try {
+      return JSON.parse(localStorage.getItem(coreLegacy.impersonationKey()) ?? "null");
+    } catch {
+      return null;
+    }
+  };
+  var isGuest = (user) => Boolean(user) && (coreLegacy.roleCan(user?.rol ?? "", "portal_prescriptor") || coreLegacy.roleCan(user?.rol ?? "", "portal_centro"));
+  var guestSees = (user) => coreLegacy.roleCan(user.rol, "portal_centro") ? t("core.session.centreGuestSees") : t("core.session.professionalGuestSees", { requests: wordFor("pauta", "p"), customers: wordFor("paciente", "p") });
+  var ERROR_KEYS = {
+    administrador: "core.session.errors.administrator",
+    permiso: "core.session.errors.permission",
+    inactivo: "core.session.errors.inactive",
+    propio: "core.session.errors.own",
+    otra: "core.session.errors.otherCompany",
+    no_encontrado: "core.session.errors.notFound",
+    plan: "core.session.errors.plan",
+    sesion: "core.session.errors.session"
+  };
+  var IMPERSONATION_ERRORS = Object.fromEntries(Object.entries(ERROR_KEYS).map(([code, key]) => [code, t(key)]));
+  var outOfPlan = (button3) => Boolean(button3) && Boolean(button3?.classList.contains("bloq"));
+  function clearLocalData() {
+    try {
+      Object.keys(localStorage).filter((key) => /^dlc-(rc-|perfil|jornada-)/.test(key)).forEach((key) => {
+        localStorage.removeItem(key);
+      });
+    } catch {
+    }
+  }
+  var emptyModules = (except) => {
+    ["v-pacientes", "v-productos", "v-ventas"].forEach((id) => {
+      const section = document.getElementById(id);
+      if (id !== except && section) section.innerHTML = "";
+    });
+  };
+  function prepareOrganizationChange(target) {
+    try {
+      sessionStorage.setItem("dlc-cambio-org", target ?? "");
+      sessionStorage.removeItem("dlc-f5");
+      localStorage.removeItem("app-marca");
+    } catch {
+    }
+  }
+  function paintImpersonationBar() {
+    const saved3 = impersonating();
+    let bar = document.getElementById("barrasup");
+    if (!saved3) {
+      bar?.remove();
+      return;
+    }
+    if (!bar) {
+      document.body.insertAdjacentHTML("afterbegin", '<div id="barrasup"></div>');
+      bar = document.getElementById("barrasup");
+    }
+    if (!bar) return;
+    const profile6 = coreLegacy.profile();
+    bar.innerHTML = `<span>👤 <b>${t("core.session.impersonating", { name: escapeHtml(profile6 ? profile6.nombre : saved3.como) })}</b>${profile6 ? ` · ${escapeHtml(profile6.rol)}` : ""} · ${t("core.session.underTheirName")}</span>
+    <button class="btn chico" id="supvolver">${t("core.session.stop", { name: escapeHtml(firstName(saved3.nombre)) })}</button>`;
+    const back = document.getElementById("supvolver");
+    if (back) back.onclick = () => {
+      void coreLegacy.backToMySession();
+    };
+  }
+  function canCheck(force) {
+    const id = coreLegacy.profile()?.id;
+    if (coreLegacy.accessLost() || !id || document.body.classList.contains("sin-sesion") || !navigator.onLine) return null;
+    return force || Date.now() - coreLegacy.accessCheckedAt() >= ACCESS_CHECK_MS2 ? id : null;
+  }
+  async function sendOut() {
+    coreLegacy.setAccessLost();
+    try {
+      sessionStorage.setItem("delcos-fuera", "1");
+    } catch {
+    }
+    try {
+      localStorage.removeItem(coreLegacy.profileKey());
+      localStorage.removeItem("dlc-os-sesion");
+    } catch {
+    }
+    clearLocalData();
+    try {
+      await coreLegacy.db().auth.signOut();
+    } catch {
+    }
+    location.reload();
+  }
+  async function checkAccess(force) {
+    const id = canCheck(force);
+    if (!id) return;
+    coreLegacy.setAccessCheckedAt(Date.now());
+    const { data, error } = await coreLegacy.db().from("perfiles").select("id, activo").eq("id", id).maybeSingle();
+    if (error || data?.activo) return;
+    await sendOut();
+  }
+  async function askServer(id) {
+    const answer = await coreLegacy.db().functions.invoke("impersonar", { body: { usuario_id: id } });
+    const { error } = answer, data = answer.data;
+    if (error && !data && typeof error.context?.json === "function") {
+      try {
+        return { data: await error.context.json(), error };
+      } catch {
+      }
+    }
+    return { data, error };
+  }
+  var logFailure = (reason, error, detail) => {
+    coreLegacy.registerError("api", `Impersonalizar: ${reason || "sin respuesta"}`, { estado: error?.context?.status, detalle: detail });
+  };
+  function failed4(answer, error) {
+    const code = answer?.error ?? "", known = IMPERSONATION_ERRORS[code], message = error?.message ?? "", detail = answer?.detalle;
+    const reason = [detail, message, code].find(Boolean) ?? t("core.session.noAnswer");
+    coreLegacy.toast(known ?? t("core.session.couldNotEnter", { reason }), true);
+    if (!known || code === "sesion") logFailure(code || message, error, detail);
+    coreLegacy.hideLoading();
+  }
+  async function markImpersonatedSession() {
+    try {
+      await rpc("suplantar_marcar_sesion");
+    } catch {
+    }
+  }
+  async function impersonate(id) {
+    const user = coreLegacy.users().find((item) => item.id === id) ?? { id, nombre: t("core.session.thisPerson"), rol: "" };
+    const text2 = t(isGuest(user) ? "core.session.confirmGuest" : "core.session.confirmUser", { name: user.nombre });
+    if (!await coreLegacy.confirm(text2, { titulo: t("core.session.confirmTitle", { name: user.nombre }), ok: t("core.session.confirmOk") })) return;
+    coreLegacy.showLoading(t("core.session.loading", { name: user.nombre }));
+    const { data: { session: session2 } } = await coreLegacy.db().auth.getSession();
+    if (!session2) {
+      coreLegacy.hideLoading();
+      coreLegacy.toast(IMPERSONATION_ERRORS.sesion ?? "", true);
+      return;
+    }
+    const { data, error } = await askServer(id);
+    if (!data?.ok) {
+      failed4(data, error);
+      return;
+    }
+    const profile6 = coreLegacy.profile();
+    localStorage.setItem(coreLegacy.impersonationKey(), JSON.stringify({
+      access_token: session2.access_token,
+      refresh_token: session2.refresh_token,
+      nombre: profile6?.nombre,
+      id: profile6?.id,
+      como: data.nombre,
+      rol: data.rol,
+      desde: Date.now()
+    }));
+    const { error: opening } = await coreLegacy.db().auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
+    if (opening) {
+      localStorage.removeItem(coreLegacy.impersonationKey());
+      await coreLegacy.db().auth.setSession({ access_token: session2.access_token, refresh_token: session2.refresh_token });
+      coreLegacy.registerError("api", "Impersonalizar: no se abre la sesión", { mensaje: opening.message });
+      coreLegacy.toast(t("core.session.couldNotOpen", { error: opening.message ?? "" }), true);
+      coreLegacy.hideLoading();
+      return;
+    }
+    await markImpersonatedSession();
+    clearLocalData();
+    location.reload();
+  }
+
+  // src/app/core/errors.ts
+  var MAX_MESSAGE = 500;
+  var KEPT_ERRORS = 20;
+  var NETWORK = /failed to fetch|load failed|networkerror|network request failed|aborterror|fetch is aborted|internet connection|err_internet|err_network/i;
+  var TIMEOUT = /ha tardado demasiado|tiempo agotado|timeout|timed out/i;
+  var READ_ONLY_REFUSAL = /row-level security|violates row-level/i;
+  var sent = /* @__PURE__ */ new Set();
+  var textOf2 = (error) => {
+    if (error && typeof error === "object" && "message" in error) return String(error.message ?? "") || String(error);
+    return String(error ?? "");
+  };
+  var isNetworkError = (error) => NETWORK.test(textOf2(error)) || TIMEOUT.test(textOf2(error));
+  function registerError(type, message, detail) {
+    if (coreLegacy.paymentState()?.solo_lectura && READ_ONLY_REFUSAL.test(String(message))) return;
+    if (type === "api" && isNetworkError(message)) return;
+    try {
+      const text2 = String(message ?? "").slice(0, MAX_MESSAGE), screen3 = coreLegacy.currentScreen();
+      SESSION_ERRORS.push({ t: (/* @__PURE__ */ new Date()).toISOString(), tipo: type, m: text2, pantalla: screen3 });
+      if (SESSION_ERRORS.length > KEPT_ERRORS) SESSION_ERRORS.shift();
+      const key = `${type}|${text2}`;
+      if (sent.has(key) || !coreLegacy.profile()) return;
+      sent.add(key);
+      Promise.resolve(coreLegacy.rpc("registrar_error", { p: { tipo: type, mensaje: text2, detalle: detail ?? null, pantalla: screen3, version: coreLegacy.appVersion(), navegador: navigator.userAgent } })).then(() => void 0, () => void 0);
+    } catch {
+    }
+  }
+
+  // src/app/components/charts/month-bars.ts
+  var month_bars_exports = {};
+  __export(month_bars_exports, {
+    monthBars: () => monthBars
+  });
 
   // src/app/components/charts/labels.ts
   var shortMonths = () => t("dates.monthsShort").split(",");
@@ -37998,7 +38379,7 @@
     provincia: ["settingsRules.complete.province", "settingsRules.complete.provinceHelp"],
     obligatorios: ["settingsRules.complete.required", "settingsRules.complete.requiredHelp"]
   };
-  var completeFieldName = (field10) => t(FIELD_TEXTS[field10][0], words13()).toLowerCase();
+  var completeFieldName = (field11) => t(FIELD_TEXTS[field11][0], words13()).toLowerCase();
   function completeHtml() {
     const chosen4 = completeFields();
     return ruleCardHtml({
@@ -38006,11 +38387,11 @@
       title: t("settingsRules.complete.title"),
       info: t("settingsRules.complete.info", words13()),
       intro: t("settingsRules.complete.intro"),
-      rows: COMPLETE_FIELDS.map((field10) => switchRowHtml({ id: `${COMPLETE}${field10}`, label: t(FIELD_TEXTS[field10][0], words13()), help: t(FIELD_TEXTS[field10][1], words13()), checked: chosen4.includes(field10) }))
+      rows: COMPLETE_FIELDS.map((field11) => switchRowHtml({ id: `${COMPLETE}${field11}`, label: t(FIELD_TEXTS[field11][0], words13()), help: t(FIELD_TEXTS[field11][1], words13()), checked: chosen4.includes(field11) }))
     });
   }
   async function saveComplete() {
-    const campos = COMPLETE_FIELDS.filter((field10) => isChecked(`${COMPLETE}${field10}`));
+    const campos = COMPLETE_FIELDS.filter((field11) => isChecked(`${COMPLETE}${field11}`));
     if (!campos.length) {
       notices.toast(t("settingsRules.complete.noneChosen"), true);
       return;
@@ -38161,8 +38542,8 @@
   }
   function fillAddress(box3, index, address) {
     if (!address) return;
-    const set = (field10, value10) => {
-      const input6 = box3.querySelector(`[data-cf="${index}|${field10}"]`);
+    const set = (field11, value10) => {
+      const input6 = box3.querySelector(`[data-cf="${index}|${field11}"]`);
       if (input6 && value10 && !input6.value.trim()) input6.value = value10;
     };
     set("direccion", [address.road, address.house_number].filter(Boolean).join(", "));
@@ -38270,6 +38651,7 @@
     "core/no-reports": no_reports_exports,
     "core/organisation": organisation_exports,
     "core/rules": rules_exports,
+    "core/sales-channels": sales_channels_exports,
     "core/vocabulary": vocabulary_exports,
     "i18n/index": i18n_exports,
     "legacy/accounts2-bridge": accounts2_bridge_exports,
@@ -38641,9 +39023,9 @@
         localStorage.setItem(CATALOGS_KEY, JSON.stringify(catalogs2));
         return;
       }
-      const stored3 = JSON.parse(localStorage.getItem(CATALOGS_KEY) ?? "null");
-      if (stored3) Object.keys(catalogs2).forEach((key) => {
-        const list = stored3[key];
+      const stored4 = JSON.parse(localStorage.getItem(CATALOGS_KEY) ?? "null");
+      if (stored4) Object.keys(catalogs2).forEach((key) => {
+        const list = stored4[key];
         if (list?.length) catalogs2[key] = list;
       });
     } catch {
@@ -38811,28 +39193,28 @@
   var MAX_MONTHS = 240;
   var words14 = () => ({ professional: term("medico"), aVisit: term("visita", { article: "un" }), visits: term("visita", { number: "p" }) });
   function cardHtml7() {
-    const rule = deliveryRule(), field10 = (key) => t(`settingsRules.deliveries.${key}`, words14());
-    return ruleCardHtml({ id: CARD, title: field10("title"), info: field10("info"), intro: field10("intro"), rows: [
-      switchRowHtml({ id: `${CARD}a`, label: field10("active"), help: field10("activeHelp"), checked: rule.active }),
-      textRowHtml({ id: `${CARD}n`, label: field10("name"), help: field10("nameHelp"), value: rule.name ?? t("visit.samples.title") }),
-      numberRowHtml({ id: `${CARD}t`, label: field10("cap"), help: field10("capHelp"), value: rule.cap, min: 1, max: MAX_CAP }),
+    const rule = deliveryRule(), field11 = (key) => t(`settingsRules.deliveries.${key}`, words14());
+    return ruleCardHtml({ id: CARD, title: field11("title"), info: field11("info"), intro: field11("intro"), rows: [
+      switchRowHtml({ id: `${CARD}a`, label: field11("active"), help: field11("activeHelp"), checked: rule.active }),
+      textRowHtml({ id: `${CARD}n`, label: field11("name"), help: field11("nameHelp"), value: rule.name ?? t("visit.samples.title") }),
+      numberRowHtml({ id: `${CARD}t`, label: field11("cap"), help: field11("capHelp"), value: rule.cap, min: 1, max: MAX_CAP }),
       selectRowHtml({
         id: `${CARD}p`,
-        label: field10("period"),
-        help: field10("periodHelp"),
+        label: field11("period"),
+        help: field11("periodHelp"),
         value: rule.period,
-        options: [{ value: "anio", text: field10("year") }, { value: "trimestre", text: field10("quarter") }, { value: "mes", text: field10("month") }]
+        options: [{ value: "anio", text: field11("year") }, { value: "trimestre", text: field11("quarter") }, { value: "mes", text: field11("month") }]
       }),
-      numberRowHtml({ id: `${CARD}m`, label: field10("months"), help: field10("monthsHelp"), value: rule.months, min: 0, max: MAX_MONTHS }),
-      switchRowHtml({ id: `${CARD}f`, label: field10("signature"), help: field10("signatureHelp"), checked: rule.signature }),
+      numberRowHtml({ id: `${CARD}m`, label: field11("months"), help: field11("monthsHelp"), value: rule.months, min: 0, max: MAX_MONTHS }),
+      switchRowHtml({ id: `${CARD}f`, label: field11("signature"), help: field11("signatureHelp"), checked: rule.signature }),
       selectRowHtml({
         id: `${CARD}r`,
-        label: field10("recipients"),
-        help: field10("recipientsHelp"),
+        label: field11("recipients"),
+        help: field11("recipientsHelp"),
         value: rule.recipients,
-        options: [{ value: "personas", text: field10("people") }, { value: "todas", text: field10("everyone") }]
+        options: [{ value: "personas", text: field11("people") }, { value: "todas", text: field11("everyone") }]
       }),
-      areaRowHtml({ id: `${CARD}l`, label: field10("legal"), help: field10("legalHelp"), value: rule.legal ?? t("productsMore.samples.law"), rows: 3 })
+      areaRowHtml({ id: `${CARD}l`, label: field11("legal"), help: field11("legalHelp"), value: rule.legal ?? t("productsMore.samples.law"), rows: 3 })
     ] });
   }
   async function save25() {
@@ -40303,7 +40685,7 @@
       goTo("pacientes");
     },
     visitDetails: (visit2) => visitDetails(visit2),
-    fieldName: (field10) => campoTxt(field10),
+    fieldName: (field11) => campoTxt(field11),
     valueText: (value10) => valueText(value10),
     detailSummary: (detail) => detailSummary(detail),
     undo: (id, then) => {
@@ -40352,7 +40734,7 @@
   };
   var accountColumnsLegacy = {
     customFields: () => CAMPOS.medico ?? [],
-    fieldText: (field10, value10) => fieldText(field10, value10),
+    fieldText: (field11, value10) => fieldText(field11, value10),
     firstName: (name) => vocabulary_exports.firstName(name),
     /** Platform access by account (loaded once; null until it arrives). */
     accessOf: () => accountsStore.portalAccess,
@@ -40527,7 +40909,7 @@
   };
 
   // src/app/components/charts/channel.ts
-  var CENTRE5 = 80;
+  var CENTRE6 = 80;
   var RADIUS = 60;
   var COLOURS2 = 4;
   function slices(rows2, total) {
@@ -40535,7 +40917,7 @@
     return rows2.map((row3, index) => {
       const share = (Number(row3.total) || 0) / (total || 1), from = angle, to = angle + share * 2 * Math.PI;
       angle = to;
-      const point = (at) => [CENTRE5 + RADIUS * Math.sin(at), CENTRE5 - RADIUS * Math.cos(at)];
+      const point = (at) => [CENTRE6 + RADIUS * Math.sin(at), CENTRE6 - RADIUS * Math.cos(at)];
       const [x0, y0] = point(from), [x1, y1] = point(to - 1e-4);
       return `<path d="M80 80 L${x0} ${y0} A60 60 0 ${to - from > Math.PI ? 1 : 0} 1 ${x1} ${y1} Z" fill="${CHART_COLOURS[index % COLOURS2] ?? ""}"/>`;
     }).join("");
@@ -40547,9 +40929,9 @@
   }
   async function channelChart() {
     const funnel = [...document.querySelectorAll("#v-analitica .ancard")].find((card3) => (card3.querySelector("h2")?.textContent ?? "").includes("Embudo comercial"));
-    if (!funnel || document.getElementById("ancanal")) return;
+    if (!funnel || document.getElementById("ancanal") || !choosesChannel()) return;
     funnel.insertAdjacentHTML("afterend", `<div class="card ancard" id="ancanal"><h2>${t("components.charts.channelTitle")}</h2><div class="cargandolocal" style="min-height:160px"></div>
-    <p class="leer"><b>${t("components.charts.howToRead")}</b> ${t("components.charts.channelHint", { aProfessional: term("medico", { article: "un" }) })}</p></div>`);
+    <p class="leer"><b>${t("components.charts.howToRead")}</b> ${t("components.charts.channelHint")}</p></div>`);
     const { data } = await callRpc("analitica_tabla", { p_dim: "canal", p_medida: "unidades" });
     const rows2 = data?.filas ?? [], total = sum(rows2.map((row3) => Number(row3.total) || 0));
     const place3 = document.getElementById("ancanal")?.querySelector(".cargandolocal");
@@ -40856,10 +41238,10 @@
   var SAVING_TEXT = /^(\+\s*)?(guardar|crear|añadir|enviar|validar|aplicar|confirmar|emitir|cobrar|registrar|marcar|asignar|unificar|cambiar|borrar|eliminar|quitar|anular|rectificar|liquidar|pedir|actualizar)\b/i;
   var mini2 = () => document.getElementById("mini");
   var fieldValue6 = () => document.getElementById("mcampo")?.value ?? "";
-  function fieldHtml2(field10) {
-    if (!field10) return "";
-    return `<input id="mcampo" type="${field10.tipo ?? "text"}" value="${escapeHtml(field10.valor ?? "")}"
-                   placeholder="${escapeHtml(field10.placeholder ?? "")}" ${field10.min ? `min="${field10.min}"` : ""}>`;
+  function fieldHtml2(field11) {
+    if (!field11) return "";
+    return `<input id="mcampo" type="${field11.tipo ?? "text"}" value="${escapeHtml(field11.valor ?? "")}"
+                   placeholder="${escapeHtml(field11.placeholder ?? "")}" ${field11.min ? `min="${field11.min}"` : ""}>`;
   }
   function dialogHtml(options3) {
     const { titulo, msg, ok, cancel: cancel3, campo, opciones, peligro } = options3;

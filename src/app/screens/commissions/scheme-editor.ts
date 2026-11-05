@@ -2,17 +2,30 @@
  * The window of a commission scheme: name, how it counts, calculation (tier reached, marginal tiers or a fixed amount per unit),
  * channel, the tiers and who is paid with it. Migrated from the legacy editorEsquema (v2.411.0); editorEsquema stays as an adapter.
  */
-import { legacyDb, notices, term } from '../../legacy/bridge';
+import { legacyDb, notices } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { nonZeroOr } from '../../services/values';
 import { schemes, type Scheme, type Tier } from './model';
 import { paintSchemePeople } from './scheme-people';
+import { choosesChannel, lowerFirst, salesChannels } from '../../core/sales-channels';
 
 const FIXED = 'fijo', DEFAULT_CALCULATION = 'tramo_alcanzado';
 
 const option = (value: string, label: string, chosen: string | null | undefined): string => `<option value="${value}" ${chosen === value ? 'selected' : ''}>${label}</option>`;
 const input = (id: string): HTMLInputElement | null => document.getElementById(id) as HTMLInputElement | null;
+
+/**
+ * v2.470.0 (VEN-1): the channel of the scheme, among the company's channels («Solo venta a centro»); with only one active channel and
+ * a scheme for every channel, nothing to choose.
+ */
+function channelHtml(chosen: string | null | undefined): string {
+  if (!choosesChannel() && !chosen) return '<div><input type="hidden" id="ecan" value=""></div>';
+  const options = salesChannels().filter(channel => channel.activo || channel.clave === chosen)
+    .map(channel => option(escapeHtml(channel.clave), escapeHtml(t('commissions.editor.channelOnly', { channel: lowerFirst(channel.nombre) })), chosen)).join('');
+  return `<div><label for="ecan">${t('commissions.editor.channel')}</label><select id="ecan">
+          <option value="">${t('commissions.editor.allChannels')}</option>${options}</select></div>`;
+}
 
 class SchemeEditor {
   private tiers: Tier[];
@@ -56,10 +69,7 @@ class SchemeEditor {
           ${option(FIXED, t('commissions.editor.fixed'), this.calculation)}</select></div>
       </div>
       <div class="g2">
-        <div><label for="ecan">${t('commissions.editor.channel')}</label><select id="ecan">
-          <option value="">${t('commissions.editor.allChannels')}</option>
-          ${option('paciente', t('commissions.editor.patientOnly', { toThePatient: term('paciente', { article: 'al' }) }), scheme?.canal)}
-          ${option('centro', t('commissions.editor.centreOnly'), scheme?.canal)}</select></div>
+        ${channelHtml(scheme?.canal)}
         ${this.fixed ? `<div><label for="efijo">${t('commissions.editor.eurosPerUnit')}</label><input id="efijo" type="number" step="0.01" min="0" value="${this.fixedValue}"></div>` : '<div></div>'}
       </div>
       ${this.tiersHtml()}

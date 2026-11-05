@@ -6,6 +6,7 @@
  */
 import { coreLegacy } from '../legacy/core-bridge';
 import { setVocabularyResolver, t } from '../i18n';
+import { channelName } from './sales-channels';
 
 export interface Term { s: string; p: string; g: 'm' | 'f' }
 
@@ -81,10 +82,10 @@ export const allOf = (key: string): string => `${t(termOf(key).g === 'f' ? 'core
 /** The name of the contacts list: the brand's own label or, without it, the company's word («Profesionales»). */
 export const contactsLabel = (): string => (coreLegacy.brandLabel() ?? '') || wordFor('medico', 'p', { nounCase: 'C' });
 
-/** «Venta a centro», «Venta al cliente» or «Entrega sin cargo». */
+/** The name of the order's channel («Venta a centro», «Venta al cliente», v2.470.0: from the company's catalogue) or «Entrega sin cargo». */
 export const channelLabel = (order: { canal?: string | null }, total: unknown): string => {
   if (coreLegacy.isFree(order, total)) return t('core.terms.freeDelivery');
-  return order.canal === 'centro' ? t('core.terms.saleToCentre') : t('core.terms.saleTo', { customer: wordFor('paciente', 's', { determiner: 'al' }) });
+  return channelName(order.canal);
 };
 
 /** The words of a name without the title in front. */

@@ -12,8 +12,6 @@ export const ordersMore = {
     subtitle: 'Escribe los importes con IVA: la base y el IVA se calculan solos.',
     date: 'Fecha',
     channel: 'Canal',
-    toPatient: 'Venta {toPatient}',
-    toCentre: 'Venta a centro (con descuento)',
     origin: 'Origen',
     manual: 'Comercial, teléfono o correo',
     web: 'Pedido por la web',

@@ -36,6 +36,7 @@ import { settings } from './es/settings';
 import { access } from './es/access';
 import { agendaMore } from './es/agenda-more';
 import { settingsRules } from './es/settings-rules';
+import { salesChannels } from './es/sales-channels';
 import { routes } from './es/routes';
 import { orders } from './es/orders';
 import { products } from './es/products';
@@ -75,6 +76,7 @@ import type { texts as settingsPlanTexts } from './es/chunks/settings-plan';
 import type { texts as settingsUsersTexts } from './es/chunks/settings-users';
 
 export const es = {
+  salesChannels,
   settingsRules,
   equipment,
   tenders,
