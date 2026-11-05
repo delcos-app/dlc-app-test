@@ -10,6 +10,7 @@ import * as componentsFiltersPanelCounter from '../../components/filters-panel/c
 import * as componentsFiltersPanelPrepare from '../../components/filters-panel/prepare';
 import * as componentsFiltersMemory from '../../components/filters/memory';
 import * as componentsIndex from '../../components/index';
+import * as componentsListBarIndex from '../../components/list-bar/index';
 import * as componentsLoading from '../../components/loading';
 import * as coreCatalogRoles from '../../core/catalog-roles';
 import * as coreNavigationCurrent from '../../core/navigation/current';
@@ -99,6 +100,7 @@ export const sharedModules = (): Record<string, object> => ({
   'components/filters-panel/prepare': componentsFiltersPanelPrepare,
   'components/filters/memory': componentsFiltersMemory,
   'components/index': componentsIndex,
+  'components/list-bar/index': componentsListBarIndex,
   'components/loading': componentsLoading,
   'core/catalog-roles': coreCatalogRoles,
   'core/navigation/current': coreNavigationCurrent,

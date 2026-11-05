@@ -27,17 +27,25 @@ function wrapTable(section: HTMLElement, tab: string, config: ListConfig): void 
   if (config.despues) { const after = document.getElementById(config.despues); if (after && card.nextElementSibling !== after) card.after(after); }
 }
 
+/**
+ * v2.468.0 (D-047): the rows shown stay, dimmed, while the list loads again; they are marked, so that no other change of the screen
+ * lights them up again before the answer. For a screen that keeps its rows while it asks (Pedidos) and for the rows put back here.
+ */
+export function markReloading(body: Element): void {
+  body.firstElementChild?.setAttribute('data-plold', ''); body.classList.add('platenua');
+}
+
 /** While the list loads: the last content (faded) or, the first time, the skeleton; once it has data, that content is remembered. */
 function syncBody(tab: string, config: ListConfig): void {
   const body = config.cuerpo(); if (!body) return;
   if (body.querySelector(':scope > .cargador')) {
     const last = lastContent.get(body);
-    if (last) { body.innerHTML = last; body.classList.add('platenua'); return; }
+    if (last) { body.innerHTML = last; markReloading(body); return; }
     if (tab !== 'directorio') { body.innerHTML = tableSkeleton(tab, true); return; }
     body.innerHTML = tableSkeleton(tab, false);
     const head = document.getElementById('thead');
     if (head && !head.children.length) head.innerHTML = /<div class="plskh">[\s\S]*?<\/div>/.exec(tableSkeleton(tab, true))?.[0] ?? '';
-  } else if (config.conDatos(body)) { body.classList.remove('platenua'); lastContent.set(body, body.innerHTML); }
+  } else if (config.conDatos(body) && !body.querySelector(':scope > [data-plold]')) { body.classList.remove('platenua'); lastContent.set(body, body.innerHTML); }
 }
 
 /** The skeleton panels: Clientes' empty body, and a grid page's first arrival (removed as soon as there is a table). */

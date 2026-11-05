@@ -4,6 +4,7 @@
  */
 import { t } from '../../i18n';
 import { toggleIfDifferent } from './sync-header';
+import { isSearching, searchingText, settleSearching } from './searching';
 import { labelOf, selectOf } from './text';
 import { countHtml, toolbarHtml } from './toolbar';
 import type { ListConfig } from './types';
@@ -35,17 +36,19 @@ function syncChip(chip: HTMLElement): void {
 }
 
 /** The number of filters on «Filtros», «Eliminar filtros» and the count. */
-function syncCounts(section: HTMLElement, bar: HTMLElement, config: ListConfig): void {
+function syncCounts(section: HTMLElement, bar: HTMLElement, config: ListConfig, tab: string): void {
   const active = config.activos(), number = bar.querySelector('.pln');
   if (number) { const value = String(active || ''); if (number.textContent !== value) number.textContent = value; toggleIfDifferent(number, 'hide', !active); }
   const remove = bar.querySelector('.plquitar'); if (remove) toggleIfDifferent(remove, 'hide', !active);
-  const count = bar.querySelector<HTMLElement>('.plcnt'), html = countHtml(section, config);
+  // v2.468.0 (D-047): while a search is coming, the count says so
+  const count = bar.querySelector<HTMLElement>('.plcnt'), html = isSearching(tab) ? searchingText() : countHtml(section, config);
   if (count && html && count.dataset.h !== html) { count.dataset.h = html; count.innerHTML = html; }
 }
 
 export function syncBar(section: HTMLElement, tab: string, config: ListConfig, place: { key: string; anchor: Element | null }): void {
   const bar = barOf(section, tab, place.key, place.anchor);
+  settleSearching(tab);
   const search = bar.querySelector<HTMLInputElement>('.plqi'); if (search && document.activeElement !== search && !search.dataset.pending && search.value !== config.q()) search.value = config.q();
   bar.querySelectorAll<HTMLElement>('[data-plr]').forEach(syncChip);
-  syncCounts(section, bar, config);
+  syncCounts(section, bar, config, tab);
 }

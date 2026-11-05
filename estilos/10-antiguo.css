@@ -3969,7 +3969,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 #v-directorio.plantilla #chips{padding:0;margin:0;border:0}
 #v-pacientes.plantilla .panel > .filtros{padding:0;margin:0;border:0;background:none;min-height:0}
 #v-pacientes.plantilla .panel > .filtros:not(:has(.htchip, .chip, select, input:not(#pacq))){display:none}
-.platenua{opacity:.45;pointer-events:none;transition:opacity .15s}
+/* .platenua: estado «cargando» de la tabla, en la capa del contrato (D-047) */
 .plcard{display:none}
 .plurg{display:inline-block;width:8px;height:8px;border-radius:50%;background:#C2410C;margin-right:7px;vertical-align:2px}
 /* Esqueleto: barras grises con brillo, del mismo alto que lo que va a llegar */

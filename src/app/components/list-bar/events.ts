@@ -11,6 +11,7 @@ import type { PopoverItem } from '../list/popover';
 import { filterBlocks } from './blocks-table';
 import { configOf, configs } from './configs';
 import { chosenGroups, sections } from './state';
+import { searchSent, startSearching } from './searching';
 import { syncListBar } from './sync';
 import { selectOf } from './text';
 import type { ListConfig } from './types';
@@ -81,11 +82,13 @@ function onSectionClick(event: MouseEvent): void {
  * in the box (a search that ends meanwhile repaints the bar, and on the phone the box has already lost the focus).
  */
 function searchLater(input: HTMLInputElement, search: (text: string) => void): void {
-  const text = input.value.trim();
+  const text = input.value.trim(), tab = input.closest('section')?.id.slice(2) ?? '';
+  // v2.468.0 (D-047): the search shows it is coming from the first letter until its answer is painted
+  startSearching(tab);
   if (pendingInput && pendingInput !== input) delete pendingInput.dataset.pending;
   pendingInput = input; input.dataset.pending = '1';
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => { delete input.dataset.pending; pendingInput = undefined; search(text); }, SEARCH_WAIT_MS);
+  searchTimer = setTimeout(() => { delete input.dataset.pending; pendingInput = undefined; search(text); searchSent(tab, syncListBar); }, SEARCH_WAIT_MS);
 }
 
 const searchInput = (event: Event): HTMLInputElement | null => (event.target as Element | null)?.closest<HTMLInputElement>('main > section.plantilla .plqi') ?? null;

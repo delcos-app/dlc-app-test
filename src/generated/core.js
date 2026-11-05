@@ -2619,6 +2619,7 @@
       searchIn: "Buscar en {what}",
       filters: "Filtros",
       removeFilters: "Eliminar filtros",
+      searching: "Buscando…",
       columns: "Columnas",
       onMap: "Ver en el mapa",
       moreActions: "Más acciones",
@@ -8920,8 +8921,8 @@
   }
   function over(box3, dragged, event) {
     const target = dragged.kind === "item" ? event.target.closest(`.mlpi[data-g="${dragged.group}"]`) : event.target.closest(".mlpg");
-    box3.querySelectorAll(`.${MARKS.join(", .")}`).forEach((mark) => {
-      mark.classList.remove(...MARKS);
+    box3.querySelectorAll(`.${MARKS.join(", .")}`).forEach((mark2) => {
+      mark2.classList.remove(...MARKS);
     });
     if (!target || target === dragged.element) return;
     event.preventDefault();
@@ -8963,8 +8964,8 @@
     });
     box3.addEventListener("dragend", () => {
       dragged = null;
-      box3.querySelectorAll(`.${MARKS.join(", .")}`).forEach((mark) => {
-        mark.classList.remove(...MARKS);
+      box3.querySelectorAll(`.${MARKS.join(", .")}`).forEach((mark2) => {
+        mark2.classList.remove(...MARKS);
       });
       box3.querySelectorAll(".arrastrando").forEach((element) => {
         element.classList.remove("arrastrando");
@@ -10848,6 +10849,7 @@
     icon: () => icon2,
     indicatorsHtml: () => indicatorsHtml2,
     loadIndicators: () => loadIndicators,
+    markReloading: () => markReloading,
     observe: () => observe2,
     overridePageSize: () => overridePageSize,
     savePageSize: () => savePageSize,
@@ -13033,9 +13035,9 @@
     if (download4) download4.onclick = () => {
       doc.save(pdfFileName(invoice2));
     };
-    const mark = byId6("efmarca");
-    if (mark) mark.onchange = async () => {
-      if (!mark.checked || !invoice2.pedido_id) return;
+    const mark2 = byId6("efmarca");
+    if (mark2) mark2.onchange = async () => {
+      if (!mark2.checked || !invoice2.pedido_id) return;
       await legacyDb().rpc("marcar_operativa", { p_pedido: invoice2.pedido_id, p_campo: "email_factura", p_hecho: true });
       notices.toast(t("billingMore.email.markedSent"));
     };
@@ -17010,6 +17012,71 @@
     if (count) count.dataset.h = "";
   }
 
+  // src/app/components/list-bar/searching.ts
+  var CHECK_MS = 50;
+  var START_GRACE_MS = 500;
+  var searching = {};
+  var searchingText = () => t("listBar.bar.searching");
+  var sectionOf = (tab) => document.getElementById(`v-${tab}`);
+  var isLoading = (body3) => Boolean(body3?.querySelector(":scope > .cargador, :scope > [data-plold]"));
+  var isSearching = (tab) => Boolean(searching[tab]);
+  function mark(tab, on3, config) {
+    const section = sectionOf(tab);
+    section?.querySelectorAll(":scope > .pltool .plq").forEach((box3) => {
+      box3.classList.toggle("buscando", on3);
+    });
+    const body3 = config?.cuerpo();
+    if (body3) {
+      if (on3) body3.setAttribute("aria-busy", "true");
+      else body3.removeAttribute("aria-busy");
+    }
+  }
+  function finish(tab, sync) {
+    const state2 = searching[tab];
+    if (!state2) return;
+    clearInterval(state2.timer);
+    searching[tab] = void 0;
+    mark(tab, false, configOf(tab));
+    sync?.(tab);
+  }
+  function isOver(tab, state2) {
+    if (!sectionOf(tab)?.isConnected) return true;
+    if (isLoading(configOf(tab)?.cuerpo() ?? null)) {
+      state2.sawLoading = true;
+      return false;
+    }
+    return state2.sawLoading || performance.now() - state2.sentAt > START_GRACE_MS;
+  }
+  function settleSearching(tab) {
+    const state2 = searching[tab];
+    if (!state2) return;
+    if (state2.sentAt && isOver(tab, state2)) finish(tab);
+    else mark(tab, true, configOf(tab));
+  }
+  function startSearching(tab) {
+    const state2 = searching[tab];
+    if (state2) {
+      clearInterval(state2.timer);
+      state2.timer = void 0;
+      state2.sentAt = 0;
+      state2.sawLoading = false;
+    } else searching[tab] = { sentAt: 0, sawLoading: false };
+    mark(tab, true, configOf(tab));
+    const count = sectionOf(tab)?.querySelector(":scope > .pltool .plcnt");
+    if (count) {
+      count.dataset.h = "";
+      count.textContent = searchingText();
+    }
+  }
+  function searchSent(tab, sync) {
+    const state2 = searching[tab];
+    if (!state2) return;
+    state2.sentAt = performance.now();
+    state2.timer = setInterval(() => {
+      if (isOver(tab, state2)) finish(tab, sync);
+    }, CHECK_MS);
+  }
+
   // src/app/components/list-bar/indicators.ts
   var DEFAULT_PLACES = 4;
   var FRESH_MS = 6e4;
@@ -17217,7 +17284,7 @@
     if (chip.textContent !== text) chip.textContent = text;
     toggleIfDifferent(chip, "on", chosen4 && !isPeriod);
   }
-  function syncCounts(section, bar, config) {
+  function syncCounts(section, bar, config, tab) {
     const active = config.activos(), number2 = bar.querySelector(".pln");
     if (number2) {
       const value10 = String(active || "");
@@ -17226,7 +17293,7 @@
     }
     const remove6 = bar.querySelector(".plquitar");
     if (remove6) toggleIfDifferent(remove6, "hide", !active);
-    const count = bar.querySelector(".plcnt"), html = countHtml(section, config);
+    const count = bar.querySelector(".plcnt"), html = isSearching(tab) ? searchingText() : countHtml(section, config);
     if (count && html && count.dataset.h !== html) {
       count.dataset.h = html;
       count.innerHTML = html;
@@ -17234,10 +17301,11 @@
   }
   function syncBar(section, tab, config, place3) {
     const bar = barOf(section, tab, place3.key, place3.anchor);
+    settleSearching(tab);
     const search5 = bar.querySelector(".plqi");
     if (search5 && document.activeElement !== search5 && !search5.dataset.pending && search5.value !== config.q()) search5.value = config.q();
     bar.querySelectorAll("[data-plr]").forEach(syncChip);
-    syncCounts(section, bar, config);
+    syncCounts(section, bar, config, tab);
   }
 
   // src/app/components/list-bar/sync-body.ts
@@ -17266,6 +17334,10 @@
       if (after && card3.nextElementSibling !== after) card3.after(after);
     }
   }
+  function markReloading(body3) {
+    body3.firstElementChild?.setAttribute("data-plold", "");
+    body3.classList.add("platenua");
+  }
   function syncBody(tab, config) {
     const body3 = config.cuerpo();
     if (!body3) return;
@@ -17273,7 +17345,7 @@
       const last = lastContent.get(body3);
       if (last) {
         body3.innerHTML = last;
-        body3.classList.add("platenua");
+        markReloading(body3);
         return;
       }
       if (tab !== "directorio") {
@@ -17283,7 +17355,7 @@
       body3.innerHTML = tableSkeleton(tab, false);
       const head = document.getElementById("thead");
       if (head && !head.children.length) head.innerHTML = /<div class="plskh">[\s\S]*?<\/div>/.exec(tableSkeleton(tab, true))?.[0] ?? "";
-    } else if (config.conDatos(body3)) {
+    } else if (config.conDatos(body3) && !body3.querySelector(":scope > [data-plold]")) {
       body3.classList.remove("platenua");
       lastContent.set(body3, body3.innerHTML);
     }
@@ -17556,7 +17628,8 @@
     }
   }
   function searchLater(input6, search5) {
-    const text = input6.value.trim();
+    const text = input6.value.trim(), tab = input6.closest("section")?.id.slice(2) ?? "";
+    startSearching(tab);
     if (pendingInput && pendingInput !== input6) delete pendingInput.dataset.pending;
     pendingInput = input6;
     input6.dataset.pending = "1";
@@ -17565,6 +17638,7 @@
       delete input6.dataset.pending;
       pendingInput = void 0;
       search5(text);
+      searchSent(tab, syncListBar);
     }, SEARCH_WAIT_MS6);
   }
   var searchInput = (event) => event.target?.closest("main > section.plantilla .plqi") ?? null;
@@ -22473,10 +22547,10 @@
       });
     }
     const start3 = Reflect.get(window, "__redIni"), end = Reflect.get(window, "__redFin");
-    const mark = start3 ? start3() : null;
+    const mark2 = start3 ? start3() : null;
     return fetch(url, { ...options3, signal: controller.signal }).then((response) => startupLegacy.withOldKeys(String(url), response)).finally(() => {
       clearTimeout(timer3);
-      if (mark && end) end(mark);
+      if (mark2 && end) end(mark2);
     });
   }
   var databaseOptions = () => ({
@@ -22808,11 +22882,11 @@
   function watchUnsavedChanges(id) {
     const box3 = byId14(id);
     if (!box3) return;
-    const mark = (event) => {
+    const mark2 = (event) => {
       if (!event.target.closest("[data-nosucio]")) box3.dataset.sucio = "1";
     };
-    box3.addEventListener("input", mark);
-    box3.addEventListener("change", mark);
+    box3.addEventListener("input", mark2);
+    box3.addEventListener("change", mark2);
     box3.addEventListener("close", () => {
       delete box3.dataset.sucio;
     });
@@ -22994,14 +23068,14 @@
   }
   function resultsHtml2(found, query) {
     const places = found.municipios ?? [], centres = found.centros ?? [], people = found.medicos ?? [];
-    const professionals = term("medico", { number: "p" }), mark = (text) => globalSearchLegacy.highlight(text, query);
+    const professionals = term("medico", { number: "p" }), mark2 = (text) => globalSearchLegacy.highlight(text, query);
     const placesHtml2 = places.length ? `<div class="gsh">${t("legacyA.search.municipalities")}</div>${places.map((place3) => `<button data-gm="${escapeHtml(place3.valor)}">
-        <span class="gic">📍</span><span><b>${mark(place3.valor)}</b><span class="sm">${formatNumber(place3.n)} ${professionals}</span></span></button>`).join("")}` : "";
+        <span class="gic">📍</span><span><b>${mark2(place3.valor)}</b><span class="sm">${formatNumber(place3.n)} ${professionals}</span></span></button>`).join("")}` : "";
     const centresHtml = centres.length ? `<div class="gsh">${t("legacyA.search.centres")}</div>${centres.map((centre) => `<button data-gc="${escapeHtml(centre.valor)}"${centre.id ? ` data-gcid="${centre.id}"` : ""}>
-        <span class="gic">🏥</span><span><b>${mark(centre.valor)}</b><span class="sm">${escapeHtml(centre.municipio ?? "")} · ${formatNumber(centre.n)} ${professionals}</span></span></button>`).join("")}` : "";
+        <span class="gic">🏥</span><span><b>${mark2(centre.valor)}</b><span class="sm">${escapeHtml(centre.municipio ?? "")} · ${formatNumber(centre.n)} ${professionals}</span></span></button>`).join("")}` : "";
     const peopleTitle = term("medico", { number: "p", capital: "C" }) + (places.length || centres.length ? t("legacyA.search.attendThere") : "");
     const peopleHtml = people.length ? `<div class="gsh">${peopleTitle}</div>${people.map((person) => `<button data-gme="${person.id}">
-        <span class="gic">${person.urgente ? "❗" : "👤"}</span><span><b>${mark(person.nombre)}</b>
+        <span class="gic">${person.urgente ? "❗" : "👤"}</span><span><b>${mark2(person.nombre)}</b>
         <span class="sm">${escapeHtml(person.especialidad ?? "")} · ${escapeHtml(person.centro_nombre ?? "")} ${escapeHtml(person.municipio ?? "")}</span></span></button>`).join("")}` : "";
     return placesHtml2 + centresHtml + peopleHtml;
   }
@@ -26129,14 +26203,14 @@
       if (WRITES2.test(name)) return answer;
       legacyBState.addPendingRead(1);
       let done = false;
-      const finish = () => {
+      const finish2 = () => {
         if (!done) {
           done = true;
           legacyBState.addPendingRead(-1);
         }
       };
-      Promise.resolve(answer).then(finish, finish);
-      setTimeout(finish, READ_GIVE_UP_MS);
+      Promise.resolve(answer).then(finish2, finish2);
+      setTimeout(finish2, READ_GIVE_UP_MS);
       return answer;
     });
   }
@@ -28599,14 +28673,14 @@
         if (list.some((mutation) => mutation.target !== element && !isCountChange(mutation))) last = performance.now();
       });
       observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style"] });
-      const finish = () => {
+      const finish2 = () => {
         if (done) return;
         done = true;
         observer.disconnect();
         resolve();
       };
       setTimeout(() => {
-        if (pendientesDesde(startedAt) === 0 && last <= start3 && !hasSkeletons(element)) finish();
+        if (pendientesDesde(startedAt) === 0 && last <= start3 && !hasSkeletons(element)) finish2();
       }, 0);
       const timer3 = setInterval(() => {
         if (done) {
@@ -28616,7 +28690,7 @@
         const now = performance.now();
         if (pendientesDesde(startedAt) === 0 && now - Math.max(last, RED_ULTIMO_FIN) >= QUIET_MS && !hasSkeletons(element) || now - start3 > maxMs) {
           clearInterval(timer3);
-          finish();
+          finish2();
         }
       }, CHECK_EVERY_MS);
     });
@@ -30704,8 +30778,8 @@
     dialog7.innerHTML = windowHtml4(group.length > 1);
     const opened = { input: input6, mode: modeOf2(input6), group, live: true, read: new Set(group.map((field10) => field10.value.trim()).filter(Boolean)), count: 0 };
     session = opened;
-    const finish = document.getElementById("escfin");
-    if (finish) finish.onclick = closeScanner;
+    const finish2 = document.getElementById("escfin");
+    if (finish2) finish2.onclick = closeScanner;
     dialog7.oncancel = (event) => {
       event.preventDefault();
       closeScanner();
@@ -33012,7 +33086,7 @@
   function race(first, second) {
     return new Promise((resolve) => {
       let done = false, other = null, wait2;
-      const finish = (result) => {
+      const finish2 = (result) => {
         if (done) return;
         done = true;
         clearTimeout(timer3);
@@ -33022,23 +33096,23 @@
       const timer3 = setTimeout(() => {
         if (done) return;
         other = second();
-        other.then(finish, (error) => {
-          finish({ data: null, error });
+        other.then(finish2, (error) => {
+          finish2({ data: null, error });
         });
       }, RETRY_MS3);
       Promise.resolve(first()).then((result) => {
         if (other && result?.error) {
           wait2 = setTimeout(() => {
-            finish(result);
+            finish2(result);
           }, WAIT_MS3);
           return;
         }
-        finish(result);
+        finish2(result);
       }, (error) => {
         if (other) wait2 = setTimeout(() => {
-          finish({ data: null, error });
+          finish2({ data: null, error });
         }, WAIT_MS3);
-        else finish({ data: null, error });
+        else finish2({ data: null, error });
       });
     });
   }
@@ -34909,12 +34983,12 @@
     const target = window;
     target.__redIni = () => {
       RED_PEND++;
-      const mark = performance.now() + Math.random() / 1e3;
-      RED_EN_CURSO.add(mark);
-      return mark;
+      const mark2 = performance.now() + Math.random() / 1e3;
+      RED_EN_CURSO.add(mark2);
+      return mark2;
     };
-    target.__redFin = (mark) => {
-      if (RED_EN_CURSO.delete(mark)) {
+    target.__redFin = (mark2) => {
+      if (RED_EN_CURSO.delete(mark2)) {
         RED_PEND--;
         RED_ULTIMO_FIN = performance.now();
       }
@@ -36779,14 +36853,14 @@
     }
     const html = document.documentElement;
     if (target === null && !html.classList.contains("cambiando-org")) return;
-    const finish = () => {
+    const finish2 = () => {
       html.classList.remove("cambiando-org");
       try {
         sessionStorage.removeItem("dlc-cambio-org");
       } catch {
       }
     };
-    const limit = setTimeout(finish, COVER_MAX_MS);
+    const limit = setTimeout(finish2, COVER_MAX_MS);
     let tries = 0;
     const timer3 = setInterval(() => {
       if (++tries > CHECKS) {
@@ -36797,14 +36871,14 @@
         if (!byId("login")?.classList.contains("hide")) {
           clearInterval(timer3);
           clearTimeout(limit);
-          finish();
+          finish2();
         }
         return;
       }
       clearInterval(timer3);
       void finishWhenReady().then(() => {
         clearTimeout(limit);
-        finish();
+        finish2();
       });
     }, CHECK_EVERY_MS3);
   }
@@ -37842,13 +37916,13 @@
   }
   function openApp2(app, web) {
     let away = false;
-    const mark = () => {
+    const mark2 = () => {
       if (document.visibilityState === "hidden") away = true;
     };
-    document.addEventListener("visibilitychange", mark);
+    document.addEventListener("visibilitychange", mark2);
     location.href = app;
     setTimeout(() => {
-      document.removeEventListener("visibilitychange", mark);
+      document.removeEventListener("visibilitychange", mark2);
       if (!away && document.visibilityState === "visible") {
         const opened = window.open(web, "_blank");
         if (!opened) location.href = web;
@@ -38006,6 +38080,7 @@
     "components/filters-panel/prepare": prepare_exports,
     "components/filters/memory": memory_exports,
     "components/index": components_exports,
+    "components/list-bar/index": list_bar_exports,
     "components/loading": loading_exports,
     "core/catalog-roles": catalog_roles_exports,
     "core/navigation/current": current_exports,
@@ -38131,11 +38206,11 @@
     return load4;
   }
   async function waitForChunk(name) {
-    const mark = counters().__redIni?.();
+    const mark2 = counters().__redIni?.();
     try {
       return await loadChunk(name);
     } finally {
-      if (mark !== void 0) counters().__redFin?.(mark);
+      if (mark2 !== void 0) counters().__redFin?.(mark2);
     }
   }
   function reportFailure(name, error) {
@@ -40606,13 +40681,13 @@
         ${cancel3 === false ? "" : `<button class="btn sec" id="mno">${escapeHtml(cancel3 ?? t("components.dialogs.cancel"))}</button>`}
         <button class="btn ${peligro ? "dang" : ""}" id="mok">${escapeHtml(ok ?? t("components.dialogs.accept"))}</button></div></div>`;
   }
-  function bindDialog(dialog7, hasField, finish) {
+  function bindDialog(dialog7, hasField, finish2) {
     const ok = document.getElementById("mok"), no = document.getElementById("mno");
     if (ok) ok.onclick = () => {
-      finish(hasField ? fieldValue6() : true);
+      finish2(hasField ? fieldValue6() : true);
     };
     if (no) no.onclick = () => {
-      finish(hasField ? null : false);
+      finish2(hasField ? null : false);
     };
     dialog7.querySelectorAll("[data-mop]").forEach((button3) => {
       button3.onclick = () => {
@@ -40621,14 +40696,14 @@
       };
     });
     dialog7.onclick = (event) => {
-      if (event.target === dialog7) finish(hasField ? null : false);
+      if (event.target === dialog7) finish2(hasField ? null : false);
     };
     dialog7.oncancel = (event) => {
       event.preventDefault();
-      finish(hasField ? null : false);
+      finish2(hasField ? null : false);
     };
   }
-  function focusField(finish) {
+  function focusField(finish2) {
     setTimeout(() => {
       const input6 = document.getElementById("mcampo");
       if (!input6) {
@@ -40637,7 +40712,7 @@
       }
       input6.focus();
       input6.onkeydown = (event) => {
-        if (event.key === "Enter") finish(input6.value);
+        if (event.key === "Enter") finish2(input6.value);
       };
     }, FOCUS_DELAY_MS3);
   }
@@ -40645,13 +40720,13 @@
     return new Promise((resolve) => {
       const dialog7 = mini2();
       dialog7.innerHTML = dialogHtml(options3);
-      const finish = (value10) => {
+      const finish2 = (value10) => {
         dialog7.close();
         resolve(value10);
       };
-      bindDialog(dialog7, Boolean(options3.campo), finish);
+      bindDialog(dialog7, Boolean(options3.campo), finish2);
       dialog7.showModal();
-      focusField(finish);
+      focusField(finish2);
     });
   }
   function showDialog(options3) {
@@ -40678,21 +40753,21 @@
       dialog7.innerHTML = `<div class="fbox"><div class="fh"><h2>${escapeHtml(title2)}</h2></div>
       <p style="margin:0 0 10px;white-space:pre-line">${escapeHtml(message)}</p>
       <div class="acts u-end u-wrap">${buttons.map((button3) => `<button class="btn ${button3.cls ?? ""}" data-op="${button3.k}">${escapeHtml(button3.t)}</button>`).join("")}</div></div>`;
-      const finish = (value10) => {
+      const finish2 = (value10) => {
         dialog7.close();
         resolve(value10);
       };
       dialog7.querySelectorAll("[data-op]").forEach((button3) => {
         button3.onclick = () => {
-          finish(button3.dataset.op === "no" ? null : button3.dataset.op ?? null);
+          finish2(button3.dataset.op === "no" ? null : button3.dataset.op ?? null);
         };
       });
       dialog7.oncancel = (event) => {
         event.preventDefault();
-        finish(null);
+        finish2(null);
       };
       dialog7.onclick = (event) => {
-        if (event.target === dialog7) finish(null);
+        if (event.target === dialog7) finish2(null);
       };
       dialog7.showModal();
     });
@@ -40702,18 +40777,18 @@
       const dialog7 = mini2();
       dialog7.innerHTML = `<div class="fbox"><div class="fh"><h2>${escapeHtml(title2)}</h2></div><label for="rnpc">${escapeHtml(label)}</label><input id="rnpc" type="${type}" value="${escapeHtml(value10 ?? "")}" min="${todayIso()}">
       <div class="acts u-end"><button class="btn sec" data-op="no">${t("components.dialogs.cancel")}</button><button class="btn" data-op="si">${t("components.dialogs.accept")}</button></div></div>`;
-      const finish = (answer) => {
+      const finish2 = (answer) => {
         dialog7.close();
         resolve(answer);
       };
       dialog7.querySelectorAll("[data-op]").forEach((button3) => {
         button3.onclick = () => {
-          finish(button3.dataset.op === "si" ? document.getElementById("rnpc").value : null);
+          finish2(button3.dataset.op === "si" ? document.getElementById("rnpc").value : null);
         };
       });
       dialog7.oncancel = (event) => {
         event.preventDefault();
-        finish(null);
+        finish2(null);
       };
       enhanceFields(dialog7);
       dialog7.showModal();

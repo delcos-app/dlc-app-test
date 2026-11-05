@@ -11,6 +11,7 @@ import { escapeHtml, formatNumber } from '../../services/format';
 import { orFallback } from '../../services/values';
 import { euros, isStepCode, STATES, stepPill, storedStateOf } from './model';
 import { restoreFilters } from '../../components/filters/memory';
+import { markReloading } from '../../components/list-bar';
 import { marksReportedOrders } from '../../core/rules';
 
 interface OrderRow {
@@ -157,7 +158,9 @@ export async function paintOrderList(): Promise<void> {
   // v2.269.0: the filters the user had
   restoreFilters(document.getElementById('v-ventas'));
   const query = params(), loading = document.getElementById('pedlista');
-  if (loading && !loading.querySelector('.dgrid')) customersLegacy.showLoading(loading, t('orders.list.loading'));
+  // v2.468.0 (D-047): with rows, they stay dimmed while the new page comes (before, nothing said that it was searching)
+  if (loading?.querySelector('.dgrid')) markReloading(loading);
+  else customersLegacy.showLoading(loading, t('orders.list.loading'));
   const result = await loadPage(query);
   const list = document.getElementById('pedlista');
   if (!list || !document.getElementById('pestado')) return;

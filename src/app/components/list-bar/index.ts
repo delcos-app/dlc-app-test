@@ -15,6 +15,7 @@ export { observe, watch } from './observer';
 export { overridePageSize, PAGE_SIZES, savePageSize, storedPageSize } from './page-size';
 export { chosenGroups, sections } from './state';
 export { syncListBar } from './sync';
+export { markReloading } from './sync-body';
 export { icon } from './text';
 export { toolbarHtml } from './toolbar';
 

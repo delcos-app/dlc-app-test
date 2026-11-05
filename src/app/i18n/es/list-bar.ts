@@ -4,6 +4,7 @@ export const listBar = {
     searchIn: 'Buscar en {what}',
     filters: 'Filtros',
     removeFilters: 'Eliminar filtros',
+    searching: 'Buscando…',
     columns: 'Columnas',
     onMap: 'Ver en el mapa',
     moreActions: 'Más acciones',
