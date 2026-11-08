@@ -5,8 +5,11 @@ import type { SelectionConfig } from './selection/types';
 /** An indicator of the band: key, title, figure and the line under it. */
 export interface Indicator { readonly k: string; readonly t: string; readonly n: number; readonly s: string }
 
-/** The mobile card of a row: title, second line, the state on the right and an optional fourth line. */
-export interface RowCard { readonly a: string; readonly b: string; readonly c: string; readonly d?: string }
+/**
+ * The mobile card of a row: title, second line, the state on the right and an optional fourth line. `icons` (v2.474.0, D-051): the
+ * buttons of the row's cells marked data-plcico (the portal of a professional), copied after the card's last line of text.
+ */
+export interface RowCard { readonly a: string; readonly b: string; readonly c: string; readonly d?: string; readonly icons?: string }
 
 /** A block page (Eventos, Intervenciones…): its cards become a table with one row per record. */
 export interface BlockConfig {

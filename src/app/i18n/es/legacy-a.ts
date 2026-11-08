@@ -145,6 +145,7 @@ export const legacyA = {
   help: {
     fallbackTitle: 'Ayuda',
     whatIs: 'Qué es',
+    close: 'Cerrar',
   },
   showApp: {
     morning: 'Buenos días',

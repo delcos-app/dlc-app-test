@@ -600,6 +600,18 @@
       state: "Estado",
       salesReps: "Comerciales",
       access: "Acceso a la plataforma"
+    },
+    // v2.474.0 (D-051): the portal icon next to a professional (Pedidos) and its bubble
+    portalStatus: {
+      title: "Portal",
+      label: "Portal de {name}: {state}",
+      active: "Activo",
+      disabled: "Desactivado",
+      lastConnection: "Última conexión: {when} ({date})",
+      today: "hoy",
+      yesterday: "ayer",
+      daysAgo: "hace {days} días",
+      never: "Nunca se ha conectado"
     }
   };
 
@@ -2523,7 +2535,8 @@
     },
     help: {
       fallbackTitle: "Ayuda",
-      whatIs: "Qué es"
+      whatIs: "Qué es",
+      close: "Cerrar"
     },
     showApp: {
       morning: "Buenos días",
@@ -6940,10 +6953,12 @@
   var dates_exports = {};
   __export(dates_exports, {
     addDays: () => addDays,
+    daysBetween: () => daysBetween,
     formatDuration: () => formatDuration,
     formatMinutes: () => formatMinutes,
     fromIsoDate: () => fromIsoDate,
     isoDateIn: () => isoDateIn,
+    isoDateOf: () => isoDateOf,
     mondayOf: () => mondayOf,
     toIsoDate: () => toIsoDate,
     todayIso: () => todayIso,
@@ -6970,6 +6985,13 @@
   }
   function fromIsoDate(isoDate) {
     return /* @__PURE__ */ new Date(`${isoDate}T12:00:00`);
+  }
+  function isoDateOf(date) {
+    const zone = dayZone();
+    return zone ? isoDateIn(date, zone) : toIsoDate(date);
+  }
+  function daysBetween(fromIso, toIso) {
+    return Math.round((fromIsoDate(toIso).getTime() - fromIsoDate(fromIso).getTime()) / 864e5);
   }
   function mondayOf(isoDate) {
     const date = fromIsoDate(isoDate);
@@ -8085,6 +8107,7 @@
     formatLongDate: () => formatLongDate,
     formatMonth: () => formatMonth,
     formatMonthYear: () => formatMonthYear,
+    formatNumericDate: () => formatNumericDate,
     formatShortDate: () => formatShortDate,
     monthNameOf: () => monthNameOf,
     shortMonthNames: () => shortMonthNames,
@@ -8116,6 +8139,9 @@
   }
   function formatDayMonth(isoDate) {
     return fromIsoDate(isoDate.slice(0, 10)).toLocaleDateString(locale(), { day: "numeric", month: "long" });
+  }
+  function formatNumericDate(isoDate) {
+    return fromIsoDate(isoDate.slice(0, 10)).toLocaleDateString(locale(), { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
   // src/app/screens/settings/more/undo.ts
@@ -19621,8 +19647,12 @@
   function gridCard(row3) {
     const cells = dataCells(row3);
     const state2 = cells.find((cell2) => cell2.querySelector('.pill, .est, .cirest, [class*="estado"]'));
-    const rest = cells.slice(1).filter((cell2) => cell2 !== state2).map(textOf).filter((text2) => text2 && text2 !== "—").slice(0, 2);
-    return { a: textOf(cells[0]), b: rest.join(" · "), c: state2 ? state2.innerHTML : "" };
+    const rest = cells.slice(1).filter((cell2) => cell2 !== state2).filter((cell2) => {
+      const text2 = textOf(cell2);
+      return text2 && text2 !== "—";
+    }).slice(0, 2);
+    const icons = rest.flatMap((cell2) => [...cell2.querySelectorAll("[data-plcico]")].map((icon3) => icon3.outerHTML)).join("");
+    return { a: textOf(cells[0]), b: rest.map(textOf).join(" · "), c: state2 ? state2.innerHTML : "", ...icons ? { icons } : {} };
   }
   var gridConfig = (options3) => Object.assign({
     rejilla: true,
@@ -21267,7 +21297,8 @@
     section.querySelectorAll(".dgrid > .dr:not([data-plc])").forEach((row3) => {
       row3.dataset.plc = "1";
       const item = card3(row3);
-      row3.insertAdjacentHTML("beforeend", `<span class="plcard"><b>${escapeHtml(item.a)}</b><span class="plc2">${escapeHtml(item.b)}</span><span class="plc3">${item.c}</span>${item.d ? `<span class="plc4">${escapeHtml(item.d)}</span>` : ""}</span>`);
+      const line2 = (kind, text2, last) => last && item.icons ? `<span class="${kind} conico"><span class="conicot">${escapeHtml(text2)}</span>${item.icons}</span>` : `<span class="${kind}">${escapeHtml(text2)}</span>`;
+      row3.insertAdjacentHTML("beforeend", `<span class="plcard"><b>${escapeHtml(item.a)}</b>${line2("plc2", item.b, !item.d)}<span class="plc3">${item.c}</span>${item.d ? line2("plc4", item.d, true) : ""}</span>`);
     });
   }
   function syncTable(section, tab, config) {
@@ -25027,10 +25058,23 @@ ${lines2.join("\n")}`;
   }
 
   // src/app/core/legacy-a/outside-clicks.ts
+  var outside_clicks_exports = {};
+  __export(outside_clicks_exports, {
+    listenToHelpButtons: () => listenToHelpButtons,
+    listenToOutsideClicks: () => listenToOutsideClicks,
+    registerPopoverSource: () => registerPopoverSource,
+    watchListsAndHelp: () => watchListsAndHelp
+  });
   var OBSERVE_WAIT_MS = 40;
   var POPOVER_GAP = 8;
   var POPOVER_MARGIN = 10;
   var TOOL_BUTTONS = "#dirtools, #segtools, #antools, .htbtn";
+  var CLOSE_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  var sources = [];
+  function registerPopoverSource(source) {
+    if (!sources.some((item) => item.selector === source.selector)) sources.push(source);
+  }
+  var openers = () => [".ai", ...sources.map((source) => source.selector)].join(", ");
   var pressedOn = null;
   var swallowClick = false;
   var observeTimer;
@@ -25045,7 +25089,7 @@ ${lines2.join("\n")}`;
       swallowClick = true;
     }
     const popover = document.querySelector(".aipop");
-    if (popover && !popover.contains(target) && !target.closest(".ai")) popover.remove();
+    if (popover && !popover.contains(target) && !target.closest(openers())) popover.remove();
   }
   function listenToOutsideClicks() {
     document.addEventListener("click", (event) => {
@@ -25080,7 +25124,7 @@ ${lines2.join("\n")}`;
       }, OBSERVE_WAIT_MS);
     }).observe(document.body, { childList: true, subtree: true });
   }
-  function popoverContent(button3) {
+  function helpContent(button3) {
     if (button3.dataset.ayuda) {
       const [title2, text2, items] = outsideClicksLegacy.help(button3.dataset.ayuda) ?? [t("legacyA.help.fallbackTitle"), "", []];
       return `<b>${escapeHtml(title2)}</b>${escapeHtml(text2)}${items.length ? `<ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul>` : ""}`;
@@ -25095,9 +25139,30 @@ ${lines2.join("\n")}`;
     popover.style.left = `${left}px`;
     popover.style.top = `${top}px`;
   }
+  function closeWithX(event) {
+    const close3 = event.target.closest(".aipopx");
+    if (!close3) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    const popover = close3.closest(".aipop"), opener = popover?.__de;
+    popover?.remove();
+    if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
+    return true;
+  }
+  function openPopover2(button3) {
+    const source = button3.matches(".ai") ? null : sources.find((item) => button3.matches(item.selector));
+    const popover = document.createElement("div");
+    popover.className = "aipop";
+    popover.__de = button3;
+    if (source && !source.manualLink) popover.dataset.noManual = "";
+    popover.innerHTML = `${source ? source.content(button3) : helpContent(button3)}<button type="button" class="aipopx" aria-label="${escapeHtml(t("legacyA.help.close"))}">${CLOSE_ICON}</button>`;
+    (button3.closest("dialog[open]:not(.encajada)") ?? document.body).appendChild(popover);
+    place2(popover, button3);
+  }
   function listenToHelpButtons() {
     document.addEventListener("click", (event) => {
-      const button3 = event.target.closest(".ai");
+      if (closeWithX(event)) return;
+      const button3 = event.target.closest(openers());
       if (!button3) return;
       event.preventDefault();
       event.stopPropagation();
@@ -25107,12 +25172,7 @@ ${lines2.join("\n")}`;
         previous.remove();
         if (same) return;
       }
-      const popover = document.createElement("div");
-      popover.className = "aipop";
-      popover.__de = button3;
-      popover.innerHTML = popoverContent(button3);
-      (button3.closest("dialog[open]:not(.encajada)") ?? document.body).appendChild(popover);
-      place2(popover, button3);
+      openPopover2(button3);
     }, true);
   }
 
@@ -34538,12 +34598,17 @@ ${lines2.join("\n")}`;
     listGlueLegacy.setOrderCard((row3) => {
       const order = listGlueLegacy.orders().find((item) => item.id === row3.dataset.ped);
       if (!order) return { a: "", b: "", c: "" };
-      return orderCard(order);
+      return { ...orderCard(order), ...cardIcons(order, row3) };
     });
   }
   var firstOf = (...values2) => values2.find((value10) => Boolean(value10));
   var orNull3 = (value10) => value10 ? value10 : null;
   var keysOf = (value10) => value10 && typeof value10 === "object" ? Object.keys(value10).length : 0;
+  function cardIcons(order, row3) {
+    if (!firstOf(order.contacto, order.centro, order.cuenta_texto) || !order.medico) return {};
+    const icons = [...row3.querySelectorAll(":scope > :not(.plcard) [data-plcico]")].map((icon3) => icon3.outerHTML).join("");
+    return icons ? { icons } : {};
+  }
   function orderCard(order) {
     const customer = firstOf(order.contacto, order.centro, order.cuenta_texto) ?? "", who2 = firstOf(customer, order.medico) ?? t("legacyD.lists.noCustomer");
     const units = order.unidades ?? 0;
@@ -34706,7 +34771,7 @@ ${lines2.join("\n")}`;
         navigationGlueLegacy.openManual(anchor);
       };
     }
-    if (navigationGlueLegacy.isProfessionalPortal()) popup.querySelectorAll(".aiman").forEach((item) => {
+    if (navigationGlueLegacy.isProfessionalPortal() || popup.hasAttribute("data-no-manual")) popup.querySelectorAll(".aiman").forEach((item) => {
       item.remove();
     });
   }
@@ -40635,6 +40700,8 @@ ${lines2.join("\n")}`;
     "components/list/row": row_exports,
     "components/loading": loading_exports,
     "core/catalog-roles": catalog_roles_exports,
+    "core/errors": errors_exports,
+    "core/legacy-a/outside-clicks": outside_clicks_exports,
     "core/mobile/gate": gate_exports,
     "core/navigation/current": current_exports,
     "core/no-reports": no_reports_exports,

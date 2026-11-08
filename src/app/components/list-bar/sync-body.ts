@@ -61,7 +61,10 @@ function cards(section: HTMLElement, config: ListConfig): void {
   const card = config.card; if (!card) return;
   section.querySelectorAll<HTMLElement>('.dgrid > .dr:not([data-plc])').forEach(row => {
     row.dataset.plc = '1'; const item = card(row);
-    row.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${escapeHtml(item.a)}</b><span class="plc2">${escapeHtml(item.b)}</span><span class="plc3">${item.c}</span>${item.d ? `<span class="plc4">${escapeHtml(item.d)}</span>` : ''}</span>`);
+    // v2.474.0 (D-051): the icons of the card (the portal of a professional) go after its last line of text, always in sight
+    const line = (kind: string, text: string, last: boolean): string => (last && item.icons
+      ? `<span class="${kind} conico"><span class="conicot">${escapeHtml(text)}</span>${item.icons}</span>` : `<span class="${kind}">${escapeHtml(text)}</span>`);
+    row.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${escapeHtml(item.a)}</b>${line('plc2', item.b, !item.d)}<span class="plc3">${item.c}</span>${item.d ? line('plc4', item.d, true) : ''}</span>`);
   });
 }
 

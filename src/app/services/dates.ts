@@ -32,6 +32,17 @@ export function fromIsoDate(isoDate: string): Date {
   return new Date(`${isoDate}T12:00:00`);
 }
 
+/** «YYYY-MM-DD» of an instant, with the same «today» rule (the organisation's time zone, or the device's clock). */
+export function isoDateOf(date: Date): string {
+  const zone = dayZone();
+  return zone ? isoDateIn(date, zone) : toIsoDate(date);
+}
+
+/** Whole days from `fromIso` to `toIso` (both «YYYY-MM-DD»): 2026-11-05 → 2026-11-08 is 3. */
+export function daysBetween(fromIso: string, toIso: string): number {
+  return Math.round((fromIsoDate(toIso).getTime() - fromIsoDate(fromIso).getTime()) / 864e5);
+}
+
 /** Monday of the week of `isoDate`. */
 export function mondayOf(isoDate: string): string {
   const date = fromIsoDate(isoDate);

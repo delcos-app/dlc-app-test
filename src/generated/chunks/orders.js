@@ -608,6 +608,7 @@ var customersLegacy = /* @__PURE__ */ pick5("customersLegacy");
 // delcos-shared:src/app/services/date-format.ts
 var shared6 = globalThis["__delcosModules"]["services/date-format"];
 var pick6 = (name) => shared6[name];
+var formatNumericDate = /* @__PURE__ */ pick6("formatNumericDate");
 var formatShortDate = /* @__PURE__ */ pick6("formatShortDate");
 
 // delcos-shared:src/app/services/values.ts
@@ -975,6 +976,65 @@ var pick13 = (name) => shared13[name];
 var defaultVat = /* @__PURE__ */ pick13("defaultVat");
 var marksReportedOrders = /* @__PURE__ */ pick13("marksReportedOrders");
 
+// delcos-shared:src/app/core/errors.ts
+var shared14 = globalThis["__delcosModules"]["core/errors"];
+var pick14 = (name) => shared14[name];
+var registerError = /* @__PURE__ */ pick14("registerError");
+
+// delcos-shared:src/app/core/legacy-a/outside-clicks.ts
+var shared15 = globalThis["__delcosModules"]["core/legacy-a/outside-clicks"];
+var pick15 = (name) => shared15[name];
+var registerPopoverSource = /* @__PURE__ */ pick15("registerPopoverSource");
+
+// delcos-shared:src/app/services/dates.ts
+var shared16 = globalThis["__delcosModules"]["services/dates"];
+var pick16 = (name) => shared16[name];
+var daysBetween = /* @__PURE__ */ pick16("daysBetween");
+var isoDateOf = /* @__PURE__ */ pick16("isoDateOf");
+var todayIso = /* @__PURE__ */ pick16("todayIso");
+
+// src/app/screens/accounts/portal-status.ts
+var RECENT_DAYS = 30;
+var PORTAL_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20H2"/><path d="M11 4.562v16.157a1 1 0 0 0 1.242.97L19 20V5.562a2 2 0 0 0-1.515-1.94l-4-1A2 2 0 0 0 11 4.561z"/><path d="M11 4H8a2 2 0 0 0-2 2v14"/><path d="M14 12h.01"/><path d="M22 20h-3"/></svg>';
+var accessOf = (accountId) => accountColumnsLegacy.accessOf()?.[accountId] ?? null;
+async function loadPortalAccess() {
+  if (accountColumnsLegacy.accessOf()) return;
+  try {
+    await accountColumnsLegacy.loadAccess();
+  } catch (error) {
+    registerError("portal", error, { where: "loadPortalAccess" });
+  }
+}
+function connectionOf(access) {
+  if (!("ultima_conexion" in access)) return { kind: "unknown" };
+  const date = access.ultima_conexion ? new Date(access.ultima_conexion) : null;
+  if (!date || isNaN(date.getTime())) return { kind: "never" };
+  const day = isoDateOf(date), days = Math.max(0, daysBetween(day, todayIso()));
+  return { kind: days <= RECENT_DAYS ? "recent" : "old", day, days };
+}
+var isMuted = (access) => !access.activo || ["old", "never"].includes(connectionOf(access).kind);
+function connectionText(connection) {
+  if (connection.kind === "unknown") return "";
+  if (connection.kind === "never" || !connection.day) return t("accounts.portalStatus.never");
+  const days = connection.days ?? 0;
+  const when2 = days === 0 ? t("accounts.portalStatus.today") : days === 1 ? t("accounts.portalStatus.yesterday") : t("accounts.portalStatus.daysAgo", { days });
+  return t("accounts.portalStatus.lastConnection", { when: when2, date: formatNumericDate(connection.day) });
+}
+var stateText = (access) => t(access.activo ? "accounts.portalStatus.active" : "accounts.portalStatus.disabled");
+function portalBadgeHtml(accountId, name) {
+  const access = accountId ? accessOf(accountId) : null;
+  if (!accountId || !access) return "";
+  const label = t("accounts.portalStatus.label", { name, state: stateText(access).toLowerCase() });
+  return `<button type="button" class="ppico${isMuted(access) ? " ppoff" : ""}" data-portal="${escapeHtml(accountId)}" data-plcico aria-label="${escapeHtml(label)}">${PORTAL_ICON}</button>`;
+}
+function portalBubbleHtml(accountId) {
+  const access = accessOf(accountId);
+  if (!access) return `<b>${t("accounts.portalStatus.title")}</b>`;
+  const connection = connectionText(connectionOf(access));
+  return `<b>${t("accounts.portalStatus.title")}</b><div data-pp="state">${stateText(access)}</div>` + (connection ? `<div data-pp="connection">${escapeHtml(connection)}</div>` : "") + (access.email ? `<div data-pp="email">${escapeHtml(access.email)}</div>` : "");
+}
+registerPopoverSource({ selector: ".ppico", manualLink: false, content: (button) => portalBubbleHtml(button.dataset.portal ?? "") });
+
 // src/app/screens/orders/list.ts
 var PAID2 = "Cobrado";
 var EXTRA_FILTERS = [
@@ -1042,12 +1102,17 @@ function originText(row) {
   if (row.origen === "web") return ` · <span class="pweb">${t("orders.list.webTag")}</span>`;
   return row.origen === "portal" ? ` · <span class="pweb">${t("orders.list.portalTag")}</span>` : "";
 }
+function professionalCell(row) {
+  if (!row.medico) return `<span class="corta"><span class="vac">${t("orders.list.unattributed")}</span></span>`;
+  const badge = portalBadgeHtml(row.cuenta_id, row.medico);
+  return badge ? `<span class="corta conico"><span class="conicot">${escapeHtml(row.medico)}</span>${badge}</span>` : `<span class="corta">${escapeHtml(row.medico)}</span>`;
+}
 function rowCells(row, fields) {
   const amounts2 = permissions.canSeeAmounts(), reference = orFallback(row.factura, row.numero ?? "");
   return `
       <span>${formatShortDate(row.fecha)}${reference ? `<span class="sm">${escapeHtml(reference)}</span>` : ""}</span>
       <span><b>${escapeHtml(orFallback(row.contacto, orFallback(row.centro, orFallback(row.cuenta_texto, "—"))))}</b><span class="sm">${ordersLegacy.channelLabel(row, row.total)}${originText(row)}${row.forma_pago ? ` · ${escapeHtml(row.forma_pago)}` : ""}${row.justificante ? ` · <span title="${t("orders.list.withReceipt")}">📎</span>` : ""}</span></span>
-      <span class="corta">${row.medico ? escapeHtml(row.medico) : `<span class="vac">${t("orders.list.unattributed")}</span>`}</span>
+      ${professionalCell(row)}
       <span>${row.comercial ? escapeHtml(row.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${escapeHtml(row.productos ?? "")}</span><span class="num">${formatNumber(row.unidades)}</span>
       ${amounts2 ? `<span class="num">${euros(row.base)}</span><span class="num"><b>${euros(row.total)}</b></span>` : ""}
@@ -1117,7 +1182,7 @@ async function paintOrderList() {
   const query = params(), loading = document.getElementById("pedlista");
   if (loading?.querySelector(".dgrid")) markReloading(loading);
   else customersLegacy.showLoading(loading, t("orders.list.loading"));
-  const result = await loadPage(query);
+  const [result] = await Promise.all([loadPage(query), loadPortalAccess()]);
   const list = document.getElementById("pedlista");
   if (!list || !document.getElementById("pestado")) return;
   if (!result.data) {
@@ -1132,27 +1197,27 @@ async function paintOrderList() {
 }
 
 // delcos-shared:src/app/components/index.ts
-var shared14 = globalThis["__delcosModules"]["components/index"];
-var pick14 = (name) => shared14[name];
-var glueHelp = /* @__PURE__ */ pick14("glueHelp");
+var shared17 = globalThis["__delcosModules"]["components/index"];
+var pick17 = (name) => shared17[name];
+var glueHelp = /* @__PURE__ */ pick17("glueHelp");
 
 // delcos-shared:src/app/screens/purchases/index.ts
-var shared15 = globalThis["__delcosModules"]["screens/purchases/index"];
-var pick15 = (name) => shared15[name];
-var editSupplier = /* @__PURE__ */ pick15("editSupplier");
-var paintPurchases = /* @__PURE__ */ pick15("paintPurchases");
-var paintSuppliers = /* @__PURE__ */ pick15("paintSuppliers");
+var shared18 = globalThis["__delcosModules"]["screens/purchases/index"];
+var pick18 = (name) => shared18[name];
+var editSupplier = /* @__PURE__ */ pick18("editSupplier");
+var paintPurchases = /* @__PURE__ */ pick18("paintPurchases");
+var paintSuppliers = /* @__PURE__ */ pick18("paintSuppliers");
 
 // delcos-shared:src/app/core/sales-channels.ts
-var shared16 = globalThis["__delcosModules"]["core/sales-channels"];
-var pick16 = (name) => shared16[name];
-var activeChannels = /* @__PURE__ */ pick16("activeChannels");
-var buysAsAccount = /* @__PURE__ */ pick16("buysAsAccount");
-var channelDiscount = /* @__PURE__ */ pick16("channelDiscount");
-var channelFilterOptions = /* @__PURE__ */ pick16("channelFilterOptions");
-var channelOf = /* @__PURE__ */ pick16("channelOf");
-var choosesChannel = /* @__PURE__ */ pick16("choosesChannel");
-var defaultChannel = /* @__PURE__ */ pick16("defaultChannel");
+var shared19 = globalThis["__delcosModules"]["core/sales-channels"];
+var pick19 = (name) => shared19[name];
+var activeChannels = /* @__PURE__ */ pick19("activeChannels");
+var buysAsAccount = /* @__PURE__ */ pick19("buysAsAccount");
+var channelDiscount = /* @__PURE__ */ pick19("channelDiscount");
+var channelFilterOptions = /* @__PURE__ */ pick19("channelFilterOptions");
+var channelOf = /* @__PURE__ */ pick19("channelOf");
+var choosesChannel = /* @__PURE__ */ pick19("choosesChannel");
+var defaultChannel = /* @__PURE__ */ pick19("defaultChannel");
 
 // src/app/screens/orders/page.ts
 var SEARCH_WAIT_MS = 350;
@@ -1302,13 +1367,13 @@ async function loadSales() {
 }
 
 // delcos-shared:src/app/screens/orders/payment-email.ts
-var shared17 = globalThis["__delcosModules"]["screens/orders/payment-email"];
-var pick17 = (name) => shared17[name];
-var askPaymentEmailSent = /* @__PURE__ */ pick17("askPaymentEmailSent");
-var mailtoLink = /* @__PURE__ */ pick17("mailtoLink");
-var paymentSubject = /* @__PURE__ */ pick17("paymentSubject");
-var paymentText = /* @__PURE__ */ pick17("paymentText");
-var sendPaymentDetails = /* @__PURE__ */ pick17("sendPaymentDetails");
+var shared20 = globalThis["__delcosModules"]["screens/orders/payment-email"];
+var pick20 = (name) => shared20[name];
+var askPaymentEmailSent = /* @__PURE__ */ pick20("askPaymentEmailSent");
+var mailtoLink = /* @__PURE__ */ pick20("mailtoLink");
+var paymentSubject = /* @__PURE__ */ pick20("paymentSubject");
+var paymentText = /* @__PURE__ */ pick20("paymentText");
+var sendPaymentDetails = /* @__PURE__ */ pick20("sendPaymentDetails");
 
 // src/app/screens/orders/sheet/bank-transfer.ts
 var PAID_FLAG_MS = 6e4;
@@ -1344,9 +1409,9 @@ function paintBankTransfer(detail) {
 }
 
 // delcos-shared:src/app/components/customer-data.ts
-var shared18 = globalThis["__delcosModules"]["components/customer-data"];
-var pick18 = (name) => shared18[name];
-var customerDataHtml = /* @__PURE__ */ pick18("customerDataHtml");
+var shared21 = globalThis["__delcosModules"]["components/customer-data"];
+var pick21 = (name) => shared21[name];
+var customerDataHtml = /* @__PURE__ */ pick21("customerDataHtml");
 
 // src/app/screens/orders/sheet/non-fiscal.ts
 var value2 = (id) => document.getElementById(id)?.value.trim() ?? "";
@@ -1549,11 +1614,6 @@ async function paintBase2(id) {
   bind2(body, data);
   return data;
 }
-
-// delcos-shared:src/app/services/dates.ts
-var shared19 = globalThis["__delcosModules"]["services/dates"];
-var pick19 = (name) => shared19[name];
-var todayIso = /* @__PURE__ */ pick19("todayIso");
 
 // src/app/screens/orders/sheet/transfer-pdf.ts
 var LEFT = 15;
@@ -1837,10 +1897,10 @@ async function paintEquipment(orderId) {
 }
 
 // delcos-shared:src/app/core/catalog-roles.ts
-var shared20 = globalThis["__delcosModules"]["core/catalog-roles"];
-var pick20 = (name) => shared20[name];
-var isCardTerminal = /* @__PURE__ */ pick20("isCardTerminal");
-var isOnDelivery = /* @__PURE__ */ pick20("isOnDelivery");
+var shared22 = globalThis["__delcosModules"]["core/catalog-roles"];
+var pick22 = (name) => shared22[name];
+var isCardTerminal = /* @__PURE__ */ pick22("isCardTerminal");
+var isOnDelivery = /* @__PURE__ */ pick22("isOnDelivery");
 
 // src/app/screens/orders/sheet/operations.ts
 var MAIL_QUESTION_DELAY_MS = 800;
@@ -2180,9 +2240,9 @@ async function showOrder(id) {
 }
 
 // delcos-shared:src/app/screens/customers/picker.ts
-var shared21 = globalThis["__delcosModules"]["screens/customers/picker"];
-var pick21 = (name) => shared21[name];
-var pickCustomer = /* @__PURE__ */ pick21("pickCustomer");
+var shared23 = globalThis["__delcosModules"]["screens/customers/picker"];
+var pick23 = (name) => shared23[name];
+var pickCustomer = /* @__PURE__ */ pick23("pickCustomer");
 
 // src/app/screens/orders/tpv/after-save.ts
 var CENT = 5e-3;
@@ -2663,9 +2723,9 @@ function editorHtml2(state) {
 }
 
 // delcos-shared:src/app/core/organisation.ts
-var shared22 = globalThis["__delcosModules"]["core/organisation"];
-var pick22 = (name) => shared22[name];
-var generalVat = /* @__PURE__ */ pick22("generalVat");
+var shared24 = globalThis["__delcosModules"]["core/organisation"];
+var pick24 = (name) => shared24[name];
+var generalVat = /* @__PURE__ */ pick24("generalVat");
 
 // src/app/screens/orders/editor/index.ts
 var FULL_DISCOUNT2 = 100;
@@ -2913,12 +2973,12 @@ async function editOrder(preset) {
 }
 
 // delcos-shared:src/app/screens/orders/subscription/payments.ts
-var shared23 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
-var pick23 = (name) => shared23[name];
-var callPayments = /* @__PURE__ */ pick23("callPayments");
-var loadPaymentState = /* @__PURE__ */ pick23("loadPaymentState");
-var repaintPlanScreen = /* @__PURE__ */ pick23("repaintPlanScreen");
-var waitUntilActive = /* @__PURE__ */ pick23("waitUntilActive");
+var shared25 = globalThis["__delcosModules"]["screens/orders/subscription/payments"];
+var pick25 = (name) => shared25[name];
+var callPayments = /* @__PURE__ */ pick25("callPayments");
+var loadPaymentState = /* @__PURE__ */ pick25("loadPaymentState");
+var repaintPlanScreen = /* @__PURE__ */ pick25("repaintPlanScreen");
+var waitUntilActive = /* @__PURE__ */ pick25("waitUntilActive");
 
 // src/app/screens/orders/subscription/choose-plan.ts
 var MIN_USERS = 3;

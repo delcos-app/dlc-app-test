@@ -58,12 +58,13 @@ function moreActions(options: GridOptions): [string, string][] {
     .concat(extra.filter(([id]) => document.getElementById(id)));
 }
 
-/** Mobile card: the first cell, the next two with text and the state pill (if any) on the right. */
+/** Mobile card: the first cell, the next two with text and the state pill (if any) on the right; their marked icons go with them. */
 function gridCard(row: HTMLElement): RowCard {
   const cells = dataCells(row);
   const state = cells.find(cell => cell.querySelector('.pill, .est, .cirest, [class*="estado"]'));
-  const rest = cells.slice(1).filter(cell => cell !== state).map(textOf).filter(text => text && text !== '—').slice(0, 2);
-  return { a: textOf(cells[0]), b: rest.join(' · '), c: state ? state.innerHTML : '' };
+  const rest = cells.slice(1).filter(cell => cell !== state).filter(cell => { const text = textOf(cell); return text && text !== '—'; }).slice(0, 2);
+  const icons = rest.flatMap(cell => [...cell.querySelectorAll('[data-plcico]')].map(icon => icon.outerHTML)).join('');
+  return { a: textOf(cells[0]), b: rest.map(textOf).join(' · '), c: state ? state.innerHTML : '', ...(icons ? { icons } : {}) };
 }
 
 export const gridConfig = (options: GridOptions): ListConfig => Object.assign({

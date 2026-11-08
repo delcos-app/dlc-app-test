@@ -49,7 +49,7 @@ export function installOrderCards(): void {
   legacy.setOrderCard(row => {
     const order = legacy.orders().find(item => item.id === row.dataset.ped);
     if (!order) return { a: '', b: '', c: '' };
-    return orderCard(order);
+    return { ...orderCard(order), ...cardIcons(order, row) };
   });
 }
 
@@ -59,6 +59,16 @@ const firstOf = (...values: (string | null | undefined)[]): string | undefined =
 const orNull = (value: unknown): unknown => (value ? value : null);
 /** How many custom field filters there are (none if there is no object). */
 const keysOf = (value: unknown): number => (value && typeof value === 'object' ? Object.keys(value).length : 0);
+
+/**
+ * v2.474.0 (D-051): the marked icons of the row's cells (the portal of the professional) for the card's last line, which the
+ * professional closes when the customer is the title.
+ */
+function cardIcons(order: LegacyOrderRow, row: HTMLElement): { icons?: string } {
+  if (!firstOf(order.contacto, order.centro, order.cuenta_texto) || !order.medico) return {};
+  const icons = [...row.querySelectorAll(':scope > :not(.plcard) [data-plcico]')].map(icon => icon.outerHTML).join('');
+  return icons ? { icons } : {};
+}
 
 function orderCard(order: LegacyOrderRow): { a: string; b: string; c: string; d: string } {
   const customer = firstOf(order.contacto, order.centro, order.cuenta_texto) ?? '', who = firstOf(customer, order.medico) ?? t('legacyD.lists.noCustomer');

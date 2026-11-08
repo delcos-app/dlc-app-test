@@ -14,6 +14,8 @@ import * as componentsListBarIndex from '../../components/list-bar/index';
 import * as componentsListRow from '../../components/list/row';
 import * as componentsLoading from '../../components/loading';
 import * as coreCatalogRoles from '../../core/catalog-roles';
+import * as coreErrors from '../../core/errors';
+import * as coreLegacyAOutsideClicks from '../../core/legacy-a/outside-clicks';
 import * as coreMobileGate from '../../core/mobile/gate';
 import * as coreNavigationCurrent from '../../core/navigation/current';
 import * as coreNoReports from '../../core/no-reports';
@@ -108,6 +110,8 @@ export const sharedModules = (): Record<string, object> => ({
   'components/list/row': componentsListRow,
   'components/loading': componentsLoading,
   'core/catalog-roles': coreCatalogRoles,
+  'core/errors': coreErrors,
+  'core/legacy-a/outside-clicks': coreLegacyAOutsideClicks,
   'core/mobile/gate': coreMobileGate,
   'core/navigation/current': coreNavigationCurrent,
   'core/no-reports': coreNoReports,

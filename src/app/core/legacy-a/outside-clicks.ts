@@ -9,6 +9,21 @@ import { orFallback } from '../../services/values';
 
 const OBSERVE_WAIT_MS = 40, POPOVER_GAP = 8, POPOVER_MARGIN = 10;
 const TOOL_BUTTONS = '#dirtools, #segtools, #antools, .htbtn';
+const CLOSE_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+
+/**
+ * Other buttons that open the same popover with their own content (v2.474.0, D-051: the portal of a professional in Pedidos). Each
+ * one says its selector, what the popover shows and whether it ends with the «Ver en el manual» link of the help.
+ */
+interface PopoverSource { readonly selector: string; readonly content: (button: HTMLElement) => string; readonly manualLink: boolean }
+const sources: PopoverSource[] = [];
+
+/** Registers a kind of button that opens the «i» popover (same bubble, place and closing) with its own content. */
+export function registerPopoverSource(source: PopoverSource): void {
+  if (!sources.some(item => item.selector === source.selector)) sources.push(source);
+}
+
+const openers = (): string => ['.ai', ...sources.map(source => source.selector)].join(', ');
 
 let pressedOn: EventTarget | null = null, swallowClick = false, observeTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -22,7 +37,7 @@ function pointerDown(event: PointerEvent): void {
     swallowClick = true;   // the click that closes the panel does not activate what is under it
   }
   const popover = document.querySelector('.aipop');
-  if (popover && !popover.contains(target) && !target.closest('.ai')) popover.remove();
+  if (popover && !popover.contains(target) && !target.closest(openers())) popover.remove();
 }
 
 /** Registers the outside clicks: it only closes if the click starts and ends outside (so selecting text does not close). */
@@ -55,7 +70,7 @@ export function watchListsAndHelp(): void {
   }).observe(document.body, { childList: true, subtree: true });
 }
 
-function popoverContent(button: HTMLElement): string {
+function helpContent(button: HTMLElement): string {
   if (button.dataset.ayuda) {
     const [title, text, items] = outsideClicksLegacy.help(button.dataset.ayuda) ?? [t('legacyA.help.fallbackTitle'), '', []];
     return `<b>${escapeHtml(title)}</b>${escapeHtml(text)}${items.length ? `<ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>` : ''}`;
@@ -71,19 +86,39 @@ function place(popover: HTMLElement, button: HTMLElement): void {
   popover.style.left = `${left}px`; popover.style.top = `${top}px`;
 }
 
-/** The «i» buttons open their explanation; pressing the same one again closes it. */
+type Popover = HTMLDivElement & { __de?: Element };
+
+/** v2.474.0 (D-051): the popover closes with its ✕ too (and the focus goes back to the button that opened it). */
+function closeWithX(event: Event): boolean {
+  const close = (event.target as Element).closest('.aipopx');
+  if (!close) return false;
+  event.preventDefault(); event.stopPropagation();
+  const popover = close.closest<Popover>('.aipop'), opener = popover?.__de;
+  popover?.remove();
+  if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
+  return true;
+}
+
+function openPopover(button: HTMLElement): void {
+  const source = button.matches('.ai') ? null : sources.find(item => button.matches(item.selector));
+  const popover = document.createElement('div') as Popover;
+  popover.className = 'aipop'; popover.__de = button;
+  if (source && !source.manualLink) popover.dataset.noManual = '';
+  popover.innerHTML = `${source ? source.content(button) : helpContent(button)}<button type="button" class="aipopx" aria-label="${escapeHtml(t('legacyA.help.close'))}">${CLOSE_ICON}</button>`;
+  // v2.464.0: inside a window that covers the screen (the phone), the explanation goes in it: on <body> it would stay behind
+  (button.closest('dialog[open]:not(.encajada)') ?? document.body).appendChild(popover);
+  place(popover, button);
+}
+
+/** The «i» buttons (and the registered ones) open their explanation; pressing the same one again, its ✕ or outside closes it. */
 export function listenToHelpButtons(): void {
   document.addEventListener('click', event => {
-    const button = (event.target as Element).closest<HTMLElement>('.ai');
+    if (closeWithX(event)) return;
+    const button = (event.target as Element).closest<HTMLElement>(openers());
     if (!button) return;
     event.preventDefault(); event.stopPropagation();
-    const previous = document.querySelector<HTMLElement & { __de?: Element }>('.aipop');
+    const previous = document.querySelector<Popover>('.aipop');
     if (previous) { const same = previous.__de === button; previous.remove(); if (same) return; }
-    const popover = document.createElement('div') as HTMLDivElement & { __de?: Element };
-    popover.className = 'aipop'; popover.__de = button;
-    popover.innerHTML = popoverContent(button);
-    // v2.464.0: inside a window that covers the screen (the phone), the explanation goes in it: on <body> it would stay behind
-    (button.closest('dialog[open]:not(.encajada)') ?? document.body).appendChild(popover);
-    place(popover, button);
+    openPopover(button);
   }, true);
 }

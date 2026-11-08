@@ -15,10 +15,11 @@ import { markReloading } from '../../components/list-bar';
 import { openableRowHtml } from '../../components/list/row';
 import { orderLabel, publishOrders, type ListedOrder } from './list-selection';
 import { marksReportedOrders } from '../../core/rules';
+import { loadPortalAccess, portalBadgeHtml } from '../accounts/portal-status';
 
 interface OrderRow {
   id: string; fecha: string; estado: string; numero?: string | null; factura?: string | null; contacto?: string | null; centro?: string | null; cuenta_texto?: string | null;
-  origen?: string | null; forma_pago?: string | null; justificante?: boolean | null; medico?: string | null; comercial?: string | null; productos?: string | null;
+  origen?: string | null; forma_pago?: string | null; justificante?: boolean | null; medico?: string | null; cuenta_id?: string | null; comercial?: string | null; productos?: string | null;
   unidades: number; base?: number | null; total?: number | null; nota?: string | null; sin_cargo?: boolean | null; pago_estado?: string | null; paquete_en?: string | null;
   email_factura_en?: string | null; clasificadores?: Record<string, unknown> | null; paso?: string | null;
 }
@@ -99,12 +100,19 @@ function originText(row: OrderRow): string {
   return row.origen === 'portal' ? ` · <span class="pweb">${t('orders.list.portalTag')}</span>` : '';
 }
 
+/** The professional, with the portal icon next to the name when they have a portal (v2.474.0, D-051; cuenta_id since SQL 197). */
+function professionalCell(row: OrderRow): string {
+  if (!row.medico) return `<span class="corta"><span class="vac">${t('orders.list.unattributed')}</span></span>`;
+  const badge = portalBadgeHtml(row.cuenta_id, row.medico);
+  return badge ? `<span class="corta conico"><span class="conicot">${escapeHtml(row.medico)}</span>${badge}</span>` : `<span class="corta">${escapeHtml(row.medico)}</span>`;
+}
+
 function rowCells(row: OrderRow, fields: readonly CustomField[]): string {
   const amounts = permissions.canSeeAmounts(), reference = orFallback(row.factura, row.numero ?? '');
   return `
       <span>${formatShortDate(row.fecha)}${reference ? `<span class="sm">${escapeHtml(reference)}</span>` : ''}</span>
       <span><b>${escapeHtml(orFallback(row.contacto, orFallback(row.centro, orFallback(row.cuenta_texto, '—'))))}</b><span class="sm">${ordersLegacy.channelLabel(row, row.total)}${originText(row)}${row.forma_pago ? ` · ${escapeHtml(row.forma_pago)}` : ''}${row.justificante ? ` · <span title="${t('orders.list.withReceipt')}">📎</span>` : ''}</span></span>
-      <span class="corta">${row.medico ? escapeHtml(row.medico) : `<span class="vac">${t('orders.list.unattributed')}</span>`}</span>
+      ${professionalCell(row)}
       <span>${row.comercial ? escapeHtml(row.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${escapeHtml(row.productos ?? '')}</span><span class="num">${formatNumber(row.unidades)}</span>
       ${amounts ? `<span class="num">${euros(row.base)}</span><span class="num"><b>${euros(row.total)}</b></span>` : ''}
@@ -176,7 +184,8 @@ export async function paintOrderList(): Promise<void> {
   // v2.468.0 (D-047): with rows, they stay dimmed while the new page comes (before, nothing said that it was searching)
   if (loading?.querySelector('.dgrid')) markReloading(loading);
   else customersLegacy.showLoading(loading, t('orders.list.loading'));
-  const result = await loadPage(query);
+  // v2.474.0 (D-051): who has a portal arrives with the page, so the icons are painted with the table (once per session)
+  const [result] = await Promise.all([loadPage(query), loadPortalAccess()]);
   const list = document.getElementById('pedlista');
   if (!list || !document.getElementById('pestado')) return;
   if (!result.data) {

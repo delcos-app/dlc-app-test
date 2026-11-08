@@ -87,5 +87,6 @@ export function summariseHelp(popup: HTMLElement & { __de?: HTMLElement }): void
     link.innerHTML = `${t('legacyD.navigation.seeInManual')} <span aria-hidden="true">›</span>`;
     link.onclick = (event): void => { event.preventDefault(); event.stopPropagation(); popup.remove(); legacy.openManual(anchor); };
   }
-  if (legacy.isProfessionalPortal()) popup.querySelectorAll('.aiman').forEach(item => { item.remove(); });
+  // v2.474.0 (D-051): a popover that is not a help (the portal of a professional) has no manual link either
+  if (legacy.isProfessionalPortal() || popup.hasAttribute('data-no-manual')) popup.querySelectorAll('.aiman').forEach(item => { item.remove(); });
 }
